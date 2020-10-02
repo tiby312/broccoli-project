@@ -1,17 +1,20 @@
-//! # Overview
-//!
 //! Broccoli is a broadphase collision detection library. 
 //! The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 //! Uses `no_std`, but uses the `alloc` crate.
 //! Please see the [broccoli-book](https://broccoli-book.netlify.com) which is a work in-progress high level explanation and analysis
 //! of this crate.
 //!
-//! ## Screenshot
+//! ### Name
+
+//! If you shorten "broadphase collision" to "broad colli" and say it fast, it sounds like broccoli.
+//! Broccoli also have tree like properties and broccoli uses a tree data structure.
+//!
+//! ### Screenshot
 //!
 //! Screenshot from the broccoli_demo inner project from the [github repo of this crate](https://github.com/tiby312/broccoli).
 //! ![](https://raw.githubusercontent.com/tiby312/broccoli/master/assets/screenshot.gif)
 //!
-//! ## Data Structure
+//! ### Data Structure
 //!
 //! Using this crate, the user can create three flavors of the same fundamental data structure.
 //! The different characteristics are exlored more in depth in the book mentioned in the overview section.
@@ -20,23 +23,14 @@
 //! + `(Rect<N>,T)`
 //! + `&mut (Rect<N>,T)`
 //!
-//! ## DinoTreeOwned
-//!
-//! A verion of the tree where the tree owns the elements in side of it.
-//! The user is encouraged to use the lifetimed version, though, as that does not use unsafe{}.
-//! But this might mean that the user has to re-construct the tree more often than it needs to be.
-//! It is composed internally of the equivalent to `(Rect<N>,&mut T)`, the most well-rounded data layout as
-//! described above.
-//!
-//! ## User Protection
+//! ### User Protection
 //!
 //! A lot is done to forbid the user from violating the invariants of the tree once constructed
-//! while still allowing them to mutate elements of the tree. The user can mutably traverse down the tree
-//! with a `VistrMut` and `ElemSliceMut`, but the elements that are returned have already been destructured in such a way
-//! that the user only has read-only access to the `Rect<N>`, even if they do have write access to the inner `T`.
+//! while still allowing them to mutate parts of each element of the tree. The user can mutably traverse
+//! the tree but the mutable references returns are hidden behind the PMut<T> type that forbids
+//! mutating the whole element.
 //!
-//!
-//! ## Usage Guidlines
+//! ### Usage Guidlines
 //!
 //! The AABB struct that the user must use is from the [axgeom](https://crates.io/crates/axgeom) crate.
 //!
@@ -48,8 +42,11 @@
 //! That said, an aabb is composed of half-open ranges [start,end). So one could simulate a "point",
 //! by putting in a very small epsilon value to ensure that end>start.
 //!
-//! ## Unsafety
-//!
+//! ### Unsafety
+//! 
+//! Raw pointers are used for the container types in the container module
+//! and for caching the results of finding colliding pairs. 
+//! 
 //! `MultiRectMut` uses unsafety to allow the user to have mutable references to elements
 //! that belong to rectangle regions that don't intersect at the same time. This is why
 //! the Aabb trait is unsafe.

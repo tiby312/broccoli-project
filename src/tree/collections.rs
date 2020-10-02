@@ -3,23 +3,54 @@
 //! For most usecases, using broccoli::Tree is enough. But in certain cases
 //! we want more control. The container trees in this module are for this purpose.
 //!
-//! For example, with the regular broccoli::Tree, is lifetimed, so
+//! For example, with the regular `broccoli::Tree`, is lifetimed, so
 //! it can't act as a container. You  also can't do the the following.
 //!
 //! ```rust,compile_fail
 //! use axgeom::*;
 //! use broccoli::prelude::*;
-//! let mut k=[bbox(rect(0,10,0,10),())];
-//! let b=broccoli::new(&mut k);
+//! let mut k=[bbox(rect(0,10,0,10),8)];
+//! let mut b=broccoli::new(&mut k);
 //! b.find_intersections_mut(|a,b|{});
-//! k[0]=bbox(rect(20,40,20,40),());    //<---cannot re-borrow
+//! k[0].inner=4;    //<---cannot re-borrow
 //! b.find_intersections_mut(|a,b|{});
 //! ```
-//! This is because broccoli::Tree constructs itself by splitting up the 
+//! This is because `broccoli::Tree` constructs itself by splitting up the 
 //! passed mutable slice to the point where the original mutable slice
 //! can't be retrieved.
 //! 
+//! If we use `TreeRef`, we can do the above like this:
+//! ```rust
+//! use axgeom::*;
+//! use broccoli::prelude::*;
+//! let mut k=[bbox(rect(0,10,0,10),8)];
+//! let mut b=broccoli::collections::TreeRef::new(&mut k);
+//! b.find_intersections_mut(|a,b|{});
+//! *b.get_elements_mut().get_index_mut(0).inner_mut()=5;
+//! b.find_intersections_mut(|a,b|{});
+//! ```
 //!
+//! This is good and all, but having to work around the PMut<T> pointer
+//! that protect the invariants of the tree is cumbersome. To get around that
+//! we can use `TreeRefInd` which adds a layer of indirection. Unintuitively,
+//! This version that adds a layer of indirection is typically faster.
+//! Check the crate's book for more analysis. This does have some drawbacks
+//! in the sense that the bounding boxes must be constructed or copied each
+//! time the tree is created, though.
+//!
+//!
+//! ```rust
+//! use axgeom::*;
+//! use broccoli::prelude::*;
+//! let mut k=[0];
+//! let mut b=broccoli::collections::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
+//! b.find_intersections_mut(|a,b|{});
+//! b.get_elements_mut()[0]=5;
+//! b.find_intersections_mut(|a,b|{});
+//! ```
+//!
+//! `TreeRef` and `TreeRefInd` are both lifetimed. If you want to store the tree
+//! inside an object there are `TreeOwned` and `TreeOwnedInd` equivalents. 
 //!
 //! ## An owned `(Rect<N>,T)` example
 //!
@@ -116,6 +147,14 @@ impl<'a,A:Axis,N:Num+'a,T> core::ops::Deref for TreeRefInd<'a,A,N,T>{
         unsafe{&*(self.inner.as_tree() as *const _ as *const _)}
     }
 }
+impl<'a,A:Axis,N:Num+'a,T> core::ops::DerefMut for TreeRefInd<'a,A,N,T>{
+    
+    fn deref_mut(&mut self)->&mut Self::Target{
+        //TODO do these in one place
+        unsafe{&mut *(self.inner.as_tree_mut() as *mut _ as *mut _)}
+    }
+}
+
 pub struct TreeRef<'a,A:Axis,T:Aabb>{
     inner:TreeInner<A,NodePtr<T>>,
     orig:*mut [T],

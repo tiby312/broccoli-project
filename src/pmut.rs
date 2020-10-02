@@ -124,7 +124,13 @@ impl<'a, T: HasInner> PMut<'a, T> {
         self.inner.get_inner_mut().1
     }
 }
+
+
 impl<'a, T> PMut<'a, [T]> {
+    #[inline(always)]
+    pub fn get_index_mut(&mut self,ind:usize)->PMut<T>{
+        PMut::new(&mut self.inner[ind])
+    }
     #[inline(always)]
     pub fn len(&self) -> usize {
         self.inner.len()
