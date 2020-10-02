@@ -1,0 +1,20 @@
+[package]
+name = "broccoli_demo"
+version = "0.1.0"
+authors = ["Ken Reed <kenakioreed@gmail.com>"]
+edition = "2018"
+publish = false
+
+[dependencies]
+#dists= "0.4"
+duckduckgeo ={git="https://github.com/tiby312/duckduckgeo"}
+bit-vec = "0.6"
+num_cpus = "1.10"
+rayon = "1.2"
+axgeom="1.6"
+compt = "1.6"
+egaku2d = "0.5"
+
+[dependencies.broccoli]
+path = ".."
+
