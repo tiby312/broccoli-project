@@ -60,9 +60,9 @@ extern crate is_sorted;
 extern crate pdqselect;
 
 ///axgeom crate is re-exported for easy access to the `Rect<T>` type which is what a `BBox` is composed of.
-pub extern crate axgeom;
+extern crate axgeom;
 
-//TPDO get rid of
+//TODO get rid of
 mod inner_prelude {
     pub(crate) use super::*;
     pub(crate) use crate::tree;
@@ -136,6 +136,19 @@ pub unsafe trait Aabb {
     fn get_rect(&self) -> &Rec<Self::Num>;
 }
 
+
+///The layout of this struct is very important to
+///exploit the broccoli data structure.
+///
+///Its important that the rect be represented as
+///a start and a end instead of a start and a length
+///so that no calculations needs to be done in the query stage.
+///
+///It is also important that the struct is able to be split
+///into a x component and a y component. So the x components
+///need to be adjacent in memory and the same for the y 
+///components.
+#[repr(C)]
 #[derive(Copy,Clone,Debug)]
 pub struct Rec<T>{
     pub xstart:T,
