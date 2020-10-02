@@ -107,7 +107,7 @@ pub mod prelude{
     pub use axgeom::rect;
     pub use axgeom::Rect;
     pub use crate::Num;
-    pub use crate::AabbFront;
+    pub use crate::Aabb;
     pub use crate::HasInner;
     pub use crate::query::Queries;
     pub use crate::query::QueriesInner;
@@ -131,7 +131,7 @@ impl<T> Num for T where T: Ord + Copy + Send + Sync {}
 ///return different aabbs.
 ///This is unsafe since we allow query algorithms to assume the following:
 ///If two object's aabb's don't intersect, then they can be mutated at the same time.
-pub unsafe trait AabbFront {
+pub unsafe trait Aabb {
     type Num: Num;
     fn get_rect(&self) -> &Rec<Self::Num>;
 }
@@ -144,7 +144,7 @@ pub struct Rec<T>{
     pub yend:T
 }
 
-unsafe impl<N: Num> AabbFront for Rec<N> {
+unsafe impl<N: Num> Aabb for Rec<N> {
     type Num = N;
     fn get_rect(&self) -> &Rec<Self::Num> {
         self
@@ -152,12 +152,12 @@ unsafe impl<N: Num> AabbFront for Rec<N> {
 }
 
 
-pub trait Aabb:AabbFront{
+pub(crate) trait AabbInner:Aabb{
     fn get(&self)->&Rect<Self::Num>{
         unimplemented!();
     }
 }
-impl<T:AabbFront> Aabb for T{}
+impl<T:Aabb> AabbInner for T{}
 
 
 

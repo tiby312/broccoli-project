@@ -45,7 +45,7 @@ pub type RayCastResult<'a, T, N> = axgeom::CastResult<(Vec<&'a mut T>, N)>;
 ///By containing all these functions in this trait, we can keep the trait bounds of the underlying Num to a minimum
 ///of only needing Ord.
 pub trait RayCast {
-    type T: AabbFront<Num = Self::N>;
+    type T: Aabb<Num = Self::N>;
     type N: Num;
 
     ///Returns true if the ray intersects with this rectangle.
@@ -85,7 +85,7 @@ impl<
         A,
         B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
         C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
-        T: AabbFront,
+        T: Aabb,
     > RayCast for RayCastClosure<'_, A, B, C, T>
 {
     type T = T;
@@ -117,10 +117,10 @@ fn make_rect_from_range<A: Axis, N: Num>(axis: A, range: &Range<N>, rect: &Rect<
     }
 }
 
-struct Closest<'a, T: AabbFront> {
+struct Closest<'a, T: Aabb> {
     closest: Option<(Vec<PMut<'a, T>>, T::Num)>,
 }
-impl<'a, T: AabbFront> Closest<'a, T> {
+impl<'a, T: Aabb> Closest<'a, T> {
     fn consider<R: RayCast<N = T::Num, T = T>>(
         &mut self,
         ray: &Ray<T::Num>,
@@ -280,7 +280,7 @@ pub use self::mutable::raycast_naive_mut;
 mod mutable {
     use super::*;
 
-    pub fn raycast_naive_mut<'a, T: AabbFront>(
+    pub fn raycast_naive_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         ray: Ray<T::Num>,
         rtrait: &mut impl RayCast<N = T::Num, T = T>,

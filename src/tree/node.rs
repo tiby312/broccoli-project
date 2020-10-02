@@ -84,13 +84,13 @@ pub use vistr_mut::VistrMut;
 ///Expose a node trait api to hide the lifetime of NodeMut.
 ///This way query algorithms do not need to worry about this lifetime.
 pub trait Node {
-    type T: AabbFront<Num = Self::Num>;
+    type T: Aabb<Num = Self::Num>;
     type Num: Num;
     fn get(&self) -> NodeRef<Self::T>;
     fn get_mut(&mut self) -> NodeRefMut<Self::T>;
 }
 
-impl<'a, T: AabbFront> Node for NodeMut<'a, T> {
+impl<'a, T: Aabb> Node for NodeMut<'a, T> {
     type T = T;
     type Num = T::Num;
     fn get(&self) -> NodeRef<Self::T> {
@@ -111,7 +111,7 @@ impl<'a, T: AabbFront> Node for NodeMut<'a, T> {
 }
 
 ///A lifetimed node in a dinotree.
-pub struct NodeMut<'a, T: AabbFront> {
+pub struct NodeMut<'a, T: Aabb> {
     pub(crate) range: PMut<'a, [T]>,
 
     //range is empty iff cont is none.

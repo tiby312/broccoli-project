@@ -158,7 +158,7 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb + HasInner>(
     mut fine: impl FnMut(&mut Acc, &Ray<T::Num>, &T) -> CastResult<T::Num>,
     border: Rect<T::Num>,
 ) where
-    <T as AabbFront>::Num: core::fmt::Debug,
+    <T as Aabb>::Num: core::fmt::Debug,
 {
     let bots = tree.get_elements_mut();
 
