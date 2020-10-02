@@ -87,11 +87,12 @@ impl<'a, T: HasInner> PMut<'a, T> {
     }
 }
 
-unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
+unsafe impl<'a, T: AabbFront> AabbFront for PMut<'a, T> {
     type Num = T::Num;
     #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        self.inner.get()
+    fn get_rect(&self) -> &Rec<Self::Num> {
+        unimplemented!();
+        //self.inner.get()
     }
 }
 

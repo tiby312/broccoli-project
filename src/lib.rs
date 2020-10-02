@@ -104,8 +104,10 @@ pub mod util;
 
 
 pub mod prelude{
+    pub use axgeom::rect;
+    pub use axgeom::Rect;
     pub use crate::Num;
-    pub use crate::Aabb;
+    pub use crate::AabbFront;
     pub use crate::HasInner;
     pub use crate::query::Queries;
     pub use crate::query::QueriesInner;
@@ -129,17 +131,34 @@ impl<T> Num for T where T: Ord + Copy + Send + Sync {}
 ///return different aabbs.
 ///This is unsafe since we allow query algorithms to assume the following:
 ///If two object's aabb's don't intersect, then they can be mutated at the same time.
-pub unsafe trait Aabb {
+pub unsafe trait AabbFront {
     type Num: Num;
-    fn get(&self) -> &Rect<Self::Num>;
+    fn get_rect(&self) -> &Rec<Self::Num>;
 }
 
-unsafe impl<N: Num> Aabb for Rect<N> {
+#[derive(Copy,Clone,Debug)]
+pub struct Rec<T>{
+    pub xstart:T,
+    pub xend:T,
+    pub ystart:T,
+    pub yend:T
+}
+
+unsafe impl<N: Num> AabbFront for Rec<N> {
     type Num = N;
-    fn get(&self) -> &Rect<Self::Num> {
+    fn get_rect(&self) -> &Rec<Self::Num> {
         self
     }
 }
+
+
+pub trait Aabb:AabbFront{
+    fn get(&self)->&Rect<Self::Num>{
+        unimplemented!();
+    }
+}
+impl<T:AabbFront> Aabb for T{}
+
 
 
 ///Trait exposes an api where you can return a read-only reference to the axis-aligned bounding box

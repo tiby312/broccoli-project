@@ -22,7 +22,7 @@
 use crate::query::inner_prelude::*;
 use core::cmp::Ordering;
 
-pub struct KnearestClosure<'a, Acc, B, F, T: Aabb> {
+pub struct KnearestClosure<'a, Acc, B, F, T: AabbFront> {
     pub acc: &'a mut Acc,
     pub broad: B,
     pub fine: F,
@@ -32,7 +32,7 @@ impl<
         Acc,
         B: FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
         F: FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
-        T: Aabb,
+        T: AabbFront,
     > Knearest for KnearestClosure<'_, Acc, B, F, T>
 {
     type T = T;
@@ -48,7 +48,7 @@ impl<
 
 ///The geometric functions that the user must provide.
 pub trait Knearest {
-    type T: Aabb<Num = Self::N>;
+    type T: AabbFront<Num = Self::N>;
     type N: Num;
 
     fn distance_to_rect(&mut self, point: Vec2<Self::N>, rect: &Rect<Self::N>) -> Self::N;
@@ -366,7 +366,7 @@ pub use self::mutable::k_nearest_naive_mut;
 mod mutable {
     use super::*;
 
-    pub fn k_nearest_naive_mut<'a, K: Knearest<T = T, N = T::Num>, T: Aabb + HasInner>(
+    pub fn k_nearest_naive_mut<'a, K: Knearest<T = T, N = T::Num>, T: AabbFront + HasInner>(
         bots: PMut<'a, [T]>,
         point: Vec2<K::N>,
         num: usize,

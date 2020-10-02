@@ -5,20 +5,20 @@ use crate::query::inner_prelude::*;
 use super::super::tools;
 
 
-pub struct DestructuredNode<'a, T: Aabb, AnchorAxis: Axis> {
+pub(crate) struct DestructuredNode<'a, T: Aabb, AnchorAxis: Axis> {
     pub div: &'a T::Num,
     pub range: PMut<'a, [T]>,
     pub cont: &'a axgeom::Range<T::Num>,
     pub axis: AnchorAxis,
 }
 
-pub struct DestructuredNodeLeaf<'a, T: Aabb, A: Axis> {
+pub(crate) struct DestructuredNodeLeaf<'a, T: Aabb, A: Axis> {
     pub range: PMut<'a, [T]>,
     pub cont: &'a axgeom::Range<T::Num>,
     pub axis: A,
 }
 
-pub trait NodeHandler {
+pub(crate) trait NodeHandler {
     type T: Aabb;
 
     fn handle_node(&mut self, axis: impl Axis, bots: PMut<[Self::T]>);
@@ -30,7 +30,7 @@ pub trait NodeHandler {
     );
 }
 
-pub struct HandleNoSorted<K: ColMulti + Splitter> {
+pub(super) struct HandleNoSorted<K: ColMulti + Splitter> {
     pub func: K,
 }
 impl<K: ColMulti + Splitter> HandleNoSorted<K> {
@@ -97,7 +97,7 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
     }
 }
 
-pub struct HandleSorted<K: ColMulti + Splitter> {
+pub(super) struct HandleSorted<K: ColMulti + Splitter> {
     pub sweeper: oned::Sweeper<K::T>,
     pub func: K,
 }

@@ -561,7 +561,7 @@ fn recc<
 
 trait Bok2 {
     type No: Copy;
-    type J: Node<T = Self::T, Num = <Self::T as Aabb>::Num>;
+    type J: Node<T = Self::T, Num = <Self::T as AabbFront>::Num>;
     type T: Aabb;
     type AnchorAxis: Axis;
     fn is_far_enough<A: Axis>(

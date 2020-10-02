@@ -1,7 +1,7 @@
 use crate::inner_prelude::*;
 
 ///Shorthand constructor of `BBox`
-pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
+pub fn bbox<N, T>(rect: Rec<N>, inner: T) -> BBox<N, T> {
     BBox::new(rect, inner)
 }
 
@@ -21,21 +21,21 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct BBox<N, T> {
-    pub rect: axgeom::Rect<N>,
+    pub rect: Rec<N>,
     pub inner: T,
 }
 
 impl<N, T> BBox<N, T> {
     #[inline(always)]
-    pub fn new(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
+    pub fn new(rect: Rec<N>, inner: T) -> BBox<N, T> {
         BBox { rect, inner }
     }
 }
 
-unsafe impl<N: Num, T> Aabb for &mut BBox<N, T> {
+unsafe impl<N: Num, T> AabbFront for &mut BBox<N, T> {
     type Num = N;
     #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
+    fn get_rect(&self) -> &Rec<Self::Num> {
         &self.rect
     }
 }
@@ -45,19 +45,19 @@ unsafe impl<N: Num, T> HasInner for &mut BBox<N, T> {
 
     #[inline(always)]
     fn get_inner(&self) -> (&Rect<N>, &Self::Inner) {
-        (&self.rect, &self.inner)
+        (self.rect.get(), &self.inner)
     }
 
     #[inline(always)]
     fn get_inner_mut(&mut self) -> (&Rect<N>, &mut Self::Inner) {
-        (&self.rect, &mut self.inner)
+        (self.rect.get(), &mut self.inner)
     }
 }
 
-unsafe impl<N: Num, T> Aabb for BBox<N, T> {
+unsafe impl<N: Num, T> AabbFront for BBox<N, T> {
     type Num = N;
     #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
+    fn get_rect(&self) -> &Rec<Self::Num> {
         &self.rect
     }
 }
@@ -67,11 +67,11 @@ unsafe impl<N: Num, T> HasInner for BBox<N, T> {
 
     #[inline(always)]
     fn get_inner(&self) -> (&Rect<N>, &Self::Inner) {
-        (&self.rect, &self.inner)
+        (self.rect.get(), &self.inner)
     }
 
     #[inline(always)]
     fn get_inner_mut(&mut self) -> (&Rect<N>, &mut Self::Inner) {
-        (&self.rect, &mut self.inner)
+        (self.rect.get(), &mut self.inner)
     }
 }

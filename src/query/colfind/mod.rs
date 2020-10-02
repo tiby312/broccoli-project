@@ -14,13 +14,13 @@ use super::tools;
 ///The user supplies a struct that implements this trait instead of just a closure
 ///so that the user may also have the struct implement Splitter.
 pub trait ColMulti {
-    type T: Aabb;
+    type T: AabbFront;
 
     fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>);
 }
 
 ///Naive algorithm.
-pub fn query_naive_mut<T: Aabb>(bots: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {
+pub fn query_naive_mut<T: AabbFront>(bots: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {
     tools::for_every_pair(bots, move |a, b| {
         if a.get().intersects_rect(b.get()) {
             func(a, b);
@@ -29,7 +29,7 @@ pub fn query_naive_mut<T: Aabb>(bots: PMut<[T]>, mut func: impl FnMut(PMut<T>, P
 }
 
 ///Sweep and prune algorithm.
-pub fn query_sweep_mut<T: Aabb>(
+pub fn query_sweep_mut<T: AabbFront>(
     axis: impl Axis,
     bots: &mut [T],
     func: impl FnMut(PMut<T>, PMut<T>),

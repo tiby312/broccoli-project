@@ -23,7 +23,7 @@ impl<'a, A: Axis + 'a, F: ColMulti + 'a> ColMulti for Bl<'a, A, F> {
 }
 
 ///Provides 1d collision detection.
-pub struct Sweeper<T: Aabb> {
+pub(crate) struct Sweeper<T: Aabb> {
     helper: PreVecMut<T>,
 }
 
@@ -247,7 +247,7 @@ fn test_parallel() {
 
 //this can have some false positives.
 //but it will still prune a lot of bots.
-pub fn get_section<'a, I: Aabb, A: Axis>(axis: A, arr: &'a [I], range: &Range<I::Num>) -> &'a [I] {
+pub(crate) fn get_section<'a, I: Aabb, A: Axis>(axis: A, arr: &'a [I], range: &Range<I::Num>) -> &'a [I] {
     let mut start = 0;
     for (e, i) in arr.iter().enumerate() {
         let rr = i.get().get_range(axis);
@@ -271,7 +271,7 @@ pub fn get_section<'a, I: Aabb, A: Axis>(axis: A, arr: &'a [I], range: &Range<I:
 
 //this can have some false positives.
 //but it will still prune a lot of bots.
-pub fn get_section_mut<'a, I: Aabb, A: Axis>(
+pub(crate) fn get_section_mut<'a, I: Aabb, A: Axis>(
     axis: A,
     mut arr: PMut<'a, [I]>,
     range: &Range<I::Num>,
