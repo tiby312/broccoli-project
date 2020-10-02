@@ -1,3 +1,9 @@
+### NOTE
+
+Do not use this crate yet! Instead you the older version of this crate:
+dinotree_alg
+
+
 ### Overview
 
 This crate hopes to provide an efficient 2D space partitioning data structure and useful query algorithms to perform on it in a hopefully simple cohesive api.
