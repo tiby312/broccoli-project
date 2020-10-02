@@ -31,7 +31,7 @@ use crate::inner_prelude::*;
 ///See the pmut module documentation for more explanation.
 #[repr(transparent)]
 pub(crate) struct PMutPtr<T: ?Sized> {
-    pub(crate) inner: core::ptr::NonNull<T>, //TODO make this private
+    pub(crate) _inner: *mut T, //TODO make this private
 }
 
 unsafe impl<T: ?Sized> Send for PMutPtr<T> {}
@@ -49,7 +49,7 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     #[inline(always)]
     pub(crate) fn as_ptr(&mut self) -> PMutPtr<T> {
         PMutPtr {
-            inner: unsafe { core::ptr::NonNull::new_unchecked(self.inner as *mut _) },
+            _inner: self.inner as *mut _,
         }
     }
 
