@@ -6,7 +6,7 @@
 //! For example, with the regular broccoli::Tree, is lifetimed, so
 //! it can't act as a container. You  also can't do the the following.
 //!
-//! ```rust,ignore
+//! ```rust,compile_fail
 //! use axgeom::*;
 //! use broccoli::prelude::*;
 //! let mut k=[bbox(rect(0,10,0,10),())];

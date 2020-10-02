@@ -1,8 +1,7 @@
 //! # Overview
 //!
-//! This crate hopes to provide an efficient 2D space partitioning data structure and useful query algorithms to perform on it
-//! in a hopefully simple cohesive api.
-//! It is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
+//! Broccoli is a broadphase collision detection library. 
+//! The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 //! Uses `no_std`, but uses the `alloc` crate.
 //! Please see the [broccoli-book](https://broccoli-book.netlify.com) which is a work in-progress high level explanation and analysis
 //! of this crate.

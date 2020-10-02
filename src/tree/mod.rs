@@ -181,10 +181,11 @@ impl<'a, A: Axis, T:Aabb> Tree<'a, A,T> {
     ///
     ///```
     ///use broccoli::analyze;
-    ///let mut bots = [axgeom::rect(0,10,0,10)];
+    ///const NUM_ELEMENT:usize=400;
+    ///let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
     ///let mut tree = broccoli::new(&mut bots);
     ///
-    ///assert_eq!(tree.get_height(),analyze::compute_tree_height_heuristic(400,analyze::DEFAULT_NUMBER_ELEM_PER_NODE));
+    ///assert_eq!(tree.get_height(),analyze::compute_tree_height_heuristic(NUM_ELEMENT,analyze::DEFAULT_NUMBER_ELEM_PER_NODE));
     ///```
     ///
     #[must_use]
