@@ -1,12 +1,12 @@
 
 use super::*;
 
-///Builder pattern for dinotree.
+///Builder pattern for Tree.
 ///For most usecases, the user is suggested to use
 ///the built in new() functions to create the tree.
 ///This is provided in cases the user wants more control
 ///on the behavior of the tree for benching and debuging purposes.
-pub struct DinoTreeBuilder<'a, A: Axis, T> {
+pub struct TreeBuilder<'a, A: Axis, T> {
     axis: A,
     bots: &'a mut [T],
     rebal_strat: BinStrat,
@@ -14,7 +14,7 @@ pub struct DinoTreeBuilder<'a, A: Axis, T> {
     height_switch_seq: usize,
 }
 
-impl<'a, A: Axis, T: Aabb + Send + Sync> DinoTreeBuilder<'a, A, T> {
+impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T> {
     ///Build not sorted in parallel
     pub fn build_not_sorted_par(&mut self) -> NotSorted<'a,A, T> {
         let bots=core::mem::replace(&mut self.bots,&mut []);
@@ -33,7 +33,7 @@ impl<'a, A: Axis, T: Aabb + Send + Sync> DinoTreeBuilder<'a, A, T> {
     }
 
     ///Build in parallel
-    pub fn build_par(&mut self) -> DinoTree<'a, A,T> {
+    pub fn build_par(&mut self) -> Tree<'a, A,T> {
         let bots=core::mem::replace(&mut self.bots,&mut []);
 
         let dlevel = par::compute_level_switch_sequential(self.height_switch_seq, self.height);
@@ -49,16 +49,16 @@ impl<'a, A: Axis, T: Aabb + Send + Sync> DinoTreeBuilder<'a, A, T> {
     }
 }
 
-impl<'a, T: Aabb> DinoTreeBuilder<'a, DefaultA, T> {
+impl<'a, T: Aabb> TreeBuilder<'a, DefaultA, T> {
     ///Create a new builder with a slice of elements that implement `Aabb`.
-    pub fn new(bots: &'a mut [T]) -> DinoTreeBuilder<'a, DefaultA, T> {
+    pub fn new(bots: &'a mut [T]) -> TreeBuilder<'a, DefaultA, T> {
         Self::with_axis(default_axis(), bots)
     }
 }
 
-impl<'a, A: Axis, T: Aabb> DinoTreeBuilder<'a, A, T> {
+impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     ///Create a new builder with a slice of elements that implement `Aabb`.
-    pub fn with_axis(axis: A, bots: &'a mut [T]) -> DinoTreeBuilder<'a, A, T> {
+    pub fn with_axis(axis: A, bots: &'a mut [T]) -> TreeBuilder<'a, A, T> {
         let rebal_strat = BinStrat::NotChecked;
 
         //we want each node to have space for around num_per_node bots.
@@ -69,13 +69,13 @@ impl<'a, A: Axis, T: Aabb> DinoTreeBuilder<'a, A, T> {
         //and too much time will be spent recursing.
         //Make this number too high, and you will lose the properties of a tree,
         //and you will end up with just sweep and prune.
-        //This number was chosen emprically from running the dinotree_alg_data project,
+        //This number was chosen emprically from running the Tree_alg_data project,
         //on two different machines.
         let height = compute_tree_height_heuristic(bots.len(), DEFAULT_NUMBER_ELEM_PER_NODE);
 
         let height_switch_seq = par::SWITCH_SEQUENTIAL_DEFAULT;
 
-        DinoTreeBuilder {
+        TreeBuilder {
             axis,
             bots,
             rebal_strat,
@@ -100,7 +100,7 @@ impl<'a, A: Axis, T: Aabb> DinoTreeBuilder<'a, A, T> {
     }
 
     ///Build sequentially
-    pub fn build_seq(&mut self) -> DinoTree< 'a,A, T> {
+    pub fn build_seq(&mut self) -> Tree< 'a,A, T> {
         let bots=core::mem::replace(&mut self.bots,&mut []);
 
         create_tree_seq(
@@ -138,7 +138,7 @@ impl<'a, A: Axis, T: Aabb> DinoTreeBuilder<'a, A, T> {
     pub fn build_with_splitter_seq<S: Splitter>(
         &mut self,
         splitter: &mut S,
-    ) -> DinoTree<'a, A,T> {
+    ) -> Tree<'a, A,T> {
         let bots=core::mem::replace(&mut self.bots,&mut []);
 
         create_tree_seq(
@@ -165,7 +165,7 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
     splitter: &mut K,
     height: usize,
     binstrat: BinStrat,
-) -> DinoTree<'a,A,T> {
+) -> Tree<'a,A,T> {
 
     let num_bots = rest.len();
 
@@ -187,7 +187,7 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_bots);
 
-    DinoTree{inner:DinoTreeInner{axis:div_axis,inner:tree}}
+    Tree{inner:TreeInner{axis:div_axis,inner:tree}}
 }
 
 fn create_tree_par<
@@ -204,7 +204,7 @@ fn create_tree_par<
     splitter: &mut K,
     height: usize,
     binstrat: BinStrat,
-) ->DinoTree<'a,A,T> {
+) ->Tree<'a,A,T> {
 
     let num_bots = rest.len();
 
@@ -226,7 +226,7 @@ fn create_tree_par<
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_bots);
 
-    DinoTree{inner:DinoTreeInner{
+    Tree{inner:TreeInner{
         axis:div_axis,
         inner:tree
     }}

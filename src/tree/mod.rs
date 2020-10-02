@@ -17,11 +17,11 @@ pub(crate) use self::notsorted::NotSorted;
 
 
 pub mod builder;
-use builder::DinoTreeBuilder;
+use builder::TreeBuilder;
 
 pub(crate) use self::node::*;
 
-///Contains node-level building block structs and visitors used for a DinoTree.
+///Contains node-level building block structs and visitors used for a Tree.
 pub mod node;
 
 
@@ -31,20 +31,18 @@ use crate::query::*;
 
 
 
-pub(crate) struct DinoTreeInner<A: Axis, N> {
+pub(crate) struct TreeInner<A: Axis, N> {
     axis: A,
     inner: compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>
 }
 
-
-
 ///The data structure this crate revoles around.
 #[repr(transparent)]
-pub struct DinoTree<'a,A: Axis, T:Aabb> {
-    inner:DinoTreeInner<A,NodeMut<'a,T>>
+pub struct Tree<'a,A: Axis, T:Aabb> {
+    inner:TreeInner<A,NodeMut<'a,T>>
 }
 
-///The type of the axis of the first node in the dinotree.
+///The type of the axis of the first node in the Tree.
 ///If it is the y axis, then the first divider will be a horizontal line,
 ///since it is partioning space based off of objects y value.
 pub type DefaultA = YAXIS;
@@ -53,67 +51,58 @@ pub const fn default_axis() -> YAXIS {
     YAXIS
 }
 
-impl<'a, T: Aabb> DinoTree<'a,DefaultA,T> {
-    /// # Examples
-    ///
-    ///```
-    ///let mut bots = [axgeom::rect(0,10,0,10)];
-    ///let tree = dinotree_alg::DinoTree::new(&mut bots);
-    ///
-    ///```
-    pub fn new(bots: &'a mut [T]) -> DinoTree< 'a,DefaultA, T> {
-        DinoTreeBuilder::new(bots).build_seq()
-    }
-}
-
-impl<'a, T: Aabb + Send + Sync> DinoTree<'a,DefaultA,T> {
-    /// # Examples
-    ///
-    ///```
-    ///let mut bots = [axgeom::rect(0,10,0,10)];
-    ///let tree = dinotree_alg::DinoTree::new_par(&mut bots);
-    ///
-    ///```
-    pub fn new_par(bots: &'a mut [T]) -> DinoTree<'a,DefaultA, T> {
-        DinoTreeBuilder::new(bots).build_par()
-    }
-}
-
-impl<'a, A: Axis, T: Aabb> DinoTree<'a,A, T> {
-    /// # Examples
-    ///
-    ///```
-    ///let mut bots = [axgeom::rect(0,10,0,10)];
-    ///let tree = dinotree_alg::DinoTree::with_axis(axgeom::XAXIS,&mut bots);
-    ///
-    ///```
-    pub fn with_axis(axis: A, bots: &'a mut [T]) -> DinoTree<'a,A,T> {
-        DinoTreeBuilder::with_axis(axis, bots).build_seq()
-    }
-
+/// # Examples
+///
+///```
+///let mut bots = [axgeom::rect(0,10,0,10)];
+///let tree = broccoli::new(&mut bots);
+///
+///```
+pub fn new<'a,T:Aabb>(bots:&'a mut [T])->Tree<'a,DefaultA,T>{
+    TreeBuilder::new(bots).build_seq()
 }
 
 
-
-impl<'a, A: Axis, T: Aabb + Send + Sync> DinoTree<'a, A, T> {
-    /// # Examples
-    ///
-    ///```
-    ///let mut bots = [axgeom::rect(0,10,0,10)];
-    ///let tree = dinotree_alg::DinoTree::with_axis(axgeom::XAXIS,&mut bots);
-    ///
-    ///```
-    pub fn with_axis_par(axis: A, bots: &'a mut [T]) -> DinoTree<'a, A,T> {
-        DinoTreeBuilder::with_axis(axis, bots).build_par()
-    }
+/// # Examples
+///
+///```
+///let mut bots = [axgeom::rect(0,10,0,10)];
+///let tree = broccoli::with_axis(axgeom::XAXIS,&mut bots);
+///
+///```
+pub fn with_axis<'a,A:Axis,T:Aabb>(axis:A,bots:&'a mut [T])->Tree<'a,A,T>{
+    TreeBuilder::with_axis(axis, bots).build_seq()
 }
 
 
-impl<'a,A:Axis,T:Aabb+HasInner> QueriesInner<'a> for DinoTree<'a,A,T>{
+/// # Examples
+///
+///```
+///let mut bots = [axgeom::rect(0,10,0,10)];
+///let tree = broccoli::new_par(&mut bots);
+///
+///```
+pub fn new_par<'a,T:Aabb+Send+Sync>(bots:&'a mut [T])->Tree<'a,DefaultA,T>{
+    TreeBuilder::new(bots).build_par()
+}
+
+
+/// # Examples
+///
+///```
+///let mut bots = [axgeom::rect(0,10,0,10)];
+///let tree = broccoli::with_axis_par(axgeom::XAXIS,&mut bots);
+///
+///```
+pub fn with_axis_par<'a,A:Axis,T:Aabb+Send+Sync>(axis:A,bots:&'a mut [T])->Tree<'a,A,T>{
+    TreeBuilder::with_axis(axis, bots).build_par()
+}
+
+impl<'a,A:Axis,T:Aabb+HasInner> QueriesInner<'a> for Tree<'a,A,T>{
     type Inner=T::Inner;
 }
-///TODO use this insead
-impl<'a,A:Axis,T:Aabb> Queries<'a> for DinoTree<'a,A,T>{
+
+impl<'a,A:Axis,T:Aabb> Queries<'a> for Tree<'a,A,T>{
     type A=A;
     type T=T;
     type Num=T::Num;
@@ -135,7 +124,7 @@ impl<'a,A:Axis,T:Aabb> Queries<'a> for DinoTree<'a,A,T>{
 }
 
 
-pub struct IntersectionList<'a, T, D> {
+pub struct CollidingPairs<'a, T, D> {
     ///See collect_intersections_list()
     ///The same elements can be part of
     ///multiple intersecting pairs.
@@ -145,7 +134,7 @@ pub struct IntersectionList<'a, T, D> {
     cols: Vec<(*mut T, *mut T, D)>,
     _p:PhantomData<&'a mut T>
 }
-impl<'a,T,D> IntersectionList<'a,T,D>{
+impl<'a,T,D> CollidingPairs<'a,T,D>{
     pub fn for_every_pair_mut<'b, A: Axis, N: Num>(
         &'b mut self,
         mut func: impl FnMut(&mut T, &mut T, &mut D),
@@ -156,14 +145,11 @@ impl<'a,T,D> IntersectionList<'a,T,D>{
     }
 }
 
-
-impl<'a,'b,A:Axis,N:Num,T> DinoTree<'a,A,BBox<N,&'b mut T>>{
-    
-
+impl<'a,'b,A:Axis,N:Num,T> Tree<'a,A,BBox<N,&'b mut T>>{
     pub fn collect_intersections_list<'c,D: Send + Sync>(
         &mut self,
         mut func: impl FnMut(&mut T, &mut T) -> Option<D> + Send + Sync,
-    ) -> IntersectionList<'b, T, D> {
+    ) -> CollidingPairs<'b, T, D> {
         let mut cols: Vec<_> = Vec::new();
     
         self.find_intersections_mut(|a, b| {
@@ -180,7 +166,7 @@ impl<'a,'b,A:Axis,N:Num,T> DinoTree<'a,A,BBox<N,&'b mut T>>{
             }
         });
 
-        IntersectionList {
+        CollidingPairs {
             cols,
             _p:PhantomData
         }
@@ -189,14 +175,14 @@ impl<'a,'b,A:Axis,N:Num,T> DinoTree<'a,A,BBox<N,&'b mut T>>{
 
 
 
-impl<'a, A: Axis, T:Aabb> DinoTree<'a, A,T> {
+impl<'a, A: Axis, T:Aabb> Tree<'a, A,T> {
 
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
-    ///let mut bots = vec![axgeom::rect(0,10,0,10);400];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///use broccoli::analyze;
+    ///let mut bots = [axgeom::rect(0,10,0,10)];
+    ///let mut tree = broccoli::new(&mut bots);
     ///
     ///assert_eq!(tree.get_height(),analyze::compute_tree_height_heuristic(400,analyze::DEFAULT_NUMBER_ELEM_PER_NODE));
     ///```
@@ -212,9 +198,9 @@ impl<'a, A: Axis, T:Aabb> DinoTree<'a, A,T> {
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
-    ///let mut bots = vec![axgeom::rect(0,10,0,10);400];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///use broccoli::analyze;
+    ///let mut bots = [axgeom::rect(0,10,0,10)];
+    ///let mut tree = broccoli::new(&mut bots);
     ///
     ///assert_eq!(tree.num_nodes(),analyze::nodes_left(0,tree.get_height() ));
     ///

@@ -1,12 +1,12 @@
 extern crate axgeom;
 extern crate compt;
-extern crate dinotree_alg;
+extern crate broccoli;
 
 use compt::*;
 
 use axgeom::*;
-use dinotree_alg::par::*;
-use dinotree_alg::*;
+use broccoli::par::*;
+use broccoli::prelude::*;
 
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.
 fn create_bbox_mut<'a, N: Num, T>(
@@ -40,7 +40,7 @@ fn test_zero_sized() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| axgeom::Rect::new(0isize, 0, 0, 0));
 
-    let tree = DinoTree::new(&mut bots);
+    let tree = broccoli::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
     let n = n.get();
@@ -55,7 +55,7 @@ fn test_zero_sized2() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| axgeom::Rect::new(0isize, 0, 0, 0));
 
-    let tree = DinoTree::new(&mut bots);
+    let tree = broccoli::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
     let n = n.get();
@@ -69,7 +69,7 @@ fn test_one() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| axgeom::Rect::new(0isize, 0, 0, 0));
 
-    let tree = DinoTree::new(&mut bots);
+    let tree = broccoli::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
     let n = n.get();
@@ -82,7 +82,7 @@ fn test_one() {
 fn test_empty() {
     let mut bots: Vec<()> = Vec::new();
     let mut bots = create_bbox_mut(&mut bots, |_b| axgeom::Rect::new(0isize, 0, 0, 0));
-    let tree = DinoTree::new(&mut bots);
+    let tree = broccoli::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
     let n = n.get();
@@ -97,7 +97,7 @@ fn test_many() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| axgeom::Rect::new(0isize, 0, 0, 0));
 
-    let tree = DinoTree::new(&mut bots);
+    let tree = broccoli::new(&mut bots);
 
     assert_eq!(
         tree.vistr()
@@ -127,7 +127,7 @@ fn test_send_sync_dinotree() {
     let mut bots2 = create_bbox_mut(&mut bots2, |_| axgeom::Rect::new(0, 0, 0, 0));
 
     //Check that its send
-    let (t1, t2) = rayon::join(|| DinoTree::new(&mut bots1), || DinoTree::new(&mut bots2));
+    let (t1, t2) = rayon::join(|| broccoli::new(&mut bots1), || broccoli::new(&mut bots2));
 
     //Check that its sync
     let (p1, p2) = (&t1, &t2);

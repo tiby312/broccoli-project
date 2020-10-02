@@ -1,5 +1,5 @@
 use axgeom::rect;
-use dinotree_alg::*;
+use broccoli::prelude::*;
 
 fn main() {
     let mut aabbs = [
@@ -13,7 +13,7 @@ fn main() {
 
     //This will change the order of the elements in bboxes,
     //but this is okay since we populated it with mutable references.
-    let mut tree = DinoTree::new(&mut ref_aabbs);
+    let mut tree = broccoli::new(&mut ref_aabbs);
 
     //Find all colliding aabbs.
     tree.find_intersections_mut(|a, b| {

@@ -14,9 +14,9 @@ fn test() {
         .map(|a| bbox(axgeom::Rect::new(0isize, 0, 0, 0), a))
         .collect();
 
-    let mut tree = DinoTree::new(&mut bots);
+    let mut tree = crate::new(&mut bots);
     
-    assert!(assert::Assert::tree_invariants(&tree));
+    assert!(assert::tree_invariants(&tree));
     
     assert_length(tree.vistr_mut().dfs_preorder_iter());
     assert_length(tree.vistr().dfs_preorder_iter());

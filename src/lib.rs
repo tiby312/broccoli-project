@@ -4,13 +4,13 @@
 //! in a hopefully simple cohesive api.
 //! It is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 //! Uses `no_std`, but uses the `alloc` crate.
-//! Please see the [dinotree-book](https://dinotree-book.netlify.com) which is a work in-progress high level explanation and analysis
+//! Please see the [broccoli-book](https://broccoli-book.netlify.com) which is a work in-progress high level explanation and analysis
 //! of this crate.
 //!
 //! ## Screenshot
 //!
-//! Screenshot from the dinotree_alg_demo inner project from the [github repo of this crate](https://github.com/tiby312/dinotree_alg).
-//! ![](https://raw.githubusercontent.com/tiby312/dinotree_alg/master/assets/screenshot.gif)
+//! Screenshot from the broccoli_demo inner project from the [github repo of this crate](https://github.com/tiby312/broccoli).
+//! ![](https://raw.githubusercontent.com/tiby312/broccoli/master/assets/screenshot.gif)
 //!
 //! ## Data Structure
 //!
@@ -84,8 +84,6 @@ mod inner_prelude {
 }
 
 pub mod query;
-pub use query::Queries;
-pub use query::QueriesInner;
 
 use axgeom::*;
 
@@ -110,8 +108,13 @@ pub mod util;
 
 
 pub mod prelude{
-    pub use query::*;
-    pub use super::*;
+    pub use crate::Num;
+    pub use crate::Aabb;
+    pub use crate::HasInner;
+    pub use crate::query::Queries;
+    pub use crate::query::QueriesInner;
+    pub use crate::bbox::bbox;
+    pub use crate::bbox::BBox;
 }
 
 ///The underlying number type used for the dinotree.

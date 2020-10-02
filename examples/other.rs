@@ -1,5 +1,5 @@
 use axgeom::{rect, vec2};
-use dinotree_alg::*;
+use broccoli::prelude::*;
 
 fn main() {
     let mut aabbs = [
@@ -16,7 +16,7 @@ fn main() {
     //Create a DinoTree by picking a starting axis (x or y).
     //This will change the order of the elements in bboxes,
     //but this is okay since we populated it with mutable references.
-    let mut tree = DinoTree::new(&mut ref_aabbs);
+    let mut tree = broccoli::new(&mut ref_aabbs);
 
     //Here we query for read-only references so we can pull
     //them out of the closure.

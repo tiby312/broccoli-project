@@ -1,5 +1,5 @@
 use axgeom;
-use dinotree_alg::*;
+use broccoli::prelude::*;
 
 #[test]
 fn test1() {
@@ -17,7 +17,7 @@ fn test1() {
             })
             .collect();
 
-        let mut tree=collections::DinoTreeRef::new(&mut bots);
-        assert::Assert::find_intersections_mut(&mut tree);
+        let mut tree=broccoli::collections::TreeRef::new(&mut bots);
+        broccoli::assert::find_intersections_mut(&mut tree);
     }
 }

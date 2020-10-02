@@ -1,32 +1,32 @@
 use super::*;
-use tree::builder::DinoTreeBuilder;
+use tree::builder::TreeBuilder;
 
-///A version of dinotree where the elements are not sorted along each axis, like a KD Tree.
+///A version of Tree where the elements are not sorted along each axis, like a KD Tree.
 /// For comparison, a normal kd-tree is provided by `NotSorted`. In this tree, the elements are not sorted
-/// along an axis at each level. Construction of `NotSorted` is faster than `DinoTree` since it does not have to
+/// along an axis at each level. Construction of `NotSorted` is faster than `Tree` since it does not have to
 /// sort bots that belong to each node along an axis. But most query algorithms can usually take advantage of this
 /// extra property.
-pub struct NotSorted<'a,A: Axis, T:Aabb>(pub(crate) DinoTree<'a,A, T>);
+pub struct NotSorted<'a,A: Axis, T:Aabb>(pub(crate) Tree<'a,A, T>);
 
 impl<'a, T: Aabb + Send + Sync> NotSorted<'a,DefaultA, T> {
     pub fn new_par(bots: &'a mut [T]) -> NotSorted< 'a,DefaultA, T> {
-        DinoTreeBuilder::new(bots).build_not_sorted_par()
+        TreeBuilder::new(bots).build_not_sorted_par()
     }
 }
 impl<'a, T: Aabb> NotSorted<'a, DefaultA, T> {
     pub fn new(bots: &'a mut [T]) -> NotSorted<'a, DefaultA, T> {
-        DinoTreeBuilder::new(bots).build_not_sorted_seq()
+        TreeBuilder::new(bots).build_not_sorted_seq()
     }
 }
 
 impl< 'a,A: Axis, T: Aabb + Send + Sync> NotSorted<'a,A,T> {
     pub fn with_axis_par(axis: A, bots: &'a mut [T]) -> NotSorted<'a, A, T> {
-        DinoTreeBuilder::with_axis(axis, bots).build_not_sorted_par()
+        TreeBuilder::with_axis(axis, bots).build_not_sorted_par()
     }
 }
 impl<'a, A: Axis, T: Aabb> NotSorted<'a, A, T> {
     pub fn with_axis(axis: A, bots: &'a mut [T]) -> NotSorted<'a, A,T> {
-        DinoTreeBuilder::with_axis(axis, bots).build_not_sorted_seq()
+        TreeBuilder::with_axis(axis, bots).build_not_sorted_seq()
     }
 }
 

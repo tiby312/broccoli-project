@@ -97,9 +97,9 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),0u8)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///tree.find_intersections_mut(|a,b|{
     ///    *a+=1;
     ///    *b+=1;
@@ -123,9 +123,9 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),0u8)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///tree.find_intersections_mut_par(|a,b|{
     ///    *a+=1;
     ///    *b+=1;
@@ -149,9 +149,9 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),1u8)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///let intersections=tree.find_intersections_par_ext(
     ///     |_|Vec::new(),              //Start a new thread
     ///     |a,mut b|a.append(&mut b),  //Combine two threads
@@ -222,9 +222,9 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///tree.for_all_not_in_rect_mut(&axgeom::rect(10,20,10,20),|a|{
     ///    *a+=1;    
     ///});
@@ -243,9 +243,9 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///tree.for_all_intersect_rect_mut(&axgeom::rect(9,20,9,20),|a|{
     ///    *a+=1;    
     ///});
@@ -266,9 +266,9 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///tree.for_all_in_rect_mut(&axgeom::rect(0,10,0,10),|a|{
     ///    *a+=1;    
     ///});
@@ -289,7 +289,7 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///use axgeom::*;
     ///
     ///let border = rect(0,100,0,100);
@@ -299,7 +299,7 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     ///                bbox(rect(4,10,4,10),vec2(5,5))];
     ///
     ///let mut bots_copy=bots.clone();
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///let ray=ray(vec2(5,-5),vec2(0,1));
     ///let mut counter =0;
     ///let res = tree.raycast_mut(
@@ -336,7 +336,7 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///use axgeom::*;
     ///let border = rect(0,100,0,100);
     ///
@@ -345,7 +345,7 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     ///                bbox(rect(4,10,4,10),vec2(3,3))];
     ///
     ///let mut bots_copy=bots.clone();
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///
     ///let mut counter = 0;
     ///let res = tree.k_nearest_mut(
@@ -386,10 +386,10 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots1 = [bbox(axgeom::rect(0,10,0,10),0u8)];
     ///let mut bots2 = [bbox(axgeom::rect(5,15,5,15),0u8)];
-    ///let mut tree = DinoTree::new(&mut bots1);
+    ///let mut tree = broccoli::new(&mut bots1);
     ///
     ///tree.intersect_with_mut(&mut bots2,|a,b|{
     ///    *a+=1;
@@ -419,9 +419,9 @@ pub trait Queries<'a>{
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///
     ///use compt::Visitor;
     ///for mut b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.get_mut().bots.iter_mut()){
@@ -436,9 +436,9 @@ pub trait Queries<'a>{
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [axgeom::rect(0,10,0,10)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///
     ///use compt::Visitor;
     ///let mut test = Vec::new();
@@ -454,12 +454,12 @@ pub trait Queries<'a>{
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [axgeom::rect(0,10,0,10)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///
     ///use axgeom::Axis;
-    ///assert!(tree.axis().is_equal_to(default_axis()));
+    ///assert!(tree.axis().is_equal_to(broccoli::default_axis()));
     ///```
     #[must_use]
     fn axis(&self)->Self::A;
@@ -473,11 +473,11 @@ pub trait Queries<'a>{
     /// # Examples
     ///
     /// ```
-    /// use dinotree_alg::*;
+    /// use broccoli::prelude::*;
     /// use axgeom::*;
     ///
     /// struct Drawer;
-    /// impl dinotree_alg::query::DividerDrawer for Drawer{
+    /// impl broccoli::query::DividerDrawer for Drawer{
     ///     type N=i32;
     ///     fn draw_divider<A:Axis>(
     ///             &mut self,
@@ -497,7 +497,7 @@ pub trait Queries<'a>{
     ///
     /// let border=rect(0,100,0,100);
     /// let mut bots =[rect(0,10,0,10)];
-    /// let tree=DinoTree::new(&mut bots);
+    /// let tree=broccoli::new(&mut bots);
     /// tree.draw_divider(&mut Drawer,&border);
     /// ```
     ///
@@ -514,9 +514,9 @@ pub trait Queries<'a>{
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),0u8)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///tree.find_intersections_pmut(|mut a,mut b|{
     ///    *a.inner_mut()+=1;
     ///    *b.inner_mut()+=1;
@@ -532,14 +532,14 @@ pub trait Queries<'a>{
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots1 = [bbox(axgeom::rect(0,10,0,10),0u8)];
-    ///let mut tree = DinoTree::new(&mut bots1);
+    ///let mut tree = broccoli::new(&mut bots1);
     ///let mut multi = tree.multi_rect();
     ///
     ///multi.for_all_in_rect_mut(axgeom::rect(0,10,0,10),|a|{}).unwrap();
     ///let res = multi.for_all_in_rect_mut(axgeom::rect(5,15,5,15),|a|{});
-    ///assert_eq!(res,Err(dinotree_alg::query::RectIntersectErr));
+    ///assert_eq!(res,Err(broccoli::query::RectIntersectErr));
     ///```
     #[must_use]
     fn multi_rect(&mut self) -> rect::MultiRectMut<Self::A, NodeMut<'a,Self::T>> {
@@ -551,9 +551,9 @@ pub trait Queries<'a>{
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [axgeom::rect(0,10,0,10),axgeom::rect(20,30,20,30)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///let mut test = Vec::new();
     ///tree.for_all_intersect_rect(&axgeom::rect(9,20,9,20),|a|{
     ///    test.push(a);
@@ -571,9 +571,9 @@ pub trait Queries<'a>{
     /// # Examples
     ///
     ///```
-    ///use dinotree_alg::*;
+    ///use broccoli::prelude::*;
     ///let mut bots = [axgeom::rect(0,10,0,10),axgeom::rect(20,30,20,30)];
-    ///let mut tree = DinoTree::new(&mut bots);
+    ///let mut tree = broccoli::new(&mut bots);
     ///let mut test = Vec::new();
     ///tree.for_all_in_rect(&axgeom::rect(0,20,0,20),|a|{
     ///    test.push(a);

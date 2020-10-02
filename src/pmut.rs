@@ -5,13 +5,11 @@
 //! It prevents the user from violating the invariants of the tree.
 //!
 //! ```rust
-//! extern crate dinotree_alg;
-//! extern crate axgeom;
-//! use dinotree_alg::*;
+//! use broccoli::prelude::*;
 //!
 //!
-//! let mut bots=[BBox::new(axgeom::Rect::new(0,10,0,10),0)];
-//! let mut tree=DinoTree::new(&mut bots);
+//! let mut bots=[bbox(axgeom::rect(0,10,0,10),0)];
+//! let mut tree=broccoli::new(&mut bots);
 //!
 //! tree.find_intersections_pmut(|mut a,mut b|{
 //!    //We cannot allow the user to swap these two
