@@ -13,7 +13,7 @@ pub mod analyze;
 pub mod par;
 
 mod notsorted;
-pub(crate) use self::notsorted::NotSorted;
+pub use self::notsorted::NotSorted;
 
 
 pub mod builder;
