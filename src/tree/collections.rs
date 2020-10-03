@@ -91,6 +91,7 @@ unsafe impl<T> Send for ThreadPtr<T>{}
 unsafe impl<T> Sync for ThreadPtr<T>{}
 
 
+
 pub struct TreeRefInd<'a,A:Axis,N:Num,T>{
     inner:TreeOwned<A,BBox<N,*mut T>>,
     orig:*mut [T],
@@ -134,6 +135,7 @@ impl<'a,A:Axis,N:Num,T> TreeRefInd<'a,A,N,T>{
         unimplemented!();
     }
 }
+
 
 
 impl<'a,A:Axis,N:Num+'a,T> core::ops::Deref for TreeRefInd<'a,A,N,T>{

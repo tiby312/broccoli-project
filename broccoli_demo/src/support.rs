@@ -1,11 +1,7 @@
 pub mod prelude {
     pub use crate::Demo;
     pub use axgeom::*;
-    pub use dinotree_alg::analyze;
-    pub use dinotree_alg::node::*;
-    pub use dinotree_alg::owned::*;
-    pub use dinotree_alg::query::*;
-    pub use dinotree_alg::*;
+    pub use broccoli::prelude::*;
     //pub use dists;
     pub use crate::dists::*;
     pub use dists::uniform_rand::UniformRandGen;

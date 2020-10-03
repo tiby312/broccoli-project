@@ -76,9 +76,9 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             })
             .collect();
 
-        let mut tree = DinoTree::new_par(&mut k);
+        let mut tree = broccoli::new_par(&mut k);
 
-        tree.find_intersections_mut_par(move |a, b| {
+        tree.find_colliding_pairs_mut_par(move |a, b| {
             let _ = a.solve(b, radius);
         });
 

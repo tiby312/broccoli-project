@@ -106,6 +106,7 @@ use axgeom::Rect;
 
 
 pub mod prelude{
+    pub use crate::query::RayCastResult;
     pub use axgeom::Rect;
     pub use axgeom::rect;
     pub use crate::Num;

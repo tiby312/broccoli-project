@@ -1,6 +1,8 @@
 use crate::support::prelude::*;
 use std;
 
+use broccoli::assert;
+use axgeom::*;
 use axgeom::Ray;
 
 #[derive(Copy, Clone)]
@@ -31,7 +33,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     }
     let circle_save = r.save(canvas);
 
-    let mut tree = DinoTreeOwned::new(vv);
+    let mut tree = broccoli::collections::TreeOwned::new(vv);
 
     Demo::new(move |cursor, canvas, check_naive| {
         circle_save
@@ -61,7 +63,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 let mut radius = radius;
 
                 if check_naive {
-                    Assert::raycast_mut(
+                    assert::raycast_mut(
                         tree,
                         ray,
                         &mut radius,
