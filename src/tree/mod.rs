@@ -124,6 +124,7 @@ impl<'a,A:Axis,T:Aabb> Queries<'a> for Tree<'a,A,T>{
 }
 
 
+
 pub struct CollidingPairs<'a, T, D> {
     ///See collect_intersections_list()
     ///The same elements can be part of
@@ -258,6 +259,40 @@ impl<'a,'b,A:Axis,N:Num,T:Send+Sync> Tree<'a,A,BBox<N,&'b mut T>>{
     
     }
 }
+
+
+
+//Contains a filtered list of all elements in the tree.
+pub struct FilteredElements<'a,T,D>{
+    elems:Vec<(*mut T,D)>,
+    _p:PhantomData<&'a mut T>
+}
+impl<'a,T,D> FilteredElements<'a,T,D>{
+    pub fn get_mut(&mut self)->&mut [(&mut T,D)]{
+        unsafe{&mut *(self.elems.as_mut_slice() as *mut _ as *mut _)}
+    }
+}
+impl<'a,'b,A:Axis,N:Num,T> Tree<'a,A,BBox<N,&'b mut T>>{
+    pub fn collect_all<'c,D: Send + Sync>(
+        &mut self,
+        mut func: impl FnMut(&Rect<N>, &mut T) -> Option<D>,
+    ) -> FilteredElements<'b, T, D> {
+        let mut elems = Vec::new();
+        for node in self.inner.inner.get_nodes_mut().iter_mut() {
+            for b in node.get_mut().bots.iter_mut() {
+                let (x, y) = b.unpack();
+                if let Some(d) = func(x, y) {
+                    elems.push((*y as *mut _, d));
+                }
+            }
+        }
+        FilteredElements {
+            _p: PhantomData,
+            elems,
+        }
+    }
+}
+
 
 impl<'a,'b,A:Axis,N:Num,T> Tree<'a,A,BBox<N,&'b mut T>>{
     pub fn collect_colliding_pairs<'c,D: Send + Sync>(
