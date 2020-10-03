@@ -146,13 +146,13 @@ impl<'a,T,D> CollidingPairs<'a,T,D>{
 }
 
 impl<'a,'b,A:Axis,N:Num,T> Tree<'a,A,BBox<N,&'b mut T>>{
-    pub fn collect_intersections_list<'c,D: Send + Sync>(
+    pub fn collect_colliding_pairs_list<'c,D: Send + Sync>(
         &mut self,
         mut func: impl FnMut(&mut T, &mut T) -> Option<D> + Send + Sync,
     ) -> CollidingPairs<'b, T, D> {
         let mut cols: Vec<_> = Vec::new();
     
-        self.find_intersections_mut(|a, b| {
+        self.find_colliding_pairs_mut(|a, b| {
             if let Some(d) = func(a, b) {
                 //We use unsafe to collect mutable references of
                 //all colliding pairs.

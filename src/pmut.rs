@@ -11,7 +11,7 @@
 //! let mut bots=[bbox(axgeom::rect(0,10,0,10),0)];
 //! let mut tree=broccoli::new(&mut bots);
 //!
-//! tree.find_intersections_pmut(|mut a,mut b|{
+//! tree.find_colliding_pairs_pmut(|mut a,mut b|{
 //!    //We cannot allow the user to swap these two
 //!    //bots. They should be allowed to mutate
 //!    //whats inside each of them (aside from their aabb),

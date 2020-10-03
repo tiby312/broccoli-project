@@ -15,7 +15,7 @@ fn main() {
     let mut tree = broccoli::new(&mut ref_aabbs);
 
     //Find all colliding aabbs.
-    tree.find_intersections_mut(|a, b| {
+    tree.find_colliding_pairs_mut(|a, b| {
         *a += 1;
         *b += 1;
     });

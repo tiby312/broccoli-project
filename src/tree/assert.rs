@@ -95,7 +95,7 @@ fn inner<A: Axis, N: Node>(axis: A, iter: compt::LevelIter<Vistr<N>>) -> Result<
 pub fn find_intersections_mut<A: Axis, T: Aabb + HasInner>(tree: &mut TreeRef<A, T>) {
 
     let mut res_dino = Vec::new();
-    tree.find_intersections_mut(|a, b| {
+    tree.find_colliding_pairs_mut(|a, b| {
         let a = a as *const _ as usize;
         let b = b as *const _ as usize;
         let k = if a < b { (a, b) } else { (b, a) };
@@ -103,7 +103,7 @@ pub fn find_intersections_mut<A: Axis, T: Aabb + HasInner>(tree: &mut TreeRef<A,
     });
 
     let mut res_naive = Vec::new();
-    NaiveAlgs::new(tree.get_elements_mut()).find_intersections_mut(|a, b| {
+    NaiveAlgs::new(tree.get_elements_mut()).find_colliding_pairs_mut(|a, b| {
         let a = a as *const _ as usize;
         let b = b as *const _ as usize;
         let k = if a < b { (a, b) } else { (b, a) };

@@ -72,7 +72,7 @@ pub trait NotSortedQueries<'a>{
         NotSortedQueryBuilder::new(self.axis(),self.vistr_mut())
     }
 
-    fn find_intersections_mut(
+    fn find_colliding_pairs_mut(
         &mut self,
         mut func: impl FnMut(&mut Self::Inner, &mut Self::Inner),
     ){
@@ -80,7 +80,7 @@ pub trait NotSortedQueries<'a>{
             .query_seq(move |mut a, mut b| func(a.inner_mut(), b.inner_mut())); 
     }
 
-    fn find_intersections_mut_par(
+    fn find_colliding_pairs_mut_par(
         &mut self,
         func: impl Fn(&mut Self::Inner, &mut Self::Inner)+Clone+Send+Sync,
     ) where Self::T:Send+Sync{
@@ -100,7 +100,7 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),0u8)];
     ///let mut tree = broccoli::new(&mut bots);
-    ///tree.find_intersections_mut(|a,b|{
+    ///tree.find_colliding_pairs_mut(|a,b|{
     ///    *a+=1;
     ///    *b+=1;
     ///});
@@ -109,7 +109,7 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     ///assert_eq!(bots[1].inner,1);
     ///```
 
-    fn find_intersections_mut(
+    fn find_colliding_pairs_mut(
         &mut self,
         mut func: impl FnMut(&mut Self::Inner, &mut Self::Inner),
     ){
@@ -126,7 +126,7 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),0u8)];
     ///let mut tree = broccoli::new(&mut bots);
-    ///tree.find_intersections_mut_par(|a,b|{
+    ///tree.find_colliding_pairs_mut_par(|a,b|{
     ///    *a+=1;
     ///    *b+=1;
     ///});
@@ -134,7 +134,7 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     ///assert_eq!(bots[0].inner,1);
     ///assert_eq!(bots[1].inner,1);
     ///```
-    fn find_intersections_mut_par(
+    fn find_colliding_pairs_mut_par(
         &mut self,
         func: impl Fn(&mut Self::Inner, &mut Self::Inner)+Clone+Send+Sync,
     ) where Self::T:Send+Sync{
@@ -152,7 +152,7 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),1u8)];
     ///let mut tree = broccoli::new(&mut bots);
-    ///let intersections=tree.find_intersections_par_ext(
+    ///let intersections=tree.find_colliding_pairs_par_ext(
     ///     |_|Vec::new(),              //Start a new thread
     ///     |a,mut b|a.append(&mut b),  //Combine two threads
     ///     |v,a,b|v.push((*a,*b)),     //What to do for each intersection for a thread.
@@ -161,7 +161,7 @@ pub trait QueriesInner<'a>:Queries<'a> where Self::T:HasInner<Inner=Self::Inner>
     ///
     ///assert_eq!(intersections.len(),1);
     ///```
-    fn find_intersections_par_ext<B: Send + Sync>(
+    fn find_colliding_pairs_par_ext<B: Send + Sync>(
         &mut self,
         split: impl Fn(&mut B) -> B + Send + Sync + Copy,
         fold: impl Fn(&mut B, B) + Send + Sync + Copy,
@@ -507,7 +507,7 @@ pub trait Queries<'a>{
 
 
     
-    /// Find all aabb intersections and return a PMut<T> of it. Unlike the regular `find_intersections_mut`, this allows the
+    /// Find all aabb intersections and return a PMut<T> of it. Unlike the regular `find_colliding_pairs_mut`, this allows the
     /// user to access a read only reference of the AABB.
     ///
     /// # Examples
@@ -516,7 +516,7 @@ pub trait Queries<'a>{
     ///use broccoli::prelude::*;
     ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),0u8)];
     ///let mut tree = broccoli::new(&mut bots);
-    ///tree.find_intersections_pmut(|mut a,mut b|{
+    ///tree.find_colliding_pairs_pmut(|mut a,mut b|{
     ///    *a.inner_mut()+=1;
     ///    *b.inner_mut()+=1;
     ///});
@@ -524,7 +524,7 @@ pub trait Queries<'a>{
     ///assert_eq!(bots[0].inner,1);
     ///assert_eq!(bots[1].inner,1);
     ///```
-    fn find_intersections_pmut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
+    fn find_colliding_pairs_pmut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
         colfind::QueryBuilder::new(self.axis(),self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
  
@@ -697,7 +697,7 @@ impl<'a, T: Aabb + HasInner> NaiveAlgs<'a, T> {
         });
     }
 
-    pub fn find_intersections_mut(&mut self, mut func: impl FnMut(&mut T::Inner, &mut T::Inner)) {
+    pub fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(&mut T::Inner, &mut T::Inner)) {
         colfind::query_naive_mut(self.bots.as_mut(), |a, b| {
             func(a.into_inner(), b.into_inner())
         });

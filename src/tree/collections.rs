@@ -23,9 +23,9 @@
 //! use broccoli::prelude::*;
 //! let mut k=[bbox(rect(0,10,0,10),8)];
 //! let mut b=broccoli::collections::TreeRef::new(&mut k);
-//! b.find_intersections_mut(|a,b|{});
+//! b.find_colliding_pairs_mut(|a,b|{});
 //! *b.get_elements_mut().get_index_mut(0).inner_mut()=5;
-//! b.find_intersections_mut(|a,b|{});
+//! b.find_colliding_pairs_mut(|a,b|{});
 //! ```
 //!
 //! This is good and all, but having to work around the PMut<T> pointer
@@ -41,9 +41,9 @@
 //! use broccoli::prelude::*;
 //! let mut k=[0];
 //! let mut b=broccoli::collections::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
-//! b.find_intersections_mut(|a,b|{});
+//! b.find_colliding_pairs_mut(|a,b|{});
 //! b.get_elements_mut()[0]=5;
-//! b.find_intersections_mut(|a,b|{});
+//! b.find_colliding_pairs_mut(|a,b|{});
 //! ```
 //!
 //! `TreeRef` and `TreeRefInd` are both lifetimed. If you want to store the tree
