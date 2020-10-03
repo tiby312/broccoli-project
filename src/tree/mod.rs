@@ -145,8 +145,122 @@ impl<'a,T,D> CollidingPairs<'a,T,D>{
     }
 }
 
+
+
+struct Ptr<T>(*mut T);
+unsafe impl<T> Send for Ptr<T>{}
+unsafe impl<T> Sync for Ptr<T>{}
+
+///All colliding pairs partitioned into
+///mutually exclusive sets so that they can
+//be traversed in parallel
+pub struct CollidingPairsPar<'a,T:Send+Sync,D:Send+Sync>{
+    cols: Vec<Vec<(Ptr<T>, Ptr<T>, D)>>,
+    _p:PhantomData<&'a mut T>
+}
+impl<'a,T:Send+Sync,D:Send+Sync> CollidingPairsPar<'a,T,D>{
+    pub fn for_every_pair_mut_par<A: Axis, N: Num>(
+        &mut self,
+        func: impl Fn(&mut T, &mut T, &mut D) + Send + Sync + Copy,
+    ) {
+        
+        fn parallelize<T: Visitor + Send + Sync>(a: T, func: impl Fn(T::Item) + Sync + Send + Copy)
+        where
+            T::Item: Send + Sync,
+        {
+            let (n, l) = a.next();
+            func(n);
+            if let Some([left, right]) = l {
+                rayon::join(|| parallelize(left, func), || parallelize(right, func));
+            }
+        }
+        let mtree = compt::dfs_order::CompleteTree::from_preorder_mut(&mut self.cols).unwrap();
+
+        parallelize(mtree.vistr_mut(), |a| {
+            for (a, b, d) in a.iter_mut() {
+                let a = unsafe{&mut *a.0};
+                let b = unsafe{&mut *b.0};
+                func(a, b, d)
+            }
+        });
+    }
+}
+impl<'a,'b,A:Axis,N:Num,T:Send+Sync> Tree<'a,A,BBox<N,&'b mut T>>{
+    pub fn collect_colliding_pairs_par<D: Send + Sync>(
+        &mut self,
+         func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync+Copy,
+    ) -> CollidingPairsPar<T,D>{
+        let cols = self.collect_colliding_pairs_par_inner(|a, b| {
+            match func(a, b) {
+                Some(d) => Some((Ptr(a as *mut _), Ptr(b as *mut _), d)),
+                None => None,
+            }
+        });
+        CollidingPairsPar{
+            cols,
+            _p: PhantomData,
+        }
+    }
+    
+    fn collect_colliding_pairs_par_inner<D: Send + Sync>(
+        &mut self,
+        func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync+Copy,
+    ) -> Vec<Vec<D>> {
+        
+
+        struct Foo<T: Visitor> {
+            current: T::Item,
+            next: Option<[T; 2]>,
+        }
+        impl<T: Visitor> Foo<T> {
+            fn new(a: T) -> Foo<T> {
+                let (n, f) = a.next();
+                Foo {
+                    current: n,
+                    next: f,
+                }
+            }
+        }
+    
+        //TODO might break if user uses custom height
+        let height =
+            1 + par::compute_level_switch_sequential(par::SWITCH_SEQUENTIAL_DEFAULT, self.get_height())
+                .get_depth_to_switch_at();
+        //dbg!(tree.get_height(),height);
+        let mut cols: Vec<Vec<D>> = (0..compt::compute_num_nodes(height))
+            .map(|_| Vec::new())
+            .collect();
+        let mtree = compt::dfs_order::CompleteTree::from_preorder_mut(&mut cols).unwrap();
+    
+        self.find_colliding_pairs_par_ext(
+            move |a| {
+                let next = a.next.take();
+                if let Some([left, right]) = next {
+                    let l = Foo::new(left);
+                    let r = Foo::new(right);
+                    *a = l;
+                    r
+                } else {
+                    unreachable!()
+                }
+            },
+            move |_a, _b| {},
+            move |c, a, b| {
+                if let Some(d) = func(a, b) {
+                    c.current.push(d);
+                }
+            },
+            Foo::new(mtree.vistr_mut()),
+        );
+
+        cols
+        //CollidingPairsPar{cols,_p:PhantomData}
+    
+    }
+}
+
 impl<'a,'b,A:Axis,N:Num,T> Tree<'a,A,BBox<N,&'b mut T>>{
-    pub fn collect_colliding_pairs_list<'c,D: Send + Sync>(
+    pub fn collect_colliding_pairs<'c,D: Send + Sync>(
         &mut self,
         mut func: impl FnMut(&mut T, &mut T) -> Option<D> + Send + Sync,
     ) -> CollidingPairs<'b, T, D> {
