@@ -92,7 +92,9 @@ fn inner<A: Axis, N: Node>(axis: A, iter: compt::LevelIter<Vistr<N>>) -> Result<
     Ok(())
 }
 
-pub fn find_intersections_mut<A: Axis, T: Aabb + HasInner>(tree: &mut TreeRef<A, T>) {
+
+
+pub fn find_colliding_pairs_mut<A: Axis, T: Aabb + HasInner>(tree: &mut TreeRef<A, T>) {
 
     let mut res_dino = Vec::new();
     tree.find_colliding_pairs_mut(|a, b| {

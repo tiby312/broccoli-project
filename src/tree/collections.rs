@@ -126,20 +126,13 @@ impl<'a,A:Axis,N:Num,T> TreeRefInd<'a,A,N,T>{
     pub fn get_elements_mut(&mut self)->&'a mut [T]{
         unsafe{&mut *self.orig}
     }
-    pub fn get_tree_elements_mut(&mut self)->PMut<[BBox<N,&mut T>]>{
-        //unsafe{&mut *(self.inner.get_elements_mut() as *mut _ as *mut _)}
-        unimplemented!();
-
-    }
-    pub fn get_tree_elements(&self)->&[BBox<N,&mut T>]{
-        unimplemented!();
-    }
 }
 
 
 
+
 impl<'a,A:Axis,N:Num+'a,T> core::ops::Deref for TreeRefInd<'a,A,N,T>{
-    type Target=Tree<'a,A,BBox<N,&'a mut T>>;
+    type Target=TreeRef<'a,A,BBox<N,&'a mut T>>;
     fn deref(&self)->&Self::Target{
         //TODO do these in one place
         unsafe{&*(self.inner.as_tree() as *const _ as *const _)}
@@ -153,9 +146,15 @@ impl<'a,A:Axis,N:Num+'a,T> core::ops::DerefMut for TreeRefInd<'a,A,N,T>{
     }
 }
 
-pub struct TreeRef<'a,A:Axis,T:Aabb>{
+
+struct TreeRefInner<A:Axis,T:Aabb>{
     inner:TreeInner<A,NodePtr<T>>,
-    orig:*mut [T],
+    orig:*mut [T]
+}
+
+
+pub struct TreeRef<'a,A:Axis,T:Aabb>{
+    inner:TreeRefInner<A,T>,
     _p:PhantomData<&'a mut T>
 }
 
@@ -163,13 +162,13 @@ impl<'a,A:Axis,T:Aabb> core::ops::Deref for TreeRef<'a,A,T>{
     type Target=Tree<'a,A,T>;
     fn deref(&self)->&Self::Target{
         //TODO do these in one place
-        unsafe{&*(&self.inner as *const _ as *const _)}
+        unsafe{&*(&self.inner.inner as *const _ as *const _)}
     }
 }
 impl<'a,A:Axis,T:Aabb> core::ops::DerefMut for TreeRef<'a,A,T>{
     fn deref_mut(&mut self)->&mut Self::Target{
         //TODO do these in one place
-        unsafe{&mut *(&mut self.inner as *mut _ as *mut _)}
+        unsafe{&mut *(&mut self.inner.inner as *mut _ as *mut _)}
     }
 }
 
@@ -184,16 +183,15 @@ impl<'a,A:Axis,T:Aabb> TreeRef<'a,A,T>{
         let inner=make_owned(a,arr);
         let orig=arr as *mut _;
         TreeRef{
-            inner,
-            orig,
+            inner:TreeRefInner{inner,orig},
             _p:PhantomData
         }        
     }
     pub fn get_elements(&self)->&[T]{
-        unsafe{&*self.orig}
+        unsafe{&*self.inner.orig}
     }
     pub fn get_elements_mut(&mut self)->PMut<'a,[T]>{
-        PMut::new(unsafe{&mut *self.orig})
+        PMut::new(unsafe{&mut *self.inner.orig})
     }
 }
 
@@ -303,12 +301,12 @@ impl<A:Axis,N:Num,T> TreeOwnedInd<A,N,T>{
     }
 
     ///Cant use Deref because of lifetime
-    pub fn as_tree(&self)->&Tree<A,BBox<N,&mut T>>{
+    pub fn as_tree(&self)->&TreeRef<A,BBox<N,&mut T>>{
         unsafe{&*(self.inner.as_tree() as *const _ as *const _)}
     }
 
     ///Cant use Deref because of lifetime
-    pub fn as_tree_mut(&mut self)->&mut Tree<A,BBox<N,&mut T>>{
+    pub fn as_tree_mut(&mut self)->&mut TreeRef<A,BBox<N,&mut T>>{
         unsafe{&mut *(self.inner.as_tree_mut() as *mut _ as *mut _)}
     }
 
@@ -325,7 +323,7 @@ impl<A:Axis,N:Num,T> TreeOwnedInd<A,N,T>{
 
 ///An owned Tree componsed of `T:Aabb`
 pub struct TreeOwned<A: Axis, T: Aabb> {
-    tree: TreeInner<A, NodePtr<T>>,
+    tree:TreeRefInner<A,T>,
     bots: Vec<T>,
 }
 
@@ -336,8 +334,9 @@ impl<T: Aabb+Send+Sync> TreeOwned<DefaultA, T> {
 }
 impl<A: Axis, T: Aabb+Send+Sync> TreeOwned<A, T> {
     pub fn with_axis_par(axis:A,mut bots:Vec<T>)->TreeOwned<A,T>{
+        
         TreeOwned{
-            tree:make_owned_par(axis,&mut bots),
+            tree:TreeRefInner{inner:make_owned_par(axis,&mut bots),orig:bots.as_mut_slice() as *mut _},
             bots
         }
     }
@@ -352,18 +351,18 @@ impl<A: Axis, T: Aabb> TreeOwned<A, T> {
     ///Create an owned Tree in one thread.
     pub fn with_axis(axis: A, mut bots: Vec<T>) -> TreeOwned<A, T> {
         TreeOwned {
-            tree: make_owned(axis, &mut bots),
+            tree: TreeRefInner{inner:make_owned(axis,&mut bots),orig:bots.as_mut_slice() as *mut _},
             bots,
         }
     }
     
     ///Cant use Deref because of lifetime
-    pub fn as_tree(&self)->&Tree<A,T>{
+    pub fn as_tree(&self)->&TreeRef<A,T>{
         unsafe{&*(&self.tree as *const _ as *const _)}
     }
 
     ///Cant use Deref because of lifetime
-    pub fn as_tree_mut(&mut self)->&mut Tree<A,T>{
+    pub fn as_tree_mut(&mut self)->&mut TreeRef<A,T>{
         unsafe{&mut *(&mut self.tree as *mut _ as *mut _)}
     }
 
@@ -376,8 +375,8 @@ impl<A: Axis, T: Aabb> TreeOwned<A, T> {
     pub fn rebuild(&mut self, mut func: impl FnMut(&mut [T])) {
         func(&mut self.bots);
 
-        let axis = self.tree.axis;
-        self.tree = make_owned(axis, &mut self.bots);
+        let axis = self.tree.inner.axis;
+        self.tree.inner = make_owned(axis, &mut self.bots);
     }
 
 }

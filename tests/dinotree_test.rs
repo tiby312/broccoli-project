@@ -18,6 +18,6 @@ fn test1() {
             .collect();
 
         let mut tree=broccoli::collections::TreeRef::new(&mut bots);
-        broccoli::assert::find_intersections_mut(&mut tree);
+        broccoli::assert::find_colliding_pairs_mut(&mut tree);
     }
 }
