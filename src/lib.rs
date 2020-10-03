@@ -104,9 +104,10 @@ pub mod util;
 
 use axgeom::Rect;
 
+
 pub mod prelude{
-    pub use crate::Rec;
-    pub use crate::rec;
+    pub use axgeom::Rect;
+    pub use axgeom::rect;
     pub use crate::Num;
     pub use crate::Aabb;
     pub use crate::HasInner;
@@ -134,70 +135,15 @@ impl<T> Num for T where T: Ord + Copy + Send + Sync {}
 ///If two object's aabb's don't intersect, then they can be mutated at the same time.
 pub unsafe trait Aabb {
     type Num: Num;
-    fn get_rec(&self) -> &Rec<Self::Num>;
+    fn get(&self) -> &Rect<Self::Num>;
 }
 
-
-///The layout of this struct is very important to
-///exploit the broccoli data structure.
-///
-///Its important that the rect be represented as
-///a start and a end instead of a start and a length
-///so that no calculations needs to be done in the query stage.
-///
-///It is also important that the struct is able to be split
-///into a x component and a y component. So the x components
-///need to be adjacent in memory and the same for the y 
-///components.
-#[repr(C)]
-#[derive(Eq,PartialEq,Copy,Clone,Debug)]
-pub struct Rec<T>{
-    pub xstart:T,
-    pub xend:T,
-    pub ystart:T,
-    pub yend:T
-}
-
-impl<T> From<Rect<T>> for Rec<T>{
-    fn from(a:Rect<T>)->Rec<T>{
-        unimplemented!()
-    }
-}
-impl<T> core::convert::AsRef<Rect<T>> for Rec<T>{
-    fn as_ref(&self)->&Rect<T>{
-        unimplemented!()
-    }
-}
-impl<T> core::convert::AsMut<Rect<T>> for Rec<T>{
-    fn as_mut(&mut self)->&mut Rect<T>{
-        unimplemented!()
-    }
-}
-
-
-pub fn rec<T>(xstart:T,xend:T,ystart:T,yend:T)->Rec<T>{
-    Rec{
-        xstart,
-        xend,
-        ystart,
-        yend
-    }
-}
-
-unsafe impl<N: Num> Aabb for Rec<N> {
+unsafe impl<N: Num> Aabb for Rect<N> {
     type Num = N;
-    fn get_rec(&self) -> &Rec<Self::Num> {
+    fn get(&self) -> &Rect<Self::Num> {
         self
     }
 }
-
-
-pub(crate) trait AabbInner:Aabb{
-    fn get(&self)->&Rect<Self::Num>{
-        unimplemented!();
-    }
-}
-impl<T:Aabb> AabbInner for T{}
 
 
 

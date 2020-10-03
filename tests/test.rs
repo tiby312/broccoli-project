@@ -11,7 +11,7 @@ use broccoli::prelude::*;
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.
 fn create_bbox_mut<'a, N: Num, T>(
     bots: &'a mut [T],
-    mut aabb_create: impl FnMut(&T) -> Rec<N>,
+    mut aabb_create: impl FnMut(&T) -> Rect<N>,
 ) -> Vec<BBox<N, &'a mut T>> {
     bots.iter_mut()
         .map(move |k| BBox::new(aabb_create(k), k))
@@ -38,7 +38,7 @@ fn test_parallel() {
 fn test_zero_sized() {
     let mut bots = vec![(); 1];
 
-    let mut bots = create_bbox_mut(&mut bots, |_b| rec(0isize, 0, 0, 0));
+    let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
     let tree = broccoli::new(&mut bots);
 
@@ -53,7 +53,7 @@ fn test_zero_sized() {
 fn test_zero_sized2() {
     let mut bots = vec![(); 1];
 
-    let mut bots = create_bbox_mut(&mut bots, |_b| rec(0isize, 0, 0, 0));
+    let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
     let tree = broccoli::new(&mut bots);
 
@@ -67,7 +67,7 @@ fn test_zero_sized2() {
 fn test_one() {
     let mut bots = vec![0usize; 1];
 
-    let mut bots = create_bbox_mut(&mut bots, |_b| rec(0isize, 0, 0, 0));
+    let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
     let tree = broccoli::new(&mut bots);
 
@@ -81,7 +81,7 @@ fn test_one() {
 #[test]
 fn test_empty() {
     let mut bots: Vec<()> = Vec::new();
-    let mut bots = create_bbox_mut(&mut bots, |_b| rec(0isize, 0, 0, 0));
+    let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
     let tree = broccoli::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
@@ -95,7 +95,7 @@ fn test_empty() {
 fn test_many() {
     let mut bots = vec![0usize; 1000];
 
-    let mut bots = create_bbox_mut(&mut bots, |_b| rec(0isize, 0, 0, 0));
+    let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
     let tree = broccoli::new(&mut bots);
 
@@ -123,8 +123,8 @@ fn test_send_sync_dinotree() {
     let mut bots1: Vec<()> = Vec::new();
     let mut bots2: Vec<()> = Vec::new();
 
-    let mut bots1 = create_bbox_mut(&mut bots1, |_| rec(0, 0, 0, 0));
-    let mut bots2 = create_bbox_mut(&mut bots2, |_| rec(0, 0, 0, 0));
+    let mut bots1 = create_bbox_mut(&mut bots1, |_| rect(0, 0, 0, 0));
+    let mut bots2 = create_bbox_mut(&mut bots2, |_| rect(0, 0, 0, 0));
 
     //Check that its send
     let (t1, t2) = rayon::join(|| broccoli::new(&mut bots1), || broccoli::new(&mut bots2));

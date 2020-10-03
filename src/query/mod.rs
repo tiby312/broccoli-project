@@ -474,12 +474,11 @@ pub trait Queries<'a>{
     ///
     /// ```
     /// use broccoli::prelude::*;
-    /// use axgeom::*;
     ///
     /// struct Drawer;
     /// impl broccoli::query::DividerDrawer for Drawer{
     ///     type N=i32;
-    ///     fn draw_divider<A:Axis>(
+    ///     fn draw_divider<A:axgeom::Axis>(
     ///             &mut self,
     ///             axis:A,
     ///             div:Self::N,

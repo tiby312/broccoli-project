@@ -7,7 +7,6 @@
 //! it can't act as a container. You  also can't do the the following.
 //!
 //! ```rust,compile_fail
-//! use axgeom::*;
 //! use broccoli::prelude::*;
 //! let mut k=[bbox(rect(0,10,0,10),8)];
 //! let mut b=broccoli::new(&mut k);
@@ -21,7 +20,6 @@
 //! 
 //! If we use `TreeRef`, we can do the above like this:
 //! ```rust
-//! use axgeom::*;
 //! use broccoli::prelude::*;
 //! let mut k=[bbox(rect(0,10,0,10),8)];
 //! let mut b=broccoli::collections::TreeRef::new(&mut k);
@@ -40,7 +38,6 @@
 //!
 //!
 //! ```rust
-//! use axgeom::*;
 //! use broccoli::prelude::*;
 //! let mut k=[0];
 //! let mut b=broccoli::collections::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
@@ -56,7 +53,6 @@
 //!
 //! ```rust
 //! use broccoli::{prelude::*,collections::*,DefaultA};
-//! use axgeom::*;
 //!
 //! fn not_lifetimed()->TreeOwned<DefaultA,BBox<i32,f32>>
 //! {
@@ -71,8 +67,8 @@
 //! ## An owned `(Rect<N>,*mut T)` example
 //!
 //! ```rust
-//! use broccoli::{*,collections::*,DefaultA};
 //! use axgeom::*;
+//! use broccoli::{*,collections::*,DefaultA};
 //!
 //! fn not_lifetimed()->TreeOwnedInd<DefaultA,i32,Vec2<i32>>
 //! {
@@ -102,13 +98,13 @@ pub struct TreeRefInd<'a,A:Axis,N:Num,T>{
 }
 
 impl<'a,N:Num,T> TreeRefInd<'a,DefaultA,N,T>{
-    pub fn new(arr:&'a mut [T],func:impl FnMut(&mut T)->Rec<N>)->TreeRefInd<'a,DefaultA,N,T>{
+    pub fn new(arr:&'a mut [T],func:impl FnMut(&mut T)->Rect<N>)->TreeRefInd<'a,DefaultA,N,T>{
         TreeRefInd::with_axis(default_axis(),arr,func)
     }
 }
 
 impl<'a,A:Axis,N:Num,T> TreeRefInd<'a,A,N,T>{
-    pub fn with_axis(axis:A,arr:&'a mut [T],mut func:impl FnMut(&mut T)->Rec<N>)->TreeRefInd<'a,A,N,T>{
+    pub fn with_axis(axis:A,arr:&'a mut [T],mut func:impl FnMut(&mut T)->Rect<N>)->TreeRefInd<'a,A,N,T>{
         let orig=arr as *mut _;
         let bbox = arr
         .iter_mut()
@@ -263,12 +259,12 @@ pub struct TreeOwnedInd<A: Axis,N:Num, T> {
 }
 
 impl<N:Num,T:Send+Sync> TreeOwnedInd<DefaultA,N,T>{
-    pub fn new_par(bots: Vec<T>,func:impl FnMut(&T)->Rec<N>) -> TreeOwnedInd<DefaultA,N, T> {
+    pub fn new_par(bots: Vec<T>,func:impl FnMut(&T)->Rect<N>) -> TreeOwnedInd<DefaultA,N, T> {
         TreeOwnedInd::with_axis_par(default_axis(),bots,func)
     }
 }
 impl<A:Axis,N:Num,T:Send+Sync> TreeOwnedInd<A,N,T>{
-    pub fn with_axis_par(axis: A, mut bots: Vec<T>,mut func:impl FnMut(&T)->Rec<N>) -> TreeOwnedInd<A,N, T> {
+    pub fn with_axis_par(axis: A, mut bots: Vec<T>,mut func:impl FnMut(&T)->Rect<N>) -> TreeOwnedInd<A,N, T> {
         let bbox = bots
             .iter_mut()
             .map(|b| BBox::new(func(b), ThreadPtr(b as *mut _) ))
@@ -284,13 +280,13 @@ impl<A:Axis,N:Num,T:Send+Sync> TreeOwnedInd<A,N,T>{
 }
 
 impl<N:Num,T> TreeOwnedInd<DefaultA,N, T> {
-    pub fn new(bots: Vec<T>,func:impl FnMut(&T)->Rec<N>) -> TreeOwnedInd<DefaultA, N,T> {
+    pub fn new(bots: Vec<T>,func:impl FnMut(&T)->Rect<N>) -> TreeOwnedInd<DefaultA, N,T> {
         Self::with_axis(default_axis(), bots,func)
     }    
 }
 impl<A:Axis,N:Num,T> TreeOwnedInd<A,N,T>{
     ///Create an owned Tree in one thread.
-    pub fn with_axis(axis: A, mut bots: Vec<T>,mut func:impl FnMut(&T)->Rec<N>) -> TreeOwnedInd<A,N, T> {
+    pub fn with_axis(axis: A, mut bots: Vec<T>,mut func:impl FnMut(&T)->Rect<N>) -> TreeOwnedInd<A,N, T> {
         let bbox = bots
             .iter_mut()
             .map(|b| BBox::new(func(b), ThreadPtr(b as *mut _)))

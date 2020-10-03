@@ -3,9 +3,9 @@ use broccoli::prelude::*;
 
 fn main() {
     let mut aabbs = [
-        bbox(rec(0isize, 10, 0, 10), 0),
-        bbox(rec(15, 20, 15, 20), 1),
-        bbox(rec(5, 15, 5, 15), 2),
+        bbox(rect(0isize, 10, 0, 10), 0),
+        bbox(rect(15, 20, 15, 20), 1),
+        bbox(rect(5, 15, 5, 15), 2),
     ];
 
     //Create a layer of direction.
@@ -26,14 +26,14 @@ fn main() {
     });
 
     assert_eq!(rect_collisions.len(), 1);
-    assert_eq!(*rect_collisions[0].get_rec(), rec(0, 10, 0, 10));
+    assert_eq!(*rect_collisions[0].get(), rect(0, 10, 0, 10));
 
     let res = tree.k_nearest_mut(
         vec2(30, 30),
         2,
         &mut (),
         |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
-        |(), a, b| b.rect.as_ref().distance_squared_to_point(a).unwrap_or(0),
+        |(), a, b| b.rect.distance_squared_to_point(a).unwrap_or(0),
         border,
     );
     assert_eq!(res[0].bot, &1);
@@ -47,7 +47,7 @@ fn main() {
         ray,
         &mut (),
         |(), ray, r| ray.cast_to_rect(r),
-        |(), ray, b| ray.cast_to_rect(b.get_rec().as_ref()),
+        |(), ray, b| ray.cast_to_rect(b.get()),
         border,
     );
     assert_eq!(res.unwrap().0[0], &0);

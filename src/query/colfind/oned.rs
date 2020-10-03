@@ -191,7 +191,7 @@ fn test_parallel() {
     }
     impl Counter {
         fn make(&mut self, x1: isize, x2: isize) -> BBox<isize, Bot> {
-            let b = BBox::new(rec(x1, x2, 0, 10), Bot { id: self.counter });
+            let b = BBox::new(rect(x1, x2, 0, 10), Bot { id: self.counter });
             self.counter += 1;
             b
         }

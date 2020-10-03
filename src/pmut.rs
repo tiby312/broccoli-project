@@ -90,9 +90,8 @@ impl<'a, T: HasInner> PMut<'a, T> {
 unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
     type Num = T::Num;
     #[inline(always)]
-    fn get_rec(&self) -> &Rec<Self::Num> {
-        unimplemented!();
-        //self.inner.get()
+    fn get(&self) -> &Rect<Self::Num> {
+        self.inner.get()
     }
 }
 
