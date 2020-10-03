@@ -17,7 +17,7 @@ struct Bla<'a> {
     _num_pairs_checked: usize,
     _p: PhantomData<&'a usize>,
 }
-impl<'b> NodeMassTrait for Bla<'b> {
+impl<'b> broccoli::query::NodeMassTrait for Bla<'b> {
     type No = NodeMass;
     type Item = BBox<F32n, &'b mut Bot>;
     type Num = F32n;
@@ -169,7 +169,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         //let mut k = bbox_helper::create_bbox_mut(bots, |b| b.create_aabb());
 
         {
-            let mut tree = DinoTree::new_par(&mut k);
+            let mut tree = broccoli::new_par(&mut k);
 
             let border = dim;
 
@@ -241,7 +241,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
                 */
             }
 
-            tree.find_intersections_mut_par(|a, b| {
+            tree.find_colliding_pairs_mut_par(|a, b| {
                 let (a, b) = if a.mass > b.mass { (a, b) } else { (b, a) };
 
                 if b.mass != 0.0 {

@@ -13,10 +13,10 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         .collect();
 
     let mut counter: f32 = 0.0;
-    let mut tree = DinoTreeOwned::new_par(ii);
+    let mut tree = broccoli::collections::TreeOwned::new_par(ii);
 
     let mut rects = canvas.rects();
-    for bot in tree.get_bots().iter() {
+    for bot in tree.get_elements().iter() {
         rects.add(bot.get().inner_into().into());
     }
     let rect_save = rects.save(canvas);
@@ -40,7 +40,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             .draw();
 
         if check_naive {
-            Assert::raycast_mut(
+            broccoli::assert::raycast_mut(
                 tree,
                 ray,
                 &mut rects,

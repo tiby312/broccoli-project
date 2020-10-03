@@ -41,10 +41,10 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         })
         .collect();
 
-    let mut tree = DinoTreeOwnedBBoxPtr::new(bots, |bot| bot.rect.inner_try_into().unwrap());
+    let mut tree = broccoli::collections::TreeOwnedInd::new(bots, |bot| bot.rect.inner_try_into().unwrap());
 
     let mut rects = canvas.rects();
-    for bot in tree.as_owned().get_elements().iter() {
+    for bot in tree.as_tree().get_elements().iter() {
         rects.add(bot.get().inner_into().into());
     }
     let rect_save = rects.save(canvas);
@@ -64,7 +64,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         let mut vv = {
             let mut rects = canvas.rects();
 
-            let k = tree.as_owned_mut().as_tree_mut().k_nearest_mut(
+            let k = tree.as_tree_mut().k_nearest_mut(
                 cursor,
                 3,
                 &mut rects,
@@ -91,8 +91,8 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             .collect();
 
         if check_naive {
-            Assert::k_nearest_mut(
-                tree.as_owned_mut().as_tree_mut(),
+            broccoli::assert::k_nearest_mut(
+                tree.as_tree_mut(),
                 cursor,
                 3,
                 &mut rects,
@@ -106,7 +106,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         }
 
         vv.reverse();
-        let vv_iter = dinotree_alg::util::SliceSplit::new(&mut vv, |a, b| a.mag == b.mag);
+        let vv_iter = broccoli::util::SliceSplit::new(&mut vv, |a, b| a.mag == b.mag);
 
         rect_save
             .uniforms(canvas)

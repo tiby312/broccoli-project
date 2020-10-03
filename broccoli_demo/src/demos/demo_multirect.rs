@@ -27,10 +27,10 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         })
         .collect();
 
-    let mut tree = DinoTreeOwnedBBoxPtr::new_par(bots, |b| b.rect);
+    let mut tree = broccoli::collections::TreeOwnedInd::new_par(bots, |b| b.rect);
 
     let mut rects = canvas.rects();
-    for bot in tree.as_owned().get_bots().iter() {
+    for bot in tree.as_tree().get_elements().iter() {
         rects.add(bot.get().inner_as().into());
     }
     let rect_save = rects.save(canvas);
@@ -46,17 +46,17 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         let r2 = axgeom::Rect::new(100, 400, 100, 400);
 
         if check_naive {
-            let tree = tree.as_owned_mut().as_tree_mut();
-            Assert::for_all_in_rect_mut(tree, &r1);
-            Assert::for_all_in_rect_mut(tree, &r2);
-            Assert::for_all_intersect_rect_mut(tree, &r1);
-            Assert::for_all_intersect_rect_mut(tree, &r2);
-            Assert::for_all_not_in_rect_mut(tree, &r1);
+            let tree = tree.as_tree_mut();
+            broccoli::assert::for_all_in_rect_mut(tree, &r1);
+            broccoli::assert::for_all_in_rect_mut(tree, &r2);
+            broccoli::assert::for_all_intersect_rect_mut(tree, &r1);
+            broccoli::assert::for_all_intersect_rect_mut(tree, &r2);
+            broccoli::assert::for_all_not_in_rect_mut(tree, &r1);
         }
 
         //test MultiRect
         {
-            let mut rects = tree.as_owned_mut().as_tree_mut().multi_rect();
+            let mut rects = tree.as_tree_mut().multi_rect();
 
             let mut to_draw = Vec::new();
             let _ = rects.for_all_in_rect_mut(r1, |a| to_draw.push(a));
@@ -98,7 +98,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
 
         //test for_all_intersect_rect
         let mut rects = canvas.rects();
-        tree.as_owned().as_tree().for_all_intersect_rect(&r1, |a| {
+        tree.as_tree().for_all_intersect_rect(&r1, |a| {
             rects.add(a.get().inner_as().into());
         });
         rects
@@ -118,8 +118,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             .draw();
 
         let mut rects = canvas.rects();
-        tree.as_owned_mut()
-            .as_tree_mut()
+        tree.as_tree_mut()
             .for_all_not_in_rect_mut(&r1, |b| {
                 rects.add(b.rect.inner_as().into());
             });

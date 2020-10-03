@@ -2,7 +2,6 @@ use crate::support::prelude::*;
 use std;
 
 use broccoli::assert;
-use axgeom::*;
 use axgeom::Ray;
 
 #[derive(Copy, Clone)]

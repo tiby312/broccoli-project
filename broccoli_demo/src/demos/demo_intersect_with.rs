@@ -82,7 +82,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         {
             let mut walls = walls.iter_mut().map(|a| bbox(a.0, a)).collect::<Vec<_>>();
             //let mut walls = bbox_helper::create_bbox_mut(&mut walls, |wall| wall.0);
-            let mut tree = DinoTree::new_par(&mut k);
+            let mut tree = broccoli::new_par(&mut k);
 
             tree.intersect_with_mut(&mut walls, |mut bot, wall| {
                 let fric = 0.8;
@@ -123,7 +123,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 },
             );
 
-            tree.find_intersections_mut_par(|a, b| {
+            tree.find_colliding_pairs_mut_par(|a, b| {
                 let _ =
                     duckduckgeo::repel([(a.pos, &mut a.force), (b.pos, &mut b.force)], 0.001, 2.0);
             });

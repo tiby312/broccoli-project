@@ -41,7 +41,7 @@ pub struct SliceSplitMut<'a, T, F> {
     func: F,
 }
 
-/*
+
 impl<'a, T, F: FnMut(&T, &T) -> bool> SliceSplitMut<'a, T, F> {
     pub fn new(arr: &'a mut [T], func: F) -> SliceSplitMut<'a, T, F> {
         SliceSplitMut {
@@ -50,7 +50,7 @@ impl<'a, T, F: FnMut(&T, &T) -> bool> SliceSplitMut<'a, T, F> {
         }
     }
 }
-*/
+
 
 impl<'a, T, F: FnMut(&T, &T) -> bool> Iterator for SliceSplitMut<'a, T, F> {
     type Item = &'a mut [T];
@@ -73,7 +73,7 @@ pub struct SliceSplit<'a, T, F> {
     arr: Option<&'a [T]>,
     func: F,
 }
-/*
+
 impl<'a, T, F: FnMut(&T, &T) -> bool> SliceSplit<'a, T, F> {
     pub fn new(arr: &'a [T], func: F) -> SliceSplit<'a, T, F> {
         SliceSplit {
@@ -82,7 +82,7 @@ impl<'a, T, F: FnMut(&T, &T) -> bool> SliceSplit<'a, T, F> {
         }
     }
 }
-*/
+
 impl<'a, T, F: FnMut(&T, &T) -> bool> Iterator for SliceSplit<'a, T, F> {
     type Item = &'a [T];
     fn next(&mut self) -> Option<Self::Item> {

@@ -178,6 +178,23 @@ impl<'a,T:Aabb> TreeRef<'a,DefaultA,T>{
     }
 }
 
+impl<'a,T:Aabb+Send+Sync> TreeRef<'a,DefaultA,T>{
+    pub fn new_par(arr:&'a mut [T])->TreeRef<'a,DefaultA,T>{
+        TreeRef::with_axis_par(default_axis(),arr)
+    }
+}
+
+impl<'a,A:Axis,T:Aabb+Send+Sync> TreeRef<'a,A,T>{
+    pub fn with_axis_par(a:A,arr:&'a mut [T])->TreeRef<'a,A,T>{
+        let inner=make_owned_par(a,arr);
+        let orig=arr as *mut _;
+        TreeRef{
+            inner:TreeRefInner{inner,orig},
+            _p:PhantomData
+        }        
+    }
+}
+
 impl<'a,A:Axis,T:Aabb> TreeRef<'a,A,T>{
     pub fn with_axis(a:A,arr:&'a mut [T])->TreeRef<'a,A,T>{
         let inner=make_owned(a,arr);

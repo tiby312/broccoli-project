@@ -51,7 +51,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             })
             .collect();
 
-        let mut tree = DinoTree::new_par(&mut k);
+        let mut tree = broccoli::collections::TreeRef::new_par(&mut k);
 
         {
             let dim2 = dim.inner_into();
@@ -68,7 +68,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
 
         let rects = canvas.rects();
         let mut dd = Bla { rects };
-        tree.draw(&mut dd, &dim);
+        tree.draw_divider(&mut dd, &dim);
         dd.rects
             .send_and_uniforms(canvas)
             .with_color([0.0, 1.0, 1.0, 0.6])
@@ -83,12 +83,12 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             .with_color([1.0, 0.5, 1.0, 0.6])
             .draw();
 
-        tree.find_intersections_mut_par(|a, b| {
+        tree.find_colliding_pairs_mut_par(|a, b| {
             let _ = duckduckgeo::repel([(a.pos, &mut a.force), (b.pos, &mut b.force)], 0.001, 2.0);
         });
 
         if check_naive {
-            Assert::find_intersections_mut(&mut tree);
+            broccoli::assert::find_colliding_pairs_mut(&mut tree);
         }
 
         let mut circles = canvas.circles();
@@ -117,7 +117,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
 struct Bla {
     rects: egaku2d::shapes::RectSession,
 }
-impl DividerDrawer for Bla {
+impl broccoli::query::DividerDrawer for Bla {
     type N = F32n;
     fn draw_divider<A: axgeom::Axis>(
         &mut self,
@@ -162,6 +162,9 @@ impl DividerDrawer for Bla {
         //rectangle([0.0, 1.0, 1.0, 0.2], square, self.c.transform, self.g);
     }
 }
+
+use broccoli::node::Vistr;
+use broccoli::node::NodeMut;
 
 fn draw_bot_lines<A: axgeom::Axis>(
     axis: A,
