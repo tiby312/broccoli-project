@@ -11,7 +11,7 @@ fn test() {
 
     let mut bots: Vec<_> = bots
         .iter_mut()
-        .map(|a| bbox(axgeom::Rect::new(0isize, 0, 0, 0), a))
+        .map(|a| bbox(rec(0isize, 0, 0, 0), a))
         .collect();
 
     let mut tree = crate::new(&mut bots);

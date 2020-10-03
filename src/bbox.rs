@@ -35,7 +35,7 @@ impl<N, T> BBox<N, T> {
 unsafe impl<N: Num, T> Aabb for &mut BBox<N, T> {
     type Num = N;
     #[inline(always)]
-    fn get_rect(&self) -> &Rec<Self::Num> {
+    fn get_rec(&self) -> &Rec<Self::Num> {
         &self.rect
     }
 }
@@ -57,7 +57,7 @@ unsafe impl<N: Num, T> HasInner for &mut BBox<N, T> {
 unsafe impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;
     #[inline(always)]
-    fn get_rect(&self) -> &Rec<Self::Num> {
+    fn get_rec(&self) -> &Rec<Self::Num> {
         &self.rect
     }
 }

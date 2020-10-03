@@ -81,7 +81,6 @@ mod inner_prelude {
 
 pub mod query;
 
-use axgeom::*;
 
 ///Contains generic code used in all dinotree versions
 //pub use self::tree::{DinoTree,analyze,collectable,owned,DefaultA,default_axis};
@@ -103,9 +102,11 @@ pub use crate::bbox::*;
 pub mod util;
 
 
+pub use axgeom::Rect;
+
 pub mod prelude{
-    pub use axgeom::rect;
-    pub use axgeom::Rect;
+    pub use crate::Rec;
+    pub use crate::rec;
     pub use crate::Num;
     pub use crate::Aabb;
     pub use crate::HasInner;
@@ -133,7 +134,7 @@ impl<T> Num for T where T: Ord + Copy + Send + Sync {}
 ///If two object's aabb's don't intersect, then they can be mutated at the same time.
 pub unsafe trait Aabb {
     type Num: Num;
-    fn get_rect(&self) -> &Rec<Self::Num>;
+    fn get_rec(&self) -> &Rec<Self::Num>;
 }
 
 
@@ -149,7 +150,7 @@ pub unsafe trait Aabb {
 ///need to be adjacent in memory and the same for the y 
 ///components.
 #[repr(C)]
-#[derive(Copy,Clone,Debug)]
+#[derive(Eq,PartialEq,Copy,Clone,Debug)]
 pub struct Rec<T>{
     pub xstart:T,
     pub xend:T,
@@ -157,9 +158,35 @@ pub struct Rec<T>{
     pub yend:T
 }
 
+impl<T> From<Rect<T>> for Rec<T>{
+    fn from(a:Rect<T>)->Rec<T>{
+        unimplemented!()
+    }
+}
+impl<T> core::convert::AsRef<Rect<T>> for Rec<T>{
+    fn as_ref(&self)->&Rect<T>{
+        unimplemented!()
+    }
+}
+impl<T> core::convert::AsMut<Rect<T>> for Rec<T>{
+    fn as_mut(&mut self)->&mut Rect<T>{
+        unimplemented!()
+    }
+}
+
+
+pub fn rec<T>(xstart:T,xend:T,ystart:T,yend:T)->Rec<T>{
+    Rec{
+        xstart,
+        xend,
+        ystart,
+        yend
+    }
+}
+
 unsafe impl<N: Num> Aabb for Rec<N> {
     type Num = N;
-    fn get_rect(&self) -> &Rec<Self::Num> {
+    fn get_rec(&self) -> &Rec<Self::Num> {
         self
     }
 }

@@ -11,7 +11,7 @@ fn test1() {
             .enumerate()
             .map(|(id, [x,y])| {
                 bbox(
-                    axgeom::Rect::from_point(axgeom::vec2(x as i64,y as i64), axgeom::vec2same(8 + id as i64)),
+                    axgeom::Rect::from_point(axgeom::vec2(x as i64,y as i64), axgeom::vec2same(8 + id as i64)).into(),
                     (),
                 )
             })
