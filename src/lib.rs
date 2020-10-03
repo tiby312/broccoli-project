@@ -102,7 +102,7 @@ pub use crate::bbox::*;
 pub mod util;
 
 
-pub use axgeom::Rect;
+use axgeom::Rect;
 
 pub mod prelude{
     pub use crate::Rec;
