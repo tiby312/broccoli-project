@@ -4,11 +4,6 @@
 //! Please see the [broccoli-book](https://broccoli-book.netlify.com) which is a work in-progress high level explanation and analysis
 //! of this crate.
 //!
-//! ### Name
-
-//! If you shorten "broadphase collision" to "broad colli" and say it fast, it sounds like broccoli.
-//! Broccoli also have tree like properties and broccoli uses a tree data structure.
-//!
 //! ### Screenshot
 //!
 //! Screenshot from the broccoli_demo inner project from the [github repo of this crate](https://github.com/tiby312/broccoli).
@@ -27,20 +22,8 @@
 //!
 //! A lot is done to forbid the user from violating the invariants of the tree once constructed
 //! while still allowing them to mutate parts of each element of the tree. The user can mutably traverse
-//! the tree but the mutable references returns are hidden behind the PMut<T> type that forbids
+//! the tree but the mutable references returns are hidden behind the `PMut<T>` type that forbids
 //! mutating the whole element.
-//!
-//! ### Usage Guidlines
-//!
-//! The AABB struct that the user must use is from the [axgeom](https://crates.io/crates/axgeom) crate.
-//!
-//! If you insert aabb's with zero width or zero height, it is unspecified behavior (but still safe).
-//! It is expected that all elements in the tree take up some area. This is not inteded to be used
-//! as a "point" tree. Using this tree for a point tree would be inefficient anyway since the data layout
-//! assumes there is a aabb, which is composed of 4 numbers when a point would be just 2.
-//!
-//! That said, an aabb is composed of half-open ranges [start,end). So one could simulate a "point",
-//! by putting in a very small epsilon value to ensure that end>start.
 //!
 //! ### Unsafety
 //! 
@@ -50,6 +33,10 @@
 //! `MultiRectMut` uses unsafety to allow the user to have mutable references to elements
 //! that belong to rectangle regions that don't intersect at the same time. This is why
 //! the Aabb trait is unsafe.
+//!
+//! ### Name
+//! If you shorten "broadphase collision" to "broad colli" and say it fast, it sounds like broccoli.
+//! Broccoli also have tree like properties and broccoli uses a tree data structure.
 //!
 
 #![no_std]
