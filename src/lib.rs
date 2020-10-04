@@ -99,6 +99,7 @@ pub mod prelude{
     pub use crate::HasInner;
     pub use crate::query::Queries;
     pub use crate::query::QueriesInner;
+    pub use crate::query::NotSortedQueries;
     pub use crate::bbox::bbox;
     pub use crate::bbox::BBox;
 }

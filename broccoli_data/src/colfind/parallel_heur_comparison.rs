@@ -1,5 +1,5 @@
 use crate::inner_prelude::*;
-
+use broccoli::builder::TreeBuilder;
 #[derive(Copy, Clone)]
 pub struct Bot {
     num: usize,
@@ -13,11 +13,11 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> (f64, f64) {
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let mut tree = DinoTreeBuilder::new(&mut bb).build_seq();
+    let mut tree = TreeBuilder::new(&mut bb).build_seq();
 
     let a = instant_to_sec(instant.elapsed());
 
-    QueryBuilder::new(&mut tree).query_seq(|mut a, mut b| {
+    tree.new_colfind_builder().query_seq(|mut a, mut b| {
         a.inner_mut().num += 2;
         b.inner_mut().num += 2;
     });
@@ -35,13 +35,13 @@ fn test3(scene: &mut bot::BotScene<Bot>, rebal_height: usize, query_height: usiz
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
     //dbg!("YOOOOOOOOOOO", rebal_height,query_height);
-    let mut tree = DinoTreeBuilder::new( &mut bb)
+    let mut tree = TreeBuilder::new( &mut bb)
         .with_height_switch_seq(rebal_height)
         .build_par();
     //dbg!("FINISH");
     let a = instant_to_sec(instant.elapsed());
 
-    QueryBuilder::new(&mut tree)
+    tree.new_colfind_builder()
         .with_switch_height(query_height)
         .query_par(|mut a, mut b| {
             a.inner_mut().num += 2;

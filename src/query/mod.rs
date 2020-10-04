@@ -528,6 +528,11 @@ pub trait Queries<'a>{
         colfind::QueryBuilder::new(self.axis(),self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
  
+    ///TODO document
+    fn find_colliding_pairs_pmut_par(&mut self,func: impl Fn(PMut<Self::T>, PMut<Self::T>)+Send+Sync+Copy)
+       where Self::T:Send+Sync {
+        colfind::QueryBuilder::new(self.axis(),self.vistr_mut()).query_par(move |a, b| func(a, b));
+    }
     /// # Examples
     ///
     ///```

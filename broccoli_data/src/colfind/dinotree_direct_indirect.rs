@@ -1,4 +1,5 @@
 use crate::inner_prelude::*;
+use broccoli::pmut::PMut;
 
 pub trait TestTrait: Copy + Send + Sync {}
 impl<T: Copy + Send + Sync> TestTrait for T {}
@@ -22,11 +23,11 @@ fn test_seq<T: Aabb>(
 ) -> TestResult {
     let instant = Instant::now();
 
-    let mut tree = DinoTree::new(bots);
+    let mut tree = broccoli::new(bots);
 
     let rebal = instant_to_sec(instant.elapsed());
 
-    tree.find_collisions_mut(|a, b| {
+    tree.find_colliding_pairs_pmut(|a, b| {
         func(a, b);
     });
 
@@ -45,11 +46,11 @@ fn test_par<T: Aabb + Send + Sync>(
 ) -> TestResult {
     let instant = Instant::now();
 
-    let mut tree = DinoTree::new_par( bots);
+    let mut tree = broccoli::new_par( bots);
 
     let rebal = instant_to_sec(instant.elapsed());
 
-    tree.find_collisions_mut_par(|a, b| {
+    tree.find_colliding_pairs_pmut_par(|a, b| {
         func(a, b);
     });
 
@@ -114,11 +115,11 @@ fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTes
             .iter()
             .map(|b| BBox::new(prop.create_bbox_i32(b.pos), *b))
             .collect();
-        let mut indirect: Vec<_> = direct.iter_mut().map(|a| BBoxIndirect::new(a)).collect();
+        let mut indirect: Vec<_> = direct.iter_mut().map(|a| a).collect();
 
         let collide =
-            |mut b: PMut<BBoxIndirect<BBox<i32, Bot<T>>>>,
-             mut c: PMut<BBoxIndirect<BBox<i32, Bot<T>>>>| {
+            |mut b: PMut<&mut BBox<i32, Bot<T>>>,
+             mut c: PMut<&mut BBox<i32, Bot<T>>>| {
                 b.inner_mut().num += 1;
                 c.inner_mut().num += 1;
             };
@@ -131,8 +132,8 @@ fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTes
     let (default_seq, default_par) = {
         let mut default = bbox_helper::create_bbox_mut(&mut bots, |b| prop.create_bbox_i32(b.pos));
 
-        let collide = |mut b: PMut<BBoxMut<i32, Bot<T>>>,
-                       mut c: PMut<BBoxMut<i32, Bot<T>>>| {
+        let collide = |mut b: PMut<BBox<i32, &mut Bot<T>>>,
+                       mut c: PMut<BBox<i32, &mut Bot<T>>>| {
             b.inner_mut().num += 1;
             c.inner_mut().num += 1;
         };

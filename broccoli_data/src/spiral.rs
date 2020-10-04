@@ -47,9 +47,9 @@ fn handle_grow(fb: &mut FigureBuilder) {
         let a: f32 = a as f32;
         0.2 + a * 0.02
     }) {
-        let s = dists::spiral::Spiral::new([0.0, 0.0], 17.0, grow);
+        let s = dists::spiral_iter([0.0,0.0],17.0,grow as f64);// dists::spiral::Spiral::new([0.0, 0.0], 17.0, grow);
 
-        let mut bots: Vec<Vec2<f32>> = s.take(num_bots).collect();
+        let mut bots: Vec<Vec2<f32>> = s.map(|[x,y]|vec2(x as f32,y as f32)).take(num_bots).collect();
 
         let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
             axgeom::Rect::from_point(*b, vec2same(5.0))
@@ -82,9 +82,9 @@ fn handle2(fb: &mut FigureBuilder) {
     fn make(grow: f32) -> Vec<Vec2<f32>> {
         let num_bots = 1000;
 
-        let s = dists::spiral::Spiral::new([0.0, 0.0], 17.0, grow);
+        let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64);
 
-        let bots: Vec<Vec2<f32>> = s.take(num_bots).collect();
+        let bots: Vec<Vec2<f32>> = s.map(|[x,y]|vec2(x as f32,y as f32)).take(num_bots).collect();
         bots
     };
 

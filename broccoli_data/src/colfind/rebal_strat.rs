@@ -1,5 +1,5 @@
 use crate::inner_prelude::*;
-
+use broccoli::builder::TreeBuilder;
 #[derive(Copy, Clone)]
 pub struct Bot {
     _num: usize,
@@ -13,7 +13,7 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> f64 {
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let tree = DinoTreeBuilder::new(&mut bb)
+    let tree = TreeBuilder::new(&mut bb)
         .with_bin_strat(BinStrat::Checked)
         .build_par();
 
@@ -30,7 +30,7 @@ fn test2(scene: &mut bot::BotScene<Bot>) -> f64 {
 
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let tree = DinoTreeBuilder::new( &mut bb)
+    let tree = TreeBuilder::new( &mut bb)
         .with_bin_strat(BinStrat::NotChecked)
         .build_par();
 
@@ -47,7 +47,7 @@ fn test3(scene: &mut bot::BotScene<Bot>) -> f64 {
 
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let tree = DinoTreeBuilder::new( &mut bb)
+    let tree = TreeBuilder::new( &mut bb)
         .with_bin_strat(BinStrat::Checked)
         .build_seq();
 
@@ -64,7 +64,7 @@ fn test4(scene: &mut bot::BotScene<Bot>) -> f64 {
 
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let tree = DinoTreeBuilder::new(&mut bb)
+    let tree = TreeBuilder::new(&mut bb)
         .with_bin_strat(BinStrat::NotChecked)
         .build_seq();
 

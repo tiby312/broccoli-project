@@ -1,5 +1,5 @@
 use crate::inner_prelude::*;
-
+use broccoli::builder::TreeBuilder;
 #[derive(Copy, Clone)]
 pub struct Bot {
     pos: Vec2<i32>,
@@ -8,7 +8,7 @@ pub struct Bot {
 
 mod level_counter {
     use crate::datanum;
-    use dinotree_alg::analyze::Splitter;
+    use broccoli::analyze::Splitter;
 
     pub struct LevelCounter {
         counter: *mut datanum::Counter,
@@ -96,11 +96,11 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f32>) ->
             });
 
             let mut tree =
-                DinoTreeBuilder::new(&mut bb).build_with_splitter_seq(&mut levelc);
+                TreeBuilder::new(&mut bb).build_with_splitter_seq(&mut levelc);
 
             counter.reset();
             let mut levelc2 = level_counter::LevelCounter::new(&mut counter);
-            QueryBuilder::new(&mut tree).query_with_splitter_seq(
+            tree.new_colfind_builder().query_with_splitter_seq(
                 |mut a, mut b| {
                     a.inner_mut().num += 1;
                     b.inner_mut().num += 1;
@@ -149,11 +149,11 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> 
         let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
         let mut tree =
-            DinoTreeBuilder::new(&mut bb).build_with_splitter_seq(&mut times1);
+            TreeBuilder::new(&mut bb).build_with_splitter_seq(&mut times1);
 
         let mut times2 = LevelTimer::new();
 
-        QueryBuilder::new(&mut tree).query_with_splitter_seq(
+        tree.new_colfind_builder().query_with_splitter_seq(
             |mut a, mut b| {
                 a.inner_mut().num += 1;
                 b.inner_mut().num += 1

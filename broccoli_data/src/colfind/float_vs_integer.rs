@@ -35,9 +35,9 @@ fn handle_bench(fg: &mut Figure) {
 
             let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-            let mut tree = DinoTree::new( &mut bb);
+            let mut tree = broccoli::new( &mut bb);
 
-            tree.find_intersections_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a,b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -53,9 +53,9 @@ fn handle_bench(fg: &mut Figure) {
                 axgeom::Rect::from_point(b.pos.inner_as::<i64>(), r)
             });
 
-            let mut tree = DinoTree::new( &mut bb);
+            let mut tree = broccoli::new( &mut bb);
 
-            tree.find_intersections_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a,b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -75,9 +75,9 @@ fn handle_bench(fg: &mut Figure) {
                 k
             });
 
-            let mut tree = DinoTree::new( &mut bb);
+            let mut tree = broccoli::new( &mut bb);
 
-            tree.find_intersections_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a,b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -97,9 +97,9 @@ fn handle_bench(fg: &mut Figure) {
                 k
             });
 
-            let mut tree = DinoTree::new_par(&mut bb);
+            let mut tree = broccoli::new_par(&mut bb);
 
-            tree.find_intersections_mut_par(|a,b| {
+            tree.find_colliding_pairs_mut_par(|a,b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -116,9 +116,9 @@ fn handle_bench(fg: &mut Figure) {
                 axgeom::Rect::from_point(b.pos.inner_as::<i32>(), r)
             });
 
-            let mut tree = DinoTree::new_par( &mut bb);
+            let mut tree = broccoli::new_par( &mut bb);
 
-            tree.find_intersections_mut_par(|a,b| {
+            tree.find_colliding_pairs_mut_par(|a,b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -135,9 +135,9 @@ fn handle_bench(fg: &mut Figure) {
                 axgeom::Rect::from_point(b.pos.inner_as::<i64>(), r)
             });
 
-            let mut tree = DinoTree::new_par( &mut bb);
+            let mut tree = broccoli::new_par( &mut bb);
 
-            tree.find_intersections_mut_par(|a,b| {
+            tree.find_colliding_pairs_mut_par(|a,b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -157,9 +157,9 @@ fn handle_bench(fg: &mut Figure) {
                 k
             });
 
-            let mut tree = DinoTree::new(&mut bb);
+            let mut tree = broccoli::new(&mut bb);
 
-            tree.find_intersections_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a,b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -178,9 +178,9 @@ fn handle_bench(fg: &mut Figure) {
                 k
             });
 
-            let mut tree = DinoTree::new_par( &mut bb);
+            let mut tree = broccoli::new_par( &mut bb);
 
-            tree.find_intersections_mut_par(|a,b| {
+            tree.find_colliding_pairs_mut_par(|a,b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -216,7 +216,7 @@ fn handle_bench(fg: &mut Figure) {
 
     fg.axes2d()
         .set_title(
-            "Comparison of DinoTree Performance With Different Number Types With abspiral(x,2.0)",
+            "Comparison of broccoli Performance With Different Number Types With abspiral(x,2.0)",
             &[],
         )
         .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])

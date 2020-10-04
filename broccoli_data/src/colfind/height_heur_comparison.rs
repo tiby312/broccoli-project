@@ -1,5 +1,5 @@
 use crate::inner_prelude::*;
-
+use broccoli::builder::TreeBuilder;
 #[derive(Copy, Clone)]
 pub struct Bot {
     pos: Vec2<i32>,
@@ -13,11 +13,11 @@ pub fn handle_bench_inner(scene: &mut bot::BotScene<Bot>, height: usize) -> f64 
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let mut tree = DinoTreeBuilder::new( &mut bb)
+    let mut tree = TreeBuilder::new( &mut bb)
         .with_height(height)
         .build_seq();
 
-    tree.find_intersections_mut(|a,b| {
+    tree.find_colliding_pairs_mut(|a,b| {
         a.num += 2;
         b.num += 2;
     });
@@ -34,11 +34,11 @@ pub fn handle_theory_inner(scene: &mut bot::BotScene<Bot>, height: usize) -> usi
         datanum::from_rect(&mut counter, prop.create_bbox_i32(b.pos))
     });
 
-    let mut tree = DinoTreeBuilder::new( &mut bb)
+    let mut tree = TreeBuilder::new( &mut bb)
         .with_height(height)
         .build_seq();
 
-    tree.find_intersections_mut(|a,b| {
+    tree.find_colliding_pairs_mut(|a,b| {
         a.num += 2;
         b.num += 2;
     });

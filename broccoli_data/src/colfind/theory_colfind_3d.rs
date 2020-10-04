@@ -1,4 +1,5 @@
 use crate::inner_prelude::*;
+use broccoli::builder::TreeBuilder;
 
 #[derive(Copy, Clone)]
 pub struct Bot {
@@ -20,11 +21,11 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> Res {
         datanum::from_rect(&mut counter, prop.create_bbox_i32(b.pos))
     });
 
-    let mut tree = DinoTreeBuilder::new( &mut bots).build_seq();
+    let mut tree = TreeBuilder::new( &mut bots).build_seq();
 
     let mut num_pairs = 0;
 
-    QueryBuilder::new(&mut tree).query_seq(|_a, _b| {
+    tree.new_colfind_builder().query_seq(|_a, _b| {
         num_pairs += 1;
     });
 
@@ -49,7 +50,7 @@ fn test2(scene: &mut bot::BotScene<Bot>) -> Res {
         .collect();
 
     let mut num_pairs = 0;
-    analyze::NaiveAlgs::new(&mut bb).find_collisions_sweep_mut(axgeom::XAXIS, |_a, _b| {
+    find_collisions_sweep_mut(&mut bb,axgeom::XAXIS, |_a, _b| {
         num_pairs += 1;
     });
 
@@ -78,7 +79,7 @@ fn test3(scene: &mut bot::BotScene<Bot>) -> Res {
         .collect();
 
     let mut num_pairs = 0;
-    analyze::NaiveAlgs::new(&mut bb).find_collisions_mut(|_a, _b| {
+    NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|_a, _b| {
         num_pairs += 1;
     });
 
@@ -106,7 +107,7 @@ fn test4(scene: &mut bot::BotScene<Bot>) -> Res {
 
     let mut num_pairs = 0;
 
-    tree.find_intersections_mut(|_a, _b| {
+    tree.find_colliding_pairs_mut(|_a, _b| {
         num_pairs += 1;
     });
 
