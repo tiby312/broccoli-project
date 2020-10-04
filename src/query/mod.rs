@@ -705,8 +705,12 @@ impl<'a, T: Aabb + HasInner> NaiveAlgs<'a, T> {
 }
 
 impl<'a, T: Aabb> NaiveAlgs<'a, T> {
+    #[must_use]    
+    pub fn from_slice(a:&'a mut [T])->NaiveAlgs<'a,T>{
+        NaiveAlgs{bots:PMut::new(a)}
+    }
     #[must_use]
-    pub fn new(bots: PMut<[T]>) -> NaiveAlgs<T> {
+    pub fn new(bots: PMut<'a,[T]>) -> NaiveAlgs<'a,T> {
         NaiveAlgs { bots }
     }
 

@@ -1,0 +1,20 @@
+[package]
+name = "broccoli_data"
+version = "0.1.0"
+authors = ["Ken Reed <kenakioreed@gmail.com>"]
+edition = "2018"
+publish = false
+
+[dependencies]
+gnuplot = "0.0.32"
+duckduckgeo = {git="https://github.com/tiby312/duckduckgeo"}
+rayon = "1.2"
+axgeom = "1.2"
+num_cpus = "1.11.1"
+ordered-float = "1.0.2"
+num-traits = "0.2.8"
+
+[dependencies.broccoli]
+path = ".."
+features = []
+

@@ -1,4 +1,5 @@
 /target/
-/dinotree_alg_demo/target/
+/broccoli_demo/target
+/broccoli_data/target
 **/*.rs.bk
 Cargo.lock
