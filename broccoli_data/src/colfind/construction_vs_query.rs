@@ -8,11 +8,11 @@ fn theory(scene: &mut bot::BotScene<bot::Bot>) -> (usize, usize) {
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| {
         datanum::from_rect(&mut counter, b.create_bbox_nan(prop))
     });
-    let mut tree = DinoTree::new( &mut bb);
+    let mut tree = broccoli::new( &mut bb);
 
     let a = *counter.get_inner();
 
-    tree.find_intersections_mut(|a,b| {
+    tree.find_colliding_pairs_mut(|a,b| {
         prop.collide(a, b);
     });
 
@@ -36,7 +36,7 @@ fn theory_not_sorted(scene: &mut bot::BotScene<bot::Bot>) -> (usize, usize) {
     let a = *counter.get_inner();
 
 
-    tree.find_intersections_mut(|a, b| {
+    tree.find_colliding_pairs_mut(|a, b| {
         prop.collide(a, b);
     });
 
@@ -52,11 +52,11 @@ fn bench_seq(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
     let prop = &scene.bot_prop;
 
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.create_bbox_nan(prop));
-    let mut tree = DinoTree::new(&mut bb);
+    let mut tree = broccoli::new(&mut bb);
 
     let a = instant_to_sec(instant.elapsed());
 
-    tree.find_intersections_mut(|a,b| {
+    tree.find_colliding_pairs_mut(|a,b| {
         prop.collide(a, b);
     });
 
@@ -71,11 +71,11 @@ fn bench_par(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.create_bbox_nan(prop));
-    let mut tree = DinoTree::new_par( &mut bb);
+    let mut tree = broccoli::new_par( &mut bb);
 
     let a = instant_to_sec(instant.elapsed());
 
-    tree.find_intersections_mut_par(|a, b| {
+    tree.find_colliding_pairs_mut_par(|a, b| {
         prop.collide(a, b);
     });
 
@@ -95,7 +95,7 @@ fn bench_not_sorted_seq(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
 
     let a = instant_to_sec(instant.elapsed());
 
-    tree.find_intersections_mut(|a,b| {
+    tree.find_colliding_pairs_mut(|a,b| {
         prop.collide(a, b);
     });
 
@@ -116,7 +116,7 @@ fn bench_not_sorted_par(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
 
     let a = instant_to_sec(instant.elapsed());
 
-    tree.find_intersections_mut_par(|a,b| {
+    tree.find_colliding_pairs_mut_par(|a,b| {
         prop.collide(a, b);
     });
 

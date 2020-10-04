@@ -1,7 +1,7 @@
 pub mod colfind;
+pub mod construction_vs_query;
 
 /*
-pub mod construction_vs_query;
 //pub mod dinotree_direct_indirect;
 pub mod float_vs_integer;
 pub mod height_heur_comparison;
