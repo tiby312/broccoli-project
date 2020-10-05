@@ -136,6 +136,10 @@ pub struct CollidingPairs<'a, T, D> {
     _p:PhantomData<&'a mut T>
 }
 impl<'a,T,D> CollidingPairs<'a,T,D>{
+    pub fn get(&self)->&[(&'a T,&'a T,D)]{
+        unsafe{&*(self.cols.as_slice() as *const _ as *const _)}
+    }
+
     pub fn for_every_pair_mut<'b, A: Axis, N: Num>(
         &'b mut self,
         mut func: impl FnMut(&mut T, &mut T, &mut D),
@@ -155,15 +159,17 @@ unsafe impl<T> Sync for Ptr<T>{}
 ///All colliding pairs partitioned into
 ///mutually exclusive sets so that they can
 //be traversed in parallel
-pub struct CollidingPairsPar<'a,T:Send+Sync,D:Send+Sync>{
+pub struct CollidingPairsPar<'a,T,D>{
     cols: Vec<Vec<(Ptr<T>, Ptr<T>, D)>>,
     _p:PhantomData<&'a mut T>
 }
 
-impl<'a,T:Send+Sync,D:Send+Sync> CollidingPairsPar<'a,T,D>{
-    pub fn get(&self)->&[Vec<(&T,&T,D)>]{
+impl<'a,T,D> CollidingPairsPar<'a,T,D>{
+    pub fn get(&self)->&[Vec<(&'a T,&'a T,D)>]{
         unsafe{&*(self.cols.as_slice() as *const _ as *const _)}
     }
+}
+impl<'a,T:Send+Sync,D:Send+Sync> CollidingPairsPar<'a,T,D>{
     pub fn for_every_pair_mut_par<A: Axis, N: Num>(
         &mut self,
         func: impl Fn(&mut T, &mut T, &mut D) + Send + Sync + Copy,
