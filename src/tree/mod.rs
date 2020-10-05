@@ -133,7 +133,7 @@ pub struct CollidingPairs<'a, T, D> {
     ///being met if we were to just use this
     ///vec according to its type signature.
     cols: Vec<(*mut T, *mut T, D)>,
-    _p:PhantomData<&'a mut T>
+    _p:PhantomData<(&'a mut T,*mut T)>
 }
 impl<'a,T,D> CollidingPairs<'a,T,D>{
     pub fn get(&self)->&[(&'a T,&'a T,D)]{
@@ -161,7 +161,7 @@ unsafe impl<T> Sync for Ptr<T>{}
 //be traversed in parallel
 pub struct CollidingPairsPar<'a,T,D>{
     cols: Vec<Vec<(Ptr<T>, Ptr<T>, D)>>,
-    _p:PhantomData<&'a mut T>
+    _p:PhantomData<(&'a mut T,*mut T)>, //Make it not send 
 }
 
 impl<'a,T,D> CollidingPairsPar<'a,T,D>{
@@ -198,12 +198,12 @@ impl<'a,T:Send+Sync,D:Send+Sync> CollidingPairsPar<'a,T,D>{
 }
 impl<'a,'b,A:Axis,N:Num,T:Send+Sync> Tree<'a,A,BBox<N,&'b mut T>>{
     pub fn collect_colliding_pairs_par<'c,D: Send + Sync>(
-        &'c mut self,
-         func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync+Copy,
+        &'c self,
+         func: impl Fn(&T, &T) -> Option<D> + Send + Sync+Copy,
     ) -> CollidingPairsPar<'c,T,D>{
         let cols = self.collect_colliding_pairs_par_inner(|a, b| {
             match func(a, b) {
-                Some(d) => Some((Ptr(a as *mut _), Ptr(b as *mut _), d)),
+                Some(d) => Some((Ptr(a as *const _ as *mut _), Ptr(b as *const _ as *mut _), d)),
                 None => None,
             }
         });
@@ -214,8 +214,8 @@ impl<'a,'b,A:Axis,N:Num,T:Send+Sync> Tree<'a,A,BBox<N,&'b mut T>>{
     }
     
     fn collect_colliding_pairs_par_inner<D: Send + Sync>(
-        &mut self,
-        func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync+Copy,
+        &self,
+        func: impl Fn(&T, &T) -> Option<D> + Send + Sync+Copy,
     ) -> Vec<Vec<D>> {
         
 
@@ -243,7 +243,9 @@ impl<'a,'b,A:Axis,N:Num,T:Send+Sync> Tree<'a,A,BBox<N,&'b mut T>>{
             .collect();
         let mtree = compt::dfs_order::CompleteTree::from_preorder_mut(&mut cols).unwrap();
     
-        self.find_colliding_pairs_par_ext(
+        //TODO ok???
+        let tree:&mut Tree<'a,A,BBox<N,&'b mut T>>=unsafe{&mut *(self as *const _ as *mut _)};
+        tree.find_colliding_pairs_par_ext(
             move |a| {
                 let next = a.next.take();
                 if let Some([left, right]) = next {
@@ -275,7 +277,7 @@ impl<'a,'b,A:Axis,N:Num,T:Send+Sync> Tree<'a,A,BBox<N,&'b mut T>>{
 //Contains a filtered list of all elements in the tree.
 pub struct FilteredElements<'a,T,D>{
     elems:Vec<(*mut T,D)>,
-    _p:PhantomData<&'a mut T>
+    _p:PhantomData<(&'a mut T,*mut T)>
 }
 impl<'a,T,D> FilteredElements<'a,T,D>{
     pub fn get(&self)->&[(&T,D)]{
@@ -309,12 +311,15 @@ impl<'a,'b,A:Axis,N:Num,T> Tree<'a,A,BBox<N,&'b mut T>>{
 
 impl<'a,'b,A:Axis,N:Num,T> Tree<'a,A,BBox<N,&'b mut T>>{
     pub fn collect_colliding_pairs<'c,D: Send + Sync>(
-        &'c mut self,
-        mut func: impl FnMut(&mut T, &mut T) -> Option<D> + Send + Sync,
+        &'c self,
+        mut func: impl FnMut(&T, &T) -> Option<D> + Send + Sync,
     ) -> CollidingPairs<'c, T, D> {
         let mut cols: Vec<_> = Vec::new();
     
-        self.find_colliding_pairs_mut(|a, b| {
+        //TODO ok???
+        let tree:&mut Tree<'a,A,BBox<N,&'b mut T>>=unsafe{&mut *(self as *const _ as *mut _)};
+        
+        tree.find_colliding_pairs_mut(|a, b| {
             if let Some(d) = func(a, b) {
                 //We use unsafe to collect mutable references of
                 //all colliding pairs.
