@@ -197,13 +197,13 @@ impl<'a,T:Send+Sync,D:Send+Sync> CollidingPairsPar<'a,T,D>{
     }
 }
 impl<'a,'b,A:Axis,N:Num,T:Send+Sync> Tree<'a,A,BBox<N,&'b mut T>>{
-    pub fn collect_colliding_pairs_par<'c,D: Send + Sync>(
-        &'c self,
-         func: impl Fn(&T, &T) -> Option<D> + Send + Sync+Copy,
-    ) -> CollidingPairsPar<'c,T,D>{
+    pub fn collect_colliding_pairs_par<D: Send + Sync>(
+        &mut self,
+         func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync+Copy,
+    ) -> CollidingPairsPar<'a,T,D>{
         let cols = self.collect_colliding_pairs_par_inner(|a, b| {
             match func(a, b) {
-                Some(d) => Some((Ptr(a as *const _ as *mut _), Ptr(b as *const _ as *mut _), d)),
+                Some(d) => Some((Ptr(a as *mut _), Ptr(b as *mut _), d)),
                 None => None,
             }
         });
@@ -214,8 +214,8 @@ impl<'a,'b,A:Axis,N:Num,T:Send+Sync> Tree<'a,A,BBox<N,&'b mut T>>{
     }
     
     fn collect_colliding_pairs_par_inner<D: Send + Sync>(
-        &self,
-        func: impl Fn(&T, &T) -> Option<D> + Send + Sync+Copy,
+        &mut self,
+        func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync+Copy,
     ) -> Vec<Vec<D>> {
         
 
@@ -243,9 +243,7 @@ impl<'a,'b,A:Axis,N:Num,T:Send+Sync> Tree<'a,A,BBox<N,&'b mut T>>{
             .collect();
         let mtree = compt::dfs_order::CompleteTree::from_preorder_mut(&mut cols).unwrap();
     
-        //TODO ok???
-        let tree:&mut Tree<'a,A,BBox<N,&'b mut T>>=unsafe{&mut *(self as *const _ as *mut _)};
-        tree.find_colliding_pairs_par_ext(
+        self.find_colliding_pairs_par_ext(
             move |a| {
                 let next = a.next.take();
                 if let Some([left, right]) = next {
@@ -288,10 +286,10 @@ impl<'a,T,D> FilteredElements<'a,T,D>{
     }
 }
 impl<'a,'b,A:Axis,N:Num,T> Tree<'a,A,BBox<N,&'b mut T>>{
-    pub fn collect_all<'c,D: Send + Sync>(
-        &'c mut self,
+    pub fn collect_all<D: Send + Sync>(
+        &mut self,
         mut func: impl FnMut(&Rect<N>, &mut T) -> Option<D>,
-    ) -> FilteredElements<'c, T, D> {
+    ) -> FilteredElements<'a, T, D> {
         let mut elems = Vec::new();
         for node in self.inner.inner.get_nodes_mut().iter_mut() {
             for b in node.get_mut().bots.iter_mut() {
@@ -310,16 +308,13 @@ impl<'a,'b,A:Axis,N:Num,T> Tree<'a,A,BBox<N,&'b mut T>>{
 
 
 impl<'a,'b,A:Axis,N:Num,T> Tree<'a,A,BBox<N,&'b mut T>>{
-    pub fn collect_colliding_pairs<'c,D: Send + Sync>(
-        &'c self,
-        mut func: impl FnMut(&T, &T) -> Option<D> + Send + Sync,
-    ) -> CollidingPairs<'c, T, D> {
+    pub fn collect_colliding_pairs<D: Send + Sync>(
+        &mut self,
+        mut func: impl FnMut(&mut T, &mut T) -> Option<D> + Send + Sync,
+    ) -> CollidingPairs<'a, T, D> {
         let mut cols: Vec<_> = Vec::new();
     
-        //TODO ok???
-        let tree:&mut Tree<'a,A,BBox<N,&'b mut T>>=unsafe{&mut *(self as *const _ as *mut _)};
-        
-        tree.find_colliding_pairs_mut(|a, b| {
+        self.find_colliding_pairs_mut(|a, b| {
             if let Some(d) = func(a, b) {
                 //We use unsafe to collect mutable references of
                 //all colliding pairs.
