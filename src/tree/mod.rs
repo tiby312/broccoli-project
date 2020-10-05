@@ -272,7 +272,7 @@ pub struct FilteredElements<'a,T,D>{
     _p:PhantomData<&'a mut T>
 }
 impl<'a,T,D> FilteredElements<'a,T,D>{
-    pub fn get(&self)->&[Vec<(&T,D)>]{
+    pub fn get(&self)->&[(&T,D)]{
         unsafe{&*(self.elems.as_slice() as *const _ as *const _)}
     }
     pub fn get_mut(&mut self)->&mut [(&mut T,D)]{
