@@ -140,7 +140,7 @@ impl<'a,T,D> CollidingPairs<'a,T,D>{
         unsafe{&*(self.cols.as_slice() as *const _ as *const _)}
     }
 
-    pub fn for_every_pair_mut<'b, A: Axis, N: Num>(
+    pub fn for_every_pair_mut<'b, N: Num>(
         &'b mut self,
         mut func: impl FnMut(&mut T, &mut T, &mut D),
     ) {
@@ -170,7 +170,7 @@ impl<'a,T,D> CollidingPairsPar<'a,T,D>{
     }
 }
 impl<'a,T:Send+Sync,D:Send+Sync> CollidingPairsPar<'a,T,D>{
-    pub fn for_every_pair_mut_par<A: Axis, N: Num>(
+    pub fn for_every_pair_mut_par<N: Num>(
         &mut self,
         func: impl Fn(&mut T, &mut T, &mut D) + Send + Sync + Copy,
     ) {
