@@ -159,7 +159,11 @@ pub struct CollidingPairsPar<'a,T:Send+Sync,D:Send+Sync>{
     cols: Vec<Vec<(Ptr<T>, Ptr<T>, D)>>,
     _p:PhantomData<&'a mut T>
 }
+
 impl<'a,T:Send+Sync,D:Send+Sync> CollidingPairsPar<'a,T,D>{
+    pub fn get(&self)->&[Vec<(&T,&T,D)>]{
+        unsafe{&*(self.cols.as_slice() as *const _ as *const _)}
+    }
     pub fn for_every_pair_mut_par<A: Axis, N: Num>(
         &mut self,
         func: impl Fn(&mut T, &mut T, &mut D) + Send + Sync + Copy,
@@ -268,6 +272,9 @@ pub struct FilteredElements<'a,T,D>{
     _p:PhantomData<&'a mut T>
 }
 impl<'a,T,D> FilteredElements<'a,T,D>{
+    pub fn get(&self)->&[Vec<(&T,D)>]{
+        unsafe{&*(self.elems.as_slice() as *const _ as *const _)}
+    }
     pub fn get_mut(&mut self)->&mut [(&mut T,D)]{
         unsafe{&mut *(self.elems.as_mut_slice() as *mut _ as *mut _)}
     }
