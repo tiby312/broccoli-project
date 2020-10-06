@@ -86,16 +86,20 @@
 use super::*;
 
 
+mod collect;
+pub use self::collect::*;
+
+
 struct ThreadPtr<T>(*mut T);
 unsafe impl<T> Send for ThreadPtr<T>{}
 unsafe impl<T> Sync for ThreadPtr<T>{}
 
 
-
+//TODO make TreeRefOwned deref to TreeRefInd
 pub struct TreeRefInd<'a,A:Axis,N:Num,T>{
     inner:TreeOwned<A,BBox<N,*mut T>>,
     orig:*mut [T],
-    _p:PhantomData<&'a mut T>
+    _p:PhantomData<&'a mut (T,N)>
 }
 
 impl<'a,N:Num,T> TreeRefInd<'a,DefaultA,N,T>{
@@ -397,3 +401,16 @@ impl<A: Axis, T: Aabb> TreeOwned<A, T> {
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
