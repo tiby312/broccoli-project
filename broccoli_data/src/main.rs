@@ -70,7 +70,7 @@ impl FigureBuilder {
         //fg.set_terminal("pngcairo size 640,480 enhanced font 'Veranda,10'", "");
         fg.set_terminal("svg", "");
 
-        fg.set_pre_commands(format!("set output '{}.svg'",filename).as_str());
+        fg.set_pre_commands(format!("set output sdir.'{}.svg'",filename).as_str());
         //fg.set_pre_commands("set output system(\"echo $FILE_PATH\")");
 
         //set terminal pngcairo size 350,262 enhanced font 'Verdana,10'
@@ -147,6 +147,7 @@ fn main() {
             
             run_test!(&mut fb, colfind::theory_colfind_3d::handle);
             
+            
         }
         "bench" => {
             let folder = args[2].clone();
@@ -202,8 +203,12 @@ fn main() {
                         let blag = Path::new(new_path.file_name().unwrap().to_str().unwrap());
                         //let file_path = target_dir.join(blag);
                         command
+                            .arg("-e")
+                            .arg(format!("sdir='{}/'",target_dir.to_str().unwrap()))
                             .arg("-p")
                             .arg(path_command);
+                        
+                        println!("{:?}",command);
                             //.env("FILE_PATH", file_path.to_str().unwrap());
 
                         command.status()
