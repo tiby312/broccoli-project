@@ -11,7 +11,7 @@ edition = "2018"
 
 
 [workspace]
-members = [ "broccoli_demo","broccoli_data"]
+members = [ "demo","report/data_gen"]
 
 [dev-dependencies]
 dists = "0.4"

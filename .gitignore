@@ -1,5 +1,7 @@
 /target/
-/broccoli_demo/target
-/broccoli_data/target
+/demo/target
+/report/data_gen/target
+/report/book/
+/report/src/graphs/
 **/*.rs.bk
 Cargo.lock

@@ -1,5 +1,5 @@
 [package]
-name = "broccoli_data"
+name = "data_gen"
 version = "0.1.0"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 edition = "2018"
@@ -15,6 +15,6 @@ ordered-float = "1.0.2"
 num-traits = "0.2.8"
 
 [dependencies.broccoli]
-path = ".."
+path = "../.."
 features = []
 
