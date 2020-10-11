@@ -124,11 +124,9 @@ fn main() {
     //run benches on laptop/new gaming laptop/android phone/web assembly, and compare differences.
     //
 
-    //println!("{:?}",stringify!(spiral::handle));
-
+    
     let args: Vec<String> = env::args().collect();
-    //assert_eq!(args.len(),2,"First arguent needs to be gen or graph");
-
+    
     dbg!(&args);
     match args[1].as_ref() {
         "theory" => {
@@ -157,7 +155,7 @@ fn main() {
             
             
             run_test!(&mut fb, colfind::colfind::handle_bench);
-
+            
             //done
             run_test!(&mut fb, colfind::rebal_strat::handle);
             run_test!(&mut fb, colfind::dinotree_direct_indirect::handle);
@@ -201,7 +199,6 @@ fn main() {
 
                         let new_path = path.path().with_extension("svg");
                         let blag = Path::new(new_path.file_name().unwrap().to_str().unwrap());
-                        //let file_path = target_dir.join(blag);
                         command
                             .arg("-e")
                             .arg(format!("sdir='{}/'",target_dir.to_str().unwrap()))
@@ -209,14 +206,12 @@ fn main() {
                             .arg(path_command);
                         
                         println!("{:?}",command);
-                            //.env("FILE_PATH", file_path.to_str().unwrap());
-
+                            
                         command.status()
                             .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.");
                     }
                 }
             }
-            //gnuplot -p "colfind_rebal_vs_query_num_bots_grow_of_1.gplot"
             println!("Finished generating graphs");
         }
         _ => {
