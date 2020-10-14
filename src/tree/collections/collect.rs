@@ -8,7 +8,7 @@ pub struct CollidingPairs<T, D> {
     ///So pointer aliasing rules are not
     ///being met if we were to just use this
     ///vec according to its type signature.
-    cols: Vec<(*mut T, *mut T, D)>,
+    cols: Vec<(Ptr<T>, Ptr<T>, D)>,
     orig:Ptr<[T]>
 }
 impl<T,D> CollidingPairs<T,D>{
@@ -25,7 +25,7 @@ impl<T,D> CollidingPairs<T,D>{
         assert_eq!(self.orig.0,arr as *mut _);
 
         for (a, b, d) in self.cols.iter_mut() {
-            func(unsafe{&mut **a}, unsafe{&mut **b}, d)
+            func(unsafe{&mut *(*a).0}, unsafe{&mut *(*b).0}, d)
         }
     }
 }
@@ -155,7 +155,7 @@ impl<'a,A:Axis,N:Num,T:Send+Sync> TreeRefInd<'a,A,N,T>{
 
 //Contains a filtered list of all elements in the tree.
 pub struct FilteredElements<T,D>{
-    elems:Vec<(*mut T,D)>,
+    elems:Vec<(Ptr<T>,D)>,
     orig:Ptr<[T]>
 }
 impl<T,D> FilteredElements<T,D>{
@@ -179,7 +179,7 @@ impl<'a,A:Axis,N:Num,T> TreeRefInd<'a,A,N,T>{
             for b in node.get_mut().bots.iter_mut() {
                 let (x, y) = b.unpack();
                 if let Some(d) = func(x, y) {
-                    elems.push((*y as *mut _, d));
+                    elems.push((Ptr(*y as *mut _), d));
                 }
             }
         }
@@ -205,8 +205,8 @@ impl<'a,A:Axis,N:Num,T> TreeRefInd<'a,A,N,T>{
                 //This is safe to do because the user is forced
                 //to iterate through all the colliding pairs
                 //one at a time.
-                let a=*a as *mut T;
-                let b=*b as *mut T;
+                let a=Ptr(*a as *mut T);
+                let b=Ptr(*b as *mut T);
                 
                 cols.push((a,b,d));
             }
