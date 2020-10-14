@@ -1,10 +1,12 @@
 //! ## Overview
 //!
-//! For most usecases, using broccoli::Tree is enough. But in certain cases
+//! broccoli::Tree is written in safe rust, and for most usecases,
+//! using broccoli::Tree is enough. But in certain cases
 //! we want more control. The container trees in this module are for this purpose.
 //!
-//! For example, with the regular `broccoli::Tree`, is lifetimed, so
-//! it can't act as a container. You  also can't do the the following.
+//! For example, with the regular `broccoli::Tree`, you can't
+//! get access to the unerlying list of elements after
+//! the tree has been constructed.
 //!
 //! ```rust,compile_fail
 //! use broccoli::prelude::*;
@@ -33,8 +35,7 @@
 //! we can use `TreeRefInd` which adds a layer of indirection. Unintuitively,
 //! This version that adds a layer of indirection is typically faster.
 //! Check the crate's book for more analysis. This does have some drawbacks
-//! in the sense that the bounding boxes must be constructed or copied each
-//! time the tree is created, though.
+//! in the sense that it uses more memory, though, as the aabbs are copied.
 //!
 //!
 //! ```rust
