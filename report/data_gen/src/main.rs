@@ -135,7 +135,7 @@ fn main() {
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
 
-            
+            /*
             run_test!(&mut fb, spiral::handle);
             
             run_test!(&mut fb, colfind::colfind::handle_theory);
@@ -144,7 +144,7 @@ fn main() {
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
             
             run_test!(&mut fb, colfind::theory_colfind_3d::handle);
-            
+            */
             
         }
         "bench" => {
@@ -154,11 +154,12 @@ fn main() {
             let mut fb = FigureBuilder::new(folder);
             
             
-            run_test!(&mut fb, colfind::colfind::handle_bench);
+            //run_test!(&mut fb, colfind::colfind::handle_bench);
             
             //done
-            run_test!(&mut fb, colfind::rebal_strat::handle);
+            //run_test!(&mut fb, colfind::rebal_strat::handle);
             run_test!(&mut fb, colfind::dinotree_direct_indirect::handle);
+            /*
             run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
             run_test!(&mut fb, colfind::colfind::handle_bench);
             run_test!(&mut fb, colfind::float_vs_integer::handle);
@@ -167,7 +168,7 @@ fn main() {
             //This is the one thats interesting to see what the results are on phone/vs/laptop
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
-            
+            */
             //nbody::theory::handle(&mut fb);
         }
         "graph" => {
@@ -197,8 +198,8 @@ fn main() {
 
                         let mut command = std::process::Command::new("gnuplot");
 
-                        let new_path = path.path().with_extension("svg");
-                        let blag = Path::new(new_path.file_name().unwrap().to_str().unwrap());
+                        //let new_path = path.path().with_extension("svg");
+                        //let blag = Path::new(new_path.file_name().unwrap().to_str().unwrap());
                         command
                             .arg("-e")
                             .arg(format!("sdir='{}/'",target_dir.to_str().unwrap()))

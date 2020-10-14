@@ -7,7 +7,7 @@ impl<T: Copy + Send + Sync> TestTrait for T {}
 #[derive(Copy, Clone)]
 pub struct Bot<T> {
     num: usize,
-    pos: Vec2<i32>,
+    aabb: Rect<i32>,
     _val: T,
 }
 
@@ -90,12 +90,11 @@ impl CompleteTestResult {
 
 fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTestResult {
     let mut bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-
+    
     let (direct_seq, direct_par) = {
         let mut direct: Vec<_> = bots
             .iter()
-            .map(|b| BBox::new(prop.create_bbox_i32(b.pos), *b))
+            .map(|b| BBox::new(b.aabb, *b))
             .collect();
 
         let collide = |mut b: PMut<BBox<i32, Bot<T>>>,
@@ -113,7 +112,7 @@ fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTes
     let (indirect_seq, indirect_par) = {
         let mut direct: Vec<_> = bots
             .iter()
-            .map(|b| BBox::new(prop.create_bbox_i32(b.pos), *b))
+            .map(|b| BBox::new(b.aabb, *b))
             .collect();
         let mut indirect: Vec<_> = direct.iter_mut().map(|a| a).collect();
 
@@ -130,7 +129,7 @@ fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTes
         )
     };
     let (default_seq, default_par) = {
-        let mut default = bbox_helper::create_bbox_mut(&mut bots, |b| prop.create_bbox_i32(b.pos));
+        let mut default = bbox_helper::create_bbox_mut(&mut bots, |b| b.aabb);
 
         let collide = |mut b: PMut<BBox<i32, &mut Bot<T>>>,
                        mut c: PMut<BBox<i32, &mut Bot<T>>>| {
@@ -219,8 +218,8 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f32, val: T) {
     for num_bots in (0..30_000).rev().step_by(200) {
         let mut scene = bot::BotSceneBuilder::new(num_bots)
             .with_grow(grow)
-            .build_specialized(|_,pos| Bot {
-                pos: pos.inner_as(),
+            .build_specialized(|r,pos| Bot {
+                aabb: r.create_bbox_i32(pos.inner_as()),
                 num: 0,
                 _val: val.clone(),
             });

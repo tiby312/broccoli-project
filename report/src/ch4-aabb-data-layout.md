@@ -20,6 +20,12 @@ There are a couple of observations to make.
 * Default is the best all-around.
 * Indirect isn't far behind Default.
 * Direct is greatly influenced by the size of `T`.
+ 
+Default in many cases beats Direct showing that sometimes a level of
+indirection actually speeds things up. This is because in most cases,
+the query algorithm just needs to check the aabb and doesnt need
+to derefence. It also shows that it is in most
+cases worth copying the aabb.
 
 
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_query_0.1_128_bytes.svg" class="center" style="width: 100%;" />
