@@ -6,5 +6,5 @@ cargo build --release --manifest-path data_gen/Cargo.toml
 ../target/release/data_gen theory src/raw
 ../target/release/data_gen graph src/raw src/graphs
 
-mdbook serve &
-xdg-open http://localhost:3000/
+xdg-open http://localhost:3000/ &
+mdbook serve
