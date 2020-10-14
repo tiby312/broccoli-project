@@ -243,10 +243,11 @@ pub(crate) struct NodePtr<T: Aabb> {
 pub(crate) fn make_owned<A: Axis, T: Aabb>(axis: A, bots: &mut [T]) -> TreeInner<A, NodePtr<T>> {
     
     let inner = crate::with_axis(axis, bots);
-    let inner: Vec<_> = inner
+    let inner: Vec<_> = Vec::from(inner
         .inner
         .inner
         .into_nodes()
+        )
         .drain(..)
         .map(|mut node| NodePtr {
             _range: node.range.as_ptr(),
@@ -263,10 +264,11 @@ pub(crate) fn make_owned<A: Axis, T: Aabb>(axis: A, bots: &mut [T]) -> TreeInner
 
 fn make_owned_par<A: Axis, T: Aabb + Send + Sync>(axis: A, bots: &mut [T]) -> TreeInner<A, NodePtr<T>> {
     let inner = crate::with_axis_par(axis, bots);
-    let inner: Vec<_> = inner
+    let inner: Vec<_> = Vec::from(inner
         .inner
         .inner
         .into_nodes()
+        )
         .drain(..)
         .map(|mut node| NodePtr {
             _range: node.range.as_ptr(),
