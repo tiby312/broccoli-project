@@ -9,11 +9,11 @@ pub struct CollidingPairs<T, D> {
     ///being met if we were to just use this
     ///vec according to its type signature.
     cols: Vec<(*mut T, *mut T, D)>,
-    orig:*mut [T]
+    orig:Ptr<[T]>
 }
 impl<T,D> CollidingPairs<T,D>{
     pub fn get(&self,arr:&[T])->&[(&T,&T,D)]{
-        assert_eq!(self.orig as *const _,arr as *const _);
+        assert_eq!(self.orig.0 as *const _,arr as *const _);
         unsafe{&*(self.cols.as_slice() as *const _ as *const _)}
     }
 
@@ -22,7 +22,7 @@ impl<T,D> CollidingPairs<T,D>{
         arr:&mut [T],
         mut func: impl FnMut(&mut T, &mut T, &mut D),
     ) {
-        assert_eq!(self.orig,arr as *mut _);
+        assert_eq!(self.orig.0,arr as *mut _);
 
         for (a, b, d) in self.cols.iter_mut() {
             func(unsafe{&mut **a}, unsafe{&mut **b}, d)
@@ -32,21 +32,17 @@ impl<T,D> CollidingPairs<T,D>{
 
 
 
-struct Ptr<T>(*mut T);
-unsafe impl<T> Send for Ptr<T>{}
-unsafe impl<T> Sync for Ptr<T>{}
-
 ///All colliding pairs partitioned into
 ///mutually exclusive sets so that they can
 //be traversed in parallel
 pub struct CollidingPairsPar<T,D>{
     cols: Vec<Vec<(Ptr<T>, Ptr<T>, D)>>,
-    original:*mut [T] 
+    original:Ptr<[T]> 
 }
 
 impl<T,D> CollidingPairsPar<T,D>{
     pub fn get(&self,arr:&[T])->&[Vec<(&T,&T,D)>]{
-        assert_eq!(arr as *const _,self.original as *const _);
+        assert_eq!(arr as *const _,self.original.0 as *const _);
         unsafe{&*(self.cols.as_slice() as *const _ as *const _)}
     }
 }
@@ -56,7 +52,7 @@ impl<T:Send+Sync,D:Send+Sync> CollidingPairsPar<T,D>{
         arr:&mut [T],
         func: impl Fn(&mut T, &mut T, &mut D) + Send + Sync + Copy,
     ) {
-        assert_eq!(arr as *mut _,self.original);
+        assert_eq!(arr as *mut _,self.original.0);
         
         
         fn parallelize<T: Visitor + Send + Sync>(a: T, func: impl Fn(T::Item) + Sync + Send + Copy)
@@ -160,15 +156,15 @@ impl<'a,A:Axis,N:Num,T:Send+Sync> TreeRefInd<'a,A,N,T>{
 //Contains a filtered list of all elements in the tree.
 pub struct FilteredElements<T,D>{
     elems:Vec<(*mut T,D)>,
-    orig:*mut [T]
+    orig:Ptr<[T]>
 }
 impl<T,D> FilteredElements<T,D>{
     pub fn get(&self,arr:&[T])->&[(&T,D)]{
-        assert_eq!(self.orig as *const _,arr as *const _);
+        assert_eq!(self.orig.0 as *const _,arr as *const _);
         unsafe{&*(self.elems.as_slice() as *const _ as *const _)}
     }
     pub fn get_mut(&mut self,arr:&mut [T])->&mut [(&mut T,D)]{
-        assert_eq!(self.orig,arr as *mut _);
+        assert_eq!(self.orig.0,arr as *mut _);
         unsafe{&mut *(self.elems.as_mut_slice() as *mut _ as *mut _)}
     }
 }
