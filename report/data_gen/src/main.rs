@@ -1,3 +1,6 @@
+pub use broccoli::axgeom;
+pub use broccoli::rayon;    
+
 pub fn black_box<T>(dummy: T) -> T {
     unsafe {
         let ret = std::ptr::read_volatile(&dummy);
@@ -10,7 +13,7 @@ pub fn black_box<T>(dummy: T) -> T {
 pub mod bbox_helper{
     use broccoli::Num;
     use broccoli::bbox;
-    use axgeom::Rect;
+    use broccoli::axgeom::Rect;
     use broccoli::BBox;
 
     pub fn create_bbox_mut<T,N:Num>(arr:&mut [T],mut func:impl FnMut(&T)->Rect<N>)->Vec<BBox<N,&mut T>>{

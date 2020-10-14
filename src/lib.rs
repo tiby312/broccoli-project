@@ -44,8 +44,10 @@ extern crate alloc;
 extern crate is_sorted;
 extern crate pdqselect;
 
-///axgeom crate is re-exported for easy access to the `Rect<T>` type which is what a `BBox` is composed of.
-extern crate axgeom;
+
+pub use axgeom;
+pub use compt;
+pub use rayon;
 
 //TODO get rid of
 mod inner_prelude {

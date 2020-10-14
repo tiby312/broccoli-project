@@ -1,6 +1,5 @@
 use axgeom::vec2;
 use axgeom::Vec2;
-use axgeom::*;
 use egaku2d::glutin;
 use glutin::event::ElementState;
 use glutin::event::Event;

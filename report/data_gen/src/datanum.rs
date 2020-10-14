@@ -1,4 +1,4 @@
-use axgeom::Rect;
+use broccoli::axgeom::Rect;
 use broccoli::Num;
 use std::cmp::Ordering;
 

@@ -1,6 +1,9 @@
 pub mod prelude {
     pub use crate::Demo;
-    pub use axgeom::*;
+    pub use broccoli::rayon;
+    pub use broccoli::compt;
+    pub use broccoli::axgeom;
+    pub use broccoli::axgeom::*;
     pub use broccoli::prelude::*;
     //pub use dists;
     pub use crate::dists::*;
