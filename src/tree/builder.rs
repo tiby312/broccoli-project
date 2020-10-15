@@ -239,6 +239,26 @@ struct Recurser<'a, T: Aabb, K: Splitter, S: Sorter> {
     _p: PhantomData<(K, &'a T)>,
 }
 
+
+struct NonLeafFinisher<'a,A,T:Aabb>{
+    axis:A,
+    div:Option<T::Num>, //This can be null if there are no bots left at all
+    mid:&'a mut [T]
+}
+impl<'a,A:Axis,T:Aabb> NonLeafFinisher<'a,A,T>{
+    fn finish(self,sorter: impl Sorter)->NodeMut<'a,T>{
+        sorter.sort(self.axis.next(), self.mid);
+        let cont = create_cont(self.axis, self.mid);
+
+        NodeMut{
+            range:PMut::new(self.mid),
+            cont,
+            div:self.div
+        }
+    }
+}
+
+
 impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
     fn create_leaf<A: Axis>(&self, axis: A, rest: &'a mut [T]) -> NodeMut<'a, T> {
         self.sorter.sort(axis.next(), rest);
@@ -256,19 +276,18 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
         &self,
         axis: A,
         rest: &'a mut [T],
-    ) -> (NodeMut<'a, T>, &'a mut [T], &'a mut [T]) {
-        match construct_non_leaf(self.binstrat, self.sorter, axis, rest) {
+    ) -> (NonLeafFinisher<'a,A, T>, &'a mut [T], &'a mut [T]) {
+        match construct_non_leaf(self.binstrat, axis, rest) {
             ConstructResult::NonEmpty {
-                cont,
                 div,
                 mid,
                 left,
                 right,
             } => (
-                NodeMut {
-                    range: PMut::new(mid),
-                    cont,
-                    div: Some(div),
+                NonLeafFinisher{
+                    mid:mid,
+                    div:Some(div),
+                    axis
                 },
                 left,
                 right,
@@ -276,10 +295,10 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
             ConstructResult::Empty(empty) => {
                 //let (a,empty) = tools::duplicate_empty_slice(empty);
                 //let (b,c) = tools::duplicate_empty_slice(empty);
-                let node = NodeMut {
-                    range: PMut::new(empty),
-                    cont: None,
+                let node = NonLeafFinisher{
+                    mid: empty,
                     div: None,
+                    axis,
                 };
 
                 (node, &mut [], &mut [])
@@ -299,7 +318,7 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
 
         if depth < self.height - 1 {
             let (node, left, right) = self.create_non_leaf(axis, rest);
-            nodes.push(node);
+            nodes.push(node.finish(self.sorter));
 
             let mut splitter2 = splitter.div();
 
@@ -328,9 +347,7 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
 
         if depth < self.height - 1 {
             let (node, left, right) = self.create_non_leaf(axis, rest);
-
-            nodes.push(node);
-
+            
             let mut splitter2 = splitter.div();
 
             let splitter = match dlevel.next() {
@@ -341,6 +358,8 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
 
                     let ((splitter, nodes), mut nodes2) = rayon::join(
                         move || {
+                            nodes.push(node.finish(self.sorter));
+
                             self.recurse_preorder(
                                 axis.next(),
                                 dleft,
@@ -484,7 +503,6 @@ fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> Option<axgeom::Range<
 enum ConstructResult<'a, T: Aabb> {
     NonEmpty {
         div: T::Num,
-        cont: Option<axgeom::Range<T::Num>>,
         mid: &'a mut [T],
         right: &'a mut [T],
         left: &'a mut [T],
@@ -494,7 +512,6 @@ enum ConstructResult<'a, T: Aabb> {
 
 fn construct_non_leaf<T: Aabb>(
     bin_strat: BinStrat,
-    sorter: impl Sorter,
     div_axis: impl Axis,
     bots: &mut [T],
 ) -> ConstructResult<T> {
@@ -529,15 +546,14 @@ fn construct_non_leaf<T: Aabb>(
     };
 
     //debug_assert!(!binned.middle.is_empty());
-    sorter.sort(div_axis.next(), binned.middle);
-
-    let cont = create_cont(div_axis, binned.middle);
+    
+    //TODO do this later also!!!
+    //let cont = create_cont(div_axis, binned.middle);
 
     //We already know that the middile is non zero in length.
 
     ConstructResult::NonEmpty {
         mid: binned.middle,
-        cont,
         div: med,
         left: binned.left,
         right: binned.right,
