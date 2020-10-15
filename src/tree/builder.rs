@@ -169,7 +169,8 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
 
     let num_bots = rest.len();
 
-    let mut nodes = Vec::with_capacity(tree::nodes_left(0, height));
+    let cc=tree::nodes_left(0, height);
+    let mut nodes = Vec::with_capacity(cc);
 
     let r = Recurser {
         height,
@@ -178,7 +179,8 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
         _p: PhantomData,
     };
     r.recurse_preorder_seq(div_axis, rest, &mut nodes, splitter, 0);
-
+    assert_eq!(cc,nodes.len());
+    
     let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
     let k = tree
@@ -208,7 +210,8 @@ fn create_tree_par<
 
     let num_bots = rest.len();
 
-    let mut nodes = Vec::with_capacity(tree::nodes_left(0, height));
+    let cc=tree::nodes_left(0, height);
+    let mut nodes = Vec::with_capacity(cc);
 
     let r = Recurser {
         height,
@@ -218,6 +221,7 @@ fn create_tree_par<
     };
     r.recurse_preorder(div_axis, dlevel, rest, &mut nodes, splitter, 0);
 
+    assert_eq!(cc,nodes.len());
     let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
     let k = tree
@@ -390,6 +394,7 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
                 }
                 par::ParResult::Sequential(_) => {
                     //dbg!("SEQ SPLIT");
+                    nodes.push(node.finish(self.sorter));
 
                     self.recurse_preorder_seq(axis.next(), left, nodes, splitter, depth + 1);
                     self.recurse_preorder_seq(axis.next(), right, nodes, &mut splitter2, depth + 1);
