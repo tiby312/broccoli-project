@@ -140,6 +140,7 @@ pub fn k_nearest_mut<Acc, A: Axis, T: Aabb + HasInner>(
     let mut r = tree.k_nearest_mut(point, num, acc, broad, fine, rect);
     let mut res_dino: Vec<_> = r
         .drain(..)
+        .filter_map(|a|a)
         .map(|a| (a.bot as *const _ as usize, a.mag))
         .collect();
 

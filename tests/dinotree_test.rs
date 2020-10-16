@@ -22,8 +22,8 @@ fn test1() {
             .collect();
 
         let mut tree = broccoli::collections::TreeRef::new(&mut bots);
-        broccoli::assert::find_colliding_pairs_mut(&mut tree);
-        broccoli::assert::find_colliding_pairs_mut(&mut tree);
+        broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
+        broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
     }
 }
 
@@ -48,12 +48,13 @@ fn test2() {
             .collect();
 
         let mut tree = broccoli::collections::TreeRefInd::new(&mut bots, |a| a.rect);
-        broccoli::assert::find_colliding_pairs_mut(&mut tree);
-        broccoli::assert::find_colliding_pairs_mut(&mut tree);
-        let mut p = tree.collect_colliding_pairs(|a, b| Some(()));
-        let mut k = tree.collect_all(|r, a| Some(()));
-        p.for_every_pair_mut(tree.get_elements_mut(), |a, b, c| {});
-        let j: Vec<_> = k.get_mut(tree.get_elements_mut()).iter().collect();
-        p.for_every_pair_mut(tree.get_elements_mut(), |a, b, c| {});
+        broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
+        broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
+        let mut p = tree.collect_colliding_pairs(|_a, _b| Some(()));
+        let mut k = tree.collect_all(|_r, _a| Some(()));
+        p.for_every_pair_mut(tree.get_elements_mut(), |_a, _b, _c| {});
+        let _j: Vec<_> = k.get_mut(tree.get_elements_mut()).iter().collect();
+        p.for_every_pair_mut(tree.get_elements_mut(), |_a, _b, _c| {});
+        
     }
 }

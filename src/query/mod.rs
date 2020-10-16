@@ -370,9 +370,9 @@ where
     ///     |c,p,t|{*c+=1;t.inner.distance_squared_to_point(p)},    //Do more fine-grained checking here.
     ///     border);
     ///
-    ///assert_eq!(res.len(),2);
-    ///assert_eq!(*res[0].bot,bots_copy[0].inner);
-    ///assert_eq!(*res[1].bot,bots_copy[2].inner);
+    ///assert_eq!(res.len(),3);
+    ///assert_eq!(*res[0].as_ref().unwrap().bot,bots_copy[0].inner);
+    ///assert_eq!(*res[2].as_ref().unwrap().bot,bots_copy[2].inner);
     ///assert_eq!(counter,3);
     ///```
     #[must_use]
@@ -384,7 +384,7 @@ where
         broad: impl FnMut(&mut Acc, Vec2<Self::Num>, &Rect<Self::Num>) -> Self::Num,
         fine: impl FnMut(&mut Acc, Vec2<Self::Num>, &Self::T) -> Self::Num,
         border: Rect<Self::Num>,
-    ) -> Vec<k_nearest::KnearestResult<'b, Self::Inner, Self::Num>>
+    ) -> Vec<Option<k_nearest::KnearestResult<'b, Self::Inner, Self::Num>>>
     where
         'a: 'b,
     {

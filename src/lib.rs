@@ -74,7 +74,7 @@ mod bbox;
 pub use crate::bbox::*;
 
 ///Generic slice utillity functions.
-pub mod util;
+mod util;
 
 use axgeom::Rect;
 

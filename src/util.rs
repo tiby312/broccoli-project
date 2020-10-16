@@ -1,5 +1,5 @@
 use crate::pmut::PMut;
-use itertools::Itertools;
+//use itertools::Itertools;
 
 use alloc::vec::Vec;
 
@@ -34,6 +34,7 @@ impl<T> PreVecMut<T> {
     }
 }
 
+/*
 ///Splits a mutable slice into multiple slices
 ///The splits occur where the predicate returns false.
 pub struct SliceSplitMut<'a, T, F> {
@@ -95,3 +96,4 @@ impl<'a, T, F: FnMut(&T, &T) -> bool> Iterator for SliceSplit<'a, T, F> {
         Some(first)
     }
 }
+*/

@@ -345,7 +345,7 @@ mod mutable {
         num: usize,
         knear: &mut impl Knearest<N = N::Num, T = N::T>,
         rect: Rect<N::Num>,
-    ) -> Vec<KnearestResult<'a, <N::T as HasInner>::Inner, N::Num>>
+    ) -> Vec<Option<KnearestResult<'a, <N::T as HasInner>::Inner, N::Num>>>
     where
         N::T: HasInner,
     {
@@ -361,14 +361,25 @@ mod mutable {
 
         recc(axis, dt, rect, &mut blap);
 
-        //blap.closest.into_sorted()
+        let mut res:Vec<Option<KnearestResult<'a, <N::T as HasInner>::Inner, N::Num>>>=Vec::new();
+        for a in blap.closest.into_sorted().into_iter(){
+            if let Some(Some(k))=res.last(){
+                if k.mag!=a.mag{
+                    res.push(None);
+                }
+            }
+            res.push(Some(KnearestResult {
+                bot: a.bot.into_inner(),
+                mag: a.mag,
+            }));
+        }
+        res
+        /*
         blap.closest
             .into_sorted()
             .drain(..)
-            .map(|a| KnearestResult {
-                bot: a.bot.into_inner(),
-                mag: a.mag,
-            })
+            .map(|a| )
             .collect()
+            */
     }
 }
