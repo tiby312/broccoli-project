@@ -78,6 +78,7 @@ pub mod util;
 
 use axgeom::Rect;
 
+///The broccoli prelude.
 pub mod prelude {
     pub use crate::bbox::bbox;
     pub use crate::bbox::BBox;

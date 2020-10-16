@@ -3,7 +3,6 @@ use crate::inner_prelude::*;
 #[cfg(test)]
 mod tests;
 
-pub mod assert;
 
 pub mod analyze;
 
@@ -14,8 +13,7 @@ pub mod par;
 mod notsorted;
 pub use self::notsorted::NotSorted;
 
-pub mod builder;
-use builder::TreeBuilder;
+use analyze::TreeBuilder;
 
 pub(crate) use self::node::*;
 
@@ -37,15 +35,20 @@ pub struct Tree<'a, A: Axis, T: Aabb> {
     inner: TreeInner<A, NodeMut<'a, T>>,
 }
 
-///The type of the axis of the first node in the Tree.
-///If it is the y axis, then the first divider will be a horizontal line,
-///since it is partioning space based off of objects y value.
+
+///The default starting axis of a `broccoli::Tree`. It is set to be the `Y` axis.
+///This means that the first divider is a horizontal line since it is
+///partitioning space based off of the aabb's `Y` value.
 pub type DefaultA = YAXIS;
-///Constructor of the default axis type. Needed since you cannot construct from type alias's.
+
+
+///Returns the default axis type.
 pub const fn default_axis() -> YAXIS {
     YAXIS
 }
 
+///Create a `broccoli::Tree` using the default axis.
+///
 /// # Examples
 ///
 ///```
@@ -57,6 +60,8 @@ pub fn new<'a, T: Aabb>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> {
     TreeBuilder::new(bots).build_seq()
 }
 
+///Create a `broccoli::Tree` using a specified axis.
+///
 /// # Examples
 ///
 ///```
@@ -68,6 +73,9 @@ pub fn with_axis<'a, A: Axis, T: Aabb>(axis: A, bots: &'a mut [T]) -> Tree<'a, A
     TreeBuilder::with_axis(axis, bots).build_seq()
 }
 
+
+///Create a `broccoli::Tree` using the default axis in parallel.
+///
 /// # Examples
 ///
 ///```
@@ -79,6 +87,8 @@ pub fn new_par<'a, T: Aabb + Send + Sync>(bots: &'a mut [T]) -> Tree<'a, Default
     TreeBuilder::new(bots).build_par()
 }
 
+///Create a `broccoli::Tree` using a specified axis in parallel.
+///
 /// # Examples
 ///
 ///```

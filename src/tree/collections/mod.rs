@@ -1,4 +1,4 @@
-//! ## Overview
+//! Container trees that deref to `broccoli::Tree`
 //!
 //! broccoli::Tree is written in safe rust, and for most usecases,
 //! using broccoli::Tree is enough. But in certain cases

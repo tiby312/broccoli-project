@@ -2,6 +2,10 @@
 //! to help analyze and measure their performance.
 
 use crate::inner_prelude::*;
+pub mod assert;
+
+pub use builder::TreeBuilder;
+mod builder;
 
 //pub use crate::tree::node;
 //pub use crate::tree::notsorted::NotSorted;

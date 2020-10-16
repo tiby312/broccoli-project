@@ -1,6 +1,11 @@
+//! Functions that panic if a disconnect between query results is detected
+//! between `broccoli::Tree` and the naive equivalent.
+//!
+//!
+
 use super::*;
 use collections::TreeRef;
-
+use crate::tree::*;
 /// Collection of functions that panics if the Tree result differs from the naive solution.
 /// Should never panic unless invariants of the tree data struct have been violated.    
 ///Returns false if the tree's invariants are not met.
