@@ -26,7 +26,7 @@
 //! let mut k=[bbox(rect(0,10,0,10),8)];
 //! let mut b=broccoli::collections::TreeRef::new(&mut k);
 //! b.find_colliding_pairs_mut(|a,b|{});
-//! *b.get_elements_mut().get_index_mut(0).inner_mut()=5;
+//! *b.get_bbox_elements_mut().get_index_mut(0).inner_mut()=5;
 //! b.find_colliding_pairs_mut(|a,b|{});
 //! ```
 //!
@@ -57,7 +57,7 @@
 //!
 //! fn not_lifetimed()->TreeOwned<DefaultA,BBox<i32,f32>>
 //! {
-//!     let a=vec![bbox(rect(0,10,0,10),0.0)];
+//!     let a=vec![bbox(rect(0,10,0,10),0.0)].into_boxed_slice();
 //!     TreeOwned::new(a)
 //! }
 //!
@@ -73,7 +73,7 @@
 //!
 //! fn not_lifetimed()->TreeOwnedInd<DefaultA,i32,Vec2<i32>>
 //! {
-//!     let rect=vec![vec2(0,10),vec2(3,30)];
+//!     let rect=vec![vec2(0,10),vec2(3,30)].into_boxed_slice();
 //!     TreeOwnedInd::new(rect,|&mut p|{
 //!         let radius=vec2(10,10);
 //!         Rect::from_point(p,radius)
@@ -88,7 +88,7 @@ use super::*;
 
 mod collect;
 pub use self::collect::*;
-
+use alloc::boxed::Box;
 mod inner;
 
 #[repr(transparent)]
@@ -238,18 +238,18 @@ pub(crate) struct NodePtr<T: Aabb> {
 
 pub struct TreeOwnedInd<A: Axis, N: Num, T> {
     tree:inner::TreeIndInner<A,N,T>,
-    _bots: Vec<T>,
+    _bots: Box<[T]>,
 }
 
 impl<N: Num, T: Send + Sync> TreeOwnedInd<DefaultA, N, T> {
-    pub fn new_par(bots: Vec<T>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<DefaultA, N, T> {
+    pub fn new_par(bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<DefaultA, N, T> {
         TreeOwnedInd::with_axis_par(default_axis(), bots, func)
     }
 }
 impl<A: Axis, N: Num, T: Send + Sync> TreeOwnedInd<A, N, T> {
     pub fn with_axis_par(
         axis: A,
-        mut bots: Vec<T>,
+        mut bots: Box<[T]>,
         func: impl FnMut(&mut T) -> Rect<N>,
     ) -> TreeOwnedInd<A, N, T> {
      
@@ -259,7 +259,7 @@ impl<A: Axis, N: Num, T: Send + Sync> TreeOwnedInd<A, N, T> {
 }
 
 impl<N: Num, T> TreeOwnedInd<DefaultA, N, T> {
-    pub fn new(bots: Vec<T>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<DefaultA, N, T> {
+    pub fn new(bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<DefaultA, N, T> {
         Self::with_axis(default_axis(), bots, func)
     }
 }
@@ -267,7 +267,7 @@ impl<A: Axis, N: Num, T> TreeOwnedInd<A, N, T> {
     ///Create an owned Tree in one thread.
     pub fn with_axis(
         axis: A,
-        mut bots: Vec<T>,
+        mut bots: Box<[T]>,
         func: impl FnMut(&mut T) -> Rect<N>,
     ) -> TreeOwnedInd<A, N, T> {
         TreeOwnedInd { tree:inner::TreeIndInner::with_axis(axis,&mut bots,func), _bots:bots }
@@ -287,16 +287,16 @@ impl<A: Axis, N: Num, T> TreeOwnedInd<A, N, T> {
 ///An owned Tree componsed of `T:Aabb`
 pub struct TreeOwned<A: Axis, T: Aabb> {
     tree: inner::TreeRefInner<A, T>,
-    _bots: Vec<T>,
+    _bots: Box<[T]>,
 }
 
 impl<T: Aabb + Send + Sync> TreeOwned<DefaultA, T> {
-    pub fn new_par(bots: Vec<T>) -> TreeOwned<DefaultA, T> {
+    pub fn new_par(bots: Box<[T]>) -> TreeOwned<DefaultA, T> {
         TreeOwned::with_axis_par(default_axis(), bots)
     }
 }
 impl<A: Axis, T: Aabb + Send + Sync> TreeOwned<A, T> {
-    pub fn with_axis_par(axis: A, mut bots: Vec<T>) -> TreeOwned<A, T> {
+    pub fn with_axis_par(axis: A, mut bots: Box<[T]>) -> TreeOwned<A, T> {
         TreeOwned {
             tree: inner::TreeRefInner::with_axis_par(axis,&mut bots),
             _bots:bots,
@@ -304,13 +304,13 @@ impl<A: Axis, T: Aabb + Send + Sync> TreeOwned<A, T> {
     }
 }
 impl<T: Aabb> TreeOwned<DefaultA, T> {
-    pub fn new(bots: Vec<T>) -> TreeOwned<DefaultA, T> {
+    pub fn new(bots: Box<[T]>) -> TreeOwned<DefaultA, T> {
         Self::with_axis(default_axis(), bots)
     }
 }
 impl<A: Axis, T: Aabb> TreeOwned<A, T> {
     ///Create an owned Tree in one thread.
-    pub fn with_axis(axis: A, mut bots: Vec<T>) -> TreeOwned<A, T> {
+    pub fn with_axis(axis: A, mut bots: Box<[T]>) -> TreeOwned<A, T> {
         TreeOwned {
             tree: inner::TreeRefInner::with_axis(axis,&mut bots),
             _bots:bots,
