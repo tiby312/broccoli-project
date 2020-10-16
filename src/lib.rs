@@ -33,7 +33,7 @@
 //! ### nostd
 //! Uses `no_std`, but uses the `alloc` crate.
 
-
+#![doc(html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png", html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png")]
 #![no_std]
 
 #[macro_use]
