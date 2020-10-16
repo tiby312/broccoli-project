@@ -84,7 +84,7 @@ impl<'a, A: Axis, N: Num, T: Send + Sync> TreeRefInd<'a, A, N, T> {
         });
         CollidingPairsPar {
             cols,
-            original: self.orig,
+            original: self.tree.orig,
         }
     }
 
@@ -173,7 +173,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
             }
         }
         FilteredElements {
-            orig: self.orig,
+            orig: self.tree.orig,
             elems,
         }
     }
@@ -202,7 +202,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
 
         CollidingPairs {
             cols,
-            orig: self.orig,
+            orig: self.tree.orig,
         }
     }
 }

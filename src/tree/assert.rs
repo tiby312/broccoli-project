@@ -101,7 +101,7 @@ pub fn find_colliding_pairs_mut<A: Axis, T: Aabb + HasInner>(tree: &mut TreeRef<
     });
 
     let mut res_naive = Vec::new();
-    NaiveAlgs::new(tree.get_elements_mut()).find_colliding_pairs_mut(|a, b| {
+    NaiveAlgs::new(tree.get_bbox_elements_mut()).find_colliding_pairs_mut(|a, b| {
         let a = a as *const _ as usize;
         let b = b as *const _ as usize;
         let k = if a < b { (a, b) } else { (b, a) };
@@ -124,7 +124,7 @@ pub fn k_nearest_mut<Acc, A: Axis, T: Aabb + HasInner>(
     mut fine: impl FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
     rect: Rect<T::Num>,
 ) {
-    let bots = tree.get_elements_mut();
+    let bots = tree.get_bbox_elements_mut();
 
     let mut res_naive = NaiveAlgs::new(bots)
         .k_nearest_mut(point, num, acc, &mut broad, &mut fine)
@@ -155,7 +155,7 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb + HasInner>(
 ) where
     <T as Aabb>::Num: core::fmt::Debug,
 {
-    let bots = tree.get_elements_mut();
+    let bots = tree.get_bbox_elements_mut();
 
     let mut res_naive = Vec::new();
     match NaiveAlgs::new(bots).raycast_mut(ray, start, &mut broad, &mut fine, border) {
@@ -210,7 +210,7 @@ pub fn for_all_in_rect_mut<A: Axis, T: Aabb + HasInner>(
     });
 
     let mut res_naive = Vec::new();
-    NaiveAlgs::new(tree.get_elements_mut()).for_all_in_rect_mut(rect, |a| {
+    NaiveAlgs::new(tree.get_bbox_elements_mut()).for_all_in_rect_mut(rect, |a| {
         res_naive.push(a as *const _ as usize);
     });
 
@@ -233,7 +233,7 @@ pub fn for_all_not_in_rect_mut<A: Axis, T: Aabb + HasInner>(
     });
 
     let mut res_naive = Vec::new();
-    NaiveAlgs::new(tree.get_elements_mut()).for_all_not_in_rect_mut(rect, |a| {
+    NaiveAlgs::new(tree.get_bbox_elements_mut()).for_all_not_in_rect_mut(rect, |a| {
         res_naive.push(a as *const _ as usize);
     });
 
@@ -254,7 +254,7 @@ pub fn for_all_intersect_rect_mut<A: Axis, T: Aabb + HasInner>(
     });
 
     let mut res_naive = Vec::new();
-    NaiveAlgs::new(tree.get_elements_mut()).for_all_intersect_rect_mut(rect, |a| {
+    NaiveAlgs::new(tree.get_bbox_elements_mut()).for_all_intersect_rect_mut(rect, |a| {
         res_naive.push(a as *const _ as usize);
     });
 

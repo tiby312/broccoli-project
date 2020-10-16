@@ -45,7 +45,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         broccoli::collections::TreeOwnedInd::new(bots, |bot| bot.rect.inner_try_into().unwrap());
 
     let mut rects = canvas.rects();
-    for bot in tree.as_tree().get_elements().iter() {
+    for bot in tree.as_tree().get_bbox_elements().iter() {
         rects.add(bot.get().inner_into().into());
     }
     let rect_save = rects.save(canvas);

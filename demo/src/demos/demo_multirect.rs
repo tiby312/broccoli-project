@@ -30,7 +30,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     let mut tree = broccoli::collections::TreeOwnedInd::new_par(bots, |b| b.rect);
 
     let mut rects = canvas.rects();
-    for bot in tree.as_tree().get_elements().iter() {
+    for bot in tree.as_tree().get_bbox_elements().iter() {
         rects.add(bot.get().inner_as().into());
     }
     let rect_save = rects.save(canvas);
