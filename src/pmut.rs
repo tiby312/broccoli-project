@@ -31,7 +31,7 @@ use crate::inner_prelude::*;
 ///See the pmut module documentation for more explanation.
 #[repr(transparent)]
 pub(crate) struct PMutPtr<T: ?Sized> {
-    pub(crate) _inner: *mut T, //TODO make this private
+    _inner: *mut T,
 }
 
 unsafe impl<T: ?Sized> Send for PMutPtr<T> {}
@@ -42,7 +42,7 @@ unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
 ///See the pmut module documentation for more explanation.
 #[repr(transparent)]
 pub struct PMut<'a, T: ?Sized> {
-    pub(crate) inner: &'a mut T, //TODO make this private
+    inner: &'a mut T,
 }
 
 impl<'a, T: ?Sized> PMut<'a, T> {
@@ -117,7 +117,6 @@ impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
     }
 }
 
-//TODO use this
 impl<'a, T: HasInner> PMut<'a, T> {
     #[inline(always)]
     pub fn into_inner(self) -> &'a mut T::Inner {

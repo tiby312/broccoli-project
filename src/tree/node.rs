@@ -94,7 +94,6 @@ impl<'a, T: Aabb> Node for NodeMut<'a, T> {
     type T = T;
     type Num = T::Num;
     fn get(&self) -> NodeRef<Self::T> {
-        //TODO point as struct impl
         NodeRef {
             bots: self.range.as_ref(),
             cont: &self.cont,
@@ -113,12 +112,10 @@ impl<'a, T: Aabb> Node for NodeMut<'a, T> {
 ///A lifetimed node in a dinotree.
 pub struct NodeMut<'a, T: Aabb> {
     pub(crate) range: PMut<'a, [T]>,
-
     //range is empty iff cont is none.
     pub(crate) cont: Option<axgeom::Range<T::Num>>,
     //for non leafs:
-    //  div is some iff mid is nonempty.
-    //  div is none iff mid is empty.
+    //  div is some if either this node as bots or a child does
     //for leafs:
     //  div is none
     pub(crate) div: Option<T::Num>,

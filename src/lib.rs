@@ -49,29 +49,20 @@ pub use axgeom;
 pub use compt;
 pub use rayon;
 
-//TODO get rid of
 mod inner_prelude {
     pub(crate) use super::*;
-    pub(crate) use crate::tree;
     pub(crate) use crate::tree::analyze::*;
-    pub(crate) use crate::query::Queries;
     pub use alloc::vec::Vec;
     pub use axgeom::*;
     pub(crate) use compt::Visitor;
-    pub use core::iter::*;
     pub use core::marker::PhantomData;
-    pub(crate) use crate::bbox::*;
     pub(crate) use crate::pmut::*;
-    pub(crate) use crate::tree::par;
-    pub(crate) use crate::tree::*;
 }
 
 pub mod query;
 
 
 ///Contains generic code used in all dinotree versions
-//pub use self::tree::{DinoTree,analyze,collectable,owned,DefaultA,default_axis};
-//pub use self::tree::*;
 mod tree;
 pub use tree::*;
 
@@ -145,7 +136,6 @@ unsafe impl<N: Num> Aabb for Rect<N> {
 ///
 ///We have no easy way to ensure that the Inner type only points to the inner portion of a AABB
 ///so we mark this trait as unsafe.
-//TODO make this not unsafe
 pub unsafe trait HasInner: Aabb {
     type Inner;
     #[inline(always)]

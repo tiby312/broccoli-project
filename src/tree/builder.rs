@@ -123,7 +123,6 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     pub fn with_height(&mut self, height: usize) -> &mut Self {
         self.height = height;
         self
-        //TODO test corner cases of this
     }
 
     ///Choose the height at which to switch from parallel to sequential.
@@ -535,8 +534,6 @@ fn construct_non_leaf<T: Aabb>(
         k.get().get_range(div_axis).start
     };
 
-    //TODO. its possible that middle is empty is the ranges inserted had
-    //zero length.
     //It is very important that the median bot end up be binned into the middile bin.
     //We know this must be true because we chose the divider to be the medians left border,
     //and we binned so that all bots who intersect with the divider end up in the middle bin.
@@ -549,13 +546,6 @@ fn construct_non_leaf<T: Aabb>(
             oned::bin_middle_left_right_unchecked(div_axis, &med, bots)
         },
     };
-
-    //debug_assert!(!binned.middle.is_empty());
-    
-    //TODO do this later also!!!
-    //let cont = create_cont(div_axis, binned.middle);
-
-    //We already know that the middile is non zero in length.
 
     ConstructResult::NonEmpty {
         mid: binned.middle,

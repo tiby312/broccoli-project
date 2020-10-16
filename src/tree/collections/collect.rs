@@ -1,6 +1,5 @@
 use super::*;
 
-//TODO makes these implement Send and Sync
 pub struct CollidingPairs<T, D> {
     ///See collect_intersections_list()
     ///The same elements can be part of
@@ -114,11 +113,9 @@ impl<'a,A:Axis,N:Num,T:Send+Sync> TreeRefInd<'a,A,N,T>{
             }
         }
     
-        //TODO might break if user uses custom height
         let height =
             1 + par::compute_level_switch_sequential(par::SWITCH_SEQUENTIAL_DEFAULT, self.get_height())
                 .get_depth_to_switch_at();
-        //dbg!(tree.get_height(),height);
         let mut cols: Vec<Vec<D>> = (0..compt::compute_num_nodes(height))
             .map(|_| Vec::new())
             .collect();
