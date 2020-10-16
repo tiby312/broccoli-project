@@ -9,7 +9,7 @@ struct Bot {
 }
 
 pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
-    let bots: Vec<_> = dists::rand2_iter(dim.inner_into())
+    let bots = dists::rand2_iter(dim.inner_into())
         .zip(dists::rand_iter(5.0, 20.0))
         .take(200)
         .enumerate()
@@ -25,7 +25,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 rect,
             }
         })
-        .collect();
+        .collect::<Vec<_>>().into_boxed_slice();
 
     let mut tree = broccoli::collections::TreeOwnedInd::new_par(bots, |b| b.rect);
 

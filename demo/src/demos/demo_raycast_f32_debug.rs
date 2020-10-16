@@ -6,7 +6,7 @@ use axgeom::Ray;
 pub struct Bot;
 
 pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
-    let ii: Vec<_> = dists::rand2_iter(dim.inner_into())
+    let ii = dists::rand2_iter(dim.inner_into())
         .zip(dists::rand_iter(1.0, 3.0))
         .take(5000)
         .map(|([x, y], radius)| {
@@ -17,7 +17,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 Bot,
             )
         })
-        .collect();
+        .collect::<Vec<_>>().into_boxed_slice();
 
     let mut counter: f32 = 0.0;
     let mut tree = broccoli::collections::TreeOwned::new_par(ii);
