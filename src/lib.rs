@@ -4,7 +4,7 @@
 //! ### Data Structure
 //!
 //! Using this crate, the user can create three flavors of the same fundamental data structure.
-//! The different characteristics are exlored more in depth in the book mentioned in the overview section.
+//! The different characteristics are exlored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report/index.html)
 //!
 //! + `(Rect<N>,&mut T)` *recommended
 //! + `(Rect<N>,T)`
