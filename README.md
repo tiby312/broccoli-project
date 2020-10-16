@@ -2,7 +2,6 @@
 
 Broccoli is a broadphase collision detection library. 
 The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
-Uses `no_std`, but uses the `alloc` crate.
 
 ### Inner projects
 
