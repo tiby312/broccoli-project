@@ -85,14 +85,14 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
 
         let mut vv: Vec<_> = vv
             .drain(..)
-            .map(|a| Res {
+            .map(|a| a.map(|a|Res {
                 rect: a.bot.rect.inner_into(),
                 mag: a.mag,
-            })
+            }))
             .collect();
 
         if check_naive {
-            broccoli::assert::k_nearest_mut(
+            broccoli::analyze::assert::k_nearest_mut(
                 tree.as_tree_mut(),
                 cursor,
                 3,
@@ -107,25 +107,24 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         }
 
         vv.reverse();
-        let vv_iter = broccoli::util::SliceSplit::new(&mut vv, |a, b| a.mag == b.mag);
-
+        
         rect_save
             .uniforms(canvas)
             .with_color([0.0, 0.0, 0.0, 0.3])
             .draw();
 
-        for (a, color) in vv_iter.zip(cols.iter()) {
-            if let Some(k) = a.first() {
+        for (k, color) in vv.split(|a|a.is_none()).zip(cols.iter()) {
+            
                 canvas
                     .circles()
                     .add(cursor.inner_into().into())
-                    .send_and_uniforms(canvas, k.mag.into_inner().sqrt() * 2.0)
+                    .send_and_uniforms(canvas, k[0].as_ref().unwrap().mag.into_inner().sqrt() * 2.0)
                     .with_color(*color)
                     .draw();
-            }
+            
 
             let mut rects = canvas.rects();
-            for b in a.iter() {
+            for b in k.iter().map(|a|a.as_ref().unwrap()) {
                 rects.add(b.rect.inner_into().into());
             }
             rects.send_and_uniforms(canvas).with_color(*color).draw();

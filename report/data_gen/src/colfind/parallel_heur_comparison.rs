@@ -1,5 +1,5 @@
 use crate::inner_prelude::*;
-use broccoli::builder::TreeBuilder;
+use broccoli::analyze::TreeBuilder;
 #[derive(Copy, Clone)]
 pub struct Bot {
     num: usize,

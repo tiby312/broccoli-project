@@ -47,11 +47,12 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
 
         if check_naive {
             let tree = tree.as_tree_mut();
-            broccoli::assert::for_all_in_rect_mut(tree, &r1);
-            broccoli::assert::for_all_in_rect_mut(tree, &r2);
-            broccoli::assert::for_all_intersect_rect_mut(tree, &r1);
-            broccoli::assert::for_all_intersect_rect_mut(tree, &r2);
-            broccoli::assert::for_all_not_in_rect_mut(tree, &r1);
+            use broccoli::analyze::assert;
+            assert::for_all_in_rect_mut(tree, &r1);
+            assert::for_all_in_rect_mut(tree, &r2);
+            assert::for_all_intersect_rect_mut(tree, &r1);
+            assert::for_all_intersect_rect_mut(tree, &r2);
+            assert::for_all_not_in_rect_mut(tree, &r1);
         }
 
         //test MultiRect

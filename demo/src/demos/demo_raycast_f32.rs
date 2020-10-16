@@ -2,7 +2,7 @@ use crate::support::prelude::*;
 use std;
 
 use axgeom::Ray;
-use broccoli::assert;
+use broccoli::analyze::assert;
 
 #[derive(Copy, Clone)]
 struct Bot {
