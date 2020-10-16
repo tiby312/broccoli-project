@@ -293,68 +293,9 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
         }
     }
 }
-//    }
-//}
 
 pub use self::mutable::k_nearest_mut;
-///The dinotree's Num does not inherit any kind of arithmetic traits.
-///This showcases that the tree construction and pair finding collision algorithms
-///do not involves any arithmetic.
-///However, when finding the nearest neighbor, we need to do some calculations to
-///compute distance between points. So instead of giving the Num arithmetic and thus
-///add uneeded bounds for general use of this tree, the user must provide functions for arithmetic
-///specifically for this function.
-///The user can also specify what the minimum distance function is minizing based off of. For example
-///minimizing based off the square distance will give you the same answer as minimizing based off
-///of the distant.
-///The callback function will be called on the closest object, then the second closest, and so on up
-///until k.
-///User can also this way choose whether to use manhatan distance or not.
 
-///Its important to distinguish the fact that there is no danger of any of the references returned being the same.
-///The closest is guarenteed to be distinct from the second closest. That is not to say they they don't overlap in 2d space.
-/*
-pub use self::con::naive;
-pub use self::con::k_nearest;
-mod con{
-    use super::*;
-    pub fn k_nearest<'b,
-        V:DinoTreeRefTrait,
-        >(tree:&'b V,point:Vec2<V::Num>,num:usize,knear: impl Knearest<T=V::Item,N=V::Num>,rect:Rect<V::Num>)->Vec<Unit<'b,V::Item,V::Num>>{
-        let axis=tree.axis();
-        let dt = tree.vistr().with_depth(Depth(0));
-
-        let closest=ClosestCand::new(num);
-        let mut blap=Blap{knear,point,closest};
-        recc(axis,dt,rect,&mut blap);
-
-        blap.closest.into_sorted()
-    }
-
-    knearest_recc!(Vistr<'a,K::T>,*const T,&T,get_range_iter,NonLeafDyn,&'a T,Unit<'a,T,D>,unit_create);
-
-    pub fn naive<'b,K:Knearest>(bots:impl Iterator<Item=&'b K::T>,point:Vec2<K::N>,num:usize,k:K)->Vec<Unit<'b,K::T,K::N>>{
-
-        let mut closest=ClosestCand::new(num);
-
-        for b in bots{
-            //TODO check aabb first
-            let d=k.distance_to_bot(point,b);
-
-            if let Some(dis)=closest.full_and_max_distance(){
-                if d>dis{
-                    continue;
-                }
-            }
-
-            closest.consider((b,d));
-        }
-
-        closest.into_sorted()
-    }
-
-}
-*/
 
 /// Returned by k_nearest_mut
 pub struct KnearestResult<'a, T, N> {
