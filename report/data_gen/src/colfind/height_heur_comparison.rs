@@ -13,11 +13,9 @@ pub fn handle_bench_inner(scene: &mut bot::BotScene<Bot>, height: usize) -> f64 
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let mut tree = TreeBuilder::new( &mut bb)
-        .with_height(height)
-        .build_seq();
+    let mut tree = TreeBuilder::new(&mut bb).with_height(height).build_seq();
 
-    tree.find_colliding_pairs_mut(|a,b| {
+    tree.find_colliding_pairs_mut(|a, b| {
         a.num += 2;
         b.num += 2;
     });
@@ -34,18 +32,15 @@ pub fn handle_theory_inner(scene: &mut bot::BotScene<Bot>, height: usize) -> usi
         datanum::from_rect(&mut counter, prop.create_bbox_i32(b.pos))
     });
 
-    let mut tree = TreeBuilder::new( &mut bb)
-        .with_height(height)
-        .build_seq();
+    let mut tree = TreeBuilder::new(&mut bb).with_height(height).build_seq();
 
-    tree.find_colliding_pairs_mut(|a,b| {
+    tree.find_colliding_pairs_mut(|a, b| {
         a.num += 2;
         b.num += 2;
     });
 
     counter.into_inner()
 }
-
 
 pub fn handle(fb: &mut FigureBuilder) {
     handle2d(fb);
@@ -74,7 +69,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         //let mut minimum_theory = None;
         let max_height = (num_bots as f64).log2() as usize;
 
-        let mut scene = bot::BotSceneBuilder::new(num_bots).build_specialized(|_,pos| Bot {
+        let mut scene = bot::BotSceneBuilder::new(num_bots).build_specialized(|_, pos| Bot {
             pos: pos.inner_as(),
             num: 0,
         });
@@ -113,8 +108,8 @@ fn handle_lowest(fb: &mut FigureBuilder) {
             benches.push(BenchRecord { height, num_bots });
         }
         */
-        if let Some((_,height))=minimum{
-            benches.push(BenchRecord{height,num_bots});
+        if let Some((_, height)) = minimum {
+            benches.push(BenchRecord { height, num_bots });
         }
     }
 
@@ -215,10 +210,10 @@ fn handle_lowest(fb: &mut FigureBuilder) {
 }
 
 fn handle2d(fb: &mut FigureBuilder) {
-    #[derive(Debug)]    
-    struct Record { 
-        height: usize,  
-        num_comparison: usize   
+    #[derive(Debug)]
+    struct Record {
+        height: usize,
+        num_comparison: usize,
     }
 
     #[derive(Debug)]
@@ -227,21 +222,22 @@ fn handle2d(fb: &mut FigureBuilder) {
         bench: f64,
     }
 
-    let mut theory_records=Vec::new();
+    let mut theory_records = Vec::new();
 
     let mut bench_records: Vec<BenchRecord> = Vec::new();
 
-    let mut scene = bot::BotSceneBuilder::new(10_000).build_specialized(|_,pos| Bot {
+    let mut scene = bot::BotSceneBuilder::new(10_000).build_specialized(|_, pos| Bot {
         pos: pos.inner_as(),
         num: 0,
     });
 
-
-    for height in 2..13{            
-        let num_comparison = handle_theory_inner(&mut scene,height);
-        theory_records.push(Record{height,num_comparison});     
-    }   
-    
+    for height in 2..13 {
+        let num_comparison = handle_theory_inner(&mut scene, height);
+        theory_records.push(Record {
+            height,
+            num_comparison,
+        });
+    }
 
     for height in (2..13).flat_map(|a| std::iter::repeat(a).take(20)) {
         let bench = handle_bench_inner(&mut scene, height);
@@ -252,24 +248,21 @@ fn handle2d(fb: &mut FigureBuilder) {
 
     let mut fg = fb.build("height_heuristic");
 
-
     let x = theory_records.iter().map(|a| a.height);
     let y = theory_records.iter().map(|a| a.num_comparison);
 
-
     fg.axes2d()
-        .set_pos_grid(2, 1, 0) 
+        .set_pos_grid(2, 1, 0)
         .set_title("Number of Comparisons with different numbers of objects per node with abspiral(10000,2.0)", &[])
         .lines(x,y,&[Color("blue"), LineWidth(2.0)])
         .set_x_label("Tree Height", &[])
         .set_y_label("Number of Comparisons", &[]);
 
-
     let x = bench_records.iter().map(|a| a.height);
     let y = bench_records.iter().map(|a| a.bench);
 
     fg.axes2d()
-        .set_pos_grid(2, 1, 1) 
+        .set_pos_grid(2, 1, 1)
         .set_title("Bench times with different numbers of objects per node (seq,colfind) with abspiral(10000,2.0)", &[])
         .points(x,y,&[Color("blue"), LineWidth(2.0)])
         .set_x_label("Tree Height", &[])

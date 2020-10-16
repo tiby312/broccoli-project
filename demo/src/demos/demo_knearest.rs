@@ -34,14 +34,15 @@ fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
 
 pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     let bots: Vec<_> = dists::rand2_iter(dim.inner_into())
-        .zip(dists::rand_iter(2.0,50.0))
+        .zip(dists::rand_iter(2.0, 50.0))
         .take(40)
-        .map(|([x,y], radius)| Bot {
-            rect: Rect::from_point(vec2(x as f32,y as f32), vec2same(radius)),
+        .map(|([x, y], radius)| Bot {
+            rect: Rect::from_point(vec2(x as f32, y as f32), vec2same(radius)),
         })
         .collect();
 
-    let mut tree = broccoli::collections::TreeOwnedInd::new(bots, |bot| bot.rect.inner_try_into().unwrap());
+    let mut tree =
+        broccoli::collections::TreeOwnedInd::new(bots, |bot| bot.rect.inner_try_into().unwrap());
 
     let mut rects = canvas.rects();
     for bot in tree.as_tree().get_elements().iter() {

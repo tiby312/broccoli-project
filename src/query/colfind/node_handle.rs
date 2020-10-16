@@ -1,9 +1,8 @@
 use crate::query::colfind::oned;
 //use crate::query::colfind::ColMulti;
+use super::super::tools;
 use super::ColMulti;
 use crate::query::inner_prelude::*;
-use super::super::tools;
-
 
 pub(crate) struct DestructuredNode<'a, T: Aabb, AnchorAxis: Axis> {
     pub div: &'a T::Num,

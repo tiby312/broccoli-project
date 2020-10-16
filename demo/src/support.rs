@@ -1,10 +1,10 @@
 pub mod prelude {
     pub use crate::Demo;
-    pub use broccoli::rayon;
-    pub use broccoli::compt;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
+    pub use broccoli::compt;
     pub use broccoli::prelude::*;
+    pub use broccoli::rayon;
     //pub use dists;
     pub use crate::dists::*;
     pub use dists::uniform_rand::UniformRandGen;

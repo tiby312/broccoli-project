@@ -29,7 +29,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     let radius = 5.0;
     let mut bots: Vec<_> = rand2_iter(dim.inner_into())
         .take(4000)
-        .map(|[x,y]|vec2(x,y))
+        .map(|[x, y]| vec2(x, y))
         .map(|pos| Bot {
             pos,
             vel: vec2same(0.0),
@@ -39,8 +39,9 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         })
         .collect();
 
-    let mut walls: Vec<_> = rand2_iter(dim.inner_into()).zip(rand_iter(10.0,60.0))
-        .map(|([x,y],radius)|(vec2(x,y),vec2same(radius)))
+    let mut walls: Vec<_> = rand2_iter(dim.inner_into())
+        .zip(rand_iter(10.0, 60.0))
+        .map(|([x, y], radius)| (vec2(x, y), vec2same(radius)))
         .take(40)
         .map(|(pos, radius)| Wall(Rect::from_point(pos, radius).inner_try_into().unwrap()))
         .collect();

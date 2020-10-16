@@ -296,7 +296,6 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
 
 pub use self::mutable::k_nearest_mut;
 
-
 /// Returned by k_nearest_mut
 pub struct KnearestResult<'a, T, N> {
     pub bot: &'a mut T,
@@ -339,15 +338,17 @@ mod mutable {
             .collect()
     }
 
-    pub fn k_nearest_mut<'a, A: Axis, N:Node>(
-        axis:A,
-        vistr:VistrMut<'a,N>,
+    pub fn k_nearest_mut<'a, A: Axis, N: Node>(
+        axis: A,
+        vistr: VistrMut<'a, N>,
         point: Vec2<N::Num>,
         num: usize,
         knear: &mut impl Knearest<N = N::Num, T = N::T>,
         rect: Rect<N::Num>,
-    ) -> Vec<KnearestResult<'a, <N::T as HasInner>::Inner, N::Num>> where N::T:HasInner {
-        
+    ) -> Vec<KnearestResult<'a, <N::T as HasInner>::Inner, N::Num>>
+    where
+        N::T: HasInner,
+    {
         let dt = vistr.with_depth(Depth(0));
 
         let closest = ClosestCand::new(num);

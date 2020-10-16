@@ -28,9 +28,9 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
     let mut bots: Vec<_> = dists::rand2_iter(dim.inner_into())
         .take(num_bot)
         .enumerate()
-        .map(|(id, [x,y])| Bot {
+        .map(|(id, [x, y])| Bot {
             id,
-            pos:vec2(x,y),
+            pos: vec2(x, y),
             vel: vec2same(0.0),
             force: vec2same(0.0),
         })
@@ -163,8 +163,8 @@ impl broccoli::query::DividerDrawer for Bla {
     }
 }
 
-use broccoli::node::Vistr;
 use broccoli::node::NodeMut;
+use broccoli::node::Vistr;
 
 fn draw_bot_lines<A: axgeom::Axis>(
     axis: A,

@@ -7,7 +7,7 @@ fn assert_length<I: core::iter::ExactSizeIterator>(it: I) {
 
 #[test]
 fn test() {
-    let mut bots = vec![0usize; 12];//TODO make bigger
+    let mut bots = vec![0usize; 12]; //TODO make bigger
 
     let mut bots: Vec<_> = bots
         .iter_mut()
@@ -15,9 +15,9 @@ fn test() {
         .collect();
 
     let mut tree = crate::new(&mut bots);
-    
+
     assert!(assert::tree_invariants(&tree));
-    
+
     assert_length(tree.vistr_mut().dfs_preorder_iter());
     assert_length(tree.vistr().dfs_preorder_iter());
 
@@ -48,5 +48,4 @@ fn test() {
             None => {}
         }
     }
-    
 }

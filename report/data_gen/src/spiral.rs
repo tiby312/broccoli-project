@@ -6,37 +6,40 @@ pub fn handle(fb: &mut FigureBuilder) {
     handle2(fb);
 }
 
-fn handle_num(fb:&mut FigureBuilder){
+fn handle_num(fb: &mut FigureBuilder) {
     let mut fg = fb.build("spiral_data_num");
 
-    let mut rects=Vec::new();
-    for num in 0..10000{
-        let mut scene = bot::BotSceneBuilder::new(num)
-        .build_specialized(|scene,pos| {
-            let p=pos.inner_try_into().unwrap();
-            let r=NotNan::new(scene.radius.dis()).unwrap();
-            bbox(axgeom::Rect::from_point(p,vec2same(r)).inner_try_into::<NotNan<f32>>().unwrap(),())
+    let mut rects = Vec::new();
+    for num in 0..10000 {
+        let mut scene = bot::BotSceneBuilder::new(num).build_specialized(|scene, pos| {
+            let p = pos.inner_try_into().unwrap();
+            let r = NotNan::new(scene.radius.dis()).unwrap();
+            bbox(
+                axgeom::Rect::from_point(p, vec2same(r))
+                    .inner_try_into::<NotNan<f32>>()
+                    .unwrap(),
+                (),
+            )
         });
 
         let mut tree = broccoli::new_par(&mut scene.bots);
-        let mut num_intersection=0;
-        tree.find_colliding_pairs_mut(|_a,_b|{
-            num_intersection+=1;
+        let mut num_intersection = 0;
+        tree.find_colliding_pairs_mut(|_a, _b| {
+            num_intersection += 1;
         });
 
-        rects.push((num,num_intersection));
+        rects.push((num, num_intersection));
     }
 
     let x = rects.iter().map(|a| a.0);
     let y = rects.iter().map(|a| a.1);
     fg.axes2d()
-    	.set_title("Number of Intersections with abspiral(num)", &[])
-        .lines(x, y,  &[Caption("Naive"), Color("red"), LineWidth(4.0)])
+        .set_title("Number of Intersections with abspiral(num)", &[])
+        .lines(x, y, &[Caption("Naive"), Color("red"), LineWidth(4.0)])
         .set_x_label("Number of bots", &[])
         .set_y_label("Number of Intersections", &[]);
 
     fb.finish(fg);
-    
 }
 fn handle_grow(fb: &mut FigureBuilder) {
     let mut fg = fb.build("spiral_data");
@@ -47,9 +50,12 @@ fn handle_grow(fb: &mut FigureBuilder) {
         let a: f32 = a as f32;
         0.2 + a * 0.02
     }) {
-        let s = dists::spiral_iter([0.0,0.0],17.0,grow as f64);// dists::spiral::Spiral::new([0.0, 0.0], 17.0, grow);
+        let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64); // dists::spiral::Spiral::new([0.0, 0.0], 17.0, grow);
 
-        let mut bots: Vec<Vec2<f32>> = s.map(|[x,y]|vec2(x as f32,y as f32)).take(num_bots).collect();
+        let mut bots: Vec<Vec2<f32>> = s
+            .map(|[x, y]| vec2(x as f32, y as f32))
+            .take(num_bots)
+            .collect();
 
         let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
             axgeom::Rect::from_point(*b, vec2same(5.0))
@@ -70,8 +76,8 @@ fn handle_grow(fb: &mut FigureBuilder) {
     let x = rects.iter().map(|a| a.0);
     let y = rects.iter().map(|a| a.1);
     fg.axes2d()
-    	.set_title("Number of Intersections with abspiral(10000,grow)", &[])
-        .lines(x, y,  &[Caption("Naive"), Color("red"), LineWidth(4.0)])
+        .set_title("Number of Intersections with abspiral(10000,grow)", &[])
+        .lines(x, y, &[Caption("Naive"), Color("red"), LineWidth(4.0)])
         .set_x_label("Spiral Grow", &[])
         .set_y_label("Number of Intersections", &[]);
 
@@ -84,7 +90,10 @@ fn handle2(fb: &mut FigureBuilder) {
 
         let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64);
 
-        let bots: Vec<Vec2<f32>> = s.map(|[x,y]|vec2(x as f32,y as f32)).take(num_bots).collect();
+        let bots: Vec<Vec2<f32>> = s
+            .map(|[x, y]| vec2(x as f32, y as f32))
+            .take(num_bots)
+            .collect();
         bots
     };
 

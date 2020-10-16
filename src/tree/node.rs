@@ -33,9 +33,8 @@ mod vistr_mut {
             PMut::new(self.inner.as_slice_mut())
         }
 
-        
         #[inline(always)]
-        pub fn into_slice(self) -> PMut<'a,[N]> {
+        pub fn into_slice(self) -> PMut<'a, [N]> {
             PMut::new(self.inner.into_slice())
         }
     }
@@ -59,9 +58,7 @@ mod vistr_mut {
             let (nn, rest) = self.inner.next();
 
             let k = match rest {
-                Some([left, right]) => {
-                    Some([VistrMut { inner: left }, VistrMut { inner: right }])
-                }
+                Some([left, right]) => Some([VistrMut { inner: left }, VistrMut { inner: right }]),
                 None => None,
             };
             (PMut::new(nn), k)
@@ -79,7 +76,6 @@ mod vistr_mut {
     }
 }
 pub use vistr_mut::VistrMut;
-
 
 ///Expose a node trait api to hide the lifetime of NodeMut.
 ///This way query algorithms do not need to worry about this lifetime.

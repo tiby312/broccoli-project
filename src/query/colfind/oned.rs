@@ -114,7 +114,10 @@ impl<I: Aabb> Sweeper<I> {
                 }
 
                 for that_bot in active.iter_mut() {
-                    debug_assert!(curr_bot.get().get_range(axis).intersects(that_bot.get().get_range(axis)));
+                    debug_assert!(curr_bot
+                        .get()
+                        .get_range(axis)
+                        .intersects(that_bot.get().get_range(axis)));
 
                     func.collide(curr_bot.as_mut(), that_bot.as_mut());
                 }
@@ -160,7 +163,6 @@ impl<I: Aabb> Sweeper<I> {
         }
     }
 }
-
 
 #[test]
 #[cfg_attr(miri, ignore)]
@@ -246,10 +248,13 @@ fn test_parallel() {
     assert_eq!(num, 0);
 }
 
-
 //this can have some false positives.
 //but it will still prune a lot of bots.
-pub(crate) fn get_section<'a, I: Aabb, A: Axis>(axis: A, arr: &'a [I], range: &Range<I::Num>) -> &'a [I] {
+pub(crate) fn get_section<'a, I: Aabb, A: Axis>(
+    axis: A,
+    arr: &'a [I],
+    range: &Range<I::Num>,
+) -> &'a [I] {
     let mut start = 0;
     for (e, i) in arr.iter().enumerate() {
         let rr = i.get().get_range(axis);

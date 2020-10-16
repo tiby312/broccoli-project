@@ -1,6 +1,6 @@
 extern crate axgeom;
-extern crate compt;
 extern crate broccoli;
+extern crate compt;
 
 use compt::*;
 

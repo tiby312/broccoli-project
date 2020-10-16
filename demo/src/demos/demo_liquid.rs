@@ -60,7 +60,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
     let radius = 50.0;
     let mut bots: Vec<_> = dists::rand2_iter(dim.inner_into())
         .take(2000)
-        .map(|[x,y]| Liquid::new(vec2(x,y)))
+        .map(|[x, y]| Liquid::new(vec2(x, y)))
         .collect();
 
     Demo::new(move |cursor, canvas, _check_naive| {

@@ -3,7 +3,6 @@ use crate::inner_prelude::*;
 #[cfg(test)]
 mod tests;
 
-
 pub mod assert;
 
 pub mod analyze;
@@ -15,7 +14,6 @@ pub mod par;
 mod notsorted;
 pub use self::notsorted::NotSorted;
 
-
 pub mod builder;
 use builder::TreeBuilder;
 
@@ -24,22 +22,19 @@ pub(crate) use self::node::*;
 ///Contains node-level building block structs and visitors used for a Tree.
 pub mod node;
 
-
 pub mod collections;
 
 use crate::query::*;
 
-
-
 pub(crate) struct TreeInner<A: Axis, N> {
     axis: A,
-    inner: compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>
+    inner: compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>,
 }
 
 ///The data structure this crate revoles around.
 #[repr(transparent)]
-pub struct Tree<'a,A: Axis, T:Aabb> {
-    inner:TreeInner<A,NodeMut<'a,T>>
+pub struct Tree<'a, A: Axis, T: Aabb> {
+    inner: TreeInner<A, NodeMut<'a, T>>,
 }
 
 ///The type of the axis of the first node in the Tree.
@@ -58,10 +53,9 @@ pub const fn default_axis() -> YAXIS {
 ///let tree = broccoli::new(&mut bots);
 ///
 ///```
-pub fn new<'a,T:Aabb>(bots:&'a mut [T])->Tree<'a,DefaultA,T>{
+pub fn new<'a, T: Aabb>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> {
     TreeBuilder::new(bots).build_seq()
 }
-
 
 /// # Examples
 ///
@@ -70,10 +64,9 @@ pub fn new<'a,T:Aabb>(bots:&'a mut [T])->Tree<'a,DefaultA,T>{
 ///let tree = broccoli::with_axis(axgeom::XAXIS,&mut bots);
 ///
 ///```
-pub fn with_axis<'a,A:Axis,T:Aabb>(axis:A,bots:&'a mut [T])->Tree<'a,A,T>{
+pub fn with_axis<'a, A: Axis, T: Aabb>(axis: A, bots: &'a mut [T]) -> Tree<'a, A, T> {
     TreeBuilder::with_axis(axis, bots).build_seq()
 }
-
 
 /// # Examples
 ///
@@ -82,10 +75,9 @@ pub fn with_axis<'a,A:Axis,T:Aabb>(axis:A,bots:&'a mut [T])->Tree<'a,A,T>{
 ///let tree = broccoli::new_par(&mut bots);
 ///
 ///```
-pub fn new_par<'a,T:Aabb+Send+Sync>(bots:&'a mut [T])->Tree<'a,DefaultA,T>{
+pub fn new_par<'a, T: Aabb + Send + Sync>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> {
     TreeBuilder::new(bots).build_par()
 }
-
 
 /// # Examples
 ///
@@ -94,40 +86,41 @@ pub fn new_par<'a,T:Aabb+Send+Sync>(bots:&'a mut [T])->Tree<'a,DefaultA,T>{
 ///let tree = broccoli::with_axis_par(axgeom::XAXIS,&mut bots);
 ///
 ///```
-pub fn with_axis_par<'a,A:Axis,T:Aabb+Send+Sync>(axis:A,bots:&'a mut [T])->Tree<'a,A,T>{
+pub fn with_axis_par<'a, A: Axis, T: Aabb + Send + Sync>(
+    axis: A,
+    bots: &'a mut [T],
+) -> Tree<'a, A, T> {
     TreeBuilder::with_axis(axis, bots).build_par()
 }
 
-impl<'a,A:Axis,T:Aabb+HasInner> QueriesInner<'a> for Tree<'a,A,T>{
-    type Inner=T::Inner;
+impl<'a, A: Axis, T: Aabb + HasInner> QueriesInner<'a> for Tree<'a, A, T> {
+    type Inner = T::Inner;
 }
 
-impl<'a,A:Axis,T:Aabb> Queries<'a> for Tree<'a,A,T>{
-    type A=A;
-    type T=T;
-    type Num=T::Num;
-    
+impl<'a, A: Axis, T: Aabb> Queries<'a> for Tree<'a, A, T> {
+    type A = A;
+    type T = T;
+    type Num = T::Num;
+
     #[inline(always)]
-    fn axis(&self)->Self::A{
+    fn axis(&self) -> Self::A {
         self.inner.axis
     }
 
     #[inline(always)]
-    fn vistr_mut(&mut self)->VistrMut<NodeMut<'a,T>>{
-        VistrMut{inner:self.inner.inner.vistr_mut()}
+    fn vistr_mut(&mut self) -> VistrMut<NodeMut<'a, T>> {
+        VistrMut {
+            inner: self.inner.inner.vistr_mut(),
+        }
     }
 
     #[inline(always)]
-    fn vistr(&self)->Vistr<NodeMut<'a,T>>{
+    fn vistr(&self) -> Vistr<NodeMut<'a, T>> {
         self.inner.inner.vistr()
     }
 }
 
-
-
-
-impl<'a, A: Axis, T:Aabb> Tree<'a, A,T> {
-
+impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// # Examples
     ///
     ///```
@@ -144,8 +137,6 @@ impl<'a, A: Axis, T:Aabb> Tree<'a, A,T> {
     pub fn get_height(&self) -> usize {
         self.inner.inner.get_height()
     }
-
-    
 
     /// # Examples
     ///
@@ -164,11 +155,10 @@ impl<'a, A: Axis, T:Aabb> Tree<'a, A,T> {
         self.inner.inner.get_nodes().len()
     }
 
-    pub fn get_nodes(&self)->&[NodeMut<'a,T>]{
+    pub fn get_nodes(&self) -> &[NodeMut<'a, T>] {
         self.inner.inner.get_nodes()
     }
-    pub fn get_nodes_mut(&mut self)->PMut<[NodeMut<'a,T>]>{
+    pub fn get_nodes_mut(&mut self) -> PMut<[NodeMut<'a, T>]> {
         PMut::new(self.inner.inner.get_nodes_mut())
     }
 }
-

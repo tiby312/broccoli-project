@@ -305,13 +305,16 @@ mod mutable {
         }
     }
 
-    pub fn raycast_mut<'a, A: Axis, N:Node>(
-        axis:A,
-        vistr:VistrMut<'a,N>,
+    pub fn raycast_mut<'a, A: Axis, N: Node>(
+        axis: A,
+        vistr: VistrMut<'a, N>,
         rect: Rect<N::Num>,
         ray: Ray<N::Num>,
         rtrait: &mut impl RayCast<N = N::Num, T = N::T>,
-    ) -> RayCastResult<'a, <N::T as HasInner>::Inner, N::Num> where N::T:HasInner{
+    ) -> RayCastResult<'a, <N::T as HasInner>::Inner, N::Num>
+    where
+        N::T: HasInner,
+    {
         let dt = vistr.with_depth(Depth(0));
 
         let closest = Closest { closest: None };

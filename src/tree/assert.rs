@@ -1,4 +1,3 @@
-
 use super::*;
 use collections::TreeRef;
 
@@ -6,7 +5,7 @@ use collections::TreeRef;
 /// Should never panic unless invariants of the tree data struct have been violated.    
 ///Returns false if the tree's invariants are not met.
 #[must_use]
-pub fn tree_invariants<'a>(a:&impl Queries<'a>) -> bool {
+pub fn tree_invariants<'a>(a: &impl Queries<'a>) -> bool {
     inner(a.axis(), a.vistr().with_depth(compt::Depth(0))).is_ok()
 }
 
@@ -92,10 +91,7 @@ fn inner<A: Axis, N: Node>(axis: A, iter: compt::LevelIter<Vistr<N>>) -> Result<
     Ok(())
 }
 
-
-
 pub fn find_colliding_pairs_mut<A: Axis, T: Aabb + HasInner>(tree: &mut TreeRef<A, T>) {
-
     let mut res_dino = Vec::new();
     tree.find_colliding_pairs_mut(|a, b| {
         let a = a as *const _ as usize;
@@ -118,8 +114,6 @@ pub fn find_colliding_pairs_mut<A: Axis, T: Aabb + HasInner>(tree: &mut TreeRef<
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
-
-
 
 pub fn k_nearest_mut<Acc, A: Axis, T: Aabb + HasInner>(
     tree: &mut TreeRef<A, T>,
@@ -150,7 +144,6 @@ pub fn k_nearest_mut<Acc, A: Axis, T: Aabb + HasInner>(
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
-
 
 pub fn raycast_mut<Acc, A: Axis, T: Aabb + HasInner>(
     tree: &mut TreeRef<A, T>,
@@ -207,8 +200,6 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb + HasInner>(
     );
 }
 
-
-
 pub fn for_all_in_rect_mut<A: Axis, T: Aabb + HasInner>(
     tree: &mut TreeRef<A, T>,
     rect: &axgeom::Rect<T::Num>,
@@ -229,7 +220,6 @@ pub fn for_all_in_rect_mut<A: Axis, T: Aabb + HasInner>(
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
-
 
 /// Panics if the result differs from the naive solution.
 /// Should never panic unless invariants of the tree data struct have been violated.
@@ -254,7 +244,6 @@ pub fn for_all_not_in_rect_mut<A: Axis, T: Aabb + HasInner>(
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
-
 pub fn for_all_intersect_rect_mut<A: Axis, T: Aabb + HasInner>(
     tree: &mut TreeRef<A, T>,
     rect: &axgeom::Rect<T::Num>,
@@ -275,4 +264,3 @@ pub fn for_all_intersect_rect_mut<A: Axis, T: Aabb + HasInner>(
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
-

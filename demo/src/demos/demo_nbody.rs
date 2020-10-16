@@ -147,9 +147,9 @@ impl Bot {
 pub fn make_demo(dim: Rect<F32n>) -> Demo {
     let mut bots: Vec<_> = dists::rand2_iter(dim.inner_into())
         .take(4000)
-        .map(|[x,y]| Bot {
+        .map(|[x, y]| Bot {
             mass: 100.0,
-            pos:vec2(x,y),
+            pos: vec2(x, y),
             vel: vec2same(0.0),
             force: vec2same(0.0),
         })

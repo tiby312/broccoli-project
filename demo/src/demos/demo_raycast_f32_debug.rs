@@ -7,9 +7,16 @@ pub struct Bot;
 
 pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     let ii: Vec<_> = dists::rand2_iter(dim.inner_into())
-        .zip(dists::rand_iter(1.0,3.0))
+        .zip(dists::rand_iter(1.0, 3.0))
         .take(5000)
-        .map(|([x,y], radius)| bbox(Rect::from_point(vec2(x,y), vec2same(radius)).inner_try_into().unwrap(), Bot))
+        .map(|([x, y], radius)| {
+            bbox(
+                Rect::from_point(vec2(x, y), vec2same(radius))
+                    .inner_try_into()
+                    .unwrap(),
+                Bot,
+            )
+        })
         .collect();
 
     let mut counter: f32 = 0.0;
@@ -72,7 +79,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 },
                 move |r, ray, d| {
                     r.add(d.get().inner_into().into());
-                    
+
                     ray.inner_into::<f32>()
                         .cast_to_rect(d.get().as_ref())
                         .map(|a| f32n(a))

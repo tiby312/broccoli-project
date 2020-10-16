@@ -21,7 +21,7 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> Res {
         datanum::from_rect(&mut counter, prop.create_bbox_i32(b.pos))
     });
 
-    let mut tree = TreeBuilder::new( &mut bots).build_seq();
+    let mut tree = TreeBuilder::new(&mut bots).build_seq();
 
     let mut num_pairs = 0;
 
@@ -50,7 +50,7 @@ fn test2(scene: &mut bot::BotScene<Bot>) -> Res {
         .collect();
 
     let mut num_pairs = 0;
-    find_collisions_sweep_mut(&mut bb,axgeom::XAXIS, |_a, _b| {
+    find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |_a, _b| {
         num_pairs += 1;
     });
 
@@ -103,7 +103,7 @@ fn test4(scene: &mut bot::BotScene<Bot>) -> Res {
         datanum::from_rect(&mut counter, prop.create_bbox_i32(b.pos))
     });
 
-    let mut tree = NotSorted::new_par( &mut bots);
+    let mut tree = NotSorted::new_par(&mut bots);
 
     let mut num_pairs = 0;
 
@@ -124,7 +124,7 @@ struct Record {
     z1: usize,
     z2: usize,
     z3: usize,
-    z4: usize
+    z4: usize,
 }
 
 fn handle_spiral(fb: &mut FigureBuilder) {
@@ -137,7 +137,7 @@ fn handle_spiral(fb: &mut FigureBuilder) {
         }) {
             let mut scene = bot::BotSceneBuilder::new(num_bots)
                 .with_grow(grow)
-                .build_specialized(|_,pos| Bot {
+                .build_specialized(|_, pos| Bot {
                     pos: pos.inner_as(),
                 });
 
@@ -148,7 +148,6 @@ fn handle_spiral(fb: &mut FigureBuilder) {
 
             //black_box(scene.bots.drain(..).map(|a| a.num).count());
             black_box(scene);
-
 
             let num_pairs = {
                 assert_eq!(z1.num_pairs, z2.num_pairs);
@@ -167,7 +166,7 @@ fn handle_spiral(fb: &mut FigureBuilder) {
                 z1,
                 z2,
                 z3,
-                z4
+                z4,
             };
             rects.push(r);
         }

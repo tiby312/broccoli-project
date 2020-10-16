@@ -30,7 +30,7 @@ fn test2(scene: &mut bot::BotScene<Bot>) -> f64 {
 
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let tree = TreeBuilder::new( &mut bb)
+    let tree = TreeBuilder::new(&mut bb)
         .with_bin_strat(BinStrat::NotChecked)
         .build_par();
 
@@ -47,7 +47,7 @@ fn test3(scene: &mut bot::BotScene<Bot>) -> f64 {
 
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let tree = TreeBuilder::new( &mut bb)
+    let tree = TreeBuilder::new(&mut bb)
         .with_bin_strat(BinStrat::Checked)
         .build_seq();
 
@@ -120,7 +120,7 @@ fn handle_num_bots(fb: &mut FigureBuilder, grow: f32) {
     for num_bots in (0..700_000).step_by(5000) {
         let mut scene = bot::BotSceneBuilder::new(num_bots)
             .with_grow(grow)
-            .build_specialized(|_,pos| Bot {
+            .build_specialized(|_, pos| Bot {
                 pos: pos.inner_as(),
                 _num: 0,
             });

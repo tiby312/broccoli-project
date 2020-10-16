@@ -23,16 +23,13 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
     for num_bots in (0..40_000).rev().step_by(500) {
         let mut scene = bot::BotSceneBuilder::new(num_bots)
             .with_grow(grow)
-            .build_specialized(|_,pos| Bot { pos, num: 0 });
+            .build_specialized(|_, pos| Bot { pos, num: 0 });
         let mut bots = &mut scene.bots;
         let prop = &scene.bot_prop;
 
         for b in bots.iter_mut() {
             b.num = 0;
         }
-
-
-
 
         let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| prop.create_bbox_nan(b.pos));
 
@@ -41,7 +38,7 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
 
             let mut tree = broccoli::new_par(&mut bb);
 
-            tree.find_colliding_pairs_mut_par(|a,b| {
+            tree.find_colliding_pairs_mut_par(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -52,7 +49,7 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
         let c1 = {
             let instant = Instant::now();
 
-            let mut tree = broccoli::new( &mut bb);
+            let mut tree = broccoli::new(&mut bb);
 
             tree.find_colliding_pairs_mut(|a, b| {
                 a.num += 1;
@@ -66,7 +63,7 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
             if num_bots < 20000 {
                 let instant = Instant::now();
 
-                broccoli::query::find_collisions_sweep_mut(&mut bb,axgeom::XAXIS, |a, b| {
+                broccoli::query::find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |a, b| {
                     a.num -= 2;
                     b.num -= 2;
                 });
@@ -85,7 +82,7 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
             if num_bots < 8000 {
                 let instant = Instant::now();
 
-                NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|a,b| {
+                NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|a, b| {
                     a.num -= 1;
                     b.num -= 1;
                 });
@@ -101,7 +98,7 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
 
             let mut tree = NotSorted::new_par(&mut bb);
 
-            tree.find_colliding_pairs_mut_par(|a,b| {
+            tree.find_colliding_pairs_mut_par(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -112,9 +109,9 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
         let c6 = {
             let instant = Instant::now();
 
-            let mut tree = NotSorted::new( &mut bb);
+            let mut tree = NotSorted::new(&mut bb);
 
-            tree.find_colliding_pairs_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -221,7 +218,7 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
     for num_bots in (0usize..30_000).step_by(500) {
         let mut scene = bot::BotSceneBuilder::new(num_bots)
             .with_grow(grow)
-            .build_specialized(|_,pos| Bot { pos, num: 0 });
+            .build_specialized(|_, pos| Bot { pos, num: 0 });
 
         let mut bots = &mut scene.bots;
         let prop = &scene.bot_prop;
@@ -239,7 +236,7 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
 
             let mut tree = broccoli::new(&mut bb);
 
-            tree.find_colliding_pairs_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a, b| {
                 a.num += 2;
                 b.num += 2;
             });
@@ -255,7 +252,7 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
                     datanum::from_rect(&mut counter, prop.create_bbox_nan(b.pos))
                 });
 
-                NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|a,b| {
+                NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|a, b| {
                     a.num -= 1;
                     b.num -= 1;
                 });
@@ -273,7 +270,7 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
                     datanum::from_rect(&mut counter, prop.create_bbox_nan(b.pos))
                 });
 
-                broccoli::query::find_collisions_sweep_mut(&mut bb,axgeom::XAXIS, |a,b| {
+                broccoli::query::find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |a, b| {
                     a.num -= 1;
                     b.num -= 1;
                 });
@@ -291,9 +288,9 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
                 datanum::from_rect(&mut counter, prop.create_bbox_nan(b.pos))
             });
 
-            let mut tree = NotSorted::new( &mut bb);
+            let mut tree = NotSorted::new(&mut bb);
 
-            tree.find_colliding_pairs_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a, b| {
                 a.num += 2;
                 b.num += 2;
             });

@@ -53,10 +53,10 @@ macro_rules! rect {
     };
 }
 
-pub fn naive_for_all_not_in_rect_mut<'a,T: Aabb>(
-    bots: PMut<'a,[T]>,
+pub fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
+    bots: PMut<'a, [T]>,
     rect: &Rect<T::Num>,
-    mut closure: impl FnMut(PMut<'a,T>),
+    mut closure: impl FnMut(PMut<'a, T>),
 ) {
     for b in bots.iter_mut() {
         if !rect.contains_rect(b.get()) {
@@ -65,15 +65,15 @@ pub fn naive_for_all_not_in_rect_mut<'a,T: Aabb>(
     }
 }
 
-pub fn for_all_not_in_rect_mut<'a,A: Axis,N:Node>(
-    axis:A,
-    vistr:VistrMut<'a,N>,
+pub fn for_all_not_in_rect_mut<'a, A: Axis, N: Node>(
+    axis: A,
+    vistr: VistrMut<'a, N>,
     rect: &Rect<N::Num>,
-    closure: impl FnMut(PMut<'a,N::T>),
+    closure: impl FnMut(PMut<'a, N::T>),
 ) {
-    fn rect_recurse<'a,A: Axis, N: Node, F: FnMut(PMut<'a,N::T>)>(
+    fn rect_recurse<'a, A: Axis, N: Node, F: FnMut(PMut<'a, N::T>)>(
         axis: A,
-        it: VistrMut<'a,N>,
+        it: VistrMut<'a, N>,
         rect: &Rect<N::Num>,
         mut closure: F,
     ) -> F {
@@ -87,7 +87,7 @@ pub fn for_all_not_in_rect_mut<'a,A: Axis,N:Node>(
         }
 
         match rest {
-            Some([left,right]) => {
+            Some([left, right]) => {
                 let div = match nn.div {
                     Some(b) => b,
                     None => return closure,
@@ -95,7 +95,7 @@ pub fn for_all_not_in_rect_mut<'a,A: Axis,N:Node>(
 
                 match rect.get_range(axis).contains_ext(*div) {
                     core::cmp::Ordering::Greater => {
-                        for a in right.into_slice(){
+                        for a in right.into_slice() {
                             for b in a.get_mut().bots.iter_mut() {
                                 closure(b)
                             }
@@ -129,12 +129,12 @@ mod mutable {
     use super::*;
     use crate::query::colfind::oned::get_section_mut;
 
-    rect!(VistrMut<'a,N>, PMut<'a,N::T>, get_section_mut, get_mut);
-    pub fn for_all_intersect_rect_mut<'a,A: Axis, N: Node>(
-        axis:A,
-        vistr: VistrMut<'a,N>,
+    rect!(VistrMut<'a, N>, PMut<'a, N::T>, get_section_mut, get_mut);
+    pub fn for_all_intersect_rect_mut<'a, A: Axis, N: Node>(
+        axis: A,
+        vistr: VistrMut<'a, N>,
         rect: &Rect<N::Num>,
-        mut closure: impl FnMut(PMut<'a,N::T>),
+        mut closure: impl FnMut(PMut<'a, N::T>),
     ) {
         self::rect_recurse(axis, vistr, rect, &mut |a| {
             if rect.get_intersect_rect(a.get()).is_some() {
@@ -143,10 +143,10 @@ mod mutable {
         });
     }
 
-    pub fn naive_for_all_in_rect_mut<'a,T: Aabb>(
-        bots: PMut<'a,[T]>,
+    pub fn naive_for_all_in_rect_mut<'a, T: Aabb>(
+        bots: PMut<'a, [T]>,
         rect: &Rect<T::Num>,
-        mut closure: impl FnMut(PMut<'a,T>),
+        mut closure: impl FnMut(PMut<'a, T>),
     ) {
         for b in bots.iter_mut() {
             if rect.contains_rect(b.get()) {
@@ -155,10 +155,10 @@ mod mutable {
         }
     }
 
-    pub fn naive_for_all_intersect_rect_mut<'a,T: Aabb>(
-        bots: PMut<'a,[T]>,
+    pub fn naive_for_all_intersect_rect_mut<'a, T: Aabb>(
+        bots: PMut<'a, [T]>,
         rect: &Rect<T::Num>,
-        mut closure: impl FnMut(PMut<'a,T>),
+        mut closure: impl FnMut(PMut<'a, T>),
     ) {
         for b in bots.iter_mut() {
             if rect.get_intersect_rect(b.get()).is_some() {
@@ -166,11 +166,11 @@ mod mutable {
             }
         }
     }
-    pub fn for_all_in_rect_mut<'a,A: Axis, N: Node>(
-        axis:A,
-        vistr:VistrMut<'a,N>,
+    pub fn for_all_in_rect_mut<'a, A: Axis, N: Node>(
+        axis: A,
+        vistr: VistrMut<'a, N>,
         rect: &Rect<N::Num>,
-        mut closure: impl FnMut(PMut<'a,N::T>),
+        mut closure: impl FnMut(PMut<'a, N::T>),
     ) {
         self::rect_recurse(axis, vistr, rect, &mut |a| {
             if rect.contains_rect(a.get()) {
@@ -187,8 +187,8 @@ mod constant {
     rect!(Vistr<'a, N>, &'a N::T, get_section, get);
 
     pub fn for_all_intersect_rect<'a, A: Axis, N: Node>(
-        axis:A,
-        vistr:Vistr<'a,N>,
+        axis: A,
+        vistr: Vistr<'a, N>,
         rect: &Rect<N::Num>,
         mut closure: impl FnMut(&'a N::T),
     ) {
@@ -199,13 +199,12 @@ mod constant {
         });
     }
 
-    pub fn for_all_in_rect<'a, A: Axis, N:Node>(
-        axis:A,
-        vistr:Vistr<'a,N>,
+    pub fn for_all_in_rect<'a, A: Axis, N: Node>(
+        axis: A,
+        vistr: Vistr<'a, N>,
         rect: &Rect<N::Num>,
         mut closure: impl FnMut(&'a N::T),
     ) {
-        
         self::rect_recurse(axis, vistr, rect, &mut |a| {
             if rect.contains_rect(a.get()) {
                 closure(a);
@@ -233,17 +232,17 @@ pub struct RectIntersectErr;
 ///Handles a multi rect mut "sessions" within which
 ///the user can query multiple non intersecting rectangles.
 pub struct MultiRectMut<'a, A: Axis, N: Node> {
-    axis:A,
-    vistr:VistrMut<'a,N>,
+    axis: A,
+    vistr: VistrMut<'a, N>,
     rects: Vec<Rect<N::Num>>,
 }
 
-impl<'a, A: Axis, N:Node> MultiRectMut<'a, A, N> {
-    pub fn new(axis:A,vistr:VistrMut<'a,N>) -> Self {
+impl<'a, A: Axis, N: Node> MultiRectMut<'a, A, N> {
+    pub fn new(axis: A, vistr: VistrMut<'a, N>) -> Self {
         MultiRectMut {
             axis,
             vistr,
-            rects:Vec::new()
+            rects: Vec::new(),
         }
     }
     pub fn for_all_in_rect_mut(
@@ -259,11 +258,16 @@ impl<'a, A: Axis, N:Node> MultiRectMut<'a, A, N> {
 
         self.rects.push(rect);
 
-        for_all_in_rect_mut(self.axis,self.vistr.create_wrap_mut(), &rect, |bbox: PMut<N::T>| {
-            //This is only safe to do because the user is unable to mutate the bounding box.
-            let bbox: PMut<'a, N::T> = unsafe { core::mem::transmute(bbox) };
-            func(bbox);
-        });
+        for_all_in_rect_mut(
+            self.axis,
+            self.vistr.create_wrap_mut(),
+            &rect,
+            |bbox: PMut<N::T>| {
+                //This is only safe to do because the user is unable to mutate the bounding box.
+                let bbox: PMut<'a, N::T> = unsafe { core::mem::transmute(bbox) };
+                func(bbox);
+            },
+        );
 
         Ok(())
     }

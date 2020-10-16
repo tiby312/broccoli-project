@@ -10,11 +10,11 @@ struct Bot {
 
 pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     let bots: Vec<_> = dists::rand2_iter(dim.inner_into())
-        .zip(dists::rand_iter(5.0,20.0))
+        .zip(dists::rand_iter(5.0, 20.0))
         .take(200)
         .enumerate()
-        .map(|(id, ([x,y], radius))| {
-            let pos: Vec2<f32> = vec2(x,y);
+        .map(|(id, ([x, y], radius))| {
+            let pos: Vec2<f32> = vec2(x, y);
             let pos = pos.inner_as::<i32>();
             let radius = vec2same(radius).inner_as();
             let rect = Rect::from_point(pos, radius);
@@ -118,10 +118,9 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             .draw();
 
         let mut rects = canvas.rects();
-        tree.as_tree_mut()
-            .for_all_not_in_rect_mut(&r1, |b| {
-                rects.add(b.rect.inner_as().into());
-            });
+        tree.as_tree_mut().for_all_not_in_rect_mut(&r1, |b| {
+            rects.add(b.rect.inner_as().into());
+        });
         rects
             .send_and_uniforms(canvas)
             .with_color([1.0, 0.0, 0.0, 0.5])

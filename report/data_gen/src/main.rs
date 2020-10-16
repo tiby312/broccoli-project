@@ -1,5 +1,5 @@
 pub use broccoli::axgeom;
-pub use broccoli::rayon;    
+pub use broccoli::rayon;
 
 pub fn black_box<T>(dummy: T) -> T {
     unsafe {
@@ -9,38 +9,39 @@ pub fn black_box<T>(dummy: T) -> T {
     }
 }
 
-
-pub mod bbox_helper{
-    use broccoli::Num;
-    use broccoli::bbox;
+pub mod bbox_helper {
     use broccoli::axgeom::Rect;
+    use broccoli::bbox;
     use broccoli::BBox;
+    use broccoli::Num;
 
-    pub fn create_bbox_mut<T,N:Num>(arr:&mut [T],mut func:impl FnMut(&T)->Rect<N>)->Vec<BBox<N,&mut T>>{
-        arr.iter_mut().map(|a|bbox(func(a),a)).collect()
+    pub fn create_bbox_mut<T, N: Num>(
+        arr: &mut [T],
+        mut func: impl FnMut(&T) -> Rect<N>,
+    ) -> Vec<BBox<N, &mut T>> {
+        arr.iter_mut().map(|a| bbox(func(a), a)).collect()
     }
 }
-
 
 mod inner_prelude {
     pub use super::bbox_helper;
     pub use crate::support::*;
     pub(crate) use crate::FigureBuilder;
     pub use broccoli::query::*;
-    
-    pub use broccoli::*;
-    pub use broccoli::analyze::*;
-    pub use broccoli::prelude::*;
-    pub(crate) use duckduckgeo::bot;
+
     pub use crate::black_box;
     pub(crate) use crate::datanum;
-    pub use ordered_float::NotNan;
     pub use axgeom::vec2;
     pub use axgeom::vec2same;
     pub use axgeom::Rect;
     pub use axgeom::Vec2;
+    pub use broccoli::analyze::*;
+    pub use broccoli::prelude::*;
+    pub use broccoli::*;
+    pub(crate) use duckduckgeo::bot;
     pub(crate) use duckduckgeo::dists;
     pub use gnuplot::*;
+    pub use ordered_float::NotNan;
     pub use std::time::Duration;
     pub use std::time::Instant;
 }
@@ -73,7 +74,7 @@ impl FigureBuilder {
         //fg.set_terminal("pngcairo size 640,480 enhanced font 'Veranda,10'", "");
         fg.set_terminal("svg", "");
 
-        fg.set_pre_commands(format!("set output sdir.'{}.svg'",filename).as_str());
+        fg.set_pre_commands(format!("set output sdir.'{}.svg'", filename).as_str());
         //fg.set_pre_commands("set output system(\"echo $FILE_PATH\")");
 
         //set terminal pngcairo size 350,262 enhanced font 'Verdana,10'
@@ -127,9 +128,8 @@ fn main() {
     //run benches on laptop/new gaming laptop/android phone/web assembly, and compare differences.
     //
 
-    
     let args: Vec<String> = env::args().collect();
-    
+
     dbg!(&args);
     match args[1].as_ref() {
         "theory" => {
@@ -138,27 +138,23 @@ fn main() {
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
 
-            
             run_test!(&mut fb, spiral::handle);
-            
+
             run_test!(&mut fb, colfind::colfind::handle_theory);
 
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
-            
+
             run_test!(&mut fb, colfind::theory_colfind_3d::handle);
-            
-            
         }
         "bench" => {
             let folder = args[2].clone();
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-            
-            
+
             run_test!(&mut fb, colfind::colfind::handle_bench);
-            
+
             //done
             run_test!(&mut fb, colfind::rebal_strat::handle);
             run_test!(&mut fb, colfind::dinotree_direct_indirect::handle);
@@ -166,11 +162,11 @@ fn main() {
             run_test!(&mut fb, colfind::colfind::handle_bench);
             run_test!(&mut fb, colfind::float_vs_integer::handle);
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
-            
+
             //This is the one thats interesting to see what the results are on phone/vs/laptop
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
-            
+
             //nbody::theory::handle(&mut fb);
         }
         "graph" => {
@@ -204,12 +200,12 @@ fn main() {
                         //let blag = Path::new(new_path.file_name().unwrap().to_str().unwrap());
                         command
                             .arg("-e")
-                            .arg(format!("sdir='{}/'",target_dir.to_str().unwrap()))
+                            .arg(format!("sdir='{}/'", target_dir.to_str().unwrap()))
                             .arg("-p")
                             .arg(path_command);
-                        
-                        println!("{:?}",command);
-                            
+
+                        println!("{:?}", command);
+
                         command.status()
                             .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.");
                     }

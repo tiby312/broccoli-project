@@ -37,7 +37,6 @@ pub(crate) struct PMutPtr<T: ?Sized> {
 unsafe impl<T: ?Sized> Send for PMutPtr<T> {}
 unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
 
-
 ///A protected mutable reference.
 ///See the pmut module documentation for more explanation.
 #[repr(transparent)]
@@ -124,10 +123,9 @@ impl<'a, T: HasInner> PMut<'a, T> {
     }
 }
 
-
 impl<'a, T> PMut<'a, [T]> {
     #[inline(always)]
-    pub fn get_index_mut(&mut self,ind:usize)->PMut<T>{
+    pub fn get_index_mut(&mut self, ind: usize) -> PMut<T> {
         PMut::new(&mut self.inner[ind])
     }
     #[inline(always)]

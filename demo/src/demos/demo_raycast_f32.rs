@@ -1,8 +1,8 @@
 use crate::support::prelude::*;
 use std;
 
-use broccoli::assert;
 use axgeom::Ray;
+use broccoli::assert;
 
 #[derive(Copy, Clone)]
 struct Bot {
@@ -14,8 +14,8 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     //let mut vv=vec!(bbox(rect(40.0,70.0,40.0,500.0).inner_try_into().unwrap(),Bot{center:vec2(0.0,0.0),id:0}));
 
     let vv: Vec<_> = dists::rand2_iter(dim.inner_into())
-        .map(|[x,y]| {
-            let center=vec2(x,y);
+        .map(|[x, y]| {
+            let center = vec2(x, y);
             let b = Bot { center };
             let r = Rect::from_point(center, vec2same(radius))
                 .inner_try_into()

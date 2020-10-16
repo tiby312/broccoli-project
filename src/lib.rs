@@ -1,4 +1,4 @@
-//! Broccoli is a broadphase collision detection library. 
+//! Broccoli is a broadphase collision detection library.
 //! The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 //! Uses `no_std`, but uses the `alloc` crate.
 //!
@@ -24,10 +24,10 @@
 //! mutating the whole element.
 //!
 //! ### Unsafety
-//! 
+//!
 //! Raw pointers are used for the container types in the container module
-//! and for caching the results of finding colliding pairs. 
-//! 
+//! and for caching the results of finding colliding pairs.
+//!
 //! `MultiRectMut` uses unsafety to allow the user to have mutable references to elements
 //! that belong to rectangle regions that don't intersect at the same time. This is why
 //! the Aabb trait is unsafe.
@@ -44,28 +44,25 @@ extern crate alloc;
 extern crate is_sorted;
 extern crate pdqselect;
 
-
 pub use axgeom;
 pub use compt;
 pub use rayon;
 
 mod inner_prelude {
     pub(crate) use super::*;
+    pub(crate) use crate::pmut::*;
     pub(crate) use crate::tree::analyze::*;
     pub use alloc::vec::Vec;
     pub use axgeom::*;
     pub(crate) use compt::Visitor;
     pub use core::marker::PhantomData;
-    pub(crate) use crate::pmut::*;
 }
 
 pub mod query;
 
-
 ///Contains generic code used in all dinotree versions
 mod tree;
 pub use tree::*;
-
 
 ///A collection of 1d functions that operate on lists of 2d objects.
 mod oned;
@@ -79,22 +76,20 @@ pub use crate::bbox::*;
 ///Generic slice utillity functions.
 pub mod util;
 
-
 use axgeom::Rect;
 
-
-pub mod prelude{
-    pub use crate::query::RayCastResult;
-    pub use axgeom::Rect;
-    pub use axgeom::rect;
-    pub use crate::Num;
-    pub use crate::Aabb;
-    pub use crate::HasInner;
-    pub use crate::query::Queries;
-    pub use crate::query::QueriesInner;
-    pub use crate::query::NotSortedQueries;
+pub mod prelude {
     pub use crate::bbox::bbox;
     pub use crate::bbox::BBox;
+    pub use crate::query::NotSortedQueries;
+    pub use crate::query::Queries;
+    pub use crate::query::QueriesInner;
+    pub use crate::query::RayCastResult;
+    pub use crate::Aabb;
+    pub use crate::HasInner;
+    pub use crate::Num;
+    pub use axgeom::rect;
+    pub use axgeom::Rect;
 }
 
 ///The underlying number type used for the dinotree.
@@ -124,8 +119,6 @@ unsafe impl<N: Num> Aabb for Rect<N> {
         self
     }
 }
-
-
 
 ///Trait exposes an api where you can return a read-only reference to the axis-aligned bounding box
 ///and at the same time return a mutable reference to a seperate inner section.

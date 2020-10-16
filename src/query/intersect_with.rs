@@ -12,9 +12,9 @@ use crate::query::rect::*;
 ///But using the api, it is possible to build up a tree using the current trees dividers
 ///to exploit the divide and conquer properties of this problem.
 ///The two trees could be recursed at the same time to break up the problem.
-pub fn intersect_with_mut<A: Axis,N:Node, X: Aabb<Num = N::Num>>(
-    axis:A,
-    mut vistr:VistrMut<N>,
+pub fn intersect_with_mut<A: Axis, N: Node, X: Aabb<Num = N::Num>>(
+    axis: A,
+    mut vistr: VistrMut<N>,
     b: &mut [X],
     func: impl Fn(PMut<N::T>, PMut<X>),
 ) {
@@ -23,10 +23,9 @@ pub fn intersect_with_mut<A: Axis,N:Node, X: Aabb<Num = N::Num>>(
 
     for mut i in PMut::new(b).iter_mut() {
         let rect = *i.get();
-        
-        for_all_intersect_rect_mut(axis,vistr.create_wrap_mut(), &rect, |a| {
+
+        for_all_intersect_rect_mut(axis, vistr.create_wrap_mut(), &rect, |a| {
             func(a, i.as_mut());
         });
-        
     }
 }

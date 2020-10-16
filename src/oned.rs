@@ -9,7 +9,7 @@ pub struct Binned<'a, T: 'a> {
 }
 
 unsafe fn swap_unchecked<T>(arr: &mut [T], a: usize, b: usize) {
-    core::ptr::swap(&mut arr[a] as *mut _,&mut arr[b] as *mut _);
+    core::ptr::swap(&mut arr[a] as *mut _, &mut arr[b] as *mut _);
 }
 
 /// Sorts the bots into three bins. Those to the left of the divider, those that intersect with the divider, and those to the right.

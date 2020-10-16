@@ -3,9 +3,6 @@ use itertools::Itertools;
 
 use alloc::vec::Vec;
 
-
-
-
 //They are always send and sync because the only time the vec is used
 //is when it is borrowed for the lifetime.
 unsafe impl<T> core::marker::Send for PreVecMut<T> {}
@@ -37,14 +34,12 @@ impl<T> PreVecMut<T> {
     }
 }
 
-
 ///Splits a mutable slice into multiple slices
 ///The splits occur where the predicate returns false.
 pub struct SliceSplitMut<'a, T, F> {
     arr: Option<&'a mut [T]>,
     func: F,
 }
-
 
 impl<'a, T, F: FnMut(&T, &T) -> bool> SliceSplitMut<'a, T, F> {
     pub fn new(arr: &'a mut [T], func: F) -> SliceSplitMut<'a, T, F> {
@@ -54,7 +49,6 @@ impl<'a, T, F: FnMut(&T, &T) -> bool> SliceSplitMut<'a, T, F> {
         }
     }
 }
-
 
 impl<'a, T, F: FnMut(&T, &T) -> bool> Iterator for SliceSplitMut<'a, T, F> {
     type Item = &'a mut [T];

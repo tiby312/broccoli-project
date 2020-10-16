@@ -17,10 +17,7 @@ pub struct TestResult {
     query: f64,
 }
 
-fn test_seq<T: Aabb>(
-    bots: &mut [T],
-    func: impl Fn(PMut<T>, PMut<T>),
-) -> TestResult {
+fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(PMut<T>, PMut<T>)) -> TestResult {
     let instant = Instant::now();
 
     let mut tree = broccoli::new(bots);
@@ -46,7 +43,7 @@ fn test_par<T: Aabb + Send + Sync>(
 ) -> TestResult {
     let instant = Instant::now();
 
-    let mut tree = broccoli::new_par( bots);
+    let mut tree = broccoli::new_par(bots);
 
     let rebal = instant_to_sec(instant.elapsed());
 
@@ -90,15 +87,11 @@ impl CompleteTestResult {
 
 fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTestResult {
     let mut bots = &mut scene.bots;
-    
-    let (direct_seq, direct_par) = {
-        let mut direct: Vec<_> = bots
-            .iter()
-            .map(|b| BBox::new(b.aabb, *b))
-            .collect();
 
-        let collide = |mut b: PMut<BBox<i32, Bot<T>>>,
-                       mut c: PMut<BBox<i32, Bot<T>>>| {
+    let (direct_seq, direct_par) = {
+        let mut direct: Vec<_> = bots.iter().map(|b| BBox::new(b.aabb, *b)).collect();
+
+        let collide = |mut b: PMut<BBox<i32, Bot<T>>>, mut c: PMut<BBox<i32, Bot<T>>>| {
             b.inner_mut().num += 1;
             c.inner_mut().num += 1;
         };
@@ -110,18 +103,13 @@ fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTes
     };
 
     let (indirect_seq, indirect_par) = {
-        let mut direct: Vec<_> = bots
-            .iter()
-            .map(|b| BBox::new(b.aabb, *b))
-            .collect();
+        let mut direct: Vec<_> = bots.iter().map(|b| BBox::new(b.aabb, *b)).collect();
         let mut indirect: Vec<_> = direct.iter_mut().map(|a| a).collect();
 
-        let collide =
-            |mut b: PMut<&mut BBox<i32, Bot<T>>>,
-             mut c: PMut<&mut BBox<i32, Bot<T>>>| {
-                b.inner_mut().num += 1;
-                c.inner_mut().num += 1;
-            };
+        let collide = |mut b: PMut<&mut BBox<i32, Bot<T>>>, mut c: PMut<&mut BBox<i32, Bot<T>>>| {
+            b.inner_mut().num += 1;
+            c.inner_mut().num += 1;
+        };
 
         (
             test_seq(&mut indirect, collide),
@@ -131,8 +119,7 @@ fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTes
     let (default_seq, default_par) = {
         let mut default = bbox_helper::create_bbox_mut(&mut bots, |b| b.aabb);
 
-        let collide = |mut b: PMut<BBox<i32, &mut Bot<T>>>,
-                       mut c: PMut<BBox<i32, &mut Bot<T>>>| {
+        let collide = |mut b: PMut<BBox<i32, &mut Bot<T>>>, mut c: PMut<BBox<i32, &mut Bot<T>>>| {
             b.inner_mut().num += 1;
             c.inner_mut().num += 1;
         };
@@ -218,7 +205,7 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f32, val: T) {
     for num_bots in (0..30_000).rev().step_by(200) {
         let mut scene = bot::BotSceneBuilder::new(num_bots)
             .with_grow(grow)
-            .build_specialized(|r,pos| Bot {
+            .build_specialized(|r, pos| Bot {
                 aabb: r.create_bbox_i32(pos.inner_as()),
                 num: 0,
                 _val: val.clone(),
@@ -230,9 +217,8 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f32, val: T) {
         };
         rects.push(r);
     }
-    let name=format!("{}_bytes",core::mem::size_of::<T>());
-    let name2=format!("{} bytes",core::mem::size_of::<T>());
-    
+    let name = format!("{}_bytes", core::mem::size_of::<T>());
+    let name2 = format!("{} bytes", core::mem::size_of::<T>());
 
     let mut fg = fb.build(&format!("dinotree_direct_indirect_rebal_{}_{}", grow, name));
     Record::draw(&rects, &mut fg, grow, "Construction:", &name2, |a| a.rebal);

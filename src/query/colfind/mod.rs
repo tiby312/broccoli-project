@@ -6,8 +6,8 @@ pub(crate) mod oned;
 
 use self::inner::*;
 use self::node_handle::*;
-use crate::query::inner_prelude::*;
 use super::tools;
+use crate::query::inner_prelude::*;
 
 ///Used for the advanced algorithms.
 ///Trait that user implements to handling aabb collisions.
@@ -78,28 +78,37 @@ pub fn query_sweep_mut<T: Aabb>(
 ///Builder for a query on a NotSorted Dinotree.
 pub struct NotSortedQueryBuilder<'a, A: Axis, N: Node> {
     switch_height: usize,
-    axis:A,
-    vistr:VistrMut<'a,N>
+    axis: A,
+    vistr: VistrMut<'a, N>,
 }
 
-impl<'a, A: Axis, N:Node + Send + Sync> NotSortedQueryBuilder<'a, A, N> where N::T:Send+Sync{
+impl<'a, A: Axis, N: Node + Send + Sync> NotSortedQueryBuilder<'a, A, N>
+where
+    N::T: Send + Sync,
+{
     #[inline(always)]
     pub fn query_par(self, func: impl Fn(PMut<N::T>, PMut<N::T>) + Clone + Send + Sync) {
         let b = inner::QueryFn::new(func);
         let mut sweeper = HandleNoSorted::new(b);
         let par = par::compute_level_switch_sequential(self.switch_height, self.vistr.get_height());
-        ColFindRecurser::new().recurse_par(self.axis, par, &mut sweeper, self.vistr, &mut SplitterEmpty);
+        ColFindRecurser::new().recurse_par(
+            self.axis,
+            par,
+            &mut sweeper,
+            self.vistr,
+            &mut SplitterEmpty,
+        );
     }
 }
 
-impl<'a,A: Axis, N: Node> NotSortedQueryBuilder<'a, A, N> {
+impl<'a, A: Axis, N: Node> NotSortedQueryBuilder<'a, A, N> {
     #[inline(always)]
-    pub fn new(axis:A,vistr:VistrMut<'a,N>) -> NotSortedQueryBuilder<'a, A, N> {
+    pub fn new(axis: A, vistr: VistrMut<'a, N>) -> NotSortedQueryBuilder<'a, A, N> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         NotSortedQueryBuilder {
             switch_height,
             axis,
-            vistr
+            vistr,
         }
     }
 
@@ -123,13 +132,16 @@ impl<'a,A: Axis, N: Node> NotSortedQueryBuilder<'a, A, N> {
 }
 
 ///Builder for a query on a DinoTree.
-pub struct QueryBuilder<'a,A: Axis, N: Node> {
+pub struct QueryBuilder<'a, A: Axis, N: Node> {
     switch_height: usize,
-    axis:A,
-    vistr:VistrMut<'a,N>
+    axis: A,
+    vistr: VistrMut<'a, N>,
 }
 
-impl<'a,A: Axis, N:Node + Send + Sync> QueryBuilder<'a,  A, N> where N::T:Send+Sync{
+impl<'a, A: Axis, N: Node + Send + Sync> QueryBuilder<'a, A, N>
+where
+    N::T: Send + Sync,
+{
     ///Perform the query in parallel
     #[inline(always)]
     pub fn query_par(self, func: impl Fn(PMut<N::T>, PMut<N::T>) + Clone + Send + Sync) {
@@ -139,7 +151,13 @@ impl<'a,A: Axis, N:Node + Send + Sync> QueryBuilder<'a,  A, N> where N::T:Send+S
         let height = self.vistr.get_height();
         let switch_height = self.switch_height;
         let par = par::compute_level_switch_sequential(switch_height, height);
-        ColFindRecurser::new().recurse_par(self.axis, par, &mut sweeper, self.vistr, &mut SplitterEmpty);
+        ColFindRecurser::new().recurse_par(
+            self.axis,
+            par,
+            &mut sweeper,
+            self.vistr,
+            &mut SplitterEmpty,
+        );
     }
 
     ///The user has more control using this version of the query.
@@ -149,25 +167,31 @@ impl<'a,A: Axis, N:Node + Send + Sync> QueryBuilder<'a,  A, N> where N::T:Send+S
     #[inline(always)]
     pub fn query_splitter_par<C: ColMulti<T = N::T> + Splitter + Send + Sync>(self, clos: C) -> C {
         let height = self.vistr.get_height();
-        
+
         let par = par::compute_level_switch_sequential(self.switch_height, height);
 
         let mut sweeper = HandleSorted::new(clos);
-        ColFindRecurser::new().recurse_par(self.axis, par, &mut sweeper, self.vistr, &mut SplitterEmpty);
+        ColFindRecurser::new().recurse_par(
+            self.axis,
+            par,
+            &mut sweeper,
+            self.vistr,
+            &mut SplitterEmpty,
+        );
 
         sweeper.func
     }
 }
 
-impl<'a,A: Axis, N:Node> QueryBuilder<'a,  A, N> {
+impl<'a, A: Axis, N: Node> QueryBuilder<'a, A, N> {
     ///Create the builder.
     #[inline(always)]
-    pub fn new(axis:A,vistr:VistrMut<'a,N>) -> QueryBuilder<'a,  A, N> {
+    pub fn new(axis: A, vistr: VistrMut<'a, N>) -> QueryBuilder<'a, A, N> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         QueryBuilder {
             switch_height,
             axis,
-            vistr
+            vistr,
         }
     }
 

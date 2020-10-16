@@ -10,8 +10,8 @@
 //! a rectangle within which the nbody simulation will take place. So the simulation is only designed to work
 //! in a finite area.
 //!
-use crate::query::inner_prelude::*;
 use super::tools;
+use crate::query::inner_prelude::*;
 
 pub trait NodeMassTrait: Clone {
     type No: Copy + Send;
@@ -622,20 +622,25 @@ trait Bok2 {
 ///Parallel version.
 pub fn nbody_par<
     A: Axis,
-    N:Node+Send+Sync,
+    N: Node + Send + Sync,
     NO: NodeMassTrait<Num = N::Num, Item = N::T> + Sync + Send,
 >(
-    axis:A,
-    mut vistr:VistrMut<N>,
+    axis: A,
+    mut vistr: VistrMut<N>,
     ncontext: &NO,
     rect: Rect<N::Num>,
 ) where
-    N::T:HasInner+Send+Sync,
+    N::T: HasInner + Send + Sync,
     NO::No: Send,
 {
-
     let mut misc_nodes = Vec::new();
-    buildtree(axis, vistr.create_wrap_mut(), &mut misc_nodes, ncontext, rect);
+    buildtree(
+        axis,
+        vistr.create_wrap_mut(),
+        &mut misc_nodes,
+        ncontext,
+        rect,
+    );
 
     let mut misc_tree = compt::dfs_order::CompleteTreeContainer::from_preorder(misc_nodes).unwrap();
 
@@ -653,18 +658,25 @@ pub fn nbody_par<
 ///Sequential version.
 pub fn nbody<
     A: Axis,
-    N:Node+Send+Sync,
+    N: Node + Send + Sync,
     NO: NodeMassTrait<Num = N::Num, Item = N::T> + Send + Sync,
 >(
-    axis:A,
-    mut vistr:VistrMut<N>,
+    axis: A,
+    mut vistr: VistrMut<N>,
     ncontext: &NO,
     rect: Rect<N::Num>,
-) where N::T:HasInner + Send + Sync{
-    
+) where
+    N::T: HasInner + Send + Sync,
+{
     let mut misc_nodes = Vec::new();
 
-    buildtree(axis, vistr.create_wrap_mut(), &mut misc_nodes, ncontext, rect);
+    buildtree(
+        axis,
+        vistr.create_wrap_mut(),
+        &mut misc_nodes,
+        ncontext,
+        rect,
+    );
 
     let mut misc_tree = compt::dfs_order::CompleteTreeContainer::from_preorder(misc_nodes).unwrap();
 

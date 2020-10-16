@@ -15,8 +15,8 @@ pub trait DividerDrawer {
 
 ///Calls the user supplied function on each divider.
 ///Since the leaves do not have dividers, it is not called for the leaves.
-pub fn draw<A:Axis,N:Node, D: DividerDrawer<N = N::Num>>(
-    axis:A,
+pub fn draw<A: Axis, N: Node, D: DividerDrawer<N = N::Num>>(
+    axis: A,
     vistr: Vistr<N>,
     dr: &mut D,
     rect: &Rect<N::Num>,
@@ -51,10 +51,5 @@ pub fn draw<A:Axis,N:Node, D: DividerDrawer<N = N::Num>>(
         }
     }
 
-    recc(
-        axis,
-        vistr.with_depth(Depth(0)),
-        dr,
-        rect,
-    );
+    recc(axis, vistr.with_depth(Depth(0)), dr, rect);
 }

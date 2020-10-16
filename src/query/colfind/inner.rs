@@ -2,7 +2,6 @@ use super::node_handle::*;
 use super::*;
 use crate::inner_prelude::*;
 
-
 struct GoDownRecurser<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> {
     anchor: DestructuredNode<'a, N::T, B>,
     sweeper: &'a mut NN,

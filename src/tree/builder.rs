@@ -1,4 +1,3 @@
-
 use super::*;
 
 ///Builder pattern for Tree.
@@ -16,8 +15,8 @@ pub struct TreeBuilder<'a, A: Axis, T> {
 
 impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T> {
     ///Build not sorted in parallel
-    pub fn build_not_sorted_par(&mut self) -> NotSorted<'a,A, T> {
-        let bots=core::mem::replace(&mut self.bots,&mut []);
+    pub fn build_not_sorted_par(&mut self) -> NotSorted<'a, A, T> {
+        let bots = core::mem::replace(&mut self.bots, &mut []);
 
         let dlevel = par::compute_level_switch_sequential(self.height_switch_seq, self.height);
         let inner = create_tree_par(
@@ -33,8 +32,8 @@ impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T> {
     }
 
     ///Build in parallel
-    pub fn build_par(&mut self) -> Tree<'a, A,T> {
-        let bots=core::mem::replace(&mut self.bots,&mut []);
+    pub fn build_par(&mut self) -> Tree<'a, A, T> {
+        let bots = core::mem::replace(&mut self.bots, &mut []);
 
         let dlevel = par::compute_level_switch_sequential(self.height_switch_seq, self.height);
         create_tree_par(
@@ -85,8 +84,8 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     }
 
     ///Build not sorted sequentially
-    pub fn build_not_sorted_seq(&mut self) -> NotSorted<'a,A, T> {
-        let bots=core::mem::replace(&mut self.bots,&mut []);
+    pub fn build_not_sorted_seq(&mut self) -> NotSorted<'a, A, T> {
+        let bots = core::mem::replace(&mut self.bots, &mut []);
 
         let inner = create_tree_seq(
             self.axis,
@@ -100,8 +99,8 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     }
 
     ///Build sequentially
-    pub fn build_seq(&mut self) -> Tree< 'a,A, T> {
-        let bots=core::mem::replace(&mut self.bots,&mut []);
+    pub fn build_seq(&mut self) -> Tree<'a, A, T> {
+        let bots = core::mem::replace(&mut self.bots, &mut []);
 
         create_tree_seq(
             self.axis,
@@ -134,11 +133,8 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     }
 
     ///Build with a Splitter.
-    pub fn build_with_splitter_seq<S: Splitter>(
-        &mut self,
-        splitter: &mut S,
-    ) -> Tree<'a, A,T> {
-        let bots=core::mem::replace(&mut self.bots,&mut []);
+    pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: &mut S) -> Tree<'a, A, T> {
+        let bots = core::mem::replace(&mut self.bots, &mut []);
 
         create_tree_seq(
             self.axis,
@@ -151,12 +147,6 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     }
 }
 
-
-
-
-
-
-
 fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
     div_axis: A,
     rest: &'a mut [T],
@@ -164,11 +154,10 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
     splitter: &mut K,
     height: usize,
     binstrat: BinStrat,
-) -> Tree<'a,A,T> {
-
+) -> Tree<'a, A, T> {
     let num_bots = rest.len();
 
-    let cc=tree::nodes_left(0, height);
+    let cc = tree::nodes_left(0, height);
     let mut nodes = Vec::with_capacity(cc);
 
     let r = Recurser {
@@ -178,8 +167,8 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
         _p: PhantomData,
     };
     r.recurse_preorder_seq(div_axis, rest, &mut nodes, splitter, 0);
-    assert_eq!(cc,nodes.len());
-    
+    assert_eq!(cc, nodes.len());
+
     let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
     let k = tree
@@ -188,7 +177,12 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_bots);
 
-    Tree{inner:TreeInner{axis:div_axis,inner:tree}}
+    Tree {
+        inner: TreeInner {
+            axis: div_axis,
+            inner: tree,
+        },
+    }
 }
 
 fn create_tree_par<
@@ -205,11 +199,10 @@ fn create_tree_par<
     splitter: &mut K,
     height: usize,
     binstrat: BinStrat,
-) ->Tree<'a,A,T> {
-
+) -> Tree<'a, A, T> {
     let num_bots = rest.len();
 
-    let cc=tree::nodes_left(0, height);
+    let cc = tree::nodes_left(0, height);
     let mut nodes = Vec::with_capacity(cc);
 
     let r = Recurser {
@@ -220,7 +213,7 @@ fn create_tree_par<
     };
     r.recurse_preorder(div_axis, dlevel, rest, &mut nodes, splitter, 0);
 
-    assert_eq!(cc,nodes.len());
+    assert_eq!(cc, nodes.len());
     let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
     let k = tree
@@ -229,10 +222,12 @@ fn create_tree_par<
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_bots);
 
-    Tree{inner:TreeInner{
-        axis:div_axis,
-        inner:tree
-    }}
+    Tree {
+        inner: TreeInner {
+            axis: div_axis,
+            inner: tree,
+        },
+    }
 }
 
 struct Recurser<'a, T: Aabb, K: Splitter, S: Sorter> {
@@ -242,25 +237,23 @@ struct Recurser<'a, T: Aabb, K: Splitter, S: Sorter> {
     _p: PhantomData<(K, &'a T)>,
 }
 
-
-struct NonLeafFinisher<'a,A,T:Aabb>{
-    axis:A,
-    div:Option<T::Num>, //This can be null if there are no bots left at all
-    mid:&'a mut [T]
+struct NonLeafFinisher<'a, A, T: Aabb> {
+    axis: A,
+    div: Option<T::Num>, //This can be null if there are no bots left at all
+    mid: &'a mut [T],
 }
-impl<'a,A:Axis,T:Aabb> NonLeafFinisher<'a,A,T>{
-    fn finish(self,sorter: impl Sorter)->NodeMut<'a,T>{
+impl<'a, A: Axis, T: Aabb> NonLeafFinisher<'a, A, T> {
+    fn finish(self, sorter: impl Sorter) -> NodeMut<'a, T> {
         sorter.sort(self.axis.next(), self.mid);
         let cont = create_cont(self.axis, self.mid);
 
-        NodeMut{
-            range:PMut::new(self.mid),
+        NodeMut {
+            range: PMut::new(self.mid),
             cont,
-            div:self.div
+            div: self.div,
         }
     }
 }
-
 
 impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
     fn create_leaf<A: Axis>(&self, axis: A, rest: &'a mut [T]) -> NodeMut<'a, T> {
@@ -279,7 +272,7 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
         &self,
         axis: A,
         rest: &'a mut [T],
-    ) -> (NonLeafFinisher<'a,A, T>, &'a mut [T], &'a mut [T]) {
+    ) -> (NonLeafFinisher<'a, A, T>, &'a mut [T], &'a mut [T]) {
         match construct_non_leaf(self.binstrat, axis, rest) {
             ConstructResult::NonEmpty {
                 div,
@@ -287,10 +280,10 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
                 left,
                 right,
             } => (
-                NonLeafFinisher{
-                    mid:mid,
-                    div:Some(div),
-                    axis
+                NonLeafFinisher {
+                    mid: mid,
+                    div: Some(div),
+                    axis,
                 },
                 left,
                 right,
@@ -298,7 +291,7 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
             ConstructResult::Empty(empty) => {
                 //let (a,empty) = tools::duplicate_empty_slice(empty);
                 //let (b,c) = tools::duplicate_empty_slice(empty);
-                let node = NonLeafFinisher{
+                let node = NonLeafFinisher {
                     mid: empty,
                     div: None,
                     axis,
@@ -350,7 +343,7 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
 
         if depth < self.height - 1 {
             let (node, left, right) = self.create_non_leaf(axis, rest);
-            
+
             let mut splitter2 = splitter.div();
 
             let splitter = match dlevel.next() {

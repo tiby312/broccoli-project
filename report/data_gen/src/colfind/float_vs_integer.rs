@@ -23,7 +23,7 @@ fn handle_bench(fg: &mut Figure) {
     let mut records = Vec::new();
 
     for num_bots in (0..80_000).step_by(200) {
-        let mut scene = bot::BotSceneBuilder::new(num_bots).build_specialized(|_,pos| Bot {
+        let mut scene = bot::BotSceneBuilder::new(num_bots).build_specialized(|_, pos| Bot {
             num: 0,
             pos: pos.inner_as(),
         });
@@ -35,9 +35,9 @@ fn handle_bench(fg: &mut Figure) {
 
             let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-            let mut tree = broccoli::new( &mut bb);
+            let mut tree = broccoli::new(&mut bb);
 
-            tree.find_colliding_pairs_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -53,9 +53,9 @@ fn handle_bench(fg: &mut Figure) {
                 axgeom::Rect::from_point(b.pos.inner_as::<i64>(), r)
             });
 
-            let mut tree = broccoli::new( &mut bb);
+            let mut tree = broccoli::new(&mut bb);
 
-            tree.find_colliding_pairs_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -75,9 +75,9 @@ fn handle_bench(fg: &mut Figure) {
                 k
             });
 
-            let mut tree = broccoli::new( &mut bb);
+            let mut tree = broccoli::new(&mut bb);
 
-            tree.find_colliding_pairs_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -99,7 +99,7 @@ fn handle_bench(fg: &mut Figure) {
 
             let mut tree = broccoli::new_par(&mut bb);
 
-            tree.find_colliding_pairs_mut_par(|a,b| {
+            tree.find_colliding_pairs_mut_par(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -116,9 +116,9 @@ fn handle_bench(fg: &mut Figure) {
                 axgeom::Rect::from_point(b.pos.inner_as::<i32>(), r)
             });
 
-            let mut tree = broccoli::new_par( &mut bb);
+            let mut tree = broccoli::new_par(&mut bb);
 
-            tree.find_colliding_pairs_mut_par(|a,b| {
+            tree.find_colliding_pairs_mut_par(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -135,9 +135,9 @@ fn handle_bench(fg: &mut Figure) {
                 axgeom::Rect::from_point(b.pos.inner_as::<i64>(), r)
             });
 
-            let mut tree = broccoli::new_par( &mut bb);
+            let mut tree = broccoli::new_par(&mut bb);
 
-            tree.find_colliding_pairs_mut_par(|a,b| {
+            tree.find_colliding_pairs_mut_par(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -159,7 +159,7 @@ fn handle_bench(fg: &mut Figure) {
 
             let mut tree = broccoli::new(&mut bb);
 
-            tree.find_colliding_pairs_mut(|a,b| {
+            tree.find_colliding_pairs_mut(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
@@ -178,9 +178,9 @@ fn handle_bench(fg: &mut Figure) {
                 k
             });
 
-            let mut tree = broccoli::new_par( &mut bb);
+            let mut tree = broccoli::new_par(&mut bb);
 
-            tree.find_colliding_pairs_mut_par(|a,b| {
+            tree.find_colliding_pairs_mut_par(|a, b| {
                 a.num += 1;
                 b.num += 1;
             });
