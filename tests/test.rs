@@ -93,7 +93,7 @@ fn test_empty() {
 
 #[test]
 fn test_many() {
-    let mut bots = vec![0usize; 1000];
+    let mut bots = vec![0usize; 40];
 
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
@@ -104,7 +104,7 @@ fn test_many() {
             .dfs_inorder_iter()
             .flat_map(|a| a.get().bots.iter())
             .count(),
-        1000
+        40
     );
 
     let mut num_div = 0;
@@ -119,6 +119,7 @@ fn test_many() {
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn test_send_sync_dinotree() {
     let mut bots1: Vec<()> = Vec::new();
     let mut bots2: Vec<()> = Vec::new();
