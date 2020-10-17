@@ -73,6 +73,9 @@ pub use crate::bbox::*;
 ///Generic slice utillity functions.
 mod util;
 
+///Helper functions to convert aabbs in floats to integers
+pub mod convert;
+
 use axgeom::Rect;
 
 ///The broccoli prelude.
@@ -140,3 +143,5 @@ pub unsafe trait HasInner: Aabb {
     fn get_inner(&self) -> (&Rect<Self::Num>, &Self::Inner);
     fn get_inner_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner);
 }
+
+

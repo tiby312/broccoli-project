@@ -64,14 +64,18 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         .collect();
 
     Demo::new(move |cursor, canvas, _check_naive| {
+        let mut dim2=dim.inner_into();
+        let dim2=dim2.grow(20.0);
+        let dim_float=dim.inner_into();
+
         let mut k: Vec<_> = bots
             .iter_mut()
             .map(|bot| {
                 let p = bot.pos;
                 let r = radius;
-                let rect = Rect::new(p.x - r, p.x + r, p.y - r, p.y + r)
-                    .inner_try_into::<NotNan<f32>>()
-                    .unwrap();
+                let rect = Rect::new(p.x - r, p.x + r, p.y - r, p.y + r);
+                    
+                let rect=broccoli::convert::rect_f32_to_u32(rect,dim2);
                 bbox(rect, bot)
             })
             .collect();
@@ -85,14 +89,18 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         let vv = vec2same(100.0).inner_try_into().unwrap();
         let cc = cursor.inner_into();
 
-        tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), move |b| {
+        let k=axgeom::Rect::from_point(cursor, vv);
+        let j=broccoli::convert::rect_f32_to_u32(k.inner_into(),dim2);
+        tree.for_all_in_rect_mut(&j, move |b| {
             let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cc, 0.001, 100.0);
         });
 
         {
-            let dim2 = dim.inner_into();
-            tree.for_all_not_in_rect_mut(&dim, move |a| {
-                duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim2, 0.5);
+            let dim3 = dim.inner_into();
+
+            let jj=broccoli::convert::rect_f32_to_u32(dim_float,dim2);
+            tree.for_all_not_in_rect_mut(&jj, move |a| {
+                duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim3, 0.5);
             });
         }
 

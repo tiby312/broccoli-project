@@ -6,7 +6,49 @@ pub struct Bot {
     num: usize,
 }
 
+use broccoli::collections::TreeRefInd;
+
+fn convert_to_i32(a:Rect<f32>,border:&Rect<f32>)->Rect<u32>{
+    fn convert1d(a:f32,range:axgeom::Range<f32>)->u32{
+        ((a-range.start) * (u32::MAX as f32 /range.distance())) as u32
+    }
+    rect(
+        convert1d(a.x.start,border.x),
+        convert1d(a.x.end,border.x),
+        convert1d(a.y.start,border.x),
+        convert1d(a.y.end,border.x)
+    )
+}
+
+/*
+//TODO use this??
+struct Drawer<'a>{
+    axis:&'a mut gnuplot::Axes2D,
+    color_counter:usize
+}
+impl<'a> Drawer<'a>{
+    fn new(axis:&'a mut Axes2D)->Drawer<'a>{
+        Drawer{axis,color_counter:0}
+    }
+    fn draw(&mut self,caption:&str,range:impl Iterator<Item=usize>+Clone,mut func:impl FnMut(usize)->f64){
+        let x=range.clone();
+        let y:Vec<_>=range.map(|a|func(a)).collect();
+        let c=COLS[self.color_counter % COLS.len()];
+        self.axis.lines(
+            x,
+            y,
+            &[Caption(caption), Color(c), LineWidth(1.6)],
+        );
+        self.color_counter+=1;
+    }
+}
+*/
+
+
 fn handle_bench(fg: &mut Figure) {
+    
+
+
     #[derive(Debug)]
     struct Record {
         num_bots: usize,
@@ -18,11 +60,14 @@ fn handle_bench(fg: &mut Figure) {
         bench_f64_par: f64,
         bench_i64: f64,
         bench_i64_par: f64,
+        bench_float_i32: f64
     }
 
     let mut records = Vec::new();
 
-    for num_bots in (0..80_000).step_by(200) {
+
+
+    for num_bots in (2..80_000).step_by(200) {
         let mut scene = bot::BotSceneBuilder::new(num_bots).build_specialized(|_, pos| Bot {
             num: 0,
             pos: pos.inner_as(),
@@ -31,9 +76,9 @@ fn handle_bench(fg: &mut Figure) {
         let mut bots = &mut scene.bots;
 
         let bench_integer = {
-            let instant = Instant::now();
-
+            
             let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
+            let instant = Instant::now();
 
             let mut tree = broccoli::new(&mut bb);
 
@@ -46,12 +91,51 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_i64 = {
-            let instant = Instant::now();
-
+            
             let r = vec2same(prop.radius.dis() as i64);
             let mut bb = bbox_helper::create_bbox_mut(bots, |b| {
                 axgeom::Rect::from_point(b.pos.inner_as::<i64>(), r)
             });
+            let instant = Instant::now();
+
+            let mut tree = broccoli::new(&mut bb);
+
+            tree.find_colliding_pairs_mut(|a, b| {
+                a.num += 1;
+                b.num += 1;
+            });
+
+            instant_to_sec(instant.elapsed())
+        };
+        
+
+        let bench_float_i32 = {
+            
+            let r = vec2same(prop.radius.dis() as f32);
+
+            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
+                let k: Rect<NotNan<f32>> = axgeom::Rect::from_point(b.pos.inner_as::<f32>(), r)
+                    .inner_try_into()
+                    .unwrap();
+                k
+            });
+
+            let border={
+                let (first,rest)=bb.split_first().unwrap();
+                let mut r=first.rect;
+                for a in rest.iter(){
+                    r.grow_to_fit(&a.rect);
+                }
+                r
+            };
+
+
+
+            let instant = Instant::now();
+
+            let mut bb:Vec<_>=bb.into_iter().map(|a|{
+                bbox(convert_to_i32(a.rect.inner_into(),&border.as_ref()),a.inner)
+            }).collect();
 
             let mut tree = broccoli::new(&mut bb);
 
@@ -63,9 +147,9 @@ fn handle_bench(fg: &mut Figure) {
             instant_to_sec(instant.elapsed())
         };
 
-        let bench_float = {
-            let instant = Instant::now();
 
+        let bench_float = {
+            
             let r = vec2same(prop.radius.dis() as f32);
 
             let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
@@ -74,6 +158,7 @@ fn handle_bench(fg: &mut Figure) {
                     .unwrap();
                 k
             });
+            let instant = Instant::now();
 
             let mut tree = broccoli::new(&mut bb);
 
@@ -86,8 +171,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_par = {
-            let instant = Instant::now();
-
+            
             let r = vec2same(prop.radius.dis() as f32);
 
             let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
@@ -96,6 +180,7 @@ fn handle_bench(fg: &mut Figure) {
                     .unwrap();
                 k
             });
+            let instant = Instant::now();
 
             let mut tree = broccoli::new_par(&mut bb);
 
@@ -108,13 +193,13 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_integer_par = {
-            let instant = Instant::now();
-
+            
             let r = vec2same(prop.radius.dis() as i32);
 
             let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
                 axgeom::Rect::from_point(b.pos.inner_as::<i32>(), r)
             });
+            let instant = Instant::now();
 
             let mut tree = broccoli::new_par(&mut bb);
 
@@ -127,13 +212,13 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_i64_par = {
-            let instant = Instant::now();
-
+            
             let r = vec2same(prop.radius.dis() as i64);
 
             let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
                 axgeom::Rect::from_point(b.pos.inner_as::<i64>(), r)
             });
+            let instant = Instant::now();
 
             let mut tree = broccoli::new_par(&mut bb);
 
@@ -146,8 +231,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_f64 = {
-            let instant = Instant::now();
-
+            
             let r = vec2same(prop.radius.dis() as f64);
 
             let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
@@ -156,6 +240,7 @@ fn handle_bench(fg: &mut Figure) {
                     .unwrap();
                 k
             });
+            let instant = Instant::now();
 
             let mut tree = broccoli::new(&mut bb);
 
@@ -168,7 +253,6 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_f64_par = {
-            let instant = Instant::now();
             let r = vec2same(prop.radius.dis() as f64);
 
             let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
@@ -177,7 +261,8 @@ fn handle_bench(fg: &mut Figure) {
                     .unwrap();
                 k
             });
-
+            let instant = Instant::now();
+            
             let mut tree = broccoli::new_par(&mut bb);
 
             tree.find_colliding_pairs_mut_par(|a, b| {
@@ -198,6 +283,7 @@ fn handle_bench(fg: &mut Figure) {
             bench_integer_par,
             bench_f64,
             bench_f64_par,
+            bench_float_i32
         });
     }
 
@@ -210,9 +296,12 @@ fn handle_bench(fg: &mut Figure) {
     let y4 = rects.iter().map(|a| a.bench_integer_par);
     let y5 = rects.iter().map(|a| a.bench_f64);
     let y6 = rects.iter().map(|a| a.bench_f64_par);
-
     let y7 = rects.iter().map(|a| a.bench_i64);
     let y8 = rects.iter().map(|a| a.bench_i64_par);
+    let y9 = rects.iter().map(|a| a.bench_float_i32);
+
+
+    
 
     fg.axes2d()
         .set_title(
@@ -259,6 +348,11 @@ fn handle_bench(fg: &mut Figure) {
             x.clone(),
             y8,
             &[Caption("i64 parallel"), Color("purple"), LineWidth(1.6)],
+        )
+        .lines(
+            x.clone(),
+            y9,
+            &[Caption("f32 to u32"), Color("black"), LineWidth(1.6)],
         )
         .set_x_label("Number of Objects", &[])
         .set_y_label("Time taken in seconds", &[]);
