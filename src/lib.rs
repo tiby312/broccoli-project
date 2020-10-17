@@ -10,6 +10,14 @@
 //! + `(Rect<N>,T)`
 //! + `&mut (Rect<N>,T)`
 //!
+//! ### Floating Point
+//!
+//! The `Num` trait used for the aabbs inserted into the tree must implement `Ord`,
+//! thus you can't add `f32` or `f64`. However, you can use the `ordered_float` crate.
+//! Construction and querying is very comparison heavy so prefer `NotNan<T>` over `OrderedFloat<T>`.
+//! However, check our the broccoli book mentioned above. In most cases, for best performance,
+//! you will likely want to convert the floats to integers anyway.
+//!
 //! ### User Protection
 //!
 //! A lot is done to forbid the user from violating the invariants of the tree once constructed
