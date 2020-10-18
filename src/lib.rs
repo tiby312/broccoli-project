@@ -10,6 +10,9 @@
 //! + `(Rect<N>,T)`
 //! + `&mut (Rect<N>,T)`
 //!
+//! The TLDR is to fill a `broccoli::Tree` with `BBox<N,&mut T>`. But if more functionality
+//! is needed (the collect functions) then use `broccoli::collections::TreeRefInd`
+//!
 //! ### Floating Point
 //!
 //! The `Num` trait used for the aabbs inserted into the tree must implement `Ord`,

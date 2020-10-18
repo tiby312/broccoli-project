@@ -4,7 +4,7 @@ cargo build --release --manifest-path data_gen/Cargo.toml
 
 rm -rf src/raw
 ../target/release/data_gen bench src/raw
-#../target/release/data_gen theory src/raw
+../target/release/data_gen theory src/raw
 
 rm -rf book/graphs
 ../target/release/data_gen graph src/raw book/graphs

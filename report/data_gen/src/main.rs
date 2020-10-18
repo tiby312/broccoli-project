@@ -72,7 +72,7 @@ impl FigureBuilder {
         let ss = format!("{}/{}.gplot", &self.folder, filename);
 
         //fg.set_terminal("pngcairo size 640,480 enhanced font 'Veranda,10'", "");
-        fg.set_terminal("svg", "");
+        fg.set_terminal("svg enhanced background rgb 'white'", "");
 
         fg.set_pre_commands(format!("set output sdir.'{}.svg'", filename).as_str());
         //fg.set_pre_commands("set output system(\"echo $FILE_PATH\")");
