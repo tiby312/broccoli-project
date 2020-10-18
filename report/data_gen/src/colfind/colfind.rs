@@ -34,45 +34,44 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
         let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| prop.create_bbox_nan(b.pos));
 
         let c0 = {
-            let instant = Instant::now();
+            bench_closure(||{
+                let mut tree = broccoli::new_par(&mut bb);
 
-            let mut tree = broccoli::new_par(&mut bb);
-
-            tree.find_colliding_pairs_mut_par(|a, b| {
-                a.num += 1;
-                b.num += 1;
-            });
-
-            instant_to_sec(instant.elapsed())
+                tree.find_colliding_pairs_mut_par(|a, b| {
+                    a.num += 1;
+                    b.num += 1;
+                });
+    
+            })            
         };
 
         let c1 = {
-            let instant = Instant::now();
+            
+            bench_closure(||{
+                let mut tree = broccoli::new(&mut bb);
 
-            let mut tree = broccoli::new(&mut bb);
-
-            tree.find_colliding_pairs_mut(|a, b| {
-                a.num += 1;
-                b.num += 1;
-            });
-
-            instant_to_sec(instant.elapsed())
+                tree.find_colliding_pairs_mut(|a, b| {
+                    a.num += 1;
+                    b.num += 1;
+                });
+    
+            })
+            
         };
 
         let c3 = {
             if num_bots < 20000 {
-                let instant = Instant::now();
-
-                broccoli::query::find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |a, b| {
-                    a.num -= 2;
-                    b.num -= 2;
-                });
-
-                for b in bb.iter() {
-                    assert_eq!(b.inner.num, 0);
-                }
-
-                Some(instant_to_sec(instant.elapsed()))
+                Some(bench_closure(||{
+                    broccoli::query::find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |a, b| {
+                        a.num -= 2;
+                        b.num -= 2;
+                    });
+    
+                    for b in bb.iter() {
+                        assert_eq!(b.inner.num, 0);
+                    }
+    
+                }))
             } else {
                 None
             }
@@ -80,43 +79,43 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
 
         let c4 = {
             if num_bots < 8000 {
-                let instant = Instant::now();
-
-                NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|a, b| {
-                    a.num -= 1;
-                    b.num -= 1;
-                });
-
-                Some(instant_to_sec(instant.elapsed()))
+                Some(bench_closure(||{
+                    NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|a, b| {
+                        a.num -= 1;
+                        b.num -= 1;
+                    });
+    
+                }))
             } else {
                 None
             }
         };
 
         let c5 = {
-            let instant = Instant::now();
 
-            let mut tree = NotSorted::new_par(&mut bb);
+            Some(bench_closure(||{
+                let mut tree = NotSorted::new_par(&mut bb);
 
-            tree.find_colliding_pairs_mut_par(|a, b| {
-                a.num += 1;
-                b.num += 1;
-            });
-
-            Some(instant_to_sec(instant.elapsed()))
+                tree.find_colliding_pairs_mut_par(|a, b| {
+                    a.num += 1;
+                    b.num += 1;
+                });
+    
+            }))
+            
         };
 
         let c6 = {
-            let instant = Instant::now();
+            Some(bench_closure(||{
+                let mut tree = NotSorted::new(&mut bb);
 
-            let mut tree = NotSorted::new(&mut bb);
-
-            tree.find_colliding_pairs_mut(|a, b| {
-                a.num += 1;
-                b.num += 1;
-            });
-
-            Some(instant_to_sec(instant.elapsed()))
+                tree.find_colliding_pairs_mut(|a, b| {
+                    a.num += 1;
+                    b.num += 1;
+                });
+    
+            }))
+            
         };
 
         records.push(Record {
