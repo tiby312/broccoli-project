@@ -50,6 +50,13 @@ pub fn datanum_test(func:impl FnOnce(&mut Maker))->usize{
 
     unsafe{COUNTER}
 }
+pub fn datanum_test_ret<T>(func:impl FnOnce(&mut Maker)->T)->(T,usize){
+    unsafe{COUNTER=0};
+    let mut maker=Maker{_p:PhantomData};
+    let k=func(&mut maker);
+    (k,unsafe{COUNTER})
+}
+
 
 pub struct Maker{
     _p:PhantomData<*mut usize> //Make it not implement send or sync
