@@ -77,6 +77,13 @@ pub const COLS: &[&str] = &[
     "blue", "green", "red", "violet", "orange", "brown", "gray", "black", "pink",
 ];
 
+
+pub fn bench_closure(func:impl FnOnce())->f64{
+    let instant = Instant::now();
+    func();
+    instant_to_sec(instant.elapsed())
+}
+
 pub fn instant_to_sec(elapsed: Duration) -> f64 {
     let secs: f64 = elapsed.as_secs() as f64;
     let nano: f64 = elapsed.subsec_nanos() as f64;
