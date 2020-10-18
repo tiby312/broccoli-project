@@ -16,7 +16,7 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> Res {
     let prop = &scene.bot_prop;
 
     let mut counter = datanum::Counter::new();
-
+    
     let mut bots = bbox_helper::create_bbox_mut(bots, |b| {
         datanum::from_rect(&mut counter, prop.create_bbox_i32(b.pos))
     });

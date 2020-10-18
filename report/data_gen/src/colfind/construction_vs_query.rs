@@ -46,84 +46,79 @@ fn theory_not_sorted(scene: &mut bot::BotScene<bot::Bot>) -> (usize, usize) {
 }
 
 fn bench_seq(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
-    let instant = Instant::now();
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
-
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.create_bbox_nan(prop));
-    let mut tree = broccoli::new(&mut bb);
+        
+    let (mut tree,construct_time)=bench_closure_ret(||broccoli::new(&mut bb));
 
-    let a = instant_to_sec(instant.elapsed());
-
-    tree.find_colliding_pairs_mut(|a, b| {
-        prop.collide(a, b);
+    let (tree,query_time)=bench_closure_ret(||{
+        tree.find_colliding_pairs_mut(|a, b| {
+            prop.collide(a, b);
+        });
+        tree
     });
 
     black_box(tree);
 
-    let b = instant_to_sec(instant.elapsed());
-    (a, (b - a))
+    (construct_time,query_time)
 }
 
 fn bench_par(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
-    let instant = Instant::now();
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.create_bbox_nan(prop));
-    let mut tree = broccoli::new_par(&mut bb);
 
-    let a = instant_to_sec(instant.elapsed());
-
-    tree.find_colliding_pairs_mut_par(|a, b| {
-        prop.collide(a, b);
+    let (mut tree,construct_time)=bench_closure_ret(||broccoli::new_par(&mut bb));
+    
+    let (tree,query_time)=bench_closure_ret(||{
+        tree.find_colliding_pairs_mut_par(|a, b| {
+            prop.collide(a, b);
+        });
+        tree
     });
 
     black_box(tree);
 
-    let b = instant_to_sec(instant.elapsed());
-    (a, (b - a))
+    (construct_time, query_time)
 }
 
 fn bench_not_sorted_seq(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
-    let instant = Instant::now();
-
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.create_bbox_nan(prop));
-    let mut tree = NotSorted::new(&mut bb);
+        
+    let (mut tree,construct_time)=bench_closure_ret(||NotSorted::new(&mut bb));
 
-    let a = instant_to_sec(instant.elapsed());
-
-    tree.find_colliding_pairs_mut(|a, b| {
-        prop.collide(a, b);
+    let (tree,query_time)=bench_closure_ret(||{
+        tree.find_colliding_pairs_mut(|a, b| {
+            prop.collide(a, b);
+        });
+        tree
     });
 
     black_box(tree);
 
-    let b = instant_to_sec(instant.elapsed());
-
-    (a, (b - a))
+    (construct_time,query_time)
 }
 
 fn bench_not_sorted_par(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
-    let instant = Instant::now();
-
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.create_bbox_nan(prop));
-    let mut tree = NotSorted::new_par(&mut bb);
+        
+    let (mut tree,construct_time)=bench_closure_ret(||NotSorted::new_par(&mut bb));
 
-    let a = instant_to_sec(instant.elapsed());
-
-    tree.find_colliding_pairs_mut_par(|a, b| {
-        prop.collide(a, b);
+    let (tree,query_time)=bench_closure_ret(||{
+        tree.find_colliding_pairs_mut_par(|a, b| {
+            prop.collide(a, b);
+        });
+        tree
     });
 
     black_box(tree);
 
-    let b = instant_to_sec(instant.elapsed());
-
-    (a, (b - a))
+    (construct_time,query_time)
 }
 
 pub fn handle_bench(fb: &mut FigureBuilder) {

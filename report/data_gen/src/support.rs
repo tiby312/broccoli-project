@@ -84,6 +84,13 @@ pub fn bench_closure(func:impl FnOnce())->f64{
     instant_to_sec(instant.elapsed())
 }
 
+pub fn bench_closure_ret<T>(func:impl FnOnce()->T)->(T,f64){
+    let instant = Instant::now();
+    let a=func();
+    (a,instant_to_sec(instant.elapsed()))
+}
+
+
 pub fn instant_to_sec(elapsed: Duration) -> f64 {
     let secs: f64 = elapsed.as_secs() as f64;
     let nano: f64 = elapsed.subsec_nanos() as f64;

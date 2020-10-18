@@ -7,70 +7,66 @@ pub struct Bot {
 }
 
 fn test1(scene: &mut bot::BotScene<Bot>) -> f64 {
-    let instant = Instant::now();
+    bench_closure(||{
+        let bots = &mut scene.bots;
+        let prop = &scene.bot_prop;
+        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
+        let tree = TreeBuilder::new(&mut bb)
+            .with_bin_strat(BinStrat::Checked)
+            .build_par();
 
-    let tree = TreeBuilder::new(&mut bb)
-        .with_bin_strat(BinStrat::Checked)
-        .build_par();
+        black_box(tree);
 
-    black_box(tree);
-
-    instant_to_sec(instant.elapsed())
+    })    
 }
 
 fn test2(scene: &mut bot::BotScene<Bot>) -> f64 {
-    let instant = Instant::now();
-
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
-    let tree = TreeBuilder::new(&mut bb)
-        .with_bin_strat(BinStrat::NotChecked)
-        .build_par();
-
-    black_box(tree);
-
-    instant_to_sec(instant.elapsed())
+    bench_closure(||{
+        let bots = &mut scene.bots;
+        let prop = &scene.bot_prop;
+    
+        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
+    
+        let tree = TreeBuilder::new(&mut bb)
+            .with_bin_strat(BinStrat::NotChecked)
+            .build_par();
+    
+        black_box(tree);
+    
+    })    
 }
 
 fn test3(scene: &mut bot::BotScene<Bot>) -> f64 {
-    let instant = Instant::now();
-
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
-    let tree = TreeBuilder::new(&mut bb)
-        .with_bin_strat(BinStrat::Checked)
-        .build_seq();
-
-    black_box(tree);
-
-    instant_to_sec(instant.elapsed())
+    bench_closure(||{
+        let bots = &mut scene.bots;
+        let prop = &scene.bot_prop;
+    
+        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
+    
+        let tree = TreeBuilder::new(&mut bb)
+            .with_bin_strat(BinStrat::Checked)
+            .build_seq();
+    
+        black_box(tree);    
+    })
 }
 
 fn test4(scene: &mut bot::BotScene<Bot>) -> f64 {
-    let instant = Instant::now();
-
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
-    let tree = TreeBuilder::new(&mut bb)
-        .with_bin_strat(BinStrat::NotChecked)
-        .build_seq();
-
-    black_box(tree);
-
-    instant_to_sec(instant.elapsed())
+    bench_closure(||{
+        let bots = &mut scene.bots;
+        let prop = &scene.bot_prop;
+    
+        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
+    
+        let tree = TreeBuilder::new(&mut bb)
+            .with_bin_strat(BinStrat::NotChecked)
+            .build_seq();
+    
+        black_box(tree);
+    
+    })
+    
 }
 
 pub fn handle(fb: &mut FigureBuilder) {

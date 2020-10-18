@@ -18,46 +18,50 @@ pub struct TestResult {
 }
 
 fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(PMut<T>, PMut<T>)) -> TestResult {
-    let instant = Instant::now();
-
-    let mut tree = broccoli::new(bots);
-
-    let rebal = instant_to_sec(instant.elapsed());
-
-    tree.find_colliding_pairs_pmut(|a, b| {
-        func(a, b);
+    
+    let (mut tree,construct_time)=bench_closure_ret(||{
+        broccoli::new(bots)
     });
+
+    let (tree,query_time)=bench_closure_ret(||{
+
+        tree.find_colliding_pairs_pmut(|a, b| {
+            func(a, b);
+        });
+        tree
+    });
+
 
     black_box(tree);
 
-    let total = instant_to_sec(instant.elapsed());
-
     TestResult {
-        rebal,
-        query: total - rebal,
+        rebal:construct_time,
+        query:query_time,
     }
 }
 fn test_par<T: Aabb + Send + Sync>(
     bots: &mut [T],
     func: impl Fn(PMut<T>, PMut<T>) + Send + Sync,
 ) -> TestResult {
-    let instant = Instant::now();
-
-    let mut tree = broccoli::new_par(bots);
-
-    let rebal = instant_to_sec(instant.elapsed());
-
-    tree.find_colliding_pairs_pmut_par(|a, b| {
-        func(a, b);
+    
+    let (mut tree,construct_time)=bench_closure_ret(||{
+        broccoli::new_par(bots)
     });
+
+    let (tree,query_time)=bench_closure_ret(||{
+
+        tree.find_colliding_pairs_pmut_par(|a, b| {
+            func(a, b);
+        });
+        tree
+    });
+
 
     black_box(tree);
 
-    let total = instant_to_sec(instant.elapsed());
-
     TestResult {
-        rebal,
-        query: total - rebal,
+        rebal:construct_time,
+        query:query_time,
     }
 }
 

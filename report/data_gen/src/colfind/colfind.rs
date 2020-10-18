@@ -227,74 +227,76 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
         }
 
         let c1 = {
-            let mut counter = datanum::Counter::new();
 
-            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                datanum::from_rect(&mut counter, prop.create_bbox_nan(b.pos))
-            });
+            datanum::datanum_test(|maker|{
 
-            let mut tree = broccoli::new(&mut bb);
+                let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
+                    maker.from_rect(prop.create_bbox_nan(b.pos))
+                });
 
-            tree.find_colliding_pairs_mut(|a, b| {
-                a.num += 2;
-                b.num += 2;
-            });
+                let mut tree = broccoli::new(&mut bb);
 
-            counter.into_inner()
+                tree.find_colliding_pairs_mut(|a, b| {
+                    a.num += 2;
+                    b.num += 2;
+                });
+            })
+            
         };
 
         let c2 = {
             if num_bots < stop_naive_at {
-                let mut counter = datanum::Counter::new();
 
-                let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                    datanum::from_rect(&mut counter, prop.create_bbox_nan(b.pos))
-                });
+                Some(datanum::datanum_test(|maker|{
 
-                NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|a, b| {
-                    a.num -= 1;
-                    b.num -= 1;
-                });
+                    let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
+                        maker.from_rect( prop.create_bbox_nan(b.pos))
+                    });
 
-                Some(counter.into_inner())
+                    NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|a, b| {
+                        a.num -= 1;
+                        b.num -= 1;
+                    });
+                }))
             } else {
                 None
             }
         };
         let c3 = {
             if num_bots < stop_sweep_at {
-                let mut counter = datanum::Counter::new();
-
-                let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                    datanum::from_rect(&mut counter, prop.create_bbox_nan(b.pos))
-                });
-
-                broccoli::query::find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |a, b| {
-                    a.num -= 1;
-                    b.num -= 1;
-                });
-
-                Some(counter.into_inner())
+                Some(datanum::datanum_test(|maker|{
+                    let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
+                        maker.from_rect( prop.create_bbox_nan(b.pos))
+                    });
+    
+                    broccoli::query::find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |a, b| {
+                        a.num -= 1;
+                        b.num -= 1;
+                    });
+    
+                }))
+                
             } else {
                 None
             }
         };
 
         let c4 = {
-            let mut counter = datanum::Counter::new();
-
-            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                datanum::from_rect(&mut counter, prop.create_bbox_nan(b.pos))
-            });
-
-            let mut tree = NotSorted::new(&mut bb);
-
-            tree.find_colliding_pairs_mut(|a, b| {
-                a.num += 2;
-                b.num += 2;
-            });
-
-            counter.into_inner()
+            
+            datanum::datanum_test(|maker|{
+                let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
+                    maker.from_rect( prop.create_bbox_nan(b.pos))
+                });
+    
+                let mut tree = NotSorted::new(&mut bb);
+    
+                tree.find_colliding_pairs_mut(|a, b| {
+                    a.num += 2;
+                    b.num += 2;
+                });
+    
+            })
+            
         };
 
         let r = Record {

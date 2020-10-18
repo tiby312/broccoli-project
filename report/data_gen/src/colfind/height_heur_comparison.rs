@@ -7,39 +7,38 @@ pub struct Bot {
 }
 
 pub fn handle_bench_inner(scene: &mut bot::BotScene<Bot>, height: usize) -> f64 {
-    let instant = Instant::now();
-
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
-    let mut tree = TreeBuilder::new(&mut bb).with_height(height).build_seq();
-
-    tree.find_colliding_pairs_mut(|a, b| {
-        a.num += 2;
-        b.num += 2;
-    });
-
-    instant_to_sec(instant.elapsed())
+    
+    bench_closure(||{
+        let bots = &mut scene.bots;
+        let prop = &scene.bot_prop;
+        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
+    
+        let mut tree = TreeBuilder::new(&mut bb).with_height(height).build_seq();
+    
+        tree.find_colliding_pairs_mut(|a, b| {
+            a.num += 2;
+            b.num += 2;
+        });
+    
+    })
+    
 }
 
 pub fn handle_theory_inner(scene: &mut bot::BotScene<Bot>, height: usize) -> usize {
-    let mut counter = datanum::Counter::new();
-
+    
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| {
-        datanum::from_rect(&mut counter, prop.create_bbox_i32(b.pos))
-    });
-
-    let mut tree = TreeBuilder::new(&mut bb).with_height(height).build_seq();
-
-    tree.find_colliding_pairs_mut(|a, b| {
-        a.num += 2;
-        b.num += 2;
-    });
-
-    counter.into_inner()
+    datanum::datanum_test(|maker|{
+        let mut bb = bbox_helper::create_bbox_mut(bots, |b| {
+            maker.from_rect( prop.create_bbox_i32(b.pos))
+        });
+        let mut tree = TreeBuilder::new(&mut bb).with_height(height).build_seq();
+    
+        tree.find_colliding_pairs_mut(|a, b| {
+            a.num += 2;
+            b.num += 2;
+        });  
+    })
 }
 
 pub fn handle(fb: &mut FigureBuilder) {

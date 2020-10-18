@@ -7,50 +7,53 @@ pub struct Bot {
 }
 
 fn test1(scene: &mut bot::BotScene<Bot>) -> (f64, f64) {
-    let instant = Instant::now();
-
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let mut tree = TreeBuilder::new(&mut bb).build_seq();
-
-    let a = instant_to_sec(instant.elapsed());
-
-    tree.new_colfind_builder().query_seq(|mut a, mut b| {
-        a.inner_mut().num += 2;
-        b.inner_mut().num += 2;
+    let (mut tree,construction_time)=bench_closure_ret(||{
+        TreeBuilder::new(&mut bb).build_seq()
     });
 
-    let b = instant_to_sec(instant.elapsed());
+    let (tree,query_time)=bench_closure_ret(||{
+        tree.new_colfind_builder().query_seq(|mut a, mut b| {
+            a.inner_mut().num += 2;
+            b.inner_mut().num += 2;
+        });
+        tree
+    
+    });
 
-    (a, (b - a))
+    black_box(tree);
+
+    (construction_time, query_time)
 }
 
 fn test3(scene: &mut bot::BotScene<Bot>, rebal_height: usize, query_height: usize) -> (f64, f64) {
-    let instant = Instant::now();
-
+    
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    //dbg!("YOOOOOOOOOOO", rebal_height,query_height);
-    let mut tree = TreeBuilder::new(&mut bb)
+    let (mut tree,construction_time)=bench_closure_ret(||{
+        TreeBuilder::new(&mut bb)
         .with_height_switch_seq(rebal_height)
-        .build_par();
-    //dbg!("FINISH");
-    let a = instant_to_sec(instant.elapsed());
+        .build_par()
+    });
 
-    tree.new_colfind_builder()
+    let (tree,query_time)=bench_closure_ret(||{
+        tree.new_colfind_builder()
         .with_switch_height(query_height)
         .query_par(|mut a, mut b| {
             a.inner_mut().num += 2;
             b.inner_mut().num += 2;
         });
+        tree
+    });
 
-    let b = instant_to_sec(instant.elapsed());
-
-    (a, (b - a))
+    black_box(tree);
+    
+    (construction_time, query_time)
 }
 
 pub fn handle(fb: &mut FigureBuilder) {
@@ -66,11 +69,6 @@ pub fn handle(fb: &mut FigureBuilder) {
             num: 0,
         });
 
-    /*
-    let mut bots:Vec<Bot>=s.clone().take(num_bots).map(|pos|{
-        Bot{num:0,pos:pos.inner_as()}
-    }).collect();
-    */
 
     let height = compute_tree_height_heuristic(num_bots, DEFAULT_NUMBER_ELEM_PER_NODE);
 
