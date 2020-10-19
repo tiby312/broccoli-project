@@ -8,10 +8,6 @@ pub type Vistr<'a, N> = compt::dfs_order::Vistr<'a, N, compt::dfs_order::PreOrde
 mod vistr_mut {
     use crate::inner_prelude::*;
 
-    //Cannot use since we need create_wrap_mut()
-    //We must create our own new type.
-    //pub type VistrMut<'a,N> = compt::MapStruct<compt::dfs_order::VistrMut<'a,N,compt::dfs_order::PreOrder>,Foo<'a,N>>;
-
     /// Tree Iterator that returns a protected mutable reference to each node.
     #[repr(transparent)]
     pub struct VistrMut<'a, N> {
@@ -77,7 +73,7 @@ mod vistr_mut {
 }
 pub use vistr_mut::VistrMut;
 
-///Expose a node trait api to hide the lifetime of NodeMut.
+///A trait api to hide the lifetime of [`NodeMut`].
 ///This way query algorithms do not need to worry about this lifetime.
 pub trait Node {
     type T: Aabb<Num = Self::Num>;
@@ -105,7 +101,7 @@ impl<'a, T: Aabb> Node for NodeMut<'a, T> {
     }
 }
 
-///A lifetimed node in a dinotree.
+///A node in [`Tree`].
 pub struct NodeMut<'a, T: Aabb> {
     pub(crate) range: PMut<'a, [T]>,
     //range is empty iff cont is none.
@@ -134,7 +130,7 @@ impl<'a, T: Aabb> NodeMut<'a, T> {
     }
 }
 
-///Mutable reference to a node in the dinotree.
+///Mutable reference to a [`Node`].
 pub struct NodeRefMut<'a, T: Aabb> {
     ///The bots that belong to this node.
     pub bots: PMut<'a, [T]>,
@@ -146,7 +142,7 @@ pub struct NodeRefMut<'a, T: Aabb> {
     pub div: &'a Option<T::Num>,
 }
 
-///Reference to a node in the dinotree.
+///Reference to a [`Node`].
 pub struct NodeRef<'a, T: Aabb> {
     ///The bots that belong to this node.
     pub bots: &'a [T],

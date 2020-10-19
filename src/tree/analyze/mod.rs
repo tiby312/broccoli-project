@@ -1,70 +1,11 @@
-//! Contains code to manipulate the dinotree data structure and some of its query algorithms
-//! to help analyze and measure their performance.
+//! Contains code to help analyze the [`Tree`] structure.
+//! Only used to measure the performance of the structure.
 
 use crate::inner_prelude::*;
 pub mod assert;
 
 pub use builder::TreeBuilder;
 mod builder;
-
-//pub use crate::tree::node;
-//pub use crate::tree::notsorted::NotSorted;
-//pub use crate::tree::par;
-//pub use crate::tree::builder::DinoTreeBuilder;
-
-/*
-///Helper module for creating Vecs of different types of BBoxes.
-pub mod bbox_helper {
-    use crate::inner_prelude::*;
-
-    ///Helper struct to construct a DinoTree of `(Rect<N>,T)` from a dinotree of `(Rect<N>,&mut T)`
-    pub struct IntoDirectHelper<N, T>(Vec<BBox<N, T>>);
-
-    ///Convenience function to create a list of `(Rect<N>,T)` from a `(Rect<N>,&mut T)`. `T` must implement Copy.
-    pub fn generate_direct<A: Axis, N: Num, T: Copy>(
-        tree: &DinoTree<A, NodeMut<BBox<N, &mut T>>>,
-    ) -> IntoDirectHelper<N, T> {
-        IntoDirectHelper(
-            tree.inner
-                .get_nodes()
-                .iter()
-                .flat_map(|a| a.range.as_ref().iter())
-                .map(move |a| BBox::new(a.rect, *a.inner))
-                .collect(),
-        )
-    }
-
-    ///Take a DinoTree of `(Rect<N>,&mut T)` and creates a new one of type `(Rect<N>,T)`
-    pub fn into_direct<'a, A: Axis, N: Num, T>(
-        tree: &DinoTree<A, NodeMut<'a,BBox<N, &mut T>>>,
-        bots: &'a mut IntoDirectHelper<N, T>,
-    ) -> DinoTree< A, NodeMut<'a,BBox<N, T>>> {
-        let mut bots = &mut bots.0 as &'a mut [_];
-
-        let nodes: Vec<_> = tree
-            .inner
-            .get_nodes()
-            .iter()
-            .map(move |node| {
-                let mut k: &mut [_] = &mut [];
-                core::mem::swap(&mut bots, &mut k);
-                let (first, mut rest) = k.split_at_mut(node.range.len());
-                core::mem::swap(&mut bots, &mut rest);
-                NodeMut {
-                    range: PMut::new(first),
-                    cont: node.cont,
-                    div: node.div,
-                }
-            })
-            .collect();
-
-        DinoTree {
-            inner: compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap(),
-            axis: tree.axis
-        }
-    }
-}
-*/
 
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one

@@ -1,6 +1,6 @@
 ///A suggested height at which to switch from parallel
 ///to sequential. Once the tree construction reaches
-///this height, it will no longer call rayon::join(),
+///this height, it will no longer call `rayon::join()`,
 ///on each sub problem.
 pub const SWITCH_SEQUENTIAL_DEFAULT: usize = 6;
 

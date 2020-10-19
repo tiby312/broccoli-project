@@ -9,11 +9,12 @@
 
 use axgeom::Rect;
 
+///Convert a `f32` point to a normalized `u32` point normalized over an area.
 pub fn point_f32_to_u32(a:axgeom::Vec2<f32>,border:&Rect<f32>)->axgeom::Vec2<u32>{
     axgeom::vec2(convert1d(a.x,border.x),convert1d(a.y,border.y))
 }
 
-///Helper function
+///Convert a `f32` rect to a normalizde `u32` rect normalized over an area.
 pub fn rect_f32_to_u32(a:Rect<f32>,border:&Rect<f32>)->Rect<u32>{
     axgeom::rect(
         convert1d(a.x.start,border.x),

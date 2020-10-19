@@ -1,19 +1,24 @@
 //! Container trees that deref to `broccoli::Tree`
 //! ```
 //! Here are how the Tree types are related:
-//! --> = Deref
-//! -> = Function
 //!
 //! TreeOwned -> TreeRef --> Tree
 //! TreeOwnedInd -> TreeRefInd --> TreeRef --> Tree
+//!
+//! where:
+//! --> = Deref
+//! -> = Function
 //! ```
+//! [`TreeRef`], like [`Tree`], can be composed of anything that implements [`Aabb`].
+//! [`TreeRefInd`] is composed of `BBox<N,&mut T>`
+//!
 //! ### Overview
 //!
-//! `broccoli::Tree` is written in safe rust, and for most usecases,
-//! using `broccoli::Tree` is enough. But in certain cases
+//! [`Tree`] is written in safe rust, and for most usecases,
+//! using [`Tree`] is enough. But in certain cases
 //! we want more control. The container trees in this module are for this purpose.
 //!
-//! For example, with the regular `broccoli::Tree`, you can't
+//! For example, with the regular [`Tree`], you can't
 //! get access to the unerlying list of elements after
 //! the tree has been constructed.
 //!

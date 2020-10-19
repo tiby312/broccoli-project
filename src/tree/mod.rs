@@ -17,7 +17,7 @@ use analyze::TreeBuilder;
 
 pub(crate) use self::node::*;
 
-///Contains node-level building block structs and visitors used for a Tree.
+///Contains node-level building block structs and visitors used for a [`Tree`].
 pub mod node;
 
 pub mod collections;

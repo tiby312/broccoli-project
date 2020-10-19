@@ -10,22 +10,24 @@
 //! + `(Rect<N>,T)`
 //! + `&mut (Rect<N>,T)`
 //!
-//! ### There are so many tree types which one do I use?
+//! ### There are so many Tree types which one do I use?
 //!
-//! A lot of different variations are provided to give the user
-//! more or less control and to  rely or more or less unsafe code.
-//! The TLDR is to use `broccoli::collections::TreeRefInd`.
-//! The `collections` module goes into more depth.
+//! Different variations are provided to give the user
+//! more or less control which rely or more or less unsafe code.
+//! The [`collections`] module goes into more depth as well as the book mentioned above.
+//!
+//! TL;DR use [`collections::TreeRefInd`].
 //!
 //! ### Floating Point
 //!
-//! The `Num` trait used for the aabbs inserted into the tree must implement `Ord`,
-//! thus you can't add `f32` or `f64`. However, you can use the `ordered_float` crate.
+//! The [`Num`] trait used for the aabbs inserted into the tree must implement [`Ord`],
+//! thus you can't add `f32` or `f64`. However, you can use the `ordered_float` crate, which 
+//! is re-exported at [`axgeom::ordered_float`].
 //! Construction and querying is very comparison heavy so prefer `NotNan<T>` over `OrderedFloat<T>`.
-//! However, check our the broccoli book mentioned above. In most cases, for best performance,
+//! However, check out the broccoli book mentioned above. However, for best performance,
 //! you will likely want to convert the floats to integers anyway.
 //!
-//! ### User Protection
+//! ### Protecting Invariants Statically
 //!
 //! A lot is done to forbid the user from violating the invariants of the tree once constructed
 //! while still allowing them to mutate parts of each element of the tree. The user can mutably traverse
