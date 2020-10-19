@@ -10,8 +10,12 @@
 //! + `(Rect<N>,T)`
 //! + `&mut (Rect<N>,T)`
 //!
-//! The TLDR is to fill a `broccoli::Tree` with `BBox<N,&mut T>`. But if more functionality
-//! is needed (the collect functions) then use `broccoli::collections::TreeRefInd`
+//! ### There are so many tree types which one do I use?
+//!
+//! A lot of different variations are provided to give the user
+//! more or less control and to  rely or more or less unsafe code.
+//! The TLDR is to use `broccoli::collections::TreeRefInd`.
+//! The `collections` module goes into more depth.
 //!
 //! ### Floating Point
 //!

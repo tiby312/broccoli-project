@@ -1,7 +1,16 @@
 //! Container trees that deref to `broccoli::Tree`
+//! ```
+//! Here are how the Tree types are related:
+//! --> = Deref
+//! -> = Function
 //!
-//! broccoli::Tree is written in safe rust, and for most usecases,
-//! using broccoli::Tree is enough. But in certain cases
+//! TreeOwned -> TreeRef --> Tree
+//! TreeOwnedInd -> TreeRefInd --> TreeRef --> Tree
+//! ```
+//! ### Overview
+//!
+//! `broccoli::Tree` is written in safe rust, and for most usecases,
+//! using `broccoli::Tree` is enough. But in certain cases
 //! we want more control. The container trees in this module are for this purpose.
 //!
 //! For example, with the regular `broccoli::Tree`, you can't
@@ -32,11 +41,14 @@
 //!
 //! This is good and all, but having to work around the PMut<T> pointer
 //! that protect the invariants of the tree is cumbersome. To get around that
-//! we can use `TreeRefInd` which adds a layer of indirection. Unintuitively,
-//! This version that adds a layer of indirection is typically faster.
-//! Check the crate's book for more analysis. This does have some drawbacks
-//! in the sense that it uses more memory, though, as the aabbs are copied.
+//! we can use `TreeRefInd` which adds a layer of indirection. 
 //!
+//! Unintuitively, this version that adds a layer of indirection is typically faster.
+//! Check the crate's book for more analysis. This does have some drawbacks
+//! in the sense that it uses more memory, as the aabbs are copied.
+//! Additionally, `TreeRefInd` provides `collect` functions that allow 
+//! storing query results that can then be iterated through multiple times
+//! quickly.
 //!
 //! ```rust
 //! use broccoli::prelude::*;
