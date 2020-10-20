@@ -25,7 +25,7 @@
 //! thus you can't add `f32` or `f64`. However, you can use the `ordered_float` crate, which 
 //! is re-exported at [`axgeom::ordered_float`].
 //! Construction and querying is very comparison heavy so prefer `NotNan<T>` over `OrderedFloat<T>`.
-//! However, check out the broccoli book mentioned above. However, for best performance,
+//! The broccoli book mentioned above compares performance. For best performance,
 //! you will likely want to convert the floats to integers anyway.
 //!
 //! ### Protecting Invariants Statically

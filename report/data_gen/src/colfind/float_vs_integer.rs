@@ -60,7 +60,8 @@ fn handle_bench(fg: &mut Figure) {
         bench_f64_par: f64,
         bench_i64: f64,
         bench_i64_par: f64,
-        bench_float_i32: f64
+        bench_float_i32: f64,
+        bench_float_ordered:f64
     }
 
     let mut records = Vec::new();
@@ -147,7 +148,28 @@ fn handle_bench(fg: &mut Figure) {
             })
         };
 
+        let bench_float_ordered = {
+            
+            let r = vec2same(prop.radius.dis() as f32);
 
+            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
+                use axgeom::ordered_float::OrderedFloat;
+                let k: Rect<OrderedFloat<f32>> = axgeom::Rect::from_point(b.pos.inner_as::<f32>(), r)
+                    .inner_try_into()
+                    .unwrap();
+                k
+            });
+
+            bench_closure(||{
+                let mut tree = broccoli::new(&mut bb);
+
+                tree.find_colliding_pairs_mut(|a, b| {
+                    a.num += 1;
+                    b.num += 1;
+                });
+    
+            })
+        };
         let bench_float = {
             
             let r = vec2same(prop.radius.dis() as f32);
@@ -168,8 +190,6 @@ fn handle_bench(fg: &mut Figure) {
                 });
     
             })
-            
-
         };
 
         let bench_float_par = {
@@ -289,7 +309,8 @@ fn handle_bench(fg: &mut Figure) {
             bench_integer_par,
             bench_f64,
             bench_f64_par,
-            bench_float_i32
+            bench_float_i32,
+            bench_float_ordered
         });
     }
 
@@ -305,10 +326,11 @@ fn handle_bench(fg: &mut Figure) {
     let y7 = rects.iter().map(|a| a.bench_i64);
     let y8 = rects.iter().map(|a| a.bench_i64_par);
     let y9 = rects.iter().map(|a| a.bench_float_i32);
+    let y10 = rects.iter().map(|a| a.bench_float_ordered);
 
 
     
-
+    let ww=1.0;
     fg.axes2d()
         .set_title(
             "Comparison of broccoli Performance With Different Number Types With abspiral(x,2.0)",
@@ -318,47 +340,52 @@ fn handle_bench(fg: &mut Figure) {
         .lines(
             x.clone(),
             y1,
-            &[Caption("f32"), Color("blue"), LineWidth(1.6)],
+            &[Caption("f32"), Color("blue"), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y2,
-            &[Caption("i32"), Color("green"), LineWidth(1.6)],
+            &[Caption("i32"), Color("green"), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y3,
-            &[Caption("f32 parallel"), Color("red"), LineWidth(1.6)],
+            &[Caption("f32 parallel"), Color("red"), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y4,
-            &[Caption("i32 parallel"), Color("orange"), LineWidth(1.6)],
+            &[Caption("i32 parallel"), Color("orange"), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y5,
-            &[Caption("f64"), Color("violet"), LineWidth(1.6)],
+            &[Caption("f64"), Color("violet"), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y6,
-            &[Caption("f64 parallel"), Color("yellow"), LineWidth(1.6)],
+            &[Caption("f64 parallel"), Color("yellow"), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y7,
-            &[Caption("i64"), Color("brown"), LineWidth(1.6)],
+            &[Caption("i64"), Color("brown"), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y8,
-            &[Caption("i64 parallel"), Color("purple"), LineWidth(1.6)],
+            &[Caption("i64 parallel"), Color("purple"), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y9,
-            &[Caption("f32 to u32"), Color("black"), LineWidth(1.6)],
+            &[Caption("f32 to u32"), Color("black"), LineWidth(ww)],
+        )
+        .lines(
+            x.clone(),
+            y10,
+            &[Caption("f32 ordered"), Color("black"), LineWidth(ww)],
         )
         .set_x_label("Number of Objects", &[])
         .set_y_label("Time taken in seconds", &[]);
