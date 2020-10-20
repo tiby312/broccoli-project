@@ -74,7 +74,7 @@ mod inner_prelude {
 
 pub mod query;
 
-///Contains generic code used in all dinotree versions
+///Contains generic tree construction code
 mod tree;
 pub use tree::*;
 
@@ -110,7 +110,7 @@ pub mod prelude {
     pub use axgeom::Rect;
 }
 
-///The underlying number type used for the dinotree.
+///The underlying number type used for the tree.
 ///It is auto implemented by all types that satisfy the type constraints.
 ///Notice that no arithmatic is possible. The tree is constructed
 ///using only comparisons and copying.
@@ -118,11 +118,11 @@ pub trait Num: Ord + Copy + Send + Sync {}
 impl<T> Num for T where T: Ord + Copy + Send + Sync {}
 
 ///Trait to signify that this object has an axis aligned bounding box.
-///get() must return a aabb with the same value in it while the element
-///is in the dinotree. This is hard for the user not to do, this the user
-///does not have &mut self, and the aabb is implied to belong to self.
-///But it is still possible through the use of static objects or RefCell/ Mutex, etc.
-///Using this type of methods the user could make different calls to get()
+///`get()` must return a aabb with the same value in it while the element
+///is in the tree. This is hard for the user not to do, this the user
+///does not have `&mut self`,
+///but it is still possible through the use of static objects or RefCell/ Mutex, etc.
+///Using these type of methods the user could make different calls to get()
 ///return different aabbs.
 ///This is unsafe since we allow query algorithms to assume the following:
 ///If two object's aabb's don't intersect, then they can be mutated at the same time.
@@ -143,7 +143,7 @@ unsafe impl<N: Num> Aabb for Rect<N> {
 ///
 ///The trait in unsafe since an incorrect implementation could allow the user to get mutable
 ///references to each element in the tree allowing them to swap them and thus violating
-///invariants of the tree. This can be done if the user were to implement with type Inner=Self
+///invariants of the tree. This can be done if the user were to implement with type `Inner=Self`
 ///
 ///We have no easy way to ensure that the Inner type only points to the inner portion of a AABB
 ///so we mark this trait as unsafe.
