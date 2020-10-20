@@ -122,6 +122,7 @@ unsafe impl<T: ?Sized> Send for Ptr<T> {}
 unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 
 
+///See module documentation.
 pub struct TreeRefInd<'a, A: Axis, N: Num, T> {
     tree: inner::TreeIndInner<A,N,T>,
     _p: PhantomData<&'a mut (T, N)>,
@@ -184,6 +185,7 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
     }
 }
 
+///See module documentation.
 pub struct TreeRef<'a, A: Axis, T: Aabb> {
     tree: inner::TreeRefInner<A, T>,
     _p: PhantomData<&'a mut T>,
@@ -253,6 +255,7 @@ pub(crate) struct NodePtr<T: Aabb> {
     _div: Option<T::Num>,
 }
 
+///See module documentation.
 pub struct TreeOwnedInd<A: Axis, N: Num, T> {
     tree:inner::TreeIndInner<A,N,T>,
     _bots: Box<[T]>,
@@ -301,7 +304,7 @@ impl<A: Axis, N: Num, T> TreeOwnedInd<A, N, T> {
     }
 }
 
-///An owned Tree componsed of `T:Aabb`
+///See module documentation.
 pub struct TreeOwned<A: Axis, T: Aabb> {
     tree: inner::TreeRefInner<A, T>,
     _bots: Box<[T]>,

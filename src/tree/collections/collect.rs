@@ -1,5 +1,7 @@
 use super::*;
 
+
+///CollidingPairs created via [`TreeRefInd::collect_colliding_pairs`]
 pub struct CollidingPairs<T, D> {
     ///See collect_intersections_list()
     ///The same elements can be part of
@@ -29,9 +31,9 @@ impl<T, D> CollidingPairs<T, D> {
     }
 }
 
+///CollidingPairsPar created via [`TreeRefInd::collect_colliding_pairs_par`]
 ///All colliding pairs partitioned into
-///mutually exclusive sets so that they can
-//be traversed in parallel
+///mutually exclusive sets so that they can be traversed in parallel
 pub struct CollidingPairsPar<T, D> {
     cols: Vec<Vec<(Ptr<T>, Ptr<T>, D)>>,
     original: Ptr<[T]>,
@@ -142,7 +144,7 @@ impl<'a, A: Axis, N: Num, T: Send + Sync> TreeRefInd<'a, A, N, T> {
     }
 }
 
-//Contains a filtered list of all elements in the tree.
+///Contains a filtered list of all elements in the tree from calling [`TreeRefInd::collect_all`].
 pub struct FilteredElements<T, D> {
     elems: Vec<(Ptr<T>, D)>,
     orig: Ptr<[T]>,

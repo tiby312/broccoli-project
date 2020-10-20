@@ -13,7 +13,8 @@
 //! ### There are so many Tree types which one do I use?
 //!
 //! Different variations are provided to give the user
-//! more or less control which rely or more or less unsafe code.
+//! more options on what kind of characteristics they want.
+//! i.e. less memory vs faster vs less unsafe code.
 //! The [`collections`] module goes into more depth as well as the book mentioned above.
 //!
 //! TL;DR use [`collections::TreeRefInd`].
