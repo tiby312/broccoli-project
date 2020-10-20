@@ -122,7 +122,7 @@ impl<T> Num for T where T: Ord + Copy + Send + Sync {}
 ///`get()` must return a aabb with the same value in it while the element
 ///is in the tree. This is hard for the user not to do, this the user
 ///does not have `&mut self`,
-///but it is still possible through the use of static objects or RefCell/ Mutex, etc.
+///but it is still possible through the use of static objects or `RefCell` / `Mutex`, etc.
 ///Using these type of methods the user could make different calls to get()
 ///return different aabbs.
 ///This is unsafe since we allow query algorithms to assume the following:
