@@ -1,4 +1,4 @@
-//! Container trees that deref to `broccoli::Tree`
+//! Container trees that deref to [`Tree`]
 //! ```ignore
 //! The relationships between Tree types:
 //!
@@ -30,11 +30,11 @@
 //! k[0].inner=4;    //<---cannot re-borrow
 //! b.find_intersections_mut(|a,b|{});
 //! ```
-//! This is because `broccoli::Tree` constructs itself by splitting up the
+//! This is because [`Tree`] constructs itself by splitting up the
 //! passed mutable slice to the point where the original mutable slice
 //! can't be retrieved.
 //!
-//! If we use `TreeRef`, we can do the above like this:
+//! If we use [`TreeRef`], we can do the above like this:
 //! ```rust
 //! use broccoli::prelude::*;
 //! let mut k=[bbox(rect(0,10,0,10),8)];
@@ -46,12 +46,12 @@
 //!
 //! This is good and all, but having to work around the PMut<T> pointer
 //! that protect the invariants of the tree is cumbersome. To get around that
-//! we can use `TreeRefInd` which adds a layer of indirection. 
+//! we can use [`TreeRefInd`] which adds a layer of indirection. 
 //!
 //! Unintuitively, this version that adds a layer of indirection is typically faster.
 //! Check the crate's book for more analysis. This does have some drawbacks
 //! in the sense that it uses more memory, as the aabbs are copied.
-//! Additionally, `TreeRefInd` provides `collect` functions that allow 
+//! Additionally, [`TreeRefInd`] provides `collect` functions that allow 
 //! storing query results that can then be iterated through multiple times
 //! quickly.
 //!
@@ -64,8 +64,8 @@
 //! b.find_colliding_pairs_mut(|a,b|{});
 //! ```
 //!
-//! `TreeRef` and `TreeRefInd` are both lifetimed. If you want to store the tree
-//! inside an object there are `TreeOwned` and `TreeOwnedInd` equivalents.
+//! [`TreeRef`] and [`TreeRefInd`] are both lifetimed. If you want to store the tree
+//! inside an object there are [`TreeOwned`] and [`TreeOwnedInd`] equivalents.
 //!
 //! ## An owned `(Rect<N>,T)` example
 //!

@@ -36,7 +36,7 @@ pub struct Tree<'a, A: Axis, T: Aabb> {
 }
 
 
-///The default starting axis of a `broccoli::Tree`. It is set to be the `Y` axis.
+///The default starting axis of a [`Tree`]. It is set to be the `Y` axis.
 ///This means that the first divider is a horizontal line since it is
 ///partitioning space based off of the aabb's `Y` value.
 pub type DefaultA = YAXIS;
@@ -47,7 +47,7 @@ pub const fn default_axis() -> YAXIS {
     YAXIS
 }
 
-///Create a `broccoli::Tree` using the default axis.
+///Create a [`Tree`] using the default axis.
 ///
 /// # Examples
 ///
@@ -60,7 +60,7 @@ pub fn new<'a, T: Aabb>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> {
     TreeBuilder::new(bots).build_seq()
 }
 
-///Create a `broccoli::Tree` using a specified axis.
+///Create a [`Tree`] using a specified axis.
 ///
 /// # Examples
 ///
@@ -74,7 +74,7 @@ pub fn with_axis<'a, A: Axis, T: Aabb>(axis: A, bots: &'a mut [T]) -> Tree<'a, A
 }
 
 
-///Create a `broccoli::Tree` using the default axis in parallel.
+///Create a [`Tree`] using the default axis in parallel.
 ///
 /// # Examples
 ///
@@ -87,7 +87,7 @@ pub fn new_par<'a, T: Aabb + Send + Sync>(bots: &'a mut [T]) -> Tree<'a, Default
     TreeBuilder::new(bots).build_par()
 }
 
-///Create a `broccoli::Tree` using a specified axis in parallel.
+///Create a [`Tree`] using a specified axis in parallel.
 ///
 /// # Examples
 ///

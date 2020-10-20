@@ -1,6 +1,6 @@
 use crate::inner_prelude::*;
 
-///Shorthand constructor of `BBox`
+///Shorthand constructor of [`BBox`]
 pub fn bbox<N, T>(rect: Rect<N>, inner: T) -> BBox<N, T> {
     BBox::new(rect, inner)
 }
