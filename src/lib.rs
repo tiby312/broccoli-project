@@ -6,9 +6,9 @@
 //! Using this crate, the user can create three flavors of the same fundamental data structure.
 //! The different characteristics are exlored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
 //!
-//! + `(Rect<N>,&mut T)` *recommended
-//! + `(Rect<N>,T)`
-//! + `&mut (Rect<N>,T)`
+//! + `(Rect<N>,&mut T)` (Semi-Direct) *recommended
+//! + `(Rect<N>,T)` (Direct)
+//! + `&mut (Rect<N>,T)` (Indirect)
 //!
 //! ### There are so many Tree types which one do I use?
 //!

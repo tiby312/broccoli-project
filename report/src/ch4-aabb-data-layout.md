@@ -4,7 +4,7 @@
 Below are a bunch of diagrams that highlight differences between a couple variable:
 Whether the elements inserted into the tree are made up of:
 
-* `(Rect<Num>,&mut T)` (Default)
+* `(Rect<Num>,&mut T)` (Semi-Direct)
 * `(Rect<Num>,T)` (Direct)
 * `&mut (Rect<Num>,T)` (Indirect)
 
@@ -17,7 +17,7 @@ argument which influnces the size of `T`.
 
 There are a couple of observations to make.
 * Direct is the faster at querying, but the slowest at construction
-* Default is the best all-around.
+* Semi-Direct is the best all-around.
 * Indirect isn't far behind Default.
 * Direct is greatly influenced by the size of `T`.
  
