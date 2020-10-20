@@ -7,10 +7,9 @@ rm -rf src/raw
 ../target/release/data_gen theory src/raw
 
 rm -rf book/graphs
-../target/release/data_gen graph src/raw book/graphs
-
+../target/release/data_gen graph src/raw src/graphs
 
 
 #xdg-open http://localhost:3000/ &
-#mdbook serve
-xdg-open book/index.html
+mdbook serve
+#xdg-open book/index.html
