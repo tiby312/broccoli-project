@@ -1,25 +1,23 @@
 
 # Comparison against other Algorithms
 
-The below chart compares different algorithms both in terms of comparisons and benches. The naive algorithm is clearly the slowest, with sweep and prune next, then KD Tree followed by dinotree. It is interesting to note that the real world bench times matche closely with the theoretical number of comparisons. So that means that the number of comparisons performed is proportional to the real world performance of this algorithm. The lines are more smooth (and deterministic) than the benches since an everyday laptop has more tasks to do and might also throttle itself half way through a bench.
+The below chart compares different algorithms both in terms of comparisons and benches. It is interesting to note that the real world bench times matche closely with the theoretical number of comparisons. So that means that the number of comparisons performed is proportional to the real world performance of this algorithm. Makes sense, but it is also nice to see the data line up. The lines are more smooth (and deterministic) than the benches since an everyday laptop has more tasks to do and might also throttle itself half way through a bench.
 
-The way in which the benches are graphed is also slightly misleading. Every graph that graphs the load over size n does so first by benching for n=1, then n=2, n=3, etc. This means that you can see trends in the graph where the cpu throttles, for example, and see if all happen in the same area in the graph. If more samples were taken of each n, and in a random order, this would not be apparent. So for these graphs the x axis is n, but it's also in a way time. In reality this isn't that big of a deal, as long as we can clearly see a trend as n increases.
+The jumps that you see in the theoretical `broccoli` line are the points at which the trees height grows by one. It is a complete binary tree so a slight increase in the height by 1 causes a doubling of nodes so it is a drastic change. As the number of bots increases it is inevitable that sometimes the tree will be too tall or too short. 
 
-The jumps that you see in the theoretical dinotree line are the points at which the trees height grows by one. It is a complete binary tree so a slight increase in the height by 1 causes a doubling of nodes so it is a drastic change. As the number of bots increases it is inevitable that sometimes the tree will be too tall or too short. 
-
-It's also worth noting that the difference between sweep and prune and kdtree and naive is much bigger than the difference between sweep and prune and kdtree and dinotree. So using these simpler algorithms gets you big gains as it is. The gains you get from using dinotree are not as pronounced, but are noticeable with more elements.
+It's also worth noting that the difference between `sweep and prune`/`kdtree` and `naive` is much bigger than the difference between `sweep and prune`/`kdtree` and `broccoli`. So using these simpler algorithms gets you big gains as it is. The gains you get from using `broccoli` are not as pronounced, but are noticeable with more elements.
 
 
 <img alt="Colfind Theory" src="graphs/colfind_theory.svg" class="center" style="width: 100%;" />
 <img alt="Colfind Bench" src="graphs/colfind_bench.svg" class="center" style="width: 100%;" />
 
 
-The below chart shows a 3d view of the characteristics of naive, sweep and prune, and dinotree.
+The below chart shows a 3d view of the characteristics of `naive`, `sweep and prune`, and `broccoli`.
 
 There are a couple of observations to make here. First, you might have noticed that the naive algorithm is not completely static with respect to the spiral grow. This is because the naive implementation I used is not 100% naive. While it does check
-every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the bots are clumped up. If there were no short-circuiting, it would be flat all across. However, it is clear from the graph that this short-circuiting optimization does not gain you all that much.
+every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the bots are clumped up. If there were no short-circuiting, it would be flat all across. It is clear from the graph that this short-circuiting optimization does not gain you all that much.
 
-Another interesting observation is that these graphs show that sweep and prune has a better worst case than the dinotree algorithm. This makes sense since in the worst case, sweep and prune will sort all the bots, and then sweep. In the worst case for dinotree, it will first find the median, and then sort all the bots, and then sweep. So the dinotree is slower since it redundantly found the median, and then sorted everything. However, it is easy to see that this only happens when the bots are extremely clumped up (abspiral(grow) where grow<=0.003). So while sweep and prune has a better worst-cast, the worst-cast scenario is rare and the dino-tree's worst case is not much worse (median finding + sort versus just sort). 
+Another interesting observation is that these graphs show that `sweep and prune` has a better worst case than the `broccoli`. This makes sense since in the worst case, `sweep and prune` will sort all the elements, and then sweep. In the worst case for `broccoli`, it will first find the median, and then sort all the elements, and then sweep. So the `broccoli` is slower since it redundantly found the median, and then sorted everything. However, it is easy to see that this only happens when the bots are extremely clumped up (abspiral(grow) where grow<=0.003). So while `sweep and prune` has a better worst-cast, the worst-cast scenario is rare and the dino-tree's worst case is not much worse (median finding + sort versus just sort). 
 
 <img alt="3D Colfind" src="graphs/3d_colfind_num_pairs.svg" class="center" style="width: 100%;" />
 

@@ -17,3 +17,4 @@
 - [Statically Known Axis](./ch13-statically-known-axis.md)
 - [Algorithm In-Depth](./ch14-algorithm-in-depth.md)
 - [Time Analysis](./ch15-time_analysis_WIP.md)
+- [General Thoughts](./ch16-general-thoughts.md)
