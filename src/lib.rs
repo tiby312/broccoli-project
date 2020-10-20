@@ -40,9 +40,9 @@
 //! Raw pointers are used for the container types in the container module
 //! and for caching the results of finding colliding pairs.
 //!
-//! `MultiRectMut` uses unsafety to allow the user to have mutable references to elements
+//! [`query::Queries::multi_rect`] uses unsafety to allow the user to have mutable references to elements
 //! that belong to rectangle regions that don't intersect at the same time. This is why
-//! the Aabb trait is unsafe.
+//! the ['Aabb'] trait is unsafe.
 //!
 //! ### Name
 //! If you shorten "broadphase collision" to "broad colli" and say it fast, it sounds like broccoli.
