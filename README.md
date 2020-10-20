@@ -6,7 +6,7 @@ The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org
 ### Inner projects
 
 The broccoli_demo inner project is meant to show case the use of these algorithms. 
-The report inner project generates benches used in the [broccoli book](https://tiby312.github.io/broccoli_report/index.html).
+The report inner project generates benches used in the [broccoli book](https://tiby312.github.io/broccoli_report).
 
 ### Screenshot
 
