@@ -1,5 +1,5 @@
 use broccoli::prelude::*;
-use broccoli::collections::TreeRefInd;
+
 fn main() {
     let mut aabbs = [
         bbox(rect(0isize, 10, 0, 10), 0),
@@ -7,14 +7,17 @@ fn main() {
         bbox(rect(5, 15, 5, 15), 0),
     ];
 
+    //Create a layer of direction.
+    let mut ref_aabbs = aabbs.iter_mut().collect::<Vec<_>>();
+
     //This will change the order of the elements in bboxes,
     //but this is okay since we populated it with mutable references.
-    let mut tree = TreeRefInd::new(&mut aabbs,|a|a.rect);
+    let mut tree = broccoli::new(&mut ref_aabbs);
 
     //Find all colliding aabbs.
     tree.find_colliding_pairs_mut(|a, b| {
-        a.inner += 1;
-        b.inner += 1;
+        *a += 1;
+        *b += 1;
     });
 
     assert_eq!(aabbs[0].inner, 1);

@@ -1,6 +1,6 @@
 //! Container trees that deref to `broccoli::Tree`
-//! ```
-//! Here are how the Tree types are related:
+//! ```ignore
+//! The relationships between Tree types:
 //!
 //! TreeOwned -> TreeRef --> Tree
 //! TreeOwnedInd -> TreeRefInd --> TreeRef --> Tree
