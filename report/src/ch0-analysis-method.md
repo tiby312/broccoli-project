@@ -6,13 +6,13 @@ For our tests lets use an archimedean spiral distribution. It gives us a lot of 
 
 If all the bots were dstributed along only one dimension then that would also skew our results. For example, sweep and prune will perform very well if all the bots are spaced out along the axis we are sweeping.
 
-The spiral distribution takes 3 inputs: 
+Lets make a function `abspiral` that takes 3 inputs and produces an archimedean spiral.: 
 * n: the number of bots
-* separation: the seperation between the bots as they are laid out.
-* grow rate: the rate at which the bots grow outward from the center.
+* separation: the seperation between the bots as they are laid out along the spiral.
+* grow rate: the rate at which the spiral grow outward from the center.
 
 We increase n to increase the size of the problem.
-We can increase the spiral_grow to decrease the number of bots intersecting.
+We can increase the grow rate to decrease the number of bots intersecting.
 
 <img alt="Spiral Visualize" src="graphs/spiral_visualize.svg" class="center" style="width: 100%;" />
 
@@ -37,6 +37,9 @@ The constants are just values I pulled out of thin air. We just want all the ele
 The below chart shows how influencing the spiral_grow affects the number of bot intersections for abspiral(). This shows that we can influence the spiral grow to see how the performance of the tree degrades. We could influence how many bots are colliding with changing the separation, but the relationship to the grow rate and the number of intersection pairs makes a nice smooth downward graph.
 
 It is not entirely smooth, but it is smooth enough that we can use this function to change the load on the dinotree without having to sample multiple times.
+
+Its also clearly not linear, but all that really matters is that we have a way to increase/decrease
+the number of collisions easily.
 
 <img alt="Spiral Data" src="graphs/spiral_data.svg" class="center" style="width: 100%;" />
 
