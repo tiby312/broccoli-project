@@ -8,13 +8,7 @@ to use floats. This might not be true on all CPU architectures that might have b
 
 If you do convert your floats to integers, make sure to normalize it over all possible values of the integer to make it as accurate as possible. If it is important to you to not miss any interesections, then you'd also have make sure that the rouding is conservative always producing a bounding box that is slightly bigger than it needs to be.
 
+One thing that surprised me is that ordered_float::OrderedFloat<T> is only slightly slower than ordered_float::NotNan<T>. I thought that because we are doing a lot of comparisons, the extra
+overhead of the comparison function for OrderedFlot would add up, but it only slightly affects it. 
+
 <img alt="Float vs Integer" src="graphs/float_vs_integer.svg" class="center" style="width: 100%;" />
-
-
-
-# When inserting float based AABBs, prefer NotNaN<> over OrderedFloat<>.
-
-If you want to use this for floats, NotNaN has no overhead for comparisions, but has overhead for computation, the opposite is true for OrderedFloat.
-For querying the tree colliding pairs, since no calculations are done, just a whole lot of comparisions, prefer NotNaN<>.
-Other queries do require arithmatic, like raycast and knearest. So in those cases maybe ordered float is preferred.
-
