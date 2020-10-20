@@ -1,7 +1,7 @@
 
 # Rebalancing vs Querying
 
-The below charts show the load balance between the construction and querying on the dinotree.
+The below charts show the load balance between the construction and querying on the broccoli.
 It's important to note that the comparison isnt really 'fair'. The cost of querying depends a lot on
 what you plan on doing with every colliding pair (it could be an expensive user calculation). Here we just use a 'reasonably' expensive calculation that repels the colliding pairs.
 

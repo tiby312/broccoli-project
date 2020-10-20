@@ -87,7 +87,7 @@ So below algorithms are only efficient if d<<s.
 So e=(n*d)/s.  and we assume d << s.
 
 
-# DinoTree construction time complexity
+# construction time complexity
 
 Lets looking at rebalancing. For each node, there are three steps that need to be done:
 binning process
@@ -178,7 +178,7 @@ So assuming e is small, we running time of creating the tree is n*log(n).
 
 
 
-# DinoTree collision pair query time complexity
+# collision pair query time complexity
 
 
 Lets make some sweeping (no pun intended) assumptions. Every node has around the same number of bots,

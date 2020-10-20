@@ -36,7 +36,7 @@ The constants are just values I pulled out of thin air. We just want all the ele
 
 The below chart shows how influencing the spiral_grow affects the number of bot intersections for abspiral(). This shows that we can influence the spiral grow to see how the performance of the tree degrades. We could influence how many bots are colliding with changing the separation, but the relationship to the grow rate and the number of intersection pairs makes a nice smooth downward graph.
 
-It is not entirely smooth, but it is smooth enough that we can use this function to change the load on the dinotree without having to sample multiple times.
+It is not entirely smooth, but it is smooth enough that we can use this function to change the load on the broccoli without having to sample multiple times.
 
 Its also clearly not linear, but all that really matters is that we have a way to increase/decrease
 the number of collisions easily.

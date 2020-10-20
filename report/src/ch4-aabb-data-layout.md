@@ -48,7 +48,7 @@ cases worth copying the aabb.
 ## Different Data Layouts
 
 
-There are three main datalayouts for each of the elements in a dinotree that are interesting:
+There are three main datalayouts for each of the elements in a broccoli that are interesting:
 `(Rect<isize>,&mut T)`
 `(Rect<isize>,T)`
 `&mut (Rect<isize>,T)`
@@ -60,7 +60,7 @@ The user can easily try all three data layouts.
 The default layout is almost always the fastest. 
 There are a few corner cases where if T is very small, and the bots are very dense, direct is faster, but it is marginal.
 
-The default layout is good because during dinotree construction and querying we make heavy use of aabb's, but don't actually need T all that much. We only need T when we actually detect a collision, which doesnt happen that often. Most of the time we are just
+The default layout is good because during broccoli construction and querying we make heavy use of aabb's, but don't actually need T all that much. We only need T when we actually detect a collision, which doesnt happen that often. Most of the time we are just
 ruling out possible colliding pairs by checking their aabbs.
 
 Yes the times we do need T could lead to a cache miss, but this happens infrequently enough that that is ok.
@@ -90,5 +90,5 @@ Note, if the size of the elements is the same then the Point+radius only takes u
 
 ## AABB data layout
 
-The aabb we use is made up of ranges that look like : start,end instead of start,length.  If you define them as a start and a length then querying intersections between rectangles requires that you do floating point arithmatic. The advantage of the start,end data layout is that all the dinotree query algorithms don't need to do a single floating point calculation. It is all
+The aabb we use is made up of ranges that look like : start,end instead of start,length.  If you define them as a start and a length then querying intersections between rectangles requires that you do floating point arithmatic. The advantage of the start,end data layout is that all the broccoli query algorithms don't need to do a single floating point calculation. It is all
 just comparisons. The downside, is that if you want the dimentions on the aabb, you have to calculate them, how this isnt something that any of the tree algorithms need. 

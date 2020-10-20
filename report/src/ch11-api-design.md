@@ -5,8 +5,8 @@ collision checking all at once.
 ## Mutable vs Mutable + Read-Only api
 
 Most of the query algorithms only provide an api where they operate on a mutable reference
-to the dinotree and return mutable reference results.
-Ideally there would be sibling query functions that take a read-only dinotree
+to the broccoli and return mutable reference results.
+Ideally there would be sibling query functions that take a read-only broccoli
 and produce read-only reference results. 
 The main benefit would be that you could run different types of query algorithms on the tree
 simulatiously safely. 
