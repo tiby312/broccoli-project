@@ -2,7 +2,69 @@ TODO talk about general usecase.
 Different types of entities. collision checking groups of entities instead of
 collision checking all at once.
 
+
+
+
+
 ## Mutable vs Mutable + Read-Only api
+
+A lot of the query algorithms don't actually care what kind of reference is in the tree.
+They don't actually mutate the elements, they just retrieve them.
+
+In this way, it would be nice if the query algorithms were generic of the type of reference they held. This way you could have a raycast(&mut Tree) function that allows you to mutate the elements it finds, or you could have a rayacst(&Tree) function that allows you to call it multiple times in parallel.
+
+To do this you can go down one of two paths, macros or generic associated types. GATs [don't exist yet](https://github.com/rust-lang/rfcs/blob/master/text/1598-generic_associated_types.md), and macros are hard to read and can be a head ache.
+
+
+```
+trait GenericRef<'a>{}
+
+///This is some trait that implement split_at().
+trait GenericSlice<'a>:Sized{
+    type T:GenericRef<'a>;
+    type Iter:Iterator<Item=Self::T>;
+    fn split_at(self,index:usize)->(Self,Self);
+
+    fn index_at(self,index:usize)->Self::T;
+    fn iter(self)->Self::Iter;
+}
+
+impl<'a,T> GenericSlice<'a> for &'a mut [T]{
+    type T=&'a mut T;
+    type Iter=core::slice::IterMut<'a,T>;
+    
+    fn split_at(self,index:usize)->(&'a mut [T],&'a mut [T]){
+        self.split_at_mut(index)
+    }
+    fn index_at(self,index:usize)->&'a mut T{
+        &mut self[index]
+    }
+    fn iter(self)->Self::Iter{
+        self.iter_mut()
+    }
+}
+impl<'a,T> GenericRef<'a> for &'a mut T{}
+impl<'a,T> GenericRef<'a> for &'a T{}
+
+impl<'a,T> GenericSlice<'a> for &'a [T]{
+    type T=&'a T;
+    type Iter=core::slice::Iter<'a,T>;
+    fn split_at(self,index:usize)->(&'a [T],&'a [T]){
+        self.split_at(index)
+    }
+    fn index_at(self,index:usize)->&'a T{
+        &self[index]
+    }
+    fn iter(self)->Self::Iter{
+    
+        self.iter()
+    
+    }
+    
+}
+```
+
+
 
 Most of the query algorithms only provide an api where they operate on a mutable reference
 to the broccoli and return mutable reference results.
