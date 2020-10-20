@@ -2,9 +2,9 @@
 
 # Comparison of primitive types
 
-The below chart shows performance using different primitive types for the aabbs. Notice that once parallelism is brought in, the differences between the types is not as big. It is interesting how much faster integers are than floats. It makes me wonder
-if in some cases it might be worth while to convert all floats to integers during construction and then do everything with 
-integers.
+The below chart shows performance using different primitive types for the aabbs. Notice that once parallelism is brought in, the differences between the types is not as big. It is interesting how much faster integers are than floats. 
+The black line shows that it is faster to spend the time to convert the floats to integers, than
+to use floats. This might not be true on all CPU architectures that might have better floating point hardware acceleration. However, intuitively, it makes sense for integer comparisons to be faster as there is just less work to do. A float is made up of a exponent and a mantisa, both of which are numbers that need to be compared against another float. An integer is just one number.
 
 <img alt="Float vs Integer" src="graphs/float_vs_integer.svg" class="center" style="width: 100%;" />
 

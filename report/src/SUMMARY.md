@@ -2,7 +2,7 @@
 
 - [Overview](./overview.md)
 - [Analysis Method](./ch0-analysis-method.md)
-- [Comparison to other Algs](./ch1-dinotree-vs-other.md)
+- [Comparison to other Algs](./ch1-broccoli-vs-other.md)
 - [Construction vs Query](./ch2-construction-vs-query.md)
 - [Tree Level Load](./ch3-level-analysis.md)
 - [AABB Data Layout](./ch4-aabb-data-layout.md)
