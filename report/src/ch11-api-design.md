@@ -10,7 +10,7 @@ To do this you can go down one of two paths, macros or generic associated types.
 So for now, we will just support mutable api.
 
 
-## Making HasAabb an unsafe trait vs Not
+## Making `Aabb` an unsafe trait vs Not
 
 Making a trait unsafe is something nobody wants to do, but in this instance it lets as make some simple assumptions that lets us do interesting things safely. If rust had [trait member fields](https://github.com/rust-lang/rfcs/pull/1546#issuecomment-304033345) we could avoid unsafe.
 
