@@ -1,29 +1,19 @@
 
+### In depth algorithm overview:
 
 
+#### Construction
 
-
-
-
-
-
-
-
-# In depth algorithm overview:
-
-
-## Construction
-
-Construction works as follows, Given: a list of bots.
+Construction works as follows, Given: a list of elements.
 
 For every node we do the following:
-1. First we find the median of the remaining bots (using pattern defeating quick select) and use its position as this nodes divider.
+1. First we find the median of the remaining elements (using pattern defeating quick select) and use its position as this nodes divider.
 2. Then we bin the bots into three bins. Those strictly to the left of the divider, those strictly to the right, and those that intersect.
 3. Then we sort the bots that intersect the divider along the opposite axis that was used to finding the median. These bots now live in this node.
 4. Now this node is fully set up. Recurse left and right with the bots that were binned left and right. This can be done in parallel.
 
 
-## Finding all intersecting pairs
+#### Finding all intersecting pairs
 
 Done via divide and conquer. For every node we do the following:
 1) First we find all intersections with bots in that node using sweep and prune..
@@ -35,7 +25,7 @@ Done via divide and conquer. For every node we do the following:
    parallel.
 
 
-## Nbody (experimental)
+#### Nbody (experimental)
 
 Here we use divide and conquer.
 

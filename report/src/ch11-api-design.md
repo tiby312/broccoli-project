@@ -1,11 +1,3 @@
-TODO talk about general usecase. 
-Different types of entities. collision checking groups of entities instead of
-collision checking all at once.
-
-
-
-
-
 ## Mutable vs Mutable + Read-Only api
 
 A lot of the query algorithms don't actually care what kind of reference is in the tree.
@@ -13,127 +5,37 @@ They don't actually mutate the elements, they just retrieve them.
 
 In this way, it would be nice if the query algorithms were generic of the type of reference they held. This way you could have a raycast(&mut Tree) function that allows you to mutate the elements it finds, or you could have a rayacst(&Tree) function that allows you to call it multiple times in parallel.
 
-To do this you can go down one of two paths, macros or generic associated types. GATs [don't exist yet](https://github.com/rust-lang/rfcs/blob/master/text/1598-generic_associated_types.md), and macros are hard to read and can be a head ache.
+To do this you can go down one of two paths, macros or generic associated types. GATs [don't exist yet](https://github.com/rust-lang/rfcs/blob/master/text/1598-generic_associated_types.md), and macros are hard to read and can be a head ache. Check out our rust reuses code between Iter and IterMut for slices for an example of macro solution.
 
-
-```
-trait GenericRef<'a>{}
-
-///This is some trait that implement split_at().
-trait GenericSlice<'a>:Sized{
-    type T:GenericRef<'a>;
-    type Iter:Iterator<Item=Self::T>;
-    fn split_at(self,index:usize)->(Self,Self);
-
-    fn index_at(self,index:usize)->Self::T;
-    fn iter(self)->Self::Iter;
-}
-
-impl<'a,T> GenericSlice<'a> for &'a mut [T]{
-    type T=&'a mut T;
-    type Iter=core::slice::IterMut<'a,T>;
-    
-    fn split_at(self,index:usize)->(&'a mut [T],&'a mut [T]){
-        self.split_at_mut(index)
-    }
-    fn index_at(self,index:usize)->&'a mut T{
-        &mut self[index]
-    }
-    fn iter(self)->Self::Iter{
-        self.iter_mut()
-    }
-}
-impl<'a,T> GenericRef<'a> for &'a mut T{}
-impl<'a,T> GenericRef<'a> for &'a T{}
-
-impl<'a,T> GenericSlice<'a> for &'a [T]{
-    type T=&'a T;
-    type Iter=core::slice::Iter<'a,T>;
-    fn split_at(self,index:usize)->(&'a [T],&'a [T]){
-        self.split_at(index)
-    }
-    fn index_at(self,index:usize)->&'a T{
-        &self[index]
-    }
-    fn iter(self)->Self::Iter{
-    
-        self.iter()
-    
-    }
-    
-}
-```
-
-
-
-Most of the query algorithms only provide an api where they operate on a mutable reference
-to the broccoli and return mutable reference results.
-Ideally there would be sibling query functions that take a read-only broccoli
-and produce read-only reference results. 
-The main benefit would be that you could run different types of query algorithms on the tree
-simulatiously safely. 
-In rust right now, there isn't a easy way to re-use code
-between two versions of an algorithm where one uses mutable references and one uses read-only references.
-In the rust source code, you can see they do this using macros. From rust core's slice code:
-
-```ignore
-// The shared definition of the `Iter` and `IterMut` iterators
-macro_rules! iterator {
-	...
-}
-```
-
-But I didnt want to make these already complicated query algorithms even harder to read by
-wrapping them all in macros. The simplest query algorithm, rect querying, does provide read-only versions.
-I'm hoping that eventualy you will be able to 'parameterize over mutability' in rust so that i dont have to use macros.
-
-In any-case, there arn't many use-cases that I can think of where you'd want read-only versions of certain 
-query algorithms. For example, finding all colliding pairs. What would the user do with only read-only references
-to all the colliding pairs? There may be some cases where the user would just want to draw or list all the colliding pairs,
-but most use-cases I can think of, you want to actually mutate the pairs in some way.
-
-Other query algorithms I can see some benefits. For example, raycasting. In raycasting the user might just want to
-draw a line to the element that is returned from the raycast, in which case the user wouldn't need a mutable reference
-to the result. So if I were to provide a read-only raycast api, and the user wanted to raycast many times, then that could
-be easily be parallelized. For now, the user must use the mutable raycast api and handle each raycast sequentially. This
-is simplier to implement (no macros), and the raycast algorithm is already very fast compared to other algrithms such
-as constructing the tree and finding colliding pairs.
+So for now, we will just support mutable api.
 
 
 ## Making HasAabb an unsafe trait vs Not
 
-Making a trait unsafe is something nobody wants to do, but in this instance it lets as make some simple assumptions
-that lets us do interesting things safely. 
+Making a trait unsafe is something nobody wants to do, but in this instance it lets as make some simple assumptions that lets us do interesting things safely. If rust had [trait member fields](https://github.com/rust-lang/rfcs/pull/1546#issuecomment-304033345) we could avoid unsafe.
 
 The key idea is the following:
 If two rectangle queries do not intersect, then it is guarenteed that the elements are mutually exclusive.
 This means that we can safely return mutable references to all the elements in the first rectangle,
 and all the elements in the second rectangle simultaneously. 
 
-For this to work the user must uphold the contract of HasAabb such that the aabb returned is always the same
-while it is inserted in the tree.
+For this to work the user must uphold the contract of `Aabb` such that the aabb returned is always the same while it is inserted in the tree.
 This is hard for the user not to do since they only have read-only reference to self, but still possible using
 RefCell or Mutex. If the user violates this, then despite two query rectangles being mutually exclusive,
 the same bot might be in both. So at the cost of making HasAabb unsafe, we can make the MultiRect Api not unsafe.
 
-
-
-## Forbidding the user from violating the invariants of the tree
+## Forbidding the user from violating the invariants of the tree statically
 
 We have an interesting problem with our tree. We want the user to be able to mutate the elements directly in the tree,
 but we also do not want to let them mutate the aabb's of each of the elements of the tree. Doing so would
 mean we'd need to re-construct the tree.
 
-So when iterating over the tree, we can't return &mut T. So to get around that, there is ProtectedBBox that wraps
-around a &mut T that also implements HasAabb. 
+So when iterating over the tree, we can't return `&mut T`. So to get around that, there is `PMut<T>` that wraps around a `&mut T` and hides it but does exposes the `Aabb` and `HasInner` interfaces. 
 
-So that makes the user unable to get a &mut T, but even if we just give the user a &mut [ProtectedBBox<T>] where is another problem. The user could swap two node's slices around. So to get around that we have ProtectedBBoxSlice that wraps
-around a &mut [ProtectedBBox<T>] and provides an interator who Item is a ProtectedBBox<T>.
+So that makes the user unable to get a `&mut T`, but even if we just give the user a `&mut [PMut<T>]` where is another problem. The user could swap two node's slices around. So to get around that we use `PMut<[T]>` and `PMutIter<T>`.
 
-But there is still another problem, we can't return a &mut Node either. Because then the user could swap the entire node
-between two nodes in the tree. So to get around that we have a ProtectedNode that wraps around a &mut Node.
+But there is still another problem, we can't return a `&mut Node` either. Because then the user could swap the entire node
+between two nodes in the tree. So to get around that we have a `PMut<Node>` that wraps around a `&mut Node`.
 
-So that's alot of work, but now the user is physically unable to violate the invariants of the tree and at the same time
-we do not have a level of indirection. It is tempting
-to just let it be the user's responsibility to not violate the invariants of the tree, and that would be a fine design
-choice if it weren't for the fact that HasAabb is unsafe (See Making HasAabb an unsafe trait vs Not Section).
+So that's alot of work, but now the user is physically unable to violate the invariants of the tree at compile time and at the same time
+we do not have a level of indirection. 

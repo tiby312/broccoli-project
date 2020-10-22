@@ -1,5 +1,3 @@
-
- 
 # Comparison of Parallel Height
 
 The below chart shows the performance of the broccoli tree for different levels at which to switch to sequential.
