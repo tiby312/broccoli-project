@@ -22,12 +22,12 @@
 //! get access to the unerlying list of elements after
 //! the tree has been constructed.
 //!
-//! ```rust,compile_fail
+//! ```rust
 //! use broccoli::prelude::*;
 //! let mut k=[bbox(rect(0,10,0,10),8)];
 //! let mut b=broccoli::new(&mut k);
 //! b.find_intersections_mut(|a,b|{});
-//! k[0].inner=4;    //<---cannot re-borrow
+//! // k[0].inner=4;    //<---cannot re-borrow
 //! b.find_intersections_mut(|a,b|{});
 //! ```
 //! This is because [`Tree`] constructs itself by splitting up the

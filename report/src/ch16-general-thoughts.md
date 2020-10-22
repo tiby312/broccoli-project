@@ -1,26 +1,17 @@
+#### Level of Indirection
 
-## Sometimes slow things can be a tool to make things fast.
-
-### Level of Indirection
-
-Similar to dynamic allocation, a level of indirection can be seen as a tool that can speed up your program. If you have a data structure composed of (X,Y), and X is access frequently, but not Y, then
+Sometimes slow things can be a tool to make things fast. Normally people thinking adding a level of indirection is an automatic performance hit, but a level of indirection can be seen as a tool that can speed up your program. If you have a data structure composed of (X,Y), and X is accessed frequently but not Y, then
 if you add a level of indirection such that you have (X,&mut Y), then your data structure is composed
-of smaller elements making more of it fit in memory at once. This ofcourse only makes sense if Y is big enough.
+of smaller elements making more of it fit in memory at once. This of course only makes sense if Y is big enough.
 
-### Dynamic Allocation
+#### Dynamic Allocation
 
-Sure dynamic allocation is "slow", but that doesn't mean you should avoid it. You should use it as a tool to speed up a program. It has a cost, but the idea is that with that allocated memory you can get more performance gains.
+Similarily you can use dynamic allocation as a tool to speed up your program. It has a cost, but the idea is that with that allocated memory you can get more performance gains. The problem is that everybody has to buy into the system for it to work. Anybody who allocated a bunch of memory and doesn't return it because they want to avoid allocating it again is hogging that space for longer than it needs it.
 
-The problem is that everybody has to buy into the system for it to work. Anybody who allocated a bunch of memory and doesn't return it because they want to avoid allocating it again is hogging that space for longer than it needs it.
+Often times, its not the dynamic allocation that is slow, but some other residual of doing it in the first place. For example, dynamically allocating a bunch of pointers to an array, and then sorting that list of pointers. The allocation is fast, its just that there is no cache coherency. Two pointers in your list of pointers could very easily point to memory locations that are very far apart.
 
-Dynamic allocation is fast. Dynamically allocating large vecs in one allocation is fast. Its only when you're dynamically allocting thousands of small objects does it become bad. Even then, probably the allocations are fast, but because the memory will likely be fragmented, iterating over a list of those objects could be very slow. Concepually, I have to remind myself that if you dynamically allocate a giant block, its simply reserving that area in memory. There isnt any expensive zeroing out of all that memory unless you want to do it. That's not to say the complicated algorithms the allocator has to do arn't complicated, but still relatively cheap.
-
-Often times, its not the dynamic allocation that is slow, but some other residial of doing it in the first place. For example, dynamically allocating a bunch of pointers to an array, and then sorting that list of pointers. The allocation is fast, its just that there is no cache coherency. Two pointers in your list of pointers could very easily point to memory locations that are very far apart.
-
-Writing apis that don't do dynamic allocation is tough and can be cumbursome, since you probably have to have the user give you a slice of a certain size. On the other hand this lets the user know exactly how much memory your crate needs. But users should have some faith that a dynamic allocation system is good enough for most purposes to justify a more complicated api where users have to manually manage memory. 
-
-
-
+Writing apis that don't do dynamic allocation is tough and can be cumbursome, since you probably have to have the user give you a slice of a certain size, but typically you need to first get the problem size from the user to figure out the amount of memory you want to request.
+On one hand the level of explicitness is great and users dont have to put any faith in allocation system. But on the other hand it adds a lot of logic to your api that makes it harder to see what your library actually does. 
 
 ## Testing correctness
 
@@ -33,7 +24,7 @@ This crate's sole purpose is to provide a method of providing collision detectio
 
 The tailored inputs is important. For example, a case where two bounding boxes collide but only at the corner is an extremely unlikely case that may never present themselves in random inputs. To test this case, we have to turn to more point-directed tests with specific constructed set up input bot lists. They can still be verified in the same manner, though.
 
-## Benching
+#### Benching
 
 Always measure code before investing time in optimizing. As you design your program. You form in your mind ideas of what you think the bottle necks in your code are. When you actually measure your program, your hunches can be wildly off.
 
