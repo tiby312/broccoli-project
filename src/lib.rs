@@ -32,7 +32,7 @@
 //! A lot is done to forbid the user from violating the invariants of the tree once constructed
 //! while still allowing them to mutate parts of each element of the tree. The user can mutably traverse
 //! the tree but the mutable references returns are hidden behind the `PMut<T>` type that forbids
-//! mutating the whole element.
+//! mutating the aabbs.
 //!
 //! ### Unsafety
 //!
