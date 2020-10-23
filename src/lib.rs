@@ -19,6 +19,12 @@
 //!
 //! TL;DR use [`collections::TreeRefInd`].
 //!
+//! ### Parallelism
+//!
+//! Parallel versions of construction and colliding pair finding functions
+//! are provided. They use `rayon` under the hood which uses work stealing to
+//! parallelize divide and conquer style recursive functions.
+//!
 //! ### Floating Point
 //!
 //! The [`Num`] trait used for the aabbs inserted into the tree must implement [`Ord`],
@@ -44,10 +50,12 @@
 //! the ['Aabb'] trait is unsafe.
 //!
 //! ### Name
+//!
 //! If you shorten "broadphase collision" to "broad colli" and say it fast, it sounds like broccoli.
 //! Broccoli also have tree like properties and broccoli uses a tree data structure.
 //!
 //! ### nostd
+//!
 //! Uses `no_std`, but uses the `alloc` crate.
 
 #![doc(html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png", html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png")]
