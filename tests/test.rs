@@ -70,7 +70,7 @@ fn test_one() {
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
     let tree = broccoli::new(&mut bots);
-
+    assert_eq!(tree.get_height(),1);
     let (n, _) = tree.vistr().next();
     let n = n.get();
     assert!(n.div.is_none());
@@ -84,6 +84,8 @@ fn test_empty() {
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
     let tree = broccoli::new(&mut bots);
 
+    assert_eq!(tree.get_height(),1);
+    
     let (n, _) = tree.vistr().next();
     let n = n.get();
     assert_eq!(n.bots.len(), 0);
