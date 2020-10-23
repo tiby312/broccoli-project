@@ -1,5 +1,5 @@
 
-### In depth algorithm overview:
+### Algorithm overview:
 
 
 #### Construction
@@ -25,7 +25,7 @@ Done via divide and conquer. For every node we do the following:
    parallel.
 
 
-#### Nbody (experimental)
+#### nbody (experimental)
 
 Here we use divide and conquer.
 
