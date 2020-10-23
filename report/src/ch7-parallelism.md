@@ -1,4 +1,4 @@
-# Comparison of Parallel Height
+### Comparison of Parallel Height
 
 The below chart shows the performance of the broccoli tree for different levels at which to switch to sequential.
 Obviously if you choose to switch to sequential straight away, you have sequential tree performance.

@@ -1,4 +1,4 @@
-# Test Setup
+### Test Setup
 
 Before we can measure and compare performance of this algorithm, we have to come up with a good way to test it. We often want to see how performance degrades as the size of the problem increases, but we also do not want to influence other variables.
 

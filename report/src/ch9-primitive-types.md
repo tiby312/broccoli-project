@@ -1,6 +1,6 @@
 
 
-# Comparison of primitive types
+### Comparison of primitive types
 
 The below chart shows performance using different primitive types for the aabbs. Notice that once parallelism is brought in, the differences between the types is not as big. It is interesting how much faster integers are than floats. 
 

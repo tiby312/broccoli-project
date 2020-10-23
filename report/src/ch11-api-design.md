@@ -1,4 +1,4 @@
-## Mutable vs Mutable + Read-Only api
+### Mutable vs Mutable + Read-Only api
 
 A lot of the query algorithms don't actually care what kind of reference is in the tree.
 They don't actually mutate the elements, they just retrieve them.
@@ -8,7 +8,7 @@ In this way, it would be nice if the query algorithms were generic of the type o
 To do this you can go down one of two paths, macros or generic associated types. GATs [don't exist yet](https://github.com/rust-lang/rfcs/blob/master/text/1598-generic_associated_types.md), and macros are hard to read and can be a head ache. Check out how rust reuses code between Iter and IterMut for slices for an example of macro solution. So for now, we will just support mutable api.
 
 
-## Making `Aabb` an unsafe trait vs Not
+### Making `Aabb` an unsafe trait vs Not
 
 Making a trait unsafe is something nobody wants to do, but in this instance it lets as make some simple assumptions that lets us do interesting things safely. If rust had [trait member fields](https://github.com/rust-lang/rfcs/pull/1546#issuecomment-304033345) we could avoid unsafe.
 
@@ -22,7 +22,7 @@ This is hard for the user not to do since they only have read-only reference to 
 RefCell or Mutex. If the user violates this, then despite two query rectangles being mutually exclusive,
 the same bot might be in both. So at the cost of making HasAabb unsafe, we can make the MultiRect Api not unsafe.
 
-## Forbidding the user from violating the invariants of the tree statically
+### Forbidding the user from violating the invariants of the tree statically
 
 We have an interesting problem with our tree. We want the user to be able to mutate the elements directly in the tree,
 but we also do not want to let them mutate the aabb's of each of the elements of the tree. Doing so would

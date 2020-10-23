@@ -1,5 +1,5 @@
 
-# Default vs Direct vs Indirect
+### Semi-Direct vs Direct vs Indirect
 
 Below are a bunch of diagrams that highlight differences between a couple variable:
 Whether the elements inserted into the tree are made up of:
@@ -45,7 +45,7 @@ cases worth copying the aabb.
 
 
 
-## Different Data Layouts
+### Different Data Layouts
 
 
 There are three main datalayouts for each of the elements in a broccoli that are interesting:
@@ -72,7 +72,7 @@ One thing that is interesting to note is that if T has its aabb already inside o
 If we were inserting references into the tree, then the original order of the bots is preserved during construction/destruction of the tree. However, for the direct layout, we are inserting the actual bots to remove this layer of indirection. So when are done using the tree, we want to return the bots to the user is the same order that they were put in. This way the user can rely on indicies for other algorithms to uniquely identify a bot. To do this, during tree construction, we also build up a Vec of offsets to be used to return the bots to their original position. We keep this as a seperate data structure as it will only be used on destruction of the tree. If we were to put the offset data into the tree itself, it would be wasted space and would hurt the memory locality of the tree query algorithms. We only need to use these offsets once, during destruction. It shouldnt be the case that all querying algorithms that might be performed on the tree suffer performance for this.
 
 
-## AABB vs Point + radius
+### AABB vs Point + radius
 
 Point+radius pros:
 less memory (just 3 floating point values)
@@ -88,7 +88,7 @@ more memory (4 floating point values)
 
 Note, if the size of the elements is the same then the Point+radius only takes up 2 floating point values, so that might be better in certain cases. But even in this case, I think the cost of having to do floating point calculations when comparing every bot with every other bot in the query part of the algorithm is too much. With a AABB system, absolutely no floating point calculations need to be done to find all colliding pairs.
 
-## AABB data layout
+### AABB data layout
 
 The aabb we use is made up of ranges that look like : start,end instead of start,length.  If you define them as a start and a length then querying intersections between rectangles requires that you do floating point arithmatic. The advantage of the start,end data layout is that all the broccoli query algorithms don't need to do a single floating point calculation. It is all
 just comparisons. The downside, is that if you want the dimentions on the aabb, you have to calculate them, how this isnt something that any of the tree algorithms need. 

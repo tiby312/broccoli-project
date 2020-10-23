@@ -45,17 +45,17 @@ So once the extra data is setup, for every node we do the following:
 
 
 
-## Raycasting
+#### Raycasting
 
 
 TODO explain
 
-## Knearest
+#### Knearest
 
 TODO explain
 
 
-## Rect
+#### Rect
 
 TODO explain.
 

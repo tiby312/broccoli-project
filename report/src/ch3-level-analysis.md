@@ -1,5 +1,5 @@
 
-# Level Comparison
+### Level Comparison
 
 The below charts show the load balance between the different levels of the tree.
 

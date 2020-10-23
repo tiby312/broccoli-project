@@ -1,21 +1,21 @@
 
-## Tree structure data seperate from elements in memory, vs intertwined
+### Tree structure data seperate from elements in memory, vs intertwined
 
 There is a certain appeal to storing the tree elements and tree data intertwined in the same piece of contiguous memory. Cache coherency would be improved since there is very little chance that the tree data, and the elements that belong to that node are not in the same cache block. But there is added complexity. Because the elements that are inserted into the tree are generic, the alignment of the objects may not match that of the tree data object. This would lead to wasted padded space that must be inserted into the tree to accomodate this. Additionally, while this data structure could be faster at querying, it would be slower if the user just wants to iterate through all the elements in the tree. The cache misses don't happen that often since the chance of a cache miss only happens on a per node basis, instead of per element. Moreover, I think the tree data structue itself is very small and has a good chance of being completely in a cache block.
 
 When rebalancing, it is much easier to do it with two seperate arrays intsead of a heterogeneous array. The heterogenous array laid out in dfs in order made up of node types and bot types would give you better memory locality as you decended the tree, but comes at much complication with memory alignment. Also, since the size of the bots are variable based on the number type used for the bounding box, its possible that there doesnt exist a good alignment to allow the bots and nodes to be placed compactle interspersed next to each other. The result of that would be a lot of dead memory space inbetween the elements of the array, which would ironically make it less cache friendly.
 
-## Tree structure as portable in memory, vs not.
+### Tree structure as portable in memory, vs not.
 
 A portable data structure has some benefits. The main benefit is that serialization can be a no-op. Its already serialized and can be placed directly into binary file. The problem is that memory alignment is a platform specific thing and this binary file format would be expected to not be platform specific. So I didn't bother with this. The tree data is in its own heap allocated array, and the tree elements are in its own heap allocated array, and both arrays could be in completely different parts of the memory. Another alternative would be to be extremely liberal with the padding between the two arrays so that any platform could handle it, but this leaves a bad taste in my mouth since you still ultimately need to make an assumption about all platforms. The best alternative is you just put the two arrays next to each other in the file, and upon serialization/deserialization you account of padding. The problem with this is that serialization is not a no-op anymore. But to that I say, why is that a bad thing. You want different things at different times, so why not have a function to transform the data between the two even if it is a little slow? When the data structure is in meory you want it to be as fast as possible, so you should 100% take advantage of platform specific alignment properties. When the data structure is stored in a file, you want to optimizate platform independance and file size instead.
 
 
-## Leaves as unique type, vs single node type.
+### Leaves as unique type, vs single node type.
 
 The leaf elements of the tree data structure don't need as much information as their parent nodes. They don't have dividers. So half of the nodes of the data structure haa a field that store no information. It can be tempting to give the leaf nodes a seperate type to improve memory usage, but the divider size is small, and the number of nodes in general is relaviely small compared to the number of bots. The leaves would also have to live in their own contrainer (or you'd have to deal with alignment problems), which would lead to more complexity while iterating down the tree.
 
 
-## Dfs in-order vs Dfs pre-order vs Bfs order.
+### Dfs in-order vs Dfs pre-order vs Bfs order.
 
 Dfs in order uses more memory during construction from during recursion, but it gives you a memory layout that more matches how it is logically. Dfs order has the nice property of the following: If a node is to the left of another node in space, then that node is to the left of that node in memmory. 
 

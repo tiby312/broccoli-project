@@ -1,5 +1,5 @@
 
-# Rebalancing vs Querying
+### Rebalancing vs Querying
 
 The below charts show the load balance between the construction and querying on the broccoli.
 It's important to note that the comparison isnt really 'fair'. The cost of querying depends a lot on
@@ -19,7 +19,7 @@ It makes sense that querying in more 'parallelilable' than rebalancing since the
 <img alt="Construction vs Query" src="graphs/construction_vs_query_num_bench.svg" class="center" style="width: 100%;" />
 
 
-## Construction Cost vs Querying Cost
+### Construction Cost vs Querying Cost
 
 If you are simulating moving elements, it might seem slow to rebuild the tree every iteration. But from benching, most of the time querying is the cause of the slowdown. Rebuilding is always a constant load, but the load of the query can vary wildly depending on how many elements are overlapping.
 
@@ -32,7 +32,7 @@ Rebuilding the first level of the tree does take some time, but it is still just
 Additionally, we have been assuming that once we build the tree, we are just finding all the colliding pairs of the elements. In reality, there might be many different queries we want to do on the same tree. So this is another reason we want the tree to be built to make querying as fast as possible, because we don't know how many queries the user might want to do on it. In addition to finding all colliding pairs, its quite reasonable the user might want to do some k_nearest querying, some rectangle area querying, or some raycasting.
 
 
-## Exploiting Temporal Locality (with loose bounding boxes)
+### Exploiting Temporal Locality (with loose bounding boxes)
 
 The main reason against exploiting temporal locality is that adding any kind of "memory" to the tree where you save the positions of the dividers to use as good heuristic positions for next iterations will come at a cost of a sub optimal tree layout which will hurt the query algorithm. Our goal is to make the query algorithm as fast as possible since that is what can dominate.
 
@@ -50,7 +50,7 @@ One strategy to exploit temporal locality is by inserting looser bounding boxes 
 
 So in short, this system doesnt take advantage of temporal locality, but the user can still take advantage of it by inserting loose bounding boxes and then querying less frequently to amortize the cost. I didnt explore this since I need to construct the tree every iteration anyway in my android demo, because I wanted the feedback of the user moving his finger around to be imeddiate. So to find all the bots touching the finger i need the tree to be up to date every single iteration. This is because I have no way of know where the user is going to put his finger down. I cant bound it by velocity or acceleration or anything. If I were to bound the touches "velocity", it would feel more slugish i think. It would also delay the user putting a new touch down for one iteration possibly.
 
-## Expoiting Temporal Locality (caching medians)
+### Expoiting Temporal Locality (caching medians)
 
 I would love to try the following: Instead of finding the median at every level, find an approximate median. Additionally, keep a weighted average of the medians from previous tree builds and let it degrade with time. Get an approximate median using median of medians. This would ensure worst case linear time when building one level of the tree. This would allow the rest of the algorithm to be parallelized sooner.
 
