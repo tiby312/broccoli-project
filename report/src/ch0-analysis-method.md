@@ -6,7 +6,7 @@ For our tests lets use an archimedean spiral distribution. It gives us a lot of 
 
 If all the bots were dstributed along only one dimension then that would also skew our results. For example, sweep and prune will perform very well if all the bots are spaced out along the axis we are sweeping.
 
-Lets make a function `abspiral` that takes 3 inputs and produces an archimedean spiral.: 
+Lets make a archemdian spiral function that takes 3 inputs and produces an archimedean spiral.: 
 * n: the number of bots
 * separation: the seperation between the bots as they are laid out along the spiral.
 * grow rate: the rate at which the spiral grow outward from the center.
@@ -26,7 +26,7 @@ the same.
 
 Lets define a particular scene/distribution just so that it makes are benching simpler.
 
-Let __abspiral(n,grow)__ be a distribution of bots where:
+Let `abspiral(n,grow)` be a distribution of bots where:
 * n=number of bots
 * grow=spiral grow rate
 * separation=constant (17)
