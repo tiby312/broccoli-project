@@ -105,15 +105,6 @@ unsafe impl<'a, T: HasInner> HasInner for PMut<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
-    type Target = &'a T;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*(self as *const _ as *const _) }
-    }
-}
-
 impl<'a, T: HasInner> PMut<'a, T> {
     #[inline(always)]
     pub fn into_inner(self) -> &'a mut T::Inner {

@@ -8,6 +8,7 @@ pub struct Binned<'a, T: 'a> {
     pub right: &'a mut [T],
 }
 
+#[inline(always)]
 unsafe fn swap_unchecked<T>(arr: &mut [T], a: usize, b: usize) {
     core::ptr::swap(&mut arr[a] as *mut _, &mut arr[b] as *mut _);
 }
