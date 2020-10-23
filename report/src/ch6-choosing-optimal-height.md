@@ -9,9 +9,9 @@ You can see that the theory is a downward curve, but the benching is more of a b
 
 ## Only pick ODD height trees.
 
-In the above graph, the even heights are always slower than the odds. This makes sense because the odd heights better partinion the space 'fairly' in the sense that the leaf nodes are more square and less rectangle.
+In the above graph, the even heights are always slower than the odds. This didnt make sense to me since if you have an even height, then each leaf is going to be more square than rectangle. However, you can't fight the data. I think it is faster with odds because the sweep and prune algorithm can take advantage of the more rectangle shaped leafs instead of the square ones.
+This might be different if the leafs were not sorted which I mention in the improvements section.
 
-In order to assure that the leaf nodes all map to a relatively square piece of space, we force the tree to always have odd height. Picking an even height would be that one axis would be divided one ore time than the other axis.
 
 
 
