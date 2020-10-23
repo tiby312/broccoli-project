@@ -7,12 +7,15 @@ You can see that the theory is a downward curve, but the benching is more of a b
 
 <img alt="Height heuristic" src="graphs/height_heuristic.svg" class="center" style="width: 100%;" />
 
+## Only pick ODD height trees.
+
+In the above graph, the even heights are always slower than the odds. This makes sense because the odd heights better partinion the space 'fairly' in the sense that the leaf nodes are more square and less rectangle.
+
+In order to assure that the leaf nodes all map to a relatively square piece of space, we force the tree to always have odd height. Picking an even height would be that one axis would be divided one ore time than the other axis.
+
+
+
 The below chart compares the empirically best height against the height that our heuristic tree height function produces. 
 
 <img alt="Height Heuristic vs Optimal" src="graphs/height_heuristic_vs_optimal.svg" class="center" style="width: 100%;" />
 
-
-
-## Only pick ODD height trees.
-
-In order to assure that the leaf nodes all map to a relatively square piece of space, we force the tree to always have odd height. Picking an even height would be that one axis would be divided one ore time than the other axis.
