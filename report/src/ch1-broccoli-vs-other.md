@@ -19,7 +19,10 @@ every possible pair, it first checks if a pair of aabb's collides in one dimensi
 
 Another interesting observation is that these graphs show that `sweep and prune` has a better worst case than the `broccoli`. This makes sense since in the worst case, `sweep and prune` will sort all the elements, and then sweep. In the worst case for `broccoli`, it will first find the median, and then sort all the elements, and then sweep. So the `broccoli` is slower since it redundantly found the median, and then sorted everything. However, it is easy to see that this only happens when the bots are extremely clumped up (abspiral(grow) where grow<=0.003). So while `sweep and prune` has a better worst-cast, the worst-cast scenario is rare and the dino-tree's worst case is not much worse (median finding + sort versus just sort). 
 
+
 <img alt="3D Colfind" src="graphs/3d_colfind_num_pairs.svg" class="center" style="width: 100%;" />
+
+It's important to note that these comparisons aren't really fair. With broccoli, we are focused on optimising the finding colliding pairs portion, but these comparisons are comparing construct+ one call to finding colliding pairs. However, we can't really show a graph of just the query portion, because other algorithms can't be easily split up into a construction and query part. Perhaps a better test would be to compare multiple query calls. So for each algorithm with one set of elements, find all the colliding pairs, then also find all the elements in a rectangle, then also find knearest, etc. So it would be like a benching suite.
 
 
 
