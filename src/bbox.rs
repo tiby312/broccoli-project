@@ -32,6 +32,39 @@ impl<N, T> BBox<N, T> {
     }
 }
 
+use core::convert::TryFrom;
+use axgeom::primitive_from::PrimitiveFrom;
+impl<N:Copy,T> BBox<N,T>{
+    pub fn into_semi_direct(&mut self)->BBox<N,&mut T>{
+        BBox{rect:self.rect.clone(),inner:&mut self.inner}
+    }
+    pub fn into_indirect(&mut self)->&mut BBox<N,T>{
+        self
+    }
+
+    #[inline(always)]
+    pub fn inner_as<B: PrimitiveFrom<N>>(self) -> BBox<B,T> {
+        BBox{rect:self.rect.inner_as(),inner:self.inner}
+    }
+
+
+
+    #[inline(always)]
+    #[must_use]
+    pub fn inner_into<A: From<N>>(self) -> BBox<A,T> {
+        BBox{rect:self.rect.inner_into(),inner:self.inner}
+    }
+    
+    #[inline(always)]
+    #[must_use]
+    pub fn inner_try_into<A: TryFrom<N>>(self) -> Result<BBox<A,T>, A::Error> {
+        Ok(BBox{rect:self.rect.inner_try_into()?,inner:self.inner})
+    }
+    
+}
+
+
+
 unsafe impl<N: Num, T> Aabb for &mut BBox<N, T> {
     type Num = N;
     #[inline(always)]
