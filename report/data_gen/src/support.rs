@@ -99,18 +99,18 @@ pub fn instant_to_sec(elapsed: Duration) -> f64 {
 
 
 
-fn abspiral_isize<T>(num:usize,grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<isize,T>>{
-    abspiral_f64(num,grow,extra).map(|a|BBox{rect:a.rect.inner_as(),inner:a.inner})
+pub fn abspiral_isize<T>(grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<isize,T>>{
+    abspiral_f64(grow,extra).map(|a|BBox{rect:a.rect.inner_as(),inner:a.inner})
 }
 
-fn abspiral_f32_nan<T>(num:usize,grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<NotNan<f32>,T>>{
-    abspiral_f32(num,grow,extra).map(|a|{BBox{rect:a.rect.inner_try_into().unwrap(),inner:a.inner}})
+pub fn abspiral_f32_nan<T>(grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<NotNan<f32>,T>>{
+    abspiral_f32(grow,extra).map(|a|{BBox{rect:a.rect.inner_try_into().unwrap(),inner:a.inner}})
 }
-fn abspiral_f32<T>(num:usize,grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<f32,T>>{
-    abspiral_f64(num,grow,extra).map(|a|BBox{rect:a.rect.inner_as(),inner:a.inner})
+pub fn abspiral_f32<T>(grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<f32,T>>{
+    abspiral_f64(grow,extra).map(|a|BBox{rect:a.rect.inner_as(),inner:a.inner})
 }
 
-fn abspiral_f64<T>(num:usize,grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<f64,T>>{
+pub fn abspiral_f64<T>(grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<f64,T>>{
     let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64); 
     s.map(move |a|{
         let r=axgeom::Rect::from_point(vec2(a[0],a[1]),vec2same(5.0));

@@ -21,25 +21,24 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
     let mut records = Vec::new();
 
     for num_bots in (0..40_000).rev().step_by(500) {
-        let mut scene = bot::BotSceneBuilder::new(num_bots)
-            .with_grow(grow)
-            .build_specialized(|_, pos| Bot { pos, num: 0 });
-        let mut bots = &mut scene.bots;
-        let prop = &scene.bot_prop;
+        use crate::support::abspiral_f32_nan;
 
+        let mut bots=abspiral_f32_nan(grow as f64,||0usize).take(num_bots).collect::<Vec<_>>();
+
+        
         for b in bots.iter_mut() {
-            b.num = 0;
+            b.inner = 0;
         }
 
-        let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| prop.create_bbox_nan(b.pos));
+        let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| b.rect);
 
         let c0 = {
             bench_closure(||{
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    a.inner += 1;
+                    b.inner += 1;
                 });
     
             })            
@@ -51,8 +50,8 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    a.inner += 1;
+                    b.inner += 1;
                 });
     
             })
@@ -63,12 +62,12 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
             if num_bots < 20000 {
                 Some(bench_closure(||{
                     broccoli::query::find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |a, b| {
-                        a.num -= 2;
-                        b.num -= 2;
+                        a.inner -= 2;
+                        b.inner -= 2;
                     });
     
                     for b in bb.iter() {
-                        assert_eq!(b.inner.num, 0);
+                        assert_eq!(b.inner.inner, 0);
                     }
     
                 }))
@@ -81,8 +80,8 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
             if num_bots < 8000 {
                 Some(bench_closure(||{
                     NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|a, b| {
-                        a.num -= 1;
-                        b.num -= 1;
+                        a.inner -= 1;
+                        b.inner -= 1;
                     });
     
                 }))
@@ -97,8 +96,8 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
                 let mut tree = NotSorted::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    a.inner += 1;
+                    b.inner += 1;
                 });
     
             }))
@@ -110,8 +109,8 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
                 let mut tree = NotSorted::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    a.inner += 1;
+                    b.inner += 1;
                 });
     
             }))
