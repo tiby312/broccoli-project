@@ -96,3 +96,33 @@ pub fn instant_to_sec(elapsed: Duration) -> f64 {
     let nano: f64 = elapsed.subsec_nanos() as f64;
     secs + nano / 1_000_000_000.0
 }
+
+
+
+//TODO use the below
+pub struct Bot<N,T>{
+    pub rect:Rect<N>,
+    pub extra:T
+}
+
+fn abspiral_isize<T>(num:usize,grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=Bot<isize,T>>{
+    abspiral_f64(num,grow,extra).map(|a|Bot{rect:a.rect.inner_as(),extra:a.extra})
+}
+
+fn abspiral_f32_nan<T>(num:usize,grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=Bot<NotNan<f32>,T>>{
+    abspiral_f32(num,grow,extra).map(|a|{Bot{rect:a.rect.inner_try_into().unwrap(),extra:a.extra}})
+}
+fn abspiral_f32<T>(num:usize,grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=Bot<f32,T>>{
+    abspiral_f64(num,grow,extra).map(|a|Bot{rect:a.rect.inner_as(),extra:a.extra})
+}
+fn abspiral_f64<T>(num:usize,grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=Bot<f64,T>>{
+    let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64); 
+    s.map(move |a|{
+        let r=axgeom::Rect::from_point(vec2(a[0],a[1]),vec2same(5.0));
+        Bot{
+            rect:r,
+            extra:extra()
+        }
+        
+    })
+}
