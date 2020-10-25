@@ -1,19 +1,18 @@
 use crate::inner_prelude::*;
 
-fn theory(scene: &mut bot::BotScene<bot::Bot>) -> (usize, usize) {
+
+fn theory(bots: &mut [BBox<NotNan<f32>,bot::Bot>]) -> (usize, usize) {
     let mut counter = datanum::Counter::new();
 
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| {
-        datanum::from_rect(&mut counter, b.create_bbox_nan(prop))
+        datanum::from_rect(&mut counter, b.rect)
     });
     let mut tree = broccoli::new(&mut bb);
 
     let a = *counter.get_inner();
 
     tree.find_colliding_pairs_mut(|a, b| {
-        prop.collide(a, b);
+        ABSPIRAL_PROP.collide(&mut a.inner, &mut b.inner);
     });
 
     black_box(tree);
@@ -22,21 +21,18 @@ fn theory(scene: &mut bot::BotScene<bot::Bot>) -> (usize, usize) {
     (a, (b - a))
 }
 
-fn theory_not_sorted(scene: &mut bot::BotScene<bot::Bot>) -> (usize, usize) {
+fn theory_not_sorted(bots: &mut [BBox<NotNan<f32>,bot::Bot>]) -> (usize, usize) {
     let mut counter = datanum::Counter::new();
 
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| {
-        datanum::from_rect(&mut counter, b.create_bbox_nan(prop))
+        datanum::from_rect(&mut counter, b.rect)
     });
     let mut tree = NotSorted::new(&mut bb);
 
     let a = *counter.get_inner();
 
     tree.find_colliding_pairs_mut(|a, b| {
-        prop.collide(a, b);
+        ABSPIRAL_PROP.collide(&mut a.inner, &mut b.inner);
     });
 
     black_box(tree);
@@ -45,16 +41,14 @@ fn theory_not_sorted(scene: &mut bot::BotScene<bot::Bot>) -> (usize, usize) {
     (a, (b - a))
 }
 
-fn bench_seq(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.create_bbox_nan(prop));
+fn bench_seq(bots: &mut [BBox<NotNan<f32>,bot::Bot>]) -> (f64, f64) {
+    let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.rect);
         
     let (mut tree,construct_time)=bench_closure_ret(||broccoli::new(&mut bb));
 
     let (tree,query_time)=bench_closure_ret(||{
         tree.find_colliding_pairs_mut(|a, b| {
-            prop.collide(a, b);
+            ABSPIRAL_PROP.collide(&mut a.inner, &mut b.inner);
         });
         tree
     });
@@ -64,16 +58,14 @@ fn bench_seq(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
     (construct_time,query_time)
 }
 
-fn bench_par(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.create_bbox_nan(prop));
+fn bench_par(bots: &mut [BBox<NotNan<f32>,bot::Bot>]) -> (f64, f64) {
+    let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.rect);
 
     let (mut tree,construct_time)=bench_closure_ret(||broccoli::new_par(&mut bb));
     
     let (tree,query_time)=bench_closure_ret(||{
         tree.find_colliding_pairs_mut_par(|a, b| {
-            prop.collide(a, b);
+            ABSPIRAL_PROP.collide(&mut a.inner, &mut b.inner);
         });
         tree
     });
@@ -83,16 +75,14 @@ fn bench_par(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
     (construct_time, query_time)
 }
 
-fn bench_not_sorted_seq(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.create_bbox_nan(prop));
+fn bench_not_sorted_seq(bots: &mut [BBox<NotNan<f32>,bot::Bot>]) -> (f64, f64) {
+    let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.rect);
         
     let (mut tree,construct_time)=bench_closure_ret(||NotSorted::new(&mut bb));
 
     let (tree,query_time)=bench_closure_ret(||{
         tree.find_colliding_pairs_mut(|a, b| {
-            prop.collide(a, b);
+            ABSPIRAL_PROP.collide(&mut a.inner, &mut b.inner);
         });
         tree
     });
@@ -102,16 +92,14 @@ fn bench_not_sorted_seq(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
     (construct_time,query_time)
 }
 
-fn bench_not_sorted_par(scene: &mut bot::BotScene<bot::Bot>) -> (f64, f64) {
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.create_bbox_nan(prop));
+fn bench_not_sorted_par(bots: &mut [BBox<NotNan<f32>,bot::Bot>]) -> (f64, f64) {
+    let mut bb = bbox_helper::create_bbox_mut(bots, |b| b.rect);
         
     let (mut tree,construct_time)=bench_closure_ret(||NotSorted::new_par(&mut bb));
 
     let (tree,query_time)=bench_closure_ret(||{
         tree.find_colliding_pairs_mut_par(|a, b| {
-            prop.collide(a, b);
+            ABSPIRAL_PROP.collide(&mut a.inner, &mut b.inner);
         });
         tree
     });
@@ -138,6 +126,7 @@ fn handle_num_bots_theory(fb: &mut FigureBuilder) {
 }
 
 fn handle_num_bots_theory_inner(fg: &mut Figure, grow: f32, counter: u32) {
+    let grow=grow as f64;
     #[derive(Debug)]
     struct Record {
         num_bots: usize,
@@ -147,9 +136,12 @@ fn handle_num_bots_theory_inner(fg: &mut Figure, grow: f32, counter: u32) {
     let mut rects = Vec::new();
 
     for num_bots in (1..80_000).step_by(1000) {
-        let mut scene = bot::BotSceneBuilder::new(num_bots).with_grow(grow).build();
-
-        let theory = theory(&mut scene);
+        let mut bots=abspiral_f32_nan(grow).map(|r|{
+            let k=bot::Bot{pos:vec2(*r.x.start,*r.y.start),vel:vec2same(0.0)};
+            bbox(r,k)
+        }).take(num_bots).collect::<Vec<_>>();
+        
+        let theory = theory(&mut bots);
 
         let r = Record { num_bots, theory };
         rects.push(r);
@@ -190,6 +182,7 @@ fn handle_num_bots_bench(fb: &mut FigureBuilder) {
 }
 
 fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f32, position: u32) {
+    let grow=grow as f64;
     #[derive(Debug)]
     struct Record {
         num_bots: usize,
@@ -202,12 +195,18 @@ fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f32, position: u32) {
     let mut rects: Vec<Record> = Vec::new();
 
     for num_bots in (1..10_000).step_by(100) {
-        let mut scene = bot::BotSceneBuilder::new(num_bots).with_grow(grow).build();
+        //let mut scene = bot::BotSceneBuilder::new(num_bots).with_grow(grow).build();
+        //let mut bots=abspiral_f32_nan(grow).take(num_bots).collect::<Vec<_>>();
+        let mut bots=abspiral_f32_nan(grow).map(|r|{
+            let k=bot::Bot{pos:vec2(*r.x.start,*r.y.start),vel:vec2same(0.0)};
+            bbox(r,k)
+        }).take(num_bots).collect::<Vec<_>>();
+      
 
-        let bench = bench_seq(&mut scene);
-        let bench_par = bench_par(&mut scene);
-        let nosort = bench_not_sorted_seq(&mut scene);
-        let nosort_par = bench_not_sorted_par(&mut scene);
+        let bench = bench_seq(&mut bots);
+        let bench_par = bench_par(&mut bots);
+        let nosort = bench_not_sorted_seq(&mut bots);
+        let nosort_par = bench_not_sorted_par(&mut bots);
 
         let r = Record {
             num_bots,
@@ -318,14 +317,20 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
         let a: f32 = a as f32;
         0.1 + a * 0.005
     }) {
-        let mut scene = bot::BotSceneBuilder::new(num_bots).with_grow(grow).build();
+        //let mut scene = bot::BotSceneBuilder::new(num_bots).with_grow(grow).build();
+        //let mut bots=abspiral_f32_nan(grow).take(num_bots).collect::<Vec<_>>();
+        let mut bots=abspiral_f32_nan(grow as f64).map(|r|{
+            let k=bot::Bot{pos:vec2(*r.x.start,*r.y.start),vel:vec2same(0.0)};
+            bbox(r,k)
+        }).take(num_bots).collect::<Vec<_>>();
+      
 
-        let theory = theory(&mut scene);
-        let nosort_theory = theory_not_sorted(&mut scene);
-        let bench = bench_seq(&mut scene);
-        let bench_par = bench_par(&mut scene);
-        let nosort = bench_not_sorted_seq(&mut scene);
-        let nosort_par = bench_not_sorted_par(&mut scene);
+        let theory = theory(&mut bots);
+        let nosort_theory = theory_not_sorted(&mut bots);
+        let bench = bench_seq(&mut bots);
+        let bench_par = bench_par(&mut bots);
+        let nosort = bench_not_sorted_seq(&mut bots);
+        let nosort_par = bench_not_sorted_par(&mut bots);
 
         let r = Record {
             grow,
@@ -438,14 +443,20 @@ fn handle_grow_theory(fb: &mut FigureBuilder) {
         let a: f32 = a as f32;
         0.1 + a * 0.005
     }) {
-        let mut scene = bot::BotSceneBuilder::new(num_bots).with_grow(grow).build();
+        //let mut scene=abspiral_f32_nan(grow).take(num_bots).collect::<Vec<_>>();
+        let mut bots=abspiral_f32_nan(grow as f64).map(|r|{
+            let k=bot::Bot{pos:vec2(*r.x.start,*r.y.start),vel:vec2same(0.0)};
+            bbox(r,k)
+        }).take(num_bots).collect::<Vec<_>>();
+      
+        //let mut scene = bot::BotSceneBuilder::new(num_bots).with_grow(grow).build();
 
-        let theory = theory(&mut scene);
-        let nosort_theory = theory_not_sorted(&mut scene);
-        let bench = bench_seq(&mut scene);
-        let bench_par = bench_par(&mut scene);
-        let nosort = bench_not_sorted_seq(&mut scene);
-        let nosort_par = bench_not_sorted_par(&mut scene);
+        let theory = theory(&mut bots);
+        let nosort_theory = theory_not_sorted(&mut bots);
+        let bench = bench_seq(&mut bots);
+        let bench_par = bench_par(&mut bots);
+        let nosort = bench_not_sorted_seq(&mut bots);
+        let nosort_par = bench_not_sorted_par(&mut bots);
 
         let r = Record {
             grow,

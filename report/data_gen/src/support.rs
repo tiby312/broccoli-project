@@ -99,22 +99,32 @@ pub fn instant_to_sec(elapsed: Duration) -> f64 {
 
 
 
-pub fn abspiral_isize<T>(grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<isize,T>>{
-    abspiral_f64(grow,extra).map(|a|BBox{rect:a.rect.inner_as(),inner:a.inner})
+
+
+pub const RADIUS:f32=5.0;
+pub const ABSPIRAL_PROP:bot::BotProp=bot::BotProp{
+    radius: bot::Dist::manual_create(RADIUS,RADIUS*2.0,RADIUS*RADIUS),
+    collision_push: 0.1,
+    collision_drag: 0.1,
+    minimum_dis_sqr: 0.0001,
+    viscousity_coeff: 0.1,
+};
+
+pub fn abspiral_isize(grow:f64)->impl Iterator<Item=Rect<isize>>{
+    abspiral_f64(grow).map(|a|a.inner_as())
 }
 
-pub fn abspiral_f32_nan<T>(grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<NotNan<f32>,T>>{
-    abspiral_f32(grow,extra).map(|a|{BBox{rect:a.rect.inner_try_into().unwrap(),inner:a.inner}})
+pub fn abspiral_f32_nan(grow:f64)->impl Iterator<Item=Rect<NotNan<f32>>>{
+    abspiral_f32(grow).map(|a|a.inner_try_into().unwrap())
 }
-pub fn abspiral_f32<T>(grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<f32,T>>{
-    abspiral_f64(grow,extra).map(|a|BBox{rect:a.rect.inner_as(),inner:a.inner})
+pub fn abspiral_f32(grow:f64)->impl Iterator<Item=Rect<f32>>{
+    abspiral_f64(grow).map(|a|a.inner_as())
 }
 
-pub fn abspiral_f64<T>(grow:f64,mut extra:impl FnMut()->T)->impl Iterator<Item=BBox<f64,T>>{
+pub fn abspiral_f64(grow:f64)->impl Iterator<Item=Rect<f64>>{
     let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64); 
     s.map(move |a|{
-        let r=axgeom::Rect::from_point(vec2(a[0],a[1]),vec2same(5.0));
-        BBox::new(r,extra())
-        
+        let r=axgeom::Rect::from_point(vec2(a[0],a[1]),vec2same(RADIUS as f64));
+        r
     })
 }
