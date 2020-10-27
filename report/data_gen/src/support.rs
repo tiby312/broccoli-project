@@ -79,15 +79,14 @@ pub const COLS: &[&str] = &[
 
 
 pub fn bench_closure(func:impl FnOnce())->f64{
-    let instant = Instant::now();
-    func();
-    instant_to_sec(instant.elapsed())
+    black_box(bench_closure_ret(func).1)
 }
 
 pub fn bench_closure_ret<T>(func:impl FnOnce()->T)->(T,f64){
     let instant = Instant::now();
-    let a=func();
-    (a,instant_to_sec(instant.elapsed()))
+    let a=black_box(func());
+    let j=instant_to_sec(instant.elapsed());
+    (a,j)
 }
 
 
@@ -116,6 +115,12 @@ pub const ABSPIRAL_PROP:bot::BotProp=bot::BotProp{
     minimum_dis_sqr: 0.0001,
     viscousity_coeff: 0.1,
 };
+
+pub fn abspiral_datanum<'a>(maker:&'a datanum::Maker,grow:f64)->impl Iterator<Item=Rect<datanum::Dnum<'a,isize>>>{
+    abspiral_isize(grow).map(move |a|maker.from_rect(a))
+}
+
+
 
 pub fn abspiral_isize(grow:f64)->impl Iterator<Item=Rect<isize>>{
     abspiral_f64(grow).map(|a|a.inner_as())
