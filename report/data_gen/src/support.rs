@@ -101,6 +101,13 @@ pub fn instant_to_sec(elapsed: Duration) -> f64 {
 
 
 
+pub fn abspiral_grow_iter(range:core::ops::Range<usize>,start:f64,delta:f64)->impl Iterator<Item=f64>{
+    range.map(move |a|{
+        let a: f64 = a as f64;
+        start + a * delta
+    })
+}
+
 pub const RADIUS:f32=5.0;
 pub const ABSPIRAL_PROP:bot::BotProp=bot::BotProp{
     radius: bot::Dist::manual_create(RADIUS,RADIUS*2.0,RADIUS*RADIUS),

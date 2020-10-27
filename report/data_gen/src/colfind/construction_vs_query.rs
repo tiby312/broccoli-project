@@ -428,7 +428,7 @@ fn handle_grow_theory(fb: &mut FigureBuilder) {
 
     #[derive(Debug)]
     struct Record {
-        grow: f32,
+        grow: f64,
         theory: (usize, usize),
         nosort_theory: (usize, usize),
         bench: (f64, f64),
@@ -439,18 +439,14 @@ fn handle_grow_theory(fb: &mut FigureBuilder) {
 
     let mut rects: Vec<Record> = Vec::new();
 
-    for grow in (0..200).map(|a| {
-        let a: f32 = a as f32;
-        0.1 + a * 0.005
-    }) {
-        //let mut scene=abspiral_f32_nan(grow).take(num_bots).collect::<Vec<_>>();
-        let mut bots=abspiral_f32_nan(grow as f64).map(|r|{
+    for grow in abspiral_grow_iter(100..200,0.1,0.005){
+        
+        let mut bots=abspiral_f32_nan(grow).map(|r|{
             let k=bot::Bot{pos:vec2(*r.x.start,*r.y.start),vel:vec2same(0.0)};
             bbox(r,k)
         }).take(num_bots).collect::<Vec<_>>();
       
-        //let mut scene = bot::BotSceneBuilder::new(num_bots).with_grow(grow).build();
-
+        
         let theory = theory(&mut bots);
         let nosort_theory = theory_not_sorted(&mut bots);
         let bench = bench_seq(&mut bots);

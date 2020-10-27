@@ -15,6 +15,7 @@
 //! Different variations are provided to give the user
 //! more options on what kind of characteristics they want.
 //! i.e. less memory vs faster vs less unsafe code.
+//! Some also unlock more functions at the cost of a more restrictive api.
 //! The [`collections`] module goes into more depth as well as the book mentioned above.
 //!
 //! TL;DR use [`collections::TreeRefInd`].
