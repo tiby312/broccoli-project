@@ -18,111 +18,68 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
         bench_nosort_seq: Option<f64>,
     }
 
-    let mut records = Vec::new();
-
     let stop_naive_at=5000;
     let stop_sweep_at=40000;
 
-    for num_bots in (0..80_000).rev().step_by(500) {
-        
-          
+    let mut rects=(0..80_000).step_by(2000).map(move |num_bots|{
+        dbg!(num_bots);
         let mut bot_inner:Vec<_>=(0..num_bots).map(|a|0isize).collect();
         let mut bots:Vec<  BBox<NotNan<f32>,&mut isize>  > =
             abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
 
-        let c0 = {
-            bench_closure(||{
-                let mut tree = broccoli::new_par(&mut bots);
+        let c0 = bench_closure(||{
+            let mut tree = broccoli::new_par(&mut bots);
+            tree.find_colliding_pairs_mut_par(|a, b| {
+                **a += 1;
+                **b += 1;
+            });
+        });
 
-                tree.find_colliding_pairs_mut_par(|a, b| {
-                    **a += 1;
-                    **b += 1;
-                });
-    
-            })            
-        };
-
-        let c1 = {
+        let c1 = bench_closure(||{
+            let mut tree = broccoli::new(&mut bots);
+            tree.find_colliding_pairs_mut(|a, b| {
+                **a -= 1;
+                **b -= 1;
+            });
+        });
             
-            bench_closure(||{
-                let mut tree = broccoli::new(&mut bots);
+        let c3 = Some(bench_closure(||{
+            broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
+                **a -= 2;
+                **b -= 2;
+            });
+        })).filter(|_|num_bots<stop_sweep_at);
 
-                tree.find_colliding_pairs_mut(|a, b| {
-                    **a -= 1;
-                    **b -= 1;
-                });
+        let c4 = Some(bench_closure(||{
+            NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
+                **a += 2;
+                **b += 2;
+            });
+        })).filter(|_|num_bots < stop_naive_at);
     
-            })
-            
-        };
+        let c5 = Some(bench_closure(||{
+            let mut tree = NotSorted::new_par(&mut bots);
+            tree.find_colliding_pairs_mut_par(|a, b| {
+                **a += 1;
+                **b += 1;
+            });
+        }));
 
-
-
-        let c3 = {
-            if num_bots < stop_sweep_at {
-                Some(bench_closure(||{
-                    broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
-                        **a -= 2;
-                        **b -= 2;
-                    });
-    
-                }))
-            } else {
-                None
-            }
-        };
-
-        let c4 = {
-            if num_bots < stop_naive_at {
-                Some(bench_closure(||{
-                    NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
-                        **a += 2;
-                        **b += 2;
-                    });
-    
-                }))
-            } else {
-                None
-            }
-        };
-
+        let c6 = Some(bench_closure(||{
+            let mut tree = NotSorted::new(&mut bots);
+            tree.find_colliding_pairs_mut(|a, b| {
+                **a -= 1;
+                **b -= 1;
+            });
+        }));
         
-        let c5 = {
-
-            Some(bench_closure(||{
-                let mut tree = NotSorted::new_par(&mut bots);
-
-                tree.find_colliding_pairs_mut_par(|a, b| {
-                    **a += 1;
-                    **b += 1;
-                });
-    
-            }))
-            
-        };
-
-        let c6 = {
-            Some(bench_closure(||{
-                let mut tree = NotSorted::new(&mut bots);
-
-                tree.find_colliding_pairs_mut(|a, b| {
-                    **a -= 1;
-                    **b -= 1;
-                });
-    
-            }))
-            
-        };
-        
-
         if num_bots<stop_naive_at{
             for (i,&b) in bot_inner.iter().enumerate(){
                 assert_eq!(b,0,"failed iteration:{:?} numbots={:?}",i,num_bots);
             }
         }
 
-
-        records.push(Record {
+        Record {
             num_bots,
             bench_alg: c1,
             bench_par: c0,
@@ -130,12 +87,10 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
             bench_naive: c4,
             bench_nosort_par: c5,
             bench_nosort_seq: c6,
-        });
-    }
+        }
+    }).collect::<Vec<_>>();
 
-    records.reverse();
-
-    let rects = &mut records;
+    
     use gnuplot::*;
     let x = rects.iter().map(|a| a.num_bots);
     let y1 = rects
@@ -164,38 +119,38 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
         .lines(
             x.clone(),
             y1,
-            &[Caption("Naive"), Color("blue"), LineWidth(2.0)],
+            &[Caption("Naive"), Color(COLS[0]), LineWidth(2.0)],
         )
         .lines(
             x.clone(),
             y2,
-            &[Caption("Sweep and Prune"), Color("green"), LineWidth(2.0)],
+            &[Caption("Sweep and Prune"), Color(COLS[1]), LineWidth(2.0)],
         )
         .lines(
             x.clone(),
             y3,
-            &[Caption("broccoli Sequential"), Color("red"), LineWidth(2.0)],
+            &[Caption("broccoli Sequential"), Color(COLS[2]), LineWidth(2.0)],
         )
         .lines(
             x.clone(),
             y4,
             &[
                 Caption("broccoli Parallel"),
-                Color("violet"),
+                Color(COLS[3]),
                 LineWidth(2.0),
             ],
         )
         .lines(
             x.clone(),
             y5,
-            &[Caption("KD Tree Parallel"), Color("black"), LineWidth(2.0)],
+            &[Caption("KD Tree Parallel"), Color(COLS[4]), LineWidth(2.0)],
         )
         .lines(
             x.clone(),
             y6,
             &[
                 Caption("KD Tree Sequential"),
-                Color("brown"),
+                Color(COLS[5]),
                 LineWidth(2.0),
             ],
         )
@@ -216,99 +171,62 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
     let stop_naive_at = 8_000;
     let stop_sweep_at = 50_000;
 
-    let mut records = Vec::new();
-
-    for num_bots in (0usize..80_000).step_by(2000) {
+    let rects=(0usize..80_000).step_by(2000).map(move |num_bots|{
          
         let mut bot_inner:Vec<_>=(0..num_bots).map(|a|0isize).collect();
         
-        let c1 = {
+        let c1 = datanum::datanum_test(|maker|{
+            let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            let mut tree = broccoli::new(&mut bots);
+            tree.find_colliding_pairs_mut(|a, b| {
+                **a += 2;
+                **b += 2;
+            });
+        });
 
-            datanum::datanum_test(|maker|{
-                let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+        let c2 = Some(datanum::datanum_test(|maker|{
+            let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
+                **a -= 1;
+                **b -= 1;
+            });
+        })).filter(|_|num_bots < stop_naive_at);
 
-                let mut tree = broccoli::new(&mut bots);
 
-                tree.find_colliding_pairs_mut(|a, b| {
-                    **a += 2;
-                    **b += 2;
-                });
-            })
-            
-        };
+        let c3 = Some(datanum::datanum_test(|maker|{
+            let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
 
-        let c2 = {
-            if num_bots < stop_naive_at {
+            broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
+                **a -= 3;
+                **b -= 3;
+            });
 
-                Some(datanum::datanum_test(|maker|{
-                    let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-
-                    //let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| b.rect);
-
-                    NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
-                        **a -= 1;
-                        **b -= 1;
-                    });
-                }))
-            } else {
-                None
-            }
-        };
-        let c3 = {
-            if num_bots < stop_sweep_at {
-                Some(datanum::datanum_test(|maker|{
-                    //let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| b.rect);
-                    let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-
-                    broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
-                        **a -= 3;
-                        **b -= 3;
-                    });
-    
-                }))
-                
-            } else {
-                None
-            }
-        };
+        })).filter(|_|num_bots < stop_sweep_at);
         
-        let c4 = {
-            
-            datanum::datanum_test(|maker|{
-                //let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b|b.rect);
-                let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-
-                let mut tree = NotSorted::new(&mut bots);
-    
-                tree.find_colliding_pairs_mut(|a, b| {
-                    **a += 2;
-                    **b += 2;
-                });
-    
-            })
-            
-        };
+        let c4 = datanum::datanum_test(|maker|{
+            let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            let mut tree = NotSorted::new(&mut bots);
+            tree.find_colliding_pairs_mut(|a, b| {
+                **a += 2;
+                **b += 2;
+            });
+        });
         
-        //let c4=0;
-
         if num_bots<stop_naive_at{
             for (i,&a) in bot_inner.iter().enumerate(){
                 assert_eq!(a,0,"failed iteration:{:?} numbots={:?}",i,num_bots);
             }
         }
 
-        let r = Record {
+        Record {
             num_bots,
             num_comparison_alg: c1,
             num_comparison_naive: c2,
             num_comparison_sweep: c3,
             num_comparison_nosort: c4,
-        };
+        }
+    }).collect::<Vec<_>>();
 
-        records.push(r);
-    }
-
-    let rects = &mut records;
     use gnuplot::*;
     let x = rects.iter().map(|a| a.num_bots);
     let y1 = rects.iter().map(|a| a.num_comparison_alg);
@@ -329,22 +247,22 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
         .lines(
             x.clone(),
             y2,
-            &[Caption("Naive"), Color("blue"), LineWidth(4.0)],
+            &[Caption("Naive"), Color(COLS[0]), LineWidth(4.0)],
         )
         .lines(
             x.clone(),
             y3,
-            &[Caption("Sweep and Prune"), Color("green"), LineWidth(2.0)],
+            &[Caption("Sweep and Prune"), Color(COLS[1]), LineWidth(2.0)],
         )
         .lines(
             x.clone(),
             y1,
-            &[Caption("broccoli"), Color("red"), LineWidth(2.0)],
+            &[Caption("broccoli"), Color(COLS[2]), LineWidth(2.0)],
         )
         .lines(
             x.clone(),
             y4,
-            &[Caption("KDTree"), Color("brown"), LineWidth(2.0)],
+            &[Caption("KDTree"), Color(COLS[3]), LineWidth(2.0)],
         )
         .set_x_label("Number of Objects", &[])
         .set_y_label("Number of Comparisons", &[]);
