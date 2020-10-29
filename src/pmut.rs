@@ -3,10 +3,10 @@
 //! [`PMut`] is short for protected mutable reference.
 //!
 //! ```rust
-//! use broccoli::prelude::*;
+//! use broccoli::{prelude::*,bbox,rect};
 //!
 //!
-//! let mut bots=[bbox(axgeom::rect(0,10,0,10),0)];
+//! let mut bots=[bbox(rect(0,10,0,10),0)];
 //! let mut tree=broccoli::new(&mut bots);
 //!
 //! tree.find_colliding_pairs_pmut(|mut a,mut b|{

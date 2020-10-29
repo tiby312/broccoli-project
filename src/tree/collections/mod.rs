@@ -23,7 +23,7 @@
 //! the tree has been constructed.
 //!
 //! ```rust
-//! use broccoli::prelude::*;
+//! use broccoli::{prelude::*,bbox,rect};
 //! let mut k=[bbox(rect(0,10,0,10),8)];
 //! let mut b=broccoli::new(&mut k);
 //! b.find_colliding_pairs_mut(|a,b|{});
@@ -35,7 +35,7 @@
 //!
 //! If we use [`TreeRef`], we can do the above like this:
 //! ```rust
-//! use broccoli::prelude::*;
+//! use broccoli::{prelude::*,bbox,rect};
 //! let mut k=[bbox(rect(0,10,0,10),8)];
 //! let mut b=broccoli::collections::TreeRef::new(&mut k);
 //! b.find_colliding_pairs_mut(|a,b|{});
@@ -55,7 +55,7 @@
 //! quickly.
 //!
 //! ```rust
-//! use broccoli::prelude::*;
+//! use broccoli::{prelude::*,bbox,rect};
 //! let mut k=[0];
 //! let mut b=broccoli::collections::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
 //! b.find_colliding_pairs_mut(|a,b|{});
@@ -69,7 +69,7 @@
 //! ## An owned `(Rect<N>,T)` example
 //!
 //! ```rust
-//! use broccoli::{prelude::*,collections::*,DefaultA};
+//! use broccoli::{BBox,bbox,rect,prelude::*,collections::*,DefaultA};
 //!
 //! fn not_lifetimed()->TreeOwned<DefaultA,BBox<i32,f32>>
 //! {

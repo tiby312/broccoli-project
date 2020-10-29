@@ -98,8 +98,8 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),0u8)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
     ///let mut tree = broccoli::new(&mut bots);
     ///tree.find_colliding_pairs_mut(|a,b|{
     ///    *a+=1;
@@ -123,8 +123,8 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),0u8)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
     ///let mut tree = broccoli::new(&mut bots);
     ///tree.find_colliding_pairs_mut_par(|a,b|{
     ///    *a+=1;
@@ -149,8 +149,8 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),1u8)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     ///let mut tree = broccoli::new(&mut bots);
     ///let intersections=tree.find_colliding_pairs_par_ext(
     ///     |_|Vec::new(),              //Start a new thread
@@ -226,10 +226,10 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [bbox(rect(0,10,0,10),0u8)];
     ///let mut tree = broccoli::new(&mut bots);
-    ///tree.for_all_not_in_rect_mut(&axgeom::rect(10,20,10,20),|a|{
+    ///tree.for_all_not_in_rect_mut(&rect(10,20,10,20),|a|{
     ///    *a+=1;    
     ///});
     ///
@@ -251,10 +251,10 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [bbox(rect(0,10,0,10),0u8)];
     ///let mut tree = broccoli::new(&mut bots);
-    ///tree.for_all_intersect_rect_mut(&axgeom::rect(9,20,9,20),|a|{
+    ///tree.for_all_intersect_rect_mut(&rect(9,20,9,20),|a|{
     ///    *a+=1;    
     ///});
     ///
@@ -276,10 +276,10 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [bbox(rect(0,10,0,10),0u8)];
     ///let mut tree = broccoli::new(&mut bots);
-    ///tree.for_all_in_rect_mut(&axgeom::rect(0,10,0,10),|a|{
+    ///tree.for_all_in_rect_mut(&rect(0,10,0,10),|a|{
     ///    *a+=1;    
     ///});
     ///
@@ -301,8 +301,8 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///use axgeom::*;
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///use axgeom::{vec2,ray};
     ///
     ///let border = rect(0,100,0,100);
     ///
@@ -350,8 +350,9 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///use axgeom::*;
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///use axgeom::vec2;
+    ///
     ///let border = rect(0,100,0,100);
     ///
     ///let mut bots = [bbox(rect(0,10,0,10),vec2(0,0)),
@@ -400,9 +401,9 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots1 = [bbox(axgeom::rect(0,10,0,10),0u8)];
-    ///let mut bots2 = [bbox(axgeom::rect(5,15,5,15),0u8)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
+    ///let mut bots2 = [bbox(rect(5,15,5,15),0u8)];
     ///let mut tree = broccoli::new(&mut bots1);
     ///
     ///tree.intersect_with_mut(&mut bots2,|a,b|{
@@ -432,8 +433,8 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [bbox(rect(0,10,0,10),0)];
     ///let mut tree = broccoli::new(&mut bots);
     ///
     ///use compt::Visitor;
@@ -448,8 +449,8 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [axgeom::rect(0,10,0,10)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [rect(0,10,0,10)];
     ///let mut tree = broccoli::new(&mut bots);
     ///
     ///use compt::Visitor;
@@ -465,8 +466,8 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [axgeom::rect(0,10,0,10)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [rect(0,10,0,10)];
     ///let mut tree = broccoli::new(&mut bots);
     ///
     ///use axgeom::Axis;
@@ -482,7 +483,7 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     /// ```
-    /// use broccoli::prelude::*;
+    ///use broccoli::{prelude::*,bbox,rect};
     ///
     /// struct Drawer;
     /// impl broccoli::query::DividerDrawer for Drawer{
@@ -523,8 +524,8 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [bbox(axgeom::rect(0,10,0,10),0u8),bbox(axgeom::rect(5,15,5,15),0u8)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
     ///let mut tree = broccoli::new(&mut bots);
     ///tree.find_colliding_pairs_pmut(|mut a,mut b|{
     ///    *a.inner_mut()+=1;
@@ -550,13 +551,13 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots1 = [bbox(axgeom::rect(0,10,0,10),0u8)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
     ///let mut tree = broccoli::new(&mut bots1);
     ///let mut multi = tree.multi_rect();
     ///
-    ///multi.for_all_in_rect_mut(axgeom::rect(0,10,0,10),|a|{}).unwrap();
-    ///let res = multi.for_all_in_rect_mut(axgeom::rect(5,15,5,15),|a|{});
+    ///multi.for_all_in_rect_mut(rect(0,10,0,10),|a|{}).unwrap();
+    ///let res = multi.for_all_in_rect_mut(rect(5,15,5,15),|a|{});
     ///assert_eq!(res,Err(broccoli::query::RectIntersectErr));
     ///```
     #[must_use]
@@ -567,15 +568,15 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [axgeom::rect(0,10,0,10),axgeom::rect(20,30,20,30)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
     ///let mut tree = broccoli::new(&mut bots);
     ///let mut test = Vec::new();
-    ///tree.for_all_intersect_rect(&axgeom::rect(9,20,9,20),|a|{
+    ///tree.for_all_intersect_rect(&rect(9,20,9,20),|a|{
     ///    test.push(a);
     ///});
     ///
-    ///assert_eq!(test[0],&axgeom::rect(0,10,0,10));
+    ///assert_eq!(test[0],&rect(0,10,0,10));
     ///
     ///```
     fn for_all_intersect_rect<'b>(&'b self, rect: &Rect<Self::Num>, func: impl FnMut(&'b Self::T))
@@ -588,15 +589,15 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::prelude::*;
-    ///let mut bots = [axgeom::rect(0,10,0,10),axgeom::rect(20,30,20,30)];
+    ///use broccoli::{prelude::*,bbox,rect};
+    ///let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
     ///let mut tree = broccoli::new(&mut bots);
     ///let mut test = Vec::new();
-    ///tree.for_all_in_rect(&axgeom::rect(0,20,0,20),|a|{
+    ///tree.for_all_in_rect(&rect(0,20,0,20),|a|{
     ///    test.push(a);
     ///});
     ///
-    ///assert_eq!(test[0],&axgeom::rect(0,10,0,10));
+    ///assert_eq!(test[0],&rect(0,10,0,10));
     ///
     fn for_all_in_rect<'b>(&'b self, rect: &Rect<Self::Num>, func: impl FnMut(&'b Self::T))
     where
