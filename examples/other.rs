@@ -3,15 +3,15 @@ use broccoli::prelude::*;
 
 fn main() {
     let mut aabbs = [
-        bbox(rect(0isize, 10, 0, 10), 0),
-        bbox(rect(15, 20, 15, 20), 1),
-        bbox(rect(5, 15, 5, 15), 2),
+        broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+        broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
+        broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     ];
 
     //Create a layer of direction.
     let mut ref_aabbs = aabbs.iter_mut().collect::<Vec<_>>();
 
-    let border = rect(0, 100, 0, 100);
+    let border = broccoli::rect(0, 100, 0, 100);
 
     //Create a DinoTree by picking a starting axis (x or y).
     //This will change the order of the elements in bboxes,

@@ -1,6 +1,6 @@
 use axgeom;
 use broccoli::prelude::*;
-
+use broccoli::*;
 #[test]
 fn test1() {
     for &num_bots in [30, 0, 1].iter() {

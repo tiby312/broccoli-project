@@ -102,12 +102,14 @@ mod util;
 ///Helper functions to convert aabbs in floats to integers
 pub mod convert;
 
-use axgeom::Rect;
+//use axgeom::Rect;
+pub use axgeom::Rect;
+pub use axgeom::rect;
 
 ///The broccoli prelude.
 pub mod prelude {
-    pub use crate::bbox::bbox;
-    pub use crate::bbox::BBox;
+    //pub use crate::bbox::bbox;
+    //pub use crate::bbox::BBox;
     pub use crate::query::NotSortedQueries;
     pub use crate::query::Queries;
     pub use crate::query::QueriesInner;
@@ -115,8 +117,8 @@ pub mod prelude {
     pub use crate::Aabb;
     pub use crate::HasInner;
     pub use crate::Num;
-    pub use axgeom::rect;
-    pub use axgeom::Rect;
+    //pub use axgeom::rect;
+    //pub use axgeom::Rect;
 }
 
 ///The underlying number type used for the tree.
