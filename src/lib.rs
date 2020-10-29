@@ -6,9 +6,11 @@
 //! Using this crate, the user can create three flavors of the same fundamental data structure.
 //! The different characteristics are exlored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
 //!
-//! + `(Rect<N>,&mut T)` (Semi-Direct) *recommended
-//! + `(Rect<N>,T)` (Direct)
-//! + `&mut (Rect<N>,T)` (Indirect)
+//!|Type                 |Name       | Features       |
+//!|---------------------|-----------|----------------|
+//!|`(Rect<N>,&mut T)`   |Semi-direct| Fast           |
+//!|`(Rect<N>,T)`        |Direct     | Space efficient| 
+//!|`&mut (Rect<N>,T)`   |Indirect   | Simple         |
 //!
 //! ### There are so many Tree types which one do I use?
 //!
@@ -18,7 +20,7 @@
 //! Some also unlock more functions at the cost of a more restrictive api.
 //! The [`collections`] module goes into more depth as well as the book mentioned above.
 //!
-//! TL;DR use [`collections::Tree`] and fill it with `BBox<N,&mut T>`.
+//! TL;DR use [`Tree`] and fill it with `BBox<N,&mut T>` (Semi-Direct).
 //!
 //! ### Parallelism
 //!
