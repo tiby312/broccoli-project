@@ -18,7 +18,7 @@
 //! Some also unlock more functions at the cost of a more restrictive api.
 //! The [`collections`] module goes into more depth as well as the book mentioned above.
 //!
-//! TL;DR use [`collections::TreeRefInd`].
+//! TL;DR use [`collections::Tree`] and fill it with `BBox<N,&mut T>`.
 //!
 //! ### Parallelism
 //!

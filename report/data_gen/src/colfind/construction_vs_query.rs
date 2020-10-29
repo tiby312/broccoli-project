@@ -2,6 +2,8 @@ use crate::inner_prelude::*;
 
 
 fn theory(bots: &mut [BBox<NotNan<f32>,bot::Bot>]) -> (usize, usize) {
+
+    
     let mut counter = datanum::Counter::new();
 
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| {

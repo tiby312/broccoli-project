@@ -26,7 +26,7 @@
 //! use broccoli::prelude::*;
 //! let mut k=[bbox(rect(0,10,0,10),8)];
 //! let mut b=broccoli::new(&mut k);
-//! b.find_collising_pairs_mut(|a,b|{});
+//! b.find_colliding_pairs_mut(|a,b|{});
 //! // k[0].inner=4;    //<---cannot re-borrow
 //! ```
 //! This is because [`Tree`] constructs itself by splitting up the
