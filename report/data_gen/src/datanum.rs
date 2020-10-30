@@ -50,6 +50,13 @@ pub fn datanum_test(func:impl FnOnce(&mut Maker))->usize{
 
     unsafe{COUNTER}
 }
+
+pub fn datanum_test2<T>(func:impl FnOnce(&mut Maker)->T)->T{
+    unsafe{COUNTER=0};
+    let mut maker=Maker{_p:PhantomData};
+    func(&mut maker)
+}
+
 pub fn datanum_test_ret<T>(func:impl FnOnce(&mut Maker)->T)->(T,usize){
     unsafe{COUNTER=0};
     let mut maker=Maker{_p:PhantomData};
@@ -62,6 +69,9 @@ pub struct Maker{
     _p:PhantomData<*mut usize> //Make it not implement send or sync
 }
 impl Maker{
+    pub fn count(&self)->usize{
+        unsafe{COUNTER}
+    }
     pub fn from_rect<I: Num>(&self,rect: Rect<I>) -> Rect<Dnum<I>> {
         let ((a, b), (c, d)) = rect.get();
         Rect::new(

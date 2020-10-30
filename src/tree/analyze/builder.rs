@@ -289,8 +289,6 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
                 right,
             ),
             ConstructResult::Empty(empty) => {
-                //let (a,empty) = tools::duplicate_empty_slice(empty);
-                //let (b,c) = tools::duplicate_empty_slice(empty);
                 let node = NonLeafFinisher {
                     mid: empty,
                     div: None,
@@ -350,8 +348,6 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
                 par::ParResult::Parallel([dleft, dright]) => {
                     let splitter2 = &mut splitter2;
 
-                    //dbg!("PAR SPLIT");
-
                     let ((splitter, nodes), mut nodes2) = rayon::join(
                         move || {
                             nodes.push(node.finish(self.sorter));
@@ -385,7 +381,6 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
                     splitter
                 }
                 par::ParResult::Sequential(_) => {
-                    //dbg!("SEQ SPLIT");
                     nodes.push(node.finish(self.sorter));
 
                     self.recurse_preorder_seq(axis.next(), left, nodes, splitter, depth + 1);

@@ -111,13 +111,13 @@ impl<
                         div,
                         axis: this_axis,
                     };
-                    {
-                        let left = left.create_wrap_mut();
-                        let right = right.create_wrap_mut();
-                        let mut g = GoDownRecurser::new(nn, sweeper);
-                        g.go_down(this_axis.next(), left);
-                        g.go_down(this_axis.next(), right);
-                    }
+                    
+                    let left = left.create_wrap_mut();
+                    let right = right.create_wrap_mut();
+                    let mut g = GoDownRecurser::new(nn, sweeper);
+                    g.go_down(this_axis.next(), left);
+                    g.go_down(this_axis.next(), right);
+                
                 }
 
                 let mut splitter2 = splitter.div();
@@ -211,13 +211,13 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
                         div,
                         axis: this_axis,
                     };
-                    {
-                        let left = left.create_wrap_mut();
-                        let right = right.create_wrap_mut();
-                        let mut g = GoDownRecurser::new(nn, sweeper);
-                        g.go_down(this_axis.next(), left);
-                        g.go_down(this_axis.next(), right);
-                    }
+                    
+                    let left = left.create_wrap_mut();
+                    let right = right.create_wrap_mut();
+                    let mut g = GoDownRecurser::new(nn, sweeper);
+                    g.go_down(this_axis.next(), left);
+                    g.go_down(this_axis.next(), right);
+                
                 }
 
                 let mut splitter2 = splitter.div();

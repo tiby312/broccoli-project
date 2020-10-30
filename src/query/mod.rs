@@ -69,6 +69,22 @@ pub trait NotSortedQueries<'a> {
         NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
     }
 
+    fn find_colliding_pairs_pmut(
+        &mut self,
+        mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>),
+    ) {
+        query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
+            .query_seq(move |mut a, mut b| func(a, b));
+    }
+
+    fn find_colliding_pairs_pmut_par(
+        &mut self,
+        mut func: impl Fn(PMut<Self::T>, PMut<Self::T>)+Clone+Send+Sync,
+    ) where Self::T:Send+Sync{
+        query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
+            .query_par(move |mut a, mut b| func(a, b));
+    }
+
     fn find_colliding_pairs_mut(
         &mut self,
         mut func: impl FnMut(&mut Self::Inner, &mut Self::Inner),

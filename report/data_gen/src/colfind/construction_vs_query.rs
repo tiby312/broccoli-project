@@ -1,5 +1,136 @@
 use crate::inner_prelude::*;
 
+mod all{
+    use super::*;
+    #[derive(Debug)]
+    struct Record {
+        grow: f64,
+        theory: (usize, usize),
+        nosort_theory: (usize, usize),
+        bench: (f64, f64),
+        bench_par: (f64, f64),
+        nosort: (f64, f64),
+        nosort_par: (f64, f64),
+    }
+
+    fn repel(p1:Vec2<f32>,p2:Vec2<f32>,res1:&mut Vec2<f32>,res2:&mut Vec2<f32>){
+        let offset=p2-p1;
+        let dis=(offset).magnitude();
+        if dis<ABSPIRAL_PROP.radius.dis(){
+            *res1+=offset*0.0001;
+            *res2-=offset*0.0001;
+        }
+    }
+
+    fn handle(num_bots:usize,grow:f64)->Record{
+        
+        let mut bot_inner:Vec<_>=(0..num_bots).map(|a|vec2same(0.0f32)).collect();
+
+        let theory = datanum::datanum_test2(|maker|{
+            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_datanum_f32_nan(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            let mut tree = broccoli::new(&mut bots);
+            
+            let count=maker.count();
+
+            tree.find_colliding_pairs_pmut(|mut a,mut b| {
+                let aa=vec2(a.get().x.start.0,a.get().y.start.0).inner_into();
+                let bb=vec2(b.get().x.start.0,b.get().y.start.0).inner_into();
+                repel(aa,bb,a.inner_mut(),b.inner_mut());
+            });
+
+            let count2=maker.count();
+            (count,count2)
+        });
+
+
+        let nosort_theory = datanum::datanum_test2(|maker|{
+            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_datanum_f32_nan(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            let mut tree = NotSorted::new(&mut bots);
+            
+            let count=maker.count();
+
+            tree.find_colliding_pairs_pmut(|mut a,mut b| {
+                let aa=vec2(a.get().x.start.0,a.get().y.start.0).inner_into();
+                let bb=vec2(b.get().x.start.0,b.get().y.start.0).inner_into();
+                repel(aa,bb,a.inner_mut(),b.inner_mut());
+            });
+
+            let count2=maker.count();
+            (count,count2)
+        });
+
+        let bench = {
+            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            
+            let (mut tree,t1)=bench_closure_ret(||broccoli::new(&mut bots));
+            let t2=bench_closure(||{
+                tree.find_colliding_pairs_pmut(|mut a,mut b| {
+                    let aa=vec2(a.get().x.start,a.get().y.start).inner_into();
+                    let bb=vec2(b.get().x.start,b.get().y.start).inner_into();
+                    repel(aa,bb,a.inner_mut(),b.inner_mut());
+                });
+            });
+            (t1,t2)
+        };
+
+
+        let bench_par = {
+            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            
+            let (mut tree,t1)=bench_closure_ret(||broccoli::new_par(&mut bots));
+            let t2=bench_closure(||{
+                tree.find_colliding_pairs_pmut_par(|mut a,mut b| {
+                    let aa=vec2(a.get().x.start,a.get().y.start).inner_into();
+                    let bb=vec2(b.get().x.start,b.get().y.start).inner_into();
+                    repel(aa,bb,a.inner_mut(),b.inner_mut());
+                });
+            });
+            (t1,t2)
+        };
+
+
+        let nosort = {
+            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            
+            let (mut tree,t1)=bench_closure_ret(||NotSorted::new(&mut bots));
+            let t2=bench_closure(||{
+                tree.find_colliding_pairs_pmut(|mut a,mut b| {
+                    let aa=vec2(a.get().x.start,a.get().y.start).inner_into();
+                    let bb=vec2(b.get().x.start,b.get().y.start).inner_into();
+                    repel(aa,bb,a.inner_mut(),b.inner_mut());
+                });
+            });
+            (t1,t2)
+        };
+
+
+        let nosort_par = {
+            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            
+            let (mut tree,t1)=bench_closure_ret(||NotSorted::new_par(&mut bots));
+            let t2=bench_closure(||{
+                tree.find_colliding_pairs_pmut_par(|mut a,mut b| {
+                    let aa=vec2(a.get().x.start,a.get().y.start).inner_into();
+                    let bb=vec2(b.get().x.start,b.get().y.start).inner_into();
+                    repel(aa,bb,a.inner_mut(),b.inner_mut());
+                });
+            });
+            (t1,t2)
+        };
+
+        Record {
+            grow,
+            nosort_theory,
+            theory,
+            bench,
+            bench_par,
+            nosort,
+            nosort_par,
+        }
+
+    }
+}
+
 
 fn theory(bots: &mut [BBox<NotNan<f32>,bot::Bot>]) -> (usize, usize) {
 
@@ -319,8 +450,7 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
         let a: f32 = a as f32;
         0.1 + a * 0.005
     }) {
-        //let mut scene = bot::BotSceneBuilder::new(num_bots).with_grow(grow).build();
-        //let mut bots=abspiral_f32_nan(grow).take(num_bots).collect::<Vec<_>>();
+        
         let mut bots=abspiral_f32_nan(grow as f64).map(|r|{
             let k=bot::Bot{pos:vec2(*r.x.start,*r.y.start),vel:vec2same(0.0)};
             bbox(r,k)
