@@ -20,7 +20,7 @@
 //! Some also unlock more functions at the cost of a more restrictive api.
 //! The [`collections`] module goes into more depth as well as the book mentioned above.
 //!
-//! TL;DR use [`Tree`] and fill it with `BBox<N,&mut T>` (Semi-Direct) unless you want
+//! TL;DR use [`Tree`] and fill it with `BBox<u32,&mut T>` (Semi-Direct) unless you want
 //! to use functions like [`collections::TreeRefInd::collect_colliding_pairs`]. See
 //! the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
 //!
