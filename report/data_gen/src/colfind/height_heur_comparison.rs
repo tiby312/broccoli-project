@@ -20,9 +20,7 @@ pub fn handle_bench_inner(scene: &mut bot::BotScene<Bot>, height: usize) -> f64 
             a.num += 2;
             b.num += 2;
         });
-    
     })
-    
 }
 
 pub fn handle_theory_inner(scene: &mut bot::BotScene<Bot>, height: usize) -> usize {
