@@ -209,7 +209,7 @@ fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f64, position: u32) {
     
     let mut rects: Vec<_> = Vec::new();
 
-    for num_bots in (1..10_000).step_by(100) {
+    for num_bots in (1..10_000).step_by(20) {
         rects.push(all::handle_bench(num_bots,grow));
     }
 
@@ -298,7 +298,7 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
 
     let mut rects: Vec<_> = Vec::new();
 
-    for grow in abspiral_grow_iter(100..200,0.1,0.005){
+    for grow in abspiral_grow_iter2(0.1,0.8,0.001){
         rects.push(all::handle_bench(num_bots,grow));
     }
 
@@ -322,22 +322,22 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
         .lines(
             x.clone(),
             y1,
-            &[Caption("Rebal Sequential"), Color("blue"), LineWidth(2.0)],
+            &[Caption("Rebal Sequential"), Color("blue"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
             y2,
-            &[Caption("Query Sequential"), Color("green"), LineWidth(2.0)],
+            &[Caption("Query Sequential"), Color("green"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
             y3,
-            &[Caption("Rebal Parallel"), Color("red"), LineWidth(2.0)],
+            &[Caption("Rebal Parallel"), Color("red"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
             y4,
-            &[Caption("Query Parallel"), Color("brown"), LineWidth(2.0)],
+            &[Caption("Query Parallel"), Color("brown"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
@@ -387,7 +387,7 @@ fn handle_grow_theory(fb: &mut FigureBuilder) {
 
     let mut rects: Vec<_> = Vec::new();
 
-    for grow in abspiral_grow_iter(100..200,0.1,0.005){
+    for grow in abspiral_grow_iter(0..200,0.1,0.005){
         rects.push(all::handle_theory(num_bots,grow));
     }
 

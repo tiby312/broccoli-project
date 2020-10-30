@@ -99,7 +99,23 @@ pub fn instant_to_sec(elapsed: Duration) -> f64 {
 
 
 
+pub fn abspiral_grow_iter2(start:f64,end:f64,delta:f64)->impl Iterator<Item=f64>{
+    let mut c=start;
+    core::iter::from_fn(move ||{
+        if c>=end{
+            None
+        }else{
+            let k=c;
+            c+=delta;
+            Some(k)
+        }
+    })
+}
 
+
+#[deprecated(
+    note = "abspiral_grow_iter2"
+)]
 pub fn abspiral_grow_iter(range:core::ops::Range<usize>,start:f64,delta:f64)->impl Iterator<Item=f64>{
     range.map(move |a|{
         let a: f64 = a as f64;
