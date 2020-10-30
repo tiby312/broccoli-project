@@ -22,7 +22,7 @@ fn main() {
         **b += 1;
     });
 
-    assert_eq!(*aabbs[0].inner, 1);
-    assert_eq!(*aabbs[1].inner, 0);
-    assert_eq!(*aabbs[2].inner, 1);
+    assert_eq!(inner1, 1);
+    assert_eq!(inner2, 0);
+    assert_eq!(inner3, 1);
 }
