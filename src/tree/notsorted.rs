@@ -2,10 +2,10 @@ use super::*;
 use tree::TreeBuilder;
 
 ///A version of Tree where the elements are not sorted along each axis, like a KD Tree.
-/// For comparison, a normal kd-tree is provided by `NotSorted`. In this tree, the elements are not sorted
-/// along an axis at each level. Construction of `NotSorted` is faster than `Tree` since it does not have to
+/// For comparison, a normal kd-tree is provided by [`NotSorted`]. In this tree, the elements are not sorted
+/// along an axis at each level. Construction of [`NotSorted`] is faster than [`Tree`] since it does not have to
 /// sort bots that belong to each node along an axis. But most query algorithms can usually take advantage of this
-/// extra property.
+/// extra property to be faster.
 pub struct NotSorted<'a, A: Axis, T: Aabb>(pub(crate) Tree<'a, A, T>);
 
 impl<'a, T: Aabb + Send + Sync> NotSorted<'a, DefaultA, T> {

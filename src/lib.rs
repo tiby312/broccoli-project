@@ -128,7 +128,7 @@ pub trait Num: Ord + Copy + Send + Sync {}
 impl<T> Num for T where T: Ord + Copy + Send + Sync {}
 
 ///Trait to signify that this object has an axis aligned bounding box.
-///`get()` must return a aabb with the same value in it while the element
+///[`Aabb::get()`] must return a aabb with the same value in it while the element
 ///is in the tree. This is hard for the user not to do, this the user
 ///does not have `&mut self`,
 ///but it is still possible through the use of static objects or `RefCell` / `Mutex`, etc.

@@ -5,19 +5,14 @@ pub fn bbox<N, T>(rect: Rect<N>, inner: T) -> BBox<N, T> {
     BBox::new(rect, inner)
 }
 
-///A bounding box container object that implements Aabb and HasInner.
-///Note that `&mut BBox<N,T>` also implements Aabb and HasInner.
+///A bounding box container object that implements [`Aabb`] and [`HasInner`].
+///Note that `&mut BBox<N,T>` also implements [`Aabb`] and [`HasInner`].
 ///
 ///Using this one struct the user can construct the following types for bboxes to be inserted into the dinotree:
 ///
 ///* `BBox<N,T>`  (direct)
 ///* `&mut BBox<N,T>` (indirect)
 ///* `BBox<N,&mut T>` (rect direct, T indirect) (best performnace)
-///* `BBox<N,*mut T>` (used internally by `DinoTreeOwned`)
-///
-///
-///
-///
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct BBox<N, T> {
