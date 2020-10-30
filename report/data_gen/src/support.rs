@@ -134,16 +134,11 @@ pub const ABSPIRAL_PROP:bot::BotProp=bot::BotProp{
 };
 
 pub fn abspiral_datanum<'a>(maker:&'a datanum::Maker,grow:f64)->impl Iterator<Item=Rect<datanum::Dnum<'a,isize>>>{
-    abspiral_isize(grow).map(move |a|maker.from_rect(a))
+    abspiral_f64(grow).map(|a|a.inner_as::<isize>()).map(move |a|maker.from_rect(a))
 }
 
 pub fn abspiral_datanum_f32_nan<'a>(maker:&'a datanum::Maker,grow:f64)->impl Iterator<Item=Rect<datanum::Dnum<'a,NotNan<f32>>>>{
     abspiral_f32_nan(grow).map(move |a|maker.from_rect(a))
-}
-
-
-pub fn abspiral_isize(grow:f64)->impl Iterator<Item=Rect<isize>>{
-    abspiral_f64(grow).map(|a|a.inner_as())
 }
 
 pub fn abspiral_f32_nan(grow:f64)->impl Iterator<Item=Rect<NotNan<f32>>>{

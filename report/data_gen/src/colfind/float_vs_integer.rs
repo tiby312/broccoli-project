@@ -1,54 +1,8 @@
 use crate::inner_prelude::*;
 
-#[derive(Copy, Clone)]
-pub struct Bot {
-    pos: Vec2<i32>,
-    num: usize,
-}
-
-/*
-fn convert_to_i32(a:Rect<f32>,border:&Rect<f32>)->Rect<u32>{
-    fn convert1d(a:f32,range:axgeom::Range<f32>)->u32{
-        ((a-range.start) * (u32::MAX as f32 /range.distance())) as u32
-    }
-    rect(
-        convert1d(a.x.start,border.x),
-        convert1d(a.x.end,border.x),
-        convert1d(a.y.start,border.x),
-        convert1d(a.y.end,border.x)
-    )
-}
-*/
-
-/*
-//TODO use this??
-struct Drawer<'a>{
-    axis:&'a mut gnuplot::Axes2D,
-    color_counter:usize
-}
-impl<'a> Drawer<'a>{
-    fn new(axis:&'a mut Axes2D)->Drawer<'a>{
-        Drawer{axis,color_counter:0}
-    }
-    fn draw(&mut self,caption:&str,range:impl Iterator<Item=usize>+Clone,mut func:impl FnMut(usize)->f64){
-        let x=range.clone();
-        let y:Vec<_>=range.map(|a|func(a)).collect();
-        let c=COLS[self.color_counter % COLS.len()];
-        self.axis.lines(
-            x,
-            y,
-            &[Caption(caption), Color(c), LineWidth(1.6)],
-        );
-        self.color_counter+=1;
-    }
-}
-*/
 
 
 fn handle_bench(fg: &mut Figure) {
-    
-
-
     #[derive(Debug)]
     struct Record {
         num_bots: usize,
@@ -66,26 +20,23 @@ fn handle_bench(fg: &mut Figure) {
 
     let mut records = Vec::new();
 
-
-
     for num_bots in (2..80_000).step_by(200) {
-        let mut scene = bot::BotSceneBuilder::new(num_bots).build_specialized(|_, pos| Bot {
-            num: 0,
-            pos: pos.inner_as(),
-        });
-        let prop = &scene.bot_prop;
-        let mut bots = &mut scene.bots;
+        
+        let grow=1.0;
 
+        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|0isize).collect();
+        
         let bench_integer = {
-            
-            let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-            
+
+            let mut bb:Vec<  BBox<i32,&mut isize>  > =
+            abspiral_f64(grow).map(|a|a.inner_as()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+    
             bench_closure(||{
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    **a += 1;
+                    **b += 1;
                 });
 
             })
@@ -94,18 +45,16 @@ fn handle_bench(fg: &mut Figure) {
 
         let bench_i64 = {
             
-            let r = vec2same(prop.radius.dis() as i64);
-            let mut bb = bbox_helper::create_bbox_mut(bots, |b| {
-                axgeom::Rect::from_point(b.pos.inner_as::<i64>(), r)
-            });
-
+            let mut bb:Vec<  BBox<i64,&mut isize>  > =
+            abspiral_f64(grow).map(|a|a.inner_as()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+    
             bench_closure(||{
 
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    **a += 1;
+                    **b += 1;
                 });
             })
         };
@@ -113,15 +62,9 @@ fn handle_bench(fg: &mut Figure) {
 
         let bench_float_i32 = {
             
-            let r = vec2same(prop.radius.dis() as f32);
-
-            let bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                let k: Rect<NotNan<f32>> = axgeom::Rect::from_point(b.pos.inner_as::<f32>(), r)
-                    .inner_try_into()
-                    .unwrap();
-                k
-            });
-
+            let bb:Vec<  BBox<NotNan<f32>,&mut isize>  > =
+            abspiral_f32_nan(grow).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+    
             let border={
                 let (first,rest)=bb.split_first().unwrap();
                 let mut r=first.rect;
@@ -142,74 +85,54 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new(&mut bb);
     
                 tree.find_colliding_pairs_mut(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    **a += 1;
+                    **b += 1;
                 });
             })
         };
 
         let bench_float_ordered = {
-            
-            let r = vec2same(prop.radius.dis() as f32);
-
-            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                use axgeom::ordered_float::OrderedFloat;
-                let k: Rect<OrderedFloat<f32>> = axgeom::Rect::from_point(b.pos.inner_as::<f32>(), r)
-                    .inner_try_into()
-                    .unwrap();
-                k
-            });
-
+            use axgeom::ordered_float::OrderedFloat;
+                
+            let mut bb:Vec<  BBox<OrderedFloat<f32>,&mut isize>  > =
+            abspiral_f32(grow).map(|a|a.inner_into()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+    
             bench_closure(||{
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    **a += 1;
+                    **b += 1;
                 });
     
             })
         };
         let bench_float = {
-            
-            let r = vec2same(prop.radius.dis() as f32);
-
-            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                let k: Rect<NotNan<f32>> = axgeom::Rect::from_point(b.pos.inner_as::<f32>(), r)
-                    .inner_try_into()
-                    .unwrap();
-                k
-            });
-
+            let mut bb:Vec<  BBox<NotNan<f32>,&mut isize>  > =
+            abspiral_f32_nan(grow).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+    
             bench_closure(||{
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    **a += 1;
+                    **b += 1;
                 });
     
             })
         };
 
         let bench_float_par = {
-            
-            let r = vec2same(prop.radius.dis() as f32);
-
-            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                let k: Rect<NotNan<f32>> = axgeom::Rect::from_point(b.pos.inner_as(), r)
-                    .inner_try_into()
-                    .unwrap();
-                k
-            });
-
+            let mut bb:Vec<  BBox<NotNan<f32>,&mut isize>  > =
+            abspiral_f32_nan(grow).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+    
             bench_closure(||{
 
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    **a += 1;
+                    **b += 1;
                 });
     
             })
@@ -217,18 +140,16 @@ fn handle_bench(fg: &mut Figure) {
 
         let bench_integer_par = {
             
-            let r = vec2same(prop.radius.dis() as i32);
+            let mut bb:Vec<  BBox<i32,&mut isize>  > =
+            abspiral_f64(grow).map(|a|a.inner_as()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
 
-            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                axgeom::Rect::from_point(b.pos.inner_as::<i32>(), r)
-            });
 
             bench_closure(||{
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    **a += 1;
+                    **b += 1;
                 });
             })
         };
@@ -236,18 +157,15 @@ fn handle_bench(fg: &mut Figure) {
 
         let bench_i64_par = {
             
-            let r = vec2same(prop.radius.dis() as i64);
-
-            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                axgeom::Rect::from_point(b.pos.inner_as::<i64>(), r)
-            });
-
+            let mut bb:Vec<  BBox<i64,&mut isize>  > =
+            abspiral_f64(grow).map(|a|a.inner_as()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+    
             bench_closure(||{
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    **a += 1;
+                    **b += 1;
                 });
     
             })
@@ -256,21 +174,16 @@ fn handle_bench(fg: &mut Figure) {
 
         let bench_f64 = {
             
-            let r = vec2same(prop.radius.dis() as f64);
-
-            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                let k: Rect<NotNan<f64>> = axgeom::Rect::from_point(b.pos.inner_as(), r)
-                    .inner_try_into()
-                    .unwrap();
-                k
-            });
+            let mut bb:Vec<  BBox<NotNan<f64>,&mut isize>  > =
+            abspiral_f64(grow).map(|a|a.inner_try_into().unwrap()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+    
 
             bench_closure(||{
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    **a += 1;
+                    **b += 1;
                 });
     
             })
@@ -278,21 +191,17 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_f64_par = {
-            let r = vec2same(prop.radius.dis() as f64);
-
-            let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-                let k: Rect<NotNan<f64>> = axgeom::Rect::from_point(b.pos.inner_as(), r)
-                    .inner_try_into()
-                    .unwrap();
-                k
-            });
             
+            let mut bb:Vec<  BBox<NotNan<f64>,&mut isize>  > =
+            abspiral_f64(grow).map(|a|a.inner_try_into().unwrap()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+    
+
             bench_closure(||{
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    a.num += 1;
-                    b.num += 1;
+                    **a += 1;
+                    **b += 1;
                 });
     
             })
@@ -333,7 +242,7 @@ fn handle_bench(fg: &mut Figure) {
     let ww=1.0;
     fg.axes2d()
         .set_title(
-            "Comparison of broccoli Performance With Different Number Types With abspiral(x,2.0)",
+            "Comparison of broccoli Performance With Different Number Types With abspiral(x,1.0)",
             &[],
         )
         .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])
