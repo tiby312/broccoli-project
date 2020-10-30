@@ -16,7 +16,7 @@ fn handle_bench(fg: &mut Figure) {
         bench_i64_par: f64,
         bench_float_i32: f64,
         bench_float_ordered:f64,
-        bench_float_u16:f64
+        bench_float_u16_par:f64
     }
 
     let mut records = Vec::new();
@@ -209,7 +209,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
 
-        let bench_float_u16 = {
+        let bench_float_u16_par = {
             
             let bb:Vec<  BBox<NotNan<f32>,&mut isize>  > =
             abspiral_f32_nan(grow).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
@@ -231,9 +231,9 @@ fn handle_bench(fg: &mut Figure) {
                     bbox(broccoli::convert::rect_f32_to_u16(a.rect.inner_into(),&border.as_ref()),a.inner)
                 }).collect();
     
-                let mut tree = broccoli::new(&mut bb);
+                let mut tree = broccoli::new_par(&mut bb);
     
-                tree.find_colliding_pairs_mut(|a, b| {
+                tree.find_colliding_pairs_mut_par(|a, b| {
                     **a += 1;
                     **b += 1;
                 });
@@ -252,7 +252,7 @@ fn handle_bench(fg: &mut Figure) {
             bench_f64_par,
             bench_float_i32,
             bench_float_ordered,
-            bench_float_u16
+            bench_float_u16_par
         });
     }
 
@@ -269,7 +269,7 @@ fn handle_bench(fg: &mut Figure) {
     let y8 = rects.iter().map(|a| a.bench_i64_par);
     let y9 = rects.iter().map(|a| a.bench_float_i32);
     let y10 = rects.iter().map(|a| a.bench_float_ordered);
-    let y11 = rects.iter().map(|a| a.bench_float_u16);
+    let y11 = rects.iter().map(|a| a.bench_float_u16_par);
 
 
     
@@ -333,7 +333,7 @@ fn handle_bench(fg: &mut Figure) {
         .lines(
             x.clone(),
             y11,
-            &[Caption("f32 to u16"), Color("cyan"), LineWidth(ww)],
+            &[Caption("f32 to u16 par"), Color("cyan"), LineWidth(ww)],
         )
         .set_x_label("Number of Objects", &[])
         .set_y_label("Time taken in seconds", &[]);
