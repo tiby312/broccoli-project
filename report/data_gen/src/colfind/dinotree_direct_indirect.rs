@@ -89,30 +89,32 @@ impl CompleteTestResult {
     }
 }
 
-fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTestResult {
-    let mut bots = &mut scene.bots;
+fn complete_test<T: TestTrait>(num_bots:usize,grow:f64,t:T) -> CompleteTestResult {
+    
 
     let (direct_seq, direct_par) = {
-        let mut direct: Vec<_> = bots.iter().map(|b| BBox::new(b.aabb, *b)).collect();
+        
+        let mut bots:Vec<_>=abspiral_f64(grow as f64).take(num_bots).map(|a|a.inner_as::<i32>()).map(|a|bbox(a,(0isize,t))).collect();
 
-        let collide = |mut b: PMut<BBox<i32, Bot<T>>>, mut c: PMut<BBox<i32, Bot<T>>>| {
-            b.inner_mut().num += 1;
-            c.inner_mut().num += 1;
+        let collide = |mut b: PMut<BBox<i32, (isize,T)>>, mut c: PMut<BBox<i32, (isize,T)>>| {
+            b.inner_mut().0 += 1;
+            c.inner_mut().0 += 1;
         };
 
         (
-            test_seq(&mut direct, collide),
-            test_par(&mut direct, collide),
+            test_seq(&mut bots, collide),
+            test_par(&mut bots, collide),
         )
     };
 
     let (indirect_seq, indirect_par) = {
-        let mut direct: Vec<_> = bots.iter().map(|b| BBox::new(b.aabb, *b)).collect();
-        let mut indirect: Vec<_> = direct.iter_mut().map(|a| a).collect();
+        
+        let mut bots:Vec<_>=abspiral_f64(grow as f64).take(num_bots).map(|a|a.inner_as::<i32>()).map(|a|bbox(a,(0isize,t))).collect();
+        let mut indirect:Vec<_>=bots.iter_mut().collect();
 
-        let collide = |mut b: PMut<&mut BBox<i32, Bot<T>>>, mut c: PMut<&mut BBox<i32, Bot<T>>>| {
-            b.inner_mut().num += 1;
-            c.inner_mut().num += 1;
+        let collide = |mut b: PMut<&mut BBox<i32, (isize,T)>>, mut c: PMut<&mut BBox<i32, (isize,T)>>| {
+            b.inner_mut().0 += 1;
+            c.inner_mut().0 += 1;
         };
 
         (
@@ -121,11 +123,14 @@ fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTes
         )
     };
     let (default_seq, default_par) = {
-        let mut default = bbox_helper::create_bbox_mut(&mut bots, |b| b.aabb);
+        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|(0isize,t)).collect();
+        let mut default:Vec<  BBox<i32,&mut (isize,T)>  > =
+            abspiral_f64(grow).take(num_bots).map(|a|a.inner_as::<i32>()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
 
-        let collide = |mut b: PMut<BBox<i32, &mut Bot<T>>>, mut c: PMut<BBox<i32, &mut Bot<T>>>| {
-            b.inner_mut().num += 1;
-            c.inner_mut().num += 1;
+
+        let collide = |mut b: PMut<BBox<i32, &mut (isize,T)>>, mut c: PMut<BBox<i32, &mut (isize,T)>>| {
+            b.inner_mut().0 += 1;
+            c.inner_mut().0 += 1;
         };
 
         (
@@ -146,6 +151,7 @@ fn complete_test<T: TestTrait>(scene: &mut bot::BotScene<Bot<T>>) -> CompleteTes
 
 pub fn handle(fb: &mut FigureBuilder) {
     handle_num_bots(fb, 0.1, [0u8; 8]);
+    handle_num_bots(fb, 0.1, [0u8; 16]); 
     handle_num_bots(fb, 0.1, [0u8; 32]);
     handle_num_bots(fb, 0.1, [0u8; 128]);
     handle_num_bots(fb, 0.1, [0u8; 256]);
@@ -163,7 +169,7 @@ impl Record {
     fn draw(
         records: &[Record],
         fg: &mut Figure,
-        grow: f32,
+        grow: f64,
         construction: &str,
         name: &str,
         func: impl Fn(TestResult) -> f64,
@@ -203,21 +209,14 @@ impl Record {
     }
 }
 
-fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f32, val: T) {
+fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
     let mut rects = Vec::new();
 
     for num_bots in (0..30_000).rev().step_by(200) {
-        let mut scene = bot::BotSceneBuilder::new(num_bots)
-            .with_grow(grow)
-            .build_specialized(|r, pos| Bot {
-                aabb: r.create_bbox_i32(pos.inner_as()),
-                num: 0,
-                _val: val.clone(),
-            });
-
+        
         let r = Record {
             num_bots,
-            arr: complete_test(&mut scene),
+            arr: complete_test(num_bots,grow,val.clone()),
         };
         rects.push(r);
     }

@@ -32,6 +32,7 @@ cases worth copying the aabb.
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_query_1_128_bytes.svg" class="center" style="width: 100%;" />
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_query_0.1_32_bytes.svg" class="center" style="width: 100%;" />
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_query_0.1_8_bytes.svg" class="center" style="width: 100%;" />
+<img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_query_0.1_16_bytes.svg" class="center" style="width: 100%;" />
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_query_0.1_256_bytes.svg" class="center" style="width: 100%;" />
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_query_0.01_128_bytes.svg" class="center" style="width: 100%;" />
 
@@ -40,6 +41,7 @@ cases worth copying the aabb.
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_rebal_1_128_bytes.svg" class="center" style="width: 100%;" />
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_rebal_0.1_128_bytes.svg" class="center" style="width: 100%;" />
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_rebal_0.1_8_bytes.svg" class="center" style="width: 100%;" />
+<img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_rebal_0.1_16_bytes.svg" class="center" style="width: 100%;" />
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_rebal_0.01_128_bytes.svg" class="center" style="width: 100%;" />
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_rebal_0.1_32_bytes.svg" class="center" style="width: 100%;" />
 
