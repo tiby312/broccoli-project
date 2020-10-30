@@ -3,7 +3,8 @@ use std;
 
 use axgeom::Ray;
 use broccoli::analyze::assert;
-
+pub use broccoli::query::RayCastResult;
+    
 #[derive(Copy, Clone)]
 struct Bot {
     center: Vec2<f32>,

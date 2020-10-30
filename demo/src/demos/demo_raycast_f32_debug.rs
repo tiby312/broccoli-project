@@ -1,4 +1,5 @@
 use crate::support::prelude::*;
+pub use broccoli::query::RayCastResult;
 
 use axgeom::Ray;
 

@@ -75,7 +75,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
                 let r = radius;
                 let rect = Rect::new(p.x - r, p.x + r, p.y - r, p.y + r);
                     
-                let rect=broccoli::convert::rect_f32_to_u32(rect,dim2);
+                let rect=broccoli::convert::rect_f32_to_u16(rect,dim2);
                 bbox(rect, bot)
             })
             .collect();
@@ -90,7 +90,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         let cc = cursor.inner_into();
 
         let k=axgeom::Rect::from_point(cursor, vv);
-        let j=broccoli::convert::rect_f32_to_u32(k.inner_into(),dim2);
+        let j=broccoli::convert::rect_f32_to_u16(k.inner_into(),dim2);
         tree.for_all_in_rect_mut(&j, move |b| {
             let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cc, 0.001, 100.0);
         });
@@ -98,7 +98,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         {
             let dim3 = dim.inner_into();
 
-            let jj=broccoli::convert::rect_f32_to_u32(dim_float,dim2);
+            let jj=broccoli::convert::rect_f32_to_u16(dim_float,dim2);
             tree.for_all_not_in_rect_mut(&jj, move |a| {
                 duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim3, 0.5);
             });
