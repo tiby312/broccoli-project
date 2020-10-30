@@ -1,10 +1,5 @@
 use crate::inner_prelude::*;
 
-#[derive(Copy, Clone)]
-pub struct Bot {
-    pos: Vec2<f32>,
-    num: usize,
-}
 
 fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize) {
     #[derive(Debug)]
@@ -21,9 +16,9 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
     let stop_naive_at=5000;
     let stop_sweep_at=40000;
 
-    let mut rects=(0..80_000).step_by(2000).map(move |num_bots|{
+    let rects=(0..80_000).step_by(2000).map(move |num_bots|{
         dbg!(num_bots);
-        let mut bot_inner:Vec<_>=(0..num_bots).map(|a|0isize).collect();
+        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|0isize).collect();
         let mut bots:Vec<  BBox<NotNan<f32>,&mut isize>  > =
             abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
 
@@ -173,7 +168,7 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
 
     let rects=(0usize..80_000).step_by(2000).map(move |num_bots|{
          
-        let mut bot_inner:Vec<_>=(0..num_bots).map(|a|0isize).collect();
+        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|0isize).collect();
         
         let c1 = datanum::datanum_test(|maker|{
             let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();

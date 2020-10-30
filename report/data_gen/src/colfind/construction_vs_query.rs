@@ -28,7 +28,7 @@ mod all{
     }
 
     pub fn handle_bench(num_bots:usize,grow:f64)->RecordBench{
-        let mut bot_inner:Vec<_>=(0..num_bots).map(|a|vec2same(0.0f32)).collect();
+        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|vec2same(0.0f32)).collect();
 
         let bench = {
             let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
@@ -100,7 +100,7 @@ mod all{
     }
     pub fn handle_theory(num_bots:usize,grow:f64)->RecordTheory{
         
-        let mut bot_inner:Vec<_>=(0..num_bots).map(|a|vec2same(0.0f32)).collect();
+        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|vec2same(0.0f32)).collect();
 
         let theory = datanum::datanum_test2(|maker|{
             let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_datanum_f32_nan(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
@@ -387,7 +387,7 @@ fn handle_grow_theory(fb: &mut FigureBuilder) {
 
     let mut rects: Vec<_> = Vec::new();
 
-    for grow in abspiral_grow_iter(0..200,0.1,0.005){
+    for grow in abspiral_grow_iter2(0.1,1.0,0.005){
         rects.push(all::handle_theory(num_bots,grow));
     }
 

@@ -112,7 +112,7 @@ pub fn abspiral_grow_iter2(start:f64,end:f64,delta:f64)->impl Iterator<Item=f64>
     })
 }
 
-
+/*
 #[deprecated(
     note = "abspiral_grow_iter2"
 )]
@@ -122,6 +122,7 @@ pub fn abspiral_grow_iter(range:core::ops::Range<usize>,start:f64,delta:f64)->im
         start + a * delta
     })
 }
+*/
 
 pub const RADIUS:f32=5.0;
 pub const ABSPIRAL_PROP:bot::BotProp=bot::BotProp{
