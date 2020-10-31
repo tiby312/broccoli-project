@@ -6,37 +6,34 @@ pub struct Bot {
     num: usize,
 }
 
-pub fn handle_bench_inner(scene: &mut bot::BotScene<Bot>, height: usize) -> f64 {
+pub fn handle_bench_inner(grow:f64,bot_inner: &mut [isize] ,height: usize) -> f64 {
     
     bench_closure(||{
-        let bots = &mut scene.bots;
-        let prop = &scene.bot_prop;
-        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-    
-        let mut tree = TreeBuilder::new(&mut bb).with_height(height).build_seq();
+        let mut bots:Vec<  BBox<NotNan<f32>,&mut isize>  > =
+            abspiral_f32_nan(grow ).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+        
+
+        let mut tree = TreeBuilder::new(&mut bots).with_height(height).build_seq();
         assert_eq!(tree.get_height(),height);
 
         tree.find_colliding_pairs_mut(|a, b| {
-            a.num += 2;
-            b.num += 2;
+            **a += 2;
+            **b += 2;
         });
     })
 }
 
-pub fn handle_theory_inner(scene: &mut bot::BotScene<Bot>, height: usize) -> usize {
+pub fn handle_theory_inner(grow:f64,bot_inner: &mut [isize], height: usize) -> usize {
     
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
     datanum::datanum_test(|maker|{
-        let mut bb = bbox_helper::create_bbox_mut(bots, |b| {
-            maker.from_rect( prop.create_bbox_i32(b.pos))
-        });
-        let mut tree = TreeBuilder::new(&mut bb).with_height(height).build_seq();
+        let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            
+        let mut tree = TreeBuilder::new(&mut bots).with_height(height).build_seq();
         assert_eq!(tree.get_height(),height);
 
         tree.find_colliding_pairs_mut(|a, b| {
-            a.num += 2;
-            b.num += 2;
+            **a += 2;
+            **b += 2;
         });  
     })
 }
@@ -59,14 +56,12 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         let mut minimum = None;
         let max_height = (num_bots as f64).log2() as usize;
 
+        let grow=2.0;
+        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|0isize).collect();
         
-        let mut scene = bot::BotSceneBuilder::new(num_bots).build_specialized(|_, pos| Bot {
-            pos: pos.inner_as(),
-            num: 0,
-        });
 
         for height in 1..max_height {
-            let bench = handle_bench_inner(&mut scene, height);
+            let bench = handle_bench_inner(grow,&mut bot_inner, height);
             match minimum {
                 Some((a, _b)) => {
                     if bench < a {
@@ -156,14 +151,13 @@ fn handle2d(fb: &mut FigureBuilder) {
     let mut theory_records = Vec::new();
 
     let mut bench_records: Vec<BenchRecord> = Vec::new();
-
-    let mut scene = bot::BotSceneBuilder::new(10_000).build_specialized(|_, pos| Bot {
-        pos: pos.inner_as(),
-        num: 0,
-    });
+    let num_bots=10000;
+    let grow=2.0;
+    let mut bot_inner:Vec<_>=(0..num_bots).map(|_|0isize).collect();
+    
 
     for height in 2..13 {
-        let num_comparison = handle_theory_inner(&mut scene, height);
+        let num_comparison = handle_theory_inner(grow,&mut bot_inner, height);
         theory_records.push(Record {
             height,
             num_comparison,
@@ -171,7 +165,7 @@ fn handle2d(fb: &mut FigureBuilder) {
     }
 
     for height in (2..13).flat_map(|a| std::iter::repeat(a).take(20)) {
-        let bench = handle_bench_inner(&mut scene, height);
+        let bench = handle_bench_inner(grow,&mut bot_inner, height);
         bench_records.push(BenchRecord { height, bench });
     }
 
