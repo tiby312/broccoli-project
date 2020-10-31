@@ -59,6 +59,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         let mut minimum = None;
         let max_height = (num_bots as f64).log2() as usize;
 
+        
         let mut scene = bot::BotSceneBuilder::new(num_bots).build_specialized(|_, pos| Bot {
             pos: pos.inner_as(),
             num: 0,
