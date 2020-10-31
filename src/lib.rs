@@ -6,11 +6,10 @@
 //! Using this crate, the user can create three flavors of the same fundamental data structure.
 //! The different characteristics are exlored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
 //!
-//!|Type                 |Name       | Features       | Downsides                     |
-//!|---------------------|-----------|----------------|-------------------------------|
-//!|`(Rect<N>,&mut T)`   |Semi-direct| Fast           | Uses more memory (aabb copied)|
-//!|`(Rect<N>,T)`        |Direct     | Space efficient| Original order not preserved  |
-//!|`&mut (Rect<N>,T)`   |Indirect   | Simple         | More cache misses for large n |
+//!
+//! - `      ( Rect<N>, &mut T )    ` Semi-direct
+//! - `      ( Rect<N>,      T )    ` Direct
+//! - ` &mut ( Rect<N>,      T )    ` Indirect
 //!
 //! ### There are so many Tree types which one do I use?
 //!
@@ -20,7 +19,7 @@
 //! Some also unlock more functions at the cost of a more restrictive api.
 //! The [`collections`] module goes into more depth as well as the book mentioned above.
 //!
-//! TL;DR use [`Tree`] and fill it with `BBox<u32,&mut T>` (Semi-Direct) unless you want
+//! TL;DR use [`Tree`] and fill it with `BBox<u32,&mut T>` unless you want
 //! to use functions like [`collections::TreeRefInd::collect_colliding_pairs`]. See
 //! the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
 //!
