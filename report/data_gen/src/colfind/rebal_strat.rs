@@ -8,6 +8,7 @@ pub struct Bot {
 
 fn test1(scene: &mut bot::BotScene<Bot>) -> f64 {
     bench_closure(||{
+        
         let bots = &mut scene.bots;
         let prop = &scene.bot_prop;
         let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
