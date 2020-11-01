@@ -1,4 +1,4 @@
-#### How to make a aabb
+#### How to make a Aabb
 
 So far we've talked about how aabbs can be stored in a Tree. For example we recommended
 populating it with `BBox<N,&mut T>`.
@@ -49,6 +49,7 @@ to determine the direction and magnitude of the repel force. So it doesnt matter
 we used the top left corner instead of the center.
 
 This optimization might still work if your aabb was converted from floats to u32 provided 
-that you convert them back right before repelling.
+that you convert them back right before repelling. However if the aabbs are u16 converted from float,
+then the offset vectors might be too inaccurate.
 
 

@@ -15,5 +15,5 @@
 - [API Design](./ch11-api-design.md)
 - [Algorithm In-Depth](./ch12-algorithm-in-depth.md)
 - [Improvements](./ch13-improvements.md)
-- [General Thoughts](./ch14-general-thoughts.md)
-- [How to make Aabb](./ch15-how-to-make-aabb.md)
+- [How to make Aabb](./ch14-how-to-make-aabb.md)
+- [General Thoughts](./ch15-general-thoughts.md)
