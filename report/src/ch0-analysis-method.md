@@ -39,7 +39,8 @@ The below chart shows how influencing the spiral_grow affects the number of bot 
 It is not entirely smooth, but it is smooth enough that we can use this function to change the load on the broccoli without having to sample multiple times.
 
 Its also clearly not linear, but all that really matters is that we have a way to increase/decrease
-the number of collisions easily.
+the number of collisions easily. We just need something that will allow us to definitively see
+trends in how the algorithms stack up against each other.
 
 <img alt="Spiral Data" src="graphs/spiral_data.svg" class="center" style="width: 100%;" />
 

@@ -31,6 +31,14 @@ Rebuilding the first level of the tree does take some time, but it is still just
 
 Additionally, we have been assuming that once we build the tree, we are just finding all the colliding pairs of the elements. In reality, there might be many different queries we want to do on the same tree. So this is another reason we want the tree to be built to make querying as fast as possible, because we don't know how many queries the user might want to do on it. In addition to finding all colliding pairs, its quite reasonable the user might want to do some k_nearest querying, some rectangle area querying, or some raycasting.
 
+### Inserting elements after construction
+
+broccoli does not support inserting elements after construction. If you want to add more elements,
+you have to rebuild the tree. In most usecases, I think you want to do this anyway. In a dynamic
+particle system for example, most of the time, enough particles move about in one step to justify
+recreating the whole tree. Trying to avoid this using loose bounding boxes will make querying take
+longer. 
+
 
 ### Exploiting Temporal Locality (with loose bounding boxes)
 

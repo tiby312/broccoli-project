@@ -1,14 +1,14 @@
 
 ### Comparison against other Algorithms
 
-The below chart compares different algorithms both in terms of comparisons and benches. It is interesting to note that the real world bench times matche closely with the theoretical number of comparisons. So that means that the number of comparisons performed is proportional to the real world performance of this algorithm. Makes sense, but it is also nice to see the data line up. The lines are more smooth (and deterministic) than the benches since an everyday laptop has more tasks to do and might also throttle itself half way through a bench.
+The below chart compares different algorithms both in terms of comparisons and benches. It is interesting to note that the real world bench times match closely with the theoretical number of comparisons. So that means that the number of comparisons performed is proportional to the real world performance of this algorithm. Makes sense, but it is also nice to see the data line up. 
 
 The jumps that you see in the theoretical `broccoli` line are the points at which the trees height grows by one. It is a complete binary tree so a slight increase in the height by 1 causes a doubling of nodes so it is a drastic change. As the number of bots increases it is inevitable that sometimes the tree will be too tall or too short. 
 
 It's also worth noting that the difference between `sweep and prune`/`kdtree` and `naive` is much bigger than the difference between `sweep and prune`/`kdtree` and `broccoli`. So using these simpler algorithms gets you big gains as it is. The gains you get from using `broccoli` are not as pronounced, but are noticeable with more elements.
 
-In the same vein, you can see what there arn't many gains to use `broccoli_par` over `broccoli`. It can double/quaduple your performance, but as you can see those gains pale in comparison to the gains from simply using the `broccoli` algorithm. Thats not to say multiplying your performance by the number of cores you have isnt great, its just that it isnt a big factor.
-
+In the same vein, you can see what there arn't many gains to use `broccoli_par` over `broccoli`. It can double/quaduple your performance, but as you can see those gains pale in comparison to the gains from simply using the `broccoli` algorithm. Thats not to say multiplying your performance by the number of cores you have isnt great, its just that it isnt a big factor. This to me means that typically, allocating effort on
+investigating if your algorithm is optimal sequentially may be better than spending effort in parallelizing what you have.
 
 <img alt="Colfind Theory" src="graphs/colfind_theory.svg" class="center" style="width: 100%;" />
 <img alt="Colfind Bench" src="graphs/colfind_bench.svg" class="center" style="width: 100%;" />
@@ -47,3 +47,10 @@ This means that during the query phase, the work-load will be fairly equal on bo
 
 I wanted to make a collision system that could be used in the general case and did not need to be fine-tuned. Grid based collision systems suffer from the teapot-in-a-stadium problem. They also degenerate more rapidly as objects get more clumped up. If, however, you have a system where you have strict rules with how evenly distributed objects will be among the entire space you're checking collisions against, then I think a grid system can be better. But I think these systems are few and far in between. I think in most systems, for example, its perfectly possible for all the objects to exist entirely on one half of the space being collision checked leaving the other half empty. In such a case, half of the data structure of the grid system is not being used to partition anything. There are also difficulties in how to represent the data structure since every grid cell could have a variable number of bots in side of it. Having a Vec in each cell, for example, would hardly be efficient.
 
+### broccoli vs BVT
+
+I'm not sure how broccoli stacks up against a bounding volume tree. This is something I would like to investigate in the future.
+
+### Bottom up Construction Spacing Filling Curve
+
+TODO interesting idea.
