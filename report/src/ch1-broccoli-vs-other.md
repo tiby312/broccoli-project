@@ -47,10 +47,8 @@ This means that during the query phase, the work-load will be fairly equal on bo
 
 I wanted to make a collision system that could be used in the general case and did not need to be fine-tuned. Grid based collision systems suffer from the teapot-in-a-stadium problem. They also degenerate more rapidly as objects get more clumped up. If, however, you have a system where you have strict rules with how evenly distributed objects will be among the entire space you're checking collisions against, then I think a grid system can be better. But I think these systems are few and far in between. I think in most systems, for example, its perfectly possible for all the objects to exist entirely on one half of the space being collision checked leaving the other half empty. In such a case, half of the data structure of the grid system is not being used to partition anything. There are also difficulties in how to represent the data structure since every grid cell could have a variable number of bots in side of it. Having a Vec in each cell, for example, would hardly be efficient.
 
+The way [liquid fun](https://google.github.io/liquidfun/) does collisions by using grids in one dimension and sweep and prune in the other. 
+
 ### broccoli vs BVT
 
-I'm not sure how broccoli stacks up against a bounding volume tree. This is something I would like to investigate in the future.
-
-### Bottom up Construction Spacing Filling Curve
-
-TODO interesting idea.
+I'm not sure how broccoli stacks up against a bounding volume tree. This is something I would like to investigate in the future. It would be interesting to compare against bottom up and top down constructions of BVT seeing as KD Tree are top down by nature.
