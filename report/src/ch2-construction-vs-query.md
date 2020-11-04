@@ -7,8 +7,7 @@ what you plan on doing with every colliding pair (it could be an expensive user 
 
 Some observations:
 * The cost of rebalancing does not change with the density of the objects
-* The cost of querying does change with the density.
-* If the bots are spread out enough, the cost of querying decreases enough to cost less than the cost of rebalancing.
+* If the bots are spread out enough, the cost of querying decreases enough to be about the same as rebalancing.
 * The cost of querying is reduced more by parallelizing than the cost of rebalancing.
 	
 It makes sense that querying in more 'parallelilable' than rebalancing since the calculation that you have to perform for each node before you can divide and conquer the problem is more expensive for rebalancing. For rebalancing you need to find the median and bin the bots. For querying you only have to do sweep and prune. 

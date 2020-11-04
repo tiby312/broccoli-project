@@ -8,17 +8,17 @@ Whether the elements inserted into the tree are made up of:
 * `(Rect<Num>,T)` (Direct)
 * `&mut (Rect<Num>,T)` (Indirect)
 
-We also vary the size of `T` (8,32,128,or 256 bytes).
+We also vary the size of `T` (8,16,32,128,or 256 bytes).
 We do not bother varying the size of `Num` since we assume the user is using a
 'normal' sized number type like a float or an integer.
 
-We define a more specialized abspiral(), abspiral-isize() that takes an additonal
+We define a more specialized `abspiral()`, `abspiral-isize()` that takes an additonal
 argument which influnces the size of `T`.
 
 There are a couple of observations to make.
-* Direct is the faster at querying, but the slowest at construction
 * Semi-Direct is the best all-around.
-* Indirect isn't far behind Default.
+* Direct is sometimes slightly faster then Semi-Direct at querying, but the slowest at construction
+* Indirect isn't far behind Semi-Direct.
 * Direct is greatly influenced by the size of `T`.
  
 Default in many cases beats Direct showing that sometimes a level of
