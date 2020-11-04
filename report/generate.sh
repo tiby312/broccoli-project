@@ -9,7 +9,4 @@ rm -rf src/raw
 rm -rf book/graphs
 ../target/release/data_gen graph src/raw src/graphs
 
-
-#xdg-open http://localhost:3000/ &
 mdbook serve
-#xdg-open book/index.html

@@ -1,4 +1,4 @@
 
-A collection of writeups for the algorithms in the dinotree_alg project. This is a work in progress.
+run `generate.sh` to bench and generate graphs and build the book.
 
-rebalance_and_query_report.md has all the graphs.
+'deploy.sh' is used to move the generate webpage to a repository to host it.
