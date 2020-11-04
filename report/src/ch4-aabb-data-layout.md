@@ -18,16 +18,9 @@ argument which influnces the size of `T`.
 There are a couple of observations to make.
 * Semi-Direct is the best all-around.
 * Direct is sometimes slightly faster then Semi-Direct at querying, but the slowest at construction
-* Indirect isn't far behind Semi-Direct.
+* Indirect isn't far behind Semi-Direct, but suffers in some high density distributions.
 * Direct is greatly influenced by the size of `T`.
  
-Semi-Direct in many cases beats Direct showing that sometimes a level of
-indirection actually speeds things up. This is because in most cases,
-the query algorithm just needs to check the aabb and doesnt need
-to derefence. It also shows that it is in most
-cases worth copying the aabb.
-
-
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_query_0.1_128_bytes.svg" class="center" style="width: 100%;" />
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_query_1_128_bytes.svg" class="center" style="width: 100%;" />
 <img alt="Direct vs Indirect Query" src="graphs/dinotree_direct_indirect_query_0.1_32_bytes.svg" class="center" style="width: 100%;" />
@@ -56,7 +49,7 @@ There are three main datalayouts for each of the elements in a broccoli that are
 `&mut (Rect<isize>,T)`
 
 
-Because the tree construction code is generic over the elements that are inserted (as long as they implement HasAabb),
+Because the tree construction code is generic over the elements that are inserted (as long as they implement Aabb),
 The user can easily try all three data layouts.
 
 The default layout is almost always the fastest. 
