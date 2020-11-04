@@ -21,7 +21,7 @@ There are a couple of observations to make.
 * Indirect isn't far behind Semi-Direct.
 * Direct is greatly influenced by the size of `T`.
  
-Default in many cases beats Direct showing that sometimes a level of
+Semi-Direct in many cases beats Direct showing that sometimes a level of
 indirection actually speeds things up. This is because in most cases,
 the query algorithm just needs to check the aabb and doesnt need
 to derefence. It also shows that it is in most
