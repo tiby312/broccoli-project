@@ -1,4 +1,21 @@
+### Mutable vs Read-Only api
+
+We could have just exposed read only versions of all the query functions where functions like
+`find_all_colliding_pairs` just returned a read only reference instead of a mutable reference.
+You could still use this api to mutate things by either inserting indexes or pointers. If you inserted
+indicies, then you would need to use unsafe to get mutable referneces to both elements simultaniously
+in an array since the fact that both indicies are distinct and don't alias is not known to the compiler.
+If you inserted pointers, then you would need to use unsafe to cast them to mutable references.
+So having to use unsafe is a downside.
+
+An upside is that you would be able to run multiple raycast() function queries simulaniously, for example.
+
+The main downside is loss of flexibility in cases where you want to store the actual elements inside the tree instead of just pointers or indicies. In those cases, you obviously need mutable references to each element.
+
+
 ### Mutable vs Mutable + Read-Only api
+
+Ideally, there would be both a `find_all_colliding_pairs` and a `find_all_colliding_pairs_mut`. 
 
 A lot of the query algorithms don't actually care what kind of reference is in the tree.
 They don't actually mutate the elements, they just retrieve them.
