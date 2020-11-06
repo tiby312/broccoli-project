@@ -138,7 +138,7 @@ fn main() {
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
 
-            /*
+            
             run_test!(&mut fb, colfind::colfind::handle_theory);
                         
             run_test!(&mut fb, spiral::handle);
@@ -147,7 +147,7 @@ fn main() {
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
 
             run_test!(&mut fb, colfind::theory_colfind_3d::handle);
-            */
+            
         }
         "bench" => {
             let folder = args[2].clone();
@@ -156,7 +156,7 @@ fn main() {
             let mut fb = FigureBuilder::new(folder);
 
             //done
-            /*
+            
             run_test!(&mut fb, colfind::colfind::handle_bench);
             run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
             
@@ -164,16 +164,16 @@ fn main() {
             run_test!(&mut fb, colfind::rebal_strat::handle);
             run_test!(&mut fb, colfind::dinotree_direct_indirect::handle);
             
-            */
+            
             run_test!(&mut fb, colfind::float_vs_integer::handle);
             
-            /*
+            
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
 
             //This is the one thats interesting to see what the results are on phone/vs/laptop
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
-            */
+            
             //nbody::theory::handle(&mut fb);
         }
         "graph" => {

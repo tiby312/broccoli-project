@@ -209,7 +209,7 @@ fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f64, position: u32) {
     
     let mut rects: Vec<_> = Vec::new();
 
-    for num_bots in (1..10_000).step_by(20) {
+    for num_bots in (1..5_000).step_by(20) {
         rects.push(all::handle_bench(num_bots,grow));
     }
 
@@ -298,7 +298,7 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
 
     let mut rects: Vec<_> = Vec::new();
 
-    for grow in abspiral_grow_iter2(0.1,0.8,0.001){
+    for grow in abspiral_grow_iter2(0.2,0.8,0.001){
         rects.push(all::handle_bench(num_bots,grow));
     }
 

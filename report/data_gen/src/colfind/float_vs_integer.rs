@@ -21,7 +21,7 @@ fn handle_bench(fg: &mut Figure) {
 
     let mut records = Vec::new();
 
-    for num_bots in (2..80_000).step_by(200) {
+    for num_bots in (20_000..80_000).step_by(200) {
         
         let grow=1.0;
 

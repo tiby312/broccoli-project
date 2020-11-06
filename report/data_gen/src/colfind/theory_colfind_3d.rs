@@ -140,9 +140,9 @@ fn handle_spiral(fb: &mut FigureBuilder) {
     let mut rects = Vec::new();
 
     for num_bots in (0..6000).step_by(500) {
-        for grow in (0usize..100).map(|a| {
+        for grow in (0usize..50).map(|a| {
             let a: f32 = a as f32;
-            0.0005 + a * 0.0001
+            0.0005 + a * 0.0002
         }) {
             let mut scene = bot::BotSceneBuilder::new(num_bots)
                 .with_grow(grow)
