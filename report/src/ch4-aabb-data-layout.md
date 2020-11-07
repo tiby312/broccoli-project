@@ -12,6 +12,8 @@ We also vary the size of `T` (8,16,32,128,or 256 bytes).
 We do not bother varying the size of `Num` since we assume the user is using a
 'normal' sized number type like a float or an integer.
 
+We bench construction as well as one call to `find_colliding_pairs`.
+
 We define a more specialized `abspiral()`, `abspiral-isize()` that takes an additonal
 argument which influnces the size of `T`.
 

@@ -1,7 +1,7 @@
 
 ### Comparison against other Algorithms
 
-The below chart compares different algorithms both in terms of comparisons and benches. It is interesting to note that the real world bench times match closely with the theoretical number of comparisons. So that means that the number of comparisons performed is proportional to the real world performance of this algorithm. Makes sense, but it is also nice to see the data line up. 
+The below chart compares different implementations of `find_colliding_pairs` both in terms of comparisons and benches. It is interesting to note that the real world bench times match closely with the theoretical number of comparisons. So that means that the number of comparisons performed is proportional to the real world performance of this algorithm. Makes sense, but it is also nice to see the data line up. 
 
 The jumps that you see in the theoretical `broccoli` line are the points at which the trees height grows by one. It is a complete binary tree so a slight increase in the height by 1 causes a doubling of nodes so it is a drastic change. As the number of bots increases it is inevitable that sometimes the tree will be too tall or too short. 
 

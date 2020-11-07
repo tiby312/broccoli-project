@@ -1,7 +1,8 @@
 
 ### Level Comparison
 
-The below charts show the load balance between the different levels of the tree.
+The below charts show the load balance between the different levels of the tree. 
+Tree construction is compared against one call to `find_colliding_pairs`.
 
 Some observations:
 * The cost of rebalancing the first level is the most erratic. 
