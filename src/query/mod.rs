@@ -49,7 +49,7 @@ mod tools;
 
 use self::inner_prelude::*;
 
-//Queries that can be performed on a tree that is not sorted
+///Queries that can be performed on a tree that is not sorted
 pub trait NotSortedQueries<'a> {
     type A: Axis;
     type T: Aabb<Num = Self::Num> + HasInner<Inner = Self::Inner> + 'a;
@@ -104,6 +104,8 @@ pub trait NotSortedQueries<'a> {
     }
 }
 
+///Query functions that instead of returning PMut<T>, return T::Inner for convinience.
+///Requires that T implement HasInner.
 pub trait QueriesInner<'a>: Queries<'a>
 where
     Self::T: HasInner<Inner = Self::Inner>,
@@ -350,7 +352,7 @@ where
         broad: impl FnMut(&mut Acc, &Ray<Self::Num>, &Rect<Self::Num>) -> CastResult<Self::Num>,
         fine: impl FnMut(&mut Acc, &Ray<Self::Num>, &Self::T) -> CastResult<Self::Num>,
         border: Rect<Self::Num>,
-    ) -> raycast::RayCastResult<'b, Self::Inner, Self::Num>
+    ) -> raycast::RayCastResult<&'b mut Self::Inner, Self::Num>
     where
         'a: 'b,
     {
@@ -441,6 +443,9 @@ where
     }
 }
 
+
+///Query functions. User defines `vistr()` functions, and the query functions
+///are automatically provided by this trait.
 pub trait Queries<'a> {
     type A: Axis;
     type T: Aabb<Num = Self::Num> + 'a;
@@ -649,6 +654,7 @@ pub trait Queries<'a> {
     }
 }
 
+///For comparison, the sweep and prune algorithm
 pub fn find_collisions_sweep_mut<A: Axis, T: Aabb + HasInner>(
     bots: &mut [T],
     axis: A,
@@ -671,7 +677,7 @@ impl<'a, T: Aabb + HasInner> NaiveAlgs<'a, T> {
         broad: impl FnMut(&mut Acc, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
         fine: impl FnMut(&mut Acc, &Ray<T::Num>, &T) -> CastResult<T::Num>,
         border: Rect<T::Num>,
-    ) -> raycast::RayCastResult<T::Inner, T::Num> {
+    ) -> raycast::RayCastResult<&mut T::Inner, T::Num> {
         let mut rtrait = raycast::RayCastClosure {
             a: start,
             broad,
