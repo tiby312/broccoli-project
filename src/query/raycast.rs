@@ -56,12 +56,6 @@ pub trait RayCast {
         a: &Rect<Self::N>,
     ) -> axgeom::CastResult<Self::N>;
 
-    ///Returns the length of ray between its origin, and where it intersects the line provided.
-    ///Returns none if the ray doesnt intersect it.
-    ///We use this to further prune nodes.If the closest possible distance of a bot in a particular node is
-    ///bigger than what we've already seen, then we dont need to visit that node.
-    //fn compute_distance_to_line<A:Axis>(&mut self,axis:A,line:Self::N)->Option<Self::N>;
-
     ///The expensive collision detection
     ///This is where the user can do expensive collision detection on the shape
     ///contains within it's bounding box.
