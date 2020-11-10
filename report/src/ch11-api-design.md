@@ -24,6 +24,8 @@ In this way, it would be nice if the query algorithms were generic of the type o
 
 To do this you can go down one of two paths, macros or generic associated types. GATs [don't exist yet](https://github.com/rust-lang/rfcs/blob/master/text/1598-generic_associated_types.md), and macros are hard to read and can be a head ache. Check out how rust reuses code between Iter and IterMut for slices for an example of macro solution. So for now, we will just support mutable api.
 
+A good article about GATs can be found [here](https://lukaskalbertodt.github.io/2018/08/03/solving-the-generalized-streaming-iterator-problem-without-gats.html).
+
 
 ### Making `Aabb` an unsafe trait vs Not
 
