@@ -296,11 +296,13 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
 
 pub use self::mutable::k_nearest_mut;
 
+/*
 /// Returned by k_nearest_mut
 pub struct KnearestResult<'a, T, N> {
     pub bot: &'a mut T,
     pub mag: N,
 }
+*/
 
 pub use self::mutable::k_nearest_naive_mut;
 mod mutable {
@@ -311,9 +313,8 @@ mod mutable {
         point: Vec2<K::N>,
         num: usize,
         k: &mut K,
-    ) -> Vec<KnearestResult<'a, T::Inner, T::Num>> {
-        //let bots=ProtectedBBoxSlice::new(bots);
-
+    ) -> Vec<(&'a mut T::Inner, T::Num)> {
+        
         let mut closest = ClosestCand::new(num);
 
         for b in bots.iter_mut() {
@@ -331,10 +332,7 @@ mod mutable {
         closest
             .into_sorted()
             .drain(..)
-            .map(|a| KnearestResult {
-                bot: a.bot.into_inner(),
-                mag: a.mag,
-            })
+            .map(|a| (a.bot.into_inner(), a.mag))
             .collect()
     }
 
@@ -345,7 +343,7 @@ mod mutable {
         num: usize,
         knear: &mut impl Knearest<N = N::Num, T = N::T>,
         rect: Rect<N::Num>,
-    ) -> Vec<Option<KnearestResult<'a, <N::T as HasInner>::Inner, N::Num>>>
+    ) -> Vec<Option<(&'a mut <N::T as HasInner>::Inner, N::Num)>>
     where
         N::T: HasInner,
     {
@@ -361,25 +359,15 @@ mod mutable {
 
         recc(axis, dt, rect, &mut blap);
 
-        let mut res:Vec<Option<KnearestResult<'a, <N::T as HasInner>::Inner, N::Num>>>=Vec::new();
+        let mut res:Vec<Option<(&'a mut <N::T as HasInner>::Inner, N::Num)>>=Vec::new();
         for a in blap.closest.into_sorted().into_iter(){
             if let Some(Some(k))=res.last(){
-                if k.mag!=a.mag{
+                if k.1!=a.mag{
                     res.push(None);
                 }
             }
-            res.push(Some(KnearestResult {
-                bot: a.bot.into_inner(),
-                mag: a.mag,
-            }));
+            res.push(Some((a.bot.into_inner(),a.mag)));
         }
         res
-        /*
-        blap.closest
-            .into_sorted()
-            .drain(..)
-            .map(|a| )
-            .collect()
-            */
     }
 }

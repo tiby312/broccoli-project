@@ -134,14 +134,14 @@ pub fn k_nearest_mut<Acc, A: Axis, T: Aabb + HasInner>(
     let mut res_naive = NaiveAlgs::new(bots)
         .k_nearest_mut(point, num, acc, &mut broad, &mut fine)
         .drain(..)
-        .map(|a| (a.bot as *const _ as usize, a.mag))
+        .map(|a| (a.0 as *const _ as usize, a.1))
         .collect::<Vec<_>>();
 
     let mut r = tree.k_nearest_mut(point, num, acc, broad, fine, rect);
     let mut res_dino: Vec<_> = r
         .drain(..)
         .filter_map(|a|a)
-        .map(|a| (a.bot as *const _ as usize, a.mag))
+        .map(|a| (a.0 as *const _ as usize, a.1))
         .collect();
 
     res_naive.sort();
@@ -165,26 +165,26 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb + HasInner>(
 
     let mut res_naive = Vec::new();
     match NaiveAlgs::new(bots).raycast_mut(ray, start, &mut broad, &mut fine, border) {
-        RayCastResult::Hit((bots, mag)) => {
+        axgeom::CastResult::Hit((bots, mag)) => {
             for a in bots.iter() {
                 let j = (*a) as *const _ as usize;
                 res_naive.push((j, mag))
             }
         }
-        RayCastResult::NoHit => {
+        axgeom::CastResult::NoHit => {
             //do nothing
         }
     }
 
     let mut res_dino = Vec::new();
     match tree.raycast_mut(ray, start, broad, fine, border) {
-        RayCastResult::Hit((bots, mag)) => {
+        axgeom::CastResult::Hit((bots, mag)) => {
             for a in bots.iter() {
                 let j = (*a) as *const _ as usize;
                 res_dino.push((j, mag))
             }
         }
-        RayCastResult::NoHit => {
+        axgeom::CastResult::NoHit => {
             //do nothing
         }
     }
