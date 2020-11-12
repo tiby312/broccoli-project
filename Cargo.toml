@@ -1,6 +1,6 @@
 [package]
 name = "broccoli"
-version = "0.1.11"
+version = "0.1.12"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
 license = "MIT/Apache-2.0"
@@ -15,7 +15,6 @@ members = [ "demo","report/data_gen"]
 
 [dev-dependencies]
 dists = {git="https://github.com/tiby312/dists.git"}
-axgeom="1.7"
 
 [dependencies]
 is_sorted = "0.1"

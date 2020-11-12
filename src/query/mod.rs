@@ -329,18 +329,18 @@ where
     ///
     ///let mut bots_copy=bots.clone();
     ///let mut tree = broccoli::new(&mut bots);
-    ///let ray=ray(vec2(5,-5),vec2(0,1));
+    ///let ray=ray(vec2(5,-5),vec2(1,2));
     ///let mut counter =0;
     ///let res = tree.raycast_mut(
     ///     ray,&mut counter,
     ///     |c,ray,r|{*c+=1;ray.cast_to_rect(r)},
-    ///     |c,ray,t|{*c+=1;ray.inner_as::<f32>().cast_to_circle(t.inner.inner_as(),5.).map(|a|a as i32)},   //Do more fine-grained checking here.
+    ///     |c,ray,t|{*c+=1;ray.cast_to_rect(t.get())},   //Do more fine-grained checking here.
     ///     border);
     ///
     ///let (bots,dis)=res.unwrap();
-    ///assert_eq!(dis,4);
+    ///assert_eq!(dis,2);
     ///assert_eq!(bots.len(),1);
-    ///assert_eq!(bots[0],&vec2(4,4));
+    ///assert_eq!(bots[0],&vec2(5,5));
     ///assert_eq!(counter,3);
     ///```
     #[must_use]
