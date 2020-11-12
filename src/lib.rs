@@ -105,8 +105,8 @@ mod util;
 ///Helper functions to convert aabbs in floats to integers
 pub mod convert;
 
-//use axgeom::Rect;
 pub use axgeom::Rect;
+pub use axgeom::Range;
 pub use axgeom::rect;
 
 ///The broccoli prelude.
