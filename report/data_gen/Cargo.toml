@@ -9,8 +9,6 @@ publish = false
 gnuplot = "0.0.32"
 duckduckgeo = {git="https://github.com/tiby312/duckduckgeo"}
 num_cpus = "1.*"
-ordered-float = "1.0.2"
-num-traits = "0.2.8"
 
 [dependencies.broccoli]
 path = "../.."

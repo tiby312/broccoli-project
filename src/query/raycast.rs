@@ -39,7 +39,7 @@ use axgeom::Ray;
 use core::cmp::Ordering;
 
 ///A Vec<T> is returned since there coule be ties where the ray hits multiple T at a length N away.
-pub type RayCastResult<T, N> = axgeom::CastResult<(Vec<T>, N)>;
+//pub type RayCastResult<T, N> = axgeom::CastResult<(Vec<T>, N)>;
 
 ///This is the trait that defines raycast specific geometric functions that are needed by this raytracing algorithm.
 ///By containing all these functions in this trait, we can keep the trait bounds of the underlying Num to a minimum
@@ -279,7 +279,7 @@ mod mutable {
         ray: Ray<T::Num>,
         rtrait: &mut impl RayCast<N = T::Num, T = T>,
         border: Rect<T::Num>,
-    ) -> RayCastResult<&'a mut T::Inner, T::Num>
+    ) -> axgeom::CastResult<(Vec<&'a mut T::Inner>, T::Num)>
     where
         T: HasInner,
     {
@@ -293,9 +293,9 @@ mod mutable {
 
         match closest.closest {
             Some((mut a, b)) => {
-                RayCastResult::Hit((a.drain(..).map(|a| a.into_inner()).collect(), b))
+                axgeom::CastResult::Hit((a.drain(..).map(|a| a.into_inner()).collect(), b))
             }
-            None => RayCastResult::NoHit,
+            None => axgeom::CastResult::NoHit,
         }
     }
 
@@ -305,7 +305,7 @@ mod mutable {
         rect: Rect<N::Num>,
         ray: Ray<N::Num>,
         rtrait: &mut impl RayCast<N = N::Num, T = N::T>,
-    ) -> RayCastResult<&'a mut <N::T as HasInner>::Inner, N::Num>
+    ) -> axgeom::CastResult<(Vec<&'a mut <N::T as HasInner>::Inner>, N::Num)>
     where
         N::T: HasInner,
     {
@@ -321,9 +321,9 @@ mod mutable {
 
         match blap.closest.closest {
             Some((mut a, b)) => {
-                RayCastResult::Hit((a.drain(..).map(|a| a.into_inner()).collect(), b))
+                axgeom::CastResult::Hit((a.drain(..).map(|a| a.into_inner()).collect(), b))
             }
-            None => RayCastResult::NoHit,
+            None => axgeom::CastResult::NoHit,
         }
     }
 }

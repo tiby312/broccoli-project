@@ -86,8 +86,8 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         let mut vv: Vec<_> = vv
             .drain(..)
             .map(|a| a.map(|a|Res {
-                rect: a.bot.rect.inner_into(),
-                mag: a.mag,
+                rect: a.0.rect.inner_try_into().unwrap(),
+                mag: a.1,
             }))
             .collect();
 

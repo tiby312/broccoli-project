@@ -11,8 +11,7 @@ mod inner_prelude {
 }
 
 pub use graphics::DividerDrawer;
-pub use k_nearest::KnearestResult;
-pub use raycast::RayCastResult;
+//pub use raycast::RayCastResult;
 pub use rect::{MultiRectMut, RectIntersectErr};
 
 //#[cfg(feature = "nbody")]
@@ -330,18 +329,18 @@ where
     ///
     ///let mut bots_copy=bots.clone();
     ///let mut tree = broccoli::new(&mut bots);
-    ///let ray=ray(vec2(5,-5),vec2(0,1));
+    ///let ray=ray(vec2(5,-5),vec2(1,2));
     ///let mut counter =0;
     ///let res = tree.raycast_mut(
     ///     ray,&mut counter,
     ///     |c,ray,r|{*c+=1;ray.cast_to_rect(r)},
-    ///     |c,ray,t|{*c+=1;ray.inner_as::<f32>().cast_to_circle(t.inner.inner_as(),5.).map(|a|a as i32)},   //Do more fine-grained checking here.
+    ///     |c,ray,t|{*c+=1;ray.cast_to_rect(t.get())},   //Do more fine-grained checking here.
     ///     border);
     ///
     ///let (bots,dis)=res.unwrap();
-    ///assert_eq!(dis,4);
+    ///assert_eq!(dis,2);
     ///assert_eq!(bots.len(),1);
-    ///assert_eq!(bots[0],&vec2(4,4));
+    ///assert_eq!(bots[0],&vec2(5,5));
     ///assert_eq!(counter,3);
     ///```
     #[must_use]
@@ -352,7 +351,7 @@ where
         broad: impl FnMut(&mut Acc, &Ray<Self::Num>, &Rect<Self::Num>) -> CastResult<Self::Num>,
         fine: impl FnMut(&mut Acc, &Ray<Self::Num>, &Self::T) -> CastResult<Self::Num>,
         border: Rect<Self::Num>,
-    ) -> raycast::RayCastResult<&'b mut Self::Inner, Self::Num>
+    ) -> axgeom::CastResult<(Vec<&'b mut Self::Inner>, Self::Num)>
     where
         'a: 'b,
     {
@@ -390,8 +389,8 @@ where
     ///     border);
     ///
     ///assert_eq!(res.len(),3);
-    ///assert_eq!(*res[0].as_ref().unwrap().bot,bots_copy[0].inner);
-    ///assert_eq!(*res[2].as_ref().unwrap().bot,bots_copy[2].inner);
+    ///assert_eq!(*res[0].as_ref().unwrap().0,bots_copy[0].inner);
+    ///assert_eq!(*res[2].as_ref().unwrap().0,bots_copy[2].inner);
     ///assert_eq!(counter,3);
     ///```
     #[must_use]
@@ -403,7 +402,7 @@ where
         broad: impl FnMut(&mut Acc, Vec2<Self::Num>, &Rect<Self::Num>) -> Self::Num,
         fine: impl FnMut(&mut Acc, Vec2<Self::Num>, &Self::T) -> Self::Num,
         border: Rect<Self::Num>,
-    ) -> Vec<Option<k_nearest::KnearestResult<'b, Self::Inner, Self::Num>>>
+    ) -> Vec<Option<(&'b mut Self::Inner, Self::Num)>>
     where
         'a: 'b,
     {
@@ -677,7 +676,7 @@ impl<'a, T: Aabb + HasInner> NaiveAlgs<'a, T> {
         broad: impl FnMut(&mut Acc, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
         fine: impl FnMut(&mut Acc, &Ray<T::Num>, &T) -> CastResult<T::Num>,
         border: Rect<T::Num>,
-    ) -> raycast::RayCastResult<&mut T::Inner, T::Num> {
+    ) -> axgeom::CastResult<(Vec<&mut T::Inner>, T::Num)> {
         let mut rtrait = raycast::RayCastClosure {
             a: start,
             broad,
@@ -695,7 +694,7 @@ impl<'a, T: Aabb + HasInner> NaiveAlgs<'a, T> {
         start: &mut Acc,
         broad: impl FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
         fine: impl FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
-    ) -> Vec<k_nearest::KnearestResult<T::Inner, T::Num>> {
+    ) -> Vec<(&mut T::Inner, T::Num)> {
         let mut knear = k_nearest::KnearestClosure {
             acc: start,
             broad,

@@ -41,7 +41,7 @@ mod inner_prelude {
     pub(crate) use duckduckgeo::bot;
     pub(crate) use duckduckgeo::dists;
     pub use gnuplot::*;
-    pub use ordered_float::NotNan;
+    pub use axgeom::ordered_float::NotNan;
     pub use std::time::Duration;
     pub use std::time::Instant;
 }

@@ -1,5 +1,4 @@
 use crate::support::prelude::*;
-pub use broccoli::query::RayCastResult;
 
 use axgeom::Ray;
 
@@ -97,8 +96,8 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         let ray: Ray<f32> = ray.inner_into();
 
         let dis = match test {
-            RayCastResult::Hit((_, dis)) => dis.into_inner(),
-            RayCastResult::NoHit => 800.0,
+            axgeom::CastResult::Hit((_, dis)) => dis.into_inner(),
+            axgeom::CastResult::NoHit => 800.0,
         };
 
         let end = ray.point_at_tval(dis);

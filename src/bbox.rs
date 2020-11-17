@@ -28,7 +28,6 @@ impl<N, T> BBox<N, T> {
 }
 
 use core::convert::TryFrom;
-use axgeom::primitive_from::PrimitiveFrom;
 impl<N:Copy,T> BBox<N,T>{
     pub fn into_semi_direct(&mut self)->BBox<N,&mut T>{
         BBox{rect:self.rect.clone(),inner:&mut self.inner}
@@ -38,9 +37,14 @@ impl<N:Copy,T> BBox<N,T>{
     }
 
     #[inline(always)]
+    pub fn inner_as<B:'static+Copy>(self) -> BBox<B,T> where N: num_traits::AsPrimitive<B>{
+        BBox{rect:self.rect.inner_as(),inner:self.inner}
+    }
+    /*
     pub fn inner_as<B: PrimitiveFrom<N>>(self) -> BBox<B,T> {
         BBox{rect:self.rect.inner_as(),inner:self.inner}
     }
+    */
 
 
 

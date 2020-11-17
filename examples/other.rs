@@ -36,8 +36,8 @@ fn main() {
         |(), a, b| b.rect.distance_squared_to_point(a).unwrap_or(0),
         border,
     );
-    assert_eq!(res[0].as_ref().unwrap().bot, &1);
-    assert_eq!(res[1].as_ref().unwrap().bot, &2);
+    assert_eq!(res[0].as_ref().unwrap().0, &1);
+    assert_eq!(res[1].as_ref().unwrap().0, &2);
 
     let ray = axgeom::Ray {
         point: vec2(-10, 1),

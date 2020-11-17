@@ -7,9 +7,9 @@
 //! The different characteristics are exlored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
 //!
 //!
-//! - `      ( Rect<N>, &mut T )    ` Semi-direct
-//! - `      ( Rect<N>,      T )    ` Direct
-//! - ` &mut ( Rect<N>,      T )    ` Indirect
+//! - `(Rect<N>,&mut T)` Semi-direct
+//! - `(Rect<N>,T)` Direct
+//! - `&mut (Rect<N>,T)` Indirect
 //!
 //! ### There are so many Tree types which one do I use?
 //!
@@ -20,7 +20,7 @@
 //! The [`collections`] module goes into more depth as well as the book mentioned above.
 //!
 //! TL;DR use [`Tree`] and fill it with `BBox<u32,&mut T>` unless you want
-//! to use functions like [`collections::TreeRefInd::collect_colliding_pairs`]. See
+//! to use functions like `collect_colliding_pairs`. See
 //! the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
 //!
 //! ### Parallelism
@@ -58,9 +58,6 @@
 //! If you shorten "broadphase collision" to "broad colli" and say it fast, it sounds like broccoli.
 //! Broccoli also have tree like properties and broccoli uses a tree data structure.
 //!
-//! ### nostd
-//!
-//! Uses `no_std`, but uses the `alloc` crate.
 
 #![doc(html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png", html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png")]
 #![no_std]
@@ -105,8 +102,8 @@ mod util;
 ///Helper functions to convert aabbs in floats to integers
 pub mod convert;
 
-//use axgeom::Rect;
 pub use axgeom::Rect;
+pub use axgeom::Range;
 pub use axgeom::rect;
 
 ///The broccoli prelude.
