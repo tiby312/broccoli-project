@@ -121,6 +121,37 @@ impl<'a, T: Aabb> Closest<'a, T> {
         b: PMut<'a, T>,
         raytrait: &mut R,
     ) {
+        
+        //first check if bounding box could possibly be a candidate.
+        let y = match raytrait.compute_distance_to_rect(ray, b.get()) {
+            axgeom::CastResult::Hit(val) => val,
+            axgeom::CastResult::NoHit => {
+                return;
+            }
+        };
+
+        match self.closest.as_mut() {
+            Some(mut dis) => {
+                match y.cmp(&dis.1) {
+                    Ordering::Greater => {
+                        //no way this bot will be a candidate, return.
+                        return;
+                    }
+                    Ordering::Less  => {
+                        //this aabb could be a candidate, continue.
+                    }
+                    Ordering::Equal=>{
+                        //this aabb could be a candidate, continue.
+                    }
+                }
+            }
+            None => {
+                //this aabb could be a candidate, continue,
+            }
+        }
+        
+
+
         let x = match raytrait.compute_distance_to_bot(ray, b.as_ref()) {
             axgeom::CastResult::Hit(val) => val,
             axgeom::CastResult::NoHit => {
