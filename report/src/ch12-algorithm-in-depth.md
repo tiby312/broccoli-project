@@ -48,7 +48,15 @@ So once the extra data is setup, for every node we do the following:
 #### Raycasting
 
 
-TODO explain
+TODO explain now
+
+TODO improvement:
+right now the raycast algorithm naively checks all the elements that belond to a node provided
+it decides to look at a node. In reality, we could do better. We could figure out where the ray
+hits the divider line, and then only check AABBs that intersect that divider line. The problem
+with this improvement is that we can't just rely on the `Num` trait since we need to do some math.
+You lose the nice property of the algorithm not doing any number arithmatic. Therefore I didnt implement
+it. However it might be a good idea.
 
 #### Knearest
 
