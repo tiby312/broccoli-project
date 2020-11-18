@@ -56,7 +56,8 @@ it decides to look at a node. In reality, we could do better. We could figure ou
 hits the divider line, and then only check AABBs that intersect that divider line. The problem
 with this improvement is that we can't just rely on the `Num` trait since we need to do some math.
 You lose the nice property of the algorithm not doing any number arithmatic. Therefore I didnt implement
-it. However it might be a good idea.
+it. However it might be a good idea. That said, before any element is checked using the expensive raycast function, it will first check the abb
+raycast function to determine if it is even worth going further. This is probably a good enough speed up.
 
 #### Knearest
 
