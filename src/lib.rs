@@ -20,7 +20,7 @@
 //! The [`collections`] module goes into more depth as well as the book mentioned above.
 //!
 //! TL;DR use [`Tree`] and fill it with `BBox<u32,&mut T>` unless you want
-//! to use functions like `collect_colliding_pairs`. See
+//! to use functions like [`collect_colliding_pairs`](crate::collections::TreeRefInd::collect_colliding_pairs). See
 //! the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
 //!
 //! ### Parallelism
