@@ -283,17 +283,19 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
                     }
                 }
                 Ordering::Equal => {
-                    if blap.should_traverse_rect(&rmiddle) {
-                        for bot in nn.bots.iter_mut() {
-                            //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider(&blap.point,blap.knear,bot);
-                        }
-                    }
+                    //Assume there are more elements in the children than the current node,
+                    //so recurse first.
                     if blap.should_traverse_rect(&rright) {
                         recc(axis.next(), right, rright, blap);
                     }
                     if blap.should_traverse_rect(&rleft) {
                         recc(axis.next(), left, rleft, blap);
+                    }
+                    if blap.should_traverse_rect(&rmiddle) {
+                        for bot in nn.bots.iter_mut() {
+                            //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
+                            blap.closest.consider(&blap.point,blap.knear,bot);
+                        }
                     }
                 }
             }

@@ -274,12 +274,8 @@ fn recc<'a: 'b, 'b, A: Axis, N: Node, R: RayCast<N = N::Num, T = N::T>>(
                     }
                 }
                 Ordering::Equal => {
-                    if blap.should_handle_rect(&rmiddle) {
-                        for b in nn.bots.iter_mut() {
-                            blap.closest.consider(&blap.ray, b, blap.rtrait);
-                        }
-                    }
-
+                    //Assume there are more elements in the children than the current node,
+                    //so recurse first.                    
                     if blap.should_handle_rect(&rleft) {
                         recc(axis_next, left, rleft, blap);
                     }
@@ -287,6 +283,12 @@ fn recc<'a: 'b, 'b, A: Axis, N: Node, R: RayCast<N = N::Num, T = N::T>>(
                     if blap.should_handle_rect(&rright) {
                         recc(axis_next, right, rright, blap);
                     }
+                    if blap.should_handle_rect(&rmiddle) {
+                        for b in nn.bots.iter_mut() {
+                            blap.closest.consider(&blap.ray, b, blap.rtrait);
+                        }
+                    }
+
                 }
             }
         }
