@@ -122,10 +122,11 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         }
     }
 
-    fn consider(&mut self, a: (PMut<'a, T>, T::Num)) -> bool {
-        //let a=(a.0 as $ptr,a.1);
-        let curr_bot = a.0;
-        let curr_dis = a.1;
+    fn consider<K:Knearest<T=T,N=T::Num>>(&mut self, point:&Vec2<K::N>,knear:&mut K,curr_bot: PMut<'a, T>) -> bool{
+        
+        let curr_dis = knear.distance_to_bot(*point, curr_bot.as_ref());
+                            
+
 
         if self.curr_num < self.num {
             let arr = &mut self.bots;
@@ -245,8 +246,8 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
 
                     if blap.should_traverse_rect(&rmiddle) {
                         for bot in nn.bots.iter_mut() {
-                            let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider((bot, dis_sqr));
+                            //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
+                            blap.closest.consider(&blap.point,blap.knear,bot);
                         }
                     }
 
@@ -261,8 +262,8 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
 
                     if blap.should_traverse_rect(&rmiddle) {
                         for bot in nn.bots.iter_mut() {
-                            let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider((bot, dis_sqr));
+                            //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
+                            blap.closest.consider(&blap.point,blap.knear,bot);
                         }
                     }
                     if blap.should_traverse_rect(&rleft) {
@@ -272,8 +273,8 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
                 Ordering::Equal => {
                     if blap.should_traverse_rect(&rmiddle) {
                         for bot in nn.bots.iter_mut() {
-                            let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider((bot, dis_sqr));
+                            //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
+                            blap.closest.consider(&blap.point,blap.knear,bot);
                         }
                     }
                     if blap.should_traverse_rect(&rright) {
@@ -287,8 +288,8 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
         }
         None => {
             for bot in nn.bots.iter_mut() {
-                let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                blap.closest.consider((bot, dis_sqr));
+                //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
+                blap.closest.consider(&blap.point,blap.knear,bot);
             }
         }
     }
@@ -318,15 +319,9 @@ mod mutable {
         let mut closest = ClosestCand::new(num);
 
         for b in bots.iter_mut() {
-            let d = k.distance_to_bot(point, b.as_ref());
+            //let d = k.distance_to_bot(point, b.as_ref());
 
-            if let Some(dis) = closest.full_and_max_distance() {
-                if d > dis {
-                    continue;
-                }
-            }
-
-            closest.consider((b, d));
+            closest.consider(&point,k,b);
         }
 
         closest
