@@ -38,4 +38,4 @@ However, you should ignore everything I just said. A much better solution is to 
 
 #### 3D
 
-What about 3D? Making this library multi dimensional would have added to the complexity, so I only targeted 2D. That said, you could certainly use broccoli to partition 2 dimensions, and then use another method to partition the last dimension (perhaps a 1D version of sweep and prune).
+What about 3D? Making this library multi dimensional would have added to the complexity, so I only targeted 2D. That said, you could certainly use broccoli to partition 2 dimensions, and then use another method to partition the last dimension (perhaps a 1D version of sweep and prune). Infact, in situations where things are more likely to intersect on the x and y plane and less so on the z plane, it might be faster to use a system where you have a broccoli Tree for the x and y dimensions, ad then store the z dimension in a level of indirection. This way each element is smaller.
