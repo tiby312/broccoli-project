@@ -124,6 +124,18 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
 
     fn consider<K:Knearest<T=T,N=T::Num>>(&mut self, point:&Vec2<K::N>,knear:&mut K,curr_bot: PMut<'a, T>) -> bool{
         
+
+        let long_dis=knear.distance_to_rect(*point,curr_bot.get());
+        
+        if self.curr_num==self.num{
+            if let Some(l)=self.bots.last(){
+                if long_dis>l.mag{
+                    return false;
+                }
+            }
+        }
+        
+
         let curr_dis = knear.distance_to_bot(*point, curr_bot.as_ref());
                             
 
@@ -297,14 +309,6 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
 
 pub use self::mutable::k_nearest_mut;
 
-/*
-/// Returned by k_nearest_mut
-pub struct KnearestResult<'a, T, N> {
-    pub bot: &'a mut T,
-    pub mag: N,
-}
-*/
-
 pub use self::mutable::k_nearest_naive_mut;
 mod mutable {
     use super::*;
@@ -319,8 +323,6 @@ mod mutable {
         let mut closest = ClosestCand::new(num);
 
         for b in bots.iter_mut() {
-            //let d = k.distance_to_bot(point, b.as_ref());
-
             closest.consider(&point,k,b);
         }
 

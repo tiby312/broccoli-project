@@ -78,7 +78,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             );
             rects
                 .send_and_uniforms(canvas)
-                .with_color([1.0, 0.5, 0.3, 0.3])
+                .with_color([1.0, 1.0, 1.0, 0.3])
                 .draw();
             k
         };
