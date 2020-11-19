@@ -7,8 +7,8 @@ pub struct Bot;
 
 pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     let ii = dists::rand2_iter(dim.inner_into())
-        .zip(dists::rand_iter(1.0, 3.0))
-        .take(5000)
+        .zip(dists::rand_iter(1.0, 10.0))
+        .take(500)
         .map(|([x, y], radius)| {
             bbox(
                 Rect::from_point(vec2(x, y), vec2same(radius))
