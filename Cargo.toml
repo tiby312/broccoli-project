@@ -29,6 +29,3 @@ pdqselect = "0.1"
 # and only builds that target
 targets = ["x86_64-unknown-linux-gnu"]
 
-
-[patch.crates-io]
-axgeom={path="../axgeom"}
