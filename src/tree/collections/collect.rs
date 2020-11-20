@@ -82,6 +82,37 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
 }
 
 impl<'a, A: Axis, N: Num, T: Send + Sync> TreeRefInd<'a, A, N, T> {
+    /// The parallel version of [`TreeRefInd::collect_colliding_pairs`] that instead
+    /// returns a [`CollidingPairsPar`].
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///     broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    ///     broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
+    ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
+    /// ];
+    ///
+    /// let mut tree = broccoli::collections::TreeRefInd::new_par(&mut aabbs,|a|{
+    ///    a.rect
+    /// });
+    ///
+    /// //Find all colliding aabbs only once.
+    /// let mut pairs=tree.collect_colliding_pairs_par(|a, b| {
+    ///    a.inner += 1;
+    ///    b.inner += 1;
+    ///    Some(())
+    /// });
+    ///
+    /// //Iterate over the pairs multiple times
+    /// for _ in 0..3{
+    ///     //mutate every colliding pair.
+    ///     pairs.for_every_pair_mut_par(&mut aabbs,|a,b,()|{
+    ///         a.inner+=1;
+    ///         b.inner+=1;
+    ///     })
+    /// }
     pub fn collect_colliding_pairs_par<D: Send + Sync>(
         &mut self,
         func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync + Copy,
