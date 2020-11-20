@@ -101,6 +101,13 @@ impl<'a, T: Aabb> Node for NodeMut<'a, T> {
     }
 }
 
+use crate::collections::NodePtr;
+impl<'a,T:Aabb> AsRef<NodePtr<T>> for NodeMut<'a,T>{
+    fn as_ref(&self)->&NodePtr<T>{
+        unsafe{&*(self as *const _ as *const _)}
+    }
+}
+
 ///A node in [`Tree`].
 pub struct NodeMut<'a, T: Aabb> {
     pub(crate) range: PMut<'a, [T]>,
