@@ -43,12 +43,14 @@ pub struct PMut<'a, T: ?Sized> {
 }
 
 impl<'a, T: ?Sized> PMut<'a, T> {
+    /*
     #[inline(always)]
     pub(crate) fn as_ptr(&mut self) -> PMutPtr<T> {
         PMutPtr {
             _inner: self.inner as *mut _,
         }
     }
+    */
 
     #[inline(always)]
     pub fn new(inner: &'a mut T) -> PMut<'a, T> {

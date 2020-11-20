@@ -74,6 +74,13 @@ impl<A:Axis,N:Num,T> TreeIndInner<A,N,T>{
 
 pub(super) fn make_owned<A: Axis, T: Aabb>(axis: A, bots: &mut [T]) -> TreeInner<A, NodePtr<T>> {
     let inner = crate::with_axis(axis, bots);
+
+    use compt::dfs_order::PreOrder;
+    let inner: compt::dfs_order::CompleteTreeContainer<NodeMut<T>,PreOrder> = inner.inner.inner;
+    let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>,PreOrder> = unsafe {core::mem::transmute(inner) };
+
+    /*
+    //TODO optimize
     let inner: Vec<_> = Vec::from(inner.inner.inner.into_nodes())
         .drain(..)
         .map(|mut node| NodePtr {
@@ -83,6 +90,7 @@ pub(super) fn make_owned<A: Axis, T: Aabb>(axis: A, bots: &mut [T]) -> TreeInner
         })
         .collect();
     let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(inner).unwrap();
+    */
     TreeInner { axis, inner }
 }
 
@@ -92,6 +100,13 @@ fn make_owned_par<A: Axis, T: Aabb + Send + Sync>(
     bots: &mut [T],
 ) -> TreeInner<A, NodePtr<T>> {
     let inner = crate::with_axis_par(axis, bots);
+
+
+    use compt::dfs_order::PreOrder;
+    let inner: compt::dfs_order::CompleteTreeContainer<NodeMut<T>,PreOrder> = inner.inner.inner;
+    let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>,PreOrder> = unsafe {core::mem::transmute(inner) };
+    /*
+    //TODO optimize
     let inner: Vec<_> = Vec::from(inner.inner.inner.into_nodes())
         .drain(..)
         .map(|mut node| NodePtr {
@@ -101,5 +116,6 @@ fn make_owned_par<A: Axis, T: Aabb + Send + Sync>(
         })
         .collect();
     let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(inner).unwrap();
+    */
     TreeInner { axis, inner }
 }
