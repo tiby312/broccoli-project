@@ -124,7 +124,6 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
 
     fn consider<K:Knearest<T=T,N=T::Num>>(&mut self, point:&Vec2<K::N>,knear:&mut K,curr_bot: PMut<'a, T>) -> bool{
         
-        /* TODO figure this out.
         let long_dis=knear.distance_to_rect(*point,curr_bot.get());
         
         if self.curr_num==self.num{
@@ -134,7 +133,6 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
                 }
             }
         }
-        */
         
 
         let curr_dis = knear.distance_to_bot(*point, curr_bot.as_ref());

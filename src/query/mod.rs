@@ -371,16 +371,16 @@ where
     ///
     ///let border = rect(0,100,0,100);
     ///
-    ///let mut bots = [bbox(rect(0,10,0,10),vec2(0,0)),
-    ///                bbox(rect(2,5,2,5),vec2(0,5)),
-    ///                bbox(rect(4,10,4,10),vec2(3,3))];
+    ///let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
+    ///                bbox(rect(2,4,2,4),vec2(3,3)),
+    ///                bbox(rect(6,8,6,8),vec2(7,7))];
     ///
     ///let mut bots_copy=bots.clone();
     ///let mut tree = broccoli::new(&mut bots);
     ///
     ///let mut counter = 0;
     ///let res = tree.k_nearest_mut(
-    ///     vec2(-1,-1),
+    ///     vec2(0,0),
     ///     2,
     ///     &mut counter,
     ///     |c,p,r|{*c+=1;r.distance_squared_to_point(p).unwrap_or(0)},
@@ -388,8 +388,8 @@ where
     ///     border);
     ///
     ///assert_eq!(res.len(),3);
-    ///assert_eq!(*res[0].as_ref().unwrap().0,bots_copy[0].inner);
-    ///assert_eq!(*res[2].as_ref().unwrap().0,bots_copy[2].inner);
+    ///assert_eq!(*res[0].as_ref().unwrap().0,vec2(3,3));
+    ///assert_eq!(*res[2].as_ref().unwrap().0,vec2(5,5));
     ///```
     #[must_use]
     fn k_nearest_mut<'b, Acc>(
