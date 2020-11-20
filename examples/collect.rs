@@ -29,11 +29,15 @@ fn main() {
         }
     });
 
+    //We can iterate over all the colliding pairs as well as our custom group
+    //multiple times without having to query the tree over and over again.
     for _ in 0..3{
+        //mutate our custom group
         for (a,()) in evens.get_mut(&mut aabbs).iter_mut(){
             a.inner+=1;
         }
 
+        //mutate every colliding pair.
         pairs.for_every_pair_mut(&mut aabbs,|a,b,()|{
             a.inner+=1;
             b.inner+=1;

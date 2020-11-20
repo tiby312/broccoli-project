@@ -115,16 +115,16 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
-    ///let mut tree = broccoli::new(&mut bots);
-    ///tree.find_colliding_pairs_mut(|a,b|{
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.find_colliding_pairs_mut(|a,b|{
     ///    *a+=1;
     ///    *b+=1;
-    ///});
+    /// });
     ///
-    ///assert_eq!(bots[0].inner,1);
-    ///assert_eq!(bots[1].inner,1);
+    /// assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[1].inner,1);
     ///```
 
     fn find_colliding_pairs_mut(
@@ -140,16 +140,16 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
-    ///let mut tree = broccoli::new(&mut bots);
-    ///tree.find_colliding_pairs_mut_par(|a,b|{
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.find_colliding_pairs_mut_par(|a,b|{
     ///    *a+=1;
     ///    *b+=1;
-    ///});
+    /// });
     ///
-    ///assert_eq!(bots[0].inner,1);
-    ///assert_eq!(bots[1].inner,1);
+    /// assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[1].inner,1);
     ///```
     fn find_colliding_pairs_mut_par(
         &mut self,
@@ -166,17 +166,17 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
-    ///let mut tree = broccoli::new(&mut bots);
-    ///let intersections=tree.find_colliding_pairs_par_ext(
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let intersections=tree.find_colliding_pairs_par_ext(
     ///     |_|Vec::new(),              //Start a new thread
     ///     |a,mut b|a.append(&mut b),  //Combine two threads
     ///     |v,a,b|v.push((*a,*b)),     //What to do for each intersection for a thread.
     ///     Vec::new()                  //Starting thread
-    ///);
+    /// );
     ///
-    ///assert_eq!(intersections.len(),1);
+    /// assert_eq!(intersections.len(),1);
     ///```
     fn find_colliding_pairs_par_ext<B: Send + Sync>(
         &mut self,
@@ -243,14 +243,14 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [bbox(rect(0,10,0,10),0u8)];
-    ///let mut tree = broccoli::new(&mut bots);
-    ///tree.for_all_not_in_rect_mut(&rect(10,20,10,20),|a|{
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.for_all_not_in_rect_mut(&rect(10,20,10,20),|a|{
     ///    *a+=1;    
-    ///});
+    /// });
     ///
-    ///assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[0].inner,1);
     ///
     ///```
     fn for_all_not_in_rect_mut<'b>(
@@ -268,14 +268,14 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [bbox(rect(0,10,0,10),0u8)];
-    ///let mut tree = broccoli::new(&mut bots);
-    ///tree.for_all_intersect_rect_mut(&rect(9,20,9,20),|a|{
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.for_all_intersect_rect_mut(&rect(9,20,9,20),|a|{
     ///    *a+=1;    
-    ///});
+    /// });
     ///
-    ///assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[0].inner,1);
     ///
     ///```
     fn for_all_intersect_rect_mut<'b>(
@@ -293,14 +293,14 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [bbox(rect(0,10,0,10),0u8)];
-    ///let mut tree = broccoli::new(&mut bots);
-    ///tree.for_all_in_rect_mut(&rect(0,10,0,10),|a|{
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.for_all_in_rect_mut(&rect(0,10,0,10),|a|{
     ///    *a+=1;    
-    ///});
+    /// });
     ///
-    ///assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[0].inner,1);
     ///
     ///```
     fn for_all_in_rect_mut<'b>(
@@ -318,29 +318,29 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///use axgeom::{vec2,ray};
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// use axgeom::{vec2,ray};
     ///
-    ///let border = rect(0,100,0,100);
+    /// let border = rect(0,100,0,100);
     ///
-    ///let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
+    /// let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
     ///                bbox(rect(2,5,2,5),vec2(4,4)),
     ///                bbox(rect(4,10,4,10),vec2(5,5))];
     ///
-    ///let mut bots_copy=bots.clone();
-    ///let mut tree = broccoli::new(&mut bots);
-    ///let ray=ray(vec2(5,-5),vec2(1,2));
-    ///let mut counter =0;
-    ///let res = tree.raycast_mut(
+    /// let mut bots_copy=bots.clone();
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let ray=ray(vec2(5,-5),vec2(1,2));
+    /// let mut counter =0;
+    /// let res = tree.raycast_mut(
     ///     ray,&mut counter,
     ///     |c,ray,r|{*c+=1;ray.cast_to_rect(r)},
     ///     |c,ray,t|{*c+=1;ray.cast_to_rect(t.get())},   //Do more fine-grained checking here.
     ///     border);
     ///
-    ///let (bots,dis)=res.unwrap();
-    ///assert_eq!(dis,2);
-    ///assert_eq!(bots.len(),1);
-    ///assert_eq!(bots[0],&vec2(5,5));
+    /// let (bots,dis)=res.unwrap();
+    /// assert_eq!(dis,2);
+    /// assert_eq!(bots.len(),1);
+    /// assert_eq!(bots[0],&vec2(5,5));
     ///```
     #[must_use]
     fn raycast_mut<'b, Acc>(
@@ -366,20 +366,20 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///use axgeom::vec2;
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// use axgeom::vec2;
     ///
-    ///let border = rect(0,100,0,100);
+    /// let border = rect(0,100,0,100);
     ///
-    ///let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
+    /// let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
     ///                bbox(rect(2,4,2,4),vec2(3,3)),
     ///                bbox(rect(6,8,6,8),vec2(7,7))];
     ///
-    ///let mut bots_copy=bots.clone();
-    ///let mut tree = broccoli::new(&mut bots);
+    /// let mut bots_copy=bots.clone();
+    /// let mut tree = broccoli::new(&mut bots);
     ///
-    ///let mut counter = 0;
-    ///let res = tree.k_nearest_mut(
+    /// let mut counter = 0;
+    /// let res = tree.k_nearest_mut(
     ///     vec2(0,0),
     ///     2,
     ///     &mut counter,
@@ -387,9 +387,9 @@ where
     ///     |c,p,t|{*c+=1;t.inner.distance_squared_to_point(p)},    //Do more fine-grained checking here.
     ///     border);
     ///
-    ///assert_eq!(res.len(),3);
-    ///assert_eq!(*res[0].as_ref().unwrap().0,vec2(3,3));
-    ///assert_eq!(*res[2].as_ref().unwrap().0,vec2(5,5));
+    /// assert_eq!(res.len(),3);
+    /// assert_eq!(*res[0].as_ref().unwrap().0,vec2(3,3));
+    /// assert_eq!(*res[2].as_ref().unwrap().0,vec2(5,5));
     ///```
     #[must_use]
     fn k_nearest_mut<'b, Acc>(
@@ -416,18 +416,18 @@ where
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
-    ///let mut bots2 = [bbox(rect(5,15,5,15),0u8)];
-    ///let mut tree = broccoli::new(&mut bots1);
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut bots2 = [bbox(rect(5,15,5,15),0u8)];
+    /// let mut tree = broccoli::new(&mut bots1);
     ///
-    ///tree.intersect_with_mut(&mut bots2,|a,b|{
+    /// tree.intersect_with_mut(&mut bots2,|a,b|{
     ///    *a+=1;
     ///    *b+=2;    
-    ///});
+    /// });
     ///
-    ///assert_eq!(bots1[0].inner,1);
-    ///assert_eq!(bots2[0].inner,2);
+    /// assert_eq!(bots1[0].inner,1);
+    /// assert_eq!(bots2[0].inner,2);
     ///```
     fn intersect_with_mut<X: Aabb<Num = Self::Num> + HasInner>(
         &mut self,
@@ -451,15 +451,15 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [bbox(rect(0,10,0,10),0)];
-    ///let mut tree = broccoli::new(&mut bots);
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0)];
+    /// let mut tree = broccoli::new(&mut bots);
     ///
-    ///use compt::Visitor;
-    ///for mut b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.get_mut().bots.iter_mut()){
+    /// use compt::Visitor;
+    /// for mut b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.get_mut().bots.iter_mut()){
     ///    *b.inner_mut()+=1;    
-    ///}
-    ///assert_eq!(bots[0].inner,1);
+    /// }
+    /// assert_eq!(bots[0].inner,1);
     ///```
     #[must_use]
     fn vistr_mut(&mut self) -> VistrMut<NodeMut<'a, Self::T>>;
@@ -467,16 +467,16 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [rect(0,10,0,10)];
-    ///let mut tree = broccoli::new(&mut bots);
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [rect(0,10,0,10)];
+    /// let mut tree = broccoli::new(&mut bots);
     ///
-    ///use compt::Visitor;
-    ///let mut test = Vec::new();
-    ///for b in tree.vistr().dfs_preorder_iter().flat_map(|n|n.get().bots.iter()){
+    /// use compt::Visitor;
+    /// let mut test = Vec::new();
+    /// for b in tree.vistr().dfs_preorder_iter().flat_map(|n|n.get().bots.iter()){
     ///    test.push(b);
-    ///}
-    ///assert_eq!(test[0],&axgeom::rect(0,10,0,10));
+    /// }
+    /// assert_eq!(test[0],&axgeom::rect(0,10,0,10));
     ///```
     #[must_use]
     fn vistr(&self) -> Vistr<NodeMut<'a, Self::T>>;
@@ -484,12 +484,12 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [rect(0,10,0,10)];
-    ///let mut tree = broccoli::new(&mut bots);
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [rect(0,10,0,10)];
+    /// let mut tree = broccoli::new(&mut bots);
     ///
-    ///use axgeom::Axis;
-    ///assert!(tree.axis().is_equal_to(broccoli::default_axis()));
+    /// use axgeom::Axis;
+    /// assert!(tree.axis().is_equal_to(broccoli::default_axis()));
     ///```
     #[must_use]
     fn axis(&self) -> Self::A;
@@ -501,7 +501,7 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     /// ```
-    ///use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{prelude::*,bbox,rect};
     ///
     /// struct Drawer;
     /// impl broccoli::query::DividerDrawer for Drawer{
@@ -542,16 +542,16 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
-    ///let mut tree = broccoli::new(&mut bots);
-    ///tree.find_colliding_pairs_pmut(|mut a,mut b|{
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.find_colliding_pairs_pmut(|mut a,mut b|{
     ///    *a.inner_mut()+=1;
     ///    *b.inner_mut()+=1;
-    ///});
+    /// });
     ///
-    ///assert_eq!(bots[0].inner,1);
-    ///assert_eq!(bots[1].inner,1);
+    /// assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[1].inner,1);
     ///```
     fn find_colliding_pairs_pmut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
         colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_seq(move |a, b| func(a, b));
@@ -569,14 +569,14 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
-    ///let mut tree = broccoli::new(&mut bots1);
-    ///let mut multi = tree.multi_rect();
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut tree = broccoli::new(&mut bots1);
+    /// let mut multi = tree.multi_rect();
     ///
-    ///multi.for_all_in_rect_mut(rect(0,10,0,10),|a|{}).unwrap();
-    ///let res = multi.for_all_in_rect_mut(rect(5,15,5,15),|a|{});
-    ///assert_eq!(res,Err(broccoli::query::RectIntersectErr));
+    /// multi.for_all_in_rect_mut(rect(0,10,0,10),|a|{}).unwrap();
+    /// let res = multi.for_all_in_rect_mut(rect(5,15,5,15),|a|{});
+    /// assert_eq!(res,Err(broccoli::query::RectIntersectErr));
     ///```
     #[must_use]
     fn multi_rect(&mut self) -> rect::MultiRectMut<Self::A, NodeMut<'a, Self::T>> {
@@ -586,15 +586,15 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
-    ///let mut tree = broccoli::new(&mut bots);
-    ///let mut test = Vec::new();
-    ///tree.for_all_intersect_rect(&rect(9,20,9,20),|a|{
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let mut test = Vec::new();
+    /// tree.for_all_intersect_rect(&rect(9,20,9,20),|a|{
     ///    test.push(a);
-    ///});
+    /// });
     ///
-    ///assert_eq!(test[0],&rect(0,10,0,10));
+    /// assert_eq!(test[0],&rect(0,10,0,10));
     ///
     ///```
     fn for_all_intersect_rect<'b>(&'b self, rect: &Rect<Self::Num>, func: impl FnMut(&'b Self::T))
@@ -607,15 +607,15 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    ///use broccoli::{prelude::*,bbox,rect};
-    ///let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
-    ///let mut tree = broccoli::new(&mut bots);
-    ///let mut test = Vec::new();
-    ///tree.for_all_in_rect(&rect(0,20,0,20),|a|{
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let mut test = Vec::new();
+    /// tree.for_all_in_rect(&rect(0,20,0,20),|a|{
     ///    test.push(a);
-    ///});
+    /// });
     ///
-    ///assert_eq!(test[0],&rect(0,10,0,10));
+    /// assert_eq!(test[0],&rect(0,10,0,10));
     ///
     fn for_all_in_rect<'b>(&'b self, rect: &Rect<Self::Num>, func: impl FnMut(&'b Self::T))
     where

@@ -167,6 +167,38 @@ impl<T, D> FilteredElements<T, D> {
 }
 
 impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
+    
+    /// Collect all elements based off of a predicate and return a [`FilteredElements`]. 
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    ///    broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
+    ///    broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
+    /// ];
+    ///
+    /// let mut tree = broccoli::collections::TreeRefInd::new(&mut aabbs,|a|{
+    ///     a.rect
+    /// });
+    ///
+    /// //Find a group of elements only once.
+    /// let mut pairs=tree.collect_all(|_,b| {
+    ///    if b.inner % 2 ==0{
+    ///        Some(())
+    ///    }else{
+    ///        None
+    ///    }
+    /// });
+    ///
+    /// //Iterate over that group multiple times
+    /// for _ in 0..3{
+    ///     //mutate every colliding pair.
+    ///     for (a,()) in pairs.get_mut(&mut aabbs){
+    ///         a.inner+=1;
+    ///     }
+    /// }
     pub fn collect_all<D: Send + Sync>(
         &mut self,
         mut func: impl FnMut(&Rect<N>, &mut T) -> Option<D>,
@@ -188,6 +220,37 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
 }
 
 impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
+
+    /// Find all colliding pairs based on a predicate and return a [`CollidingPairs`]. 
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///     broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    ///     broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
+    ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
+    /// ];
+    ///
+    /// let mut tree = broccoli::collections::TreeRefInd::new(&mut aabbs,|a|{
+    ///    a.rect
+    /// });
+    ///
+    /// //Find all colliding aabbs only once.
+    /// let mut pairs=tree.collect_colliding_pairs(|a, b| {
+    ///    a.inner += 1;
+    ///    b.inner += 1;
+    ///    Some(())
+    /// });
+    ///
+    /// //Iterate over the pairs multiple times
+    /// for _ in 0..3{
+    ///     //mutate every colliding pair.
+    ///     pairs.for_every_pair_mut(&mut aabbs,|a,b,()|{
+    ///         a.inner+=1;
+    ///         b.inner+=1;
+    ///     })
+    /// }
     pub fn collect_colliding_pairs<D: Send + Sync>(
         &mut self,
         mut func: impl FnMut(&mut T, &mut T) -> Option<D> + Send + Sync,
