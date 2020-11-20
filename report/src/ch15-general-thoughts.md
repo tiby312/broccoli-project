@@ -1,17 +1,10 @@
-#### Level of Indirection
 
-Sometimes slow things can be a tool to make things fast. Normally people thinking adding a level of indirection is an automatic performance hit, but a level of indirection can be seen as a tool that can speed up your program. If you have a data structure composed of (X,Y), and X is accessed frequently but not Y, then
-if you add a level of indirection such that you have (X,&mut Y), then your data structure is composed
-of smaller elements making more of it fit in memory at once. This of course only makes sense if Y is big enough.
+#### Multithreading
 
-#### Dynamic Allocation
+Evenly dividing up work into chuncks for up to N cores is preferable. You don't want to make assumptions about how many cores the user has. Why set up your system to only take up advantage of 2 cores if 16 are available. So here, using a thread pool library like rayon is useful. 
 
-Similarily you can use dynamic allocation as a tool to speed up your program. It has a cost, but the idea is that with that allocated memory you can get more performance gains. The problem is that everybody has to buy into the system for it to work. Anybody who allocated a bunch of memory and doesn't return it because they want to avoid allocating it again is hogging that space for longer than it needs it.
+In big complicated system, it can be tempting to keep sub-systems sequential and then just allow multiple sub-systems to happen in parallel if they are computation heavy. But this is not fully taking advantage of multithreading. You want each subsystem to itself be parallizable. So this collision detection system is parallizable. You want to parallelize in a platform independant way.
 
-Often times, its not the dynamic allocation that is slow, but some other residual of doing it in the first place. For example, dynamically allocating a bunch of pointers to an array, and then sorting that list of pointers. The allocation is fast, its just that there is no cache coherency. Two pointers in your list of pointers could very easily point to memory locations that are very far apart.
-
-Writing apis that don't do dynamic allocation is tough and can be cumbursome, since you probably have to have the user give you a slice of a certain size, but typically you need to first get the problem size from the user to figure out the amount of memory you want to request.
-On one hand the level of explicitness is great and users dont have to put any faith in allocation system. But on the other hand it adds a lot of logic to your api that makes it harder to see what your library actually does. 
 
 #### Testing correctness
 
@@ -30,10 +23,24 @@ When dealing with parallelism, benching small units can give you a warped sense 
 
 Platform dependance. Rust is a great language that strives for platform independant code. But at the end of the day, even though rust programs will behave the same on multiple platforms, their performance might be wildly different. And as soon as you start optimizing for one platform you have to wonder whether or not you are actually de-optimizing for another platform. For example, rebalancing is much slower on my android phone than querying. On my dell xps laptop, querying is the bottle neck instead. I have wondered why there is this disconnect. I think part of it is that rebalancing requires a lot of sorting, and sorting is something where it is hard to predict branches. So my laptop probably has a superior branch predictor. Another possible reason is memory writing. Rebalancing involves a lot of memory swapping, whereas querying does not involve any major writing to memory outside of what the user decides to do for each colliding pair. In any case, my end goal in creating this algorithm was to make the querying as fast as possible so as to get the most consistent performance regardless of how many bots were colliding.
 
-#### Multithreading
 
-Evenly dividing up work into chuncks for up to N cores is preferable. You don't want to make assumptions about how many cores the user has. Why set up your system to only take up advantage of 2 cores if 16 are available. So here, using a thread pool library like rayon is useful. 
+#### Level of Indirection
 
-In big complicated system, it can be tempting to keep sub-systems sequential and then just allow multiple sub-systems to happen in parallel if they are computation heavy. But this is not fully taking advantage of multithreading. You want each subsystem to itself be parallizable. So this collision detection system is parallizable. You want to parallelize in a platform independant way.
+Sometimes slow things can be a tool to make things fast. Normally people thinking adding a level of indirection is an automatic performance hit, but a level of indirection can be seen as a tool that can speed up your program. If you have a data structure composed of (X,Y), and X is accessed frequently but not Y, then
+if you add a level of indirection such that you have (X,&mut Y), then your data structure is composed
+of smaller elements making more of it fit in memory at once. This of course only makes sense if Y is big enough.
+
+#### Dynamic Allocation
+
+Similarily you can use dynamic allocation as a tool to speed up your program. It has a cost, but the idea is that with that allocated memory you can get more performance gains. The problem is that everybody has to buy into the system for it to work. Anybody who allocated a bunch of memory and doesn't return it because they want to avoid allocating it again is hogging that space for longer than it needs it.
+
+Often times, its not the dynamic allocation that is slow, but some other residual of doing it in the first place. For example, dynamically allocating a bunch of pointers to an array, and then sorting that list of pointers. The allocation is fast, its just that there is no cache coherency. Two pointers in your list of pointers could very easily point to memory locations that are very far apart.
+
+Writing apis that don't do dynamic allocation is tough and can be cumbursome, since you probably have to have the user give you a slice of a certain size, but typically you need to first get the problem size from the user to figure out the amount of memory you want to request.
+On one hand the level of explicitness is great and users dont have to put any faith in allocation system. But on the other hand it adds a lot of logic to your api that makes it harder to see what your library actually does. 
 
 
+### Design space big
+
+One thing ive learned that the design space is so big. There are so many design decisions to make and a lot of
+them are just made based off of hunches or educated guesses since there simply isnt enough time to back up each decision with real world data and benches. 
