@@ -4,8 +4,7 @@ fn main() {
     let mut inner2=0;
     let mut inner3=0;
 
-    //Using a semi-direct layout for best performance.
-    //rect is stored directly in tree, but inner is not.
+    //Rect is stored directly in tree, but inner is not.
     let mut aabbs = [
         broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), &mut inner1),
         broccoli::bbox(broccoli::rect(15, 20, 15, 20), &mut inner2),

@@ -131,7 +131,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
         };
 
         match self.closest.as_mut() {
-            Some(mut dis) => {
+            Some(dis) => {
                 match y.cmp(&dis.1) {
                     Ordering::Greater => {
                         //no way this bot will be a candidate, return.

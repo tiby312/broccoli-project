@@ -12,7 +12,6 @@ fn main() {
     let mut inner2 = (    vec2(20.0,20.0)     ,0);
     let mut inner3 = (    vec2( 4.0, 4.0)     ,0);
 
-    //Using a semi-direct layout for best performance.
     //rect is stored directly in tree, but inner is not.
     let mut aabbs = [
         broccoli::bbox(rect_f32_to_u32(Rect::from_point(inner1.0,radius),&border), &mut inner1),

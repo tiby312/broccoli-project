@@ -341,7 +341,6 @@ where
     ///assert_eq!(dis,2);
     ///assert_eq!(bots.len(),1);
     ///assert_eq!(bots[0],&vec2(5,5));
-    ///assert_eq!(counter,3);
     ///```
     #[must_use]
     fn raycast_mut<'b, Acc>(
@@ -381,7 +380,7 @@ where
     ///
     ///let mut counter = 0;
     ///let res = tree.k_nearest_mut(
-    ///     vec2(0,0),
+    ///     vec2(-1,-1),
     ///     2,
     ///     &mut counter,
     ///     |c,p,r|{*c+=1;r.distance_squared_to_point(p).unwrap_or(0)},
@@ -391,7 +390,6 @@ where
     ///assert_eq!(res.len(),3);
     ///assert_eq!(*res[0].as_ref().unwrap().0,bots_copy[0].inner);
     ///assert_eq!(*res[2].as_ref().unwrap().0,bots_copy[2].inner);
-    ///assert_eq!(counter,3);
     ///```
     #[must_use]
     fn k_nearest_mut<'b, Acc>(

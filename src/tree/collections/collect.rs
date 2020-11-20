@@ -13,11 +13,17 @@ pub struct CollidingPairs<T, D> {
     orig: Ptr<[T]>,
 }
 impl<T, D> CollidingPairs<T, D> {
+    ///Return a read only list of colliding pairs.
+    ///We can't return a list of mutable pairs since some might
+    ///alias, but we can return a list if they are not mutable.
     pub fn get(&self, arr: &[T]) -> &[(&T, &T, D)] {
         assert_eq!(self.orig.0 as *const _, arr as *const _);
         unsafe { &*(self.cols.as_slice() as *const _ as *const _) }
     }
 
+    ///Visit every colliding pair.
+    ///panics if the slice passed is not the slice used to create this
+    ///`CollidingPairs` object.
     pub fn for_every_pair_mut(
         &mut self,
         arr: &mut [T],
