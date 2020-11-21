@@ -186,6 +186,7 @@ where
 impl<'a, A: Axis, N: Node> QueryBuilder<'a, A, N> {
     ///Create the builder.
     #[inline(always)]
+    #[must_use]
     pub fn new(axis: A, vistr: VistrMut<'a, N>) -> QueryBuilder<'a, A, N> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         QueryBuilder {
@@ -198,6 +199,7 @@ impl<'a, A: Axis, N: Node> QueryBuilder<'a, A, N> {
     ///Choose a custom height at which to switch from parallel to sequential.
     ///If you end up building sequentially, this option is ignored.
     #[inline(always)]
+    #[must_use]
     pub fn with_switch_height(mut self, height: usize) -> Self {
         self.switch_height = height;
         self

@@ -494,10 +494,6 @@ pub trait Queries<'a> {
     #[must_use]
     fn axis(&self) -> Self::A;
 
-    fn new_colfind_builder(&mut self) -> QueryBuilder<Self::A, NodeMut<'a, Self::T>> {
-        QueryBuilder::new(self.axis(), self.vistr_mut())
-    }
-
     /// # Examples
     ///
     /// ```
@@ -557,7 +553,23 @@ pub trait Queries<'a> {
         colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
 
-    ///TODO document
+
+    /// The parallel version of [`Queries::find_colliding_pairs_pmut`].
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.find_colliding_pairs_pmut_par(|mut a,mut b|{
+    ///    *a.inner_mut()+=1;
+    ///    *b.inner_mut()+=1;
+    /// });
+    ///
+    /// assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[1].inner,1);
+    ///```
     fn find_colliding_pairs_pmut_par(
         &mut self,
         func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Send + Sync + Copy,
@@ -566,6 +578,31 @@ pub trait Queries<'a> {
     {
         colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_par(move |a, b| func(a, b));
     }
+
+
+    /// For analysis, allows the user to query with custom settings
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// let builder=tree.new_colfind_builder();
+    /// let builder=builder.with_switch_height(4);
+    /// builder.query_seq(|mut a,mut b|{
+    ///    *a.inner_mut()+=1;
+    ///    *b.inner_mut()+=1;
+    /// });
+    ///
+    /// assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[1].inner,1);
+    ///```
+    fn new_colfind_builder(&mut self) -> QueryBuilder<Self::A, NodeMut<'a, Self::T>> {
+        QueryBuilder::new(self.axis(), self.vistr_mut())
+    }
+
     /// # Examples
     ///
     ///```
@@ -624,7 +661,7 @@ pub trait Queries<'a> {
         rect::for_all_in_rect(self.axis(), self.vistr(), rect, func);
     }
 
-    //#[cfg(feature = "nbody")]
+    ///Experimental. See broccoli demo
     fn nbody_mut<X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Send + Sync>(
         &mut self,
         ncontext: &X,
@@ -636,7 +673,7 @@ pub trait Queries<'a> {
         query::nbody::nbody(self.axis(), self.vistr_mut(), ncontext, rect)
     }
 
-    //#[cfg(feature = "nbody")]
+    ///Experimental. See broccoli demo
     fn nbody_mut_par<
         X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Sync + Send,
     >(
