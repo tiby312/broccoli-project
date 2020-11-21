@@ -1,4 +1,4 @@
-//! Provides a mutable pointer type that is more restrictive that `&mut `T, in order
+//! Provides a mutable pointer type that is more restrictive that `&mut T`, in order
 //! to protect tree invariants.
 //! [`PMut`] is short for protected mutable reference.
 //!
