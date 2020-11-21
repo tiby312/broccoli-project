@@ -165,9 +165,34 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
         self.inner.inner.get_nodes().len()
     }
 
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::analyze;
+    /// let mut bots = [axgeom::rect(0,10,0,10)];
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// assert_eq!(tree.get_nodes()[0].get().bots[0], axgeom::rect(0,10,0,10));
+    ///
+    ///```
+    #[must_use]
     pub fn get_nodes(&self) -> &[NodeMut<'a, T>] {
         self.inner.inner.get_nodes()
     }
+
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::analyze;
+    /// let mut bots = [axgeom::rect(0,10,0,10)];
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// assert_eq!(tree.get_nodes_mut().get_index_mut(0).get().bots[0], axgeom::rect(0,10,0,10));
+    ///
+    ///```
+    #[must_use]
     pub fn get_nodes_mut(&mut self) -> PMut<[NodeMut<'a, T>]> {
         PMut::new(self.inner.inner.get_nodes_mut())
     }
