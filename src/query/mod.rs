@@ -368,27 +368,31 @@ where
     /// use broccoli::{prelude::*,bbox,rect};
     /// use axgeom::vec2;
     ///
-    /// let border = rect(0,100,0,100);
+    /// let mut inner1=vec2(5,5);
+    /// let mut inner2=vec2(3,3);
+    /// let mut inner3=vec2(7,7);
     ///
-    /// let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
-    ///                bbox(rect(2,4,2,4),vec2(3,3)),
-    ///                bbox(rect(6,8,6,8),vec2(7,7))];
+    /// let mut bots = [bbox(rect(0,10,0,10),&mut inner1),
+    ///               bbox(rect(2,4,2,4),&mut inner2),
+    ///               bbox(rect(6,8,6,8),&mut inner3)];
     ///
-    /// let mut bots_copy=bots.clone();
+    /// let border = broccoli::rect(0, 100, 0, 100);
+    ///
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// let mut counter = 0;
     /// let res = tree.k_nearest_mut(
-    ///     vec2(0,0),
-    ///     2,
-    ///     &mut counter,
-    ///     |c,p,r|{*c+=1;r.distance_squared_to_point(p).unwrap_or(0)},
-    ///     |c,p,t|{*c+=1;t.inner.distance_squared_to_point(p)},    //Do more fine-grained checking here.
-    ///     border);
+    ///       vec2(30, 30),
+    ///       2,
+    ///       &mut (),
+    ///       |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
+    ///       |(), a, b| b.rect.distance_squared_to_point(a).unwrap_or(0),
+    ///       border,
+    /// );
     ///
     /// assert_eq!(res.len(),3);
-    /// assert_eq!(*res[0].as_ref().unwrap().0,vec2(3,3));
-    /// assert_eq!(*res[2].as_ref().unwrap().0,vec2(5,5));
+    /// assert_eq!(**res[0].as_ref().unwrap().0,vec2(7,7));
+    /// assert_eq!(**res[2].as_ref().unwrap().0,vec2(5,5));
+    ///
     ///```
     #[must_use]
     fn k_nearest_mut<'b, Acc>(

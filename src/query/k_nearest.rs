@@ -115,7 +115,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         curr_bot: PMut<'a, T>,
     ) -> bool {
         let long_dis = knear.distance_to_rect(*point, curr_bot.get());
-
+        
         if self.curr_num == self.num {
             if let Some(l) = self.bots.last() {
                 if long_dis > l.mag {
