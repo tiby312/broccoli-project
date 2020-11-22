@@ -163,6 +163,7 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
 /// However it is useful to implement the [`crate::analyze::assert`] functions because we can preserve the tree,
 /// and at the same time get the underlying slice to perform the naive query algorithm, and still
 /// preserve the tree to avoid having to rebuild it.
+#[repr(transparent)]
 pub struct TreeRef<'a, A: Axis, T: Aabb> {
     tree: inner::TreeRefInner<A, T>,
     _p: PhantomData<&'a mut T>,

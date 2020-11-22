@@ -60,20 +60,6 @@ pub trait Knearest {
     }
 }
 
-/*
-pub(crate) struct KnearestWrapper<T: Aabb, K> {
-    pub(crate) inner: K,
-    pub(crate) _p: PhantomData<T>,
-}
-impl<T: Aabb, K: FnMut(Vec2<T::Num>, &Rect<T::Num>) -> T::Num> Knearest for KnearestWrapper<T, K> {
-    type T = T;
-    type N = T::Num;
-
-    fn distance_to_rect(&mut self, point: Vec2<Self::N>, rect: &Rect<Self::N>) -> Self::N {
-        (self.inner)(point, rect)
-    }
-}
-*/
 
 fn make_rect_from_range<A: Axis, N: Num>(axis: A, range: &Range<N>, rect: &Rect<N>) -> Rect<N> {
     if axis.is_xaxis() {
