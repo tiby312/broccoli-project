@@ -121,7 +121,6 @@ impl<'a, T: Aabb> Closest<'a, T> {
         b: PMut<'a, T>,
         raytrait: &mut R,
     ) {
-        
         //first check if bounding box could possibly be a candidate.
         let y = match raytrait.compute_distance_to_rect(ray, b.get()) {
             axgeom::CastResult::Hit(val) => val,
@@ -137,10 +136,10 @@ impl<'a, T: Aabb> Closest<'a, T> {
                         //no way this bot will be a candidate, return.
                         return;
                     }
-                    Ordering::Less  => {
+                    Ordering::Less => {
                         //this aabb could be a candidate, continue.
                     }
-                    Ordering::Equal=>{
+                    Ordering::Equal => {
                         //this aabb could be a candidate, continue.
                     }
                 }
@@ -149,8 +148,6 @@ impl<'a, T: Aabb> Closest<'a, T> {
                 //this aabb could be a candidate, continue,
             }
         }
-        
-
 
         let x = match raytrait.compute_distance_to_bot(ray, b.as_ref()) {
             axgeom::CastResult::Hit(val) => val,
@@ -275,7 +272,7 @@ fn recc<'a: 'b, 'b, A: Axis, N: Node, R: RayCast<N = N::Num, T = N::T>>(
                 }
                 Ordering::Equal => {
                     //Assume there are more elements in the children than the current node,
-                    //so recurse first.                    
+                    //so recurse first.
                     if blap.should_handle_rect(&rleft) {
                         recc(axis_next, left, rleft, blap);
                     }
@@ -288,7 +285,6 @@ fn recc<'a: 'b, 'b, A: Axis, N: Node, R: RayCast<N = N::Num, T = N::T>>(
                             blap.closest.consider(&blap.ray, b, blap.rtrait);
                         }
                     }
-
                 }
             }
         }

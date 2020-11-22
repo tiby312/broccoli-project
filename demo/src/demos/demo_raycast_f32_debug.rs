@@ -17,7 +17,8 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 Bot,
             )
         })
-        .collect::<Vec<_>>().into_boxed_slice();
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
 
     let mut counter: f32 = 0.0;
     let mut tree = broccoli::collections::TreeOwned::new_par(ii);

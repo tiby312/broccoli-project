@@ -18,50 +18,40 @@ pub struct TestResult {
 }
 
 fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(PMut<T>, PMut<T>)) -> TestResult {
-    
-    let (mut tree,construct_time)=bench_closure_ret(||{
-        broccoli::new(bots)
-    });
+    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::new(bots));
 
-    let (tree,query_time)=bench_closure_ret(||{
-
+    let (tree, query_time) = bench_closure_ret(|| {
         tree.find_colliding_pairs_pmut(|a, b| {
             func(a, b);
         });
         tree
     });
 
-
     black_box(tree);
 
     TestResult {
-        rebal:construct_time,
-        query:query_time,
+        rebal: construct_time,
+        query: query_time,
     }
 }
 fn test_par<T: Aabb + Send + Sync>(
     bots: &mut [T],
     func: impl Fn(PMut<T>, PMut<T>) + Send + Sync,
 ) -> TestResult {
-    
-    let (mut tree,construct_time)=bench_closure_ret(||{
-        broccoli::new_par(bots)
-    });
+    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::new_par(bots));
 
-    let (tree,query_time)=bench_closure_ret(||{
-
+    let (tree, query_time) = bench_closure_ret(|| {
         tree.find_colliding_pairs_pmut_par(|a, b| {
             func(a, b);
         });
         tree
     });
 
-
     black_box(tree);
 
     TestResult {
-        rebal:construct_time,
-        query:query_time,
+        rebal: construct_time,
+        query: query_time,
     }
 }
 
@@ -89,30 +79,32 @@ impl CompleteTestResult {
     }
 }
 
-fn complete_test<T: TestTrait>(num_bots:usize,grow:f64,t:T) -> CompleteTestResult {
-    
-
+fn complete_test<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTestResult {
     let (direct_seq, direct_par) = {
-        
-        let mut bots:Vec<_>=abspiral_f64(grow as f64).take(num_bots).map(|a|a.inner_as::<i32>()).map(|a|bbox(a,(0isize,t))).collect();
+        let mut bots: Vec<_> = abspiral_f64(grow as f64)
+            .take(num_bots)
+            .map(|a| a.inner_as::<i32>())
+            .map(|a| bbox(a, (0isize, t)))
+            .collect();
 
-        let collide = |mut b: PMut<BBox<i32, (isize,T)>>, mut c: PMut<BBox<i32, (isize,T)>>| {
+        let collide = |mut b: PMut<BBox<i32, (isize, T)>>, mut c: PMut<BBox<i32, (isize, T)>>| {
             b.inner_mut().0 += 1;
             c.inner_mut().0 += 1;
         };
 
-        (
-            test_seq(&mut bots, collide),
-            test_par(&mut bots, collide),
-        )
+        (test_seq(&mut bots, collide), test_par(&mut bots, collide))
     };
 
     let (indirect_seq, indirect_par) = {
-        
-        let mut bots:Vec<_>=abspiral_f64(grow as f64).take(num_bots).map(|a|a.inner_as::<i32>()).map(|a|bbox(a,(0isize,t))).collect();
-        let mut indirect:Vec<_>=bots.iter_mut().collect();
+        let mut bots: Vec<_> = abspiral_f64(grow as f64)
+            .take(num_bots)
+            .map(|a| a.inner_as::<i32>())
+            .map(|a| bbox(a, (0isize, t)))
+            .collect();
+        let mut indirect: Vec<_> = bots.iter_mut().collect();
 
-        let collide = |mut b: PMut<&mut BBox<i32, (isize,T)>>, mut c: PMut<&mut BBox<i32, (isize,T)>>| {
+        let collide = |mut b: PMut<&mut BBox<i32, (isize, T)>>,
+                       mut c: PMut<&mut BBox<i32, (isize, T)>>| {
             b.inner_mut().0 += 1;
             c.inner_mut().0 += 1;
         };
@@ -123,12 +115,16 @@ fn complete_test<T: TestTrait>(num_bots:usize,grow:f64,t:T) -> CompleteTestResul
         )
     };
     let (default_seq, default_par) = {
-        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|(0isize,t)).collect();
-        let mut default:Vec<  BBox<i32,&mut (isize,T)>  > =
-            abspiral_f64(grow).take(num_bots).map(|a|a.inner_as::<i32>()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| (0isize, t)).collect();
+        let mut default: Vec<BBox<i32, &mut (isize, T)>> = abspiral_f64(grow)
+            .take(num_bots)
+            .map(|a| a.inner_as::<i32>())
+            .zip(bot_inner.iter_mut())
+            .map(|(a, b)| bbox(a, b))
+            .collect();
 
-
-        let collide = |mut b: PMut<BBox<i32, &mut (isize,T)>>, mut c: PMut<BBox<i32, &mut (isize,T)>>| {
+        let collide = |mut b: PMut<BBox<i32, &mut (isize, T)>>,
+                       mut c: PMut<BBox<i32, &mut (isize, T)>>| {
             b.inner_mut().0 += 1;
             c.inner_mut().0 += 1;
         };
@@ -151,7 +147,7 @@ fn complete_test<T: TestTrait>(num_bots:usize,grow:f64,t:T) -> CompleteTestResul
 
 pub fn handle(fb: &mut FigureBuilder) {
     handle_num_bots(fb, 0.1, [0u8; 8]);
-    handle_num_bots(fb, 0.1, [0u8; 16]); 
+    handle_num_bots(fb, 0.1, [0u8; 16]);
     handle_num_bots(fb, 0.1, [0u8; 32]);
     handle_num_bots(fb, 0.1, [0u8; 128]);
     handle_num_bots(fb, 0.1, [0u8; 256]);
@@ -213,10 +209,9 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
     let mut rects = Vec::new();
 
     for num_bots in (0..30_000).rev().step_by(200) {
-        
         let r = Record {
             num_bots,
-            arr: complete_test(num_bots,grow,val.clone()),
+            arr: complete_test(num_bots, grow, val.clone()),
         };
         rects.push(r);
     }

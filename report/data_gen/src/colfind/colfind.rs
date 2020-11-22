@@ -1,6 +1,5 @@
 use crate::inner_prelude::*;
 
-
 fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize) {
     #[derive(Debug)]
     struct Record {
@@ -13,79 +12,85 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
         bench_nosort_seq: Option<f64>,
     }
 
-    let stop_naive_at=5000;
-    let stop_sweep_at=40000;
+    let stop_naive_at = 5000;
+    let stop_sweep_at = 40000;
 
-    let rects=(0..80_000).step_by(2000).map(move |num_bots|{
-        dbg!(num_bots);
-        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|0isize).collect();
-        let mut bots:Vec<  BBox<NotNan<f32>,&mut isize>  > =
-            abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+    let rects = (0..80_000)
+        .step_by(2000)
+        .map(move |num_bots| {
+            dbg!(num_bots);
+            let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
+            let mut bots: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow as f64)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
 
-        let c0 = bench_closure(||{
-            let mut tree = broccoli::new_par(&mut bots);
-            tree.find_colliding_pairs_mut_par(|a, b| {
-                **a += 1;
-                **b += 1;
+            let c0 = bench_closure(|| {
+                let mut tree = broccoli::new_par(&mut bots);
+                tree.find_colliding_pairs_mut_par(|a, b| {
+                    **a += 1;
+                    **b += 1;
+                });
             });
-        });
 
-        let c1 = bench_closure(||{
-            let mut tree = broccoli::new(&mut bots);
-            tree.find_colliding_pairs_mut(|a, b| {
-                **a -= 1;
-                **b -= 1;
+            let c1 = bench_closure(|| {
+                let mut tree = broccoli::new(&mut bots);
+                tree.find_colliding_pairs_mut(|a, b| {
+                    **a -= 1;
+                    **b -= 1;
+                });
             });
-        });
-            
-        let c3 = Some(bench_closure(||{
-            broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
-                **a -= 2;
-                **b -= 2;
-            });
-        })).filter(|_|num_bots<stop_sweep_at);
 
-        let c4 = Some(bench_closure(||{
-            NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
-                **a += 2;
-                **b += 2;
-            });
-        })).filter(|_|num_bots < stop_naive_at);
-    
-        let c5 = Some(bench_closure(||{
-            let mut tree = NotSorted::new_par(&mut bots);
-            tree.find_colliding_pairs_mut_par(|a, b| {
-                **a += 1;
-                **b += 1;
-            });
-        }));
+            let c3 = Some(bench_closure(|| {
+                broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
+                    **a -= 2;
+                    **b -= 2;
+                });
+            }))
+            .filter(|_| num_bots < stop_sweep_at);
 
-        let c6 = Some(bench_closure(||{
-            let mut tree = NotSorted::new(&mut bots);
-            tree.find_colliding_pairs_mut(|a, b| {
-                **a -= 1;
-                **b -= 1;
-            });
-        }));
-        
-        if num_bots<stop_naive_at{
-            for (i,&b) in bot_inner.iter().enumerate(){
-                assert_eq!(b,0,"failed iteration:{:?} numbots={:?}",i,num_bots);
+            let c4 = Some(bench_closure(|| {
+                NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
+                    **a += 2;
+                    **b += 2;
+                });
+            }))
+            .filter(|_| num_bots < stop_naive_at);
+
+            let c5 = Some(bench_closure(|| {
+                let mut tree = NotSorted::new_par(&mut bots);
+                tree.find_colliding_pairs_mut_par(|a, b| {
+                    **a += 1;
+                    **b += 1;
+                });
+            }));
+
+            let c6 = Some(bench_closure(|| {
+                let mut tree = NotSorted::new(&mut bots);
+                tree.find_colliding_pairs_mut(|a, b| {
+                    **a -= 1;
+                    **b -= 1;
+                });
+            }));
+
+            if num_bots < stop_naive_at {
+                for (i, &b) in bot_inner.iter().enumerate() {
+                    assert_eq!(b, 0, "failed iteration:{:?} numbots={:?}", i, num_bots);
+                }
             }
-        }
 
-        Record {
-            num_bots,
-            bench_alg: c1,
-            bench_par: c0,
-            bench_sweep: c3,
-            bench_naive: c4,
-            bench_nosort_par: c5,
-            bench_nosort_seq: c6,
-        }
-    }).collect::<Vec<_>>();
+            Record {
+                num_bots,
+                bench_alg: c1,
+                bench_par: c0,
+                bench_sweep: c3,
+                bench_naive: c4,
+                bench_nosort_par: c5,
+                bench_nosort_seq: c6,
+            }
+        })
+        .collect::<Vec<_>>();
 
-    
     use gnuplot::*;
     let x = rects.iter().map(|a| a.num_bots);
     let y1 = rects
@@ -124,16 +129,16 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
         .lines(
             x.clone(),
             y3,
-            &[Caption("broccoli Sequential"), Color(COLS[2]), LineWidth(2.0)],
+            &[
+                Caption("broccoli Sequential"),
+                Color(COLS[2]),
+                LineWidth(2.0),
+            ],
         )
         .lines(
             x.clone(),
             y4,
-            &[
-                Caption("broccoli Parallel"),
-                Color(COLS[3]),
-                LineWidth(2.0),
-            ],
+            &[Caption("broccoli Parallel"), Color(COLS[3]), LineWidth(2.0)],
         )
         .lines(
             x.clone(),
@@ -166,62 +171,77 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
     let stop_naive_at = 8_000;
     let stop_sweep_at = 50_000;
 
-    let rects=(0usize..80_000).step_by(2000).map(move |num_bots|{
-        dbg!(num_bots);
-        
-        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|0isize).collect();
-        
-        let c1 = datanum::datanum_test(|maker|{
-            let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-            let mut tree = broccoli::new(&mut bots);
-            tree.find_colliding_pairs_mut(|a, b| {
-                **a += 2;
-                **b += 2;
-            });
-        });
+    let rects = (0usize..80_000)
+        .step_by(2000)
+        .map(move |num_bots| {
+            dbg!(num_bots);
 
-        let c2 = Some(datanum::datanum_test(|maker|{
-            let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-            NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
-                **a -= 1;
-                **b -= 1;
-            });
-        })).filter(|_|num_bots < stop_naive_at);
+            let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
-
-        let c3 = Some(datanum::datanum_test(|maker|{
-            let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-
-            broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
-                **a -= 3;
-                **b -= 3;
+            let c1 = datanum::datanum_test(|maker| {
+                let mut bots: Vec<BBox<_, &mut isize>> = abspiral_datanum(maker, grow as f64)
+                    .zip(bot_inner.iter_mut())
+                    .map(|(a, b)| bbox(a, b))
+                    .collect();
+                let mut tree = broccoli::new(&mut bots);
+                tree.find_colliding_pairs_mut(|a, b| {
+                    **a += 2;
+                    **b += 2;
+                });
             });
 
-        })).filter(|_|num_bots < stop_sweep_at);
-        
-        let c4 = datanum::datanum_test(|maker|{
-            let mut bots:Vec<  BBox<_,&mut isize>  >=abspiral_datanum(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-            let mut tree = NotSorted::new(&mut bots);
-            tree.find_colliding_pairs_mut(|a, b| {
-                **a += 2;
-                **b += 2;
+            let c2 = Some(datanum::datanum_test(|maker| {
+                let mut bots: Vec<BBox<_, &mut isize>> = abspiral_datanum(maker, grow as f64)
+                    .zip(bot_inner.iter_mut())
+                    .map(|(a, b)| bbox(a, b))
+                    .collect();
+                NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
+                    **a -= 1;
+                    **b -= 1;
+                });
+            }))
+            .filter(|_| num_bots < stop_naive_at);
+
+            let c3 = Some(datanum::datanum_test(|maker| {
+                let mut bots: Vec<BBox<_, &mut isize>> = abspiral_datanum(maker, grow as f64)
+                    .zip(bot_inner.iter_mut())
+                    .map(|(a, b)| bbox(a, b))
+                    .collect();
+
+                broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
+                    **a -= 3;
+                    **b -= 3;
+                });
+            }))
+            .filter(|_| num_bots < stop_sweep_at);
+
+            let c4 = datanum::datanum_test(|maker| {
+                let mut bots: Vec<BBox<_, &mut isize>> = abspiral_datanum(maker, grow as f64)
+                    .zip(bot_inner.iter_mut())
+                    .map(|(a, b)| bbox(a, b))
+                    .collect();
+                let mut tree = NotSorted::new(&mut bots);
+                tree.find_colliding_pairs_mut(|a, b| {
+                    **a += 2;
+                    **b += 2;
+                });
             });
-        });
-        
-        if num_bots<stop_naive_at{
-            for (i,&a) in bot_inner.iter().enumerate(){
-                assert_eq!(a,0,"failed iteration:{:?} numbots={:?}",i,num_bots);
+
+            if num_bots < stop_naive_at {
+                for (i, &a) in bot_inner.iter().enumerate() {
+                    assert_eq!(a, 0, "failed iteration:{:?} numbots={:?}", i, num_bots);
+                }
             }
-        }
 
-        Record {
-            num_bots,
-            num_comparison_alg: c1,
-            num_comparison_naive: c2,
-            num_comparison_sweep: c3,
-            num_comparison_nosort: c4,
-        }
-    }).collect::<Vec<_>>();
+            Record {
+                num_bots,
+                num_comparison_alg: c1,
+                num_comparison_naive: c2,
+                num_comparison_sweep: c3,
+                num_comparison_nosort: c4,
+            }
+        })
+        .collect::<Vec<_>>();
 
     use gnuplot::*;
     let x = rects.iter().map(|a| a.num_bots);

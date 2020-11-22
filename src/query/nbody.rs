@@ -13,7 +13,6 @@
 use super::tools;
 use crate::query::inner_prelude::*;
 
-
 ///User trait to fill out which is then passed to the `nbody` query function.
 pub trait NodeMassTrait: Clone {
     type No: Copy + Send;

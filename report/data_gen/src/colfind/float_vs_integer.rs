@@ -1,7 +1,5 @@
 use crate::inner_prelude::*;
 
-
-
 fn handle_bench(fg: &mut Figure) {
     #[derive(Debug)]
     struct Record {
@@ -15,42 +13,42 @@ fn handle_bench(fg: &mut Figure) {
         bench_i64: f64,
         bench_i64_par: f64,
         bench_float_i32: f64,
-        bench_float_ordered:f64,
-        bench_float_u16_par:f64
+        bench_float_ordered: f64,
+        bench_float_u16_par: f64,
     }
 
     let mut records = Vec::new();
 
     for num_bots in (20_000..80_000).step_by(200) {
-        
-        let grow=1.0;
+        let grow = 1.0;
 
-        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|0isize).collect();
-        
+        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
+
         let bench_integer = {
+            let mut bb: Vec<BBox<i32, &mut isize>> = abspiral_f64(grow)
+                .map(|a| a.inner_as())
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
 
-            let mut bb:Vec<  BBox<i32,&mut isize>  > =
-            abspiral_f64(grow).map(|a|a.inner_as()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-    
-            bench_closure(||{
+            bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
                     **a += 1;
                     **b += 1;
                 });
-
             })
-            
         };
 
         let bench_i64 = {
-            
-            let mut bb:Vec<  BBox<i64,&mut isize>  > =
-            abspiral_f64(grow).map(|a|a.inner_as()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-    
-            bench_closure(||{
+            let mut bb: Vec<BBox<i64, &mut isize>> = abspiral_f64(grow)
+                .map(|a| a.inner_as())
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
 
+            bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
@@ -59,32 +57,38 @@ fn handle_bench(fg: &mut Figure) {
                 });
             })
         };
-        
 
         let bench_float_i32 = {
-            
-            let bb:Vec<  BBox<NotNan<f32>,&mut isize>  > =
-            abspiral_f32_nan(grow).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-    
-            let border={
-                let (first,rest)=bb.split_first().unwrap();
-                let mut r=first.rect;
-                for a in rest.iter(){
+            let bb: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
+
+            let border = {
+                let (first, rest) = bb.split_first().unwrap();
+                let mut r = first.rect;
+                for a in rest.iter() {
                     r.grow_to_fit(&a.rect);
                 }
                 r
             };
 
+            bench_closure(|| {
+                let mut bb: Vec<_> = bb
+                    .into_iter()
+                    .map(|a| {
+                        bbox(
+                            broccoli::convert::rect_f32_to_u32(
+                                a.rect.inner_into(),
+                                &border.as_ref(),
+                            ),
+                            a.inner,
+                        )
+                    })
+                    .collect();
 
-
-            bench_closure(||{
-
-                let mut bb:Vec<_>=bb.into_iter().map(|a|{
-                    bbox(broccoli::convert::rect_f32_to_u32(a.rect.inner_into(),&border.as_ref()),a.inner)
-                }).collect();
-    
                 let mut tree = broccoli::new(&mut bb);
-    
+
                 tree.find_colliding_pairs_mut(|a, b| {
                     **a += 1;
                     **b += 1;
@@ -94,58 +98,62 @@ fn handle_bench(fg: &mut Figure) {
 
         let bench_float_ordered = {
             use axgeom::ordered_float::OrderedFloat;
-                
-            let mut bb:Vec<  BBox<OrderedFloat<f32>,&mut isize>  > =
-            abspiral_f32(grow).map(|a|a.inner_into()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-    
-            bench_closure(||{
+
+            let mut bb: Vec<BBox<OrderedFloat<f32>, &mut isize>> = abspiral_f32(grow)
+                .map(|a| a.inner_into())
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
+
+            bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
                     **a += 1;
                     **b += 1;
                 });
-    
             })
         };
         let bench_float = {
-            let mut bb:Vec<  BBox<NotNan<f32>,&mut isize>  > =
-            abspiral_f32_nan(grow).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-    
-            bench_closure(||{
+            let mut bb: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
+
+            bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
                     **a += 1;
                     **b += 1;
                 });
-    
             })
         };
 
         let bench_float_par = {
-            let mut bb:Vec<  BBox<NotNan<f32>,&mut isize>  > =
-            abspiral_f32_nan(grow).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-    
-            bench_closure(||{
+            let mut bb: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
 
+            bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
                     **a += 1;
                     **b += 1;
                 });
-    
             })
         };
 
         let bench_integer_par = {
-            
-            let mut bb:Vec<  BBox<i32,&mut isize>  > =
-            abspiral_f64(grow).map(|a|a.inner_as()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+            let mut bb: Vec<BBox<i32, &mut isize>> = abspiral_f64(grow)
+                .map(|a| a.inner_as())
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
 
-
-            bench_closure(||{
+            bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
@@ -155,84 +163,88 @@ fn handle_bench(fg: &mut Figure) {
             })
         };
 
-
         let bench_i64_par = {
-            
-            let mut bb:Vec<  BBox<i64,&mut isize>  > =
-            abspiral_f64(grow).map(|a|a.inner_as()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-    
-            bench_closure(||{
+            let mut bb: Vec<BBox<i64, &mut isize>> = abspiral_f64(grow)
+                .map(|a| a.inner_as())
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
+
+            bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
                     **a += 1;
                     **b += 1;
                 });
-    
             })
-            
         };
 
         let bench_f64 = {
-            
-            let mut bb:Vec<  BBox<NotNan<f64>,&mut isize>  > =
-            abspiral_f64(grow).map(|a|a.inner_try_into().unwrap()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-    
+            let mut bb: Vec<BBox<NotNan<f64>, &mut isize>> = abspiral_f64(grow)
+                .map(|a| a.inner_try_into().unwrap())
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
 
-            bench_closure(||{
+            bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
                     **a += 1;
                     **b += 1;
                 });
-    
             })
         };
 
         let bench_f64_par = {
-            
-            let mut bb:Vec<  BBox<NotNan<f64>,&mut isize>  > =
-            abspiral_f64(grow).map(|a|a.inner_try_into().unwrap()).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-    
+            let mut bb: Vec<BBox<NotNan<f64>, &mut isize>> = abspiral_f64(grow)
+                .map(|a| a.inner_try_into().unwrap())
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
 
-            bench_closure(||{
+            bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
                     **a += 1;
                     **b += 1;
                 });
-    
             })
-            
         };
 
-
         let bench_float_u16_par = {
-            
-            let bb:Vec<  BBox<NotNan<f32>,&mut isize>  > =
-            abspiral_f32_nan(grow).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-    
-            let border={
-                let (first,rest)=bb.split_first().unwrap();
-                let mut r=first.rect;
-                for a in rest.iter(){
+            let bb: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
+
+            let border = {
+                let (first, rest) = bb.split_first().unwrap();
+                let mut r = first.rect;
+                for a in rest.iter() {
                     r.grow_to_fit(&a.rect);
                 }
                 r
             };
 
+            bench_closure(|| {
+                let mut bb: Vec<_> = bb
+                    .into_iter()
+                    .map(|a| {
+                        bbox(
+                            broccoli::convert::rect_f32_to_u16(
+                                a.rect.inner_into(),
+                                &border.as_ref(),
+                            ),
+                            a.inner,
+                        )
+                    })
+                    .collect();
 
-
-            bench_closure(||{
-
-                let mut bb:Vec<_>=bb.into_iter().map(|a|{
-                    bbox(broccoli::convert::rect_f32_to_u16(a.rect.inner_into(),&border.as_ref()),a.inner)
-                }).collect();
-    
                 let mut tree = broccoli::new_par(&mut bb);
-    
+
                 tree.find_colliding_pairs_mut_par(|a, b| {
                     **a += 1;
                     **b += 1;
@@ -252,7 +264,7 @@ fn handle_bench(fg: &mut Figure) {
             bench_f64_par,
             bench_float_i32,
             bench_float_ordered,
-            bench_float_u16_par
+            bench_float_u16_par,
         });
     }
 
@@ -271,9 +283,7 @@ fn handle_bench(fg: &mut Figure) {
     let y10 = rects.iter().map(|a| a.bench_float_ordered);
     let y11 = rects.iter().map(|a| a.bench_float_u16_par);
 
-
-    
-    let ww=1.0;
+    let ww = 1.0;
     fg.axes2d()
         .set_title(
             "Comparison of broccoli Performance With Different Number Types With abspiral(x,1.0)",

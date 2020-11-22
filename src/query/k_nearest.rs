@@ -122,22 +122,23 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         }
     }
 
-    fn consider<K:Knearest<T=T,N=T::Num>>(&mut self, point:&Vec2<K::N>,knear:&mut K,curr_bot: PMut<'a, T>) -> bool{
-        
-        let long_dis=knear.distance_to_rect(*point,curr_bot.get());
-        
-        if self.curr_num==self.num{
-            if let Some(l)=self.bots.last(){
-                if long_dis>l.mag{
+    fn consider<K: Knearest<T = T, N = T::Num>>(
+        &mut self,
+        point: &Vec2<K::N>,
+        knear: &mut K,
+        curr_bot: PMut<'a, T>,
+    ) -> bool {
+        let long_dis = knear.distance_to_rect(*point, curr_bot.get());
+
+        if self.curr_num == self.num {
+            if let Some(l) = self.bots.last() {
+                if long_dis > l.mag {
                     return false;
                 }
             }
         }
-        
 
         let curr_dis = knear.distance_to_bot(*point, curr_bot.as_ref());
-                            
-
 
         if self.curr_num < self.num {
             let arr = &mut self.bots;
@@ -258,7 +259,7 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
                     if blap.should_traverse_rect(&rmiddle) {
                         for bot in nn.bots.iter_mut() {
                             //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider(&blap.point,blap.knear,bot);
+                            blap.closest.consider(&blap.point, blap.knear, bot);
                         }
                     }
 
@@ -274,7 +275,7 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
                     if blap.should_traverse_rect(&rmiddle) {
                         for bot in nn.bots.iter_mut() {
                             //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider(&blap.point,blap.knear,bot);
+                            blap.closest.consider(&blap.point, blap.knear, bot);
                         }
                     }
                     if blap.should_traverse_rect(&rleft) {
@@ -293,7 +294,7 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
                     if blap.should_traverse_rect(&rmiddle) {
                         for bot in nn.bots.iter_mut() {
                             //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider(&blap.point,blap.knear,bot);
+                            blap.closest.consider(&blap.point, blap.knear, bot);
                         }
                     }
                 }
@@ -302,7 +303,7 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
         None => {
             for bot in nn.bots.iter_mut() {
                 //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                blap.closest.consider(&blap.point,blap.knear,bot);
+                blap.closest.consider(&blap.point, blap.knear, bot);
             }
         }
     }
@@ -320,11 +321,10 @@ mod mutable {
         num: usize,
         k: &mut K,
     ) -> Vec<(&'a mut T::Inner, T::Num)> {
-        
         let mut closest = ClosestCand::new(num);
 
         for b in bots.iter_mut() {
-            closest.consider(&point,k,b);
+            closest.consider(&point, k, b);
         }
 
         closest
@@ -357,14 +357,14 @@ mod mutable {
 
         recc(axis, dt, rect, &mut blap);
 
-        let mut res:Vec<Option<(&'a mut <N::T as HasInner>::Inner, N::Num)>>=Vec::new();
-        for a in blap.closest.into_sorted().into_iter(){
-            if let Some(Some(k))=res.last(){
-                if k.1!=a.mag{
+        let mut res: Vec<Option<(&'a mut <N::T as HasInner>::Inner, N::Num)>> = Vec::new();
+        for a in blap.closest.into_sorted().into_iter() {
+            if let Some(Some(k)) = res.last() {
+                if k.1 != a.mag {
                     res.push(None);
                 }
             }
-            res.push(Some((a.bot.into_inner(),a.mag)));
+            res.push(Some((a.bot.into_inner(), a.mag)));
         }
         res
     }

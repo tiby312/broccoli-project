@@ -77,18 +77,16 @@ pub const COLS: &[&str] = &[
     "blue", "green", "red", "violet", "orange", "brown", "gray", "black", "pink",
 ];
 
-
-pub fn bench_closure(func:impl FnOnce())->f64{
+pub fn bench_closure(func: impl FnOnce()) -> f64 {
     black_box(bench_closure_ret(func).1)
 }
 
-pub fn bench_closure_ret<T>(func:impl FnOnce()->T)->(T,f64){
+pub fn bench_closure_ret<T>(func: impl FnOnce() -> T) -> (T, f64) {
     let instant = Instant::now();
-    let a=black_box(func());
-    let j=instant_to_sec(instant.elapsed());
-    (a,j)
+    let a = black_box(func());
+    let j = instant_to_sec(instant.elapsed());
+    (a, j)
 }
-
 
 pub fn instant_to_sec(elapsed: Duration) -> f64 {
     let secs: f64 = elapsed.as_secs() as f64;
@@ -96,17 +94,14 @@ pub fn instant_to_sec(elapsed: Duration) -> f64 {
     secs + nano / 1_000_000_000.0
 }
 
-
-
-
-pub fn abspiral_grow_iter2(start:f64,end:f64,delta:f64)->impl Iterator<Item=f64>{
-    let mut c=start;
-    core::iter::from_fn(move ||{
-        if c>=end{
+pub fn abspiral_grow_iter2(start: f64, end: f64, delta: f64) -> impl Iterator<Item = f64> {
+    let mut c = start;
+    core::iter::from_fn(move || {
+        if c >= end {
             None
-        }else{
-            let k=c;
-            c+=delta;
+        } else {
+            let k = c;
+            c += delta;
             Some(k)
         }
     })
@@ -124,34 +119,42 @@ pub fn abspiral_grow_iter(range:core::ops::Range<usize>,start:f64,delta:f64)->im
 }
 */
 
-pub const RADIUS:f32=5.0;
-pub const ABSPIRAL_PROP:bot::BotProp=bot::BotProp{
-    radius: bot::Dist::manual_create(RADIUS,RADIUS*2.0,RADIUS*RADIUS),
+pub const RADIUS: f32 = 5.0;
+pub const ABSPIRAL_PROP: bot::BotProp = bot::BotProp {
+    radius: bot::Dist::manual_create(RADIUS, RADIUS * 2.0, RADIUS * RADIUS),
     collision_push: 0.1,
     collision_drag: 0.1,
     minimum_dis_sqr: 0.0001,
     viscousity_coeff: 0.1,
 };
 
-pub fn abspiral_datanum<'a>(maker:&'a datanum::Maker,grow:f64)->impl Iterator<Item=Rect<datanum::Dnum<'a,isize>>>{
-    abspiral_f64(grow).map(|a|a.inner_as::<isize>()).map(move |a|maker.from_rect(a))
+pub fn abspiral_datanum<'a>(
+    maker: &'a datanum::Maker,
+    grow: f64,
+) -> impl Iterator<Item = Rect<datanum::Dnum<'a, isize>>> {
+    abspiral_f64(grow)
+        .map(|a| a.inner_as::<isize>())
+        .map(move |a| maker.from_rect(a))
 }
 
-pub fn abspiral_datanum_f32_nan<'a>(maker:&'a datanum::Maker,grow:f64)->impl Iterator<Item=Rect<datanum::Dnum<'a,NotNan<f32>>>>{
-    abspiral_f32_nan(grow).map(move |a|maker.from_rect(a))
+pub fn abspiral_datanum_f32_nan<'a>(
+    maker: &'a datanum::Maker,
+    grow: f64,
+) -> impl Iterator<Item = Rect<datanum::Dnum<'a, NotNan<f32>>>> {
+    abspiral_f32_nan(grow).map(move |a| maker.from_rect(a))
 }
 
-pub fn abspiral_f32_nan(grow:f64)->impl Iterator<Item=Rect<NotNan<f32>>>{
-    abspiral_f32(grow).map(|a|a.inner_try_into().unwrap())
+pub fn abspiral_f32_nan(grow: f64) -> impl Iterator<Item = Rect<NotNan<f32>>> {
+    abspiral_f32(grow).map(|a| a.inner_try_into().unwrap())
 }
-pub fn abspiral_f32(grow:f64)->impl Iterator<Item=Rect<f32>>{
-    abspiral_f64(grow).map(|a|a.inner_as())
+pub fn abspiral_f32(grow: f64) -> impl Iterator<Item = Rect<f32>> {
+    abspiral_f64(grow).map(|a| a.inner_as())
 }
 
-pub fn abspiral_f64(grow:f64)->impl Iterator<Item=Rect<f64>>{
-    let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64); 
-    s.map(move |a|{
-        let r=axgeom::Rect::from_point(vec2(a[0],a[1]),vec2same(RADIUS as f64));
+pub fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
+    let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64);
+    s.map(move |a| {
+        let r = axgeom::Rect::from_point(vec2(a[0], a[1]), vec2same(RADIUS as f64));
         r
     })
 }

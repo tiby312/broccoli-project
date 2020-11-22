@@ -25,23 +25,23 @@ pub mod bbox_helper {
 
 mod inner_prelude {
     pub use super::bbox_helper;
-    pub use crate::support::*;
-    pub(crate) use crate::FigureBuilder;
-    pub use broccoli::query::*;
-    pub use broccoli::*;
     pub use crate::black_box;
     pub(crate) use crate::datanum;
+    pub use crate::support::*;
+    pub(crate) use crate::FigureBuilder;
+    pub use axgeom::ordered_float::NotNan;
     pub use axgeom::vec2;
     pub use axgeom::vec2same;
     pub use axgeom::Rect;
     pub use axgeom::Vec2;
     pub use broccoli::analyze::*;
     pub use broccoli::prelude::*;
+    pub use broccoli::query::*;
+    pub use broccoli::*;
     pub use broccoli::*;
     pub(crate) use duckduckgeo::bot;
     pub(crate) use duckduckgeo::dists;
     pub use gnuplot::*;
-    pub use axgeom::ordered_float::NotNan;
     pub use std::time::Duration;
     pub use std::time::Instant;
 }
@@ -138,16 +138,14 @@ fn main() {
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
 
-            
             run_test!(&mut fb, colfind::colfind::handle_theory);
-                        
+
             run_test!(&mut fb, spiral::handle);
 
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
 
             run_test!(&mut fb, colfind::theory_colfind_3d::handle);
-            
         }
         "bench" => {
             let folder = args[2].clone();
@@ -156,24 +154,21 @@ fn main() {
             let mut fb = FigureBuilder::new(folder);
 
             //done
-            
+
             run_test!(&mut fb, colfind::colfind::handle_bench);
             run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
-            
-            
+
             run_test!(&mut fb, colfind::rebal_strat::handle);
             run_test!(&mut fb, colfind::dinotree_direct_indirect::handle);
-            
-            
+
             run_test!(&mut fb, colfind::float_vs_integer::handle);
-            
-            
+
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
 
             //This is the one thats interesting to see what the results are on phone/vs/laptop
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
-            
+
             //nbody::theory::handle(&mut fb);
         }
         "graph" => {

@@ -3,7 +3,7 @@ use std;
 
 use axgeom::Ray;
 use broccoli::analyze::assert;
-    
+
 #[derive(Copy, Clone)]
 struct Bot {
     center: Vec2<f32>,
@@ -11,7 +11,7 @@ struct Bot {
 
 pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     let radius = 10.0;
-    
+
     let vv = dists::rand2_iter(dim.inner_into())
         .map(|[x, y]| {
             let center = vec2(x, y);
@@ -22,7 +22,8 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             bbox(r, b)
         })
         .take(300)
-        .collect::<Vec<_>>().into_boxed_slice();
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
 
     //Draw bots
     let mut r = canvas.circles();

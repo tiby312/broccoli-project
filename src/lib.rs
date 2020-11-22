@@ -15,7 +15,7 @@
 //!
 //! The [`collections`] modules lists the tree types and they are all described there, but the
 //! TL;DR is use [`Tree`] and fill it with `BBox<N,&mut T>` unless you want
-//! to use functions like [`collect_colliding_pairs`](crate::collections::TreeRefInd::collect_colliding_pairs). 
+//! to use functions like [`collect_colliding_pairs`](crate::collections::TreeRefInd::collect_colliding_pairs).
 //! In which case use [`TreeRefInd`](crate::collections::TreeRefInd).
 //!
 //! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
@@ -29,7 +29,7 @@
 //! ### Floating Point
 //!
 //! The [`Num`] trait used for the aabbs inserted into the tree must implement [`Ord`],
-//! thus you can't add `f32` or `f64`. However, you can use the `ordered_float` crate, which 
+//! thus you can't add `f32` or `f64`. However, you can use the `ordered_float` crate, which
 //! is re-exported at [`axgeom::ordered_float`].
 //! The broccoli book mentioned above compares performance. For best performance,
 //! you will likely want to convert the floats to integers anyway.
@@ -56,7 +56,10 @@
 //! Broccoli also have tree like properties and broccoli uses a tree data structure.
 //!
 
-#![doc(html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png", html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
+    html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
+)]
 #![no_std]
 
 #[macro_use]
@@ -99,9 +102,9 @@ mod util;
 ///Helper functions to convert aabbs in floats to integers
 pub mod convert;
 
-pub use axgeom::Rect;
-pub use axgeom::Range;
 pub use axgeom::rect;
+pub use axgeom::Range;
+pub use axgeom::Rect;
 
 ///The broccoli prelude.
 pub mod prelude {
@@ -163,5 +166,3 @@ pub unsafe trait HasInner: Aabb {
     fn get_inner(&self) -> (&Rect<Self::Num>, &Self::Inner);
     fn get_inner_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner);
 }
-
-

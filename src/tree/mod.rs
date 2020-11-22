@@ -3,7 +3,6 @@ use crate::inner_prelude::*;
 #[cfg(test)]
 mod tests;
 
-
 pub mod analyze;
 
 ///Contains code to write generic code that can be run in parallel, or sequentially. The api is exposed
@@ -35,12 +34,10 @@ pub struct Tree<'a, A: Axis, T: Aabb> {
     inner: TreeInner<A, NodeMut<'a, T>>,
 }
 
-
 ///The default starting axis of a [`Tree`]. It is set to be the `Y` axis.
 ///This means that the first divider is a horizontal line since it is
 ///partitioning space based off of the aabb's `Y` value.
 pub type DefaultA = YAXIS;
-
 
 ///Returns the default axis type.
 pub const fn default_axis() -> YAXIS {
@@ -72,7 +69,6 @@ pub fn new<'a, T: Aabb>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> {
 pub fn with_axis<'a, A: Axis, T: Aabb>(axis: A, bots: &'a mut [T]) -> Tree<'a, A, T> {
     TreeBuilder::with_axis(axis, bots).build_seq()
 }
-
 
 ///Create a [`Tree`] using the default axis in parallel.
 ///
@@ -165,7 +161,6 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
         self.inner.inner.get_nodes().len()
     }
 
-
     /// # Examples
     ///
     ///```
@@ -180,7 +175,6 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     pub fn get_nodes(&self) -> &[NodeMut<'a, T>] {
         self.inner.inner.get_nodes()
     }
-
 
     /// # Examples
     ///

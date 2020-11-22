@@ -1,6 +1,5 @@
 use super::*;
 
-
 ///CollidingPairs created via [`TreeRefInd::collect_colliding_pairs`]
 pub struct CollidingPairs<T, D> {
     ///See collect_intersections_list()
@@ -198,8 +197,7 @@ impl<T, D> FilteredElements<T, D> {
 }
 
 impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
-    
-    /// Collect all elements based off of a predicate and return a [`FilteredElements`]. 
+    /// Collect all elements based off of a predicate and return a [`FilteredElements`].
     ///
     /// # Examples
     ///
@@ -251,8 +249,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
 }
 
 impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
-
-    /// Find all colliding pairs based on a predicate and return a [`CollidingPairs`]. 
+    /// Find all colliding pairs based on a predicate and return a [`CollidingPairs`].
     ///
     /// # Examples
     ///

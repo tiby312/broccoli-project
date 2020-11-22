@@ -1,11 +1,9 @@
 use super::*;
 
-
 pub(super) struct TreeRefInner<A: Axis, T: Aabb> {
     pub(super) inner: TreeInner<A, NodePtr<T>>,
     pub(super) orig: Ptr<[T]>,
 }
-
 
 impl<A: Axis, T: Aabb + Send + Sync> TreeRefInner<A, T> {
     pub fn with_axis_par(a: A, arr: &mut [T]) -> TreeRefInner<A, T> {
@@ -22,14 +20,12 @@ impl<A: Axis, T: Aabb> TreeRefInner<A, T> {
     }
 }
 
-
-
-pub(super) struct TreeIndInner<A:Axis,N:Num,T>{
-    pub(super) inner:TreeOwned<A,BBox<N,Ptr<T>>>,
-    pub(super) orig:Ptr<[T]>
+pub(super) struct TreeIndInner<A: Axis, N: Num, T> {
+    pub(super) inner: TreeOwned<A, BBox<N, Ptr<T>>>,
+    pub(super) orig: Ptr<[T]>,
 }
 
-impl<A:Axis,N:Num,T:Send+Sync> TreeIndInner<A,N,T>{
+impl<A: Axis, N: Num, T: Send + Sync> TreeIndInner<A, N, T> {
     pub fn with_axis_par(
         axis: A,
         arr: &mut [T],
@@ -43,13 +39,10 @@ impl<A:Axis,N:Num,T:Send+Sync> TreeIndInner<A,N,T>{
 
         let inner = TreeOwned::with_axis_par(axis, bbox);
 
-        TreeIndInner{
-            inner,
-            orig
-        }
+        TreeIndInner { inner, orig }
     }
 }
-impl<A:Axis,N:Num,T> TreeIndInner<A,N,T>{
+impl<A: Axis, N: Num, T> TreeIndInner<A, N, T> {
     pub fn with_axis(
         axis: A,
         arr: &mut [T],
@@ -63,24 +56,17 @@ impl<A:Axis,N:Num,T> TreeIndInner<A,N,T>{
 
         let inner = TreeOwned::with_axis(axis, bbox);
 
-        TreeIndInner{
-            inner,
-            orig
-        }
+        TreeIndInner { inner, orig }
     }
 }
-
-
 
 pub(super) fn make_owned<A: Axis, T: Aabb>(axis: A, bots: &mut [T]) -> TreeInner<A, NodePtr<T>> {
     let inner = crate::with_axis(axis, bots);
 
-    
-    let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>,_> = inner.inner.inner.convert();
+    let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>, _> = inner.inner.inner.convert();
 
     TreeInner { axis, inner }
 }
-
 
 fn make_owned_par<A: Axis, T: Aabb + Send + Sync>(
     axis: A,
@@ -88,7 +74,7 @@ fn make_owned_par<A: Axis, T: Aabb + Send + Sync>(
 ) -> TreeInner<A, NodePtr<T>> {
     let inner = crate::with_axis_par(axis, bots);
 
-    let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>,_> = inner.inner.inner.convert();    
+    let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>, _> = inner.inner.inner.convert();
 
     TreeInner { axis, inner }
 }

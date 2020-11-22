@@ -1,5 +1,5 @@
 use broccoli::prelude::*;
-use broccoli::{bbox,rect};
+use broccoli::{bbox, rect};
 fn main() {
     let mut aabbs = [
         bbox(rect(0isize, 10, 0, 10), 0),

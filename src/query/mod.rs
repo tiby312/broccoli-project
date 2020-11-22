@@ -68,18 +68,17 @@ pub trait NotSortedQueries<'a> {
         NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
     }
 
-    fn find_colliding_pairs_pmut(
-        &mut self,
-        mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>),
-    ) {
+    fn find_colliding_pairs_pmut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
         query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
             .query_seq(move |a, b| func(a, b));
     }
 
     fn find_colliding_pairs_pmut_par(
         &mut self,
-        func: impl Fn(PMut<Self::T>, PMut<Self::T>)+Clone+Send+Sync,
-    ) where Self::T:Send+Sync{
+        func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Clone + Send + Sync,
+    ) where
+        Self::T: Send + Sync,
+    {
         query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
             .query_par(move |a, b| func(a, b));
     }
@@ -440,7 +439,6 @@ where
     }
 }
 
-
 ///Query functions. User defines `vistr()` functions, and the query functions
 ///are automatically provided by this trait.
 pub trait Queries<'a> {
@@ -553,7 +551,6 @@ pub trait Queries<'a> {
         colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
 
-
     /// The parallel version of [`Queries::find_colliding_pairs_pmut`].
     ///
     /// # Examples
@@ -578,7 +575,6 @@ pub trait Queries<'a> {
     {
         colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_par(move |a, b| func(a, b));
     }
-
 
     /// For analysis, allows the user to query with custom settings
     ///

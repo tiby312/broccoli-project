@@ -11,17 +11,14 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> (f64, f64) {
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let (mut tree,construction_time)=bench_closure_ret(||{
-        TreeBuilder::new(&mut bb).build_seq()
-    });
+    let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(&mut bb).build_seq());
 
-    let (tree,query_time)=bench_closure_ret(||{
+    let (tree, query_time) = bench_closure_ret(|| {
         tree.new_colfind_builder().query_seq(|mut a, mut b| {
             a.inner_mut().num += 2;
             b.inner_mut().num += 2;
         });
         tree
-    
     });
 
     black_box(tree);
@@ -30,29 +27,28 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> (f64, f64) {
 }
 
 fn test3(scene: &mut bot::BotScene<Bot>, rebal_height: usize, query_height: usize) -> (f64, f64) {
-    
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
     let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
 
-    let (mut tree,construction_time)=bench_closure_ret(||{
+    let (mut tree, construction_time) = bench_closure_ret(|| {
         TreeBuilder::new(&mut bb)
-        .with_height_switch_seq(rebal_height)
-        .build_par()
+            .with_height_switch_seq(rebal_height)
+            .build_par()
     });
 
-    let (tree,query_time)=bench_closure_ret(||{
+    let (tree, query_time) = bench_closure_ret(|| {
         tree.new_colfind_builder()
-        .with_switch_height(query_height)
-        .query_par(|mut a, mut b| {
-            a.inner_mut().num += 2;
-            b.inner_mut().num += 2;
-        });
+            .with_switch_height(query_height)
+            .query_par(|mut a, mut b| {
+                a.inner_mut().num += 2;
+                b.inner_mut().num += 2;
+            });
         tree
     });
 
     black_box(tree);
-    
+
     (construction_time, query_time)
 }
 
@@ -68,7 +64,6 @@ pub fn handle(fb: &mut FigureBuilder) {
             pos: pos.inner_as(),
             num: 0,
         });
-
 
     let height = compute_tree_height_heuristic(num_bots, DEFAULT_NUMBER_ELEM_PER_NODE);
 

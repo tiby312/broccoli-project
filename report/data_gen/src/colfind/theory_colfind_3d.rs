@@ -15,21 +15,20 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> Res {
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
 
-    let (num_pairs,num_comparison)=datanum::datanum_test_ret(|maker|{
-        let mut bots = bbox_helper::create_bbox_mut(bots, |b| {
-            maker.from_rect(prop.create_bbox_i32(b.pos))
-        });
-    
+    let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
+        let mut bots =
+            bbox_helper::create_bbox_mut(bots, |b| maker.from_rect(prop.create_bbox_i32(b.pos)));
+
         let mut tree = TreeBuilder::new(&mut bots).build_seq();
-    
+
         let mut num_pairs = 0;
-    
+
         tree.new_colfind_builder().query_seq(|_a, _b| {
             num_pairs += 1;
         });
         num_pairs
     });
-    
+
     Res {
         num_pairs,
         num_comparison,
@@ -40,14 +39,14 @@ fn test2(scene: &mut bot::BotScene<Bot>) -> Res {
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
 
-    let (num_pairs,num_comparison)=datanum::datanum_test_ret(|maker|{
+    let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
         let mut bb: Vec<_> = bots
-        .iter()
-        .map(|b| {
-            let rect = maker.from_rect(prop.create_bbox_i32(b.pos));
-            BBox::new(rect, *b)
-        })
-        .collect();
+            .iter()
+            .map(|b| {
+                let rect = maker.from_rect(prop.create_bbox_i32(b.pos));
+                BBox::new(rect, *b)
+            })
+            .collect();
 
         let mut num_pairs = 0;
         find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |_a, _b| {
@@ -59,10 +58,8 @@ fn test2(scene: &mut bot::BotScene<Bot>) -> Res {
         }
 
         num_pairs
-
     });
-    
-    
+
     Res {
         num_pairs,
         num_comparison,
@@ -73,15 +70,14 @@ fn test3(scene: &mut bot::BotScene<Bot>) -> Res {
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
 
-    let (num_pairs,num_comparison)=datanum::datanum_test_ret(|maker|{
-
+    let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
         let mut bb: Vec<_> = bots
-        .iter()
-        .map(|b| {
-            let rect = maker.from_rect(prop.create_bbox_i32(b.pos));
-            BBox::new(rect, *b)
-        })
-        .collect();
+            .iter()
+            .map(|b| {
+                let rect = maker.from_rect(prop.create_bbox_i32(b.pos));
+                BBox::new(rect, *b)
+            })
+            .collect();
 
         let mut num_pairs = 0;
         NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|_a, _b| {
@@ -104,16 +100,14 @@ fn test4(scene: &mut bot::BotScene<Bot>) -> Res {
     let bots = &mut scene.bots;
     let prop = &scene.bot_prop;
 
-    let (num_pairs,num_comparison)=datanum::datanum_test_ret(|maker|{
+    let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
+        let mut bots =
+            bbox_helper::create_bbox_mut(bots, |b| maker.from_rect(prop.create_bbox_i32(b.pos)));
 
-        let mut bots = bbox_helper::create_bbox_mut(bots, |b| {
-            maker.from_rect(prop.create_bbox_i32(b.pos))
-        });
-    
         let mut tree = NotSorted::new_par(&mut bots);
-    
+
         let mut num_pairs = 0;
-    
+
         tree.find_colliding_pairs_mut(|_a, _b| {
             num_pairs += 1;
         });

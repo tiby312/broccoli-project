@@ -185,7 +185,6 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
     }
 }
 
-
 fn create_tree_par<
     'a,
     A: Axis,

@@ -1,9 +1,9 @@
-use broccoli::{prelude::*,bbox,rect};
+use broccoli::{bbox, prelude::*, rect};
 
 fn main() {
-    let mut inner1=0;
-    let mut inner2=0;
-    let mut inner3=0;
+    let mut inner1 = 0;
+    let mut inner2 = 0;
+    let mut inner3 = 0;
 
     //Rect is stored directly in tree,
     //but inner is not.
@@ -14,7 +14,7 @@ fn main() {
     ];
 
     //This will change the order of the elements
-    //in bboxes,but this is okay since we 
+    //in bboxes,but this is okay since we
     //populated it with mutable references.
     let mut tree = broccoli::new(&mut aabbs);
 

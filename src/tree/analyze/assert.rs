@@ -4,8 +4,8 @@
 //!
 
 use super::*;
-use collections::TreeRef;
 use crate::tree::*;
+use collections::TreeRef;
 ///Returns false if the tree's invariants are not met.
 #[must_use]
 pub fn tree_invariants<'a>(a: &impl Queries<'a>) -> bool {
@@ -138,7 +138,7 @@ pub fn k_nearest_mut<Acc, A: Axis, T: Aabb + HasInner>(
     let mut r = tree.k_nearest_mut(point, num, acc, broad, fine, rect);
     let mut res_dino: Vec<_> = r
         .drain(..)
-        .filter_map(|a|a)
+        .filter_map(|a| a)
         .map(|a| (a.0 as *const _ as usize, a.1))
         .collect();
 

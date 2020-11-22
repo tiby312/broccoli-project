@@ -1,11 +1,11 @@
 use crate::inner_prelude::*;
 
-mod all{
+mod all {
     use super::*;
     #[derive(Debug)]
     pub struct RecordBench {
         pub grow: f64,
-        pub num_bots:usize,
+        pub num_bots: usize,
         pub bench: (f64, f64),
         pub bench_par: (f64, f64),
         pub nosort: (f64, f64),
@@ -13,80 +13,89 @@ mod all{
     }
     pub struct RecordTheory {
         pub grow: f64,
-        pub num_bots:usize,
+        pub num_bots: usize,
         pub theory: (usize, usize),
-        pub nosort_theory: (usize, usize)
+        pub nosort_theory: (usize, usize),
     }
 
-    fn repel(p1:Vec2<f32>,p2:Vec2<f32>,res1:&mut Vec2<f32>,res2:&mut Vec2<f32>){
-        let offset=p2-p1;
-        let dis=(offset).magnitude();
-        if dis<ABSPIRAL_PROP.radius.dis(){
-            *res1+=offset*0.0001;
-            *res2-=offset*0.0001;
+    fn repel(p1: Vec2<f32>, p2: Vec2<f32>, res1: &mut Vec2<f32>, res2: &mut Vec2<f32>) {
+        let offset = p2 - p1;
+        let dis = (offset).magnitude();
+        if dis < ABSPIRAL_PROP.radius.dis() {
+            *res1 += offset * 0.0001;
+            *res2 -= offset * 0.0001;
         }
     }
 
-    pub fn handle_bench(num_bots:usize,grow:f64)->RecordBench{
-        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|vec2same(0.0f32)).collect();
+    pub fn handle_bench(num_bots: usize, grow: f64) -> RecordBench {
+        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
         let bench = {
-            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-            
-            let (mut tree,t1)=bench_closure_ret(||broccoli::new(&mut bots));
-            let t2=bench_closure(||{
-                tree.find_colliding_pairs_pmut(|mut a,mut b| {
-                    let aa=vec2(a.get().x.start,a.get().y.start).inner_into();
-                    let bb=vec2(b.get().x.start,b.get().y.start).inner_into();
-                    repel(aa,bb,a.inner_mut(),b.inner_mut());
+            let mut bots: Vec<BBox<_, &mut _>> = abspiral_f32_nan(grow as f64)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
+
+            let (mut tree, t1) = bench_closure_ret(|| broccoli::new(&mut bots));
+            let t2 = bench_closure(|| {
+                tree.find_colliding_pairs_pmut(|mut a, mut b| {
+                    let aa = vec2(a.get().x.start, a.get().y.start).inner_into();
+                    let bb = vec2(b.get().x.start, b.get().y.start).inner_into();
+                    repel(aa, bb, a.inner_mut(), b.inner_mut());
                 });
             });
-            (t1,t2)
+            (t1, t2)
         };
-
 
         let bench_par = {
-            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-            
-            let (mut tree,t1)=bench_closure_ret(||broccoli::new_par(&mut bots));
-            let t2=bench_closure(||{
-                tree.find_colliding_pairs_pmut_par(|mut a,mut b| {
-                    let aa=vec2(a.get().x.start,a.get().y.start).inner_into();
-                    let bb=vec2(b.get().x.start,b.get().y.start).inner_into();
-                    repel(aa,bb,a.inner_mut(),b.inner_mut());
+            let mut bots: Vec<BBox<_, &mut _>> = abspiral_f32_nan(grow as f64)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
+
+            let (mut tree, t1) = bench_closure_ret(|| broccoli::new_par(&mut bots));
+            let t2 = bench_closure(|| {
+                tree.find_colliding_pairs_pmut_par(|mut a, mut b| {
+                    let aa = vec2(a.get().x.start, a.get().y.start).inner_into();
+                    let bb = vec2(b.get().x.start, b.get().y.start).inner_into();
+                    repel(aa, bb, a.inner_mut(), b.inner_mut());
                 });
             });
-            (t1,t2)
+            (t1, t2)
         };
-
 
         let nosort = {
-            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-            
-            let (mut tree,t1)=bench_closure_ret(||NotSorted::new(&mut bots));
-            let t2=bench_closure(||{
-                tree.find_colliding_pairs_pmut(|mut a,mut b| {
-                    let aa=vec2(a.get().x.start,a.get().y.start).inner_into();
-                    let bb=vec2(b.get().x.start,b.get().y.start).inner_into();
-                    repel(aa,bb,a.inner_mut(),b.inner_mut());
+            let mut bots: Vec<BBox<_, &mut _>> = abspiral_f32_nan(grow as f64)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
+
+            let (mut tree, t1) = bench_closure_ret(|| NotSorted::new(&mut bots));
+            let t2 = bench_closure(|| {
+                tree.find_colliding_pairs_pmut(|mut a, mut b| {
+                    let aa = vec2(a.get().x.start, a.get().y.start).inner_into();
+                    let bb = vec2(b.get().x.start, b.get().y.start).inner_into();
+                    repel(aa, bb, a.inner_mut(), b.inner_mut());
                 });
             });
-            (t1,t2)
+            (t1, t2)
         };
 
-
         let nosort_par = {
-            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_f32_nan(grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
-            
-            let (mut tree,t1)=bench_closure_ret(||NotSorted::new_par(&mut bots));
-            let t2=bench_closure(||{
-                tree.find_colliding_pairs_pmut_par(|mut a,mut b| {
-                    let aa=vec2(a.get().x.start,a.get().y.start).inner_into();
-                    let bb=vec2(b.get().x.start,b.get().y.start).inner_into();
-                    repel(aa,bb,a.inner_mut(),b.inner_mut());
+            let mut bots: Vec<BBox<_, &mut _>> = abspiral_f32_nan(grow as f64)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
+
+            let (mut tree, t1) = bench_closure_ret(|| NotSorted::new_par(&mut bots));
+            let t2 = bench_closure(|| {
+                tree.find_colliding_pairs_pmut_par(|mut a, mut b| {
+                    let aa = vec2(a.get().x.start, a.get().y.start).inner_into();
+                    let bb = vec2(b.get().x.start, b.get().y.start).inner_into();
+                    repel(aa, bb, a.inner_mut(), b.inner_mut());
                 });
             });
-            (t1,t2)
+            (t1, t2)
         };
 
         RecordBench {
@@ -98,53 +107,54 @@ mod all{
             nosort_par,
         }
     }
-    pub fn handle_theory(num_bots:usize,grow:f64)->RecordTheory{
-        
-        let mut bot_inner:Vec<_>=(0..num_bots).map(|_|vec2same(0.0f32)).collect();
+    pub fn handle_theory(num_bots: usize, grow: f64) -> RecordTheory {
+        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
-        let theory = datanum::datanum_test2(|maker|{
-            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_datanum_f32_nan(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+        let theory = datanum::datanum_test2(|maker| {
+            let mut bots: Vec<BBox<_, &mut _>> = abspiral_datanum_f32_nan(maker, grow as f64)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
             let mut tree = broccoli::new(&mut bots);
-            
-            let count=maker.count();
 
-            tree.find_colliding_pairs_pmut(|mut a,mut b| {
-                let aa=vec2(a.get().x.start.0,a.get().y.start.0).inner_into();
-                let bb=vec2(b.get().x.start.0,b.get().y.start.0).inner_into();
-                repel(aa,bb,a.inner_mut(),b.inner_mut());
+            let count = maker.count();
+
+            tree.find_colliding_pairs_pmut(|mut a, mut b| {
+                let aa = vec2(a.get().x.start.0, a.get().y.start.0).inner_into();
+                let bb = vec2(b.get().x.start.0, b.get().y.start.0).inner_into();
+                repel(aa, bb, a.inner_mut(), b.inner_mut());
             });
 
-            let count2=maker.count();
-            (count,count2)
+            let count2 = maker.count();
+            (count, count2)
         });
 
-
-        let nosort_theory = datanum::datanum_test2(|maker|{
-            let mut bots:Vec<  BBox<_,&mut _>  >=abspiral_datanum_f32_nan(maker,grow as f64).zip(bot_inner.iter_mut()).map(|(a,b)|bbox(a,b)).collect();
+        let nosort_theory = datanum::datanum_test2(|maker| {
+            let mut bots: Vec<BBox<_, &mut _>> = abspiral_datanum_f32_nan(maker, grow as f64)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
             let mut tree = NotSorted::new(&mut bots);
-            
-            let count=maker.count();
 
-            tree.find_colliding_pairs_pmut(|mut a,mut b| {
-                let aa=vec2(a.get().x.start.0,a.get().y.start.0).inner_into();
-                let bb=vec2(b.get().x.start.0,b.get().y.start.0).inner_into();
-                repel(aa,bb,a.inner_mut(),b.inner_mut());
+            let count = maker.count();
+
+            tree.find_colliding_pairs_pmut(|mut a, mut b| {
+                let aa = vec2(a.get().x.start.0, a.get().y.start.0).inner_into();
+                let bb = vec2(b.get().x.start.0, b.get().y.start.0).inner_into();
+                repel(aa, bb, a.inner_mut(), b.inner_mut());
             });
 
-            let count2=maker.count();
-            (count,count2)
+            let count2 = maker.count();
+            (count, count2)
         });
         RecordTheory {
             grow,
             num_bots,
             nosort_theory,
-            theory
+            theory,
         }
-
     }
 }
-
-
 
 pub fn handle_bench(fb: &mut FigureBuilder) {
     handle_grow_bench(fb);
@@ -163,12 +173,10 @@ fn handle_num_bots_theory(fb: &mut FigureBuilder) {
 }
 
 fn handle_num_bots_theory_inner(fg: &mut Figure, grow: f64, counter: u32) {
-    
-
     let mut rects = Vec::new();
 
     for num_bots in (1..80_000).step_by(1000) {
-        rects.push(all::handle_theory(num_bots,grow));
+        rects.push(all::handle_theory(num_bots, grow));
     }
 
     let x = rects.iter().map(|a| a.num_bots);
@@ -206,11 +214,10 @@ fn handle_num_bots_bench(fb: &mut FigureBuilder) {
 }
 
 fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f64, position: u32) {
-    
     let mut rects: Vec<_> = Vec::new();
 
     for num_bots in (1..5_000).step_by(20) {
-        rects.push(all::handle_bench(num_bots,grow));
+        rects.push(all::handle_bench(num_bots, grow));
     }
 
     let x = rects.iter().map(|a| a.num_bots);
@@ -295,11 +302,10 @@ fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f64, position: u32) {
 fn handle_grow_bench(fb: &mut FigureBuilder) {
     let num_bots = 50_000;
 
-
     let mut rects: Vec<_> = Vec::new();
 
-    for grow in abspiral_grow_iter2(0.2,0.8,0.001){
-        rects.push(all::handle_bench(num_bots,grow));
+    for grow in abspiral_grow_iter2(0.2, 0.8, 0.001) {
+        rects.push(all::handle_bench(num_bots, grow));
     }
 
     let x = rects.iter().map(|a| a.grow as f64);
@@ -384,11 +390,10 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
 fn handle_grow_theory(fb: &mut FigureBuilder) {
     let num_bots = 50_000;
 
-
     let mut rects: Vec<_> = Vec::new();
 
-    for grow in abspiral_grow_iter2(0.1,1.0,0.005){
-        rects.push(all::handle_theory(num_bots,grow));
+    for grow in abspiral_grow_iter2(0.1, 1.0, 0.005) {
+        rects.push(all::handle_theory(num_bots, grow));
     }
 
     let x = rects.iter().map(|a| a.grow as f64);

@@ -55,6 +55,5 @@ fn test2() {
         p.for_every_pair_mut(tree.get_elements_mut(), |_a, _b, _c| {});
         let _j: Vec<_> = k.get_mut(tree.get_elements_mut()).iter().collect();
         p.for_every_pair_mut(tree.get_elements_mut(), |_a, _b, _c| {});
-        
     }
 }
