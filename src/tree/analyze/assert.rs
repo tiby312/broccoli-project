@@ -6,8 +6,6 @@
 use super::*;
 use collections::TreeRef;
 use crate::tree::*;
-/// Collection of functions that panics if the Tree result differs from the naive solution.
-/// Should never panic unless invariants of the tree data struct have been violated.    
 ///Returns false if the tree's invariants are not met.
 #[must_use]
 pub fn tree_invariants<'a>(a: &impl Queries<'a>) -> bool {
@@ -227,8 +225,6 @@ pub fn for_all_in_rect_mut<A: Axis, T: Aabb + HasInner>(
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
-/// Panics if the result differs from the naive solution.
-/// Should never panic unless invariants of the tree data struct have been violated.
 pub fn for_all_not_in_rect_mut<A: Axis, T: Aabb + HasInner>(
     tree: &mut TreeRef<A, T>,
     rect: &axgeom::Rect<T::Num>,
