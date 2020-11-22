@@ -314,6 +314,28 @@ where
         });
     }
 
+    /// Find the elements that are hit by a ray.
+    /// 
+    /// The user supplies to functions:
+    ///
+    /// `fine` is a function that returns the true length of a ray
+    /// cast to an object.
+    ///
+    /// `broad` is a function that returns the length of a ray cast to 
+    /// a axis aligned rectangle. This function
+    /// is used as a conservative estimate to prune out elements which minimizes
+    /// how often the `fine` function gets called.  
+    ///
+    /// `border` is the starting axis axis aligned rectangle to use. This
+    /// rectangle will be split up and used to prune candidated. All candidate elements
+    /// should be within this starting rectangle.
+    ///
+    /// The result is returned as a `Vec`. In the event of a tie, multiple
+    /// elements can be returned.
+    ///
+    /// `acc` is a user defined object that is passed to every call to either
+    /// the `fine` or `broad` functions.
+    ///
     /// # Examples
     ///
     ///```
@@ -345,7 +367,7 @@ where
     fn raycast_mut<'b, Acc>(
         &'b mut self,
         ray: axgeom::Ray<Self::Num>,
-        start: &mut Acc,
+        acc: &mut Acc,
         broad: impl FnMut(&mut Acc, &Ray<Self::Num>, &Rect<Self::Num>) -> CastResult<Self::Num>,
         fine: impl FnMut(&mut Acc, &Ray<Self::Num>, &Self::T) -> CastResult<Self::Num>,
         border: Rect<Self::Num>,
@@ -354,7 +376,7 @@ where
         'a: 'b,
     {
         let mut rtrait = raycast::RayCastClosure {
-            a: start,
+            a: acc,
             broad,
             fine,
             _p: PhantomData,
@@ -379,9 +401,12 @@ where
     ///  
     /// The result is returned as one `Vec`. The closest elements will
     /// appear first. Multiple elements can be returned 
-    /// with the same distance. These groups of elements are seperated by
+    /// with the same distance in the event of ties. These groups of elements are seperated by
     /// one entry of `Option::None`. In order to iterate over each group,
     /// try using the slice function: `arr.split(|a| a.is_none())`
+    ///
+    /// `acc` is a user defined object that is passed to every call to either
+    /// the `fine` or `broad` functions.
     ///
     /// # Examples
     ///
@@ -420,7 +445,7 @@ where
         &'b mut self,
         point: Vec2<Self::Num>,
         num: usize,
-        start: &mut Acc,
+        acc: &mut Acc,
         broad: impl FnMut(&mut Acc, Vec2<Self::Num>, &Rect<Self::Num>) -> Self::Num,
         fine: impl FnMut(&mut Acc, Vec2<Self::Num>, &Self::T) -> Self::Num,
         border: Rect<Self::Num>,
@@ -429,7 +454,7 @@ where
         'a: 'b,
     {
         let mut foo = k_nearest::KnearestClosure {
-            acc: start,
+            acc,
             broad,
             fine,
             _p: PhantomData,
