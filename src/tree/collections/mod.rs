@@ -1,102 +1,8 @@
 //! Container trees that deref to [`Tree`]
-//! ```ignore
-//! The relationships between Tree types:
 //!
-//! TreeOwned -> TreeRef --> Tree
-//! TreeOwnedInd -> TreeRefInd --> TreeRef --> Tree
+//! Most of the time using [`Tree`] is enough. But in certain cases
+//! we want more control. This module provides [`TreeRef`] and [`TreeRefInd`]
 //!
-//! where:
-//! --> = Deref
-//! -> = Function
-//! ```
-//! [`TreeRef`], like [`Tree`], can be composed of anything that implements [`Aabb`].
-//! [`TreeRefInd`] is composed of `BBox<N,&mut T>`
-//!
-//! ### Overview
-//!
-//! [`Tree`] is written in safe rust, and for most usecases,
-//! using [`Tree`] is enough. But in certain cases
-//! we want more control. The container trees in this module are for this purpose.
-//!
-//! For example, with the regular [`Tree`], you can't
-//! get access to the unerlying list of elements after
-//! the tree has been constructed without destroying the tree.
-//!
-//! ```rust
-//! use broccoli::{prelude::*,bbox,rect};
-//! let mut k=[bbox(rect(0,10,0,10),8)];
-//! let mut b=broccoli::new(&mut k);
-//! b.find_colliding_pairs_mut(|a,b|{});
-//! k[0].inner=4;    
-//! // b.find_colliding_pairs_mut(|a,b|{}); //<---can't use tree again
-//! ```
-//! This is because [`Tree`] constructs itself by splitting up the
-//! passed mutable slice.
-//!
-//! If we use [`TreeRef`], we can do the above like this:
-//! ```rust
-//! use broccoli::{prelude::*,bbox,rect};
-//! let mut k=[bbox(rect(0,10,0,10),8)];
-//! let mut b=broccoli::collections::TreeRef::new(&mut k);
-//! b.find_colliding_pairs_mut(|a,b|{});
-//! *b.get_bbox_elements_mut().get_index_mut(0).inner_mut()=5;
-//! b.find_colliding_pairs_mut(|a,b|{});
-//! ```
-//!
-//! [`Tree`] and [`TreeRef`] are both general in that you can store
-//! any kind of element. e.g. `(Rect<T>,T)` or `(Rect<T>&mut T)`.
-//! [`TreeRefInd`] assumes there is a layer of indirection where
-//! all the pointers point to the same slice.
-//! It uses this assumption to provide `collect` functions that allow 
-//! storing query results that can then be iterated through multiple times
-//! quickly.
-//!
-//! ```rust
-//! use broccoli::{prelude::*,bbox,rect};
-//! let mut k=[0];
-//! let mut b=broccoli::collections::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
-//! b.find_colliding_pairs_mut(|a,b|{});
-//! b.get_elements_mut()[0]=5;
-//! b.find_colliding_pairs_mut(|a,b|{});
-//! ```
-//!
-//! [`TreeRef`] and [`TreeRefInd`] are both lifetimed. If you want to store the tree
-//! inside an object there are [`TreeOwned`] and [`TreeOwnedInd`] equivalents.
-//!
-//! ## An owned `(Rect<N>,T)` example
-//!
-//! ```rust
-//! use broccoli::{BBox,bbox,rect,prelude::*,collections::*,DefaultA};
-//!
-//! fn not_lifetimed()->TreeOwned<DefaultA,BBox<i32,f32>>
-//! {
-//!     let a=vec![bbox(rect(0,10,0,10),0.0)].into_boxed_slice();
-//!     TreeOwned::new(a)
-//! }
-//!
-//! not_lifetimed();
-//!
-//! ```
-//!
-//! ## An owned `(Rect<N>,*mut T)` example
-//!
-//! ```rust
-//! use axgeom::*;
-//! use broccoli::{*,collections::*,DefaultA};
-//!
-//! fn not_lifetimed()->TreeOwnedInd<DefaultA,i32,Vec2<i32>>
-//! {
-//!     let rect=vec![vec2(0,10),vec2(3,30)].into_boxed_slice();
-//!     TreeOwnedInd::new(rect,|&mut p|{
-//!         let radius=vec2(10,10);
-//!         Rect::from_point(p,radius)
-//!     })
-//! }
-//!
-//! not_lifetimed();
-//!
-//! ```
-
 use super::*;
 
 mod collect;
@@ -117,8 +23,15 @@ impl<T: ?Sized> Clone for Ptr<T> {
 unsafe impl<T: ?Sized> Send for Ptr<T> {}
 unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 
-
-///See module documentation.
+/// A less general tree that providess `collect` functions 
+/// and also derefs to a [`Tree`].
+///
+/// [`TreeRefInd`] assumes there is a layer of indirection where
+/// all the pointers point to the same slice.
+/// It uses this assumption to provide `collect` functions that allow 
+/// storing query results that can then be iterated through multiple times
+/// quickly.
+///
 pub struct TreeRefInd<'a, A: Axis, N: Num, T> {
     tree: inner::TreeIndInner<A,N,T>,
     _p: PhantomData<&'a mut (T, N)>,
@@ -159,9 +72,27 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
     ) -> TreeRefInd<'a, A, N, T> {
         TreeRefInd{tree:inner::TreeIndInner::with_axis(axis,arr,func),_p:PhantomData}             
     }
+
+    /// ```rust
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut k=[4];
+    /// let mut b=broccoli::collections::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
+    /// b.find_colliding_pairs_mut(|a,b|{});
+    /// assert_eq!(b.get_elements()[0],4);
+    /// b.find_colliding_pairs_mut(|a,b|{});
+    /// ```
     pub fn get_elements(&self) -> &[T] {
         unsafe { &*self.tree.orig.0 }
     }
+
+    /// ```rust
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut k=[0];
+    /// let mut b=broccoli::collections::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
+    /// b.find_colliding_pairs_mut(|a,b|{});
+    /// b.get_elements_mut()[0]=5;
+    /// b.find_colliding_pairs_mut(|a,b|{});
+    /// ```
     pub fn get_elements_mut(&mut self) -> &'a mut [T] {
         unsafe { &mut *self.tree.orig.0 }
     }
@@ -181,7 +112,51 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
     }
 }
 
-///See module documentation.
+/// Provides a function to allow the user to ger the original slice of
+/// elements (sorted by the tree). Derefs to [`Tree`].
+///
+/// With the regular [`Tree`], you can't
+/// get access to the underlying list of elements after
+/// the tree has been constructed without destroying the tree.
+///
+/// ```rust
+/// use broccoli::{prelude::*,bbox,rect};
+/// let mut k=[bbox(rect(0,10,0,10),8)];
+/// let mut b=broccoli::new(&mut k);
+/// b.find_colliding_pairs_mut(|a,b|{});
+/// k[0].inner=4;    
+/// // b.find_colliding_pairs_mut(|a,b|{}); //<---can't use tree again
+/// ```
+/// With a regular [`Tree`] you can certainly iterate over all
+/// elements in the tree by using `vistr_mut`, but you can't get
+/// a slice to the whole continguous list of elements.
+///
+/// `TreeRef` provides the function [`TreeRef::get_bbox_elements_mut`]
+/// that allows the user to get mutable access to the underlying slice of elements. 
+/// The elements are in the order determined during construction of the tree, i.e.
+/// its not the same as the original order passed in. The user is also forbidden from
+/// mutating the aabbs of each element. Only whats inside of it besides the aabb can
+/// be mutated.
+///
+///
+/// There's not really many usecases where the user would need to use this function, though.
+/// Especially since you can already iterate over all elements mutably by calling `vistr_mut`.
+///
+///```
+/// use broccoli::{prelude::*,bbox,rect};
+/// let mut bots = [bbox(rect(0,10,0,10),0)];
+/// let mut tree = broccoli::new(&mut bots);
+///
+/// use compt::Visitor;
+/// for mut b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.get_mut().bots.iter_mut()){
+///    *b.inner_mut()+=1;    
+/// }
+/// assert_eq!(bots[0].inner,1);
+///```
+///
+/// However it is useful to implement the [`crate::analyze::assert`] functions because we can preserve the tree,
+/// and at the same time get the underlying slice to perform the naive query algorithm, and still
+/// preserve the tree to avoid having to rebuild it.
 pub struct TreeRef<'a, A: Axis, T: Aabb> {
     tree: inner::TreeRefInner<A, T>,
     _p: PhantomData<&'a mut T>,
@@ -229,9 +204,29 @@ impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
             _p: PhantomData,
         }
     }
+
+    /// ```rust
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut k=[bbox(rect(0,10,0,10),8)];
+    /// let mut b=broccoli::collections::TreeRef::new(&mut k);
+    /// b.find_colliding_pairs_mut(|a,b|{});
+    /// assert_eq!(b.get_bbox_elements()[0].inner,8);
+    /// b.find_colliding_pairs_mut(|a,b|{});
+    /// ```
+    ///
     pub fn get_bbox_elements(&self) -> &[T] {
         unsafe { &*self.tree.orig.0 }
     }
+
+    /// ```rust
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut k=[bbox(rect(0,10,0,10),8)];
+    /// let mut b=broccoli::collections::TreeRef::new(&mut k);
+    /// b.find_colliding_pairs_mut(|a,b|{});
+    /// *b.get_bbox_elements_mut().get_index_mut(0).inner_mut()=5;
+    /// b.find_colliding_pairs_mut(|a,b|{});
+    /// ```
+    ///
     pub fn get_bbox_elements_mut(&mut self) -> PMut<'a, [T]> {
         PMut::new(unsafe { &mut *self.tree.orig.0 })
     }
@@ -251,7 +246,24 @@ pub(crate) struct NodePtr<T: Aabb> {
     _div: Option<T::Num>,
 }
 
-///See module documentation.
+/// An owned version of [`TreeRefInd`]
+///
+/// ```rust
+/// use axgeom::*;
+/// use broccoli::{*,collections::*,DefaultA};
+///
+/// fn not_lifetimed()->TreeOwnedInd<DefaultA,i32,Vec2<i32>>
+/// {
+///     let rect=vec![vec2(0,10),vec2(3,30)].into_boxed_slice();
+///     TreeOwnedInd::new(rect,|&mut p|{
+///         let radius=vec2(10,10);
+///         Rect::from_point(p,radius)
+///     })
+/// }
+///
+/// not_lifetimed();
+///
+/// ```
 pub struct TreeOwnedInd<A: Axis, N: Num, T> {
     tree:inner::TreeIndInner<A,N,T>,
     _bots: Box<[T]>,
@@ -300,7 +312,22 @@ impl<A: Axis, N: Num, T> TreeOwnedInd<A, N, T> {
     }
 }
 
-///See module documentation.
+/// An owned version of [`TreeRef`]
+///
+/// An owned `(Rect<N>,T)` example
+///
+/// ```rust
+/// use broccoli::{BBox,bbox,rect,prelude::*,collections::*,DefaultA};
+///
+/// fn not_lifetimed()->TreeOwned<DefaultA,BBox<i32,f32>>
+/// {
+///     let a=vec![bbox(rect(0,10,0,10),0.0)].into_boxed_slice();
+///     TreeOwned::new(a)
+/// }
+///
+/// not_lifetimed();
+///
+/// ```
 pub struct TreeOwned<A: Axis, T: Aabb> {
     tree: inner::TreeRefInner<A, T>,
     _bots: Box<[T]>,
