@@ -385,7 +385,7 @@ where
     ///       2,
     ///       &mut (),
     ///       |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
-    ///       |(), a, b| b.rect.distance_squared_to_point(a).unwrap_or(0),
+    ///       |(), a, b| b.inner.distance_squared_to_point(a),
     ///       border,
     /// );
     ///
