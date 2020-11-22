@@ -13,14 +13,10 @@
 //!
 //! ### There are so many Tree types which one do I use?
 //!
-//! Different variations are provided to give the user
-//! more options on what kind of characteristics they want.
-//! i.e. less memory vs faster vs less unsafe code.
-//! Some also unlock more functions at the cost of a more restrictive api.
-//! The [`collections`] module goes into more depth as well as the book mentioned above.
-//!
-//! TL;DR use [`Tree`] and fill it with `BBox<u32,&mut T>` unless you want
+//! The [`collections`] modules lists the tree types and they are all described there, but the
+//! TL;DR is use [`Tree`] and fill it with `BBox<N,&mut T>` unless you want
 //! to use functions like [`collect_colliding_pairs`](crate::collections::TreeRefInd::collect_colliding_pairs). 
+//! In which case use [`TreeRefInd`](crate::collections::TreeRefInd).
 //!
 //! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
 //!
