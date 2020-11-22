@@ -1,6 +1,5 @@
 use super::*;
 
-
 pub(super) struct TreeRefInner<A: Axis, T: Aabb> {
     pub(super) inner: TreeInner<A, NodePtr<T>>,
     pub(super) orig: Ptr<[T]>,

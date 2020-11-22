@@ -1,5 +1,5 @@
-use broccoli::{bbox, prelude::*, rect};
 use axgeom::vec2;
+use broccoli::{bbox, prelude::*, rect};
 
 fn main() {
     let mut inner1 = 4;
@@ -16,7 +16,6 @@ fn main() {
 
     let mut tree = broccoli::new(&mut aabbs);
 
-
     let ray = axgeom::Ray {
         point: vec2(-10, 1),
         dir: vec2(1, 0),
@@ -29,5 +28,4 @@ fn main() {
         border,
     );
     assert_eq!(**res.unwrap().0[0], 4);
-
 }

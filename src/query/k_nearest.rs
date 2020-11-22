@@ -60,7 +60,6 @@ pub trait Knearest {
     }
 }
 
-
 fn make_rect_from_range<A: Axis, N: Num>(axis: A, range: &Range<N>, rect: &Rect<N>) -> Rect<N> {
     if axis.is_xaxis() {
         Rect {
@@ -114,10 +113,8 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         knear: &mut K,
         curr_bot: PMut<'a, T>,
     ) -> bool {
-
-        
         let long_dis = knear.distance_to_rect(*point, curr_bot.get());
-        
+
         if self.curr_num == self.num {
             if let Some(l) = self.bots.last() {
                 if long_dis > l.mag {
@@ -125,7 +122,6 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
                 }
             }
         }
-        
 
         let curr_dis = knear.distance_to_bot(*point, curr_bot.as_ref());
 
@@ -204,13 +200,11 @@ struct Blap<'a: 'b, 'b, K: Knearest> {
 
 impl<'a: 'b, 'b, K: Knearest> Blap<'a, 'b, K> {
     fn should_traverse_rect(&mut self, rect: &Rect<K::N>) -> bool {
-        
         if let Some(dis) = self.closest.full_and_max_distance() {
             self.knear.distance_to_rect(self.point, rect) < dis
         } else {
             true
         }
-        
     }
 }
 
