@@ -362,6 +362,27 @@ where
         raycast::raycast_mut(self.axis(), self.vistr_mut(), border, ray, &mut rtrait)
     }
 
+    /// Find the closest `num` elements to the specified `point`.
+    /// The user provides two functions:
+    ///
+    /// * `fine` is a function that gives the true distance between the `point`
+    /// and the specified tree element.
+    ///
+    /// * `broad` is a function that gives the distance between the `point`
+    /// and the closest point of a axis aligned rectangle. This function
+    /// is used as a conservative estimate to prune out elements which minimizes
+    /// how often the `fine` function gets called.  
+    ///
+    /// `border` is the starting axis axis aligned rectangle to use. This
+    /// rectangle will be split up and used to prune candidated. All candidate elements
+    /// should be within this starting rectangle.
+    ///  
+    /// The result is returned as one `Vec`. The closest elements will
+    /// appear first. Multiple elements can be returned 
+    /// with the same distance. These groups of elements are seperated by
+    /// one entry of `Option::None`. In order to iterate over each group,
+    /// try using the slice function: `arr.split(|a| a.is_none())`
+    ///
     /// # Examples
     ///
     ///```
