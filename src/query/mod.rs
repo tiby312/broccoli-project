@@ -14,7 +14,6 @@ pub use graphics::DividerDrawer;
 //pub use raycast::RayCastResult;
 pub use rect::{MultiRectMut, RectIntersectErr};
 
-//#[cfg(feature = "nbody")]
 pub use crate::query::nbody::NodeMassTrait;
 
 ///aabb broadphase collision detection
@@ -34,10 +33,6 @@ mod raycast;
 ///Allows user to intersect the tree with a seperate group of bots.
 mod intersect_with;
 
-/*
-///[EXPERIMENTAL] Contains all nbody code.
-//#[cfg(feature = "nbody")]
-*/
 mod nbody;
 
 ///Contains rect code.
@@ -49,6 +44,8 @@ mod tools;
 use self::inner_prelude::*;
 
 ///Queries that can be performed on a tree that is not sorted
+///These functions are not documented since they match the same
+///behavior as those in the [`Queries`] and [`QueriesInner`] traits.
 pub trait NotSortedQueries<'a> {
     type A: Axis;
     type T: Aabb<Num = Self::Num> + HasInner<Inner = Self::Inner> + 'a;
@@ -102,15 +99,16 @@ pub trait NotSortedQueries<'a> {
     }
 }
 
-///Query functions that instead of returning PMut<T>, return T::Inner for convinience.
-///Requires that T implement HasInner.
+///Query functions that instead of returning `PMut<T>`, return `T::Inner` for convinience.
+///Requires that T implement [`HasInner`].
 pub trait QueriesInner<'a>: Queries<'a>
 where
     Self::T: HasInner<Inner = Self::Inner>,
 {
     type Inner;
 
-    /// Find all aabb intersections
+    /// Find all aabb collisions
+    ///
     /// # Examples
     ///
     ///```
@@ -125,7 +123,6 @@ where
     /// assert_eq!(bots[0].inner,1);
     /// assert_eq!(bots[1].inner,1);
     ///```
-
     fn find_colliding_pairs_mut(
         &mut self,
         mut func: impl FnMut(&mut Self::Inner, &mut Self::Inner),
@@ -134,7 +131,7 @@ where
             .query_seq(move |mut a, mut b| func(a.inner_mut(), b.inner_mut()));
     }
 
-    /// Find all intersections in parallel
+    /// Find all aabb collisions in parallel
     ///
     /// # Examples
     ///
@@ -160,7 +157,9 @@ where
             .query_par(move |mut a, mut b| func(a.inner_mut(), b.inner_mut()));
     }
 
-    /// Allows the user to potentially collect some aspect of every intersection in parallel.
+    /// An extended version of `find_colliding_pairs`. where the user can supply
+    /// callbacks to when new worker tasks are spawned and joined by `rayon`. 
+    /// Allows the user to potentially collect some aspect of every aabb collision in parallel.
     ///
     /// # Examples
     ///
