@@ -461,6 +461,9 @@ where
         k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, &mut foo, border)
     }
 
+    /// Find collisions between elements in this tree,
+    /// with the specified slice of elements.
+    ///
     /// # Examples
     ///
     ///```
