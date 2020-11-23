@@ -219,18 +219,8 @@ mod constant {
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
 pub struct RectIntersectErr;
 
-/// If we have two non intersecting rectangles, it is safe to return to the user two sets of mutable references
-/// of the bots strictly inside each rectangle since it is impossible for a bot to belong to both sets.
-///
-/// # Safety
-///
-/// Unsafe code is used.  We unsafely convert the references returned by the rect query
-/// closure to have a longer lifetime.
-/// This allows the user to store mutable references of non intersecting rectangles at the same time.
-/// If two requested rectangles intersect, an error is returned.
-///
-///Handles a multi rect mut "sessions" within which
-///the user can query multiple non intersecting rectangles.
+
+///See the [`Queries::multi_rect`](crate::query::Queries::multi_rect) function.
 pub struct MultiRectMut<'a, A: Axis, N: Node> {
     axis: A,
     vistr: VistrMut<'a, N>,
@@ -238,7 +228,7 @@ pub struct MultiRectMut<'a, A: Axis, N: Node> {
 }
 
 impl<'a, A: Axis, N: Node> MultiRectMut<'a, A, N> {
-    pub fn new(axis: A, vistr: VistrMut<'a, N>) -> Self {
+    pub(crate) fn new(axis: A, vistr: VistrMut<'a, N>) -> Self {
         MultiRectMut {
             axis,
             vistr,
