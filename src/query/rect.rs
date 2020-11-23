@@ -251,7 +251,7 @@ impl<'a, A: Axis, N: Node> MultiRectMut<'a, A, N> {
         mut func: impl FnMut(PMut<'a, N::T>),
     ) -> Result<(), RectIntersectErr> {
         for r in self.rects.iter() {
-            if rect.get_intersect_rect(r).is_some() {
+            if rect.intersects_rect(r){
                 return Err(RectIntersectErr);
             }
         }
