@@ -127,8 +127,7 @@ where
         &mut self,
         mut func: impl FnMut(&mut Self::Inner, &mut Self::Inner),
     ) {
-        query::colfind::QueryBuilder::new(self.axis(), self.vistr_mut())
-            .query_seq(move |mut a, mut b| func(a.inner_mut(), b.inner_mut()));
+        self.find_colliding_pairs_pmut(move|mut a,mut b|func(a.inner_mut(), b.inner_mut()))
     }
 
     /// Find all aabb collisions in parallel
@@ -153,8 +152,8 @@ where
     ) where
         Self::T: Send + Sync,
     {
-        query::colfind::QueryBuilder::new(self.axis(), self.vistr_mut())
-            .query_par(move |mut a, mut b| func(a.inner_mut(), b.inner_mut()));
+        //TODO use fully qualified syntax instead?
+        self.find_colliding_pairs_pmut_par(move|mut a,mut b|func(a.inner_mut(), b.inner_mut()))
     }
 
     /// An extended version of `find_colliding_pairs`. where the user can supply
@@ -621,7 +620,7 @@ pub trait Queries<'a> {
     ///```
     fn find_colliding_pairs_pmut_par(
         &mut self,
-        func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Send + Sync + Copy,
+        func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Send + Sync + Clone,
     ) where
         Self::T: Send + Sync,
     {
