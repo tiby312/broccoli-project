@@ -149,7 +149,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
             }
         }
 
-        let x = match raytrait.compute_distance_to_bot(ray, b.as_ref()) {
+        let x = match raytrait.compute_distance_to_bot(ray, &b) {
             axgeom::CastResult::Hit(val) => val,
             axgeom::CastResult::NoHit => {
                 return;

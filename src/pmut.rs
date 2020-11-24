@@ -69,6 +69,7 @@ impl<'a,T:?Sized> core::ops::Deref for PMut<'a,T>{
     }
 }
 
+
 impl<'a,T> PMut<'a,T>{
     #[inline(always)]
     pub fn into_usize(&self)->usize{
@@ -77,28 +78,26 @@ impl<'a,T> PMut<'a,T>{
 }
 impl<'a, T: ?Sized> PMut<'a, T> {
     
-    
-
+    ///Create a PMut
     #[inline(always)]
     pub fn new(inner: &'a mut T) -> PMut<'a, T> {
         PMut { inner }
     }
+
+    ///Start a new borrow lifetime
     #[inline(always)]
     pub fn as_mut(&mut self) -> PMut<T> {
         PMut { inner: self.inner }
     }
 
+    ///Manually conver to read only reference. 
     #[inline(always)]
-    pub fn as_ref(&self) -> &T {
+    pub fn into_ref(self)->&'a T{
         self.inner
     }
 }
 
 impl<'a, T: Node> PMut<'a, T> {
-    #[inline(always)]
-    pub fn get(self) -> NodeRef<'a, T::T> {
-        self.inner.get()
-    }
 
     #[inline(always)]
     pub fn get_mut(self) -> NodeRefMut<'a, T::T> {
@@ -107,15 +106,18 @@ impl<'a, T: Node> PMut<'a, T> {
 }
 
 impl<'a, T: HasInner> PMut<'a, T> {
+    ///Unpack for the read-only rect and the mutable inner component
     #[inline(always)]
     pub fn unpack(self) -> (&'a Rect<T::Num>, &'a mut T::Inner) {
         self.inner.get_inner_mut()
     }
+    ///Unpack only the mutable innner component
     #[inline(always)]
     pub fn unpack_inner(self) ->  &'a mut T::Inner {
         self.inner.get_inner_mut().1
     }
 
+    ///Get a mutable reference to only the innner component
     #[inline(always)]
     pub fn inner_mut(&mut self) -> &mut T::Inner {
         self.inner.get_inner_mut().1
@@ -130,27 +132,10 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
     }
 }
 
-
-impl<'a, T: HasInner> PMut<'a, T> {
-    #[inline(always)]
-    pub fn into_inner(self) -> &'a mut T::Inner {
-        self.inner.get_inner_mut().1
-    }
-}
-
 impl<'a, T> PMut<'a, [T]> {
     #[inline(always)]
     pub fn get_index_mut(&mut self, ind: usize) -> PMut<T> {
         PMut::new(&mut self.inner[ind])
-    }
-    #[inline(always)]
-    pub fn len(&self) -> usize {
-        self.inner.len()
-    }
-
-    #[inline(always)]
-    pub fn is_empty(&self) -> bool {
-        self.inner.is_empty()
     }
 
     #[inline(always)]
@@ -180,10 +165,6 @@ impl<'a, T> PMut<'a, [T]> {
         }
     }
 
-    #[inline(always)]
-    pub fn iter(self) -> core::slice::Iter<'a, T> {
-        self.inner.iter()
-    }
     #[inline(always)]
     pub fn iter_mut(self) -> PMutIter<'a, T> {
         PMutIter {

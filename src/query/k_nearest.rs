@@ -124,7 +124,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
             }
         }
 
-        let curr_dis = knear.distance_to_bot(*point, curr_bot.as_ref());
+        let curr_dis = knear.distance_to_bot(*point, &curr_bot);
 
         if self.curr_num < self.num {
             let arr = &mut self.bots;

@@ -71,10 +71,6 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 dim,
             );
         }
-        struct Res {
-            rect: Rect<F32n>,
-            mag: F32n,
-        }
 
         let mut vv = {
             let mut rects = canvas.rects();
