@@ -423,8 +423,9 @@ pub trait Queries<'a> {
     /// );
     ///
     /// assert_eq!(res.len(),3);
-    /// assert_eq!(**res[0].as_ref().unwrap().0.inner(),vec2(7,7));
-    /// assert_eq!(**res[2].as_ref().unwrap().0.inner(),vec2(5,5));
+    /// let mut it=res.split(|a|a.is_none()).map(|a|&a[0]);
+    /// assert_eq!(**it.next().unwrap().as_ref().unwrap().0.inner(),vec2(7,7));
+    /// assert_eq!(**it.next().unwrap().as_ref().unwrap().0.inner(),vec2(5,5));
     ///
     ///```
     #[must_use]
