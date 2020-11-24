@@ -28,31 +28,31 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
             let c0 = bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bots);
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             });
 
             let c1 = bench_closure(|| {
                 let mut tree = broccoli::new(&mut bots);
                 tree.find_colliding_pairs_mut(|a, b| {
-                    **a -= 1;
-                    **b -= 1;
+                    **a.unpack_inner() -= 1;
+                    **b.unpack_inner() -= 1;
                 });
             });
 
             let c3 = Some(bench_closure(|| {
                 broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
-                    **a -= 2;
-                    **b -= 2;
+                    **a.unpack_inner() -= 2;
+                    **b.unpack_inner() -= 2;
                 });
             }))
             .filter(|_| num_bots < stop_sweep_at);
 
             let c4 = Some(bench_closure(|| {
                 NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
-                    **a += 2;
-                    **b += 2;
+                    **a.unpack_inner() += 2;
+                    **b.unpack_inner() += 2;
                 });
             }))
             .filter(|_| num_bots < stop_naive_at);
@@ -60,16 +60,16 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
             let c5 = Some(bench_closure(|| {
                 let mut tree = NotSorted::new_par(&mut bots);
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             }));
 
             let c6 = Some(bench_closure(|| {
                 let mut tree = NotSorted::new(&mut bots);
                 tree.find_colliding_pairs_mut(|a, b| {
-                    **a -= 1;
-                    **b -= 1;
+                    **a.unpack_inner() -= 1;
+                    **b.unpack_inner() -= 1;
                 });
             }));
 
@@ -185,8 +185,8 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
                     .collect();
                 let mut tree = broccoli::new(&mut bots);
                 tree.find_colliding_pairs_mut(|a, b| {
-                    **a += 2;
-                    **b += 2;
+                    **a.unpack_inner() += 2;
+                    **b.unpack_inner() += 2;
                 });
             });
 
@@ -196,8 +196,8 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
                     .map(|(a, b)| bbox(a, b))
                     .collect();
                 NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
-                    **a -= 1;
-                    **b -= 1;
+                    **a.unpack_inner() -= 1;
+                    **b.unpack_inner() -= 1;
                 });
             }))
             .filter(|_| num_bots < stop_naive_at);
@@ -209,8 +209,8 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
                     .collect();
 
                 broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
-                    **a -= 3;
-                    **b -= 3;
+                    **a.unpack_inner() -= 3;
+                    **b.unpack_inner() -= 3;
                 });
             }))
             .filter(|_| num_bots < stop_sweep_at);
@@ -222,8 +222,8 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
                     .collect();
                 let mut tree = NotSorted::new(&mut bots);
                 tree.find_colliding_pairs_mut(|a, b| {
-                    **a += 2;
-                    **b += 2;
+                    **a.unpack_inner() += 2;
+                    **b.unpack_inner() += 2;
                 });
             });
 

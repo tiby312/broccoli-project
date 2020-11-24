@@ -28,7 +28,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     //Draw bots
     let mut r = canvas.circles();
     for bot in vv.iter() {
-        r.add(bot.inner().center.into());
+        r.add(bot.inner.center.into());
     }
     let circle_save = r.save(canvas);
 
@@ -73,7 +73,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                         },
                         move |r, ray, t| {
                             ray.inner_into::<f32>()
-                                .cast_to_circle(t.inner().center, *r)
+                                .cast_to_circle(t.inner.center, *r)
                                 .map(|a| NotNan::new(a).unwrap())
                         },
                         dim,
@@ -90,7 +90,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                     },
                     move |r, ray, t| {
                         ray.inner_into::<f32>()
-                            .cast_to_circle(t.inner().center, *r)
+                            .cast_to_circle(t.inner.center, *r)
                             .map(|a| NotNan::new(a).unwrap())
                     },
                     dim,

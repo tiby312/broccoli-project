@@ -33,6 +33,7 @@ fn main() {
 
     //Find all colliding aabbs.
     tree.find_colliding_pairs_mut(|a, b| {
+        let (a,b)=(a.unpack_inner(),b.unpack_inner());
         let offset = a.0 - b.0;
         let dis = offset.magnitude2();
         a.1 += dis as usize;

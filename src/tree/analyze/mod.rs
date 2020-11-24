@@ -2,6 +2,7 @@
 //! Only used to measure the performance of the structure.
 
 use crate::inner_prelude::*;
+
 pub mod assert;
 
 pub use builder::TreeBuilder;

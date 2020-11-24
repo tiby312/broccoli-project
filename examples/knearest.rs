@@ -16,7 +16,7 @@ fn main() {
 
     let mut tree = broccoli::collections::TreeRef::new(&mut bots);
 
-    let res = tree.k_nearest_mut(
+    let mut res = tree.k_nearest_mut(
         vec2(30, 30),
         2,
         &mut (),
@@ -24,7 +24,11 @@ fn main() {
         |(), a, b| b.inner.distance_squared_to_point(a),
         border,
     );
-    assert_eq!(res.len(), 3);
-    assert_eq!(**res[0].as_ref().unwrap().0, vec2(7, 7));
-    assert_eq!(**res[2].as_ref().unwrap().0, vec2(5, 5));
+    assert_eq!(res.len(),2);
+    assert_eq!(res.total_len(),2);
+
+    let foo:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
+
+    assert_eq!(foo,vec![vec2(7,7),vec2(5,5)])
+    
 }

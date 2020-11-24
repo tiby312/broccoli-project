@@ -28,6 +28,6 @@ fn main() {
     
     assert_eq!(zone1.len(), 1);
     assert_eq!(zone2.len(), 1);
-    assert_eq!(**zone1[0].inner_mut(),4);
-    assert_eq!(**zone2[0].inner_mut(),5);
+    assert_eq!(*zone1[0].inner,4);
+    assert_eq!(*zone2[0].inner,5);
 }

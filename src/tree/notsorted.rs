@@ -30,11 +30,10 @@ impl<'a, A: Axis, T: Aabb> NotSorted<'a, A, T> {
     }
 }
 
-impl<'a, A: Axis, T: Aabb + HasInner> NotSortedQueries<'a> for NotSorted<'a, A, T> {
+impl<'a, A: Axis, T: Aabb> NotSortedQueries<'a> for NotSorted<'a, A, T> {
     type A = A;
     type T = T;
     type Num = T::Num;
-    type Inner = T::Inner;
 
     #[inline(always)]
     fn axis(&self) -> Self::A {

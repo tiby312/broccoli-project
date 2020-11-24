@@ -101,7 +101,19 @@ impl<'a, T: Aabb> Node for NodeMut<'a, T> {
     }
 }
 
-use crate::collections::NodePtr;
+///A Node in a Tree.
+pub(crate) struct NodePtr<T: Aabb> {
+    _range: PMutPtr<[T]>,
+
+    //range is empty iff cont is none.
+    _cont: Option<axgeom::Range<T::Num>>,
+    //for non leafs:
+    //  div is some iff mid is nonempty.
+    //  div is none iff mid is empty.
+    //for leafs:
+    //  div is none
+    _div: Option<T::Num>,
+}
 impl<'a, T: Aabb> AsRef<NodePtr<T>> for NodeMut<'a, T> {
     fn as_ref(&self) -> &NodePtr<T> {
         unsafe { &*(self as *const _ as *const _) }

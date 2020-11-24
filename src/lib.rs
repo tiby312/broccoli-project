@@ -108,12 +108,7 @@ pub use axgeom::Rect;
 
 ///The broccoli prelude.
 pub mod prelude {
-    pub use crate::query::NotSortedQueries;
     pub use crate::query::Queries;
-    pub use crate::query::QueriesInner;
-    pub use crate::Aabb;
-    pub use crate::HasInner;
-    pub use crate::Num;
 }
 
 ///The underlying number type used for the tree.
@@ -142,27 +137,4 @@ unsafe impl<N: Num> Aabb for Rect<N> {
     fn get(&self) -> &Rect<Self::Num> {
         self
     }
-}
-
-///Trait exposes an api where you can return a read-only reference to the axis-aligned bounding box
-///and at the same time return a mutable reference to a seperate inner section.
-///
-///The trait in unsafe since an incorrect implementation could allow the user to get mutable
-///references to each element in the tree allowing them to swap them and thus violating
-///invariants of the tree. This can be done if the user were to implement with type `Inner=Self`
-///
-///We have no easy way to ensure that the Inner type only points to the inner portion of a AABB
-///so we mark this trait as unsafe.
-pub unsafe trait HasInner: Aabb {
-    type Inner;
-    #[inline(always)]
-    fn inner_mut(&mut self) -> &mut Self::Inner {
-        self.get_inner_mut().1
-    }
-    #[inline(always)]
-    fn inner(&self) -> &Self::Inner {
-        self.get_inner().1
-    }
-    fn get_inner(&self) -> (&Rect<Self::Num>, &Self::Inner);
-    fn get_inner_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner);
 }

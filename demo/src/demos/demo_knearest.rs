@@ -57,10 +57,19 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             [0.0, 1.0, 0.0, 0.6], //green second closest
             [0.0, 0.0, 1.0, 0.6], //blue third closets
         ];
-
-        struct Res {
-            rect: Rect<F32n>,
-            mag: F32n,
+        if check_naive {
+            broccoli::analyze::assert::k_nearest_mut(
+                tree.as_tree_mut(),
+                cursor,
+                3,
+                &mut rects,
+                move |_a, point, rect| f32n(distance_to_rect(rect.as_ref(), point.inner_into())),
+                move |rects, point, t| {
+                    rects.add(t.get().inner_into().into());
+                    f32n(distance_to_rect(t.get().as_ref(), point.inner_into()))
+                },
+                dim,
+            );
         }
 
         let mut vv = {
@@ -84,49 +93,24 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             k
         };
 
-        let mut vv: Vec<_> = vv
-            .drain(..)
-            .map(|a| {
-                a.map(|a| Res {
-                    rect: a.0.rect.inner_try_into().unwrap(),
-                    mag: a.1,
-                })
-            })
-            .collect();
-
-        if check_naive {
-            broccoli::analyze::assert::k_nearest_mut(
-                tree.as_tree_mut(),
-                cursor,
-                3,
-                &mut rects,
-                move |_a, point, rect| f32n(distance_to_rect(rect.as_ref(), point.inner_into())),
-                move |rects, point, t| {
-                    rects.add(t.get().inner_into().into());
-                    f32n(distance_to_rect(t.get().as_ref(), point.inner_into()))
-                },
-                dim,
-            );
-        }
-
-        vv.reverse();
 
         rect_save
             .uniforms(canvas)
             .with_color([0.0, 0.0, 0.0, 0.3])
             .draw();
 
-        for (k, color) in vv.split(|a| a.is_none()).zip(cols.iter()) {
+        
+        for (k, color) in vv.iter().rev().zip(cols.iter()) {
             canvas
                 .circles()
                 .add(cursor.inner_into().into())
-                .send_and_uniforms(canvas, k[0].as_ref().unwrap().mag.into_inner().sqrt() * 2.0)
+                .send_and_uniforms(canvas, k[0].mag.into_inner().sqrt() * 2.0)
                 .with_color(*color)
                 .draw();
 
             let mut rects = canvas.rects();
-            for b in k.iter().map(|a| a.as_ref().unwrap()) {
-                rects.add(b.rect.inner_into().into());
+            for b in k.iter() {
+                rects.add(b.bot.rect.inner_into().into());
             }
             rects.send_and_uniforms(canvas).with_color(*color).draw();
         }
