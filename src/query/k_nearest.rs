@@ -80,7 +80,6 @@ fn range_side<N: Num>(point: Vec2<N>, axis: impl axgeom::Axis, range: &Range<N>)
 }
 
 /// Returned by k_nearest_mut
-
 pub struct KnearestResult<'a, T: Aabb> {
     pub bot: PMut<'a, T>,
     pub mag: T::Num,
@@ -298,15 +297,20 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
 
 
 
+///Returned by knearest.
 pub struct KResult<'a,T:Aabb>{
     num_entires:usize,
     inner:Vec<KnearestResult<'a,T>>
 }
 
 impl<'a,T:Aabb> KResult<'a,T>{
+    ///Iterators over each group of ties starting with the closest.
+    ///All the elements in one group have the same distance.
     pub fn iter(&mut self)-> impl Iterator<Item=&mut [KnearestResult<'a,T>]>+core::iter::FusedIterator+DoubleEndedIterator{
         crate::util::SliceSplitMut::new(&mut self.inner,|a,b|a.mag==b.mag).fuse()
     }
+
+    ///Return the underlying datastructure
     pub fn into_vec(self)->Vec<KnearestResult<'a,T>>{
         self.inner
     }
