@@ -99,12 +99,6 @@ pub fn with_axis_par<'a, A: Axis, T: Aabb + Send + Sync>(
     TreeBuilder::with_axis(axis, bots).build_par()
 }
 
-/*
-impl<'a, A: Axis, T: Aabb + HasInner> QueriesInner<'a> for Tree<'a, A, T> {
-    type Inner = T::Inner;
-}
-*/
-
 impl<'a, A: Axis, T: Aabb> Queries<'a> for Tree<'a, A, T> {
     type A = A;
     type T = T;

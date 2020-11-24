@@ -649,7 +649,7 @@ pub trait Queries<'a> {
         rect: Rect<Self::Num>,
     ) where
         X::No: Send,
-        Self::T: HasInner + Send + Sync,
+        Self::T: Send + Sync,
     {
         query::nbody::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
     }

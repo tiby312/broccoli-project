@@ -118,7 +118,7 @@ pub fn find_colliding_pairs_mut<A: Axis, T: Aabb>(tree: &mut TreeRef<A, T>) {
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
-pub fn k_nearest_mut<Acc, A: Axis, T: Aabb + HasInner>(
+pub fn k_nearest_mut<Acc, A: Axis, T: Aabb >(
     tree: &mut TreeRef<A, T>,
     point: Vec2<T::Num>,
     num: usize,
@@ -149,7 +149,7 @@ pub fn k_nearest_mut<Acc, A: Axis, T: Aabb + HasInner>(
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
-pub fn raycast_mut<Acc, A: Axis, T: Aabb + HasInner>(
+pub fn raycast_mut<Acc, A: Axis, T: Aabb >(
     tree: &mut TreeRef<A, T>,
     ray: axgeom::Ray<T::Num>,
     start: &mut Acc,
@@ -204,7 +204,7 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb + HasInner>(
     );
 }
 
-pub fn for_all_in_rect_mut<A: Axis, T: Aabb + HasInner>(
+pub fn for_all_in_rect_mut<A: Axis, T: Aabb>(
     tree: &mut TreeRef<A, T>,
     rect: &axgeom::Rect<T::Num>,
 ) {
@@ -225,7 +225,7 @@ pub fn for_all_in_rect_mut<A: Axis, T: Aabb + HasInner>(
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
-pub fn for_all_not_in_rect_mut<A: Axis, T: Aabb + HasInner>(
+pub fn for_all_not_in_rect_mut<A: Axis, T: Aabb >(
     tree: &mut TreeRef<A, T>,
     rect: &axgeom::Rect<T::Num>,
 ) {
@@ -246,7 +246,7 @@ pub fn for_all_not_in_rect_mut<A: Axis, T: Aabb + HasInner>(
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
-pub fn for_all_intersect_rect_mut<A: Axis, T: Aabb + HasInner>(
+pub fn for_all_intersect_rect_mut<A: Axis, T: Aabb >(
     tree: &mut TreeRef<A, T>,
     rect: &axgeom::Rect<T::Num>,
 ) {
