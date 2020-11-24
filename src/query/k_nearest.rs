@@ -80,14 +80,15 @@ fn range_side<N: Num>(point: Vec2<N>, axis: impl axgeom::Axis, range: &Range<N>)
 }
 
 /// Returned by k_nearest_mut
-struct InnerKnearestResult<'a, T: Aabb> {
+
+pub struct KnearestResult<'a, T: Aabb> {
     pub bot: PMut<'a, T>,
     pub mag: T::Num,
 }
 
 struct ClosestCand<'a, T: Aabb> {
     //Can have multiple bots with the same mag. So the length could be bigger than num.
-    bots: Vec<InnerKnearestResult<'a, T>>,
+    bots: Vec<KnearestResult<'a, T>>,
     //The current number of different distances in the vec
     curr_num: usize,
     //The max number of different distances.
@@ -95,7 +96,7 @@ struct ClosestCand<'a, T: Aabb> {
 }
 impl<'a, T: Aabb> ClosestCand<'a, T> {
     //First is the closest
-    fn into_sorted(self) -> Vec<InnerKnearestResult<'a, T>> {
+    fn into_sorted(self) -> Vec<KnearestResult<'a, T>> {
         self.bots
     }
     fn new(num: usize) -> ClosestCand<'a, T> {
@@ -130,7 +131,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
 
             for i in 0..arr.len() {
                 if curr_dis < arr[i].mag {
-                    let unit = InnerKnearestResult {
+                    let unit = KnearestResult {
                         bot: curr_bot,
                         mag: curr_dis,
                     }; //$unit_create!(curr_bot,curr_dis);
@@ -140,7 +141,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
                 }
             }
             //only way we get here is if the above didnt return.
-            let unit = InnerKnearestResult {
+            let unit = KnearestResult {
                 bot: curr_bot,
                 mag: curr_dis,
             };
@@ -158,7 +159,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
                             break;
                         }
                     }
-                    let unit = InnerKnearestResult {
+                    let unit = KnearestResult {
                         bot: curr_bot,
                         mag: curr_dis,
                     }; //$unit_create!(curr_bot,curr_dis);
@@ -168,7 +169,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
                     assert!(max < v.mag);
                     return true;
                 } else if curr_dis == arr[i].mag {
-                    let unit = InnerKnearestResult {
+                    let unit = KnearestResult {
                         bot: curr_bot,
                         mag: curr_dis,
                     }; //$unit_create!(curr_bot,curr_dis);
@@ -294,6 +295,31 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
     }
 }
 
+
+pub struct KResult<'a,T:Aabb>{
+    num_entires:usize,
+    inner:Vec<KnearestResult<'a,T>>
+}
+impl<'a,T:Aabb> KResult<'a,T>{
+    pub fn iter(&mut self)->impl Iterator<Item=&mut [KnearestResult<'a,T>]>+core::iter::FusedIterator{
+        crate::util::SliceSplitMut::new(&mut self.inner,|a,b|a.mag==b.mag).fuse()
+    }
+    pub fn into_vec(self)->Vec<KnearestResult<'a,T>>{
+        self.inner
+    }
+
+    ///returns the total number of elements counting ties
+    pub fn total_len(&self)->usize{
+        self.inner.len()
+    }
+    ///Returns the number of unique distances
+    pub fn len(&self)->usize{
+        self.num_entires
+    }
+}
+
+
+
 pub use self::mutable::k_nearest_mut;
 
 pub use self::mutable::k_nearest_naive_mut;
@@ -305,18 +331,16 @@ mod mutable {
         point: Vec2<K::N>,
         num: usize,
         k: &mut K,
-    ) -> Vec<(PMut<'a,T>, T::Num)> {
+    ) -> KResult<'a,T> {
         let mut closest = ClosestCand::new(num);
 
         for b in bots.iter_mut() {
             closest.consider(&point, k, b);
         }
 
-        closest
-            .into_sorted()
-            .drain(..)
-            .map(|a| (a.bot, a.mag))
-            .collect()
+        let num_entires=closest.curr_num;
+        KResult{num_entires,inner:closest.into_sorted()}
+
     }
 
     pub fn k_nearest_mut<'a, A: Axis, N: Node>(
@@ -326,7 +350,7 @@ mod mutable {
         num: usize,
         knear: &mut impl Knearest<N = N::Num, T = N::T>,
         rect: Rect<N::Num>,
-    ) -> Vec<Option<(PMut<'a,N::T>, N::Num)>>
+    ) -> KResult<'a,N::T>
     {
         let dt = vistr.with_depth(Depth(0));
 
@@ -339,7 +363,7 @@ mod mutable {
         };
 
         recc(axis, dt, rect, &mut blap);
-
+        /*
         let mut res: Vec<Option<(PMut<'a,N::T>, N::Num)>> = Vec::new();
         for a in blap.closest.into_sorted().into_iter() {
             if let Some(Some(k)) = res.last() {
@@ -350,5 +374,9 @@ mod mutable {
             res.push(Some((a.bot, a.mag)));
         }
         res
+        */
+
+        let num_entires=blap.closest.curr_num;
+        KResult{num_entires,inner:blap.closest.into_sorted()}
     }
 }

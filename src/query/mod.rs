@@ -26,6 +26,8 @@ mod graphics;
 
 ///Contains all k_nearest code.
 mod k_nearest;
+pub use k_nearest::KnearestResult;
+pub use k_nearest::KResult;
 
 ///Contains all raycast code.
 mod raycast;
@@ -413,7 +415,7 @@ pub trait Queries<'a> {
     ///
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// let res = tree.k_nearest_mut(
+    /// let mut res = tree.k_nearest_mut(
     ///       vec2(30, 30),
     ///       2,
     ///       &mut (),
@@ -422,11 +424,12 @@ pub trait Queries<'a> {
     ///       border,
     /// );
     ///
-    /// assert_eq!(res.len(),3);
-    /// let mut it=res.split(|a|a.is_none()).map(|a|&a[0]);
-    /// assert_eq!(**it.next().unwrap().as_ref().unwrap().0.inner(),vec2(7,7));
-    /// assert_eq!(**it.next().unwrap().as_ref().unwrap().0.inner(),vec2(5,5));
+    /// assert_eq!(res.len(),2);
+    /// assert_eq!(res.total_len(),2);
     ///
+    /// let foo:Vec<_>=res.iter().map(|a|**a[0].bot.inner()).collect();
+    ///
+    /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)])
     ///```
     #[must_use]
     fn k_nearest_mut<'b, Acc>(
@@ -437,7 +440,7 @@ pub trait Queries<'a> {
         broad: impl FnMut(&mut Acc, Vec2<Self::Num>, &Rect<Self::Num>) -> Self::Num,
         fine: impl FnMut(&mut Acc, Vec2<Self::Num>, &Self::T) -> Self::Num,
         border: Rect<Self::Num>,
-    ) -> Vec<Option<(PMut<'b,Self::T>, Self::Num)>>
+    ) -> KResult<Self::T>
     where
         'a: 'b,
     {
@@ -725,7 +728,7 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
         start: &mut Acc,
         broad: impl FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
         fine: impl FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
-    ) -> Vec<(PMut<T>, T::Num)> {
+    ) -> KResult<T> {
         let mut knear = k_nearest::KnearestClosure {
             acc: start,
             broad,

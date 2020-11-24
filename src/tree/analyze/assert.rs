@@ -131,15 +131,16 @@ pub fn k_nearest_mut<Acc, A: Axis, T: Aabb >(
 
     let mut res_naive = NaiveAlgs::new(bots)
         .k_nearest_mut(point, num, acc, &mut broad, &mut fine)
+        .into_vec()
         .drain(..)
-        .map(|a| (a.0.into_usize(), a.1))
+        .map(|a| (a.bot.into_usize(), a.mag))
         .collect::<Vec<_>>();
 
-    let mut r = tree.k_nearest_mut(point, num, acc, broad, fine, rect);
+    let r = tree.k_nearest_mut(point, num, acc, broad, fine, rect);
     let mut res_dino: Vec<_> = r
+        .into_vec()
         .drain(..)
-        .filter_map(|a| a)
-        .map(|a| (a.0.into_usize(), a.1))
+        .map(|a| (a.bot.into_usize(), a.mag))
         .collect();
 
     res_naive.sort();
