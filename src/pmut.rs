@@ -69,13 +69,6 @@ impl<'a,T:?Sized> core::ops::Deref for PMut<'a,T>{
     }
 }
 
-
-impl<'a,T> PMut<'a,T>{
-    #[inline(always)]
-    pub fn into_usize(&self)->usize{
-        self.inner as *const _ as usize
-    }
-}
 impl<'a, T: ?Sized> PMut<'a, T> {
     
     ///Create a PMut
@@ -90,7 +83,7 @@ impl<'a, T: ?Sized> PMut<'a, T> {
         PMut { inner: self.inner }
     }
 
-    ///Manually conver to read only reference. 
+    ///Manually convert to read only reference. 
     #[inline(always)]
     pub fn into_ref(self)->&'a T{
         self.inner
