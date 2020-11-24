@@ -344,7 +344,7 @@ pub trait Queries<'a> {
     /// let res = tree.raycast_mut(
     ///     ray,&mut counter,
     ///     |c,ray,r|{*c+=1;ray.cast_to_rect(r)},
-    ///     |c,ray,t|{*c+=1;ray.cast_to_rect(t.get())},   //Do more fine-grained checking here.
+    ///     |c,ray,t|{*c+=1;ray.cast_to_rect(&t.rect)},   //Do more fine-grained checking here.
     ///     border);
     ///
     /// let (bots,dis)=res.unwrap();

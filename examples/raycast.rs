@@ -24,8 +24,8 @@ fn main() {
         ray,
         &mut (),
         |(), ray, r| ray.cast_to_rect(r),
-        |(), ray, b| ray.cast_to_rect(b.get()),
+        |(), ray, b| ray.cast_to_rect(&b.rect),
         border,
     );
-    assert_eq!(**res.unwrap().0[0].inner_mut(), 4);
+    assert_eq!(*res.unwrap().0[0].inner, 4);
 }

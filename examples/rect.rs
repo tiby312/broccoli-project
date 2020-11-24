@@ -21,6 +21,6 @@ fn main() {
     });
 
     assert_eq!(rect_collisions.len(), 1);
-    assert_eq!(*rect_collisions[0].get(), rect(0, 10, 0, 10));
+    assert_eq!(rect_collisions[0].rect, rect(0, 10, 0, 10));
     assert_eq!(*rect_collisions[0].inner, 4);
 }

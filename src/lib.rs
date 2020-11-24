@@ -108,11 +108,7 @@ pub use axgeom::Rect;
 
 ///The broccoli prelude.
 pub mod prelude {
-    pub use crate::query::NotSortedQueries;
     pub use crate::query::Queries;
-    pub use crate::Aabb;
-    pub use crate::pmut::HasInner;
-    pub use crate::Num;
 }
 
 ///The underlying number type used for the tree.
