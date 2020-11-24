@@ -133,7 +133,8 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
 }
 
 impl<'a, T> PMut<'a, [T]> {
-    //TODO use trait.
+    ///We can't use the index trait because we don't want 
+    ///to return a mutable reference.
     #[inline(always)]
     pub fn get_index_mut(&mut self, ind: usize) -> PMut<T> {
         PMut::new(&mut self.inner[ind])
