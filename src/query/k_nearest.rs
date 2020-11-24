@@ -300,12 +300,12 @@ pub use self::mutable::k_nearest_naive_mut;
 mod mutable {
     use super::*;
 
-    pub fn k_nearest_naive_mut<'a, K: Knearest<T = T, N = T::Num>, T: Aabb + HasInner>(
+    pub fn k_nearest_naive_mut<'a, K: Knearest<T = T, N = T::Num>, T: Aabb>(
         bots: PMut<'a, [T]>,
         point: Vec2<K::N>,
         num: usize,
         k: &mut K,
-    ) -> Vec<(&'a mut T::Inner, T::Num)> {
+    ) -> Vec<(PMut<'a,T>, T::Num)> {
         let mut closest = ClosestCand::new(num);
 
         for b in bots.iter_mut() {
@@ -315,7 +315,7 @@ mod mutable {
         closest
             .into_sorted()
             .drain(..)
-            .map(|a| (a.bot.into_inner(), a.mag))
+            .map(|a| (a.bot, a.mag))
             .collect()
     }
 
@@ -326,9 +326,7 @@ mod mutable {
         num: usize,
         knear: &mut impl Knearest<N = N::Num, T = N::T>,
         rect: Rect<N::Num>,
-    ) -> Vec<Option<(&'a mut <N::T as HasInner>::Inner, N::Num)>>
-    where
-        N::T: HasInner,
+    ) -> Vec<Option<(PMut<'a,N::T>, N::Num)>>
     {
         let dt = vistr.with_depth(Depth(0));
 
@@ -342,14 +340,14 @@ mod mutable {
 
         recc(axis, dt, rect, &mut blap);
 
-        let mut res: Vec<Option<(&'a mut <N::T as HasInner>::Inner, N::Num)>> = Vec::new();
+        let mut res: Vec<Option<(PMut<'a,N::T>, N::Num)>> = Vec::new();
         for a in blap.closest.into_sorted().into_iter() {
             if let Some(Some(k)) = res.last() {
                 if k.1 != a.mag {
                     res.push(None);
                 }
             }
-            res.push(Some((a.bot.into_inner(), a.mag)));
+            res.push(Some((a.bot, a.mag)));
         }
         res
     }

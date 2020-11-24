@@ -308,9 +308,7 @@ mod mutable {
         ray: Ray<T::Num>,
         rtrait: &mut impl RayCast<N = T::Num, T = T>,
         border: Rect<T::Num>,
-    ) -> axgeom::CastResult<(Vec<&'a mut T::Inner>, T::Num)>
-    where
-        T: HasInner,
+    ) -> axgeom::CastResult<(Vec<PMut<'a,T>>, T::Num)>
     {
         let mut closest = Closest { closest: None };
 
@@ -319,10 +317,10 @@ mod mutable {
                 closest.consider(&ray, b, rtrait);
             }
         }
-
+        
         match closest.closest {
             Some((mut a, b)) => {
-                axgeom::CastResult::Hit((a.drain(..).map(|a| a.into_inner()).collect(), b))
+                axgeom::CastResult::Hit((a, b))
             }
             None => axgeom::CastResult::NoHit,
         }
@@ -334,9 +332,7 @@ mod mutable {
         rect: Rect<N::Num>,
         ray: Ray<N::Num>,
         rtrait: &mut impl RayCast<N = N::Num, T = N::T>,
-    ) -> axgeom::CastResult<(Vec<&'a mut <N::T as HasInner>::Inner>, N::Num)>
-    where
-        N::T: HasInner,
+    ) -> axgeom::CastResult<(Vec<PMut<'a,N::T>>, N::Num)>
     {
         let dt = vistr.with_depth(Depth(0));
 
@@ -348,11 +344,13 @@ mod mutable {
         };
         recc(axis, dt, rect, &mut blap);
 
+        
         match blap.closest.closest {
             Some((mut a, b)) => {
-                axgeom::CastResult::Hit((a.drain(..).map(|a| a.into_inner()).collect(), b))
+                axgeom::CastResult::Hit((a, b))
             }
             None => axgeom::CastResult::NoHit,
         }
+        
     }
 }

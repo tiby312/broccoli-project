@@ -239,19 +239,6 @@ impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
     }
 }
 
-///A Node in a Tree.
-pub(crate) struct NodePtr<T: Aabb> {
-    _range: PMutPtr<[T]>,
-
-    //range is empty iff cont is none.
-    _cont: Option<axgeom::Range<T::Num>>,
-    //for non leafs:
-    //  div is some iff mid is nonempty.
-    //  div is none iff mid is empty.
-    //for leafs:
-    //  div is none
-    _div: Option<T::Num>,
-}
 
 /// An owned version of [`TreeRefInd`]
 ///

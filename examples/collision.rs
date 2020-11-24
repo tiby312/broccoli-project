@@ -1,5 +1,5 @@
 use broccoli::{bbox, prelude::*, rect};
-
+use broccoli::{Tree,BBox,pmut::PMut};
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -16,12 +16,12 @@ fn main() {
     //This will change the order of the elements
     //in bboxes,but this is okay since we
     //populated it with mutable references.
-    let mut tree = broccoli::new(&mut aabbs);
+    let mut tree:Tree<_,BBox<_,&mut _>> = broccoli::new(&mut aabbs);
 
     //Find all colliding aabbs.
-    tree.find_colliding_pairs_mut(|a, b| {
-        **a += 1;
-        **b += 1;
+    tree.find_colliding_pairs_mut(|a:PMut<BBox<isize,&mut usize>>, b:PMut<_>| {
+        **a.unpack_inner() += 1;
+        **b.unpack_inner() += 1;
     });
 
     assert_eq!(inner1, 1);

@@ -17,7 +17,7 @@ use crate::query::inner_prelude::*;
 pub trait NodeMassTrait: Clone {
     type No: Copy + Send;
     type Num: Num;
-    type Item: Aabb<Num = Self::Num> + HasInner;
+    type Item: Aabb<Num = Self::Num>;
 
     //Returns the bounding rectangle for this node.
     fn get_rect(no: &Self::No) -> &Rect<Self::Num>;
@@ -28,19 +28,19 @@ pub trait NodeMassTrait: Clone {
     //gravitate a bot with a bot
     fn handle_bot_with_bot(
         &self,
-        a: &mut <Self::Item as HasInner>::Inner,
-        b: &mut <Self::Item as HasInner>::Inner,
+        a: PMut<Self::Item>,
+        b: PMut<Self::Item>,
     );
 
     //gravitate a nodemass with a bot
-    fn handle_node_with_bot(&self, a: &mut Self::No, b: &mut <Self::Item as HasInner>::Inner);
+    fn handle_node_with_bot(&self, a: &mut Self::No, b: PMut<Self::Item>);
 
     fn is_far_enough(&self, b: [Self::Num; 2]) -> bool;
 
     fn is_far_enough_half(&self, b: [Self::Num; 2]) -> bool;
 
     //This unloads the force accumulated by this node to the bots.
-    fn apply_to_bots<'a, I: Iterator<Item = &'a mut <Self::Item as HasInner>::Inner>>(
+    fn apply_to_bots<'a, I: Iterator<Item = PMut<'a,Self::Item>>>(
         &'a self,
         a: &'a Self::No,
         it: I,
@@ -85,8 +85,7 @@ fn buildtree<J: Node, N: NodeMassTrait<Num = J::Num, Item = J::T>>(
     misc_nodes: &mut Vec<N::No>,
     ncontext: &N,
     rect: Rect<J::Num>,
-) where
-    J::T: HasInner,
+) 
 {
     fn recc<J: Node, N: NodeMassTrait<Num = J::Num, Item = J::T>>(
         axis: impl Axis,
@@ -94,8 +93,7 @@ fn buildtree<J: Node, N: NodeMassTrait<Num = J::Num, Item = J::T>>(
         misc_nodes: &mut Vec<N::No>,
         ncontext: &N,
         rect: Rect<J::Num>,
-    ) where
-        J::T: HasInner,
+    ) 
     {
         let (nn, rest) = stuff.next();
         let nn = nn.get_mut();
@@ -146,14 +144,12 @@ fn apply_tree<N: NodeMassTrait<Num = J::Num, Item = J::T>, J: Node>(
     _axis: impl Axis,
     node: CombinedVistr<N::No, J>,
     ncontext: &N,
-) where
-    J::T: HasInner,
+) 
 {
     fn recc<N: NodeMassTrait<Num = J::Num, Item = J::T>, J: Node>(
         stuff: CombinedVistr<N::No, J>,
         ncontext: &N,
-    ) where
-        J::T: HasInner,
+    ) 
     {
         let ((misc, nn), rest) = stuff.next();
         let nn = nn.get_mut();
@@ -173,13 +169,13 @@ fn apply_tree<N: NodeMassTrait<Num = J::Num, Item = J::T>, J: Node>(
                     .flat_map(|a| a.get_mut().bots.iter_mut());
                 let i3 = nn.bots.iter_mut().chain(i1.chain(i2));
 
-                ncontext.apply_to_bots(misc, i3.map(|a| a.into_inner()));
+                ncontext.apply_to_bots(misc, i3);
 
                 recc(left, ncontext);
                 recc(right, ncontext);
             }
             None => {
-                ncontext.apply_to_bots(misc, nn.bots.iter_mut().map(|a| a.into_inner()));
+                ncontext.apply_to_bots(misc, nn.bots.iter_mut());
             }
         }
     }
@@ -205,8 +201,7 @@ fn handle_anchor_with_children<
     left: CombinedVistrMut<N::No, J>,
     right: CombinedVistrMut<N::No, J>,
     ncontext: &N,
-) where
-    J::T: HasInner,
+) 
 {
     struct BoLeft<'a, B: Axis, N: NodeMassTrait, J: Node> {
         _anchor_axis: B,
@@ -215,8 +210,6 @@ fn handle_anchor_with_children<
     }
 
     impl<'a, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J::T>, J: Node> Bok2 for BoLeft<'a, B, N, J>
-    where
-        J::T: HasInner,
     {
         type No = N::No;
         type T = J::T;
@@ -226,7 +219,7 @@ fn handle_anchor_with_children<
         fn handle_node<A: Axis>(&mut self, _axis: A, mut b: PMut<J::T>, anchor: &mut Anchor<B, J>) {
             for i in anchor.range.as_mut().iter_mut() {
                 self.ncontext
-                    .handle_bot_with_bot(i.into_inner(), b.inner_mut());
+                    .handle_bot_with_bot(i, b.as_mut());
             }
         }
         fn handle_node_far_enough<A: Axis>(
@@ -236,7 +229,7 @@ fn handle_anchor_with_children<
             anchor: &mut Anchor<B, J>,
         ) {
             for i in anchor.range.as_mut().iter_mut() {
-                self.ncontext.handle_node_with_bot(a, i.into_inner());
+                self.ncontext.handle_node_with_bot(a, i);
             }
         }
 
@@ -260,8 +253,6 @@ fn handle_anchor_with_children<
 
     impl<'a, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J::T>, J: Node> Bok2
         for BoRight<'a, B, N, J>
-    where
-        J::T: HasInner,
     {
         type No = N::No;
         type T = J::T;
@@ -271,7 +262,7 @@ fn handle_anchor_with_children<
         fn handle_node<A: Axis>(&mut self, _axis: A, mut b: PMut<J::T>, anchor: &mut Anchor<B, J>) {
             for i in anchor.range.as_mut().iter_mut() {
                 self.ncontext
-                    .handle_bot_with_bot(i.into_inner(), b.inner_mut());
+                    .handle_bot_with_bot(i, b.as_mut());
             }
         }
         fn handle_node_far_enough<A: Axis>(
@@ -281,7 +272,7 @@ fn handle_anchor_with_children<
             anchor: &mut Anchor<B, J>,
         ) {
             for i in anchor.range.as_mut().iter_mut() {
-                self.ncontext.handle_node_with_bot(a, i.into_inner());
+                self.ncontext.handle_node_with_bot(a, i);
             }
         }
 
@@ -326,8 +317,7 @@ fn handle_left_with_right<
     left: CombinedVistrMut<'a, N::No, J>,
     mut right: CombinedVistrMut<'a, N::No, J>,
     ncontext: &N,
-) where
-    J::T: HasInner,
+) 
 {
     struct Bo4<'a, B: Axis, N: NodeMassTrait, J: Node> {
         _anchor_axis: B,
@@ -338,8 +328,6 @@ fn handle_left_with_right<
     }
 
     impl<'a, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J::T>, J: Node> Bok2 for Bo4<'a, B, N, J>
-    where
-        J::T: HasInner,
     {
         type No = N::No;
         type T = J::T;
@@ -347,7 +335,7 @@ fn handle_left_with_right<
         type AnchorAxis = B;
         fn handle_node<A: Axis>(&mut self, _axis: A, b: PMut<J::T>, _anchor: &mut Anchor<B, J>) {
             self.ncontext
-                .handle_bot_with_bot(self.bot.inner_mut(), b.into_inner());
+                .handle_bot_with_bot(self.bot.as_mut(), b);
         }
         fn handle_node_far_enough<A: Axis>(
             &mut self,
@@ -355,7 +343,7 @@ fn handle_left_with_right<
             a: &mut N::No,
             _anchor: &mut Anchor<B, J>,
         ) {
-            self.ncontext.handle_node_with_bot(a, self.bot.inner_mut());
+            self.ncontext.handle_node_with_bot(a, self.bot.as_mut());
         }
         fn is_far_enough<A: Axis>(
             &mut self,
@@ -377,8 +365,6 @@ fn handle_left_with_right<
     }
 
     impl<'a, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J::T>, J: Node> Bok2 for Bo2<'a, B, N, J>
-    where
-        J::T: HasInner,
     {
         type No = N::No;
         type T = J::T;
@@ -387,7 +373,7 @@ fn handle_left_with_right<
 
         fn handle_node<A: Axis>(&mut self, _axis: A, b: PMut<J::T>, _anchor: &mut Anchor<B, J>) {
             self.ncontext
-                .handle_node_with_bot(self.node, b.into_inner());
+                .handle_node_with_bot(self.node, b);
         }
         fn handle_node_far_enough<A: Axis>(
             &mut self,
@@ -417,8 +403,6 @@ fn handle_left_with_right<
 
     impl<'a: 'b, 'b, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J::T>, J: Node> Bok2
         for Bo<'a, 'b, B, N, J>
-    where
-        J::T: HasInner,
     {
         type No = N::No;
         type T = J::T;
@@ -487,7 +471,6 @@ fn recc<
 ) where
     F::T: Send,
     N::No: Send,
-    F::T: HasInner,
 {
     let ((_, nn), rest) = it.next();
     let mut nn = nn.get_mut();
@@ -500,7 +483,7 @@ fn recc<
 
             //handle bots in itself
             tools::for_every_pair(nn.bots.as_mut(), |a, b| {
-                ncontext.handle_bot_with_bot(a.into_inner(), b.into_inner())
+                ncontext.handle_bot_with_bot(a, b)
             });
             {
                 let l1 = wrap_mut(&mut left);
@@ -554,7 +537,7 @@ fn recc<
         None => {
             //handle bots in itself
             tools::for_every_pair(nn.bots, |a, b| {
-                ncontext.handle_bot_with_bot(a.into_inner(), b.into_inner())
+                ncontext.handle_bot_with_bot(a, b)
             });
         }
     }
@@ -631,7 +614,7 @@ pub fn nbody_par<
     ncontext: &NO,
     rect: Rect<N::Num>,
 ) where
-    N::T: HasInner + Send + Sync,
+    N::T: Send + Sync,
     NO::No: Send,
 {
     let mut misc_nodes = Vec::new();
@@ -667,7 +650,7 @@ pub fn nbody<
     ncontext: &NO,
     rect: Rect<N::Num>,
 ) where
-    N::T: HasInner + Send + Sync,
+    N::T: Send + Sync,
 {
     let mut misc_nodes = Vec::new();
 

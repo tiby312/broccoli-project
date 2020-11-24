@@ -94,19 +94,19 @@ fn inner<A: Axis, N: Node>(axis: A, iter: compt::LevelIter<Vistr<N>>) -> Result<
     Ok(())
 }
 
-pub fn find_colliding_pairs_mut<A: Axis, T: Aabb + HasInner>(tree: &mut TreeRef<A, T>) {
+pub fn find_colliding_pairs_mut<A: Axis, T: Aabb>(tree: &mut TreeRef<A, T>) {
     let mut res_dino = Vec::new();
     tree.find_colliding_pairs_mut(|a, b| {
-        let a = a as *const _ as usize;
-        let b = b as *const _ as usize;
+        let a = a.into_usize();
+        let b = b.into_usize();
         let k = if a < b { (a, b) } else { (b, a) };
         res_dino.push(k);
     });
 
     let mut res_naive = Vec::new();
     NaiveAlgs::new(tree.get_bbox_elements_mut()).find_colliding_pairs_mut(|a, b| {
-        let a = a as *const _ as usize;
-        let b = b as *const _ as usize;
+        let a = a.into_usize();
+        let b = b.into_usize();
         let k = if a < b { (a, b) } else { (b, a) };
         res_naive.push(k);
     });
@@ -132,14 +132,14 @@ pub fn k_nearest_mut<Acc, A: Axis, T: Aabb + HasInner>(
     let mut res_naive = NaiveAlgs::new(bots)
         .k_nearest_mut(point, num, acc, &mut broad, &mut fine)
         .drain(..)
-        .map(|a| (a.0 as *const _ as usize, a.1))
+        .map(|a| (a.0.into_usize(), a.1))
         .collect::<Vec<_>>();
 
     let mut r = tree.k_nearest_mut(point, num, acc, broad, fine, rect);
     let mut res_dino: Vec<_> = r
         .drain(..)
         .filter_map(|a| a)
-        .map(|a| (a.0 as *const _ as usize, a.1))
+        .map(|a| (a.0.into_usize(), a.1))
         .collect();
 
     res_naive.sort();
@@ -165,7 +165,7 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb + HasInner>(
     match NaiveAlgs::new(bots).raycast_mut(ray, start, &mut broad, &mut fine, border) {
         axgeom::CastResult::Hit((bots, mag)) => {
             for a in bots.iter() {
-                let j = (*a) as *const _ as usize;
+                let j = (*a).into_usize();
                 res_naive.push((j, mag))
             }
         }
@@ -178,7 +178,7 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb + HasInner>(
     match tree.raycast_mut(ray, start, broad, fine, border) {
         axgeom::CastResult::Hit((bots, mag)) => {
             for a in bots.iter() {
-                let j = (*a) as *const _ as usize;
+                let j = (*a).into_usize();
                 res_dino.push((j, mag))
             }
         }
@@ -210,12 +210,12 @@ pub fn for_all_in_rect_mut<A: Axis, T: Aabb + HasInner>(
 ) {
     let mut res_dino = Vec::new();
     tree.for_all_in_rect_mut(rect, |a| {
-        res_dino.push(a as *const _ as usize);
+        res_dino.push(a.into_usize());
     });
 
     let mut res_naive = Vec::new();
     NaiveAlgs::new(tree.get_bbox_elements_mut()).for_all_in_rect_mut(rect, |a| {
-        res_naive.push(a as *const _ as usize);
+        res_naive.push(a.into_usize());
     });
 
     res_dino.sort();
@@ -231,12 +231,12 @@ pub fn for_all_not_in_rect_mut<A: Axis, T: Aabb + HasInner>(
 ) {
     let mut res_dino = Vec::new();
     tree.for_all_not_in_rect_mut(rect, |a| {
-        res_dino.push(a as *const _ as usize);
+        res_dino.push(a.into_usize());
     });
 
     let mut res_naive = Vec::new();
     NaiveAlgs::new(tree.get_bbox_elements_mut()).for_all_not_in_rect_mut(rect, |a| {
-        res_naive.push(a as *const _ as usize);
+        res_naive.push(a.into_usize());
     });
 
     res_dino.sort();
@@ -252,12 +252,12 @@ pub fn for_all_intersect_rect_mut<A: Axis, T: Aabb + HasInner>(
 ) {
     let mut res_dino = Vec::new();
     tree.for_all_intersect_rect_mut(rect, |a| {
-        res_dino.push(a as *const _ as usize);
+        res_dino.push(a.into_usize());
     });
 
     let mut res_naive = Vec::new();
     NaiveAlgs::new(tree.get_bbox_elements_mut()).for_all_intersect_rect_mut(rect, |a| {
-        res_naive.push(a as *const _ as usize);
+        res_naive.push(a.into_usize());
     });
 
     res_dino.sort();

@@ -25,6 +25,6 @@ fn main() {
         border,
     );
     assert_eq!(res.len(), 3);
-    assert_eq!(**res[0].as_ref().unwrap().0, vec2(7, 7));
-    assert_eq!(**res[2].as_ref().unwrap().0, vec2(5, 5));
+    assert_eq!(**res[0].as_ref().unwrap().0.inner(), vec2(7, 7));
+    assert_eq!(**res[2].as_ref().unwrap().0.inner(), vec2(5, 5));
 }

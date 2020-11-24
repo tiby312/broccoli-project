@@ -9,7 +9,7 @@
 //! let mut bots=[bbox(rect(0,10,0,10),0)];
 //! let mut tree=broccoli::new(&mut bots);
 //!
-//! tree.find_colliding_pairs_pmut(|mut a,mut b|{
+//! tree.find_colliding_pairs_mut(|a,b|{
 //!    //We cannot allow the user to swap these two
 //!    //bots. They should be allowed to mutate
 //!    //whats inside each of them (aside from their aabb),
@@ -18,7 +18,7 @@
 //!    //core::mem::swap(a,b); // We cannot allow this!!!!
 //!
 //!    //This is allowed.
-//!    core::mem::swap(a.inner_mut(),b.inner_mut());
+//!    core::mem::swap(a.unpack_inner(),b.unpack_inner());
 //! })
 //!
 //! ```
@@ -32,6 +32,12 @@ pub(crate) struct PMutPtr<T: ?Sized> {
     _inner: *mut T,
 }
 
+impl<T> PMutPtr<T>{
+    pub fn into_usize(self)->usize{
+        self._inner as *mut _ as usize
+    }
+}
+
 unsafe impl<T: ?Sized> Send for PMutPtr<T> {}
 unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
 
@@ -42,15 +48,20 @@ pub struct PMut<'a, T: ?Sized> {
     inner: &'a mut T,
 }
 
+impl<'a,T> PMut<'a,T>{
+    pub fn into_usize(&self)->usize{
+        self.inner as *const _ as usize
+    }
+}
 impl<'a, T: ?Sized> PMut<'a, T> {
-    /*
+    
     #[inline(always)]
     pub(crate) fn as_ptr(&mut self) -> PMutPtr<T> {
         PMutPtr {
             _inner: self.inner as *mut _,
         }
     }
-    */
+    
 
     #[inline(always)]
     pub fn new(inner: &'a mut T) -> PMut<'a, T> {
@@ -84,6 +95,19 @@ impl<'a, T: HasInner> PMut<'a, T> {
     pub fn unpack(self) -> (&'a Rect<T::Num>, &'a mut T::Inner) {
         self.inner.get_inner_mut()
     }
+    #[inline(always)]
+    pub fn unpack_inner(self) ->  &'a mut T::Inner {
+        self.inner.get_inner_mut().1
+    }
+
+    #[inline(always)]
+    pub fn inner(&self) -> &T::Inner {
+        self.inner.get_inner().1
+    }
+    #[inline(always)]
+    pub fn inner_mut(&mut self) -> &mut T::Inner {
+        self.inner.get_inner_mut().1
+    }
 }
 
 unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
@@ -94,7 +118,10 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
     }
 }
 
+/*
 unsafe impl<'a, T: HasInner> HasInner for PMut<'a, T> {
+
+    
     type Inner = T::Inner;
     #[inline(always)]
     fn get_inner(&self) -> (&Rect<T::Num>, &Self::Inner) {
@@ -106,7 +133,7 @@ unsafe impl<'a, T: HasInner> HasInner for PMut<'a, T> {
         self.inner.get_inner_mut()
     }
 }
-
+*/
 impl<'a, T: HasInner> PMut<'a, T> {
     #[inline(always)]
     pub fn into_inner(self) -> &'a mut T::Inner {

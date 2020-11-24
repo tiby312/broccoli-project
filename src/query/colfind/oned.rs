@@ -182,7 +182,7 @@ fn test_parallel() {
     impl ColMulti for Test {
         type T = BBox<isize, Bot>;
         fn collide(&mut self, a: PMut<BBox<isize, Bot>>, b: PMut<BBox<isize, Bot>>) {
-            let [a, b] = [a.inner().id, b.inner().id];
+            let [a, b] = [a.unpack_inner().id, b.unpack_inner().id];
 
             let fin = if a < b { [a, b] } else { [b, a] };
             self.set.insert(fin);
