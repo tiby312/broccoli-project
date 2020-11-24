@@ -20,6 +20,9 @@ pub struct BBox<N, T> {
     pub inner: T,
 }
 
+
+//TODO document
+
 impl<N, T> BBox<N, T> {
     #[inline(always)]
     pub fn new(rect: Rect<N>, inner: T) -> BBox<N, T> {

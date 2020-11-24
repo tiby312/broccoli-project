@@ -133,6 +133,7 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
 }
 
 impl<'a, T> PMut<'a, [T]> {
+    //TODO use trait.
     #[inline(always)]
     pub fn get_index_mut(&mut self, ind: usize) -> PMut<T> {
         PMut::new(&mut self.inner[ind])
