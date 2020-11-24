@@ -73,10 +73,10 @@ impl<'b> broccoli::query::NodeMassTrait for Bla<'b> {
         let mut total_mass = 0.0;
 
         for i in it {
-            let m = i.inner().mass;
+            let m = i.inner.mass;
             total_mass += m;
-            total_x += m * i.inner().pos.x;
-            total_y += m * i.inner().pos.y;
+            total_x += m * i.inner.pos.x;
+            total_y += m * i.inner.pos.y;
         }
 
         let center = if total_mass != 0.0 {

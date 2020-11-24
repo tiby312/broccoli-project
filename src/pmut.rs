@@ -37,15 +37,7 @@ use crate::inner_prelude::*;
 ///so we mark this trait as unsafe.
 pub unsafe trait HasInner: Aabb {
     type Inner;
-    #[inline(always)]
-    fn inner_mut(&mut self) -> &mut Self::Inner {
-        self.get_inner_mut().1
-    }
-    #[inline(always)]
-    fn inner(&self) -> &Self::Inner {
-        self.get_inner().1
-    }
-    fn get_inner(&self) -> (&Rect<Self::Num>, &Self::Inner);
+    
     fn get_inner_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner);
 }
 
@@ -66,6 +58,15 @@ unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
 #[repr(transparent)]
 pub struct PMut<'a, T: ?Sized> {
     inner: &'a mut T,
+}
+
+impl<'a,T:?Sized> core::ops::Deref for PMut<'a,T>{
+    type Target = T;
+    
+    #[inline(always)]
+    fn deref(&self)->&T{
+        self.inner
+    }
 }
 
 impl<'a,T> PMut<'a,T>{
@@ -115,15 +116,6 @@ impl<'a, T: HasInner> PMut<'a, T> {
         self.inner.get_inner_mut().1
     }
 
-    #[inline(always)]
-    pub fn rect(&self)->&Rect<T::Num>{
-        self.inner.get()
-    }
-
-    #[inline(always)]
-    pub fn inner(&self) -> &T::Inner {
-        self.inner.get_inner().1
-    }
     #[inline(always)]
     pub fn inner_mut(&mut self) -> &mut T::Inner {
         self.inner.get_inner_mut().1
@@ -209,6 +201,8 @@ impl<'a, T> core::iter::IntoIterator for PMut<'a, [T]> {
         self.iter_mut()
     }
 }
+
+
 
 ///Iterator produced by `PMut<[T]>` that generates `PMut<T>`
 pub struct PMutIter<'a, T> {

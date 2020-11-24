@@ -296,12 +296,15 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
 }
 
 
+
+
 pub struct KResult<'a,T:Aabb>{
     num_entires:usize,
     inner:Vec<KnearestResult<'a,T>>
 }
+
 impl<'a,T:Aabb> KResult<'a,T>{
-    pub fn iter(&mut self)->impl Iterator<Item=&mut [KnearestResult<'a,T>]>+core::iter::FusedIterator{
+    pub fn iter(&mut self)-> impl Iterator<Item=&mut [KnearestResult<'a,T>]>+core::iter::FusedIterator+DoubleEndedIterator{
         crate::util::SliceSplitMut::new(&mut self.inner,|a,b|a.mag==b.mag).fuse()
     }
     pub fn into_vec(self)->Vec<KnearestResult<'a,T>>{

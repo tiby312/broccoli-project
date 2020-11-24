@@ -143,7 +143,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
 
         let mut circles = canvas.circles();
         for bot in k.iter() {
-            circles.add(bot.inner().pos.into());
+            circles.add(bot.inner.pos.into());
         }
         circles
             .send_and_uniforms(canvas, radius)

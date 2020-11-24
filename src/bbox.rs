@@ -86,11 +86,6 @@ unsafe impl<N: Num, T> HasInner for &mut BBox<N, T> {
     type Inner = T;
 
     #[inline(always)]
-    fn get_inner(&self) -> (&Rect<N>, &Self::Inner) {
-        (&self.rect, &self.inner)
-    }
-
-    #[inline(always)]
     fn get_inner_mut(&mut self) -> (&Rect<N>, &mut Self::Inner) {
         (&self.rect, &mut self.inner)
     }
@@ -106,11 +101,6 @@ unsafe impl<N: Num, T> Aabb for BBox<N, T> {
 
 unsafe impl<N: Num, T> HasInner for BBox<N, T> {
     type Inner = T;
-
-    #[inline(always)]
-    fn get_inner(&self) -> (&Rect<N>, &Self::Inner) {
-        (&self.rect, &self.inner)
-    }
 
     #[inline(always)]
     fn get_inner_mut(&mut self) -> (&Rect<N>, &mut Self::Inner) {

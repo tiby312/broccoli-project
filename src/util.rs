@@ -44,6 +44,21 @@ impl<'a, T, F: FnMut(&T, &T) -> bool> SliceSplitMut<'a, T, F> {
     }
 }
 
+impl<'a, T, F: FnMut(&T, &T) -> bool> DoubleEndedIterator for SliceSplitMut<'a, T, F> {
+    fn next_back(&mut self)->Option<Self::Item>{
+        let (last, arr) = {
+            let arr = self.arr.take()?;
+            let ll=arr.len();
+            let i = arr.last()?;
+            let count = arr.iter().rev().peeking_take_while(|a| (self.func)(a, i)).count();
+            (ll-count, arr)
+        };
+        let (rest, last) = arr.split_at_mut(last);
+        self.arr = Some(rest);
+        Some(last)
+        
+    }
+}
 impl<'a, T, F: FnMut(&T, &T) -> bool> Iterator for SliceSplitMut<'a, T, F> {
     type Item = &'a mut [T];
     fn next(&mut self) -> Option<Self::Item> {

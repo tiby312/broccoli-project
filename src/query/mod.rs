@@ -350,7 +350,7 @@ pub trait Queries<'a> {
     /// let (bots,dis)=res.unwrap();
     /// assert_eq!(dis,2);
     /// assert_eq!(bots.len(),1);
-    /// assert_eq!(bots[0].inner(),&vec2(5,5));
+    /// assert_eq!(bots[0].inner,vec2(5,5));
     ///```
     #[must_use]
     fn raycast_mut<'b, Acc>(
@@ -427,7 +427,7 @@ pub trait Queries<'a> {
     /// assert_eq!(res.len(),2);
     /// assert_eq!(res.total_len(),2);
     ///
-    /// let foo:Vec<_>=res.iter().map(|a|**a[0].bot.inner()).collect();
+    /// let foo:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
     ///
     /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)])
     ///```
