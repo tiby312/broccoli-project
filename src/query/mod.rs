@@ -142,6 +142,52 @@ pub trait Queries<'a> {
 
 
 
+    /// Find all aabb intersections and return a PMut<T> of it. Unlike the regular `find_colliding_pairs_mut`, this allows the
+    /// user to access a read only reference of the AABB.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.find_colliding_pairs_mut(|a,b|{
+    ///    *a.unpack_inner()+=1;
+    ///    *b.unpack_inner()+=1;
+    /// });
+    ///
+    /// assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[1].inner,1);
+    ///```
+    fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
+        colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_seq(move |a, b| func(a, b));
+    }
+
+    /// The parallel version of [`Queries::find_colliding_pairs_mut`].
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.find_colliding_pairs_mut_par(|a,b|{
+    ///    *a.unpack_inner()+=1;
+    ///    *b.unpack_inner()+=1;
+    /// });
+    ///
+    /// assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[1].inner,1);
+    ///```
+    fn find_colliding_pairs_mut_par(
+        &mut self,
+        func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Send + Sync + Clone,
+    ) where
+        Self::T: Send + Sync,
+    {
+        colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_par(move |a, b| func(a, b));
+    }
+
 
     /// An extended version of `find_colliding_pairs`. where the user can supply
     /// callbacks to when new worker tasks are spawned and joined by `rayon`. 
@@ -225,32 +271,52 @@ pub trait Queries<'a> {
     }
 
 
+    /// For analysis, allows the user to query with custom settings
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// let builder=tree.new_colfind_builder();
+    /// let builder=builder.with_switch_height(4);
+    /// builder.query_seq(|mut a,mut b|{
+    ///    *a.inner_mut()+=1;
+    ///    *b.inner_mut()+=1;
+    /// });
+    ///
+    /// assert_eq!(bots[0].inner,1);
+    /// assert_eq!(bots[1].inner,1);
+    ///```
+    fn new_colfind_builder(&mut self) -> QueryBuilder<Self::A, NodeMut<'a, Self::T>> {
+        QueryBuilder::new(self.axis(), self.vistr_mut())
+    }
+
+
+
 
     /// # Examples
     ///
     ///```
     /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
     /// let mut tree = broccoli::new(&mut bots);
-    /// tree.for_all_not_in_rect_mut(&rect(10,20,10,20),|a|{
-    ///    *a.unpack_inner()+=1;    
+    /// let mut test = Vec::new();
+    /// tree.for_all_intersect_rect(&rect(9,20,9,20),|a|{
+    ///    test.push(a);
     /// });
     ///
-    /// assert_eq!(bots[0].inner,1);
+    /// assert_eq!(test[0],&rect(0,10,0,10));
     ///
     ///```
-    fn for_all_not_in_rect_mut<'b>(
-        &'b mut self,
-        rect: &Rect<Self::Num>,
-        mut func: impl FnMut(PMut<'b,Self::T>),
-    ) where
+    fn for_all_intersect_rect<'b>(&'b self, rect: &Rect<Self::Num>, func: impl FnMut(&'b Self::T))
+    where
         'a: 'b,
     {
-        rect::for_all_not_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| {
-            (func)(a)
-        });
+        rect::for_all_intersect_rect(self.axis(), self.vistr(), rect, func);
     }
-
 
     /// # Examples
     ///
@@ -282,6 +348,26 @@ pub trait Queries<'a> {
     ///
     ///```
     /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let mut test = Vec::new();
+    /// tree.for_all_in_rect(&rect(0,20,0,20),|a|{
+    ///    test.push(a);
+    /// });
+    ///
+    /// assert_eq!(test[0],&rect(0,10,0,10));
+    ///
+    fn for_all_in_rect<'b>(&'b self, rect: &Rect<Self::Num>, func: impl FnMut(&'b Self::T))
+    where
+        'a: 'b,
+    {
+        rect::for_all_in_rect(self.axis(), self.vistr(), rect, func);
+    }
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// tree.for_all_in_rect_mut(&rect(0,10,0,10),|a|{
@@ -301,6 +387,62 @@ pub trait Queries<'a> {
         rect::for_all_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| {
             (func)(a)
         });
+    }
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.for_all_not_in_rect_mut(&rect(10,20,10,20),|a|{
+    ///    *a.unpack_inner()+=1;    
+    /// });
+    ///
+    /// assert_eq!(bots[0].inner,1);
+    ///
+    ///```
+    fn for_all_not_in_rect_mut<'b>(
+        &'b mut self,
+        rect: &Rect<Self::Num>,
+        mut func: impl FnMut(PMut<'b,Self::T>),
+    ) where
+        'a: 'b,
+    {
+        rect::for_all_not_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| {
+            (func)(a)
+        });
+    }
+
+
+    /// If we have two non intersecting rectangles, it is safe to return to the user two sets of mutable references
+    /// of the bots strictly inside each rectangle since it is impossible for a bot to belong to both sets.
+    ///
+    /// # Safety
+    ///
+    /// Unsafe code is used.  We unsafely convert the references returned by the rect query
+    /// closure to have a longer lifetime.
+    /// This allows the user to store mutable references of non intersecting rectangles at the same time.
+    /// If two requested rectangles intersect, an error is returned.
+    ///
+    /// Handles a multi rect mut "sessions" within which
+    /// the user can query multiple non intersecting rectangles.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut tree = broccoli::new(&mut bots1);
+    /// let mut multi = tree.multi_rect();
+    ///
+    /// multi.for_all_in_rect_mut(rect(0,10,0,10),|a|{}).unwrap();
+    /// let res = multi.for_all_in_rect_mut(rect(5,15,5,15),|a|{});
+    /// assert_eq!(res,Err(broccoli::query::RectIntersectErr));
+    ///```
+    #[must_use]
+    fn multi_rect(&mut self) -> rect::MultiRectMut<Self::A, NodeMut<'a, Self::T>> {
+        rect::MultiRectMut::new(self.axis(), self.vistr_mut())
     }
 
     /// Find the elements that are hit by a ray.
@@ -453,6 +595,35 @@ pub trait Queries<'a> {
         k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, &mut foo, border)
     }
 
+    /// Find collisions between elements in this tree,
+    /// with the specified slice of elements.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut bots2 = [bbox(rect(5,15,5,15),0u8)];
+    /// let mut tree = broccoli::new(&mut bots1);
+    ///
+    /// tree.intersect_with_mut(&mut bots2,|a,b|{
+    ///    *a.unpack_inner()+=1;
+    ///    *b.unpack_inner()+=2;    
+    /// });
+    ///
+    /// assert_eq!(bots1[0].inner,1);
+    /// assert_eq!(bots2[0].inner,2);
+    ///```
+    fn intersect_with_mut<X: Aabb<Num = Self::Num> >(
+        &mut self,
+        other: &mut [X],
+        func: impl Fn(PMut<Self::T>, PMut<X>),
+    ) {
+        intersect_with::intersect_with_mut(self.axis(), self.vistr_mut(), other, move |a, b| {
+            (func)(a, b)
+        })
+    }
+
     /// # Examples
     ///
     /// ```
@@ -491,145 +662,8 @@ pub trait Queries<'a> {
         graphics::draw(self.axis(), self.vistr(), drawer, rect)
     }
 
-    /// Find all aabb intersections and return a PMut<T> of it. Unlike the regular `find_colliding_pairs_mut`, this allows the
-    /// user to access a read only reference of the AABB.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// tree.find_colliding_pairs_mut(|a,b|{
-    ///    *a.unpack_inner()+=1;
-    ///    *b.unpack_inner()+=1;
-    /// });
-    ///
-    /// assert_eq!(bots[0].inner,1);
-    /// assert_eq!(bots[1].inner,1);
-    ///```
-    fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
-        colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_seq(move |a, b| func(a, b));
-    }
 
-    /// The parallel version of [`Queries::find_colliding_pairs_mut`].
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// tree.find_colliding_pairs_mut_par(|a,b|{
-    ///    *a.unpack_inner()+=1;
-    ///    *b.unpack_inner()+=1;
-    /// });
-    ///
-    /// assert_eq!(bots[0].inner,1);
-    /// assert_eq!(bots[1].inner,1);
-    ///```
-    fn find_colliding_pairs_mut_par(
-        &mut self,
-        func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Send + Sync + Clone,
-    ) where
-        Self::T: Send + Sync,
-    {
-        colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_par(move |a, b| func(a, b));
-    }
 
-    /// For analysis, allows the user to query with custom settings
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// let builder=tree.new_colfind_builder();
-    /// let builder=builder.with_switch_height(4);
-    /// builder.query_seq(|mut a,mut b|{
-    ///    *a.inner_mut()+=1;
-    ///    *b.inner_mut()+=1;
-    /// });
-    ///
-    /// assert_eq!(bots[0].inner,1);
-    /// assert_eq!(bots[1].inner,1);
-    ///```
-    fn new_colfind_builder(&mut self) -> QueryBuilder<Self::A, NodeMut<'a, Self::T>> {
-        QueryBuilder::new(self.axis(), self.vistr_mut())
-    }
-
-    /// If we have two non intersecting rectangles, it is safe to return to the user two sets of mutable references
-    /// of the bots strictly inside each rectangle since it is impossible for a bot to belong to both sets.
-    ///
-    /// # Safety
-    ///
-    /// Unsafe code is used.  We unsafely convert the references returned by the rect query
-    /// closure to have a longer lifetime.
-    /// This allows the user to store mutable references of non intersecting rectangles at the same time.
-    /// If two requested rectangles intersect, an error is returned.
-    ///
-    /// Handles a multi rect mut "sessions" within which
-    /// the user can query multiple non intersecting rectangles.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
-    /// let mut tree = broccoli::new(&mut bots1);
-    /// let mut multi = tree.multi_rect();
-    ///
-    /// multi.for_all_in_rect_mut(rect(0,10,0,10),|a|{}).unwrap();
-    /// let res = multi.for_all_in_rect_mut(rect(5,15,5,15),|a|{});
-    /// assert_eq!(res,Err(broccoli::query::RectIntersectErr));
-    ///```
-    #[must_use]
-    fn multi_rect(&mut self) -> rect::MultiRectMut<Self::A, NodeMut<'a, Self::T>> {
-        rect::MultiRectMut::new(self.axis(), self.vistr_mut())
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// let mut test = Vec::new();
-    /// tree.for_all_intersect_rect(&rect(9,20,9,20),|a|{
-    ///    test.push(a);
-    /// });
-    ///
-    /// assert_eq!(test[0],&rect(0,10,0,10));
-    ///
-    ///```
-    fn for_all_intersect_rect<'b>(&'b self, rect: &Rect<Self::Num>, func: impl FnMut(&'b Self::T))
-    where
-        'a: 'b,
-    {
-        rect::for_all_intersect_rect(self.axis(), self.vistr(), rect, func);
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// let mut test = Vec::new();
-    /// tree.for_all_in_rect(&rect(0,20,0,20),|a|{
-    ///    test.push(a);
-    /// });
-    ///
-    /// assert_eq!(test[0],&rect(0,10,0,10));
-    ///
-    fn for_all_in_rect<'b>(&'b self, rect: &Rect<Self::Num>, func: impl FnMut(&'b Self::T))
-    where
-        'a: 'b,
-    {
-        rect::for_all_in_rect(self.axis(), self.vistr(), rect, func);
-    }
 
     ///Experimental. See broccoli demo
     fn nbody_mut<X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Send + Sync>(
@@ -657,34 +691,6 @@ pub trait Queries<'a> {
         query::nbody::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
     }
 
-    /// Find collisions between elements in this tree,
-    /// with the specified slice of elements.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
-    /// let mut bots2 = [bbox(rect(5,15,5,15),0u8)];
-    /// let mut tree = broccoli::new(&mut bots1);
-    ///
-    /// tree.intersect_with_mut(&mut bots2,|a,b|{
-    ///    *a.unpack_inner()+=1;
-    ///    *b.unpack_inner()+=2;    
-    /// });
-    ///
-    /// assert_eq!(bots1[0].inner,1);
-    /// assert_eq!(bots2[0].inner,2);
-    ///```
-    fn intersect_with_mut<X: Aabb<Num = Self::Num> >(
-        &mut self,
-        other: &mut [X],
-        func: impl Fn(PMut<Self::T>, PMut<X>),
-    ) {
-        intersect_with::intersect_with_mut(self.axis(), self.vistr_mut(), other, move |a, b| {
-            (func)(a, b)
-        })
-    }
 }
 
 ///For comparison, the sweep and prune algorithm
