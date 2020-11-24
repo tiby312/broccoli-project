@@ -89,6 +89,10 @@ impl<'a, T: HasInner> PMut<'a, T> {
         self.inner.get_inner_mut().1
     }
 
+    pub fn rect(&self)->&Rect<T::Num>{
+        self.inner.get()
+    }
+
     #[inline(always)]
     pub fn inner(&self) -> &T::Inner {
         self.inner.get_inner().1

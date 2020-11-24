@@ -121,7 +121,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
 
         let mut rects = canvas.rects();
         tree.as_tree_mut().for_all_not_in_rect_mut(&r1, |b| {
-            rects.add(b.rect.inner_as().into());
+            rects.add(b.rect().inner_as().into());
         });
         rects
             .send_and_uniforms(canvas)
