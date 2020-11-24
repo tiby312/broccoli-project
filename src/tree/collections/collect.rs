@@ -285,7 +285,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
     ) -> CollidingPairs<T, D> {
         let mut cols: Vec<_> = Vec::new();
 
-        self.find_colliding_pairs_mut(|mut a, mut b| {
+        self.find_colliding_pairs_mut(|a,b| {
             let a=a.unpack_inner();
             let b=b.unpack_inner();
             if let Some(d) = func(a, b) {

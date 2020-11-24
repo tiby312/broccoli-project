@@ -32,11 +32,6 @@ pub(crate) struct PMutPtr<T: ?Sized> {
     _inner: *mut T,
 }
 
-impl<T> PMutPtr<T>{
-    pub fn into_usize(self)->usize{
-        self._inner as *mut _ as usize
-    }
-}
 
 unsafe impl<T: ?Sized> Send for PMutPtr<T> {}
 unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
@@ -55,12 +50,6 @@ impl<'a,T> PMut<'a,T>{
 }
 impl<'a, T: ?Sized> PMut<'a, T> {
     
-    #[inline(always)]
-    pub(crate) fn as_ptr(&mut self) -> PMutPtr<T> {
-        PMutPtr {
-            _inner: self.inner as *mut _,
-        }
-    }
     
 
     #[inline(always)]

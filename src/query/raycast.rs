@@ -319,7 +319,7 @@ mod mutable {
         }
         
         match closest.closest {
-            Some((mut a, b)) => {
+            Some((a, b)) => {
                 axgeom::CastResult::Hit((a, b))
             }
             None => axgeom::CastResult::NoHit,
@@ -346,7 +346,7 @@ mod mutable {
 
         
         match blap.closest.closest {
-            Some((mut a, b)) => {
+            Some((a, b)) => {
                 axgeom::CastResult::Hit((a, b))
             }
             None => axgeom::CastResult::NoHit,

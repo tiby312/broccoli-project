@@ -70,7 +70,7 @@ pub trait NotSortedQueries<'a> {
         mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>),
     ) {
         query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
-            .query_seq(move |mut a, mut b| func(a, b));
+            .query_seq(move |a,b| func(a, b));
     }
 
     fn find_colliding_pairs_mut_par(
@@ -80,7 +80,7 @@ pub trait NotSortedQueries<'a> {
         Self::T: Send + Sync,
     {
         query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
-            .query_par(move |mut a, mut b| func(a, b));
+            .query_par(move |a,b| func(a, b));
     }
 }
 
@@ -182,7 +182,7 @@ pub trait Queries<'a> {
             colfind::ColMulti for Foo<T, A, B, C, D>
         {
             type T = T;
-            fn collide(&mut self, mut a: PMut<Self::T>, mut b: PMut<Self::T>) {
+            fn collide(&mut self, a: PMut<Self::T>,b: PMut<Self::T>) {
                 (self.collision)(&mut self.acc, a, b)
             }
         }
@@ -739,14 +739,14 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
     pub fn for_all_in_rect_mut(
         &mut self,
         rect: &Rect<T::Num>,
-        mut func: impl FnMut(PMut<T>),
+        func: impl FnMut(PMut<T>),
     ) {
         rect::naive_for_all_in_rect_mut(self.bots.as_mut(), rect, func);
     }
     pub fn for_all_not_in_rect_mut(
         &mut self,
         rect: &Rect<T::Num>,
-        mut func: impl FnMut(PMut<T>),
+        func: impl FnMut(PMut<T>),
     ) {
         rect::naive_for_all_not_in_rect_mut(self.bots.as_mut(), rect, func);
     }
@@ -754,7 +754,7 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
     pub fn for_all_intersect_rect_mut(
         &mut self,
         rect: &Rect<T::Num>,
-        mut func: impl FnMut(PMut<T>),
+        func: impl FnMut(PMut<T>),
     ) {
         rect::naive_for_all_intersect_rect_mut(self.bots.as_mut(), rect,func);
     }
