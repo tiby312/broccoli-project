@@ -69,6 +69,7 @@ pub struct PMut<'a, T: ?Sized> {
 }
 
 impl<'a,T> PMut<'a,T>{
+    #[inline(always)]
     pub fn into_usize(&self)->usize{
         self.inner as *const _ as usize
     }
@@ -114,6 +115,7 @@ impl<'a, T: HasInner> PMut<'a, T> {
         self.inner.get_inner_mut().1
     }
 
+    #[inline(always)]
     pub fn rect(&self)->&Rect<T::Num>{
         self.inner.get()
     }
@@ -136,22 +138,7 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
     }
 }
 
-/*
-unsafe impl<'a, T: HasInner> HasInner for PMut<'a, T> {
 
-    
-    type Inner = T::Inner;
-    #[inline(always)]
-    fn get_inner(&self) -> (&Rect<T::Num>, &Self::Inner) {
-        self.inner.get_inner()
-    }
-
-    #[inline(always)]
-    fn get_inner_mut(&mut self) -> (&Rect<T::Num>, &mut Self::Inner) {
-        self.inner.get_inner_mut()
-    }
-}
-*/
 impl<'a, T: HasInner> PMut<'a, T> {
     #[inline(always)]
     pub fn into_inner(self) -> &'a mut T::Inner {
