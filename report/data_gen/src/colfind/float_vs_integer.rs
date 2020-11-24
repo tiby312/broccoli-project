@@ -35,8 +35,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };
@@ -52,8 +52,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };
@@ -90,8 +90,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };
@@ -109,8 +109,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };
@@ -124,8 +124,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };
@@ -140,8 +140,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };
@@ -157,8 +157,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };
@@ -174,8 +174,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };
@@ -191,8 +191,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };
@@ -208,8 +208,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };
@@ -246,8 +246,8 @@ fn handle_bench(fg: &mut Figure) {
                 let mut tree = broccoli::new_par(&mut bb);
 
                 tree.find_colliding_pairs_mut_par(|a, b| {
-                    **a += 1;
-                    **b += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
                 });
             })
         };

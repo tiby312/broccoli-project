@@ -17,8 +17,8 @@ pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> 
         assert_eq!(tree.get_height(), height);
 
         tree.find_colliding_pairs_mut(|a, b| {
-            **a += 2;
-            **b += 2;
+            **a.unpack_inner() += 2;
+            **b.unpack_inner() += 2;
         });
     })
 }
@@ -34,8 +34,8 @@ pub fn handle_theory_inner(grow: f64, bot_inner: &mut [isize], height: usize) ->
         assert_eq!(tree.get_height(), height);
 
         tree.find_colliding_pairs_mut(|a, b| {
-            **a += 2;
-            **b += 2;
+            **a.unpack_inner() += 2;
+            **b.unpack_inner() += 2;
         });
     })
 }

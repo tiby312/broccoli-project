@@ -38,10 +38,10 @@ mod all {
 
             let (mut tree, t1) = bench_closure_ret(|| broccoli::new(&mut bots));
             let t2 = bench_closure(|| {
-                tree.find_colliding_pairs_pmut(|mut a, mut b| {
+                tree.find_colliding_pairs_mut(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_into();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_into();
-                    repel(aa, bb, a.inner_mut(), b.inner_mut());
+                    repel(aa, bb, a.unpack_inner(), b.unpack_inner());
                 });
             });
             (t1, t2)
@@ -55,10 +55,10 @@ mod all {
 
             let (mut tree, t1) = bench_closure_ret(|| broccoli::new_par(&mut bots));
             let t2 = bench_closure(|| {
-                tree.find_colliding_pairs_pmut_par(|mut a, mut b| {
+                tree.find_colliding_pairs_mut_par(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_into();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_into();
-                    repel(aa, bb, a.inner_mut(), b.inner_mut());
+                    repel(aa, bb, a.unpack_inner(), b.unpack_inner());
                 });
             });
             (t1, t2)
@@ -72,10 +72,10 @@ mod all {
 
             let (mut tree, t1) = bench_closure_ret(|| NotSorted::new(&mut bots));
             let t2 = bench_closure(|| {
-                tree.find_colliding_pairs_pmut(|mut a, mut b| {
+                tree.find_colliding_pairs_mut(| a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_into();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_into();
-                    repel(aa, bb, a.inner_mut(), b.inner_mut());
+                    repel(aa, bb, a.unpack_inner(), b.unpack_inner());
                 });
             });
             (t1, t2)
@@ -89,10 +89,10 @@ mod all {
 
             let (mut tree, t1) = bench_closure_ret(|| NotSorted::new_par(&mut bots));
             let t2 = bench_closure(|| {
-                tree.find_colliding_pairs_pmut_par(|mut a, mut b| {
+                tree.find_colliding_pairs_mut_par(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_into();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_into();
-                    repel(aa, bb, a.inner_mut(), b.inner_mut());
+                    repel(aa, bb, a.unpack_inner(), b.unpack_inner());
                 });
             });
             (t1, t2)
@@ -119,10 +119,10 @@ mod all {
 
             let count = maker.count();
 
-            tree.find_colliding_pairs_pmut(|mut a, mut b| {
+            tree.find_colliding_pairs_mut(|a, b| {
                 let aa = vec2(a.get().x.start.0, a.get().y.start.0).inner_into();
                 let bb = vec2(b.get().x.start.0, b.get().y.start.0).inner_into();
-                repel(aa, bb, a.inner_mut(), b.inner_mut());
+                repel(aa, bb, a.unpack_inner(), b.unpack_inner());
             });
 
             let count2 = maker.count();
@@ -138,10 +138,10 @@ mod all {
 
             let count = maker.count();
 
-            tree.find_colliding_pairs_pmut(|mut a, mut b| {
+            tree.find_colliding_pairs_mut(|a,  b| {
                 let aa = vec2(a.get().x.start.0, a.get().y.start.0).inner_into();
                 let bb = vec2(b.get().x.start.0, b.get().y.start.0).inner_into();
-                repel(aa, bb, a.inner_mut(), b.inner_mut());
+                repel(aa, bb, a.unpack_inner(), b.unpack_inner());
             });
 
             let count2 = maker.count();
