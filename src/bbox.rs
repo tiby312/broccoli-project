@@ -23,7 +23,7 @@ pub struct BBox<N, T> {
 
 
 impl<N, T> BBox<N, T> {
-    ///Constructor. Also consider using [`bbox`]
+    ///Constructor. Also consider using [`bbox()`]
     #[inline(always)]
     pub fn new(rect: Rect<N>, inner: T) -> BBox<N, T> {
         BBox { rect, inner }
