@@ -1,7 +1,7 @@
 use crate::pmut::PMut;
 use crate::pmut::PMutPtr;
-use itertools::Itertools;
 use alloc::vec::Vec;
+use itertools::Itertools;
 
 ///An vec api to avoid excessive dynamic allocation by reusing a Vec
 #[derive(Default)]
@@ -24,10 +24,6 @@ impl<T> PreVecMut<T> {
     }
 }
 
-
-
-
-
 ///Splits a mutable slice into multiple slices
 ///The splits occur where the predicate returns false.
 pub struct SliceSplitMut<'a, T, F> {
@@ -45,18 +41,21 @@ impl<'a, T, F: FnMut(&T, &T) -> bool> SliceSplitMut<'a, T, F> {
 }
 
 impl<'a, T, F: FnMut(&T, &T) -> bool> DoubleEndedIterator for SliceSplitMut<'a, T, F> {
-    fn next_back(&mut self)->Option<Self::Item>{
+    fn next_back(&mut self) -> Option<Self::Item> {
         let (last, arr) = {
             let arr = self.arr.take()?;
-            let ll=arr.len();
+            let ll = arr.len();
             let i = arr.last()?;
-            let count = arr.iter().rev().peeking_take_while(|a| (self.func)(a, i)).count();
-            (ll-count, arr)
+            let count = arr
+                .iter()
+                .rev()
+                .peeking_take_while(|a| (self.func)(a, i))
+                .count();
+            (ll - count, arr)
         };
         let (rest, last) = arr.split_at_mut(last);
         self.arr = Some(rest);
         Some(last)
-        
     }
 }
 impl<'a, T, F: FnMut(&T, &T) -> bool> Iterator for SliceSplitMut<'a, T, F> {

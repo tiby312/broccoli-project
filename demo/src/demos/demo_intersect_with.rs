@@ -86,8 +86,8 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             let mut tree = broccoli::new_par(&mut k);
 
             tree.intersect_with_mut(&mut walls, |bot, wall| {
-                let bot=bot.unpack_inner();
-                let wall=wall.unpack_inner();
+                let bot = bot.unpack_inner();
+                let wall = wall.unpack_inner();
 
                 let fric = 0.8;
 
@@ -123,14 +123,14 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                     .inner_try_into()
                     .unwrap(),
                 |b| {
-                    let b=b.unpack_inner();
+                    let b = b.unpack_inner();
                     let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cc, 0.001, 20.0);
                 },
             );
 
             tree.find_colliding_pairs_mut_par(|a, b| {
-                let a=a.unpack_inner();
-                let b=b.unpack_inner();
+                let a = a.unpack_inner();
+                let b = b.unpack_inner();
                 let _ =
                     duckduckgeo::repel([(a.pos, &mut a.force), (b.pos, &mut b.force)], 0.001, 2.0);
             });

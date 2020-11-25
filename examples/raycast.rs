@@ -27,5 +27,7 @@ fn main() {
         |(), ray, b| ray.cast_to_rect(&b.rect),
         border,
     );
-    assert_eq!(*res.unwrap().0[0].inner, 4);
+
+    let (bots, _) = res.unwrap();
+    assert_eq!(*bots[0].inner, 4);
 }

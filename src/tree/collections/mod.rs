@@ -239,7 +239,6 @@ impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
     }
 }
 
-
 /// An owned version of [`TreeRefInd`]
 ///
 /// ```rust

@@ -25,7 +25,6 @@
 
 use crate::inner_prelude::*;
 
-
 ///Trait exposes an api where you can return a read-only reference to the axis-aligned bounding box
 ///and at the same time return a mutable reference to a seperate inner section.
 ///
@@ -37,10 +36,9 @@ use crate::inner_prelude::*;
 ///so we mark this trait as unsafe.
 pub unsafe trait HasInner: Aabb {
     type Inner;
-    
+
     fn get_inner_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner);
 }
-
 
 ///A protected mutable reference.
 ///See the pmut module documentation for more explanation.
@@ -48,7 +46,6 @@ pub unsafe trait HasInner: Aabb {
 pub(crate) struct PMutPtr<T: ?Sized> {
     _inner: *mut T,
 }
-
 
 unsafe impl<T: ?Sized> Send for PMutPtr<T> {}
 unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
@@ -60,17 +57,16 @@ pub struct PMut<'a, T: ?Sized> {
     inner: &'a mut T,
 }
 
-impl<'a,T:?Sized> core::ops::Deref for PMut<'a,T>{
+impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
     type Target = T;
-    
+
     #[inline(always)]
-    fn deref(&self)->&T{
+    fn deref(&self) -> &T {
         self.inner
     }
 }
 
 impl<'a, T: ?Sized> PMut<'a, T> {
-    
     ///Create a PMut
     #[inline(always)]
     pub fn new(inner: &'a mut T) -> PMut<'a, T> {
@@ -83,15 +79,14 @@ impl<'a, T: ?Sized> PMut<'a, T> {
         PMut { inner: self.inner }
     }
 
-    ///Manually convert to read only reference. 
+    ///Manually convert to read only reference.
     #[inline(always)]
-    pub fn into_ref(self)->&'a T{
+    pub fn into_ref(self) -> &'a T {
         self.inner
     }
 }
 
 impl<'a, T: Node> PMut<'a, T> {
-
     #[inline(always)]
     pub fn get_mut(self) -> NodeRefMut<'a, T::T> {
         self.inner.get_mut()
@@ -106,7 +101,7 @@ impl<'a, T: HasInner> PMut<'a, T> {
     }
     ///Unpack only the mutable innner component
     #[inline(always)]
-    pub fn unpack_inner(self) ->  &'a mut T::Inner {
+    pub fn unpack_inner(self) -> &'a mut T::Inner {
         self.inner.get_inner_mut().1
     }
 
@@ -126,7 +121,7 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
 }
 
 impl<'a, T> PMut<'a, [T]> {
-    ///We can't use the index trait because we don't want 
+    ///We can't use the index trait because we don't want
     ///to return a mutable reference.
     #[inline(always)]
     pub fn get_index_mut(&mut self, ind: usize) -> PMut<T> {
@@ -177,8 +172,6 @@ impl<'a, T> core::iter::IntoIterator for PMut<'a, [T]> {
         self.iter_mut()
     }
 }
-
-
 
 ///Iterator produced by `PMut<[T]>` that generates `PMut<T>`
 pub struct PMutIter<'a, T> {

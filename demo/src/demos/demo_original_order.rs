@@ -56,7 +56,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         {
             let dim2 = dim.inner_into();
             tree.for_all_not_in_rect_mut(&dim, |a| {
-                let a=a.unpack_inner();
+                let a = a.unpack_inner();
                 duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim2, 0.5);
             });
         }
@@ -64,7 +64,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         let vv = vec2same(100.0).inner_try_into().unwrap();
         let cc = cursor.inner_into();
         tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), |b| {
-            let b=b.unpack_inner();
+            let b = b.unpack_inner();
             let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cc, 0.001, 20.0);
         });
 
@@ -86,7 +86,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             .draw();
 
         tree.find_colliding_pairs_mut_par(|a, b| {
-            let (a,b)=(a.unpack_inner(),b.unpack_inner());
+            let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = duckduckgeo::repel([(a.pos, &mut a.force), (b.pos, &mut b.force)], 0.001, 2.0);
         });
 

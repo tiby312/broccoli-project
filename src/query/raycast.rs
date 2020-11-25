@@ -308,8 +308,7 @@ mod mutable {
         ray: Ray<T::Num>,
         rtrait: &mut impl RayCast<N = T::Num, T = T>,
         border: Rect<T::Num>,
-    ) -> axgeom::CastResult<(Vec<PMut<'a,T>>, T::Num)>
-    {
+    ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
         let mut closest = Closest { closest: None };
 
         for b in bots.iter_mut() {
@@ -317,11 +316,9 @@ mod mutable {
                 closest.consider(&ray, b, rtrait);
             }
         }
-        
+
         match closest.closest {
-            Some((a, b)) => {
-                axgeom::CastResult::Hit((a, b))
-            }
+            Some((a, b)) => axgeom::CastResult::Hit((a, b)),
             None => axgeom::CastResult::NoHit,
         }
     }
@@ -332,8 +329,7 @@ mod mutable {
         rect: Rect<N::Num>,
         ray: Ray<N::Num>,
         rtrait: &mut impl RayCast<N = N::Num, T = N::T>,
-    ) -> axgeom::CastResult<(Vec<PMut<'a,N::T>>, N::Num)>
-    {
+    ) -> axgeom::CastResult<(Vec<PMut<'a, N::T>>, N::Num)> {
         let dt = vistr.with_depth(Depth(0));
 
         let closest = Closest { closest: None };
@@ -344,13 +340,9 @@ mod mutable {
         };
         recc(axis, dt, rect, &mut blap);
 
-        
         match blap.closest.closest {
-            Some((a, b)) => {
-                axgeom::CastResult::Hit((a, b))
-            }
+            Some((a, b)) => axgeom::CastResult::Hit((a, b)),
             None => axgeom::CastResult::NoHit,
         }
-        
     }
 }

@@ -20,8 +20,6 @@ pub struct BBox<N, T> {
     pub inner: T,
 }
 
-
-
 impl<N, T> BBox<N, T> {
     ///Constructor. Also consider using [`bbox()`]
     #[inline(always)]
@@ -95,7 +93,6 @@ unsafe impl<N: Num, T> HasInner for BBox<N, T> {
         (&self.rect, &mut self.inner)
     }
 }
-
 
 unsafe impl<N: Num, T> Aabb for &mut BBox<N, T> {
     type Num = N;

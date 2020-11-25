@@ -33,14 +33,12 @@ fn main() {
 
     //Find all colliding aabbs.
     tree.find_colliding_pairs_mut(|a, b| {
-        let (a,b)=(a.unpack_inner(),b.unpack_inner());
-        let offset = a.0 - b.0;
-        let dis = offset.magnitude2();
-        a.1 += dis as usize;
-        b.1 += dis as usize;
+        let (a, b) = (a.unpack_inner(), b.unpack_inner());
+        a.1 += 1;
+        b.1 += 1;
     });
 
-    assert_eq!(inner1.1, 5);
+    assert_eq!(inner1.1, 1);
     assert_eq!(inner2.1, 0);
-    assert_eq!(inner3.1, 5);
+    assert_eq!(inner3.1, 1);
 }

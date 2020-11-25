@@ -83,7 +83,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         let mut tree = broccoli::new_par(&mut k);
 
         tree.find_colliding_pairs_mut_par(move |a, b| {
-            let (a,b)=(a.unpack_inner(),b.unpack_inner());
+            let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = a.solve(b, radius);
         });
 
@@ -93,7 +93,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         let k = axgeom::Rect::from_point(cursor, vv);
         let j = broccoli::convert::rect_f32_to_u16(k.inner_into(), dim2);
         tree.for_all_in_rect_mut(&j, move |b| {
-            let b=b.unpack_inner();
+            let b = b.unpack_inner();
             let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cc, 0.001, 100.0);
         });
 
@@ -102,7 +102,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
 
             let jj = broccoli::convert::rect_f32_to_u16(dim_float, dim2);
             tree.for_all_not_in_rect_mut(&jj, move |a| {
-                let a=a.unpack_inner();
+                let a = a.unpack_inner();
                 duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim3, 0.5);
             });
         }

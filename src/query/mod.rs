@@ -26,8 +26,8 @@ mod graphics;
 
 ///Contains all k_nearest code.
 mod k_nearest;
-pub use k_nearest::KnearestResult;
 pub use k_nearest::KResult;
+pub use k_nearest::KnearestResult;
 
 ///Contains all raycast code.
 mod raycast;
@@ -52,7 +52,7 @@ pub trait NotSortedQueries<'a> {
     type A: Axis;
     type T: Aabb<Num = Self::Num> + 'a;
     type Num: Num;
-    
+
     #[must_use]
     fn vistr_mut(&mut self) -> VistrMut<NodeMut<'a, Self::T>>;
 
@@ -66,13 +66,9 @@ pub trait NotSortedQueries<'a> {
         NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
     }
 
-
-    fn find_colliding_pairs_mut(
-        &mut self,
-        mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>),
-    ) {
+    fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
         query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
-            .query_seq(move |a,b| func(a, b));
+            .query_seq(move |a, b| func(a, b));
     }
 
     fn find_colliding_pairs_mut_par(
@@ -82,10 +78,9 @@ pub trait NotSortedQueries<'a> {
         Self::T: Send + Sync,
     {
         query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
-            .query_par(move |a,b| func(a, b));
+            .query_par(move |a, b| func(a, b));
     }
 }
-
 
 ///Query functions. User defines `vistr()` functions, and the query functions
 ///are automatically provided by this trait.
@@ -140,8 +135,6 @@ pub trait Queries<'a> {
     #[must_use]
     fn axis(&self) -> Self::A;
 
-
-
     /// Find all aabb intersections and return a PMut<T> of it. Unlike the regular `find_colliding_pairs_mut`, this allows the
     /// user to access a read only reference of the AABB.
     ///
@@ -188,9 +181,8 @@ pub trait Queries<'a> {
         colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_par(move |a, b| func(a, b));
     }
 
-
     /// An extended version of `find_colliding_pairs`. where the user can supply
-    /// callbacks to when new worker tasks are spawned and joined by `rayon`. 
+    /// callbacks to when new worker tasks are spawned and joined by `rayon`.
     /// Allows the user to potentially collect some aspect of every aabb collision in parallel.
     ///
     /// # Examples
@@ -226,11 +218,9 @@ pub trait Queries<'a> {
             collision: D,
         }
 
-        impl<T: Aabb , A, B, C, D: Fn(&mut A, PMut<T>, PMut<T>)>
-            colfind::ColMulti for Foo<T, A, B, C, D>
-        {
+        impl<T: Aabb, A, B, C, D: Fn(&mut A, PMut<T>, PMut<T>)> colfind::ColMulti for Foo<T, A, B, C, D> {
             type T = T;
-            fn collide(&mut self, a: PMut<Self::T>,b: PMut<Self::T>) {
+            fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
                 (self.collision)(&mut self.acc, a, b)
             }
         }
@@ -270,7 +260,6 @@ pub trait Queries<'a> {
         foo.acc
     }
 
-
     /// For analysis, allows the user to query with custom settings
     ///
     /// # Examples
@@ -293,9 +282,6 @@ pub trait Queries<'a> {
     fn new_colfind_builder(&mut self) -> QueryBuilder<Self::A, NodeMut<'a, Self::T>> {
         QueryBuilder::new(self.axis(), self.vistr_mut())
     }
-
-
-
 
     /// # Examples
     ///
@@ -334,15 +320,12 @@ pub trait Queries<'a> {
     fn for_all_intersect_rect_mut<'b>(
         &'b mut self,
         rect: &Rect<Self::Num>,
-        mut func: impl FnMut(PMut<'b,Self::T>),
+        mut func: impl FnMut(PMut<'b, Self::T>),
     ) where
         'a: 'b,
     {
-        rect::for_all_intersect_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| {
-            (func)(a)
-        });
+        rect::for_all_intersect_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| (func)(a));
     }
-
 
     /// # Examples
     ///
@@ -380,13 +363,11 @@ pub trait Queries<'a> {
     fn for_all_in_rect_mut<'b>(
         &'b mut self,
         rect: &Rect<Self::Num>,
-        mut func: impl FnMut(PMut<'b,Self::T>),
+        mut func: impl FnMut(PMut<'b, Self::T>),
     ) where
         'a: 'b,
     {
-        rect::for_all_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| {
-            (func)(a)
-        });
+        rect::for_all_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| (func)(a));
     }
 
     /// # Examples
@@ -405,15 +386,12 @@ pub trait Queries<'a> {
     fn for_all_not_in_rect_mut<'b>(
         &'b mut self,
         rect: &Rect<Self::Num>,
-        mut func: impl FnMut(PMut<'b,Self::T>),
+        mut func: impl FnMut(PMut<'b, Self::T>),
     ) where
         'a: 'b,
     {
-        rect::for_all_not_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| {
-            (func)(a)
-        });
+        rect::for_all_not_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| (func)(a));
     }
-
 
     /// If we have two non intersecting rectangles, it is safe to return to the user two sets of mutable references
     /// of the bots strictly inside each rectangle since it is impossible for a bot to belong to both sets.
@@ -446,13 +424,13 @@ pub trait Queries<'a> {
     }
 
     /// Find the elements that are hit by a ray.
-    /// 
+    ///
     /// The user supplies to functions:
     ///
     /// `fine` is a function that returns the true length of a ray
     /// cast to an object.
     ///
-    /// `broad` is a function that returns the length of a ray cast to 
+    /// `broad` is a function that returns the length of a ray cast to
     /// a axis aligned rectangle. This function
     /// is used as a conservative estimate to prune out elements which minimizes
     /// how often the `fine` function gets called.  
@@ -502,7 +480,7 @@ pub trait Queries<'a> {
         broad: impl FnMut(&mut Acc, &Ray<Self::Num>, &Rect<Self::Num>) -> CastResult<Self::Num>,
         fine: impl FnMut(&mut Acc, &Ray<Self::Num>, &Self::T) -> CastResult<Self::Num>,
         border: Rect<Self::Num>,
-    ) -> axgeom::CastResult<(Vec<PMut<'b,Self::T>>, Self::Num)>
+    ) -> axgeom::CastResult<(Vec<PMut<'b, Self::T>>, Self::Num)>
     where
         'a: 'b,
     {
@@ -531,7 +509,7 @@ pub trait Queries<'a> {
     /// should be within this starting rectangle.
     ///  
     /// The result is returned as one `Vec`. The closest elements will
-    /// appear first. Multiple elements can be returned 
+    /// appear first. Multiple elements can be returned
     /// with the same distance in the event of ties. These groups of elements are seperated by
     /// one entry of `Option::None`. In order to iterate over each group,
     /// try using the slice function: `arr.split(|a| a.is_none())`
@@ -614,7 +592,7 @@ pub trait Queries<'a> {
     /// assert_eq!(bots1[0].inner,1);
     /// assert_eq!(bots2[0].inner,2);
     ///```
-    fn intersect_with_mut<X: Aabb<Num = Self::Num> >(
+    fn intersect_with_mut<X: Aabb<Num = Self::Num>>(
         &mut self,
         other: &mut [X],
         func: impl Fn(PMut<Self::T>, PMut<X>),
@@ -662,9 +640,6 @@ pub trait Queries<'a> {
         graphics::draw(self.axis(), self.vistr(), drawer, rect)
     }
 
-
-
-
     ///Experimental. See broccoli demo
     fn nbody_mut<X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Send + Sync>(
         &mut self,
@@ -672,7 +647,7 @@ pub trait Queries<'a> {
         rect: Rect<Self::Num>,
     ) where
         X::No: Send,
-        Self::T:  Send + Sync,
+        Self::T: Send + Sync,
     {
         query::nbody::nbody(self.axis(), self.vistr_mut(), ncontext, rect)
     }
@@ -690,7 +665,6 @@ pub trait Queries<'a> {
     {
         query::nbody::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
     }
-
 }
 
 ///For comparison, the sweep and prune algorithm
@@ -746,33 +720,19 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
 }
 
 impl<'a, T: Aabb> NaiveAlgs<'a, T> {
-    pub fn for_all_in_rect_mut(
-        &mut self,
-        rect: &Rect<T::Num>,
-        func: impl FnMut(PMut<T>),
-    ) {
+    pub fn for_all_in_rect_mut(&mut self, rect: &Rect<T::Num>, func: impl FnMut(PMut<T>)) {
         rect::naive_for_all_in_rect_mut(self.bots.as_mut(), rect, func);
     }
-    pub fn for_all_not_in_rect_mut(
-        &mut self,
-        rect: &Rect<T::Num>,
-        func: impl FnMut(PMut<T>),
-    ) {
+    pub fn for_all_not_in_rect_mut(&mut self, rect: &Rect<T::Num>, func: impl FnMut(PMut<T>)) {
         rect::naive_for_all_not_in_rect_mut(self.bots.as_mut(), rect, func);
     }
 
-    pub fn for_all_intersect_rect_mut(
-        &mut self,
-        rect: &Rect<T::Num>,
-        func: impl FnMut(PMut<T>),
-    ) {
-        rect::naive_for_all_intersect_rect_mut(self.bots.as_mut(), rect,func);
+    pub fn for_all_intersect_rect_mut(&mut self, rect: &Rect<T::Num>, func: impl FnMut(PMut<T>)) {
+        rect::naive_for_all_intersect_rect_mut(self.bots.as_mut(), rect, func);
     }
 
     pub fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<T>, PMut<T>)) {
-        colfind::query_naive_mut(self.bots.as_mut(), |a, b| {
-            func(a, b)
-        });
+        colfind::query_naive_mut(self.bots.as_mut(), |a, b| func(a, b));
     }
 }
 

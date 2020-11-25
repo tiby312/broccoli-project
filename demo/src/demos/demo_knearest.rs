@@ -93,13 +93,11 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             k
         };
 
-
         rect_save
             .uniforms(canvas)
             .with_color([0.0, 0.0, 0.0, 0.3])
             .draw();
 
-        
         for (k, color) in vv.iter().rev().zip(cols.iter()) {
             canvas
                 .circles()

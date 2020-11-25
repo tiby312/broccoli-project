@@ -219,7 +219,6 @@ mod constant {
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
 pub struct RectIntersectErr;
 
-
 ///See the [`Queries::multi_rect`](crate::query::Queries::multi_rect) function.
 pub struct MultiRectMut<'a, A: Axis, N: Node> {
     axis: A,
@@ -241,7 +240,7 @@ impl<'a, A: Axis, N: Node> MultiRectMut<'a, A, N> {
         mut func: impl FnMut(PMut<'a, N::T>),
     ) -> Result<(), RectIntersectErr> {
         for r in self.rects.iter() {
-            if rect.intersects_rect(r){
+            if rect.intersects_rect(r) {
                 return Err(RectIntersectErr);
             }
         }

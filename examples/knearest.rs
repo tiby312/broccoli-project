@@ -24,11 +24,10 @@ fn main() {
         |(), a, b| b.inner.distance_squared_to_point(a),
         border,
     );
-    assert_eq!(res.len(),2);
-    assert_eq!(res.total_len(),2);
+    assert_eq!(res.len(), 2);
+    assert_eq!(res.total_len(), 2);
 
-    let foo:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
+    let foo: Vec<_> = res.iter().map(|a| *a[0].bot.inner).collect();
 
-    assert_eq!(foo,vec![vec2(7,7),vec2(5,5)])
-    
+    assert_eq!(foo, vec![vec2(7, 7), vec2(5, 5)])
 }

@@ -1,7 +1,7 @@
 use crate::support::prelude::*;
 
-use duckduckgeo;
 use broccoli::pmut::PMut;
+use duckduckgeo;
 #[derive(Copy, Clone)]
 struct NodeMass {
     rect: axgeom::Rect<F32n>,
@@ -40,7 +40,7 @@ impl<'b> broccoli::query::NodeMassTrait for Bla<'b> {
 
     //gravitate a bot with a bot
     fn handle_bot_with_bot(&self, a: PMut<Self::Item>, b: PMut<Self::Item>) {
-        let (a,b)=(a.unpack_inner(),b.unpack_inner());
+        let (a, b) = (a.unpack_inner(), b.unpack_inner());
 
         let _ = duckduckgeo::gravitate(
             [(a.pos, a.mass, &mut a.force), (b.pos, b.mass, &mut b.force)],
@@ -51,8 +51,8 @@ impl<'b> broccoli::query::NodeMassTrait for Bla<'b> {
 
     //gravitate a nodemass with a bot
     fn handle_node_with_bot(&self, a: &mut Self::No, b: PMut<Self::Item>) {
-        let b=b.unpack_inner();
-        
+        let b = b.unpack_inner();
+
         let _ = duckduckgeo::gravitate(
             [
                 (a.center, a.mass, &mut a.force),
@@ -92,7 +92,7 @@ impl<'b> broccoli::query::NodeMassTrait for Bla<'b> {
         }
     }
 
-    fn apply_to_bots<'a, I: Iterator<Item = PMut<'a,Self::Item>>>(
+    fn apply_to_bots<'a, I: Iterator<Item = PMut<'a, Self::Item>>>(
         &'a self,
         a: &'a Self::No,
         it: I,
@@ -102,7 +102,7 @@ impl<'b> broccoli::query::NodeMassTrait for Bla<'b> {
             let total_forcey = a.force.y;
 
             for i in it {
-                let i=i.unpack_inner();
+                let i = i.unpack_inner();
                 let forcex = total_forcex * (i.mass / a.mass);
                 let forcey = total_forcey * (i.mass / a.mass);
 
@@ -247,7 +247,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             }
 
             tree.find_colliding_pairs_mut_par(|a, b| {
-                let (a,b)=(a.unpack_inner(),b.unpack_inner());
+                let (a, b) = (a.unpack_inner(), b.unpack_inner());
                 let (a, b) = if a.mass > b.mass { (a, b) } else { (b, a) };
 
                 if b.mass != 0.0 {

@@ -294,38 +294,37 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
     }
 }
 
-
-
-
 ///Returned by knearest.
-pub struct KResult<'a,T:Aabb>{
-    num_entires:usize,
-    inner:Vec<KnearestResult<'a,T>>
+pub struct KResult<'a, T: Aabb> {
+    num_entires: usize,
+    inner: Vec<KnearestResult<'a, T>>,
 }
 
-impl<'a,T:Aabb> KResult<'a,T>{
+impl<'a, T: Aabb> KResult<'a, T> {
     ///Iterators over each group of ties starting with the closest.
     ///All the elements in one group have the same distance.
-    pub fn iter(&mut self)-> impl Iterator<Item=&mut [KnearestResult<'a,T>]>+core::iter::FusedIterator+DoubleEndedIterator{
-        crate::util::SliceSplitMut::new(&mut self.inner,|a,b|a.mag==b.mag).fuse()
+    pub fn iter(
+        &mut self,
+    ) -> impl Iterator<Item = &mut [KnearestResult<'a, T>]>
+           + core::iter::FusedIterator
+           + DoubleEndedIterator {
+        crate::util::SliceSplitMut::new(&mut self.inner, |a, b| a.mag == b.mag).fuse()
     }
 
     ///Return the underlying datastructure
-    pub fn into_vec(self)->Vec<KnearestResult<'a,T>>{
+    pub fn into_vec(self) -> Vec<KnearestResult<'a, T>> {
         self.inner
     }
 
     ///returns the total number of elements counting ties
-    pub fn total_len(&self)->usize{
+    pub fn total_len(&self) -> usize {
         self.inner.len()
     }
     ///Returns the number of unique distances
-    pub fn len(&self)->usize{
+    pub fn len(&self) -> usize {
         self.num_entires
     }
 }
-
-
 
 pub use self::mutable::k_nearest_mut;
 
@@ -338,16 +337,18 @@ mod mutable {
         point: Vec2<K::N>,
         num: usize,
         k: &mut K,
-    ) -> KResult<'a,T> {
+    ) -> KResult<'a, T> {
         let mut closest = ClosestCand::new(num);
 
         for b in bots.iter_mut() {
             closest.consider(&point, k, b);
         }
 
-        let num_entires=closest.curr_num;
-        KResult{num_entires,inner:closest.into_sorted()}
-
+        let num_entires = closest.curr_num;
+        KResult {
+            num_entires,
+            inner: closest.into_sorted(),
+        }
     }
 
     pub fn k_nearest_mut<'a, A: Axis, N: Node>(
@@ -357,8 +358,7 @@ mod mutable {
         num: usize,
         knear: &mut impl Knearest<N = N::Num, T = N::T>,
         rect: Rect<N::Num>,
-    ) -> KResult<'a,N::T>
-    {
+    ) -> KResult<'a, N::T> {
         let dt = vistr.with_depth(Depth(0));
 
         let closest = ClosestCand::new(num);
@@ -383,7 +383,10 @@ mod mutable {
         res
         */
 
-        let num_entires=blap.closest.curr_num;
-        KResult{num_entires,inner:blap.closest.into_sorted()}
+        let num_entires = blap.closest.curr_num;
+        KResult {
+            num_entires,
+            inner: blap.closest.into_sorted(),
+        }
     }
 }
