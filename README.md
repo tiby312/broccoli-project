@@ -5,12 +5,12 @@ The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org
 
 ### Inner projects
 
-The broccoli_demo inner project is meant to show case the use of these algorithms. 
+The `broccoli_demo` inner project is meant to show case the use of these algorithms. 
 The report inner project generates benches used in the [broccoli book](https://tiby312.github.io/broccoli_report).
 
 ### Screenshot
 
-Screen capture from the inner dinotree_alg_demo project.
+Screen capture from the inner `broccoli_demo` project.
 
 <img src="./assets/screenshot.gif" alt="screenshot">
 

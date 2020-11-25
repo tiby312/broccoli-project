@@ -21,7 +21,7 @@ mod colfind;
 pub use colfind::NotSortedQueryBuilder;
 pub use colfind::QueryBuilder;
 
-///Provides functionality to draw the dividers of a dinotree.
+///Provides functionality to draw the dividers of [`Tree`].
 mod graphics;
 
 ///Contains all k_nearest code.
@@ -676,7 +676,7 @@ pub fn find_collisions_sweep_mut<A: Axis, T: Aabb>(
     colfind::query_sweep_mut(axis, bots, |a, b| func(a, b));
 }
 
-///Provides the naive implementation of the dinotree api.
+///Provides the naive implementation of the [`Tree`] api.
 pub struct NaiveAlgs<'a, T> {
     bots: PMut<'a, [T]>,
 }

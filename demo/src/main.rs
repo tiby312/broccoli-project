@@ -74,7 +74,7 @@ fn main() {
 
     let events_loop = glutin::event_loop::EventLoop::new();
 
-    let mut sys = egaku2d::WindowedSystem::new([800, 600], &events_loop, "dinotree_alg demo");
+    let mut sys = egaku2d::WindowedSystem::new([800, 600], &events_loop, "broccoli demo");
     //let mut sys=very_simple_2d::FullScreenSystem::new(&events_loop);
     //sys.set_viewport_min(600.);
 
