@@ -154,7 +154,7 @@ impl<'a, A: Axis, N: Num, T: Send + Sync> TreeRefInd<'a, A, N, T> {
             .collect();
         let mtree = compt::dfs_order::CompleteTree::from_preorder_mut(&mut cols).unwrap();
 
-        self.find_colliding_pairs_par_ext(
+        self.new_colfind_builder().query_par_ext(
             move |a| {
                 let next = a.next.take();
                 if let Some([left, right]) = next {

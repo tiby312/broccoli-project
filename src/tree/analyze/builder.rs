@@ -132,6 +132,8 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
         self
     }
 
+    
+    
     ///Build with a Splitter.
     pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: &mut S) -> Tree<'a, A, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
@@ -145,6 +147,7 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
             self.rebal_strat,
         )
     }
+    
 }
 
 fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
