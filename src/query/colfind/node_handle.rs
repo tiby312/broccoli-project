@@ -50,14 +50,6 @@ impl<K: ColMulti + Splitter> Splitter for HandleNoSorted<K> {
     fn add(&mut self, a: Self) {
         self.func.add(a.func);
     }
-    #[inline(always)]
-    fn node_start(&mut self) {
-        self.func.node_start();
-    }
-    #[inline(always)]
-    fn node_end(&mut self) {
-        self.func.node_start();
-    }
 }
 
 impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
@@ -120,14 +112,6 @@ impl<K: ColMulti + Splitter> Splitter for HandleSorted<K> {
     #[inline(always)]
     fn add(&mut self, a: Self) {
         self.func.add(a.func);
-    }
-    #[inline(always)]
-    fn node_start(&mut self) {
-        self.func.node_start();
-    }
-    #[inline(always)]
-    fn node_end(&mut self) {
-        self.func.node_start();
     }
 }
 

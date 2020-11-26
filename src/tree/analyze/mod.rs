@@ -78,12 +78,6 @@ pub trait Splitter: Sized {
     ///Called to add the results of the recursive calls on the children.
     fn add(&mut self, b: Self);
 
-    ///Called at the start of the recursive call.
-    fn node_start(&mut self);
-
-    ///It is important to note that this gets called in other places besides in the final recursive call of a leaf.
-    ///They may get called in a non leaf if its found that there is no more need to recurse further.
-    fn node_end(&mut self);
 }
 
 ///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
@@ -96,8 +90,4 @@ impl Splitter for SplitterEmpty {
     }
     #[inline(always)]
     fn add(&mut self, _: Self) {}
-    #[inline(always)]
-    fn node_start(&mut self) {}
-    #[inline(always)]
-    fn node_end(&mut self) {}
 }

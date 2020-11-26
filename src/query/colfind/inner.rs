@@ -86,9 +86,7 @@ impl<
         m: VistrMut<N>,
         splitter: &mut K,
     ) {
-        sweeper.node_start();
-        splitter.node_start();
-
+       
         let (nn, rest) = m.next();
         let mut nn = nn.get_mut();
         sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
@@ -98,11 +96,11 @@ impl<
                 let div = match nn.div {
                     Some(d) => d,
                     None => {
-                        sweeper.node_end();
-                        splitter.node_end();
                         return;
                     }
                 };
+
+                let mut splitter2 = splitter.div();
 
                 if let Some(cont) = nn.cont {
                     let nn = DestructuredNode {
@@ -119,7 +117,6 @@ impl<
                     g.go_down(this_axis.next(), right);
                 }
 
-                let mut splitter2 = splitter.div();
 
                 let splitter = {
                     let splitter2 = &mut splitter2;
@@ -164,8 +161,6 @@ impl<
                 splitter.add(splitter2);
             }
             None => {
-                sweeper.node_end();
-                splitter.node_end();
             }
         }
     }
@@ -184,24 +179,24 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
         m: VistrMut<N>,
         splitter: &mut K,
     ) {
-        sweeper.node_start();
-        splitter.node_start();
 
         let (nn, rest) = m.next();
         let mut nn = nn.get_mut();
 
-        sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
-
+        
         match rest {
             Some([mut left, mut right]) => {
                 let div = match nn.div {
                     Some(d) => d,
                     None => {
-                        sweeper.node_end();
-                        splitter.node_end();
                         return;
                     }
                 };
+
+                let mut splitter2 = splitter.div();
+
+                sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
+
 
                 if let Some(cont) = nn.cont {
                     let nn = DestructuredNode {
@@ -218,7 +213,6 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
                     g.go_down(this_axis.next(), right);
                 }
 
-                let mut splitter2 = splitter.div();
 
                 let splitter = {
                     let splitter2 = &mut splitter2;
@@ -230,8 +224,8 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
                 splitter.add(splitter2);
             }
             None => {
-                sweeper.node_end();
-                splitter.node_end();
+                sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
+
             }
         }
     }
@@ -261,10 +255,6 @@ impl<T, F> Splitter for QueryFnMut<T, F> {
     fn add(&mut self, _: Self) {
         unreachable!()
     }
-    #[inline(always)]
-    fn node_start(&mut self) {}
-    #[inline(always)]
-    fn node_end(&mut self) {}
 }
 
 pub(super) struct QueryFn<T, F>(F, PhantomData<T>);
@@ -290,8 +280,4 @@ impl<T, F: Clone> Splitter for QueryFn<T, F> {
     }
     #[inline(always)]
     fn add(&mut self, _: Self) {}
-    #[inline(always)]
-    fn node_start(&mut self) {}
-    #[inline(always)]
-    fn node_end(&mut self) {}
 }

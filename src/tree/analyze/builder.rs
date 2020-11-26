@@ -311,14 +311,14 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
         splitter: &mut K,
         depth: usize,
     ) {
-        splitter.node_start();
 
         if depth < self.height - 1 {
+            let mut splitter2 = splitter.div();
+
             let (node, left, right) = self.create_non_leaf(axis, rest);
             nodes.push(node.finish(self.sorter));
 
-            let mut splitter2 = splitter.div();
-
+            
             self.recurse_preorder_seq(axis.next(), left, nodes, splitter, depth + 1);
             self.recurse_preorder_seq(axis.next(), right, nodes, &mut splitter2, depth + 1);
 
@@ -326,7 +326,6 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
         } else {
             let node = self.create_leaf(axis, rest);
             nodes.push(node);
-            splitter.node_end();
         }
     }
 }
@@ -340,13 +339,13 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
         splitter: &mut K,
         depth: usize,
     ) {
-        splitter.node_start();
 
         if depth < self.height - 1 {
-            let (node, left, right) = self.create_non_leaf(axis, rest);
-
             let mut splitter2 = splitter.div();
 
+            let (node, left, right) = self.create_non_leaf(axis, rest);
+
+            
             let splitter = match dlevel.next() {
                 par::ParResult::Parallel([dleft, dright]) => {
                     let splitter2 = &mut splitter2;
@@ -396,7 +395,6 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
         } else {
             let node = self.create_leaf(axis, rest);
             nodes.push(node);
-            splitter.node_end();
         }
     }
 }

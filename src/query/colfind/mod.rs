@@ -222,9 +222,6 @@ where
                 (self.fold)(&mut self.acc, b.acc)
             }
 
-            fn node_start(&mut self) {}
-
-            fn node_end(&mut self) {}
         }
 
         let foo = Foo {
