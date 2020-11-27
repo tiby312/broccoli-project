@@ -69,11 +69,29 @@ pub trait RayCast {
     }
 }
 
-pub(crate) struct RayCastClosure<'a, A, B, C, T> {
+pub struct RayCastClosure<'a, A, B, C, T> {
     pub a: &'a mut A,
     pub broad: B,
     pub fine: C,
     pub _p: PhantomData<T>,
+}
+
+impl<'a,
+        A,
+        B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
+        C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
+        T: Aabb,
+    > RayCastClosure<'a, A, B, C, T>
+{
+    pub fn new(acc:&'a mut A,broad:B,fine:C)->Self{
+        RayCastClosure{
+            a:acc,
+            broad,
+            fine,
+            _p:PhantomData
+        }
+    }
+
 }
 impl<
         A,

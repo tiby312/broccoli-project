@@ -26,11 +26,16 @@ mod graphics;
 
 ///Contains all k_nearest code.
 mod k_nearest;
+pub use k_nearest::Knearest;
+pub use k_nearest::KnearestClosure;
 pub use k_nearest::KResult;
 pub use k_nearest::KnearestResult;
 
 ///Contains all raycast code.
 mod raycast;
+pub use raycast::RayCastClosure;
+pub use raycast::RayCast;
+
 
 ///Allows user to intersect the tree with a seperate group of bots.
 mod intersect_with;
@@ -405,13 +410,23 @@ pub trait Queries<'a> {
     where
         'a: 'b,
     {
-        let mut rtrait = raycast::RayCastClosure {
-            a: acc,
-            broad,
-            fine,
-            _p: PhantomData,
-        };
+        let mut rtrait = raycast::RayCastClosure::new(acc,broad,fine);
         raycast::raycast_mut(self.axis(), self.vistr_mut(), border, ray, &mut rtrait)
+    }
+
+
+    /// Companion function to [`Queries::raycast_mut()`] for cases where the use wants to
+    /// use the trait instead of closures.
+    fn raycast_trait_mut<'b,Acc,R:crate::query::RayCast<T=Self::T,N=Self::Num>>(
+        &'b mut self,
+        ray:axgeom::Ray<Self::Num>,
+        rtrait:&mut R,
+        border:Rect<Self::Num>
+    ) -> axgeom::CastResult<(Vec<PMut<'b, Self::T>>, Self::Num)>
+    where
+        'a: 'b,
+    {
+        raycast::raycast_mut(self.axis(), self.vistr_mut(), border, ray, rtrait)
     }
 
     /// Find the closest `num` elements to the specified `point`.
@@ -485,13 +500,25 @@ pub trait Queries<'a> {
     where
         'a: 'b,
     {
-        let mut foo = k_nearest::KnearestClosure {
-            acc,
-            broad,
-            fine,
-            _p: PhantomData,
-        };
+        let mut foo = k_nearest::KnearestClosure::new(acc,broad,fine);
+
         k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, &mut foo, border)
+    }
+
+    /// Companion function to [`Queries::k_nearest_mut()`] for cases where the use wants to
+    /// use the trait instead of closures.
+    #[must_use]
+    fn k_nearest_trait_mut<'b, Acc,K:query::Knearest<T=Self::T,N=Self::Num>>(
+        &'b mut self,
+        point: Vec2<Self::Num>,
+        num: usize,
+        ktrait:&mut K,
+        border: Rect<Self::Num>,
+    ) -> KResult<Self::T>
+    where
+        'a: 'b,
+    {
+        k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, ktrait, border)
     }
 
     /// Find collisions between elements in this tree,

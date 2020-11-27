@@ -28,6 +28,22 @@ pub struct KnearestClosure<'a, Acc, B, F, T: Aabb> {
     pub fine: F,
     pub _p: PhantomData<T>,
 }
+impl<'a,
+        Acc,
+        B: FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
+        F: FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
+        T: Aabb,
+    > KnearestClosure<'a, Acc, B, F, T>
+{
+    pub fn new(acc:&'a mut Acc,broad:B,fine:F)->Self{
+        KnearestClosure{
+            acc,
+            broad,
+            fine,
+            _p:PhantomData
+        }
+    }
+}
 impl<
         Acc,
         B: FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
