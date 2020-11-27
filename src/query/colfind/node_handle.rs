@@ -40,23 +40,19 @@ impl<K: ColMulti + Splitter> HandleNoSorted<K> {
 }
 
 impl<K: ColMulti + Splitter> Splitter for HandleNoSorted<K> {
+    
     #[inline(always)]
-    fn div(&mut self) -> Self {
-        HandleNoSorted {
-            func: self.func.div(),
-        }
+    fn div(&mut self) -> (Self,Self) {
+        let (a,b)=self.func.div();
+        (HandleNoSorted {
+            func: a,
+        },HandleNoSorted {
+            func: b,
+        })
     }
     #[inline(always)]
-    fn add(&mut self, a: Self) {
-        self.func.add(a.func);
-    }
-    #[inline(always)]
-    fn node_start(&mut self) {
-        self.func.node_start();
-    }
-    #[inline(always)]
-    fn node_end(&mut self) {
-        self.func.node_start();
+    fn add(&mut self,a:Self, b: Self) {
+        self.func.add(a.func,b.func);
     }
 }
 
@@ -110,24 +106,21 @@ impl<K: ColMulti + Splitter> HandleSorted<K> {
     }
 }
 impl<K: ColMulti + Splitter> Splitter for HandleSorted<K> {
+    
     #[inline(always)]
-    fn div(&mut self) -> Self {
-        HandleSorted {
+    fn div(&mut self) -> (Self,Self) {
+        let (a,b)=self.func.div();
+        (HandleSorted {
             sweeper: oned::Sweeper::new(),
-            func: self.func.div(),
-        }
+            func: a,
+        },HandleSorted {
+            sweeper: oned::Sweeper::new(),
+            func: b,
+        })
     }
     #[inline(always)]
-    fn add(&mut self, a: Self) {
-        self.func.add(a.func);
-    }
-    #[inline(always)]
-    fn node_start(&mut self) {
-        self.func.node_start();
-    }
-    #[inline(always)]
-    fn node_end(&mut self) {
-        self.func.node_start();
+    fn add(&mut self,a:Self, b: Self) {
+        self.func.add(a.func,b.func);
     }
 }
 
