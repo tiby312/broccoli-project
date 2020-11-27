@@ -35,6 +35,8 @@ mod levelcounter{
             //is captured in the parent level.
             //TODO figure this out.
             //times.pop();
+            //assert_eq!(*times.last().unwrap(),0);
+            //times.pop();
 
             times
         }
@@ -87,6 +89,7 @@ mod leveltimer{
 
             //We don't call div() on the leaf nodes. The time spent on the leaf nodes
             //is captured in the parent level.
+            //assert_eq!(*times.last().unwrap(),0.0);
             //times.pop();
             times
         }
