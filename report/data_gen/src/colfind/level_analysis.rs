@@ -94,6 +94,7 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> 
             rebal: times1.into_levels(),
             query: times2.into_levels(),
         };
+        assert_eq!(t.rebal.len(),t.query.len());
         let height = tree.get_height();
 
         grow_to_fit(&mut t.rebal, height);
@@ -141,7 +142,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
             .set_y_label("Time taken in Seconds", &[]);
 
         let num = res.first().unwrap().rebal.len()-1;
-
+        //dbg!(num);
         let x = res.iter().map(|a| a.grow);
 
         if rebal {
