@@ -173,8 +173,8 @@ where
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// let intersections=tree.new_colfind_builder().query_par_ext(
-    ///     |_|Vec::new(),              //Start a new thread
-    ///     |a,mut b|a.append(&mut b),  //Combine two threads
+    ///     |_|(Vec::new(),Vec::new()),              //Start a new thread
+    ///     |a,mut b,mut c|{a.append(&mut b);a.append(&mut c)},  //Combine two threads
     ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())),     //What to do for each intersection for a thread.
     ///     Vec::new()                  //Starting thread
     /// );
