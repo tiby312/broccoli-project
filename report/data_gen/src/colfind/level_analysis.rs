@@ -141,7 +141,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
             .set_x_label("Spiral Grow", &[])
             .set_y_label("Time taken in Seconds", &[]);
 
-        let num = res.first().unwrap().rebal.len()-1;
+        let num = res.first().unwrap().rebal.len();
         //dbg!(num);
         let x = res.iter().map(|a| a.grow);
 
@@ -231,7 +231,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             .set_x_label("Spiral Grow", &[])
             .set_y_label("Number of Comparisons", &[]);
 
-        let num = res.first().unwrap().rebal.len()-1;
+        let num = res.first().unwrap().rebal.len();
 
         let x = res.iter().map(|a| a.grow);
 

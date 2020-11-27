@@ -89,8 +89,7 @@ impl<
        
         let (nn, rest) = m.next();
         let mut nn = nn.get_mut();
-        sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
-
+        
         match rest {
             Some([mut left, mut right]) => {
                 let div = match nn.div {
@@ -102,6 +101,9 @@ impl<
 
                 let (mut splitter11,mut splitter22) = splitter.div();
                 
+                sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
+
+
                 if let Some(cont) = nn.cont {
                     let nn = DestructuredNode {
                         range: nn.bots,
@@ -156,6 +158,11 @@ impl<
                 splitter.add(splitter11,splitter22);
             }
             None => {
+                sweeper.leaf_start();
+                splitter.leaf_start();
+                sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
+                sweeper.leaf_end();
+                splitter.leaf_end();
             }
         }
     }
@@ -214,8 +221,11 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
                 splitter.add(splitter11,splitter22);
             }
             None => {
+                sweeper.leaf_start();
+                splitter.leaf_start();
                 sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
-
+                sweeper.leaf_end();
+                splitter.leaf_end();
             }
         }
     }

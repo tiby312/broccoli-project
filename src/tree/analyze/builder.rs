@@ -324,8 +324,10 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
 
             splitter.add(splitter11,splitter22);
         } else {
+            splitter.leaf_start();
             let node = self.create_leaf(axis, rest);
             nodes.push(node);
+            splitter.leaf_end();
         }
     }
 }
@@ -392,8 +394,10 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
 
             splitter.add(splitter11,splitter22);
         } else {
+            splitter.leaf_start();
             let node = self.create_leaf(axis, rest);
             nodes.push(node);
+            splitter.leaf_end();
         }
     }
 }

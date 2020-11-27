@@ -31,13 +31,6 @@ mod levelcounter{
                 times[depth.0]+=a;
             }
 
-            //We don't call div() on the leaf nodes. The time spent on the leaf nodes
-            //is captured in the parent level.
-            //TODO figure this out.
-            //times.pop();
-            //assert_eq!(*times.last().unwrap(),0);
-            //times.pop();
-
             times
         }
     }
@@ -54,10 +47,21 @@ mod levelcounter{
         }
         #[inline]
         fn add(&mut self, mut a: Self,mut b:Self) {
+            
             let inst=self.start.take().unwrap();
             self.stuff.push(unsafe{datanum::COUNTER-inst});
             self.stuff.append(&mut a.stuff);
             self.stuff.append(&mut b.stuff);
+        }
+
+        fn leaf_start(&mut self){
+            assert!(self.start.is_none());
+            let now = unsafe{datanum::COUNTER};
+            self.start=Some(now);
+        }
+        fn leaf_end(&mut self){
+            let inst=self.start.take().unwrap();
+            self.stuff.push(unsafe{datanum::COUNTER-inst});
         }
 
     }
@@ -87,10 +91,6 @@ mod leveltimer{
                 }
             }
 
-            //We don't call div() on the leaf nodes. The time spent on the leaf nodes
-            //is captured in the parent level.
-            //assert_eq!(*times.last().unwrap(),0.0);
-            //times.pop();
             times
         }
     }
@@ -113,6 +113,17 @@ mod leveltimer{
             self.stuff.push(into_secs(inst.elapsed()));
             self.stuff.append(&mut a.stuff);
             self.stuff.append(&mut b.stuff);
+        }
+
+        fn leaf_start(&mut self){
+            assert!(self.start.is_none());
+            let now = Instant::now();
+            self.start=Some(now);
+        }
+        fn leaf_end(&mut self){
+            let inst=self.start.take().unwrap();
+            self.stuff.push(into_secs(inst.elapsed()));
+            
         }
 
     }
