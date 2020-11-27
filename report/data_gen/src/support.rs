@@ -30,6 +30,11 @@ mod levelcounter{
             for (depth,a) in tree.vistr().with_depth(compt::Depth(0)).dfs_preorder_iter(){
                 times[depth.0]+=a;
             }
+
+            //We don't call div() on the leaf nodes. The time spent on the leaf nodes
+            //is captured in the parent level.
+            //times.pop();
+
             times
         }
     }
@@ -74,8 +79,14 @@ mod leveltimer{
             use compt::Visitor;
             let mut times:Vec<_>=core::iter::repeat(0.0).take(tree.get_height()).collect();    
             for (depth,a) in tree.vistr().with_depth(compt::Depth(0)).dfs_preorder_iter(){
-                times[depth.0]+=a;
+                if depth.0<tree.get_height(){
+                    times[depth.0]+=a;
+                }
             }
+
+            //We don't call div() on the leaf nodes. The time spent on the leaf nodes
+            //is captured in the parent level.
+            //times.pop();
             times
         }
     }

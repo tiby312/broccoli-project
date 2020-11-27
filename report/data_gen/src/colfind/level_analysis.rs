@@ -113,7 +113,7 @@ fn grow_to_fit<T: Default>(a: &mut Vec<T>, b: usize) {
 }
 
 pub fn handle_bench(fb: &mut FigureBuilder) {
-    let num_bots = 10000;
+    let num_bots = 5000;
 
     let res1 = handle_inner_bench(
         num_bots,
@@ -140,27 +140,25 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
             .set_x_label("Spiral Grow", &[])
             .set_y_label("Time taken in Seconds", &[]);
 
-        let num = res.first().unwrap().rebal.len();
+        let num = res.first().unwrap().rebal.len()-1;
 
         let x = res.iter().map(|a| a.grow);
 
         if rebal {
             let cc = (0..num)
-                .step_by(2)
                 .map(|ii: usize| res.iter().map(move |a| a.rebal[ii]));
 
             for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
-                let s = format!("Level {}", 2 * i);
+                let s = format!("Level {}", i);
                 let yl=y.clone().map(|_|0.0);
                 ax.fill_between(x.clone(),yl,y,&[Color(col), Caption(&s), LineWidth(1.0)]);
             }
         } else {
             let cc = (0..num)
-                .step_by(2)
                 .map(|ii: usize| res.iter().map(move |a| a.query[ii]));
 
             for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
-                let s = format!("Level {}", 2 * i);
+                let s = format!("Level {}", i);
                 let yl=y.clone().map(|_|0.0);
                 ax.fill_between(x.clone(),yl,y,&[Color(col), Caption(&s), LineWidth(1.0)]);
             }
@@ -232,7 +230,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             .set_x_label("Spiral Grow", &[])
             .set_y_label("Number of Comparisons", &[]);
 
-        let num = res.first().unwrap().rebal.len();
+        let num = res.first().unwrap().rebal.len()-1;
 
         let x = res.iter().map(|a| a.grow);
 
