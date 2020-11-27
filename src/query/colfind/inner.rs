@@ -100,8 +100,8 @@ impl<
                     }
                 };
 
-                let mut splitter2 = splitter.div();
-
+                let (mut splitter11,mut splitter22) = splitter.div();
+                
                 if let Some(cont) = nn.cont {
                     let nn = DestructuredNode {
                         range: nn.bots,
@@ -118,47 +118,42 @@ impl<
                 }
 
 
-                let splitter = {
-                    let splitter2 = &mut splitter2;
-                    match par.next() {
-                        par::ParResult::Parallel([dleft, dright]) => {
-                            let mut sweeper2 = sweeper.div();
+                match par.next() {
+                    par::ParResult::Parallel([dleft, dright]) => {
+                        let (mut sweeper1,mut sweeper2) = sweeper.div();
+                        let (splitter11ref,splitter22ref)=(&mut splitter11,&mut splitter22);
+                        let (sweeper11ref,sweeper22ref)=(&mut sweeper1,&mut sweeper2);
 
-                            let (sweeper, splitter) = {
-                                let sweeper2 = &mut sweeper2;
-                                let af = move || {
-                                    self.recurse_par(
-                                        this_axis.next(),
-                                        dleft,
-                                        sweeper,
-                                        left,
-                                        splitter,
-                                    );
-                                    (sweeper, splitter)
-                                };
-                                let bf = move || {
-                                    self.recurse_par(
-                                        this_axis.next(),
-                                        dright,
-                                        sweeper2,
-                                        right,
-                                        splitter2,
-                                    )
-                                };
-                                rayon::join(af, bf).0
-                            };
-                            sweeper.add(sweeper2);
-                            splitter
-                        }
-                        par::ParResult::Sequential(_) => {
-                            self.recurse_seq(this_axis.next(), sweeper, left, splitter);
-                            self.recurse_seq(this_axis.next(), sweeper, right, splitter2);
-                            splitter
-                        }
+                        
+                        let af = move || {
+                            self.recurse_par(
+                                this_axis.next(),
+                                dleft,
+                                sweeper11ref,
+                                left,
+                                splitter11ref,
+                            )
+                        };
+                        let bf = move || {
+                            self.recurse_par(
+                                this_axis.next(),
+                                dright,
+                                sweeper22ref,
+                                right,
+                                splitter22ref,
+                            )
+                        };
+                        rayon::join(af, bf);
+                    
+                        sweeper.add(sweeper1,sweeper2);
                     }
-                };
-
-                splitter.add(splitter2);
+                    par::ParResult::Sequential(_) => {
+                        self.recurse_seq(this_axis.next(), sweeper, left, &mut splitter11);
+                        self.recurse_seq(this_axis.next(), sweeper, right, &mut splitter22);
+                    }
+                }
+            
+                splitter.add(splitter11,splitter22);
             }
             None => {
             }
@@ -186,42 +181,37 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
         
         match rest {
             Some([mut left, mut right]) => {
-                let div = match nn.div {
-                    Some(d) => d,
-                    None => {
-                        return;
+                
+                let (mut splitter11,mut splitter22) = splitter.div();
+                
+                //Continue to recurse even if we know there are no more bots
+                //This simplifies query algorithms that might be building up 
+                //a tree.
+                if let Some(div)=nn.div{
+                    sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
+
+
+                    if let Some(cont) = nn.cont {
+                        let nn = DestructuredNode {
+                            range: nn.bots,
+                            cont,
+                            div,
+                            axis: this_axis,
+                        };
+
+                        let left = left.create_wrap_mut();
+                        let right = right.create_wrap_mut();
+                        let mut g = GoDownRecurser::new(nn, sweeper);
+                        g.go_down(this_axis.next(), left);
+                        g.go_down(this_axis.next(), right);
                     }
-                };
-
-                let mut splitter2 = splitter.div();
-
-                sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
-
-
-                if let Some(cont) = nn.cont {
-                    let nn = DestructuredNode {
-                        range: nn.bots,
-                        cont,
-                        div,
-                        axis: this_axis,
-                    };
-
-                    let left = left.create_wrap_mut();
-                    let right = right.create_wrap_mut();
-                    let mut g = GoDownRecurser::new(nn, sweeper);
-                    g.go_down(this_axis.next(), left);
-                    g.go_down(this_axis.next(), right);
                 }
 
 
-                let splitter = {
-                    let splitter2 = &mut splitter2;
-                    self.recurse_seq(this_axis.next(), sweeper, left, splitter);
-                    self.recurse_seq(this_axis.next(), sweeper, right, splitter2);
-                    splitter
-                };
-
-                splitter.add(splitter2);
+                self.recurse_seq(this_axis.next(), sweeper, left, &mut splitter11);
+                self.recurse_seq(this_axis.next(), sweeper, right, &mut splitter22);
+            
+                splitter.add(splitter11,splitter22);
             }
             None => {
                 sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
@@ -247,12 +237,13 @@ impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> ColMulti for QueryFnMut<T, F> {
     }
 }
 impl<T, F> Splitter for QueryFnMut<T, F> {
+    
     #[inline(always)]
-    fn div(&mut self) -> Self {
+    fn div(&mut self) -> (Self,Self) {
         unreachable!()
     }
     #[inline(always)]
-    fn add(&mut self, _: Self) {
+    fn add(&mut self,_:Self, _: Self) {
         unreachable!()
     }
 }
@@ -274,10 +265,11 @@ impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> ColMulti for QueryFn<T, F> {
 }
 
 impl<T, F: Clone> Splitter for QueryFn<T, F> {
+    
     #[inline(always)]
-    fn div(&mut self) -> Self {
-        QueryFn(self.0.clone(), PhantomData)
+    fn div(&mut self) -> (Self,Self) {
+        (QueryFn(self.0.clone(), PhantomData),QueryFn(self.0.clone(), PhantomData))
     }
     #[inline(always)]
-    fn add(&mut self, _: Self) {}
+    fn add(&mut self,_:Self, _: Self) {}
 }

@@ -34,7 +34,7 @@ impl<'a, I: Num> Ord for Dnum<'a, I> {
     }
 }
 
-static mut COUNTER: usize = 0;
+pub static mut COUNTER: usize = 0;
 
 ///within the closure, the user is allowed to create DataNum numbers
 ///NOT SAFE
@@ -81,6 +81,8 @@ impl Maker {
     }
 }
 
+
+/*
 pub struct Counter(usize);
 
 pub fn from_rect<I: Num>(counter: &mut Counter, rect: Rect<I>) -> Rect<DataNum<I>> {
@@ -141,3 +143,4 @@ impl<I: Num> Ord for DataNum<I> {
         self.0.cmp(&other.0)
     }
 }
+*/

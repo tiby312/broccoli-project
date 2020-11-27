@@ -72,11 +72,12 @@ pub fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> us
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
 ///during construction.
 pub trait Splitter: Sized {
+    
     ///Called to split this into two to be passed to the children.
-    fn div(&mut self) -> Self;
+    fn div(&mut self) -> (Self,Self);
 
     ///Called to add the results of the recursive calls on the children.
-    fn add(&mut self, b: Self);
+    fn add(&mut self,a:Self,b: Self);
 
 }
 
@@ -84,10 +85,11 @@ pub trait Splitter: Sized {
 pub struct SplitterEmpty;
 
 impl Splitter for SplitterEmpty {
+    
     #[inline(always)]
-    fn div(&mut self) -> Self {
-        SplitterEmpty
+    fn div(&mut self) -> (Self,Self) {
+        (SplitterEmpty,SplitterEmpty)
     }
     #[inline(always)]
-    fn add(&mut self, _: Self) {}
+    fn add(&mut self,_:Self, _: Self) {}
 }

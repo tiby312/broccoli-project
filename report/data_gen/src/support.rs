@@ -8,6 +8,102 @@ fn into_secs(elapsed: std::time::Duration) -> f64 {
     (elapsed.as_secs() as f64) + (f64::from(elapsed.subsec_nanos()) / 1_000_000_000.0)
 }
 
+
+
+pub use self::levelcounter::LevelCounter;
+mod levelcounter{
+    use super::*;
+    
+    pub struct LevelCounter{
+        stuff:Vec<usize>,
+        start:Option<usize>
+    }
+    impl LevelCounter{
+        pub fn new()->LevelCounter{
+            LevelCounter{stuff:Vec::new(),start:None}
+        }
+        pub fn into_levels(self)->Vec<usize>{
+            let tree=compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
+
+            use compt::Visitor;
+            let mut times:Vec<_>=core::iter::repeat(0).take(tree.get_height()).collect();    
+            for (depth,a) in tree.vistr().with_depth(compt::Depth(0)).dfs_preorder_iter(){
+                times[depth.0]+=a;
+            }
+            times
+        }
+    }
+    impl Splitter for LevelCounter {
+        #[inline]
+        fn div(&mut self) -> (Self,Self) {
+            assert!(self.start.is_none());
+            let now = unsafe{datanum::COUNTER};
+            self.start=Some(now);
+            (
+                LevelCounter{stuff:Vec::new(),start:None},
+                LevelCounter{stuff:Vec::new(),start:None}
+            )
+        }
+        #[inline]
+        fn add(&mut self, mut a: Self,mut b:Self) {
+            let inst=self.start.take().unwrap();
+            self.stuff.push(unsafe{datanum::COUNTER-inst});
+            self.stuff.append(&mut a.stuff);
+            self.stuff.append(&mut b.stuff);
+        }
+
+    }
+}
+
+pub use self::leveltimer::LevelTimer;
+mod leveltimer{
+    use super::*;
+    use std::time::Instant;
+    pub struct LevelTimer{
+        stuff:Vec<f64>,
+        start:Option<Instant>
+    }
+
+    impl LevelTimer{
+        pub fn new()->LevelTimer{
+            LevelTimer{stuff:Vec::new(),start:None}
+        }
+        pub fn into_levels(self)->Vec<f64>{
+            let tree=compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
+
+            use compt::Visitor;
+            let mut times:Vec<_>=core::iter::repeat(0.0).take(tree.get_height()).collect();    
+            for (depth,a) in tree.vistr().with_depth(compt::Depth(0)).dfs_preorder_iter(){
+                times[depth.0]+=a;
+            }
+            times
+        }
+    }
+    impl Splitter for LevelTimer {
+        #[inline]
+        fn div(&mut self) -> (Self,Self) {
+            assert!(self.start.is_none());
+            let now = Instant::now();
+            
+            //self.stuff.push(0.0);
+            self.start=Some(now);
+            (
+                LevelTimer{stuff:Vec::new(),start:None},
+                LevelTimer{stuff:Vec::new(),start:None}
+            )
+        }
+        #[inline]
+        fn add(&mut self, mut a: Self,mut b:Self) {
+            let inst=self.start.take().unwrap();
+            self.stuff.push(into_secs(inst.elapsed()));
+            self.stuff.append(&mut a.stuff);
+            self.stuff.append(&mut b.stuff);
+        }
+
+    }
+}
+
+/*
 ///Measure the time each level of a recursive algorithm takes that supports the Splitter trait.
 ///Note that the number of elements in the returned Vec could be less than the height of the tree.
 ///This can happen if the recursive algorithm does not recurse all the way to the leafs because it
@@ -40,6 +136,7 @@ impl LevelTimer {
         self.time = None;
     }
 }
+
 impl Splitter for LevelTimer {
     #[inline]
     fn div(&mut self) -> Self {
@@ -62,6 +159,7 @@ impl Splitter for LevelTimer {
             self.levels.extend_from_slice(&a.levels[len..]);
         }
     }
+    /*
     #[inline]
     fn node_start(&mut self) {
         assert!(self.time.is_none());
@@ -71,7 +169,9 @@ impl Splitter for LevelTimer {
     fn node_end(&mut self) {
         self.node_end_common();
     }
+    */
 }
+*/
 
 pub const COLS: &[&str] = &[
     "blue", "green", "red", "violet", "orange", "brown", "gray", "black", "pink",
