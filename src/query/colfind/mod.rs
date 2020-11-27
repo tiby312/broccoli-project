@@ -161,6 +161,7 @@ where
         );
     }
 
+
     /// An extended version of `find_colliding_pairs`. where the user can supply
     /// callbacks to when new worker tasks are spawned and joined by `rayon`.
     /// Allows the user to potentially collect some aspect of every aabb collision in parallel.
@@ -172,8 +173,8 @@ where
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// let intersections=tree.new_colfind_builder().query_par_ext(
-    ///     |_|Vec::new(),              //Start a new thread
-    ///     |a,mut b|a.append(&mut b),  //Combine two threads
+    ///     |_|(Vec::new(),Vec::new()),              //Start a new thread
+    ///     |a,mut b,mut c|{a.append(&mut b);a.append(&mut c)},  //Combine two threads
     ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())),     //What to do for each intersection for a thread.
     ///     Vec::new()                  //Starting thread
     /// );
@@ -182,8 +183,8 @@ where
     ///```
     pub fn query_par_ext<B: Send + Sync>(
         self,
-        split: impl Fn(&mut B) -> B + Send + Sync + Copy,
-        fold: impl Fn(&mut B, B) + Send + Sync + Copy,
+        split: impl Fn(&mut B) -> (B,B) + Send + Sync + Copy,
+        fold: impl Fn(&mut B, B,B) + Send + Sync + Copy,
         collision: impl Fn(&mut B, PMut<N::T>, PMut<N::T>) + Send + Sync + Copy,
         acc: B,
     ) -> B
@@ -204,27 +205,31 @@ where
                 (self.collision)(&mut self.acc, a, b)
             }
         }
-        impl<T, A, B: Fn(&mut A) -> A + Copy, C: Fn(&mut A, A) + Copy, D: Copy> Splitter
+        impl<T, A, B: Fn(&mut A) -> (A,A) + Copy, C: Fn(&mut A, A,A) + Copy, D: Copy> Splitter
             for Foo<T, A, B, C, D>
         {
-            fn div(&mut self) -> Self {
-                let acc = (self.split)(&mut self.acc);
-                Foo {
+            fn div(&mut self) -> (Self,Self) {
+                let (acc1,acc2) = (self.split)(&mut self.acc);
+                (Foo {
                     _p: PhantomData,
-                    acc,
+                    acc:acc1,
                     split: self.split,
                     fold: self.fold,
                     collision: self.collision,
-                }
+                },
+                Foo {
+                    _p: PhantomData,
+                    acc:acc2,
+                    split: self.split,
+                    fold: self.fold,
+                    collision: self.collision,
+                })
             }
 
-            fn add(&mut self, b: Self) {
-                (self.fold)(&mut self.acc, b.acc)
+            fn add(&mut self, a:Self,b: Self) {
+                (self.fold)(&mut self.acc, a.acc,b.acc)
             }
 
-            fn node_start(&mut self) {}
-
-            fn node_end(&mut self) {}
         }
 
         let foo = Foo {

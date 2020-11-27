@@ -160,13 +160,12 @@ impl<'a, A: Axis, N: Num, T: Send + Sync> TreeRefInd<'a, A, N, T> {
                 if let Some([left, right]) = next {
                     let l = Foo::new(left);
                     let r = Foo::new(right);
-                    *a = l;
-                    r
+                    (l,r)
                 } else {
                     unreachable!()
                 }
             },
-            move |_a, _b| {},
+            move |_a, _b,_c| {},
             move |c, a, b| {
                 if let Some(d) = func(a.unpack_inner(), b.unpack_inner()) {
                     c.current.push(d);

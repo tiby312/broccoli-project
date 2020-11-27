@@ -6,66 +6,6 @@ pub struct Bot {
     num: usize,
 }
 
-mod level_counter {
-    use crate::datanum;
-    use broccoli::analyze::Splitter;
-
-    pub struct LevelCounter {
-        counter: *mut datanum::Counter,
-        cursor: Option<usize>,
-        levels: Vec<usize>,
-    }
-
-    impl LevelCounter {
-        pub fn new(counter: *mut datanum::Counter) -> LevelCounter {
-            LevelCounter {
-                counter,
-                levels: Vec::new(),
-                cursor: None,
-            }
-        }
-        pub fn into_inner(self) -> Vec<usize> {
-            self.levels
-        }
-        fn node_end_common(&mut self) {
-            let counter = unsafe { &mut *self.counter };
-            let nc = *counter.get_inner();
-
-            let elapsed = nc - self.cursor.unwrap();
-            self.levels.push(elapsed);
-            self.cursor = None;
-        }
-    }
-    impl Splitter for LevelCounter {
-        fn div(&mut self) -> Self {
-            self.node_end_common();
-
-            let length = self.levels.len();
-            let counter = self.counter;
-            LevelCounter {
-                counter,
-                levels: std::iter::repeat(0).take(length).collect(),
-                cursor: None,
-            }
-        }
-        fn add(&mut self, a: Self) {
-            let len = self.levels.len();
-            for (a, b) in self.levels.iter_mut().zip(a.levels.iter()) {
-                *a += *b;
-            }
-            if len < a.levels.len() {
-                self.levels.extend_from_slice(&a.levels[len..]);
-            }
-        }
-        fn node_start(&mut self) {
-            let counter = unsafe { &mut *self.counter };
-            self.cursor = Some(*counter.get_inner());
-        }
-        fn node_end(&mut self) {
-            self.node_end_common();
-        }
-    }
-}
 
 struct TheoryRes {
     grow: f32,
@@ -76,52 +16,42 @@ struct TheoryRes {
 fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> Vec<TheoryRes> {
     let mut rects = Vec::new();
     for grow in grow_iter {
-        let mut scene = bot::BotSceneBuilder::new(num_bots)
-            .with_grow(grow)
-            .build_specialized(|_, pos| Bot {
-                num: 0,
-                pos: pos.inner_as(),
-            });
 
-        let bots = &mut scene.bots;
-        let prop = &scene.bot_prop;
+        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
-        {
-            let mut counter = datanum::Counter::new();
+        let (rebal,query,height) = datanum::datanum_test2(|maker| {
+            let mut bots: Vec<BBox<_, &mut _>> = abspiral_datanum_f32_nan(maker, grow as f64)
+                .zip(bot_inner.iter_mut())
+                .map(|(a, b)| bbox(a, b))
+                .collect();
 
-            let mut levelc = level_counter::LevelCounter::new(&mut counter);
+            let mut levelc = LevelCounter::new();
+            let mut tree = TreeBuilder::new(&mut bots).build_with_splitter_seq(&mut levelc);
 
-            let mut bb = bbox_helper::create_bbox_mut(bots, |b| {
-                datanum::from_rect(&mut counter, prop.create_bbox_i32(b.pos))
-            });
 
-            let mut tree = TreeBuilder::new(&mut bb).build_with_splitter_seq(&mut levelc);
-
-            counter.reset();
-            let mut levelc2 = level_counter::LevelCounter::new(&mut counter);
+            let mut levelc2 = LevelCounter::new();
             tree.new_colfind_builder().query_with_splitter_seq(
-                |mut a, mut b| {
-                    a.inner_mut().num += 1;
-                    b.inner_mut().num += 1;
+                |a, b| {
+                    a.unpack_inner().x += 1.0;
+                    b.unpack_inner().y += 1.0;
                 },
                 &mut levelc2,
             );
+            (levelc.into_levels(),levelc2.into_levels(),tree.get_height())
+        });
 
-            counter.into_inner();
+        let mut t = TheoryRes {
+            grow,
+            rebal,
+            query,
+        };
 
-            let mut t = TheoryRes {
-                grow,
-                rebal: levelc.into_inner(),
-                query: levelc2.into_inner(),
-            };
-            let height = tree.get_height();
+        grow_to_fit(&mut t.rebal, height);
+        grow_to_fit(&mut t.query, height);
 
-            grow_to_fit(&mut t.rebal, height);
-            grow_to_fit(&mut t.query, height);
-
-            assert_eq!(t.rebal.len(), t.query.len());
-            rects.push(t)
-        }
+        assert_eq!(t.rebal.len(), t.query.len());
+        rects.push(t)
+    
     }
     rects
 }
@@ -161,8 +91,8 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> 
 
         let mut t = BenchRes {
             grow,
-            rebal: times1.into_inner(),
-            query: times2.into_inner(),
+            rebal: times1.into_levels(),
+            query: times2.into_levels(),
         };
         let height = tree.get_height();
 
@@ -221,7 +151,8 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
 
             for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
                 let s = format!("Level {}", 2 * i);
-                ax.lines(x.clone(), y, &[Color(col), Caption(&s), LineWidth(1.0)]);
+                let yl=y.clone().map(|_|0.0);
+                ax.fill_between(x.clone(),yl,y,&[Color(col), Caption(&s), LineWidth(1.0)]);
             }
         } else {
             let cc = (0..num)
@@ -230,7 +161,8 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
 
             for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
                 let s = format!("Level {}", 2 * i);
-                ax.lines(x.clone(), y, &[Color(col), Caption(&s), LineWidth(1.0)]);
+                let yl=y.clone().map(|_|0.0);
+                ax.fill_between(x.clone(),yl,y,&[Color(col), Caption(&s), LineWidth(1.0)]);
             }
         }
     }
@@ -309,14 +241,16 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
 
             for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
                 let s = format!("Level {}", i);
-                ax.lines(x.clone(), y, &[Color(col), Caption(&s), LineWidth(1.0)]);
+                let yl=y.clone().map(|_|0.0);
+                ax.fill_between(x.clone(),yl,y,&[Color(col), Caption(&s), LineWidth(1.0)]);
             }
         } else {
             let cc = (0..num).map(|ii: usize| res.iter().map(move |a| a.query[ii]));
 
             for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
                 let s = format!("Level {}", i);
-                ax.lines(x.clone(), y, &[Color(col), Caption(&s), LineWidth(1.0)]);
+                let yl=y.clone().map(|_|0.0);
+                ax.fill_between(x.clone(),yl,y,&[Color(col), Caption(&s), LineWidth(1.0)]);
             }
         }
     }

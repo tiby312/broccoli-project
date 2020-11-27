@@ -311,22 +311,21 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
         splitter: &mut K,
         depth: usize,
     ) {
-        splitter.node_start();
 
         if depth < self.height - 1 {
+            let (mut splitter11,mut splitter22) = splitter.div();
+
             let (node, left, right) = self.create_non_leaf(axis, rest);
             nodes.push(node.finish(self.sorter));
 
-            let mut splitter2 = splitter.div();
+            
+            self.recurse_preorder_seq(axis.next(), left, nodes, &mut splitter11, depth + 1);
+            self.recurse_preorder_seq(axis.next(), right, nodes, &mut splitter22, depth + 1);
 
-            self.recurse_preorder_seq(axis.next(), left, nodes, splitter, depth + 1);
-            self.recurse_preorder_seq(axis.next(), right, nodes, &mut splitter2, depth + 1);
-
-            splitter.add(splitter2);
+            splitter.add(splitter11,splitter22);
         } else {
             let node = self.create_leaf(axis, rest);
             nodes.push(node);
-            splitter.node_end();
         }
     }
 }
@@ -340,18 +339,18 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
         splitter: &mut K,
         depth: usize,
     ) {
-        splitter.node_start();
 
         if depth < self.height - 1 {
+            let (mut splitter11,mut splitter22) = splitter.div();
+
             let (node, left, right) = self.create_non_leaf(axis, rest);
 
-            let mut splitter2 = splitter.div();
-
-            let splitter = match dlevel.next() {
+            
+            match dlevel.next() {
                 par::ParResult::Parallel([dleft, dright]) => {
-                    let splitter2 = &mut splitter2;
+                    let (splitter11ref,splitter22ref)=(&mut splitter11,&mut splitter22);
 
-                    let ((splitter, nodes), mut nodes2) = rayon::join(
+                    let (nodes, mut nodes2) = rayon::join(
                         move || {
                             nodes.push(node.finish(self.sorter));
 
@@ -360,10 +359,10 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
                                 dleft,
                                 left,
                                 nodes,
-                                splitter,
+                                splitter11ref,
                                 depth + 1,
                             );
-                            (splitter, nodes)
+                            nodes
                         },
                         move || {
                             let mut nodes2: Vec<_> =
@@ -373,7 +372,7 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
                                 dright,
                                 right,
                                 &mut nodes2,
-                                splitter2,
+                                splitter22ref,
                                 depth + 1,
                             );
                             nodes2
@@ -381,22 +380,20 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
                     );
 
                     nodes.append(&mut nodes2);
-                    splitter
                 }
                 par::ParResult::Sequential(_) => {
                     nodes.push(node.finish(self.sorter));
 
-                    self.recurse_preorder_seq(axis.next(), left, nodes, splitter, depth + 1);
-                    self.recurse_preorder_seq(axis.next(), right, nodes, &mut splitter2, depth + 1);
-                    splitter
+                    self.recurse_preorder_seq(axis.next(), left, nodes, &mut splitter11, depth + 1);
+                    self.recurse_preorder_seq(axis.next(), right, nodes, &mut splitter22, depth + 1);
+                    
                 }
-            };
+            }
 
-            splitter.add(splitter2);
+            splitter.add(splitter11,splitter22);
         } else {
             let node = self.create_leaf(axis, rest);
             nodes.push(node);
-            splitter.node_end();
         }
     }
 }

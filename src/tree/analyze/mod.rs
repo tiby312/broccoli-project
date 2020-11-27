@@ -72,32 +72,24 @@ pub fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> us
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
 ///during construction.
 pub trait Splitter: Sized {
+    
     ///Called to split this into two to be passed to the children.
-    fn div(&mut self) -> Self;
+    fn div(&mut self) -> (Self,Self);
 
     ///Called to add the results of the recursive calls on the children.
-    fn add(&mut self, b: Self);
+    fn add(&mut self,a:Self,b: Self);
 
-    ///Called at the start of the recursive call.
-    fn node_start(&mut self);
-
-    ///It is important to note that this gets called in other places besides in the final recursive call of a leaf.
-    ///They may get called in a non leaf if its found that there is no more need to recurse further.
-    fn node_end(&mut self);
 }
 
 ///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
 pub struct SplitterEmpty;
 
 impl Splitter for SplitterEmpty {
+    
     #[inline(always)]
-    fn div(&mut self) -> Self {
-        SplitterEmpty
+    fn div(&mut self) -> (Self,Self) {
+        (SplitterEmpty,SplitterEmpty)
     }
     #[inline(always)]
-    fn add(&mut self, _: Self) {}
-    #[inline(always)]
-    fn node_start(&mut self) {}
-    #[inline(always)]
-    fn node_end(&mut self) {}
+    fn add(&mut self,_:Self, _: Self) {}
 }
