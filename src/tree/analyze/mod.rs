@@ -50,34 +50,36 @@ pub enum BinStrat {
 ///If we had too many bots per node, you would lose the properties of a tree, and end up with plain sweep and prune.
 ///Theory would tell you to just make a node per bot, but there is
 ///a sweet spot inbetween determined by the real-word properties of your computer.
+///we want each node to have space for around num_per_node bots.
+///there are 2^h nodes.
+///2^h*200>=num_bots.  Solve for h s.t. h is an integer.
+///Make this number too small, and the tree will have too many levels,
+///and too much time will be spent recursing.
+///Make this number too high, and you will lose the properties of a tree,
+///and you will end up with just sweep and prune.
+///This number was chosen emprically from running the Tree_alg_data project,
+///on two different machines.
 const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 128;
 
 
 use crate::par::Parallel;
 
-//we want each node to have space for around num_per_node bots.
-//there are 2^h nodes.
-//2^h*200>=num_bots.  Solve for h s.t. h is an integer.
 
-//Make this number too small, and the tree will have too many levels,
-//and too much time will be spent recursing.
-//Make this number too high, and you will lose the properties of a tree,
-//and you will end up with just sweep and prune.
-//This number was chosen emprically from running the Tree_alg_data project,
-//on two different machines.
-//TODO document
+///Using this struct the user can determine the height of a tree or the number of nodes
+///that would exist if the tree were constructed.
 #[derive(Copy,Clone)]
 pub struct TreePreBuilder{
     height:usize,
     height_switch_seq:usize
 }
 impl TreePreBuilder{
-    pub fn new(num_elements:usize)->TreePreBuilder{
+    ///Create the builder object with default values.
+    pub const fn new(num_elements:usize)->TreePreBuilder{
         let height=compute_tree_height_heuristic(num_elements,DEFAULT_NUMBER_ELEM_PER_NODE);
         TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
     }
     
-    pub fn with_num_elem_in_leaf(num_elements:usize,num_elem_leaf:usize)->TreePreBuilder{
+    pub const fn with_num_elem_in_leaf(num_elements:usize,num_elem_leaf:usize)->TreePreBuilder{
         let height=compute_tree_height_heuristic(num_elements,num_elem_leaf);
         TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
     }
@@ -86,10 +88,11 @@ impl TreePreBuilder{
         self.height_switch_seq=height;
     }
 
+    //TODO try and make const??
     pub fn switch_seq_level(&self)->Parallel{
         crate::par::compute_level_switch_sequential(self.height_switch_seq,self.height)
     }
-    pub fn with_height(height:usize)->TreePreBuilder{
+    pub const fn with_height(height:usize)->TreePreBuilder{
         TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
     }
 
@@ -106,9 +109,16 @@ impl TreePreBuilder{
     }
 }
 
+
+#[test]
+fn test_height(){
+    let a=compute_tree_height_heuristic(100,DEFAULT_NUMBER_ELEM_PER_NODE);
+    assert_eq!(a,1);
+
+}
 ///Outputs the height given an desirned number of bots per node.
 #[inline]
-fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> usize {
+const fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> usize {
     //we want each node to have space for around 300 bots.
     //there are 2^h nodes.
     //2^h*200>=num_bots.  Solve for h s.t. h is an integer.
@@ -116,11 +126,28 @@ fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> usize 
     if num_bots <= num_per_node {
         1
     } else {
+        /*
         let a = num_bots as f32 / num_per_node as f32;
         let b = a.log2() / 2.0;
         (b.ceil() as usize) * 2 + 1
+        */
+        let (num_bots,num_per_node) = (num_bots as u64,num_per_node as u64);
+        let a = num_bots / num_per_node;
+        let a = log_2(a) ;
+        let ans=(a/2)*2+1;
+        ans as usize
+
     }
 }
+
+
+const fn log_2(x: u64) -> u64 {
+    const fn num_bits<T>() -> usize { core::mem::size_of::<T>() * 8 }
+
+    //assert!(x > 0);
+    num_bits::<u64>() as u64 - x.leading_zeros() as u64 - 1
+}
+
 
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
