@@ -7,7 +7,7 @@ pub mod analyze;
 
 ///Contains code to write generic code that can be run in parallel, or sequentially. The api is exposed
 ///in case users find it useful when writing parallel query code to operate on the tree.
-pub mod par;
+pub(crate) mod par;
 
 mod notsorted;
 pub use self::notsorted::NotSorted;

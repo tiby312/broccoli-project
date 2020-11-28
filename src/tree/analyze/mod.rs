@@ -86,7 +86,7 @@ impl TreePreBuilder{
 
     ///Specify at which level to switch from parallel to sequential when
     ///parallel functions are used.
-    pub const fn with_height_seq(&mut self,height:usize){
+    pub fn with_height_seq(&mut self,height:usize){
         self.height_switch_seq=height;
     }
 
