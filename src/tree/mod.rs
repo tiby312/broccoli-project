@@ -131,7 +131,7 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// assert_eq!(tree.get_height(),analyze::compute_tree_height_heuristic(NUM_ELEMENT,analyze::DEFAULT_NUMBER_ELEM_PER_NODE));
+    /// assert_eq!(tree.get_height(),analyze::TreePreBuilder::new(NUM_ELEMENT).get_height());
     ///```
     ///
     #[must_use]
@@ -147,7 +147,7 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// let mut bots = [axgeom::rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// assert_eq!(tree.num_nodes(),analyze::nodes_left(0,tree.get_height() ));
+    /// assert_eq!(tree.num_nodes(),analyze::TreePreBuilder::new(1).num_nodes());
     ///
     ///```
     #[must_use]
