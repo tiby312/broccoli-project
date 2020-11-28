@@ -40,7 +40,6 @@ pub unsafe trait HasInner: Aabb {
     fn get_inner_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner);
 }
 
-///A protected mutable reference.
 ///See the pmut module documentation for more explanation.
 #[repr(transparent)]
 pub(crate) struct PMutPtr<T: ?Sized> {
@@ -50,7 +49,7 @@ pub(crate) struct PMutPtr<T: ?Sized> {
 unsafe impl<T: ?Sized> Send for PMutPtr<T> {}
 unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
 
-///A protected mutable reference.
+///A protected mutable reference. A protected mutable reference that derefs to `&T`.
 ///See the pmut module documentation for more explanation.
 #[repr(transparent)]
 pub struct PMut<'a, T: ?Sized> {
