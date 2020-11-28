@@ -20,6 +20,8 @@ pub use crate::query::nbody::NodeMassTrait;
 mod colfind;
 pub use colfind::NotSortedQueryBuilder;
 pub use colfind::QueryBuilder;
+pub use colfind::ColMulti;
+
 
 ///Provides functionality to draw the dividers of [`Tree`].
 mod graphics;

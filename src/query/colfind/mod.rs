@@ -243,12 +243,15 @@ where
         self.query_splitter_par(foo).acc
     }
 
+    ///Trait version of [`QueryBuilder::query_par_ext`].
     ///The user has more control using this version of the query.
     ///The splitter will split and add at every level.
     ///The clos will split and add only at levels that are handled in parallel.
+    ///The leaf_start function will get called right before sequential processing.
+    ///The leaf end function will get called when the sequential processing finishes.
     ///This can be useful if the use wants to create a list of colliding pair indicies, but still wants paralleism.
     #[inline(always)]
-    pub(crate) fn query_splitter_par<C: ColMulti<T = N::T> + Splitter + Send + Sync>(self, clos: C) -> C {
+    pub fn query_splitter_par<C: ColMulti<T = N::T> + Splitter + Send + Sync>(self, clos: C) -> C {
         let height = self.vistr.get_height();
 
         let par = par::compute_level_switch_sequential(self.switch_height, height);
