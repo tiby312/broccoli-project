@@ -59,7 +59,7 @@ pub enum BinStrat {
 ///and you will end up with just sweep and prune.
 ///This number was chosen emprically from running the Tree_alg_data project,
 ///on two different machines.
-const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 32;
+const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 16;
 
 
 use crate::par::Parallel;
@@ -110,12 +110,7 @@ impl TreePreBuilder{
 }
 
 
-#[test]
-fn test_height(){
-    let a=compute_tree_height_heuristic(12000,DEFAULT_NUMBER_ELEM_PER_NODE);
-    assert_eq!(a,7);
 
-}
 ///Outputs the height given an desirned number of bots per node.
 #[inline]
 const fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> usize {
