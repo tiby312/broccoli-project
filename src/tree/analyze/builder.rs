@@ -9,8 +9,7 @@ pub struct TreeBuilder<'a, A: Axis, T> {
     axis: A,
     bots: &'a mut [T],
     rebal_strat: BinStrat,
-    height: usize,
-    height_switch_seq: usize,
+    height:TreePreBuilder,
 }
 
 impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T> {
@@ -18,7 +17,7 @@ impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T> {
     pub fn build_not_sorted_par(&mut self) -> NotSorted<'a, A, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
-        let dlevel = par::compute_level_switch_sequential(self.height_switch_seq, self.height);
+        let dlevel=self.height.switch_seq_level();
         let inner = create_tree_par(
             self.axis,
             dlevel,
@@ -35,7 +34,8 @@ impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T> {
     pub fn build_par(&mut self) -> Tree<'a, A, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
-        let dlevel = par::compute_level_switch_sequential(self.height_switch_seq, self.height);
+        let dlevel=self.height.switch_seq_level();
+        
         create_tree_par(
             self.axis,
             dlevel,
@@ -60,26 +60,15 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     pub fn with_axis(axis: A, bots: &'a mut [T]) -> TreeBuilder<'a, A, T> {
         let rebal_strat = BinStrat::NotChecked;
 
-        //we want each node to have space for around num_per_node bots.
-        //there are 2^h nodes.
-        //2^h*200>=num_bots.  Solve for h s.t. h is an integer.
+      
 
-        //Make this number too small, and the tree will have too many levels,
-        //and too much time will be spent recursing.
-        //Make this number too high, and you will lose the properties of a tree,
-        //and you will end up with just sweep and prune.
-        //This number was chosen emprically from running the Tree_alg_data project,
-        //on two different machines.
-        let height = compute_tree_height_heuristic(bots.len(), DEFAULT_NUMBER_ELEM_PER_NODE);
-
-        let height_switch_seq = par::SWITCH_SEQUENTIAL_DEFAULT;
+        let height=TreePreBuilder::new(bots.len());
 
         TreeBuilder {
             axis,
             bots,
             rebal_strat,
             height,
-            height_switch_seq,
         }
     }
 
@@ -120,7 +109,7 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
 
     #[inline(always)]
     pub fn with_height(&mut self, height: usize) -> &mut Self {
-        self.height = height;
+        self.height=TreePreBuilder::with_height(height);
         self
     }
 
@@ -128,7 +117,7 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     ///If you end up building sequentially, this argument is ignored.
     #[inline(always)]
     pub fn with_height_switch_seq(&mut self, height: usize) -> &mut Self {
-        self.height_switch_seq = height;
+        self.height.with_height_seq(height);
         self
     }
 
@@ -155,16 +144,17 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
     rest: &'a mut [T],
     sorter: impl Sorter,
     splitter: &mut K,
-    height: usize,
+    height: TreePreBuilder,
     binstrat: BinStrat,
 ) -> Tree<'a, A, T> {
     let num_bots = rest.len();
 
-    let cc = tree::nodes_left(0, height);
+    let cc= height.num_nodes();
+    //let cc = tree::nodes_left(0, height);
     let mut nodes = Vec::with_capacity(cc);
 
     let r = Recurser {
-        height,
+        height:height.get_height(),
         binstrat,
         sorter,
         _p: PhantomData,
@@ -200,16 +190,17 @@ fn create_tree_par<
     rest: &'a mut [T],
     sorter: impl Sorter,
     splitter: &mut K,
-    height: usize,
+    height: TreePreBuilder,
     binstrat: BinStrat,
 ) -> Tree<'a, A, T> {
     let num_bots = rest.len();
 
-    let cc = tree::nodes_left(0, height);
+    let cc=height.num_nodes();
+    //let cc = tree::nodes_left(0, height);
     let mut nodes = Vec::with_capacity(cc);
 
     let r = Recurser {
-        height,
+        height:height.get_height(),
         binstrat,
         sorter,
         _p: PhantomData,

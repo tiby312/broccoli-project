@@ -31,7 +31,7 @@ impl Sorter for NoSorter {
     fn sort(&self, _axis: impl Axis, _bots: &mut [impl Aabb]) {}
 }
 
-pub fn nodes_left(depth: usize, height: usize) -> usize {
+const fn nodes_left(depth: usize, height: usize) -> usize {
     let levels = height - 1 - depth;
     2usize.rotate_left(levels as u32) - 1
 }
@@ -50,11 +50,60 @@ pub enum BinStrat {
 ///If we had too many bots per node, you would lose the properties of a tree, and end up with plain sweep and prune.
 ///Theory would tell you to just make a node per bot, but there is
 ///a sweet spot inbetween determined by the real-word properties of your computer.
-pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 128;
+const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 128;
+
+
+use crate::par::Parallel;
+
+//we want each node to have space for around num_per_node bots.
+//there are 2^h nodes.
+//2^h*200>=num_bots.  Solve for h s.t. h is an integer.
+
+//Make this number too small, and the tree will have too many levels,
+//and too much time will be spent recursing.
+//Make this number too high, and you will lose the properties of a tree,
+//and you will end up with just sweep and prune.
+//This number was chosen emprically from running the Tree_alg_data project,
+//on two different machines.
+#[derive(Copy,Clone)]
+pub struct TreePreBuilder{
+    height:usize,
+    height_switch_seq:usize
+}
+impl TreePreBuilder{
+    pub fn new(num_elements:usize)->TreePreBuilder{
+        let height=compute_tree_height_heuristic(num_elements,DEFAULT_NUMBER_ELEM_PER_NODE);
+        TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
+    }
+    
+    pub fn with_num_elem_in_leaf(num_elements:usize,num_elem_leaf:usize)->TreePreBuilder{
+        let height=compute_tree_height_heuristic(num_elements,num_elem_leaf);
+        TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
+    }
+
+    pub fn with_height_seq(&mut self,height:usize){
+        self.height_switch_seq=height;
+    }
+
+    pub fn switch_seq_level(&self)->Parallel{
+        crate::par::compute_level_switch_sequential(self.height_switch_seq,self.height)
+    }
+    pub fn with_height(height:usize)->TreePreBuilder{
+        TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
+    }
+    
+    pub fn num_nodes(&self)->usize{
+        nodes_left(0,self.height)
+    }
+
+    pub fn get_height(&self)->usize{
+        self.height
+    }
+}
 
 ///Outputs the height given an desirned number of bots per node.
 #[inline]
-pub fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> usize {
+fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> usize {
     //we want each node to have space for around 300 bots.
     //there are 2^h nodes.
     //2^h*200>=num_bots.  Solve for h s.t. h is an integer.
@@ -79,7 +128,7 @@ pub trait Splitter: Sized {
     ///Called to add the results of the recursive calls on the children.
     fn add(&mut self,a:Self,b: Self);
 
-    fn leaf_start(&mut self){} //TODO remove default impl
+    fn leaf_start(&mut self){}
 
     fn leaf_end(&mut self){}
 
