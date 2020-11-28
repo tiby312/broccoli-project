@@ -170,7 +170,7 @@ pub trait Splitter: Sized {
 }
 
 ///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
-pub struct SplitterEmpty;
+pub(crate) struct SplitterEmpty;
 
 impl Splitter for SplitterEmpty {
     
