@@ -44,8 +44,8 @@ pub enum BinStrat {
     NotChecked,
 }
 
-///Returns the height of a dyn tree for a given number of bots.
-///The height is chosen such that the nodes will each have a small amount of bots.
+///The default number of elements per node
+///
 ///If we had a node per bot, the tree would have too many levels. Too much time would be spent recursing.
 ///If we had too many bots per node, you would lose the properties of a tree, and end up with plain sweep and prune.
 ///Theory would tell you to just make a node per bot, but there is
@@ -59,14 +59,14 @@ pub enum BinStrat {
 ///and you will end up with just sweep and prune.
 ///This number was chosen emprically from running the Tree_alg_data project,
 ///on two different machines.
-const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 16;
+pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 16;
 
 
 use crate::par::Parallel;
 
 
 ///Using this struct the user can determine the height of a tree or the number of nodes
-///that would exist if the tree were constructed.
+///that would exist if the tree were constructed with the specified number of elements.
 #[derive(Copy,Clone)]
 pub struct TreePreBuilder{
     height:usize,
@@ -78,33 +78,41 @@ impl TreePreBuilder{
         let height=compute_tree_height_heuristic(num_elements,DEFAULT_NUMBER_ELEM_PER_NODE);
         TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
     }
-    
+    ///Specify a custom default nuber of elements per leaf.
     pub const fn with_num_elem_in_leaf(num_elements:usize,num_elem_leaf:usize)->TreePreBuilder{
         let height=compute_tree_height_heuristic(num_elements,num_elem_leaf);
         TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
     }
 
-    pub fn with_height_seq(&mut self,height:usize){
+    ///Specify at which level to switch from parallel to sequential when
+    ///parallel functions are used.
+    pub const fn with_height_seq(&mut self,height:usize){
         self.height_switch_seq=height;
     }
 
     //TODO try and make const??
+    ///Create a [`par::Joiner`] that will switch to sequential at the approriate level
     pub fn switch_seq_level(&self)->Parallel{
         crate::par::compute_level_switch_sequential(self.height_switch_seq,self.height)
     }
+
+    ///Specify a custom height of the tree, ignoring the number of elements per node variable.
     pub const fn with_height(height:usize)->TreePreBuilder{
         TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
     }
 
-    pub fn get_height_seq(&self)->usize{
+    ///Return the level at which parallel algorithms will switch to sequential.
+    pub const fn get_height_seq(&self)->usize{
         self.height_switch_seq
     }
     
-    pub fn num_nodes(&self)->usize{
+    ///Compute the number of nodes in the tree based off of the height.
+    pub const fn num_nodes(&self)->usize{
         nodes_left(0,self.height)
     }
 
-    pub fn get_height(&self)->usize{
+    ///Get the currently configured height.
+    pub const fn get_height(&self)->usize{
         self.height
     }
 }

@@ -29,13 +29,13 @@ mod graphics;
 ///Contains all k_nearest code.
 mod k_nearest;
 pub use k_nearest::Knearest;
-pub use k_nearest::KnearestClosure;
+//pub use k_nearest::KnearestClosure;
 pub use k_nearest::KResult;
 pub use k_nearest::KnearestResult;
 
 ///Contains all raycast code.
 mod raycast;
-pub use raycast::RayCastClosure;
+//pub use raycast::RayCastClosure;
 pub use raycast::RayCast;
 
 
