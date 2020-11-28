@@ -65,6 +65,7 @@ use crate::par::Parallel;
 //and you will end up with just sweep and prune.
 //This number was chosen emprically from running the Tree_alg_data project,
 //on two different machines.
+//TODO document
 #[derive(Copy,Clone)]
 pub struct TreePreBuilder{
     height:usize,
@@ -90,6 +91,10 @@ impl TreePreBuilder{
     }
     pub fn with_height(height:usize)->TreePreBuilder{
         TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
+    }
+
+    pub fn get_height_seq(&self)->usize{
+        self.height_switch_seq
     }
     
     pub fn num_nodes(&self)->usize{
