@@ -92,7 +92,7 @@ impl TreePreBuilder{
 
     //TODO try and make const??
     ///Create a [`par::Joiner`] that will switch to sequential at the approriate level
-    pub fn switch_seq_level(&self)->Parallel{
+    pub(crate) fn switch_seq_level(&self)->Parallel{
         crate::par::compute_level_switch_sequential(self.height_switch_seq,self.height)
     }
 

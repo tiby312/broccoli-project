@@ -44,10 +44,6 @@ impl Parallel {
     pub fn get_depth_to_switch_at(&self) -> usize {
         self.depth_to_switch_at
     }
-
-    pub fn get_current_depth(&self) -> usize {
-        self.current_depth
-    }
 }
 
 impl Joiner for Parallel {
@@ -69,4 +65,23 @@ impl Joiner for Sequential {
     fn next(self) -> ParResult<Self, Sequential> {
         ParResult::Sequential([Sequential, Sequential])
     }
+}
+
+
+#[test]
+fn test_parallel() {
+    let k = Parallel::new(0);
+    match k.next() {
+        ParResult::Parallel(_) => {
+            panic!("fail");
+        }
+        ParResult::Sequential(_) => {}
+    }
+}
+
+
+#[test]
+fn test_par_heur() {
+    let p = compute_level_switch_sequential(6, 6);
+    assert_eq!(p.get_depth_to_switch_at(), 0);
 }

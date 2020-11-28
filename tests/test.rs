@@ -5,7 +5,6 @@ extern crate compt;
 use compt::*;
 
 use axgeom::*;
-use broccoli::par::*;
 use broccoli::prelude::*;
 use broccoli::*;
 
@@ -19,21 +18,6 @@ fn create_bbox_mut<'a, N: Num, T>(
         .collect()
 }
 
-#[test]
-fn test_par_heur() {
-    let p = compute_level_switch_sequential(6, 6);
-    assert_eq!(p.get_depth_to_switch_at(), 0);
-}
-#[test]
-fn test_parallel() {
-    let k = Parallel::new(0);
-    match k.next() {
-        ParResult::Parallel(_) => {
-            panic!("fail");
-        }
-        ParResult::Sequential(_) => {}
-    }
-}
 
 #[test]
 fn test_zero_sized() {
