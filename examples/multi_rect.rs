@@ -11,7 +11,7 @@ fn main() {
         bbox(rect(4, 7, 4, 7), &mut inner3),
     ];
 
-    let mut tree = broccoli::collections::TreeRef::new(&mut bots);
+    let mut tree = broccoli::new(&mut bots);
 
     let mut m = tree.multi_rect();
 

@@ -5,7 +5,7 @@
 
 use super::*;
 use crate::tree::*;
-use collections::TreeRef;
+use container::TreeRef;
 ///Returns false if the tree's invariants are not met.
 #[must_use]
 pub fn tree_invariants<'a>(a: &impl Queries<'a>) -> bool {

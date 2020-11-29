@@ -93,7 +93,7 @@ impl<'a, A: Axis, N: Num, T: Send + Sync> TreeRefInd<'a, A, N, T> {
     ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut tree = broccoli::collections::TreeRefInd::new_par(&mut aabbs,|a|{
+    /// let mut tree = broccoli::container::TreeRefInd::new_par(&mut aabbs,|a|{
     ///    a.rect
     /// });
     ///
@@ -207,7 +207,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
     ///    broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut tree = broccoli::collections::TreeRefInd::new(&mut aabbs,|a|{
+    /// let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,|a|{
     ///     a.rect
     /// });
     ///
@@ -259,7 +259,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
     ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut tree = broccoli::collections::TreeRefInd::new(&mut aabbs,|a|{
+    /// let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,|a|{
     ///    a.rect
     /// });
     ///

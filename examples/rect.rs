@@ -14,7 +14,7 @@ fn main() {
         bbox(rect(5, 15, 5, 15), &mut inner3),
     ];
 
-    let tree = broccoli::collections::TreeRef::new(&mut bots);
+    let tree = broccoli::new(&mut bots);
 
     //Here we query for read-only references so we can pull
     //them out of the closure.

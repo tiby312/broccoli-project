@@ -51,7 +51,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             })
             .collect();
 
-        let mut tree = broccoli::collections::TreeRef::new_par(&mut k);
+        let mut tree = broccoli::container::TreeRef::new_par(&mut k);
 
         {
             let dim2 = dim.inner_into();

@@ -14,7 +14,7 @@ fn main() {
 
     let border = broccoli::rect(0, 100, 0, 100);
 
-    let mut tree = broccoli::collections::TreeRef::new(&mut bots);
+    let mut tree = broccoli::new(&mut bots);
 
     let mut res = tree.k_nearest_mut(
         vec2(30, 30),

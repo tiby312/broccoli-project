@@ -43,7 +43,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         .into_boxed_slice();
 
     let mut tree =
-        broccoli::collections::TreeOwnedInd::new(bots, |bot| bot.rect.inner_try_into().unwrap());
+        broccoli::container::TreeOwnedInd::new(bots, |bot| bot.rect.inner_try_into().unwrap());
 
     let mut rects = canvas.rects();
     for bot in tree.as_tree().get_bbox_elements().iter() {

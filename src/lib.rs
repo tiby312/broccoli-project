@@ -13,10 +13,10 @@
 //!
 //! ### There are so many Tree types which one do I use?
 //!
-//! The [`collections`] modules lists the tree types and they are all described there, but the
+//! The [`container`] module lists the tree types and they are all described there, but the
 //! TL;DR is use [`Tree`] and fill it with `BBox<N,&mut T>` unless you want
-//! to use functions like [`collect_colliding_pairs`](crate::collections::TreeRefInd::collect_colliding_pairs).
-//! In which case use [`TreeRefInd`](crate::collections::TreeRefInd).
+//! to use functions like [`collect_colliding_pairs`](crate::container::TreeRefInd::collect_colliding_pairs).
+//! In which case use [`TreeRefInd`](crate::container::TreeRefInd).
 //!
 //! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
 //!

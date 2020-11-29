@@ -82,7 +82,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
     /// ```rust
     /// use broccoli::{prelude::*,bbox,rect};
     /// let mut k=[4];
-    /// let mut b=broccoli::collections::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
+    /// let mut b=broccoli::container::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
     /// b.find_colliding_pairs_mut(|a,b|{});
     /// assert_eq!(b.get_elements()[0],4);
     /// b.find_colliding_pairs_mut(|a,b|{});
@@ -94,7 +94,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
     /// ```rust
     /// use broccoli::{prelude::*,bbox,rect};
     /// let mut k=[0];
-    /// let mut b=broccoli::collections::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
+    /// let mut b=broccoli::container::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
     /// b.find_colliding_pairs_mut(|a,b|{});
     /// b.get_elements_mut()[0]=5;
     /// b.find_colliding_pairs_mut(|a,b|{});
@@ -215,7 +215,7 @@ impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
     /// ```rust
     /// use broccoli::{prelude::*,bbox,rect};
     /// let mut k=[bbox(rect(0,10,0,10),8)];
-    /// let mut b=broccoli::collections::TreeRef::new(&mut k);
+    /// let mut b=broccoli::container::TreeRef::new(&mut k);
     /// b.find_colliding_pairs_mut(|a,b|{});
     /// assert_eq!(b.get_bbox_elements()[0].inner,8);
     /// b.find_colliding_pairs_mut(|a,b|{});
@@ -228,7 +228,7 @@ impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
     /// ```rust
     /// use broccoli::{prelude::*,bbox,rect};
     /// let mut k=[bbox(rect(0,10,0,10),8)];
-    /// let mut b=broccoli::collections::TreeRef::new(&mut k);
+    /// let mut b=broccoli::container::TreeRef::new(&mut k);
     /// b.find_colliding_pairs_mut(|a,b|{});
     /// *b.get_bbox_elements_mut().get_index_mut(0).inner_mut()=5;
     /// b.find_colliding_pairs_mut(|a,b|{});
@@ -243,7 +243,7 @@ impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
 ///
 /// ```rust
 /// use axgeom::*;
-/// use broccoli::{*,collections::*,DefaultA};
+/// use broccoli::{*,container::*,DefaultA};
 ///
 /// fn not_lifetimed()->TreeOwnedInd<DefaultA,i32,Vec2<i32>>
 /// {
@@ -319,7 +319,7 @@ impl<A: Axis, N: Num, T> TreeOwnedInd<A, N, T> {
 /// An owned `(Rect<N>,T)` example
 ///
 /// ```rust
-/// use broccoli::{BBox,bbox,rect,prelude::*,collections::*,DefaultA};
+/// use broccoli::{BBox,bbox,rect,prelude::*,container::*,DefaultA};
 ///
 /// fn not_lifetimed()->TreeOwned<DefaultA,BBox<i32,f32>>
 /// {

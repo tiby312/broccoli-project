@@ -21,7 +21,7 @@ fn test1() {
             })
             .collect();
 
-        let mut tree = broccoli::collections::TreeRef::new(&mut bots);
+        let mut tree = broccoli::container::TreeRef::new(&mut bots);
         broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
         broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
     }
@@ -47,7 +47,7 @@ fn test2() {
             })
             .collect();
 
-        let mut tree = broccoli::collections::TreeRefInd::new(&mut bots, |a| a.rect);
+        let mut tree = broccoli::container::TreeRefInd::new(&mut bots, |a| a.rect);
         broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
         broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
         let mut p = tree.collect_colliding_pairs(|_a, _b| Some(()));

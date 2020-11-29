@@ -32,7 +32,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     }
     let circle_save = r.save(canvas);
 
-    let mut tree = broccoli::collections::TreeOwned::new(vv);
+    let mut tree = broccoli::container::TreeOwned::new(vv);
 
     Demo::new(move |cursor, canvas, check_naive| {
         circle_save
