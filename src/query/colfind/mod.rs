@@ -132,6 +132,7 @@ impl<'a, A: Axis, N: Node> NotSortedQueryBuilder<'a, A, N> {
     }
 }
 
+
 ///Builder for a query on a DinoTree.
 pub struct QueryBuilder<'a, A: Axis, N: Node> {
     switch_height: usize,

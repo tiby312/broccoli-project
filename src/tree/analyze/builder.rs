@@ -56,20 +56,19 @@ impl<'a, T: Aabb> TreeBuilder<'a, DefaultA, T> {
 }
 
 impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
+    pub(crate)fn from_prebuilder(axis:A,bots:&'a mut [T],height:TreePreBuilder)->TreeBuilder<A,T>{
+        let rebal_strat = BinStrat::Checked;
+        TreeBuilder{
+            axis,
+            bots,rebal_strat,
+            height
+        }
+    }
     ///Create a new builder with a slice of elements that implement `Aabb`.
     pub fn with_axis(axis: A, bots: &'a mut [T]) -> TreeBuilder<'a, A, T> {
-        let rebal_strat = BinStrat::NotChecked;
-
-      
-
+        
         let height=TreePreBuilder::new(bots.len());
-
-        TreeBuilder {
-            axis,
-            bots,
-            rebal_strat,
-            height,
-        }
+        Self::from_prebuilder(axis,bots,height)
     }
 
     ///Build not sorted sequentially

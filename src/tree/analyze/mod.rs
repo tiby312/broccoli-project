@@ -72,6 +72,8 @@ pub struct TreePreBuilder{
     height:usize,
     height_switch_seq:usize
 }
+
+
 impl TreePreBuilder{
     ///Create the builder object with default values.
     pub const fn new(num_elements:usize)->TreePreBuilder{
@@ -99,6 +101,16 @@ impl TreePreBuilder{
     ///Specify a custom height of the tree, ignoring the number of elements per node variable.
     pub const fn with_height(height:usize)->TreePreBuilder{
         TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
+    }
+
+    ///Create a `TreeBuilder`
+    pub fn into_builder<'a,T:Aabb>(&self,bots:&'a mut [T])->TreeBuilder<'a,DefaultA,T>{
+        TreeBuilder::from_prebuilder(default_axis(),bots,*self)
+    }
+    
+    ///Create a `TreeBuilder` with a use specified axis.
+    pub fn into_builder_with_axis<'a,A:Axis,T:Aabb>(&self,bots:&'a mut [T],axis:A)->TreeBuilder<'a,A,T>{
+        TreeBuilder::from_prebuilder(axis,bots,*self)
     }
 
     ///Return the level at which parallel algorithms will switch to sequential.
