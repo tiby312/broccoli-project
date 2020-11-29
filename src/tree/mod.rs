@@ -9,8 +9,8 @@ pub mod analyze;
 ///in case users find it useful when writing parallel query code to operate on the tree.
 pub(crate) mod par;
 
-mod notsorted;
-pub use self::notsorted::NotSorted;
+//mod notsorted;
+//pub use self::notsorted::NotSorted;
 
 use analyze::TreeBuilder;
 
