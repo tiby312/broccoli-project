@@ -2,21 +2,22 @@ use super::node_handle::*;
 use super::*;
 use crate::inner_prelude::*;
 
-struct GoDownRecurser<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> {
+
+struct InnerRecurser<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> {
     anchor: DestructuredNode<'a, N::T, B>,
     sweeper: &'a mut NN,
 }
 
-impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> GoDownRecurser<'a, N, NN, B> {
+impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B> {
     #[inline(always)]
     fn new(
         anchor: DestructuredNode<'a, N::T, B>,
         sweeper: &'a mut NN,
-    ) -> GoDownRecurser<'a, N, NN, B> {
-        GoDownRecurser { anchor, sweeper }
+    ) -> InnerRecurser<'a, N, NN, B> {
+        InnerRecurser { anchor, sweeper }
     }
 
-    fn go_down<
+    fn recurse<
         A: Axis, //this axis
     >(
         &mut self,
@@ -44,15 +45,15 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> GoDownRecurser<'a, N, NN, 
 
                 if this_axis.is_equal_to(anchor_axis) {
                     if *div >= self.anchor.cont.start {
-                        self.go_down(this_axis.next(), left);
+                        self.recurse(this_axis.next(), left);
                     }
 
                     if *div <= self.anchor.cont.end {
-                        self.go_down(this_axis.next(), right);
+                        self.recurse(this_axis.next(), right);
                     };
                 } else {
-                    self.go_down(this_axis.next(), left);
-                    self.go_down(this_axis.next(), right);
+                    self.recurse(this_axis.next(), left);
+                    self.recurse(this_axis.next(), right);
                 }
             }
             None => {
@@ -114,9 +115,9 @@ impl<
 
                     let left = left.create_wrap_mut();
                     let right = right.create_wrap_mut();
-                    let mut g = GoDownRecurser::new(nn, sweeper);
-                    g.go_down(this_axis.next(), left);
-                    g.go_down(this_axis.next(), right);
+                    let mut g = InnerRecurser::new(nn, sweeper);
+                    g.recurse(this_axis.next(), left);
+                    g.recurse(this_axis.next(), right);
                 }
 
 
@@ -208,9 +209,9 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
 
                         let left = left.create_wrap_mut();
                         let right = right.create_wrap_mut();
-                        let mut g = GoDownRecurser::new(nn, sweeper);
-                        g.go_down(this_axis.next(), left);
-                        g.go_down(this_axis.next(), right);
+                        let mut g = InnerRecurser::new(nn, sweeper);
+                        g.recurse(this_axis.next(), left);
+                        g.recurse(this_axis.next(), right);
                     }
                 }
 
