@@ -37,7 +37,7 @@ fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(PMut<T>, PMut<T>)) -> TestRes
 fn test_par<T: Aabb + Send + Sync>(
     bots: &mut [T],
     func: impl Fn(PMut<T>, PMut<T>) + Send + Sync,
-) -> TestResult {
+) -> TestResult where T::Num:Send+Sync{
     let (mut tree, construct_time) = bench_closure_ret(|| broccoli::new_par(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {

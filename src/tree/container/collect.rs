@@ -80,7 +80,7 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
     }
 }
 
-impl<'a, A: Axis, N: Num, T: Send + Sync> TreeRefInd<'a, A, N, T> {
+impl<'a, A: Axis, N: Num+Send+Sync, T: Send + Sync> TreeRefInd<'a, A, N, T>  {
     /// The parallel version of [`TreeRefInd::collect_colliding_pairs`] that instead
     /// returns a [`CollidingPairsPar`].
     ///

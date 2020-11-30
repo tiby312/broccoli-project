@@ -12,7 +12,7 @@ pub struct TreeBuilder<'a, A: Axis, T> {
     height:TreePreBuilder,
 }
 
-impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T> {
+impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T>where T::Num:Send+Sync {
     ///Build not sorted in parallel
     pub fn build_not_sorted_par(&mut self) -> NotSorted<'a, A, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
@@ -191,7 +191,7 @@ fn create_tree_par<
     splitter: &mut K,
     height: TreePreBuilder,
     binstrat: BinStrat,
-) -> Tree<'a, A, T> {
+) -> Tree<'a, A, T> where T::Num:Send+Sync{
     let num_bots = rest.len();
 
     let cc=height.num_nodes();
@@ -321,7 +321,8 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
         }
     }
 }
-impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'a, T, K, S> {
+impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'a, T, K, S>
+ where T::Num:Send+Sync {
     fn recurse_preorder<A: Axis, JJ: par::Joiner>(
         &self,
         axis: A,

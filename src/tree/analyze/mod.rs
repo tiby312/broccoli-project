@@ -206,7 +206,7 @@ use crate::tree::Queries;
 /// extra property to be faster.
 pub struct NotSorted<'a, A: Axis, T: Aabb>(pub(crate) Tree<'a, A, T>);
 
-impl<'a, T: Aabb + Send + Sync> NotSorted<'a, DefaultA, T> {
+impl<'a, T: Aabb + Send + Sync> NotSorted<'a, DefaultA, T> where T::Num:Send+Sync{
     pub fn new_par(bots: &'a mut [T]) -> NotSorted<'a, DefaultA, T> {
         TreeBuilder::new(bots).build_not_sorted_par()
     }
@@ -217,7 +217,7 @@ impl<'a, T: Aabb> NotSorted<'a, DefaultA, T> {
     }
 }
 
-impl<'a, A: Axis, T: Aabb + Send + Sync> NotSorted<'a, A, T> {
+impl<'a, A: Axis, T: Aabb + Send + Sync> NotSorted<'a, A, T>  where T::Num:Send+Sync{
     pub fn with_axis_par(axis: A, bots: &'a mut [T]) -> NotSorted<'a, A, T> {
         TreeBuilder::with_axis(axis, bots).build_not_sorted_par()
     }

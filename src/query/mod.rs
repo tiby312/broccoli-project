@@ -83,6 +83,7 @@ pub trait NotSortedQueries<'a> {
         func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Clone + Send + Sync,
     ) where
         Self::T: Send + Sync,
+        Self::Num:Send+Sync
     {
         query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
             .query_par(move |a, b| func(a, b));
@@ -184,6 +185,7 @@ pub trait Queries<'a> {
         func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Send + Sync + Clone,
     ) where
         Self::T: Send + Sync,
+        Self::Num:Send+Sync
     {
         colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_par(move |a, b| func(a, b));
     }
@@ -598,6 +600,7 @@ pub trait Queries<'a> {
     ) where
         X::No: Send,
         Self::T: Send + Sync,
+        Self::Num:Send+Sync
     {
         query::nbody::nbody(self.axis(), self.vistr_mut(), ncontext, rect)
     }
@@ -612,6 +615,7 @@ pub trait Queries<'a> {
     ) where
         X::No: Send,
         Self::T: Send + Sync,
+        Self::Num:Send+Sync
     {
         query::nbody::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
     }

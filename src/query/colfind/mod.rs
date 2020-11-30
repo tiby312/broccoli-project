@@ -143,6 +143,7 @@ pub struct QueryBuilder<'a, A: Axis, N: Node> {
 impl<'a, A: Axis, N: Node + Send + Sync> QueryBuilder<'a, A, N>
 where
     N::T: Send + Sync,
+    N::Num:Send+Sync
 {
     ///Perform the query in parallel
     #[inline(always)]
@@ -191,6 +192,7 @@ where
     ) -> B
     where
         N::T: Send + Sync,
+        N::Num: Send+Sync,
     {
         struct Foo<T, A, B, C, D> {
             _p: PhantomData<T>,

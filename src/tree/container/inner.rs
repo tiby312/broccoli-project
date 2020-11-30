@@ -5,7 +5,7 @@ pub(super) struct TreeRefInner<A: Axis, T: Aabb> {
     pub(super) orig: Ptr<[T]>,
 }
 
-impl<A: Axis, T: Aabb + Send + Sync> TreeRefInner<A, T> {
+impl<A: Axis, T: Aabb + Send + Sync> TreeRefInner<A, T> where T::Num:Send+Sync {
     pub fn with_axis_par(a: A, arr: &mut [T]) -> TreeRefInner<A, T> {
         let inner = make_owned_par(a, arr);
         let orig = Ptr(arr as *mut _);
@@ -25,7 +25,7 @@ pub(super) struct TreeIndInner<A: Axis, N: Num, T> {
     pub(super) orig: Ptr<[T]>,
 }
 
-impl<A: Axis, N: Num, T: Send + Sync> TreeIndInner<A, N, T> {
+impl<A: Axis, N: Num+Send+Sync, T: Send + Sync> TreeIndInner<A, N, T> {
     pub fn with_axis_par(
         axis: A,
         arr: &mut [T],
@@ -71,7 +71,7 @@ pub(super) fn make_owned<A: Axis, T: Aabb>(axis: A, bots: &mut [T]) -> TreeInner
 fn make_owned_par<A: Axis, T: Aabb + Send + Sync>(
     axis: A,
     bots: &mut [T],
-) -> TreeInner<A, NodePtr<T>> {
+) -> TreeInner<A, NodePtr<T>> where T::Num:Send+Sync{
     let inner = crate::with_axis_par(axis, bots);
 
     let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>, _> = inner.inner.inner.convert();
