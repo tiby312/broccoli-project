@@ -1,28 +1,30 @@
 
 ### Comparison against other Algorithms
 
-The below chart compares different implementations of `find_colliding_pairs` both in terms of comparisons and benches. It is interesting to note that the real world bench times match closely with the theoretical number of comparisons. So that means that the number of comparisons performed is proportional to the real world performance of this algorithm. Makes sense, but it is also nice to see the data line up. 
 
-The jumps that you see in the theoretical `broccoli` line are the points at which the trees height grows by one. It is a complete binary tree so a slight increase in the height by 1 causes a doubling of nodes so it is a drastic change. As the number of bots increases it is inevitable that sometimes the tree will be too tall or too short. 
+<img alt="Colfind Theory" src="graphs/colfind_theory.svg" class="center" style="width: 100%;" />
+<img alt="Colfind Bench" src="graphs/colfind_bench.svg" class="center" style="width: 100%;" />
+
+
+The above chart compares different implementations of `find_colliding_pairs` both in terms of comparisons and benches. It is interesting to note that the real world bench times follow the same trend as the theoretical number of comparisons.
+
+The jumps that you see in the theoretical `broccoli` line are the points at which the trees height grows. It is a complete binary tree so a slight increase in the height causes a doubling of nodes so it is a drastic change. As the number of bots increases it is inevitable that sometimes the tree will be too tall or too short. 
 
 It's also worth noting that the difference between `sweep and prune`/`kdtree` and `naive` is much bigger than the difference between `sweep and prune`/`kdtree` and `broccoli`. So using these simpler algorithms gets you big gains as it is. The gains you get from using `broccoli` are not as pronounced, but are noticeable with more elements.
 
 In the same vein, you can see what there arn't many gains to use `broccoli_par` over `broccoli`. It can double/quaduple your performance, but as you can see those gains pale in comparison to the gains from simply using the `broccoli` algorithm. Thats not to say multiplying your performance by the number of cores you have isnt great, its just that it isnt a big factor. This to me means that typically, allocating effort on
 investigating if your algorithm is optimal sequentially may be better than spending effort in parallelizing what you have.
 
-<img alt="Colfind Theory" src="graphs/colfind_theory.svg" class="center" style="width: 100%;" />
-<img alt="Colfind Bench" src="graphs/colfind_bench.svg" class="center" style="width: 100%;" />
 
+<img alt="3D Colfind" src="graphs/3d_colfind_num_pairs.svg" class="center" style="width: 100%;" />
 
-The below chart shows a 3d view of the characteristics of `naive`, `sweep and prune`, and `broccoli`.
+The above chart shows a 3d view of the characteristics of `naive`, `sweep and prune`, and `broccoli`.
 
 There are a couple of observations to make here. First, you might have noticed that the naive algorithm is not completely static with respect to the spiral grow. This is because the naive implementation I used is not 100% naive. While it does check
 every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the bots are clumped up. If there were no short-circuiting, it would be flat all across. It is clear from the graph that this short-circuiting optimization does not gain you all that much.
 
 Another interesting observation is that these graphs show that `sweep and prune` has a better worst case than the `broccoli`. This makes sense since in the worst case, `sweep and prune` will sort all the elements, and then sweep. In the worst case for `broccoli`, it will first find the median, and then sort all the elements, and then sweep. So the `broccoli` is slower since it redundantly found the median, and then sorted everything. However, it is easy to see that this only happens when the bots are extremely clumped up (abspiral(grow) where grow<=0.003). So while `sweep and prune` has a better worst-cast, the worst-cast scenario is rare and the dino-tree's worst case is not much worse (median finding + sort versus just sort). 
 
-
-<img alt="3D Colfind" src="graphs/3d_colfind_num_pairs.svg" class="center" style="width: 100%;" />
 
 It's important to note that these comparisons aren't really fair. With broccoli, we are focused on optimising the finding colliding pairs portion, but these comparisons are comparing construct+ one call to finding colliding pairs. However, we can't really show a graph of just the query portion, because other algorithms can't be easily split up into a construction and query part. Perhaps a better test would be to compare multiple query calls. So for each algorithm with one set of elements, find all the colliding pairs, then also find all the elements in a rectangle, then also find knearest, etc. So it would be like a benching suite.
 
