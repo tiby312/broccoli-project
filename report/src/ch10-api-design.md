@@ -1,3 +1,29 @@
+
+### Forbidding the user from violating the invariants of the tree statically
+
+We have an interesting problem with our tree. We want the user to be able to mutate the elements directly in the tree,
+but we also do not want to let them mutate the aabb's of each of the elements of the tree. Doing so would
+mean we'd need to re-construct the tree.
+
+So when iterating over the tree, we can't return `&mut T`. So to get around that, there is `PMut<T>` that wraps around a `&mut T` and hides it but does exposes the `Aabb` and `HasInner` interfaces. 
+
+So that makes the user unable to get a `&mut T`, but even if we just give the user a `&mut [PMut<T>]` where is another problem. The user could swap two node's slices around. So to get around that we use `PMut<[T]>` and `PMutIter<T>`.
+
+But there is still another problem, we can't return a `&mut Node` either. Because then the user could swap the entire node
+between two nodes in the tree. So to get around that we have a `PMut<Node>` that wraps around a `&mut Node`.
+
+So that's alot of work, but now the user is physically unable to violate the invariants of the tree at compile time and at the same time
+we do not have a level of indirection. 
+
+
+### Knowing the axis at compile time
+
+A problem with using recursion on an kd tree is that every time you recurse, you have to access a different axis, so you might have branches in your code. A branch predictor might have problems seeing the pattern that the axis alternate with each call. One way to avoid this would be to handle the nodes in bfs order. Then you only have to alternate the axis once every level. But this way you lose the nice divide and conquer aspect of splitting the problem into two and handling those two problems concurrently. So to avoid, this, the axis of a particular recursive call is known at compile time. Each recursive call, will call the next with the next axis type. This way all branching based off of the axis is known at compile time. 
+
+
+A downside to this is that the starting axis of the tree
+must be chosen at compile time. It is certainly possible to create a wrapper around two specialized versions of the tree, one for each axis, but this would leads to alot of generated code, for little benefit. Not much time is spent handling the root node anyway, so even if the suboptimal starting axis is picked it is not that big of a deal.
+
 ### Mutable vs Read-Only api
 
 We could have just exposed read only versions of all the query functions where functions like
@@ -40,19 +66,3 @@ For this to work the user must uphold the contract of `Aabb` such that the aabb 
 This is hard for the user not to do since they only have read-only reference to self, but still possible using
 RefCell or Mutex. If the user violates this, then despite two query rectangles being mutually exclusive,
 the same bot might be in both. So at the cost of making HasAabb unsafe, we can make the MultiRect Api not unsafe.
-
-### Forbidding the user from violating the invariants of the tree statically
-
-We have an interesting problem with our tree. We want the user to be able to mutate the elements directly in the tree,
-but we also do not want to let them mutate the aabb's of each of the elements of the tree. Doing so would
-mean we'd need to re-construct the tree.
-
-So when iterating over the tree, we can't return `&mut T`. So to get around that, there is `PMut<T>` that wraps around a `&mut T` and hides it but does exposes the `Aabb` and `HasInner` interfaces. 
-
-So that makes the user unable to get a `&mut T`, but even if we just give the user a `&mut [PMut<T>]` where is another problem. The user could swap two node's slices around. So to get around that we use `PMut<[T]>` and `PMutIter<T>`.
-
-But there is still another problem, we can't return a `&mut Node` either. Because then the user could swap the entire node
-between two nodes in the tree. So to get around that we have a `PMut<Node>` that wraps around a `&mut Node`.
-
-So that's alot of work, but now the user is physically unable to violate the invariants of the tree at compile time and at the same time
-we do not have a level of indirection. 
