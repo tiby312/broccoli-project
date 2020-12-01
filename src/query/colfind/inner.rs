@@ -222,10 +222,8 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
                 splitter.add(splitter11,splitter22);
             }
             None => {
-                sweeper.leaf_start();
                 splitter.leaf_start();
                 sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
-                sweeper.leaf_end();
                 splitter.leaf_end();
             }
         }
