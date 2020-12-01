@@ -1,6 +1,8 @@
 use crate::inner_prelude::*;
 
 ///Shorthand constructor of [`BBox`]
+#[inline(always)]
+#[must_use]
 pub fn bbox<N, T>(rect: Rect<N>, inner: T) -> BBox<N, T> {
     BBox::new(rect, inner)
 }
@@ -23,6 +25,7 @@ pub struct BBox<N, T> {
 impl<N, T> BBox<N, T> {
     ///Constructor. Also consider using [`bbox()`]
     #[inline(always)]
+    #[must_use]
     pub fn new(rect: Rect<N>, inner: T) -> BBox<N, T> {
         BBox { rect, inner }
     }
@@ -31,6 +34,8 @@ impl<N, T> BBox<N, T> {
 use core::convert::TryFrom;
 impl<N: Copy, T> BBox<N, T> {
     ///Creates a `(Rect<N>,&mut T)` from a `(Rect<N>,T)`
+    #[inline(always)]
+    #[must_use]
     pub fn into_semi_direct(&mut self) -> BBox<N, &mut T> {
         BBox {
             rect: self.rect.clone(),
@@ -39,6 +44,8 @@ impl<N: Copy, T> BBox<N, T> {
     }
 
     ///Simply returns a mutable reference
+    #[inline(always)]
+    #[must_use]
     pub fn into_indirect(&mut self) -> &mut BBox<N, T> {
         self
     }
@@ -46,6 +53,7 @@ impl<N: Copy, T> BBox<N, T> {
     ///Change the number type of the Rect using
     ///promitive cast.
     #[inline(always)]
+    #[must_use]
     pub fn inner_as<B: 'static + Copy>(self) -> BBox<B, T>
     where
         N: num_traits::AsPrimitive<B>,
