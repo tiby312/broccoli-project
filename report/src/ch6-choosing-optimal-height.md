@@ -2,8 +2,8 @@
 
 ### Comparison of Tree Height
 
-The below charts show the performance of the tree when manually selecting a height other than the default one chosen.
-You can see that the theory is a downward curve, but the benching is more of a bowl. Theory would tell us to have a big enough height such that every leaf node had only one bot in it. But in the real world, this has a lot of overhead with recursive calls and memory. Instead the benching suggested a smaller height where the leaf nodes has a few bots in them.
+The below charts show the performance of building and querying colliding pairs when manually selecting a height other than the default one chosen.
+You can see that the theory is a downward curve, but the benching is more of a bowl. Theory would tell us to have a big enough height such that every leaf node had only one bot in it. But in the real world, this is overhead due to excessive recursive calls. Its not that pronounced, and I think it is because most of the aabbs don't make it to the bottom of the tree anyway. Most will intersect a divider somewhere in the tree. If we used smaller aabbs it might be more pronounced.
 
 <img alt="Height heuristic" src="graphs/height_heuristic.svg" class="center" style="width: 100%;" />
 
