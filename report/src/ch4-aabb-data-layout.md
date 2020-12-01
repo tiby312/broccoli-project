@@ -1,7 +1,7 @@
 
 ### Semi-Direct vs Direct vs Indirect
 
-Below are a bunch of diagrams that highlight differences between a couple variable:
+Below are a bunch of diagrams that highlight differences between a couple variables:
 Whether the elements inserted into the tree are made up of:
 
 * `(Rect<Num>,&mut T)` (Semi-Direct)

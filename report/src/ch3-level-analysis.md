@@ -6,6 +6,7 @@ Tree construction is compared against one call to `find_colliding_pairs`.
 
 Some observations:
 * The cost of rebalancing the first level is the most erratic. 
+    This is because in some cases we're hitting the worst cases of pdqselect.
 	I like to think of the algorithm as a sponge and the problem as water seeping through it.
 	First you you have coarse filtering, then it gets more precise.
 * The load goes from the top levels to the bottom levels as the bots spread out more.
