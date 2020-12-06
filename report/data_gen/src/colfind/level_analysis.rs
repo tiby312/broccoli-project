@@ -28,6 +28,7 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f32>) ->
             let mut levelc = LevelCounter::new();
             let mut tree = TreeBuilder::new(&mut bots).build_with_splitter_seq(&mut levelc);
 
+            let start=maker.count();
 
             let mut levelc2 = LevelCounter::new();
             tree.new_colfind_builder().query_with_splitter_seq(
@@ -37,7 +38,13 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f32>) ->
                 },
                 &mut levelc2,
             );
-            (levelc.into_levels(),levelc2.into_levels(),tree.get_height())
+
+            let mut ll=levelc2.into_levels();
+            for a in ll.iter_mut(){
+                *a-=start;
+            }
+
+            (levelc.into_levels(),ll,tree.get_height())
         });
 
         let mut t = TheoryRes {
