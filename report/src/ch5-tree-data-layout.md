@@ -1,6 +1,6 @@
 ### Leaves as unique type, vs single node type.
 
-The leaf elements of the tree data structure don't need as much information as their parent nodes. They don't have dividers. So half of the nodes of the data structure haa a field that store no information. It can be tempting to give the leaf nodes a seperate type to improve memory usage, but the divider size is small, and the number of nodes in general is relaviely small compared to the number of bots. The leaves would also have to live in their own contrainer (or you'd have to deal with alignment problems), which would lead to more complexity while iterating down the tree.
+The leaf elements of the tree data structure don't need as much information as their parent nodes. They don't have dividers. So half of the nodes of the data structure haa a field that store no information. It can be tempting to give the leaf nodes a seperate type to improve memory usage, but the divider size is small, and the number of nodes in general is relaviely small compared to the number of aabbs. The leaves would also have to live in their own contrainer (or you'd have to deal with alignment problems), which would lead to more complexity while iterating down the tree.
 
 
 ### Tree structure data seperate from elements in memory, vs intertwined

@@ -55,7 +55,7 @@ Because the tree construction code is generic over the elements that are inserte
 The user can easily try all three data layouts.
 
 The default layout is almost always the fastest. 
-There are a few corner cases where if T is very small, and the bots are very dense, direct is faster, but it is marginal.
+There are a few corner cases where if T is very small, and the aabbs are very dense, direct is faster, but it is marginal.
 
 The default layout is good because during broccoli construction and querying we make heavy use of aabb's, but don't actually need T all that much. We only need T when we actually detect a collision, which doesnt happen that often. Most of the time we are just
 ruling out possible colliding pairs by checking their aabbs.
@@ -66,7 +66,7 @@ because we have all these T's in the way. It also took us longer to put the aabb
 
 One thing that is interesting to note is that if T has its aabb already inside of it, then `(Rect<isize>,&mut T)` duplicates that memory. This is still faster than `&mut (Rect<isize>,T)`, but it still feels wasteful. To get around this, you can make it so that T doesnt have the aabb inside of it, but it just has the information needed to make it. Then you can make the aabbs as you make the `(Rect<isize>,&mut T)` in memory. So for example T could have just in it the position and radius. This way you're using the very fast tree data layout of `(Rect<isize>,&mut T)`, but at the same time you don't have two copies of every objects aabb in memory. 
 
-If we were inserting references into the tree, then the original order of the bots is preserved during construction/destruction of the tree. However, for the direct layout, we are inserting the actual bots to remove this layer of indirection. So when are done using the tree, we want to return the bots to the user is the same order that they were put in. This way the user can rely on indicies for other algorithms to uniquely identify a bot. To do this, during tree construction, we also build up a Vec of offsets to be used to return the bots to their original position. We keep this as a seperate data structure as it will only be used on destruction of the tree. If we were to put the offset data into the tree itself, it would be wasted space and would hurt the memory locality of the tree query algorithms. We only need to use these offsets once, during destruction. It shouldnt be the case that all querying algorithms that might be performed on the tree suffer performance for this.
+If we were inserting references into the tree, then the original order of the aabbs is preserved during construction/destruction of the tree. However, for the direct layout, we are inserting the actual aabbs to remove this layer of indirection. So when are done using the tree, we want to return the aabbs to the user is the same order that they were put in. This way the user can rely on indicies for other algorithms to uniquely identify a bot. To do this, during tree construction, we also build up a Vec of offsets to be used to return the aabbs to their original position. We keep this as a seperate data structure as it will only be used on destruction of the tree. If we were to put the offset data into the tree itself, it would be wasted space and would hurt the memory locality of the tree query algorithms. We only need to use these offsets once, during destruction. It shouldnt be the case that all querying algorithms that might be performed on the tree suffer performance for this.
 
 
 ### AABB vs Point + radius

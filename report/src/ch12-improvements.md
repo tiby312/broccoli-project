@@ -2,7 +2,7 @@
 
 #### Don't sort the leafs
 
-If you don't sort the leafs, there could be some potential speed up. By the time you get to the leafs, there are so few bots in a leaf that it may not be worth it. The bots also would not be strewn along a dividing line so sweep and prune would not be as fast.  However, this can only hurt the query algorithm so I didn't do it. However, if you want to make one (construct+query) sequence as fast as possible it might be better. But again, my goal was to make querying as fast as possible.
+If you don't sort the leafs, there could be some potential speed up. By the time you get to the leafs, there are so few aabbs in a leaf that it may not be worth it. The aabbs also would not be strewn along a dividing line so sweep and prune would not be as fast.  However, this can only hurt the query algorithm so I didn't do it. However, if you want to make one (construct+query) sequence as fast as possible it might be better. But again, my goal was to make querying as fast as possible.
 
 #### Pointer Compression
 
@@ -21,7 +21,7 @@ a bot could end up in one iteration, you could save finding the colliding pairs 
 
 #### Pipelining
 
-It might be possible to pipeline the process so that rebalancing and querying happen at the same time with the only downside being that bots react to their collisions one step later. To account for that the aabb's could be made slightly bigger and predict what they will hit the next step. 
+It might be possible to pipeline the process so that rebalancing and querying happen at the same time with the only downside being that aabbs react to their collisions one step later. To account for that the aabb's could be made slightly bigger and predict what they will hit the next step. 
 However, the construction and querying phase are already parallelized. Making those happen in parallel will probably confuse the rayon's work stealer. However maybe if there are somehow two independant threadpools this could get you the speed up. However, its unclear to me if it would be faster because you'd have to insert slightly bigger aabbs which would slow down querying. 
 
 #### Liquid.
@@ -30,11 +30,11 @@ In liquid simulations the cost of querying dominates even more than construction
 
 #### Rigid Bodies
 
-If you want to use this tree for true rigid bodies you have to deal with an obvious problem. You cannot move the bounding boxes once the tree it constructed. So while you are querying the tree to find bots that collide, you cannot move them then and there. An option is to insert loose bounding boxes and allow the bots to be moved within the loose bounding boxes. And then if the move need to be moved so much that they have to be moved out of the loose bounding boxes, re-construct the tree and query again until all the bots have finished moving, or you have done a set number of physics iterations, at which point you have some soft-body collision resolution fallback.
+If you want to use this tree for true rigid bodies you have to deal with an obvious problem. You cannot move the bounding boxes once the tree it constructed. So while you are querying the tree to find aabbs that collide, you cannot move them then and there. An option is to insert loose bounding boxes and allow the aabbs to be moved within the loose bounding boxes. And then if the move need to be moved so much that they have to be moved out of the loose bounding boxes, re-construct the tree and query again until all the aabbs have finished moving, or you have done a set number of physics iterations, at which point you have some soft-body collision resolution fallback.
 
 Ironically, even though to have a rigid body system you would need to have looser bounding boxes, performance of the system overall could improve. This is because rigid body systems enforce a level of spareness. In soft body, it is possible for literally every bot to be on touching each other causing many colliding pairs to be handled. A rigid body physics system would not allow this state to happen.
 
-However, you should ignore everything I just said. A much better solution is to not move the bots at all. You can still have rigid body physics by just doing many passes on the velocities. Check out Erin Catto's Box2D library, as well as some of his [talks](https://www.youtube.com/watch?v=SHinxAhv1ZE&t=2042s).
+However, you should ignore everything I just said. A much better solution is to not move the aabbs at all. You can still have rigid body physics by just doing many passes on the velocities. Check out Erin Catto's Box2D library, as well as some of his [talks](https://www.youtube.com/watch?v=SHinxAhv1ZE&t=2042s).
 
 #### 3D
 
