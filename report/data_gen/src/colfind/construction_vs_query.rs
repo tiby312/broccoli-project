@@ -193,12 +193,12 @@ fn handle_num_bots_theory_inner(fg: &mut Figure, grow: f64, counter: u32) {
         .lines(
             x.clone(),
             y1,
-            &[Caption("Rebalance"), Color("blue"), LineWidth(2.0)],
+            &[Caption("Rebalance"), Color("blue"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
             y2,
-            &[Caption("Query"), Color("green"), LineWidth(2.0)],
+            &[Caption("Query"), Color("green"), LineWidth(1.0)],
         )
         .set_x_label("Number of Elements", &[])
         .set_y_label("Number of Comparisons", &[]);
@@ -242,22 +242,22 @@ fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f64, position: u32) {
         .lines(
             x.clone(),
             y1,
-            &[Caption("Rebal Sequential"), Color("blue"), LineWidth(2.0)],
+            &[Caption("Rebal Sequential"), Color("blue"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
             y2,
-            &[Caption("Query Sequential"), Color("green"), LineWidth(2.0)],
+            &[Caption("Query Sequential"), Color("green"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
             y3,
-            &[Caption("Rebal Parallel"), Color("red"), LineWidth(2.0)],
+            &[Caption("Rebal Parallel"), Color("red"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
             y4,
-            &[Caption("Query Parallel"), Color("brown"), LineWidth(2.0)],
+            &[Caption("Query Parallel"), Color("brown"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
@@ -265,7 +265,7 @@ fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f64, position: u32) {
             &[
                 Caption("NoSort Rebal Sequential"),
                 Color("black"),
-                LineWidth(2.0),
+                LineWidth(1.0),
             ],
         )
         .lines(
@@ -274,7 +274,7 @@ fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f64, position: u32) {
             &[
                 Caption("NoSort Query Sequential"),
                 Color("orange"),
-                LineWidth(2.0),
+                LineWidth(1.0),
             ],
         )
         .lines(
@@ -283,7 +283,7 @@ fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f64, position: u32) {
             &[
                 Caption("NoSort Rebal Parallel"),
                 Color("pink"),
-                LineWidth(2.0),
+                LineWidth(1.0),
             ],
         )
         .lines(
@@ -292,7 +292,7 @@ fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f64, position: u32) {
             &[
                 Caption("NoSort Query Parallel"),
                 Color("gray"),
-                LineWidth(2.0),
+                LineWidth(1.0),
             ],
         )
         .set_x_label("Number of Elements", &[])
@@ -351,7 +351,7 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
             &[
                 Caption("NoSort Rebal Sequential"),
                 Color("black"),
-                LineWidth(2.0),
+                LineWidth(1.0),
             ],
         )
         .lines(
@@ -360,7 +360,7 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
             &[
                 Caption("NoSort Query Sequential"),
                 Color("orange"),
-                LineWidth(2.0),
+                LineWidth(1.0),
             ],
         )
         .lines(
@@ -369,7 +369,7 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
             &[
                 Caption("NoSort Rebal Parallel"),
                 Color("pink"),
-                LineWidth(2.0),
+                LineWidth(1.0),
             ],
         )
         .lines(
@@ -378,7 +378,7 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
             &[
                 Caption("NoSort Query Parallel"),
                 Color("gray"),
-                LineWidth(2.0),
+                LineWidth(1.0),
             ],
         )
         .set_x_label("Grow", &[])
@@ -410,22 +410,22 @@ fn handle_grow_theory(fb: &mut FigureBuilder) {
         .lines(
             x.clone(),
             y1,
-            &[Caption("Rebalance"), Color("blue"), LineWidth(2.0)],
+            &[Caption("Rebalance"), Color("blue"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
             y2,
-            &[Caption("Query"), Color("green"), LineWidth(2.0)],
+            &[Caption("Query"), Color("green"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
             y3,
-            &[Caption("NoSort Rebalance"), Color("red"), LineWidth(2.0)],
+            &[Caption("NoSort Rebalance"), Color("red"), LineWidth(1.0)],
         )
         .lines(
             x.clone(),
             y4,
-            &[Caption("NoSort Query"), Color("brown"), LineWidth(2.0)],
+            &[Caption("NoSort Query"), Color("brown"), LineWidth(1.0)],
         )
         .set_x_label("Grow", &[])
         .set_y_label("Number of comparisons", &[]);
