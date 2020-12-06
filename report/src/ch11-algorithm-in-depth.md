@@ -37,7 +37,7 @@ So once the extra data is setup, for every node we do the following:
 	Gravitate all the aabbs with each other that belong to this node.
 	Recurse left and right gravitating all aabbs encountered with all the aabbs in this node.
 		Here once we reach nodes that are sufficiently far away, we instead gravitate the node's extra data with this node's extra data, and at this point we can stop recursing.
-	At this point it might appear we are done handling this node the problem has been reduced to two smaller ones, but we are not done yet. We additionally have to gravitate all the aabbs on the left of this node with all the aabbs on the right of this node.
+	At this point it might appear we are done handling this node and the problem has been reduced to two smaller ones, but we are not done yet. We additionally have to gravitate all the aabbs on the left of this node with all the aabbs on the right of this node.
     For all nodes encountered while recursing the left side,
     	Recurse the right side, and handle all aabbs with all the aabbs on the left node.
     	If a node is suffeciently far away, treat it as a node mass instead and we can stop recursing.
@@ -51,7 +51,7 @@ So once the extra data is setup, for every node we do the following:
 TODO explain now
 
 TODO improvement:
-right now the raycast algorithm naively checks all the elements that belond to a node provided
+right now the raycast algorithm naively checks all the elements that belong to a node provided
 it decides to look at a node. In reality, we could do better. We could figure out where the ray
 hits the divider line, and then only check AABBs that intersect that divider line. The problem
 with this improvement is that we can't just rely on the `Num` trait since we need to do some math.

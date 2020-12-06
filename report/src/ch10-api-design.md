@@ -1,11 +1,11 @@
 
 ### Forbidding the user from violating the invariants of the tree statically
 
-We have an interesting problem with our tree. We want the user to be able to mutate the elements directly in the tree,
+We want the user to be able to mutate the elements directly in the tree,
 but we also do not want to let them mutate the aabb's of each of the elements of the tree. Doing so would
 mean we'd need to re-construct the tree.
 
-So when iterating over the tree, we can't return `&mut T`. So to get around that, there is `PMut<T>` that wraps around a `&mut T` and hides it but does exposes the `Aabb` and `HasInner` interfaces. 
+So when iterating over the tree, we can't return `&mut T`. So to get around that, there is `PMut<T>` that wraps around a `&mut T` and hides it but allows the user to access a mutable inner part, and a read-only aabb part.
 
 So that makes the user unable to get a `&mut T`, but even if we just give the user a `&mut [PMut<T>]` where is another problem. The user could swap two node's slices around. So to get around that we use `PMut<[T]>` and `PMutIter<T>`.
 
@@ -55,7 +55,7 @@ A good article about GATs can be found [here](https://lukaskalbertodt.github.io/
 
 ### Making `Aabb` an unsafe trait vs Not
 
-Making 'Aabb' unsafe allows us to make some assumptions that lets us do interesting things safely. If rust had [trait member fields](https://github.com/rust-lang/rfcs/pull/1546#issuecomment-304033345) we could avoid unsafe.
+Making 'Aabb' unsafe allows us to make some assumptions that lets us do others things safely. If rust had [trait member fields](https://github.com/rust-lang/rfcs/pull/1546#issuecomment-304033345) we could avoid unsafe.
 
 The key idea is the following:
 If two rectangle queries do not intersect, then it is guarenteed that the elements are mutually exclusive.
