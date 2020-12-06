@@ -9,6 +9,7 @@ pub fn black_box<T>(dummy: T) -> T {
     }
 }
 
+
 pub mod bbox_helper {
     use broccoli::axgeom::Rect;
     use broccoli::bbox;
@@ -24,6 +25,7 @@ pub mod bbox_helper {
 }
 
 mod inner_prelude {
+    pub use crate::support::bool_then;
     pub use super::bbox_helper;
     pub use crate::black_box;
     pub(crate) use crate::datanum;

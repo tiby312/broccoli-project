@@ -41,22 +41,26 @@ fn handle_bench_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize)
                 });
             });
 
-            let c3 = Some(bench_closure(|| {
-                broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
-                    **a.unpack_inner() -= 2;
-                    **b.unpack_inner() -= 2;
-                });
-            }))
-            .filter(|_| num_bots < stop_sweep_at);
 
-            let c4 = Some(bench_closure(|| {
-                NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
-                    **a.unpack_inner() += 2;
-                    **b.unpack_inner() += 2;
-                });
-            }))
-            .filter(|_| num_bots < stop_naive_at);
+            let c3 = bool_then(num_bots<stop_sweep_at,||{
+                bench_closure(|| {
+                    broccoli::query::find_collisions_sweep_mut(&mut bots, axgeom::XAXIS, |a, b| {
+                        **a.unpack_inner() -= 2;
+                        **b.unpack_inner() -= 2;
+                    });
+                })
+            });
+            
 
+            let c4 = bool_then(num_bots < stop_naive_at,||{
+                bench_closure(||{
+                    NaiveAlgs::from_slice(&mut bots).find_colliding_pairs_mut(|a, b| {
+                        **a.unpack_inner() += 2;
+                        **b.unpack_inner() += 2;
+                    });
+                })
+            });
+            
             let c5 = Some(bench_closure(|| {
                 let mut tree = NotSorted::new_par(&mut bots);
                 tree.find_colliding_pairs_mut_par(|a, b| {
@@ -190,7 +194,7 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
                 });
             });
 
-            let c2 = Some(datanum::datanum_test(|maker| {
+            let c2 = bool_then(num_bots<stop_naive_at,||datanum::datanum_test(|maker| {
                 let mut bots: Vec<BBox<_, &mut isize>> = abspiral_datanum(maker, grow as f64)
                     .zip(bot_inner.iter_mut())
                     .map(|(a, b)| bbox(a, b))
@@ -199,10 +203,9 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
                     **a.unpack_inner() -= 1;
                     **b.unpack_inner() -= 1;
                 });
-            }))
-            .filter(|_| num_bots < stop_naive_at);
+            }));
 
-            let c3 = Some(datanum::datanum_test(|maker| {
+            let c3 = bool_then(num_bots < stop_sweep_at,||datanum::datanum_test(|maker| {
                 let mut bots: Vec<BBox<_, &mut isize>> = abspiral_datanum(maker, grow as f64)
                     .zip(bot_inner.iter_mut())
                     .map(|(a, b)| bbox(a, b))
@@ -212,9 +215,8 @@ fn handle_theory_inner(grow: f32, fg: &mut Figure, title: &str, yposition: usize
                     **a.unpack_inner() -= 3;
                     **b.unpack_inner() -= 3;
                 });
-            }))
-            .filter(|_| num_bots < stop_sweep_at);
-
+            }));
+            
             let c4 = datanum::datanum_test(|maker| {
                 let mut bots: Vec<BBox<_, &mut isize>> = abspiral_datanum(maker, grow as f64)
                     .zip(bot_inner.iter_mut())

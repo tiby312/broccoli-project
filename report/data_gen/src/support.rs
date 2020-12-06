@@ -8,6 +8,13 @@ fn into_secs(elapsed: std::time::Duration) -> f64 {
     (elapsed.as_secs() as f64) + (f64::from(elapsed.subsec_nanos()) / 1_000_000_000.0)
 }
 
+pub fn bool_then<T>(a:bool,mut func:impl FnMut()->T)->Option<T>{
+    if a{
+        Some(func())
+    }else{
+        None
+    }
+}
 
 
 pub use self::levelcounter::LevelCounter;
