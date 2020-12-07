@@ -3,13 +3,14 @@ use crate::query::colfind::oned;
 use super::super::tools;
 use super::ColMulti;
 use crate::query::inner_prelude::*;
-
+use unchecked_unwrap::*;
 pub(crate) struct DestructuredNode<'a, N: Node, AnchorAxis: Axis> {
     pub node:PMut<'a,N>,
     pub axis: AnchorAxis,
 }
 
 impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNode<'a,N,AnchorAxis>{
+    #[inline(always)]
     pub fn new(axis:AnchorAxis,node:PMut<'a,N>)->Option<DestructuredNode<'a,N,AnchorAxis>>{
         debug_assert!(node.get().div.is_some()); //TODO remove
         if node.get().cont.is_some(){
@@ -22,13 +23,20 @@ impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNode<'a,N,AnchorAxis>{
         }
     }
 
+    #[inline(always)]
     pub fn cont(&self)->&axgeom::Range<N::Num>{
         //TODO use unsafe and dont unwrap
-        self.node.get().cont.as_ref().unwrap()
+        unsafe{
+            self.node.get().cont.as_ref().unchecked_unwrap()
+        }
     }
+
+    #[inline(always)]
     pub fn div(&self)->N::Num{
         //TODO use unsafe and dont unwrap
-        self.node.get().div.unwrap()
+        unsafe{
+        self.node.get().div.unchecked_unwrap()
+        }
     }
 }
 
@@ -39,6 +47,7 @@ pub(crate) struct DestructuredNodeLeaf<'a, N:Node, A: Axis> {
 }
 
 impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNodeLeaf<'a,N,AnchorAxis>{
+    #[inline(always)]
     pub fn new(axis:AnchorAxis,node:PMut<'a,N>)->Option<DestructuredNodeLeaf<'a,N,AnchorAxis>>{
         debug_assert!(node.get().div.is_some()); //TODO remove
         if node.get().cont.is_some(){
@@ -50,6 +59,8 @@ impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNodeLeaf<'a,N,AnchorAxis>{
             None
         }
     }
+
+    #[inline(always)]
     pub fn cont(&self)->&axgeom::Range<N::Num>{
         //TODO use unsafe and dont unwrap
         self.node.get().cont.as_ref().unwrap()

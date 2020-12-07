@@ -23,6 +23,7 @@ rayon = "1.5"
 compt = "1.8"
 axgeom = {version="1.7",default-features = false}
 pdqselect = "0.1"
+unchecked_unwrap = "2.0.2"
 
 
 [package.metadata.docs.rs]
