@@ -28,12 +28,6 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B
         let (nn, rest) = m.next();
         match rest {
             Some([left, right]) => {
-                /*
-                let div = match nn.get().div {
-                    Some(d) => *d,
-                    None => return,
-                };
-                */
                 //Continue to recurse even if we know there are no more bots
                 //This simplifies query algorithms that might be building up 
                 //a tree.
@@ -88,7 +82,6 @@ impl<
     ) {
        
         let (mut nn, rest) = m.next();
-        //let mut nn = nn.get_mut();
         
         match rest {
             Some([mut left, mut right]) => {
