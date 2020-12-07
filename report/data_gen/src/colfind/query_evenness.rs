@@ -63,14 +63,16 @@ fn handle_inner_theory(num_bots: usize, grow:f32) -> TheoryRes {
 pub fn handle_theory(fb: &mut FigureBuilder) {
     let num_bots = 3000;
 
+    let grow1=0.2;
+    let grow2=0.007;
     let res1 = handle_inner_theory(
         num_bots,
-        0.2,
+        grow1,
     );
 
     let res2 = handle_inner_theory(
         num_bots,
-        0.007,
+        grow2,
     );
 
     use gnuplot::*;
@@ -103,14 +105,14 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
 
     let mut fg = fb.build("query_evenness_theory");
     draw_graph(
-        &format!("Query Evenness with {} Objects", num_bots),
+        &format!("Query Evenness with grow {} and {} Objects", grow1,num_bots),
         &mut fg,
         res1,
         false,
         0,
     );
     draw_graph(
-        &format!("Query Evenness with {} Objects", num_bots),
+        &format!("Query Evenness with grow {} and {} Objects", grow2,num_bots),
         &mut fg,
         res2,
         false,
