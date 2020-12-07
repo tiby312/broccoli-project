@@ -26,7 +26,7 @@ macro_rules! rect {
                     };
 
                     let sl =
-                        $get_section(this_axis.next(), nn.bots, rect.get_range(this_axis.next()));
+                        $get_section(this_axis.next(), nn.bots, *rect.get_range(this_axis.next()));
 
                     for i in sl {
                         func(i);
@@ -42,7 +42,7 @@ macro_rules! rect {
                 }
                 None => {
                     let sl =
-                        $get_section(this_axis.next(), nn.bots, rect.get_range(this_axis.next()));
+                        $get_section(this_axis.next(), nn.bots, *rect.get_range(this_axis.next()));
 
                     for i in sl {
                         func(i);

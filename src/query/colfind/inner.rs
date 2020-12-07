@@ -4,14 +4,14 @@ use crate::inner_prelude::*;
 
 
 struct InnerRecurser<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> {
-    anchor: DestructuredNode<'a, N::T, B>,
+    anchor: DestructuredNode<'a, N, B>,
     sweeper: &'a mut NN,
 }
 
 impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B> {
     #[inline(always)]
     fn new(
-        anchor: DestructuredNode<'a, N::T, B>,
+        anchor: DestructuredNode<'a, N, B>,
         sweeper: &'a mut NN,
     ) -> InnerRecurser<'a, N, NN, B> {
         InnerRecurser { anchor, sweeper }
@@ -26,29 +26,27 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B
     ) {
         let anchor_axis = self.anchor.axis;
         let (nn, rest) = m.next();
-        let nn = nn.get_mut();
         match rest {
             Some([left, right]) => {
-                let div = match nn.div {
-                    Some(d) => d,
+                let div = match nn.get().div {
+                    Some(d) => *d,
                     None => return,
                 };
 
-                if let Some(cont) = nn.cont {
+                if nn.get().cont.is_some() {
                     let mut current = DestructuredNodeLeaf {
-                        axis: this_axis,
-                        range: nn.bots,
-                        cont,
+                        node:nn,
+                        axis: this_axis
                     };
-                    self.sweeper.handle_children(&mut self.anchor, &mut current);
+                    self.sweeper.handle_children(&mut self.anchor, current);
                 }
 
                 if this_axis.is_equal_to(anchor_axis) {
-                    if *div >= self.anchor.cont.start {
+                    if div >= self.anchor.cont().start {
                         self.recurse(this_axis.next(), left);
                     }
 
-                    if *div <= self.anchor.cont.end {
+                    if div <= self.anchor.cont().end {
                         self.recurse(this_axis.next(), right);
                     };
                 } else {
@@ -57,13 +55,12 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B
                 }
             }
             None => {
-                if let Some(cont) = nn.cont {
+                if nn.get().cont.is_some() {
                     let mut current = DestructuredNodeLeaf {
                         axis: this_axis,
-                        range: nn.bots,
-                        cont,
+                        node:nn
                     };
-                    self.sweeper.handle_children(&mut self.anchor, &mut current);
+                    self.sweeper.handle_children(&mut self.anchor, current);
                 }
             }
         }
@@ -88,13 +85,13 @@ impl<
         splitter: &mut K,
     ) {
        
-        let (nn, rest) = m.next();
-        let mut nn = nn.get_mut();
+        let (mut nn, rest) = m.next();
+        //let mut nn = nn.get_mut();
         
         match rest {
             Some([mut left, mut right]) => {
-                let div = match nn.div {
-                    Some(d) => d,
+                let div = match nn.get().div {
+                    Some(d) => *d,
                     None => {
                         return;
                     }
@@ -102,14 +99,12 @@ impl<
 
                 let (mut splitter11,mut splitter22) = splitter.div();
                 
-                sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
+                sweeper.handle_node(this_axis.next(), nn.as_mut().get_mut().bots.as_mut());
 
 
-                if let Some(cont) = nn.cont {
+                if nn.get().cont.is_some() {
                     let nn = DestructuredNode {
-                        range: nn.bots,
-                        cont,
-                        div,
+                        node:nn,
                         axis: this_axis,
                     };
 
@@ -162,7 +157,7 @@ impl<
             }
             None => {
                 splitter.leaf_start();
-                sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
+                sweeper.handle_node(this_axis.next(), nn.get_mut().bots.as_mut());
                 splitter.leaf_end();
             }
         }
@@ -183,8 +178,8 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
         splitter: &mut K,
     ) {
 
-        let (nn, rest) = m.next();
-        let mut nn = nn.get_mut();
+        let (mut nn, rest) = m.next();
+        //let mut nn = nn.get_mut();
 
         
         match rest {
@@ -195,15 +190,13 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
                 //Continue to recurse even if we know there are no more bots
                 //This simplifies query algorithms that might be building up 
                 //a tree.
-                if let Some(div)=nn.div{
-                    sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
+                if let Some(div)=nn.get().div{
+                    sweeper.handle_node(this_axis.next(), nn.as_mut().get_mut().bots.as_mut());
 
 
-                    if let Some(cont) = nn.cont {
+                    if let Some(cont) = nn.get().cont {
                         let nn = DestructuredNode {
-                            range: nn.bots,
-                            cont,
-                            div,
+                            node:nn,
                             axis: this_axis,
                         };
 
@@ -223,7 +216,7 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
             }
             None => {
                 splitter.leaf_start();
-                sweeper.handle_node(this_axis.next(), nn.bots.as_mut());
+                sweeper.handle_node(this_axis.next(), nn.get_mut().bots.as_mut());
                 splitter.leaf_end();
             }
         }

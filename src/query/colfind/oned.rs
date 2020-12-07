@@ -253,7 +253,7 @@ fn test_parallel() {
 pub(crate) fn get_section<'a, I: Aabb, A: Axis>(
     axis: A,
     arr: &'a [I],
-    range: &Range<I::Num>,
+    range: Range<I::Num>,
 ) -> &'a [I] {
     let mut start = 0;
     for (e, i) in arr.iter().enumerate() {
@@ -281,7 +281,7 @@ pub(crate) fn get_section<'a, I: Aabb, A: Axis>(
 pub(crate) fn get_section_mut<'a, I: Aabb, A: Axis>(
     axis: A,
     mut arr: PMut<'a, [I]>,
-    range: &Range<I::Num>,
+    range: Range<I::Num>,
 ) -> PMut<'a, [I]> {
     let mut start = 0;
     for (e, i) in arr.as_ref().iter().enumerate() {
