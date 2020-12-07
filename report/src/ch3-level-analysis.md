@@ -18,3 +18,13 @@ Some observations:
 <img alt="Level Analysis" src="graphs/level_analysis_theory_query.svg" class="center" style="width: 100%;" />
 <img alt="Level Analysis" src="graphs/level_analysis_bench_rebal.svg" class="center" style="width: 100%;" />
 <img alt="Level Analysis" src="graphs/level_analysis_bench_query.svg" class="center" style="width: 100%;" />
+
+
+
+### Evenness of load
+
+<img alt="Level Analysis" src="graphs/query_evenness_theory.svg" class="center" style="width: 100%;" />
+
+The above chart shows that the work load is pretty even between the left and right recursing of the algorithm.
+As aabbs get more clumped up, the right side starts to dominate more. This is because when we pick a median,
+we are using the left most value of the aabb as our median.

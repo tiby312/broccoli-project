@@ -144,6 +144,8 @@ fn main() {
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
 
+            run_test!(&mut fb, colfind::query_evenness::handle_theory);
+            
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
             
 
@@ -164,6 +166,7 @@ fn main() {
             let mut fb = FigureBuilder::new(folder);
 
             //done
+            
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
 
             

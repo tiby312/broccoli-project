@@ -28,8 +28,7 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f32>) ->
             let mut levelc = LevelCounter::new();
             let mut tree = TreeBuilder::new(&mut bots).build_with_splitter_seq(&mut levelc);
 
-            let start=maker.count();
-
+            maker.reset();
             let mut levelc2 = LevelCounter::new();
             tree.new_colfind_builder().query_with_splitter_seq(
                 |a, b| {
@@ -39,12 +38,7 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f32>) ->
                 &mut levelc2,
             );
 
-            let mut ll=levelc2.into_levels();
-            for a in ll.iter_mut(){
-                *a-=start;
-            }
-
-            (levelc.into_levels(),ll,tree.get_height())
+            (levelc.into_levels(),levelc2.into_levels(),tree.get_height())
         });
 
         let mut t = TheoryRes {
@@ -53,8 +47,8 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f32>) ->
             query,
         };
 
-        grow_to_fit(&mut t.rebal, height);
-        grow_to_fit(&mut t.query, height);
+        //grow_to_fit(&mut t.rebal, height);
+        //grow_to_fit(&mut t.query, height);
 
         assert_eq!(t.rebal.len(), t.query.len());
         rects.push(t)
@@ -104,8 +98,8 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> 
         assert_eq!(t.rebal.len(),t.query.len());
         let height = tree.get_height();
 
-        grow_to_fit(&mut t.rebal, height);
-        grow_to_fit(&mut t.query, height);
+        //grow_to_fit(&mut t.rebal, height);
+        //grow_to_fit(&mut t.query, height);
 
         assert_eq!(t.rebal.len(), t.query.len());
         rects.push(t)
@@ -113,12 +107,14 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> 
     rects
 }
 
+/*
 fn grow_to_fit<T: Default>(a: &mut Vec<T>, b: usize) {
     let diff = b - a.len();
     for _ in 0..diff {
         a.push(std::default::Default::default());
     }
 }
+*/
 
 pub fn handle_bench(fb: &mut FigureBuilder) {
     let num_bots = 5000;

@@ -29,6 +29,19 @@ mod levelcounter{
         pub fn new()->LevelCounter{
             LevelCounter{stuff:Vec::new(),start:None}
         }
+
+        pub fn into_tree(self)->compt::dfs_order::CompleteTreeContainer<usize,compt::dfs_order::PreOrder>{
+            let tree=compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
+            tree
+        }
+        
+        pub fn into_inorder_dfs(self)->Vec<usize>{
+            let tree=compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
+            use compt::Visitor;
+            
+            let vals:Vec<_>=tree.vistr().dfs_inorder_iter().map(|a|*a).collect();
+            vals
+        }
         pub fn into_levels(self)->Vec<usize>{
             let tree=compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
 

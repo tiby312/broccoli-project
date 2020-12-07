@@ -8,3 +8,5 @@ pub mod rebal_strat;
 pub mod theory_colfind_3d;
 
 pub mod dinotree_direct_indirect;
+
+pub mod query_evenness;

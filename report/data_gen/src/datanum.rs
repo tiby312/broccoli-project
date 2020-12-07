@@ -65,6 +65,9 @@ impl Maker {
     pub fn count(&self) -> usize {
         unsafe { COUNTER }
     }
+    pub fn reset(&self){
+        unsafe{COUNTER=0}
+    }
     pub fn from_rect<I: Num>(&self, rect: Rect<I>) -> Rect<Dnum<I>> {
         let ((a, b), (c, d)) = rect.get();
         Rect::new(
