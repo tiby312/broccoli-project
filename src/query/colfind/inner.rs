@@ -28,24 +28,34 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B
         let (nn, rest) = m.next();
         match rest {
             Some([left, right]) => {
+                /*
                 let div = match nn.get().div {
                     Some(d) => *d,
                     None => return,
                 };
-
-                if let Some(current)=DestructuredNodeLeaf::new(this_axis,nn){
-                    self.sweeper.handle_children(&mut self.anchor, current);
-                }
-                
-                if this_axis.is_equal_to(anchor_axis) {
-                    if div >= self.anchor.cont().start {
-                        self.recurse(this_axis.next(), left);
+                */
+                //Continue to recurse even if we know there are no more bots
+                //This simplifies query algorithms that might be building up 
+                //a tree.
+                if let &Some(div)=nn.get().div{
+                    
+                    if let Some(current)=DestructuredNodeLeaf::new(this_axis,nn){
+                        self.sweeper.handle_children(&mut self.anchor, current);
                     }
+                    
+                    if this_axis.is_equal_to(anchor_axis) {
+                        if div >= self.anchor.cont().start {
+                            self.recurse(this_axis.next(), left);
+                        }
 
-                    if div <= self.anchor.cont().end {
+                        if div <= self.anchor.cont().end {
+                            self.recurse(this_axis.next(), right);
+                        };
+                    } else {
+                        self.recurse(this_axis.next(), left);
                         self.recurse(this_axis.next(), right);
-                    };
-                } else {
+                    }
+                }else{
                     self.recurse(this_axis.next(), left);
                     self.recurse(this_axis.next(), right);
                 }
@@ -82,62 +92,62 @@ impl<
         
         match rest {
             Some([mut left, mut right]) => {
-                let div = match nn.get().div {
-                    Some(d) => *d,
-                    None => {
-                        return;
-                    }
-                };
-
                 let (mut splitter11,mut splitter22) = splitter.div();
-                
-                sweeper.handle_node(this_axis.next(), nn.as_mut().get_mut().bots.as_mut());
-
-
-                if let Some(nn)=DestructuredNode::new(this_axis,nn){
                     
-                    let left = left.create_wrap_mut();
-                    let right = right.create_wrap_mut();
-                    let mut g = InnerRecurser::new(nn, sweeper);
-                    g.recurse(this_axis.next(), left);
-                    g.recurse(this_axis.next(), right);
-                }
+                //Continue to recurse even if we know there are no more bots
+                //This simplifies query algorithms that might be building up 
+                //a tree.
+                if let Some(_)=nn.get().div{
+                 
+                    
+                    sweeper.handle_node(this_axis.next(), nn.as_mut().get_mut().bots.as_mut());
 
 
-                match par.next() {
-                    par::ParResult::Parallel([dleft, dright]) => {
-                        let (mut sweeper1,mut sweeper2) = sweeper.div();
-                        let (splitter11ref,splitter22ref)=(&mut splitter11,&mut splitter22);
-                        let (sweeper11ref,sweeper22ref)=(&mut sweeper1,&mut sweeper2);
-
+                    if let Some(nn)=DestructuredNode::new(this_axis,nn){
                         
-                        let af = move || {
-                            self.recurse_par(
-                                this_axis.next(),
-                                dleft,
-                                sweeper11ref,
-                                left,
-                                splitter11ref,
-                            )
-                        };
-                        let bf = move || {
-                            self.recurse_par(
-                                this_axis.next(),
-                                dright,
-                                sweeper22ref,
-                                right,
-                                splitter22ref,
-                            )
-                        };
-                        rayon::join(af, bf);
-                    
-                        sweeper.add(sweeper1,sweeper2);
+                        let left = left.create_wrap_mut();
+                        let right = right.create_wrap_mut();
+                        let mut g = InnerRecurser::new(nn, sweeper);
+                        g.recurse(this_axis.next(), left);
+                        g.recurse(this_axis.next(), right);
                     }
-                    par::ParResult::Sequential(_) => {
-                        sweeper.leaf_start();
-                        self.recurse_seq(this_axis.next(), sweeper, left, &mut splitter11);
-                        self.recurse_seq(this_axis.next(), sweeper, right, &mut splitter22);
-                        sweeper.leaf_end();
+
+
+                    match par.next() {
+                        par::ParResult::Parallel([dleft, dright]) => {
+                            let (mut sweeper1,mut sweeper2) = sweeper.div();
+                            let (splitter11ref,splitter22ref)=(&mut splitter11,&mut splitter22);
+                            let (sweeper11ref,sweeper22ref)=(&mut sweeper1,&mut sweeper2);
+
+                            
+                            let af = move || {
+                                self.recurse_par(
+                                    this_axis.next(),
+                                    dleft,
+                                    sweeper11ref,
+                                    left,
+                                    splitter11ref,
+                                )
+                            };
+                            let bf = move || {
+                                self.recurse_par(
+                                    this_axis.next(),
+                                    dright,
+                                    sweeper22ref,
+                                    right,
+                                    splitter22ref,
+                                )
+                            };
+                            rayon::join(af, bf);
+                        
+                            sweeper.add(sweeper1,sweeper2);
+                        }
+                        par::ParResult::Sequential(_) => {
+                            sweeper.leaf_start();
+                            self.recurse_seq(this_axis.next(), sweeper, left, &mut splitter11);
+                            self.recurse_seq(this_axis.next(), sweeper, right, &mut splitter22);
+                            sweeper.leaf_end();
+                        }
                     }
                 }
             
@@ -178,7 +188,7 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
                 //Continue to recurse even if we know there are no more bots
                 //This simplifies query algorithms that might be building up 
                 //a tree.
-                if let Some(div)=nn.get().div{
+                if let Some(_)=nn.get().div{
                     sweeper.handle_node(this_axis.next(), nn.as_mut().get_mut().bots.as_mut());
 
 

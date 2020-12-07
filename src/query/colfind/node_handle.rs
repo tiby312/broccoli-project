@@ -30,7 +30,7 @@ impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNode<'a,N,AnchorAxis>{
             self.node.get().cont.as_ref().unchecked_unwrap()
         }
     }
-
+    /*
     #[inline(always)]
     pub fn div(&self)->N::Num{
         //TODO use unsafe and dont unwrap
@@ -38,6 +38,7 @@ impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNode<'a,N,AnchorAxis>{
         self.node.get().div.unchecked_unwrap()
         }
     }
+    */
 }
 
 
