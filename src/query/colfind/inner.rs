@@ -35,7 +35,6 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B
 
                 if let Some(current)=DestructuredNodeLeaf::new(this_axis,nn){
                     self.sweeper.handle_children(&mut self.anchor, current);
-                
                 }
                 
                 if this_axis.is_equal_to(anchor_axis) {
@@ -52,12 +51,8 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B
                 }
             }
             None => {
-                if nn.get().cont.is_some() {
-                    let mut current = DestructuredNodeLeaf {
-                        axis: this_axis,
-                        node:nn
-                    };
-                    self.sweeper.handle_children(&mut self.anchor, current);
+                if let Some(current)=DestructuredNodeLeaf::new(this_axis,nn){
+                   self.sweeper.handle_children(&mut self.anchor, current);
                 }
             }
         }
