@@ -10,6 +10,18 @@ pub(crate) struct DestructuredNode<'a, N: Node, AnchorAxis: Axis> {
 }
 
 impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNode<'a,N,AnchorAxis>{
+    pub fn new(axis:AnchorAxis,node:PMut<'a,N>)->Option<DestructuredNode<'a,N,AnchorAxis>>{
+        debug_assert!(node.get().div.is_some()); //TODO remove
+        if node.get().cont.is_some(){
+            Some(DestructuredNode {
+                node,
+                axis,
+            })
+        }else{
+            None
+        }
+    }
+
     pub fn cont(&self)->&axgeom::Range<N::Num>{
         //TODO use unsafe and dont unwrap
         self.node.get().cont.as_ref().unwrap()
@@ -27,6 +39,17 @@ pub(crate) struct DestructuredNodeLeaf<'a, N:Node, A: Axis> {
 }
 
 impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNodeLeaf<'a,N,AnchorAxis>{
+    pub fn new(axis:AnchorAxis,node:PMut<'a,N>)->Option<DestructuredNodeLeaf<'a,N,AnchorAxis>>{
+        debug_assert!(node.get().div.is_some()); //TODO remove
+        if node.get().cont.is_some(){
+            Some(DestructuredNodeLeaf {
+                node,
+                axis,
+            })
+        }else{
+            None
+        }
+    }
     pub fn cont(&self)->&axgeom::Range<N::Num>{
         //TODO use unsafe and dont unwrap
         self.node.get().cont.as_ref().unwrap()

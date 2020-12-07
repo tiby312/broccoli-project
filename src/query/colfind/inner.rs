@@ -33,14 +33,11 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B
                     None => return,
                 };
 
-                if nn.get().cont.is_some() {
-                    let mut current = DestructuredNodeLeaf {
-                        node:nn,
-                        axis: this_axis
-                    };
+                if let Some(current)=DestructuredNodeLeaf::new(this_axis,nn){
                     self.sweeper.handle_children(&mut self.anchor, current);
+                
                 }
-
+                
                 if this_axis.is_equal_to(anchor_axis) {
                     if div >= self.anchor.cont().start {
                         self.recurse(this_axis.next(), left);
@@ -102,12 +99,8 @@ impl<
                 sweeper.handle_node(this_axis.next(), nn.as_mut().get_mut().bots.as_mut());
 
 
-                if nn.get().cont.is_some() {
-                    let nn = DestructuredNode {
-                        node:nn,
-                        axis: this_axis,
-                    };
-
+                if let Some(nn)=DestructuredNode::new(this_axis,nn){
+                    
                     let left = left.create_wrap_mut();
                     let right = right.create_wrap_mut();
                     let mut g = InnerRecurser::new(nn, sweeper);
@@ -194,12 +187,8 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
                     sweeper.handle_node(this_axis.next(), nn.as_mut().get_mut().bots.as_mut());
 
 
-                    if let Some(cont) = nn.get().cont {
-                        let nn = DestructuredNode {
-                            node:nn,
-                            axis: this_axis,
-                        };
-
+                    if let Some(nn)=DestructuredNode::new(this_axis,nn){
+                    
                         let left = left.create_wrap_mut();
                         let right = right.create_wrap_mut();
                         let mut g = InnerRecurser::new(nn, sweeper);
