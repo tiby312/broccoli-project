@@ -276,6 +276,23 @@ pub(crate) fn get_section<'a, I: Aabb, A: Axis>(
     &arr[start..end]
 }
 
+#[test]
+fn test_section(){
+    use axgeom::rect;
+    let mut aabbs = [
+        rect(1 , 4, 0, 0),
+        rect(3, 6, 0, 0),
+        rect(5, 20, 0, 0),
+        rect(6, 50, 0, 0),
+        rect(11 , 15, 0, 0),
+    ];
+
+    let k=get_section_mut(axgeom::XAXIS,PMut::new(&mut aabbs),axgeom::Range::new(5,10));
+    let k:&[axgeom::Rect<isize>]=&k;
+    assert_eq!(k.len(),3);
+}
+
+
 //this can have some false positives.
 //but it will still prune a lot of bots.
 pub(crate) fn get_section_mut<'a, I: Aabb, A: Axis>(
