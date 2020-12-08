@@ -50,7 +50,6 @@ pub(crate) struct DestructuredNodeLeaf<'a, N:Node, A: Axis> {
 impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNodeLeaf<'a,N,AnchorAxis>{
     #[inline(always)]
     pub fn new(axis:AnchorAxis,node:PMut<'a,N>)->Option<DestructuredNodeLeaf<'a,N,AnchorAxis>>{
-        debug_assert!(node.get().div.is_some()); //TODO remove
         if node.get().cont.is_some(){
             Some(DestructuredNodeLeaf {
                 node,

@@ -37,18 +37,25 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B
                         self.sweeper.handle_children(&mut self.anchor, current);
                     }
                     
-                    if this_axis.is_equal_to(anchor_axis) {
-                        if div >= self.anchor.cont().start {
-                            self.recurse(this_axis.next(), left);
+                    if anchor_axis.is_equal_to(this_axis){
+                        use core::cmp::Ordering::*;
+                        match self.anchor.cont().contains_ext(div){
+                            Less=>{
+                                self.recurse(this_axis.next(), right);
+                            },
+                            Greater=>{
+                                self.recurse(this_axis.next(), left);
+                            },
+                            Equal=>{
+                                self.recurse(this_axis.next(), left);
+                                self.recurse(this_axis.next(), right);
+                            }
                         }
-
-                        if div <= self.anchor.cont().end {
-                            self.recurse(this_axis.next(), right);
-                        };
-                    } else {
+                    }else{
                         self.recurse(this_axis.next(), left);
                         self.recurse(this_axis.next(), right);
                     }
+
                 }else{
                     self.recurse(this_axis.next(), left);
                     self.recurse(this_axis.next(), right);
