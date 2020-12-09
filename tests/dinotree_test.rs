@@ -23,6 +23,7 @@ fn test1() {
 
         let mut tree = broccoli::container::TreeRef::new(&mut bots);
         broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
+        assert!(broccoli::analyze::assert::tree_invariants(&*tree));
     }
 }
 

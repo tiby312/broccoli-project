@@ -300,14 +300,22 @@ pub(crate) fn get_section_mut<'a, I: Aabb, A: Axis>(
     mut arr: PMut<'a, [I]>,
     range: Range<I::Num>,
 ) -> PMut<'a, [I]> {
-    let mut start = 0;
+    if arr.is_empty(){
+        return arr;
+    }
+    
+    let ll=arr.len();
+    let mut start = None;
     for (e, i) in arr.as_ref().iter().enumerate() {
         let rr = i.get().get_range(axis);
-        if rr.end >= range.start {
-            start = e;
+        if e==ll-1 || rr.end >= range.start {
+            start = Some(e);
             break;
         }
     }
+    //TODO get rid of unwrap?
+    let start=start.unwrap();
+
 
     let mut end = arr.as_ref().len();
     for (e, i) in arr.as_mut().truncate_from(start..).iter().enumerate() {
@@ -317,6 +325,8 @@ pub(crate) fn get_section_mut<'a, I: Aabb, A: Axis>(
             break;
         }
     }
+
+    //println!("{:?},{},[{},{}]",range,ll,start,end);
 
     arr.truncate(start..end)
 }
