@@ -66,13 +66,23 @@ impl<I: Aabb> Sweeper<I> {
         self.find_bijective_parallel(axis, (bots1, bots2), &mut b);
     }
 
-    pub(crate) fn find_perp_2d1<A: Axis, F: ColMulti<T = I>>(
+    pub(crate) fn find_perp_2d1<A:Axis,F: ColMulti<T = I>>(
         &mut self,
-        _axis: A,
+        axis:A, //the axis of r1.
         mut r1: PMut<[F::T]>,
         mut r2: PMut<[F::T]>,
         clos2: &mut F,
     ) {
+        let mut b: Bl<A, _> = Bl { a: clos2, axis };
+
+        //exploit the fact that they are sorted along an axis to 
+        //reduce the nuber of checks.
+        //TODO check which range is smaller???
+        for mut y in r1.iter_mut(){
+            self.find_bijective_parallel(axis,(r2.as_mut(),y.into_slice()),&mut b);
+        }
+        
+        /* naive version better???
         for mut inda in r1.as_mut().iter_mut() {
             for mut indb in r2.as_mut().iter_mut() {
                 if inda.get().intersects_rect(indb.get()) {
@@ -80,6 +90,8 @@ impl<I: Aabb> Sweeper<I> {
                 }
             }
         }
+        */
+        
     }
 
     ///Find colliding pairs using the mark and sweep algorithm.

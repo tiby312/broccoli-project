@@ -119,6 +119,7 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
             }
         });
     }
+
     fn handle_children<A: Axis, B: Axis,N:Node<T=Self::T,Num=<Self::T as Aabb>::Num>>(
         &mut self,
         anchor: &mut DestructuredNode<N, A>,
@@ -201,8 +202,8 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
             let r1 = oned::get_section_mut(anchor.axis, ss, cc1);
             let ss2=anchor.node.as_mut().get_mut().bots;
             let r2 = oned::get_section_mut(current.axis, ss2, cc2);
-            //println!();
-            self.sweeper.find_perp_2d1(anchor.axis, r1, r2, func);
+            
+            self.sweeper.find_perp_2d1(current.axis,r1,r2, func);
         } else if current.cont().intersects(anchor.cont()) {
             self.sweeper.find_parallel_2d(
                 current.axis.next(),
