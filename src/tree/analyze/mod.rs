@@ -149,8 +149,8 @@ const fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> 
         let (num_bots,num_per_node) = (num_bots as u64,num_per_node as u64);
         let a = num_bots / num_per_node;
         let a = log_2(a) ;
-        let ans=(a/2)*2+1;
-        ans as usize
+        //let ans=(a/2)*2+1;
+        a as usize
 
     }
 }
