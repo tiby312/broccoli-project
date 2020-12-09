@@ -21,7 +21,7 @@ impl Bot {
 }
 
 pub fn make_demo(dim: Rect<F32n>) -> Demo {
-    let num_bot = 100;
+    let num_bot = 4000;
 
     let radius = 5.0;
 
