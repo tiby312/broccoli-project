@@ -69,19 +69,41 @@ impl<I: Aabb> Sweeper<I> {
     pub(crate) fn find_perp_2d1<A:Axis,F: ColMulti<T = I>>(
         &mut self,
         axis:A, //the axis of r1.
-        mut r1: PMut<[F::T]>,
+        r1: PMut<[F::T]>,
         mut r2: PMut<[F::T]>,
         clos2: &mut F,
     ) {
+         
+
+        //OPTION 1
+        /*
+        #[inline(always)]
+        pub fn compare_bots<T: Aabb,K:Aabb<Num=T::Num>>(axis: impl Axis, a: &T, b: &K) -> core::cmp::Ordering {
+            let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
+            if p1 > p2 {
+                core::cmp::Ordering::Greater
+            } else {
+                core::cmp::Ordering::Less
+            }
+        }
+        let mut b: Bl<A, _> = Bl { a: clos2, axis };
+        let mut r1:Vec<PMut<F::T>>=r1.iter_mut().collect();
+        r1.sort_unstable_by(|a,b|compare_bots(axis,a,b) );
+        self.find_bijective_parallel2(axis,(r2,&mut r1),|a|a.as_mut(),&mut b);
+        */
+        
+        //exploit the fact that they are sorted along an axis to 
+        //reduce the number of checks.
+        //TODO check which range is smaller???
+        // OPTION2
         let mut b: Bl<A, _> = Bl { a: clos2, axis };
 
-        //exploit the fact that they are sorted along an axis to 
-        //reduce the nuber of checks.
-        //TODO check which range is smaller???
-        for mut y in r1.iter_mut(){
+        for y in r1.iter_mut(){
             self.find_bijective_parallel(axis,(r2.as_mut(),y.into_slice()),&mut b);
         }
         
+        
+        //OPTION2
         /* naive version better???
         for mut inda in r1.as_mut().iter_mut() {
             for mut indb in r2.as_mut().iter_mut() {
@@ -137,6 +159,46 @@ impl<I: Aabb> Sweeper<I> {
             active.push(curr_bot);
         }
     }
+/* needed for OPTION1
+    fn find_bijective_parallel2<A: Axis, F: ColMulti<T = I>,K>(
+        &mut self,
+        axis: A,
+        cols: (PMut<[I]>, &mut [K]),
+        mut conv:impl FnMut(&mut K)->PMut<I>,
+        func: &mut F,
+    ) {
+        let mut xs = cols.0.iter_mut().peekable();
+        let ys = cols.1.iter_mut();
+
+        let active_x = self.helper.get_empty_vec_mut();
+
+        for mut y in ys {
+            let mut y=conv(y);
+            //Add all the x's that are touching the y to the active x.
+            for x in xs.peeking_take_while(|x| {
+                x.get().get_range(axis).start <= y.get().get_range(axis).end
+            }) {
+                active_x.push(x);
+            }
+
+            //Prune all the x's that are no longer touching the y.
+            active_x.retain(|x| x.get().get_range(axis).end > y.get().get_range(axis).start);
+
+            //So at this point some of the x's could actualy not intersect y.
+            //These are the x's that are to the complete right of y.
+            //So to handle collisions, we want to make sure to not hit these.
+            //That is why we have that condition to break out of the below loop
+            for x in active_x.iter_mut() {
+                if x.get().get_range(axis).start >= y.get().get_range(axis).end {
+                    break;
+                }
+
+                debug_assert!(x.get().get_range(axis).intersects(y.get().get_range(axis)));
+                func.collide(x.as_mut(), y.as_mut());
+            }
+        }
+    }
+    */
 
     fn find_bijective_parallel<A: Axis, F: ColMulti<T = I>>(
         &mut self,
