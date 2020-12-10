@@ -31,7 +31,7 @@ impl<'a,'b:'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,T,
                 //Continue to recurse even if we know there are no more bots
                 //This simplifies query algorithms that might be building up 
                 //a tree.
-                if let &Some(div)=nn.get().div{
+                if let Some(div)=nn.div{
                     
                     if let Some(current)=DestructuredNodeLeaf::new(this_axis,nn){
                         self.sweeper.handle_children(&mut self.anchor, current);
@@ -98,10 +98,10 @@ impl<
                 //Continue to recurse even if we know there are no more bots
                 //This simplifies query algorithms that might be building up 
                 //a tree.
-                if let Some(_)=nn.get().div{
+                if let Some(_)=nn.div{
                  
                     
-                    sweeper.handle_node(this_axis.next(), nn.as_mut().get_mut().bots.as_mut());
+                    sweeper.handle_node(this_axis.next(), nn.as_mut().into_range());
 
 
                     if let Some(nn)=DestructuredNode::new(this_axis,nn){
@@ -156,7 +156,7 @@ impl<
             }
             None => {
                 splitter.leaf_start();
-                sweeper.handle_node(this_axis.next(), nn.get_mut().bots.as_mut());
+                sweeper.handle_node(this_axis.next(), nn.into_range());
                 splitter.leaf_end();
             }
         }
@@ -189,8 +189,8 @@ impl<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> ColFindRecurser<T, 
                 //Continue to recurse even if we know there are no more bots
                 //This simplifies query algorithms that might be building up 
                 //a tree.
-                if let Some(_)=nn.get().div{
-                    sweeper.handle_node(this_axis.next(), nn.as_mut().get_mut().bots.as_mut());
+                if let Some(_)=nn.div{
+                    sweeper.handle_node(this_axis.next(), nn.as_mut().into_range());
 
 
                     if let Some(nn)=DestructuredNode::new(this_axis,nn){
@@ -211,7 +211,7 @@ impl<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> ColFindRecurser<T, 
             }
             None => {
                 splitter.leaf_start();
-                sweeper.handle_node(this_axis.next(), nn.get_mut().bots.as_mut());
+                sweeper.handle_node(this_axis.next(), nn.into_range());
                 splitter.leaf_end();
             }
         }

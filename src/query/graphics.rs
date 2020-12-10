@@ -28,7 +28,7 @@ pub fn draw<A: Axis,T:Aabb, D: DividerDrawer<N = T::Num>>(
         rect: &Rect<T::Num>,
     ) {
         let ((depth, nn), rest) = stuff.next();
-        let nn = nn.get();
+        
         if let Some([left, right]) = rest {
             let div = match nn.div {
                 Some(d) => d,
@@ -42,9 +42,9 @@ pub fn draw<A: Axis,T:Aabb, D: DividerDrawer<N = T::Num>>(
 
             let cont = [cont.start, cont.end];
             let rr = rect.get_range(axis.next());
-            dr.draw_divider::<A>(axis, *div, cont, [rr.start, rr.end], depth.0);
+            dr.draw_divider::<A>(axis, div, cont, [rr.start, rr.end], depth.0);
 
-            let (a, b) = rect.subdivide(axis, *div);
+            let (a, b) = rect.subdivide(axis, div);
 
             recc(axis.next(), left, dr, &a);
             recc(axis.next(), right, dr, &b);

@@ -66,6 +66,9 @@ impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
 }
 
 
+
+
+
 impl<'a,'b:'a,T> PMut<'a,PMut<'b,T>>{
     #[inline(always)]
     pub fn into_inner(self)->PMut<'a,T>{
@@ -98,11 +101,18 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     }
 }
 
+
 impl<'a,'b:'a,T:Aabb> PMut<'a,NodeMut<'b,T>>{
     #[inline(always)]
-    pub fn get_range2(&mut self) -> &mut PMut<'b,[T]> {
+    pub fn into_range(self) -> PMut<'a,[T]> {
+        self.inner.range.as_mut()
+    }
+    /*
+    #[inline(always)]
+    pub fn get_range(&mut self) -> &mut PMut<'b,[T]> {
         &mut self.inner.range
     }
+    */
 }
 impl<'a, T: Node> PMut<'a, T> {
     

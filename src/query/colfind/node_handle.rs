@@ -14,7 +14,7 @@ pub(crate) struct DestructuredNode<'a,'b:'a, T: Aabb, AnchorAxis: Axis> {
 impl<'a,'b:'a,T:Aabb,AnchorAxis:Axis>  DestructuredNode<'a,'b,T,AnchorAxis>{
     #[inline(always)]
     pub fn new(axis:AnchorAxis,node:PMut<'a,NodeMut<'b,T>>)->Option<DestructuredNode<'a,'b,T,AnchorAxis>>{
-        debug_assert!(node.get().div.is_some()); //TODO remove
+        debug_assert!(node.div.is_some()); //TODO remove
         if node.cont.is_some(){
             Some(DestructuredNode {
                 node,
@@ -127,7 +127,7 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
     fn handle_children<A: Axis, B: Axis>(
         &mut self,
         anchor: &mut DestructuredNode<Self::T, A>,
-        mut current: DestructuredNodeLeaf<Self::T, B>,
+        current: DestructuredNodeLeaf<Self::T, B>,
     ) {
         let func = &mut self.func;
 
@@ -138,8 +138,8 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
         };
 
         if res {
-            for mut a in current.node.get_range2().as_mut().iter_mut() {
-                for mut b in anchor.node.get_range2().as_mut().iter_mut() {
+            for mut a in current.node.into_range().iter_mut() {
+                for mut b in anchor.node.as_mut().into_range().iter_mut() {
                     if a.get().intersects_rect(b.get()) {
                         func.collide(a.as_mut(), b.as_mut());
                     }
@@ -194,20 +194,22 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
 
         if !current.axis.is_equal_to(anchor.axis) {
             let cc1=*anchor.cont();
-            let cc2=*current.cont(); //TODO not egronomic
-            
-            //println!("{:?} {:?}",cc1,cc2);
-            let ss=current.node.get_mut().bots;
-            let r1 = oned::get_section_mut(anchor.axis, ss, cc1);
-            let ss2=anchor.node.as_mut().get_mut().bots;
-            let r2 = oned::get_section_mut(current.axis, ss2, cc2);
+            let cc2=*current.cont();
+
+            let r1 = oned::get_section_mut(
+                anchor.axis,
+                current.node.into_range(), cc1);
+
+            let r2 = oned::get_section_mut(
+                current.axis,
+                anchor.node.as_mut().into_range(), cc2);
             
             oned::find_perp_2d1(current.axis,r1,r2, func);
         } else if current.cont().intersects(anchor.cont()) {
             oned::find_parallel_2d(
                 current.axis.next(),
-                current.node.get_mut().bots.as_mut(),
-                anchor.node.as_mut().get_mut().bots.as_mut(),
+                current.node.into_range(),
+                anchor.node.as_mut().into_range(),
                 func,
             );
         }
