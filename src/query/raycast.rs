@@ -98,7 +98,7 @@ impl<
         B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
         C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
         T: Aabb,
-    > RayCast for RayCastClosure<'_, A, B, C, T>
+    > RayCast for &mut RayCastClosure<'_, A, B, C, T>
 {
     type T = T;
     type N = T::Num;
@@ -203,12 +203,12 @@ impl<'a, T: Aabb> Closest<'a, T> {
     }
 }
 
-struct Blap<'a: 'b, 'b, R: RayCast> {
-    rtrait: &'b mut R,
+struct Blap<'a, R: RayCast> {
+    rtrait: R,
     ray: Ray<R::N>,
     closest: Closest<'a, R::T>,
 }
-impl<'a: 'b, 'b, R: RayCast> Blap<'a, 'b, R> {
+impl<'a, R: RayCast> Blap<'a, R> {
     fn should_handle_rect(&mut self, rect: &Rect<R::N>) -> bool {
         match self.rtrait.compute_distance_to_rect(&self.ray, rect) {
             axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
@@ -228,11 +228,11 @@ impl<'a: 'b, 'b, R: RayCast> Blap<'a, 'b, R> {
 }
 
 //Returns the first object that touches the ray.
-fn recc<'a: 'b, 'b, A: Axis, N: Node, R: RayCast<N = N::Num, T = N::T>>(
+fn recc<'a,'b:'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     axis: A,
-    stuff: LevelIter<VistrMut<'a, N>>,
-    rect: Rect<N::Num>,
-    blap: &mut Blap<'a, 'b, R>,
+    stuff: LevelIter<VistrMut<'a, NodeMut<'b,T>>>,
+    rect: Rect<T::Num>,
+    blap: &mut Blap<'a, R>,
 ) {
     let ((_depth, nn), rest) = stuff.next();
     let nn = nn.get_mut();
@@ -265,7 +265,7 @@ fn recc<'a: 'b, 'b, A: Axis, N: Node, R: RayCast<N = N::Num, T = N::T>>(
 
                     if blap.should_handle_rect(&rmiddle) {
                         for b in nn.bots.iter_mut() {
-                            blap.closest.consider(&blap.ray, b, blap.rtrait);
+                            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
                         }
                     }
 
@@ -280,7 +280,7 @@ fn recc<'a: 'b, 'b, A: Axis, N: Node, R: RayCast<N = N::Num, T = N::T>>(
 
                     if blap.should_handle_rect(&rmiddle) {
                         for b in nn.bots.iter_mut() {
-                            blap.closest.consider(&blap.ray, b, blap.rtrait);
+                            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
                         }
                     }
 
@@ -300,7 +300,7 @@ fn recc<'a: 'b, 'b, A: Axis, N: Node, R: RayCast<N = N::Num, T = N::T>>(
                     }
                     if blap.should_handle_rect(&rmiddle) {
                         for b in nn.bots.iter_mut() {
-                            blap.closest.consider(&blap.ray, b, blap.rtrait);
+                            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
                         }
                     }
                 }
@@ -309,7 +309,7 @@ fn recc<'a: 'b, 'b, A: Axis, N: Node, R: RayCast<N = N::Num, T = N::T>>(
         None => {
             //Can't do better here since for leafs, cont is none.
             for b in nn.bots.iter_mut() {
-                blap.closest.consider(&blap.ray, b, blap.rtrait);
+                blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
             }
         }
     }
@@ -324,14 +324,14 @@ mod mutable {
     pub fn raycast_naive_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         ray: Ray<T::Num>,
-        rtrait: &mut impl RayCast<N = T::Num, T = T>,
+        mut rtrait: impl RayCast<N = T::Num, T = T>,
         border: Rect<T::Num>,
     ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
         let mut closest = Closest { closest: None };
 
         for b in bots.iter_mut() {
             if border.intersects_rect(b.get()) {
-                closest.consider(&ray, b, rtrait);
+                closest.consider(&ray, b, &mut rtrait);
             }
         }
 
@@ -341,13 +341,13 @@ mod mutable {
         }
     }
 
-    pub fn raycast_mut<'a, A: Axis, N: Node>(
+    pub fn raycast_mut<'a,'b:'a, A: Axis, T:Aabb>(
         axis: A,
-        vistr: VistrMut<'a, N>,
-        rect: Rect<N::Num>,
-        ray: Ray<N::Num>,
-        rtrait: &mut impl RayCast<N = N::Num, T = N::T>,
-    ) -> axgeom::CastResult<(Vec<PMut<'a, N::T>>, N::Num)> {
+        vistr: VistrMut<'a, NodeMut<'b,T>>,
+        rect: Rect<T::Num>,
+        ray: Ray<T::Num>,
+        rtrait: impl RayCast<N = T::Num, T = T>,
+    ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
         let dt = vistr.with_depth(Depth(0));
 
         let closest = Closest { closest: None };

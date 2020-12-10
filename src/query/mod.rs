@@ -69,7 +69,7 @@ pub trait NotSortedQueries<'a> {
     #[must_use]
     fn axis(&self) -> Self::A;
 
-    fn new_colfind_builder(&mut self) -> NotSortedQueryBuilder<Self::A, NodeMut<'a, Self::T>> {
+    fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c,'a,Self::A, Self::T> {
         NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
     }
 
@@ -209,7 +209,7 @@ pub trait Queries<'a> {
     /// assert_eq!(bots[0].inner,1);
     /// assert_eq!(bots[1].inner,1);
     ///```
-    fn new_colfind_builder(&mut self) -> QueryBuilder<Self::A, NodeMut<'a, Self::T>> {
+    fn new_colfind_builder<'c>(&'c mut self) -> QueryBuilder<'c,'a,Self::A, Self::T> {
         QueryBuilder::new(self.axis(), self.vistr_mut())
     }
 
@@ -349,7 +349,7 @@ pub trait Queries<'a> {
     /// assert_eq!(res,Err(broccoli::query::RectIntersectErr));
     ///```
     #[must_use]
-    fn multi_rect(&mut self) -> rect::MultiRectMut<Self::A, NodeMut<'a, Self::T>> {
+    fn multi_rect<'c>(&'c mut self) -> rect::MultiRectMut<'c,'a,Self::A, Self::T> {
         rect::MultiRectMut::new(self.axis(), self.vistr_mut())
     }
 
@@ -424,7 +424,7 @@ pub trait Queries<'a> {
     fn raycast_trait_mut<'b,Acc,R:crate::query::RayCast<T=Self::T,N=Self::Num>>(
         &'b mut self,
         ray:axgeom::Ray<Self::Num>,
-        rtrait:&mut R,
+        rtrait:R,
         border:Rect<Self::Num>
     ) -> axgeom::CastResult<(Vec<PMut<'b, Self::T>>, Self::Num)>
     where
@@ -516,7 +516,7 @@ pub trait Queries<'a> {
         &'b mut self,
         point: Vec2<Self::Num>,
         num: usize,
-        ktrait:&mut K,
+        ktrait:K,
         border: Rect<Self::Num>,
     ) -> KResult<Self::T>
     where

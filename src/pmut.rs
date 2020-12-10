@@ -98,7 +98,14 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     }
 }
 
+impl<'a,'b:'a,T:Aabb> PMut<'a,NodeMut<'b,T>>{
+    #[inline(always)]
+    pub fn get_range2(&mut self) -> &mut PMut<'b,[T]> {
+        &mut self.inner.range
+    }
+}
 impl<'a, T: Node> PMut<'a, T> {
+    
     #[inline(always)]
     pub fn get_mut(self) -> NodeRefMut<'a, T::T> {
         self.inner.get_mut()

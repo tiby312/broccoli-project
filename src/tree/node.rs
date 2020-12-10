@@ -82,6 +82,7 @@ pub trait Node {
     fn get_mut(&mut self) -> NodeRefMut<Self::T>;
 }
 
+
 impl<'a, T: Aabb> Node for NodeMut<'a, T> {
     type T = T;
     type Num = T::Num;
@@ -100,6 +101,7 @@ impl<'a, T: Aabb> Node for NodeMut<'a, T> {
         }
     }
 }
+
 
 ///A Node in a Tree.
 pub(crate) struct NodePtr<T: Aabb> {
@@ -122,14 +124,14 @@ impl<'a, T: Aabb> AsRef<NodePtr<T>> for NodeMut<'a, T> {
 
 ///A node in [`Tree`].
 pub struct NodeMut<'a, T: Aabb> {
-    pub(crate) range: PMut<'a, [T]>,
+    pub range: PMut<'a, [T]>,
     //range is empty iff cont is none.
-    pub(crate) cont: Option<axgeom::Range<T::Num>>,
+    pub cont: Option<axgeom::Range<T::Num>>,
     //for non leafs:
     //  div is some if either this node as bots or a child does
     //for leafs:
     //  div is none
-    pub(crate) div: Option<T::Num>,
+    pub div: Option<T::Num>,
 }
 
 impl<'a, T: Aabb> NodeMut<'a, T> {

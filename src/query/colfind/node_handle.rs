@@ -6,16 +6,16 @@ use crate::query::inner_prelude::*;
 use unchecked_unwrap::*;
 
 
-pub(crate) struct DestructuredNode<'a, N: Node, AnchorAxis: Axis> {
-    pub node:PMut<'a,N>,
+pub(crate) struct DestructuredNode<'a,'b:'a, T: Aabb, AnchorAxis: Axis> {
+    pub node:PMut<'a,NodeMut<'b,T>>,
     pub axis: AnchorAxis,
 }
 
-impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNode<'a,N,AnchorAxis>{
+impl<'a,'b:'a,T:Aabb,AnchorAxis:Axis>  DestructuredNode<'a,'b,T,AnchorAxis>{
     #[inline(always)]
-    pub fn new(axis:AnchorAxis,node:PMut<'a,N>)->Option<DestructuredNode<'a,N,AnchorAxis>>{
+    pub fn new(axis:AnchorAxis,node:PMut<'a,NodeMut<'b,T>>)->Option<DestructuredNode<'a,'b,T,AnchorAxis>>{
         debug_assert!(node.get().div.is_some()); //TODO remove
-        if node.get().cont.is_some(){
+        if node.cont.is_some(){
             Some(DestructuredNode {
                 node,
                 axis,
@@ -26,10 +26,10 @@ impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNode<'a,N,AnchorAxis>{
     }
 
     #[inline(always)]
-    pub fn cont(&self)->&axgeom::Range<N::Num>{
+    pub fn cont(&self)->&axgeom::Range<T::Num>{
         //TODO use unsafe and dont unwrap
         unsafe{
-            self.node.get().cont.as_ref().unchecked_unwrap()
+            self.node.cont.as_ref().unchecked_unwrap()
         }
     }
     /*
@@ -44,15 +44,15 @@ impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNode<'a,N,AnchorAxis>{
 }
 
 
-pub(crate) struct DestructuredNodeLeaf<'a, N:Node, A: Axis> {
-    pub node:PMut<'a,N>,
+pub(crate) struct DestructuredNodeLeaf<'a,'b:'a, T:Aabb, A: Axis> {
+    pub node:PMut<'a,NodeMut<'b,T>>,
     pub axis: A,
 }
 
-impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNodeLeaf<'a,N,AnchorAxis>{
+impl<'a,'b:'a,T:Aabb,AnchorAxis:Axis>  DestructuredNodeLeaf<'a,'b,T,AnchorAxis>{
     #[inline(always)]
-    pub fn new(axis:AnchorAxis,node:PMut<'a,N>)->Option<DestructuredNodeLeaf<'a,N,AnchorAxis>>{
-        if node.get().cont.is_some(){
+    pub fn new(axis:AnchorAxis,node:PMut<'a,NodeMut<'b,T>>)->Option<DestructuredNodeLeaf<'a,'b,T,AnchorAxis>>{
+        if node.cont.is_some(){
             Some(DestructuredNodeLeaf {
                 node,
                 axis,
@@ -63,10 +63,10 @@ impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNodeLeaf<'a,N,AnchorAxis>{
     }
 
     #[inline(always)]
-    pub fn cont(&self)->&axgeom::Range<N::Num>{
+    pub fn cont(&self)->&axgeom::Range<T::Num>{
         //TODO use unsafe and dont unwrap
         unsafe{
-            self.node.get().cont.as_ref().unchecked_unwrap()
+            self.node.cont.as_ref().unchecked_unwrap()
         }
     }
 }
@@ -78,10 +78,10 @@ pub(crate) trait NodeHandler {
 
     fn handle_node(&mut self, axis: impl Axis, bots: PMut<[Self::T]>);
 
-    fn handle_children<A: Axis, B: Axis,N:Node<T=Self::T,Num=<Self::T as Aabb>::Num>>(
+    fn handle_children<A: Axis, B: Axis>(
         &mut self,
-        anchor: &mut DestructuredNode<N, A>,
-        current: DestructuredNodeLeaf<N, B>,
+        anchor: &mut DestructuredNode<Self::T, A>,
+        current: DestructuredNodeLeaf<Self::T, B>,
     );
 }
 
@@ -124,10 +124,10 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
         });
     }
 
-    fn handle_children<A: Axis, B: Axis,N:Node<T=Self::T,Num=<Self::T as Aabb>::Num>>(
+    fn handle_children<A: Axis, B: Axis>(
         &mut self,
-        anchor: &mut DestructuredNode<N, A>,
-        mut current: DestructuredNodeLeaf<N, B>,
+        anchor: &mut DestructuredNode<Self::T, A>,
+        mut current: DestructuredNodeLeaf<Self::T, B>,
     ) {
         let func = &mut self.func;
 
@@ -138,9 +138,8 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
         };
 
         if res {
-            //TODO too many accessors
-            for mut a in current.node.as_mut().get_mut().bots.as_mut().iter_mut() {
-                for mut b in anchor.node.as_mut().get_mut().bots.as_mut().iter_mut() {
+            for mut a in current.node.get_range2().as_mut().iter_mut() {
+                for mut b in anchor.node.get_range2().as_mut().iter_mut() {
                     if a.get().intersects_rect(b.get()) {
                         func.collide(a.as_mut(), b.as_mut());
                     }
@@ -186,10 +185,10 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
         oned::find_2d(axis, bots, func);
     }
     #[inline(always)]
-    fn handle_children<A: Axis, B: Axis,N:Node<T=Self::T,Num=<Self::T as Aabb>::Num>>(
+    fn handle_children<A: Axis, B: Axis>(
         &mut self,
-        anchor: &mut DestructuredNode<N, A>,
-        current: DestructuredNodeLeaf<N, B>,
+        anchor: &mut DestructuredNode<Self::T, A>,
+        current: DestructuredNodeLeaf<Self::T, B>,
     ) {
         let func = &mut self.func;
 

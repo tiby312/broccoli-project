@@ -3,17 +3,17 @@ use super::*;
 use crate::inner_prelude::*;
 
 
-struct InnerRecurser<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> {
-    anchor: DestructuredNode<'a, N, B>,
+struct InnerRecurser<'a,'b:'b, T:Aabb, NN: NodeHandler<T = T>, B: Axis> {
+    anchor: DestructuredNode<'a,'b, T, B>,
     sweeper: &'a mut NN,
 }
 
-impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B> {
+impl<'a,'b:'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,T, NN, B> {
     #[inline(always)]
     fn new(
-        anchor: DestructuredNode<'a, N, B>,
+        anchor: DestructuredNode<'a,'b, T, B>,
         sweeper: &'a mut NN,
-    ) -> InnerRecurser<'a, N, NN, B> {
+    ) -> InnerRecurser<'a,'b, T, NN, B> {
         InnerRecurser { anchor, sweeper }
     }
 
@@ -22,7 +22,7 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B
     >(
         &mut self,
         this_axis: A,
-        m: VistrMut<N>,
+        m: VistrMut<NodeMut<T>>,
     ) {
         let anchor_axis = self.anchor.axis;
         let (nn, rest) = m.next();
@@ -70,21 +70,22 @@ impl<'a, N: Node, NN: NodeHandler<T = N::T>, B: Axis> InnerRecurser<'a, N, NN, B
     }
 }
 
-pub(crate) struct ColFindRecurser<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> {
-    _p: PhantomData<(N, K, S)>,
+pub(crate) struct ColFindRecurser<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> {
+    _p: PhantomData<(T, K, S)>,
 }
 impl<
-        N: Node + Send + Sync,
+        T: Aabb + Send + Sync,
         K: Splitter + Send + Sync,
-        S: NodeHandler<T = N::T> + Splitter + Send + Sync,
-    > ColFindRecurser<N, K, S>
+        S: NodeHandler<T = T> + Splitter + Send + Sync,
+    > ColFindRecurser<T, K, S>
+    where T::Num:Send+Sync
 {
     pub fn recurse_par<A: Axis, JJ: par::Joiner>(
         &self,
         this_axis: A,
         par: JJ,
         sweeper: &mut S,
-        m: VistrMut<N>,
+        m: VistrMut<NodeMut<T>>,
         splitter: &mut K,
     ) {
        
@@ -162,9 +163,9 @@ impl<
     }
 }
 
-impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<N, K, S> {
+impl<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> ColFindRecurser<T, K, S> {
     #[inline(always)]
-    pub fn new() -> ColFindRecurser<N, K, S> {
+    pub fn new() -> ColFindRecurser<T, K, S> {
         ColFindRecurser { _p: PhantomData }
     }
 
@@ -172,7 +173,7 @@ impl<N: Node, K: Splitter, S: NodeHandler<T = N::T> + Splitter> ColFindRecurser<
         &self,
         this_axis: A,
         sweeper: &mut S,
-        m: VistrMut<N>,
+        m: VistrMut<NodeMut<T>>,
         splitter: &mut K,
     ) {
 

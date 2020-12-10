@@ -49,7 +49,7 @@ impl<
         B: FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
         F: FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
         T: Aabb,
-    > Knearest for KnearestClosure<'_, Acc, B, F, T>
+    > Knearest for &mut KnearestClosure<'_, Acc, B, F, T>
 {
     type T = T;
     type N = T::Num;
@@ -208,13 +208,13 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
     }
 }
 
-struct Blap<'a: 'b, 'b, K: Knearest> {
-    knear: &'b mut K,
+struct Blap<'a, K: Knearest> {
+    knear: K,
     point: Vec2<K::N>,
     closest: ClosestCand<'a, K::T>,
 }
 
-impl<'a: 'b, 'b, K: Knearest> Blap<'a, 'b, K> {
+impl<'a, K: Knearest> Blap<'a, K> {
     fn should_traverse_rect(&mut self, rect: &Rect<K::N>) -> bool {
         if let Some(dis) = self.closest.full_and_max_distance() {
             self.knear.distance_to_rect(self.point, rect) < dis
@@ -224,11 +224,11 @@ impl<'a: 'b, 'b, K: Knearest> Blap<'a, 'b, K> {
     }
 }
 
-fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
+fn recc<'a,'b:'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
     axis: A,
-    stuff: LevelIter<VistrMut<'a, N>>,
+    stuff: LevelIter<VistrMut<'a, NodeMut<'b,T>>>,
     rect: Rect<K::N>,
-    blap: &mut Blap<'a, 'b, K>,
+    blap: &mut Blap<'a,K>,
 ) {
     let ((_depth, nn), rest) = stuff.next();
     let nn = nn.get_mut();
@@ -260,7 +260,7 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
                     if blap.should_traverse_rect(&rmiddle) {
                         for bot in nn.bots.iter_mut() {
                             //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider(&blap.point, blap.knear, bot);
+                            blap.closest.consider(&blap.point, &mut blap.knear, bot);
                         }
                     }
 
@@ -276,7 +276,7 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
                     if blap.should_traverse_rect(&rmiddle) {
                         for bot in nn.bots.iter_mut() {
                             //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider(&blap.point, blap.knear, bot);
+                            blap.closest.consider(&blap.point, &mut blap.knear, bot);
                         }
                     }
                     if blap.should_traverse_rect(&rleft) {
@@ -295,7 +295,7 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
                     if blap.should_traverse_rect(&rmiddle) {
                         for bot in nn.bots.iter_mut() {
                             //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider(&blap.point, blap.knear, bot);
+                            blap.closest.consider(&blap.point, &mut blap.knear, bot);
                         }
                     }
                 }
@@ -304,7 +304,7 @@ fn recc<'a: 'b, 'b, N: Node, A: Axis, K: Knearest<N = N::Num, T = N::T>>(
         None => {
             for bot in nn.bots.iter_mut() {
                 //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                blap.closest.consider(&blap.point, blap.knear, bot);
+                blap.closest.consider(&blap.point, &mut blap.knear, bot);
             }
         }
     }
@@ -352,12 +352,12 @@ mod mutable {
         bots: PMut<'a, [T]>,
         point: Vec2<K::N>,
         num: usize,
-        k: &mut K,
+        mut k: K,
     ) -> KResult<'a, T> {
         let mut closest = ClosestCand::new(num);
 
         for b in bots.iter_mut() {
-            closest.consider(&point, k, b);
+            closest.consider(&point, &mut k, b);
         }
 
         let num_entires = closest.curr_num;
@@ -367,14 +367,14 @@ mod mutable {
         }
     }
 
-    pub fn k_nearest_mut<'a, A: Axis, N: Node>(
+    pub fn k_nearest_mut<'a,'b:'a, A: Axis, T:Aabb>(
         axis: A,
-        vistr: VistrMut<'a, N>,
-        point: Vec2<N::Num>,
+        vistr: VistrMut<'a, NodeMut<'b,T>>,
+        point: Vec2<T::Num>,
         num: usize,
-        knear: &mut impl Knearest<N = N::Num, T = N::T>,
-        rect: Rect<N::Num>,
-    ) -> KResult<'a, N::T> {
+        knear: impl Knearest<N = T::Num, T = T>,
+        rect: Rect<T::Num>,
+    ) -> KResult<'a, T> {
         let dt = vistr.with_depth(Depth(0));
 
         let closest = ClosestCand::new(num);
