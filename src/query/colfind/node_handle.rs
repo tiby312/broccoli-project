@@ -65,7 +65,9 @@ impl<'a,N:Node,AnchorAxis:Axis>  DestructuredNodeLeaf<'a,N,AnchorAxis>{
     #[inline(always)]
     pub fn cont(&self)->&axgeom::Range<N::Num>{
         //TODO use unsafe and dont unwrap
-        self.node.get().cont.as_ref().unwrap()
+        unsafe{
+            self.node.get().cont.as_ref().unchecked_unwrap()
+        }
     }
 }
 
