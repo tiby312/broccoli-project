@@ -231,7 +231,7 @@ fn recc<'a,'b:'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
     blap: &mut Blap<'a,K>,
 ) {
     let ((_depth, nn), rest) = stuff.next();
-    let nn = nn.get_mut();
+    //let nn = nn.get_mut();
     match rest {
         Some([left, right]) => {
             let div = match nn.div {
@@ -239,13 +239,13 @@ fn recc<'a,'b:'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
                 None => return,
             };
 
-            let (rleft, rright) = rect.subdivide(axis, *div);
+            let (rleft, rright) = rect.subdivide(axis, div);
 
             let range = &match nn.cont {
-                Some(cont) => *cont,
+                Some(cont) => cont,
                 None => Range {
-                    start: *div,
-                    end: *div,
+                    start: div,
+                    end: div,
                 },
             };
 
@@ -258,7 +258,7 @@ fn recc<'a,'b:'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
                     }
 
                     if blap.should_traverse_rect(&rmiddle) {
-                        for bot in nn.bots.iter_mut() {
+                        for bot in nn.into_range().iter_mut() {
                             //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
                             blap.closest.consider(&blap.point, &mut blap.knear, bot);
                         }
@@ -274,7 +274,7 @@ fn recc<'a,'b:'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
                     }
 
                     if blap.should_traverse_rect(&rmiddle) {
-                        for bot in nn.bots.iter_mut() {
+                        for bot in nn.into_range().iter_mut() {
                             //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
                             blap.closest.consider(&blap.point, &mut blap.knear, bot);
                         }
@@ -293,7 +293,7 @@ fn recc<'a,'b:'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
                         recc(axis.next(), left, rleft, blap);
                     }
                     if blap.should_traverse_rect(&rmiddle) {
-                        for bot in nn.bots.iter_mut() {
+                        for bot in nn.into_range().iter_mut() {
                             //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
                             blap.closest.consider(&blap.point, &mut blap.knear, bot);
                         }
@@ -302,7 +302,7 @@ fn recc<'a,'b:'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
             }
         }
         None => {
-            for bot in nn.bots.iter_mut() {
+            for bot in nn.into_range().iter_mut() {
                 //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
                 blap.closest.consider(&blap.point, &mut blap.knear, bot);
             }
