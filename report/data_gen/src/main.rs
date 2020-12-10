@@ -114,13 +114,13 @@ macro_rules! run_test {
 
 fn main() {
 
-    //dbg!(broccoli::analyze::compute_tree_height_heuristic(3000,broccoli::analyze::DEFAULT_NUMBER_ELEM_PER_NODE));
-    //return;
-
     rayon::ThreadPoolBuilder::new()
         .num_threads(num_cpus::get_physical())
         .build_global()
         .unwrap();
+
+    //dbg!(colfind::construction_vs_query::all::handle_bench(10000,0.2,false));
+    //return;
 
     //to run program to generate android bench data.
     //build armv7-linux-androideabi
@@ -143,7 +143,7 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-
+            
             run_test!(&mut fb, colfind::query_evenness::handle_theory);
             
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
@@ -166,13 +166,13 @@ fn main() {
             let mut fb = FigureBuilder::new(folder);
 
             //done
+            //run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
             
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
 
             
             run_test!(&mut fb, colfind::colfind::handle_bench);
-            run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
-
+            
             run_test!(&mut fb, colfind::rebal_strat::handle);
             run_test!(&mut fb, colfind::dinotree_direct_indirect::handle);
 

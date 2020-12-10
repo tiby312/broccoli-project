@@ -25,6 +25,7 @@ impl<'a, A: Axis + 'a, F: ColMulti + 'a> ColMulti for Bl<'a, A, F> {
 ///Provides 1d collision detection.
 pub(crate) struct Sweeper<T: Aabb> {
     helper: PreVecMut<T>,
+    helper2: PreVecMut<T>
 }
 
 impl<T: Aabb> core::default::Default for Sweeper<T> {
@@ -38,6 +39,7 @@ impl<I: Aabb> Sweeper<I> {
     pub fn new() -> Sweeper<I> {
         Sweeper {
             helper: PreVecMut::new(),
+            helper2: PreVecMut::new()
         }
     }
 
@@ -63,20 +65,22 @@ impl<I: Aabb> Sweeper<I> {
     ) {
         let mut b: Bl<A, _> = Bl { a: clos2, axis };
 
-        self.find_bijective_parallel(axis, (bots1, bots2), &mut b);
+        Self::find_bijective_parallel(self.helper.get_empty_vec_mut(),axis, (bots1, bots2), &mut b);
     }
 
     pub(crate) fn find_perp_2d1<A:Axis,F: ColMulti<T = I>>(
         &mut self,
         axis:A, //the axis of r1.
         r1: PMut<[F::T]>,
-        mut r2: PMut<[F::T]>,
+        r2: PMut<[F::T]>,
         clos2: &mut F,
     ) {
          
-
+        //option1 is slightly faster than option 2.
+        //but requires dynamic allocation.
+        //option3 is the slowest.
+        //
         //OPTION 1
-        /*
         #[inline(always)]
         pub fn compare_bots<T: Aabb,K:Aabb<Num=T::Num>>(axis: impl Axis, a: &T, b: &K) -> core::cmp::Ordering {
             let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
@@ -87,25 +91,31 @@ impl<I: Aabb> Sweeper<I> {
             }
         }
         let mut b: Bl<A, _> = Bl { a: clos2, axis };
-        let mut r1:Vec<PMut<F::T>>=r1.iter_mut().collect();
-        r1.sort_unstable_by(|a,b|compare_bots(axis,a,b) );
-        self.find_bijective_parallel2(axis,(r2,&mut r1),|a|a.as_mut(),&mut b);
-        */
+        let mut rr1=self.helper2.get_empty_vec_mut();
+        
+        rr1.extend(r1.iter_mut());
+        //let mut r1:Vec<PMut<F::T>>=r1.iter_mut().collect();
+        rr1.sort_unstable_by(|a,b|compare_bots(axis,a,b) );
+        Self::find_bijective_parallel2(self.helper.get_empty_vec_mut(),axis,(r2,PMut::new(&mut rr1)),|a|a.into_inner(),&mut b);
+        
         
         //exploit the fact that they are sorted along an axis to 
         //reduce the number of checks.
         //TODO check which range is smaller???
         // OPTION2
+        /*
         let mut b: Bl<A, _> = Bl { a: clos2, axis };
 
         for y in r1.iter_mut(){
             self.find_bijective_parallel(axis,(r2.as_mut(),y.into_slice()),&mut b);
         }
+        */
         
         
-        //OPTION2
-        /* naive version better???
-        for mut inda in r1.as_mut().iter_mut() {
+        //OPTION3
+        // benched and this is the slowest.
+        /*
+        for mut inda in r1.iter_mut() {
             for mut indb in r2.as_mut().iter_mut() {
                 if inda.get().intersects_rect(indb.get()) {
                     clos2.collide(inda.as_mut(), indb.as_mut());
@@ -113,6 +123,7 @@ impl<I: Aabb> Sweeper<I> {
             }
         }
         */
+        
         
     }
 
@@ -159,20 +170,22 @@ impl<I: Aabb> Sweeper<I> {
             active.push(curr_bot);
         }
     }
-/* needed for OPTION1
-    fn find_bijective_parallel2<A: Axis, F: ColMulti<T = I>,K>(
-        &mut self,
+
+
+    // needed for OPTION1
+    fn find_bijective_parallel2<'a,A: Axis, F: ColMulti<T = I>,K>(
+        active_x:&mut Vec<PMut<'a,I>>,
         axis: A,
-        cols: (PMut<[I]>, &mut [K]),
-        mut conv:impl FnMut(&mut K)->PMut<I>,
+        cols: (PMut<'a,[I]>, PMut<[K]>),
+        mut conv:impl FnMut(PMut<K>)->PMut<I>,
         func: &mut F,
     ) {
         let mut xs = cols.0.iter_mut().peekable();
         let ys = cols.1.iter_mut();
 
-        let active_x = self.helper.get_empty_vec_mut();
+        //let active_x = self.helper.get_empty_vec_mut();
 
-        for mut y in ys {
+        for y in ys {
             let mut y=conv(y);
             //Add all the x's that are touching the y to the active x.
             for x in xs.peeking_take_while(|x| {
@@ -198,14 +211,16 @@ impl<I: Aabb> Sweeper<I> {
             }
         }
     }
-    */
-
-    fn find_bijective_parallel<A: Axis, F: ColMulti<T = I>>(
-        &mut self,
+    
+    
+    fn find_bijective_parallel<'a,A: Axis, F: ColMulti<T = I>>(
+        active_x:&mut Vec<PMut<'a,I>>,
         axis: A,
-        cols: (PMut<[I]>, PMut<[I]>),
+        cols: (PMut<'a,[I]>, PMut<'a,[I]>),
         func: &mut F,
     ) {
+        Self::find_bijective_parallel2(active_x,axis,cols,|a|a,func)
+        /*
         let mut xs = cols.0.iter_mut().peekable();
         let ys = cols.1.iter_mut();
 
@@ -235,7 +250,9 @@ impl<I: Aabb> Sweeper<I> {
                 func.collide(x.as_mut(), y.as_mut());
             }
         }
+        */
     }
+    
 }
 
 #[test]

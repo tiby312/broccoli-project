@@ -65,7 +65,15 @@ impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
     }
 }
 
+
+impl<'a,'b:'a,T> PMut<'a,PMut<'b,T>>{
+    #[inline(always)]
+    pub fn into_inner(self)->PMut<'a,T>{
+        PMut::new(self.inner.inner)
+    }
+}
 impl<'a,T> PMut<'a,T>{
+    #[inline(always)]
     pub fn into_slice(self)->PMut<'a,[T]>{
         PMut{inner:core::slice::from_mut(self.inner)}   
     }
