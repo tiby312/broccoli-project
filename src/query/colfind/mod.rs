@@ -62,10 +62,9 @@ pub fn query_sweep_mut<T: Aabb>(
             (self.func)(a, b);
         }
     }
-
-    let mut s = oned::Sweeper::new();
+    use oned::sweep;
     let bots = PMut::new(bots);
-    s.find_2d(
+    sweep::find_2d(
         axis,
         bots,
         &mut Bl {
