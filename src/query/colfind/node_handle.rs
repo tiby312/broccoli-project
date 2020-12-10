@@ -5,7 +5,7 @@ use super::ColMulti;
 use crate::query::inner_prelude::*;
 use unchecked_unwrap::*;
 
-use oned::sweep;
+
 pub(crate) struct DestructuredNode<'a, N: Node, AnchorAxis: Axis> {
     pub node:PMut<'a,N>,
     pub axis: AnchorAxis,
@@ -181,7 +181,7 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
     #[inline(always)]
     fn handle_node(&mut self, axis: impl Axis, bots: PMut<[Self::T]>) {
         let func = &mut self.func;
-        sweep::find_2d(axis, bots, func);
+        oned::find_2d(axis, bots, func);
     }
     #[inline(always)]
     fn handle_children<A: Axis, B: Axis,N:Node<T=Self::T,Num=<Self::T as Aabb>::Num>>(
@@ -201,9 +201,9 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
             let ss2=anchor.node.as_mut().get_mut().bots;
             let r2 = oned::get_section_mut(current.axis, ss2, cc2);
             
-            sweep::find_perp_2d1(current.axis,r1,r2, func);
+            oned::find_perp_2d1(current.axis,r1,r2, func);
         } else if current.cont().intersects(anchor.cont()) {
-            sweep::find_parallel_2d(
+            oned::find_parallel_2d(
                 current.axis.next(),
                 current.node.get_mut().bots.as_mut(),
                 anchor.node.as_mut().get_mut().bots.as_mut(),

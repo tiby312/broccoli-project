@@ -137,7 +137,7 @@ impl<'a, T> PMut<'a, [T]> {
     ///We can't use the index trait because we don't want
     ///to return a mutable reference.
     #[inline(always)]
-    pub fn get_index_mut(&mut self, ind: usize) -> PMut<T> {
+    pub fn get_index_mut(self, ind: usize) -> PMut<'a,T> {
         PMut::new(&mut self.inner[ind])
     }
 
