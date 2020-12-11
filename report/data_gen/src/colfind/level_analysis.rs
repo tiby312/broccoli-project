@@ -80,9 +80,9 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> 
         let mut times2 = LevelTimer::new();
 
         tree.new_colfind_builder().query_with_splitter_seq(
-            |mut a, mut b| {
-                a.inner_mut().num += 1;
-                b.inner_mut().num += 1
+            |a, b| {
+                a.unpack_inner().num += 1;
+                b.unpack_inner().num += 1
             },
             &mut times2,
         );

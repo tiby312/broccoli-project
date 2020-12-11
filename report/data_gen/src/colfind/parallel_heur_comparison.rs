@@ -14,9 +14,9 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(&mut bb).build_seq());
 
     let (tree, query_time) = bench_closure_ret(|| {
-        tree.new_colfind_builder().query_seq(|mut a, mut b| {
-            a.inner_mut().num += 2;
-            b.inner_mut().num += 2;
+        tree.new_colfind_builder().query_seq(|a, b| {
+            a.unpack_inner().num += 2;
+            b.unpack_inner().num += 2;
         });
         tree
     });
@@ -40,9 +40,9 @@ fn test3(scene: &mut bot::BotScene<Bot>, rebal_height: usize, query_height: usiz
     let (tree, query_time) = bench_closure_ret(|| {
         tree.new_colfind_builder()
             .with_switch_height(query_height)
-            .query_par(|mut a, mut b| {
-                a.inner_mut().num += 2;
-                b.inner_mut().num += 2;
+            .query_par(|a, b| {
+                a.unpack_inner().num += 2;
+                b.unpack_inner().num += 2;
             });
         tree
     });

@@ -90,9 +90,9 @@ fn complete_test<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTest
             .map(|a| bbox(a, (0isize, t)))
             .collect();
 
-        let collide = |mut b: PMut<BBox<i32, (isize, T)>>, mut c: PMut<BBox<i32, (isize, T)>>| {
-            b.inner_mut().0 += 1;
-            c.inner_mut().0 += 1;
+        let collide = |b: PMut<BBox<i32, (isize, T)>>, c: PMut<BBox<i32, (isize, T)>>| {
+            b.unpack_inner().0 += 1;
+            c.unpack_inner().0 += 1;
         };
 
         (test_seq(&mut bots, collide), test_par(&mut bots, collide))
@@ -106,10 +106,10 @@ fn complete_test<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTest
             .collect();
         let mut indirect: Vec<_> = bots.iter_mut().collect();
 
-        let collide = |mut b: PMut<&mut BBox<i32, (isize, T)>>,
-                       mut c: PMut<&mut BBox<i32, (isize, T)>>| {
-            b.inner_mut().0 += 1;
-            c.inner_mut().0 += 1;
+        let collide = |b: PMut<&mut BBox<i32, (isize, T)>>,
+                       c: PMut<&mut BBox<i32, (isize, T)>>| {
+            b.unpack_inner().0 += 1;
+            c.unpack_inner().0 += 1;
         };
 
         (
@@ -126,10 +126,10 @@ fn complete_test<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTest
             .map(|(a, b)| bbox(a, b))
             .collect();
 
-        let collide = |mut b: PMut<BBox<i32, &mut (isize, T)>>,
-                       mut c: PMut<BBox<i32, &mut (isize, T)>>| {
-            b.inner_mut().0 += 1;
-            c.inner_mut().0 += 1;
+        let collide = |b: PMut<BBox<i32, &mut (isize, T)>>,
+                       c: PMut<BBox<i32, &mut (isize, T)>>| {
+            b.unpack_inner().0 += 1;
+            c.unpack_inner().0 += 1;
         };
 
         (
