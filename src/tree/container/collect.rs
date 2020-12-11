@@ -80,7 +80,7 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
     }
 }
 
-impl<'a, A: Axis, N: Num+Send+Sync, T: Send + Sync> TreeRefInd<'a, A, N, T>  {
+impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> {
     /// The parallel version of [`TreeRefInd::collect_colliding_pairs`] that instead
     /// returns a [`CollidingPairsPar`].
     ///
@@ -160,12 +160,12 @@ impl<'a, A: Axis, N: Num+Send+Sync, T: Send + Sync> TreeRefInd<'a, A, N, T>  {
                 if let Some([left, right]) = next {
                     let l = Foo::new(left);
                     let r = Foo::new(right);
-                    (l,r)
+                    (l, r)
                 } else {
                     unreachable!()
                 }
             },
-            move |_a, _b,_c| {},
+            move |_a, _b, _c| {},
             move |c, a, b| {
                 if let Some(d) = func(a.unpack_inner(), b.unpack_inner()) {
                     c.current.push(d);
@@ -233,7 +233,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
     ) -> FilteredElements<T, D> {
         let mut elems = Vec::new();
         for node in self.get_nodes_mut().iter_mut() {
-            for b in node.get_mut().bots.iter_mut() {
+            for b in node.into_range().iter_mut() {
                 let (x, y) = b.unpack();
                 if let Some(d) = func(x, y) {
                     elems.push((Ptr(*y as *mut _), d));

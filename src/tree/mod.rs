@@ -79,7 +79,10 @@ pub fn with_axis<'a, A: Axis, T: Aabb>(axis: A, bots: &'a mut [T]) -> Tree<'a, A
 /// let tree = broccoli::new_par(&mut bots);
 ///
 ///```
-pub fn new_par<'a, T: Aabb + Send + Sync>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> where T::Num:Send+Sync{
+pub fn new_par<'a, T: Aabb + Send + Sync>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T>
+where
+    T::Num: Send + Sync,
+{
     TreeBuilder::new(bots).build_par()
 }
 
@@ -95,7 +98,10 @@ pub fn new_par<'a, T: Aabb + Send + Sync>(bots: &'a mut [T]) -> Tree<'a, Default
 pub fn with_axis_par<'a, A: Axis, T: Aabb + Send + Sync>(
     axis: A,
     bots: &'a mut [T],
-) -> Tree<'a, A, T> where T::Num :Send+Sync{
+) -> Tree<'a, A, T>
+where
+    T::Num: Send + Sync,
+{
     TreeBuilder::with_axis(axis, bots).build_par()
 }
 
@@ -164,7 +170,7 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// let mut bots = [axgeom::rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// assert_eq!(tree.get_nodes()[0].get().bots[0], axgeom::rect(0,10,0,10));
+    /// assert_eq!(tree.get_nodes()[0].range[0], axgeom::rect(0,10,0,10));
     ///
     ///```
     #[must_use]
@@ -179,7 +185,7 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// let mut bots = [axgeom::rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// assert_eq!(tree.get_nodes_mut().get_index_mut(0).get().bots[0], axgeom::rect(0,10,0,10));
+    /// assert_eq!(tree.get_nodes_mut().get_index_mut(0).range[0], axgeom::rect(0,10,0,10));
     ///
     ///```
     #[must_use]

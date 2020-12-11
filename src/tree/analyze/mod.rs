@@ -61,75 +61,86 @@ pub enum BinStrat {
 ///on two different machines.
 pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 38;
 
-
 use crate::par::Parallel;
-
 
 ///Using this struct the user can determine the height of a tree or the number of nodes
 ///that would exist if the tree were constructed with the specified number of elements.
-#[derive(Copy,Clone)]
-pub struct TreePreBuilder{
-    height:usize,
-    height_switch_seq:usize
+#[derive(Copy, Clone)]
+pub struct TreePreBuilder {
+    height: usize,
+    height_switch_seq: usize,
 }
 
-
-impl TreePreBuilder{
+impl TreePreBuilder {
     ///Create the builder object with default values.
-    pub const fn new(num_elements:usize)->TreePreBuilder{
-        let height=compute_tree_height_heuristic(num_elements,DEFAULT_NUMBER_ELEM_PER_NODE);
-        TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
+    pub const fn new(num_elements: usize) -> TreePreBuilder {
+        let height = compute_tree_height_heuristic(num_elements, DEFAULT_NUMBER_ELEM_PER_NODE);
+        TreePreBuilder {
+            height,
+            height_switch_seq: par::SWITCH_SEQUENTIAL_DEFAULT,
+        }
     }
     ///Specify a custom default nuber of elements per leaf.
-    pub const fn with_num_elem_in_leaf(num_elements:usize,num_elem_leaf:usize)->TreePreBuilder{
-        let height=compute_tree_height_heuristic(num_elements,num_elem_leaf);
-        TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
+    pub const fn with_num_elem_in_leaf(
+        num_elements: usize,
+        num_elem_leaf: usize,
+    ) -> TreePreBuilder {
+        let height = compute_tree_height_heuristic(num_elements, num_elem_leaf);
+        TreePreBuilder {
+            height,
+            height_switch_seq: par::SWITCH_SEQUENTIAL_DEFAULT,
+        }
     }
 
     ///Specify at which level to switch from parallel to sequential when
     ///parallel functions are used.
-    pub fn with_height_seq(&mut self,height:usize){
-        self.height_switch_seq=height;
+    pub fn with_height_seq(&mut self, height: usize) {
+        self.height_switch_seq = height;
     }
 
     //TODO try and make const??
     ///Create a [`par::Joiner`] that will switch to sequential at the approriate level
-    pub(crate) fn switch_seq_level(&self)->Parallel{
-        crate::par::compute_level_switch_sequential(self.height_switch_seq,self.height)
+    pub(crate) fn switch_seq_level(&self) -> Parallel {
+        crate::par::compute_level_switch_sequential(self.height_switch_seq, self.height)
     }
 
     ///Specify a custom height of the tree, ignoring the number of elements per node variable.
-    pub const fn with_height(height:usize)->TreePreBuilder{
-        TreePreBuilder{height,height_switch_seq:par::SWITCH_SEQUENTIAL_DEFAULT}
+    pub const fn with_height(height: usize) -> TreePreBuilder {
+        TreePreBuilder {
+            height,
+            height_switch_seq: par::SWITCH_SEQUENTIAL_DEFAULT,
+        }
     }
 
     ///Create a `TreeBuilder`
-    pub fn into_builder<'a,T:Aabb>(&self,bots:&'a mut [T])->TreeBuilder<'a,DefaultA,T>{
-        TreeBuilder::from_prebuilder(default_axis(),bots,*self)
+    pub fn into_builder<'a, T: Aabb>(&self, bots: &'a mut [T]) -> TreeBuilder<'a, DefaultA, T> {
+        TreeBuilder::from_prebuilder(default_axis(), bots, *self)
     }
-    
+
     ///Create a `TreeBuilder` with a use specified axis.
-    pub fn into_builder_with_axis<'a,A:Axis,T:Aabb>(&self,bots:&'a mut [T],axis:A)->TreeBuilder<'a,A,T>{
-        TreeBuilder::from_prebuilder(axis,bots,*self)
+    pub fn into_builder_with_axis<'a, A: Axis, T: Aabb>(
+        &self,
+        bots: &'a mut [T],
+        axis: A,
+    ) -> TreeBuilder<'a, A, T> {
+        TreeBuilder::from_prebuilder(axis, bots, *self)
     }
 
     ///Return the level at which parallel algorithms will switch to sequential.
-    pub const fn get_height_seq(&self)->usize{
+    pub const fn get_height_seq(&self) -> usize {
         self.height_switch_seq
     }
-    
+
     ///Compute the number of nodes in the tree based off of the height.
-    pub const fn num_nodes(&self)->usize{
-        nodes_left(0,self.height)
+    pub const fn num_nodes(&self) -> usize {
+        nodes_left(0, self.height)
     }
 
     ///Get the currently configured height.
-    pub const fn get_height(&self)->usize{
+    pub const fn get_height(&self) -> usize {
         self.height
     }
 }
-
-
 
 ///Outputs the height given an desirned number of bots per node.
 #[inline]
@@ -141,57 +152,49 @@ const fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> 
     if num_bots <= num_per_node {
         1
     } else {
-
-        let (num_bots,num_per_node) = (num_bots as u64,num_per_node as u64);
+        let (num_bots, num_per_node) = (num_bots as u64, num_per_node as u64);
         let a = num_bots / num_per_node;
-        let a = log_2(a) ;
+        let a = log_2(a);
         //let ans=(a/2)*2+1;
-        (a+1) as usize
-
+        (a + 1) as usize
     }
 }
 
-
 const fn log_2(x: u64) -> u64 {
-    const fn num_bits<T>() -> usize { core::mem::size_of::<T>() * 8 }
+    const fn num_bits<T>() -> usize {
+        core::mem::size_of::<T>() * 8
+    }
 
     //assert!(x > 0);
     num_bits::<u64>() as u64 - x.leading_zeros() as u64 - 1
 }
 
-
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
 ///during construction.
 pub trait Splitter: Sized {
-    
     ///Called to split this into two to be passed to the children.
-    fn div(&mut self) -> (Self,Self);
+    fn div(&mut self) -> (Self, Self);
 
     ///Called to add the results of the recursive calls on the children.
-    fn add(&mut self,a:Self,b: Self);
+    fn add(&mut self, a: Self, b: Self);
 
-    fn leaf_start(&mut self){}
+    fn leaf_start(&mut self) {}
 
-    fn leaf_end(&mut self){}
-
+    fn leaf_end(&mut self) {}
 }
 
 ///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
 pub(crate) struct SplitterEmpty;
 
 impl Splitter for SplitterEmpty {
-    
     #[inline(always)]
-    fn div(&mut self) -> (Self,Self) {
-        (SplitterEmpty,SplitterEmpty)
+    fn div(&mut self) -> (Self, Self) {
+        (SplitterEmpty, SplitterEmpty)
     }
     #[inline(always)]
-    fn add(&mut self,_:Self, _: Self) {}
-
-
+    fn add(&mut self, _: Self, _: Self) {}
 }
-
 
 use crate::tree::NotSortedQueries;
 use crate::tree::Queries;
@@ -202,7 +205,10 @@ use crate::tree::Queries;
 /// extra property to be faster.
 pub struct NotSorted<'a, A: Axis, T: Aabb>(pub(crate) Tree<'a, A, T>);
 
-impl<'a, T: Aabb + Send + Sync> NotSorted<'a, DefaultA, T> where T::Num:Send+Sync{
+impl<'a, T: Aabb + Send + Sync> NotSorted<'a, DefaultA, T>
+where
+    T::Num: Send + Sync,
+{
     pub fn new_par(bots: &'a mut [T]) -> NotSorted<'a, DefaultA, T> {
         TreeBuilder::new(bots).build_not_sorted_par()
     }
@@ -213,7 +219,10 @@ impl<'a, T: Aabb> NotSorted<'a, DefaultA, T> {
     }
 }
 
-impl<'a, A: Axis, T: Aabb + Send + Sync> NotSorted<'a, A, T>  where T::Num:Send+Sync{
+impl<'a, A: Axis, T: Aabb + Send + Sync> NotSorted<'a, A, T>
+where
+    T::Num: Send + Sync,
+{
     pub fn with_axis_par(axis: A, bots: &'a mut [T]) -> NotSorted<'a, A, T> {
         TreeBuilder::with_axis(axis, bots).build_not_sorted_par()
     }

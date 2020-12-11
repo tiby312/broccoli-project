@@ -65,8 +65,8 @@ pub fn handle(fb: &mut FigureBuilder) {
             num: 0,
         });
 
-    let height=broccoli::analyze::TreePreBuilder::new(num_bots).get_height();
-    
+    let height = broccoli::analyze::TreePreBuilder::new(num_bots).get_height();
+
     let mut rebals = Vec::new();
     for rebal_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {
         let (a, _b) = test3(&mut scene, rebal_height, 4);

@@ -177,11 +177,11 @@ fn draw_bot_lines<A: axgeom::Axis>(
 ) {
     use compt::Visitor;
     let (nn, rest) = stuff.next();
-    let nn = nn.get();
+    //let nn = nn.get();
     let mid = match rest {
         Some([start, end]) => match nn.div {
             Some(div) => {
-                let (a, b) = rect.subdivide(axis, *div);
+                let (a, b) = rect.subdivide(axis, div);
 
                 draw_bot_lines(axis.next(), start, &a, lines);
                 draw_bot_lines(axis.next(), end, &b, lines);
@@ -215,7 +215,7 @@ fn draw_bot_lines<A: axgeom::Axis>(
 
     if let Some((midx, midy)) = mid {
         //let color_delta = 1.0 / nn.bots.len() as f32;
-        for b in nn.bots.iter() {
+        for b in nn.range.iter() {
             let _bx = b.inner.pos.x;
             let _by = b.inner.pos.y;
             lines.add(b.inner.pos.into(), vec2(midx, midy).into());

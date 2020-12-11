@@ -116,7 +116,7 @@ pub mod prelude {
 ///Notice that no arithmatic is possible. The tree is constructed
 ///using only comparisons and copying.
 pub trait Num: Ord + Copy {}
-impl<T> Num for T where T: Ord + Copy{}
+impl<T> Num for T where T: Ord + Copy {}
 
 ///Trait to signify that this object has an axis aligned bounding box.
 ///[`Aabb::get()`] must return a aabb with the same value in it while the element

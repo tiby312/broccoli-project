@@ -1,8 +1,5 @@
 use super::super::ColMulti;
 use crate::query::inner_prelude::*;
-    
-
-
 
 //For sweep and prune type algorithms, we can narrow down which bots
 //intersection in one dimension. We also need to check the other direction
@@ -30,11 +27,7 @@ impl<'a, A: Axis + 'a, F: ColMulti + 'a> ColMulti for OtherAxisCollider<'a, A, F
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
 #[inline(always)]
-pub fn find_2d<A: Axis, F: ColMulti>(
-    axis: A,
-    bots: PMut<[F::T]>,
-    clos2: &mut F,
-) {
+pub fn find_2d<A: Axis, F: ColMulti>(axis: A, bots: PMut<[F::T]>, clos2: &mut F) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
     self::find(axis, bots, &mut b);
 }
@@ -53,24 +46,26 @@ pub fn find_parallel_2d<A: Axis, F: ColMulti>(
     self::find_bijective_parallel(axis, (bots1, bots2), &mut b);
 }
 
-
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
-pub fn find_perp_2d1<A:Axis,F: ColMulti>(
-    axis:A, //the axis of r1.
+pub fn find_perp_2d1<A: Axis, F: ColMulti>(
+    axis: A, //the axis of r1.
     r1: PMut<[F::T]>,
     r2: PMut<[F::T]>,
     clos2: &mut F,
 ) {
-        
     //option1 is slightly faster than option 2.
     //but requires dynamic allocation.
     //option3 is the slowest.
     //
     //OPTION 1
-    
+
     #[inline(always)]
-    pub fn compare_bots<T: Aabb,K:Aabb<Num=T::Num>>(axis: impl Axis, a: &T, b: &K) -> core::cmp::Ordering {
+    pub fn compare_bots<T: Aabb, K: Aabb<Num = T::Num>>(
+        axis: impl Axis,
+        a: &T,
+        b: &K,
+    ) -> core::cmp::Ordering {
         let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
         if p1 > p2 {
             core::cmp::Ordering::Greater
@@ -79,15 +74,13 @@ pub fn find_perp_2d1<A:Axis,F: ColMulti>(
         }
     }
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
-    
-    let mut rr1:Vec<PMut<F::T>>=r1.iter_mut().collect();
-    
 
-    rr1.sort_unstable_by(|a,b|compare_bots(axis,a,b) );
-    self::find_bijective_parallel2(axis,(r2,PMut::new(&mut rr1)),|a|a.into_inner(),&mut b);
-    
-    
-    //exploit the fact that they are sorted along an axis to 
+    let mut rr1: Vec<PMut<F::T>> = r1.iter_mut().collect();
+
+    rr1.sort_unstable_by(|a, b| compare_bots(axis, a, b));
+    self::find_bijective_parallel2(axis, (r2, PMut::new(&mut rr1)), |a| a.into_inner(), &mut b);
+
+    //exploit the fact that they are sorted along an axis to
     //reduce the number of checks.
     //TODO check which range is smaller???
     // OPTION2
@@ -95,33 +88,25 @@ pub fn find_perp_2d1<A:Axis,F: ColMulti>(
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
 
     for y in r1.iter_mut(){
-        self.find_bijective_parallel(axis,(r2.as_mut(),y.into_slice()),&mut b);
+        self.find_bijective_parallel(axis,(r2.borrow_mut(),y.into_slice()),&mut b);
     }
     */
-    
-    
-    
+
     //OPTION3
     // benched and this is the slowest.
     /*
     for mut inda in r1.iter_mut() {
-        for mut indb in r2.as_mut().iter_mut() {
+        for mut indb in r2.borrow_mut().iter_mut() {
             if inda.get().intersects_rect(indb.get()) {
-                clos2.collide(inda.as_mut(), indb.as_mut());
+                clos2.collide(inda.borrow_mut(), indb.borrow_mut());
             }
         }
     }
     */
-    
-    
 }
 
 ///Find colliding pairs using the mark and sweep algorithm.
-fn find<'a, A: Axis, F: ColMulti>(
-    axis: A,
-    collision_botids: PMut<'a, [F::T]>,
-    func: &mut F,
-) {
+fn find<'a, A: Axis, F: ColMulti>(axis: A, collision_botids: PMut<'a, [F::T]>, func: &mut F) {
     //    Create a new temporary list called “activeList”.
     //    You begin on the left of your axisList, adding the first item to the activeList.
     //
@@ -136,7 +121,7 @@ fn find<'a, A: Axis, F: ColMulti>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let mut active:Vec<PMut<F::T>>=Vec::new();
+    let mut active: Vec<PMut<F::T>> = Vec::new();
     //let active = self.helper.get_empty_vec_mut();
 
     for mut curr_bot in collision_botids.iter_mut() {
@@ -153,32 +138,31 @@ fn find<'a, A: Axis, F: ColMulti>(
                     .get_range(axis)
                     .intersects(that_bot.get().get_range(axis)));
 
-                func.collide(curr_bot.as_mut(), that_bot.as_mut());
+                func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
             }
         }
         active.push(curr_bot);
     }
 }
 
-
 // needed for OPTION1
-fn find_bijective_parallel2<'a,A: Axis, F: ColMulti,K>(
+fn find_bijective_parallel2<'a, A: Axis, F: ColMulti, K>(
     axis: A,
-    cols: (PMut<'a,[F::T]>, PMut<[K]>),
-    mut conv:impl FnMut(PMut<K>)->PMut<F::T>,
+    cols: (PMut<'a, [F::T]>, PMut<[K]>),
+    mut conv: impl FnMut(PMut<K>) -> PMut<F::T>,
     func: &mut F,
 ) {
     let mut xs = cols.0.iter_mut().peekable();
     let ys = cols.1.iter_mut();
 
     //let active_x = self.helper.get_empty_vec_mut();
-    let mut active_x:Vec<PMut<F::T>>=Vec::new();
+    let mut active_x: Vec<PMut<F::T>> = Vec::new();
     for y in ys {
-        let mut y=conv(y);
+        let mut y = conv(y);
         //Add all the x's that are touching the y to the active x.
-        for x in xs.peeking_take_while(|x| {
-            x.get().get_range(axis).start <= y.get().get_range(axis).end
-        }) {
+        for x in
+            xs.peeking_take_while(|x| x.get().get_range(axis).start <= y.get().get_range(axis).end)
+        {
             active_x.push(x);
         }
 
@@ -195,20 +179,18 @@ fn find_bijective_parallel2<'a,A: Axis, F: ColMulti,K>(
             }
 
             debug_assert!(x.get().get_range(axis).intersects(y.get().get_range(axis)));
-            func.collide(x.as_mut(), y.as_mut());
+            func.collide(x.borrow_mut(), y.borrow_mut());
         }
     }
 }
 
-
-fn find_bijective_parallel<'a,A: Axis, F: ColMulti>(
+fn find_bijective_parallel<'a, A: Axis, F: ColMulti>(
     axis: A,
-    cols: (PMut<'a,[F::T]>, PMut<'a,[F::T]>),
+    cols: (PMut<'a, [F::T]>, PMut<'a, [F::T]>),
     func: &mut F,
 ) {
-    self::find_bijective_parallel2(axis,cols,|a|a,func)
+    self::find_bijective_parallel2(axis, cols, |a| a, func)
 }
-
 
 #[test]
 #[cfg_attr(miri, ignore)]
@@ -269,7 +251,6 @@ fn test_parallel() {
     //let mut left=[b.make(0,10),b.make(5,20)];
     //let mut right=[b.make(16,20)];
 
-    
     let mut test1 = Test {
         set: BTreeSet::new(),
     };
@@ -293,10 +274,6 @@ fn test_parallel() {
     assert_eq!(num, 0);
 }
 
-
-
-
-
 //this can have some false positives.
 //but it will still prune a lot of bots.
 pub(crate) fn get_section<'a, I: Aabb, A: Axis>(
@@ -304,22 +281,21 @@ pub(crate) fn get_section<'a, I: Aabb, A: Axis>(
     arr: &'a [I],
     range: Range<I::Num>,
 ) -> &'a [I] {
-    if arr.is_empty(){
+    if arr.is_empty() {
         return arr;
     }
-    
-    let ll=arr.len();
+
+    let ll = arr.len();
     let mut start = None;
     for (e, i) in arr.as_ref().iter().enumerate() {
         let rr = i.get().get_range(axis);
-        if e==ll-1 || rr.end >= range.start {
+        if e == ll - 1 || rr.end >= range.start {
             start = Some(e);
             break;
         }
     }
     //TODO get rid of unwrap?
-    let start=start.unwrap();
-
+    let start = start.unwrap();
 
     let mut end = arr.as_ref().len();
     for (e, i) in arr[start..].iter().enumerate() {
@@ -336,21 +312,24 @@ pub(crate) fn get_section<'a, I: Aabb, A: Axis>(
 }
 
 #[test]
-fn test_section(){
+fn test_section() {
     use axgeom::rect;
     let mut aabbs = [
-        rect(1 , 4, 0, 0),
+        rect(1, 4, 0, 0),
         rect(3, 6, 0, 0),
         rect(5, 20, 0, 0),
         rect(6, 50, 0, 0),
-        rect(11 , 15, 0, 0),
+        rect(11, 15, 0, 0),
     ];
 
-    let k=get_section_mut(axgeom::XAXIS,PMut::new(&mut aabbs),axgeom::Range::new(5,10));
-    let k:&[axgeom::Rect<isize>]=&k;
-    assert_eq!(k.len(),3);
+    let k = get_section_mut(
+        axgeom::XAXIS,
+        PMut::new(&mut aabbs),
+        axgeom::Range::new(5, 10),
+    );
+    let k: &[axgeom::Rect<isize>] = &k;
+    assert_eq!(k.len(), 3);
 }
-
 
 //this can have some false positives.
 //but it will still prune a lot of bots.
@@ -359,25 +338,24 @@ pub(crate) fn get_section_mut<'a, I: Aabb, A: Axis>(
     mut arr: PMut<'a, [I]>,
     range: Range<I::Num>,
 ) -> PMut<'a, [I]> {
-    if arr.is_empty(){
+    if arr.is_empty() {
         return arr;
     }
-    
-    let ll=arr.len();
+
+    let ll = arr.len();
     let mut start = None;
     for (e, i) in arr.as_ref().iter().enumerate() {
         let rr = i.get().get_range(axis);
-        if e==ll-1 || rr.end >= range.start {
+        if e == ll - 1 || rr.end >= range.start {
             start = Some(e);
             break;
         }
     }
     //TODO get rid of unwrap?
-    let start=start.unwrap();
-
+    let start = start.unwrap();
 
     let mut end = arr.as_ref().len();
-    for (e, i) in arr.as_mut().truncate_from(start..).iter().enumerate() {
+    for (e, i) in arr.borrow_mut().truncate_from(start..).iter().enumerate() {
         let rr = i.get().get_range(axis);
         if rr.start > range.end {
             end = start + e;
