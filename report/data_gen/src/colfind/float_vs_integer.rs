@@ -293,57 +293,57 @@ fn handle_bench(fg: &mut Figure) {
         .lines(
             x.clone(),
             y1,
-            &[Caption("f32"), Color("blue"), LineWidth(ww)],
+            &[Caption("f32"), Color(COLS[0]), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y2,
-            &[Caption("i32"), Color("green"), LineWidth(ww)],
+            &[Caption("i32"), Color(COLS[1]), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y3,
-            &[Caption("f32 parallel"), Color("red"), LineWidth(ww)],
+            &[Caption("f32 parallel"), Color(COLS[2]), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y4,
-            &[Caption("i32 parallel"), Color("orange"), LineWidth(ww)],
+            &[Caption("i32 parallel"), Color(COLS[3]), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y5,
-            &[Caption("f64"), Color("violet"), LineWidth(ww)],
+            &[Caption("f64"), Color(COLS[4]), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y6,
-            &[Caption("f64 parallel"), Color("yellow"), LineWidth(ww)],
+            &[Caption("f64 parallel"), Color(COLS[5]), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y7,
-            &[Caption("i64"), Color("brown"), LineWidth(ww)],
+            &[Caption("i64"), Color(COLS[6]), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y8,
-            &[Caption("i64 parallel"), Color("purple"), LineWidth(ww)],
+            &[Caption("i64 parallel"), Color(COLS[7]), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y9,
-            &[Caption("f32 to u32"), Color("black"), LineWidth(ww)],
+            &[Caption("f32 to u32"), Color(COLS[8]), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y10,
-            &[Caption("f32 ordered"), Color("black"), LineWidth(ww)],
+            &[Caption("f32 ordered"), Color(COLS[9]), LineWidth(ww)],
         )
         .lines(
             x.clone(),
             y11,
-            &[Caption("f32 to u16 par"), Color("cyan"), LineWidth(ww)],
+            &[Caption("f32 to u16 par"), Color(COLS[10]), LineWidth(ww)],
         )
         .set_x_label("Number of Objects", &[])
         .set_y_label("Time taken in seconds", &[]);

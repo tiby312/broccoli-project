@@ -106,26 +106,26 @@ pub fn handle(fb: &mut FigureBuilder) {
         .points(
             x1.clone(),
             y1,
-            &[Caption("Rebalance"), Color("brown"), LineWidth(4.0)],
+            &[Caption("Rebalance"), Color(COLS[0]), LineWidth(4.0)],
         )
         .points(
             x2.clone(),
             y2,
-            &[Caption("Query"), Color("red"), LineWidth(4.0)],
+            &[Caption("Query"), Color(COLS[1]), LineWidth(4.0)],
         )
         .points(
             xx.clone(),
             yy1,
             &[
                 Caption("Rebalance Sequential"),
-                Color("green"),
+                Color(COLS[2]),
                 LineWidth(4.0),
             ],
         )
         .points(
             xx.clone(),
             yy2,
-            &[Caption("Query Sequential"), Color("blue"), LineWidth(4.0)],
+            &[Caption("Query Sequential"), Color(COLS[3]), LineWidth(4.0)],
         )
         .set_x_label("Height at which to switch to sequential", &[])
         .set_y_label("Time in seconds", &[])

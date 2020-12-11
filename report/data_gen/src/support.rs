@@ -165,7 +165,7 @@ mod leveltimer {
 }
 
 pub const COLS: &[&str] = &[
-    "blue", "green", "red", "violet", "orange", "brown", "gray", "black", "pink",
+    "blue", "green", "red","violet", "orange", "brown", "pink","plum","yellow","aquamarine","turquoise"
 ];
 
 pub fn bench_closure(func: impl FnOnce()) -> f64 {

@@ -215,7 +215,7 @@ fn draw_rects(rects: &mut [Record], fb: &mut FigureBuilder, name1: &str) {
                 &[
                     Caption("Dinotree"),
                     PointSymbol('O'),
-                    Color("violet"),
+                    Color(COLS[0]),
                     PointSize(1.0),
                 ],
             )
@@ -226,7 +226,7 @@ fn draw_rects(rects: &mut [Record], fb: &mut FigureBuilder, name1: &str) {
                 &[
                     Caption("Sweep and Prune"),
                     PointSymbol('o'),
-                    Color("red"),
+                    Color(COLS[1]),
                     PointSize(1.0),
                 ],
             )
@@ -237,7 +237,7 @@ fn draw_rects(rects: &mut [Record], fb: &mut FigureBuilder, name1: &str) {
                 &[
                     Caption("Naive"),
                     PointSymbol('o'),
-                    Color("green"),
+                    Color(COLS[2]),
                     PointSize(0.5),
                 ],
             )
@@ -248,7 +248,7 @@ fn draw_rects(rects: &mut [Record], fb: &mut FigureBuilder, name1: &str) {
                 &[
                     Caption("KdTree"),
                     PointSymbol('o'),
-                    Color("blue"),
+                    Color(COLS[3]),
                     PointSize(0.5),
                 ],
             );
