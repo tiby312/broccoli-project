@@ -73,7 +73,7 @@ impl<'a, 'b: 'a, T> PMut<'a, PMut<'b, T>> {
 }
 
 impl<'a, T> PMut<'a, T> {
-    ///Convert a PMut<T> inside a PMut<[T]> of size one.
+    ///Convert a `PMut<T>` inside a `PMut<[T]>` of size one.
     #[inline(always)]
     pub fn into_slice(self) -> PMut<'a, [T]> {
         PMut {
