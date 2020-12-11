@@ -91,12 +91,6 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     pub fn borrow_mut(&mut self) -> PMut<T> {
         PMut { inner: self.inner }
     }
-
-    ///Manually convert to read only reference.
-    #[inline(always)]
-    pub fn into_ref(self) -> &'a T {
-        self.inner
-    }
 }
 
 impl<'a, 'b: 'a, T: Aabb> PMut<'a, NodeMut<'b, T>> {
