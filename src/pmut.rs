@@ -108,13 +108,6 @@ impl<'a,'b:'a,T:Aabb> PMut<'a,NodeMut<'b,T>>{
         self.inner.range.borrow_mut()
     }
 }
-impl<'a, T: Node> PMut<'a, T> {
-    
-    #[inline(always)]
-    pub fn get_mut(self) -> NodeRefMut<'a, T::T> {
-        self.inner.get_mut()
-    }
-}
 
 impl<'a, T: HasInner> PMut<'a, T> {
     ///Unpack for the read-only rect and the mutable inner component

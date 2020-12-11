@@ -9,15 +9,15 @@
 use crate::query::inner_prelude::*;
 
 macro_rules! rect {
-    ($iterator:ty,$colsingle:ty,$get_section:ident,$get_node:ident) => {
-        fn rect_recurse<'a, A: Axis, N: Node, F: FnMut($colsingle)>(
+    ($iterator:ty,$colsingle:ty,$get_section:ident,$get_bots:ident) => {
+        fn rect_recurse<'a, A: Axis, T: Aabb, F: FnMut($colsingle)>(
             this_axis: A,
             m: $iterator,
-            rect: &Rect<N::Num>,
+            rect: &Rect<T::Num>,
             func: &mut F,
         ) {
             let (nn, rest) = m.next();
-            let nn = nn.$get_node();
+            //let nn = nn.$get_node();
             match rest {
                 Some([left, right]) => {
                     let div = match nn.div {
@@ -26,23 +26,23 @@ macro_rules! rect {
                     };
 
                     let sl =
-                        $get_section(this_axis.next(), nn.bots, *rect.get_range(this_axis.next()));
+                        $get_section(this_axis.next(), $get_bots(nn), *rect.get_range(this_axis.next()));
 
                     for i in sl {
                         func(i);
                     }
                     let rr = rect.get_range(this_axis);
 
-                    if !(*div < rr.start) {
+                    if !(div < rr.start) {
                         self::rect_recurse(this_axis.next(), left, rect, func);
                     }
-                    if !(*div > rr.end) {
+                    if !(div > rr.end) {
                         self::rect_recurse(this_axis.next(), right, rect, func);
                     }
                 }
                 None => {
                     let sl =
-                        $get_section(this_axis.next(), nn.bots, *rect.get_range(this_axis.next()));
+                        $get_section(this_axis.next(), $get_bots(nn), *rect.get_range(this_axis.next()));
 
                     for i in sl {
                         func(i);
@@ -78,13 +78,9 @@ pub fn for_all_not_in_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
         mut closure: F,
     ) -> F {
         let (nn, rest) = it.next();
-        let nn = nn.get_mut();
-
-        for a in nn.bots.iter_mut() {
-            if !rect.contains_rect(a.get()) {
-                closure(a);
-            }
-        }
+        
+        
+        
 
         match rest {
             Some([left, right]) => {
@@ -93,10 +89,17 @@ pub fn for_all_not_in_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
                     None => return closure,
                 };
 
-                match rect.get_range(axis).contains_ext(*div) {
+
+                for a in nn.into_range().iter_mut() {
+                    if !rect.contains_rect(a.get()) {
+                        closure(a);
+                    }
+                }
+
+                match rect.get_range(axis).contains_ext(div) {
                     core::cmp::Ordering::Greater => {
                         for a in right.into_slice() {
-                            for b in a.get_mut().bots.iter_mut() {
+                            for b in a.into_range().iter_mut() {
                                 closure(b)
                             }
                         }
@@ -104,7 +107,7 @@ pub fn for_all_not_in_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
                     }
                     core::cmp::Ordering::Less => {
                         for a in left.into_slice() {
-                            for b in a.get_mut().bots.iter_mut() {
+                            for b in a.into_range().iter_mut() {
                                 closure(b)
                             }
                         }
@@ -116,7 +119,15 @@ pub fn for_all_not_in_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
                     }
                 }
             }
-            None => closure,
+            None => {
+
+                for a in nn.into_range().iter_mut() {
+                    if !rect.contains_rect(a.get()) {
+                        closure(a);
+                    }
+                }
+            closure
+            },
         }
     }
     rect_recurse(axis, vistr, rect, closure);
@@ -128,8 +139,10 @@ pub use mutable::*;
 mod mutable {
     use super::*;
     use crate::query::colfind::oned::get_section_mut;
-
-    rect!(VistrMut<'a, N>, PMut<'a, N::T>, get_section_mut, get_mut);
+    fn foo<'a,'b:'a,T:Aabb>(node:PMut<'a,NodeMut<'b,T>>)->PMut<'a,[T]>{
+        node.into_range()
+    }
+    rect!(VistrMut<'a, NodeMut<T>>, PMut<'a, T>, get_section_mut,foo);
     pub fn for_all_intersect_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: VistrMut<'a, NodeMut<'b,T>>,
@@ -184,13 +197,16 @@ mod constant {
 
     use super::*;
     use crate::query::colfind::oned::get_section;
-    rect!(Vistr<'a, N>, &'a N::T, get_section, get);
+    fn foo<'a,'b:'a,T:Aabb>(node:&'a NodeMut<'b,T>)->&'a [T]{
+        &node.range
+    }
+    rect!(Vistr<'a, NodeMut<T>>, &'a T, get_section, foo);
 
-    pub fn for_all_intersect_rect<'a, A: Axis, N: Node>(
+    pub fn for_all_intersect_rect<'a,'b:'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: Vistr<'a, N>,
-        rect: &Rect<N::Num>,
-        mut closure: impl FnMut(&'a N::T),
+        vistr: Vistr<'a, NodeMut<'b,T>>,
+        rect: &Rect<T::Num>,
+        mut closure: impl FnMut(&'a T),
     ) {
         self::rect_recurse(axis, vistr, rect, &mut |a| {
             if rect.get_intersect_rect(a.get()).is_some() {
@@ -199,11 +215,11 @@ mod constant {
         });
     }
 
-    pub fn for_all_in_rect<'a, A: Axis, N: Node>(
+    pub fn for_all_in_rect<'a,'b:'a, A: Axis, T:Aabb>(
         axis: A,
-        vistr: Vistr<'a, N>,
-        rect: &Rect<N::Num>,
-        mut closure: impl FnMut(&'a N::T),
+        vistr: Vistr<'a, NodeMut<'b,T>>,
+        rect: &Rect<T::Num>,
+        mut closure: impl FnMut(&'a T),
     ) {
         self::rect_recurse(axis, vistr, rect, &mut |a| {
             if rect.contains_rect(a.get()) {

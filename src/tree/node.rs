@@ -73,36 +73,6 @@ mod vistr_mut {
 }
 pub use vistr_mut::VistrMut;
 
-///A trait api to hide the lifetime of [`NodeMut`].
-///This way query algorithms do not need to worry about this lifetime.
-pub trait Node {
-    type T: Aabb<Num = Self::Num>;
-    type Num: Num;
-    fn get(&self) -> NodeRef<Self::T>;
-    fn get_mut(&mut self) -> NodeRefMut<Self::T>;
-}
-
-
-impl<'a, T: Aabb> Node for NodeMut<'a, T> {
-    type T = T;
-    type Num = T::Num;
-    fn get(&self) -> NodeRef<Self::T> {
-        NodeRef {
-            bots: self.range.as_ref(),
-            cont: &self.cont,
-            div: &self.div,
-        }
-    }
-    fn get_mut(&mut self) -> NodeRefMut<Self::T> {
-        NodeRefMut {
-            bots: self.range.borrow_mut(),
-            cont: &self.cont,
-            div: &self.div,
-        }
-    }
-}
-
-
 ///A Node in a Tree.
 pub(crate) struct NodePtr<T: Aabb> {
     _range: PMutPtr<[T]>,
@@ -134,43 +104,3 @@ pub struct NodeMut<'a, T: Aabb> {
     pub div: Option<T::Num>,
 }
 
-impl<'a, T: Aabb> NodeMut<'a, T> {
-    pub fn get(&self) -> NodeRef<T> {
-        NodeRef {
-            bots: self.range.as_ref(),
-            cont: &self.cont,
-            div: &self.div,
-        }
-    }
-    pub fn get_mut(&mut self) -> NodeRefMut<T> {
-        NodeRefMut {
-            bots: self.range.borrow_mut(),
-            cont: &self.cont,
-            div: &self.div,
-        }
-    }
-}
-
-///Mutable reference to a [`Node`].
-pub struct NodeRefMut<'a, T: Aabb> {
-    ///The bots that belong to this node.
-    pub bots: PMut<'a, [T]>,
-
-    ///Is None iff bots is empty.
-    pub cont: &'a Option<axgeom::Range<T::Num>>,
-
-    ///Is None if node is a leaf, or there are no bots in this node or in any decendants.
-    pub div: &'a Option<T::Num>,
-}
-
-///Reference to a [`Node`].
-pub struct NodeRef<'a, T: Aabb> {
-    ///The bots that belong to this node.
-    pub bots: &'a [T],
-
-    ///Is None iff bots is empty.
-    pub cont: &'a Option<axgeom::Range<T::Num>>,
-
-    ///Is None if node is a leaf, or there are no bots in this node or in any decendants.
-    pub div: &'a Option<T::Num>,
-}

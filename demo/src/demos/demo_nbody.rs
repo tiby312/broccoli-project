@@ -17,7 +17,7 @@ struct Bla<'a> {
     _num_pairs_checked: usize,
     _p: PhantomData<&'a usize>,
 }
-impl<'b> broccoli::query::NodeMassTrait for Bla<'b> {
+impl<'b> broccoli::query::NodeMassTrait for &Bla<'b> {
     type No = NodeMass;
     type Item = BBox<F32n, &'b mut Bot>;
     type Num = F32n;
@@ -179,7 +179,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             let border = dim;
 
             tree.nbody_mut(
-                &mut Bla {
+                & Bla {
                     _num_pairs_checked: 0,
                     _p: PhantomData,
                 },

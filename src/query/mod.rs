@@ -595,7 +595,7 @@ pub trait Queries<'a> {
     ///Experimental. See broccoli demo
     fn nbody_mut<X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Send + Sync>(
         &mut self,
-        ncontext: &X,
+        ncontext: X,
         rect: Rect<Self::Num>,
     ) where
         X::No: Send,
@@ -610,7 +610,7 @@ pub trait Queries<'a> {
         X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Sync + Send,
     >(
         &mut self,
-        ncontext: &X,
+        ncontext: X,
         rect: Rect<Self::Num>,
     ) where
         X::No: Send,
