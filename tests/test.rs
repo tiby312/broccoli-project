@@ -28,9 +28,8 @@ fn test_zero_sized() {
     let tree = broccoli::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
-    let n = n.get();
     assert_eq!(n.div.is_none(), true);
-    assert_eq!(n.bots.len(), 1);
+    assert_eq!(n.range.len(), 1);
     assert!(n.cont.is_some());
 }
 
@@ -43,9 +42,8 @@ fn test_zero_sized2() {
     let tree = broccoli::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
-    let n = n.get();
     assert_eq!(n.div.is_none(), true);
-    assert_eq!(n.bots.len(), 1);
+    assert_eq!(n.range.len(), 1);
     assert!(n.cont.is_some());
 }
 #[test]
@@ -57,9 +55,8 @@ fn test_one() {
     let tree = broccoli::new(&mut bots);
     assert_eq!(tree.get_height(), 1);
     let (n, _) = tree.vistr().next();
-    let n = n.get();
     assert!(n.div.is_none());
-    assert_eq!(n.bots.len(), 1);
+    assert_eq!(n.range.len(), 1);
     assert!(n.cont.is_some())
 }
 
@@ -72,8 +69,7 @@ fn test_empty() {
     assert_eq!(tree.get_height(), 1);
 
     let (n, _) = tree.vistr().next();
-    let n = n.get();
-    assert_eq!(n.bots.len(), 0);
+    assert_eq!(n.range.len(), 0);
     assert!(n.div.is_none());
     assert!(n.cont.is_none());
 }
@@ -89,15 +85,15 @@ fn test_many() {
     assert_eq!(
         tree.vistr()
             .dfs_inorder_iter()
-            .flat_map(|a| a.get().bots.iter())
+            .flat_map(|a| a.range.iter())
             .count(),
         40
     );
 
     let mut num_div = 0;
     for b in tree.vistr().dfs_inorder_iter() {
-        if let Some(_) = b.get().div {
-            if let Some(_) = b.get().cont {
+        if let Some(_) = b.div {
+            if let Some(_) = b.cont {
                 num_div += 1;
             }
         }

@@ -154,7 +154,7 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
 /// let mut tree = broccoli::new(&mut bots);
 ///
 /// use compt::Visitor;
-/// for mut b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.get_mut().bots.iter_mut()){
+/// for mut b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.into_range().iter_mut()){
 ///    *b.inner_mut()+=1;    
 /// }
 /// assert_eq!(bots[0].inner,1);

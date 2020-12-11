@@ -164,7 +164,7 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// let mut bots = [axgeom::rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// assert_eq!(tree.get_nodes()[0].get().bots[0], axgeom::rect(0,10,0,10));
+    /// assert_eq!(tree.get_nodes()[0].range[0], axgeom::rect(0,10,0,10));
     ///
     ///```
     #[must_use]
@@ -179,7 +179,7 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// let mut bots = [axgeom::rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// assert_eq!(tree.get_nodes_mut().get_index_mut(0).get().bots[0], axgeom::rect(0,10,0,10));
+    /// assert_eq!(tree.get_nodes_mut().get_index_mut(0).range[0], axgeom::rect(0,10,0,10));
     ///
     ///```
     #[must_use]

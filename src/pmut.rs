@@ -104,6 +104,11 @@ impl<'a, T: ?Sized> PMut<'a, T> {
 
 impl<'a,'b:'a,T:Aabb> PMut<'a,NodeMut<'b,T>>{
     #[inline(always)]
+    pub fn into_range_full(self) -> (&'a Option<T::Num>,&'a Option<Range<T::Num>>,PMut<'a,[T]>) {
+        (&self.inner.div,&self.inner.cont,self.inner.range.borrow_mut())
+    }
+
+    #[inline(always)]
     pub fn into_range(self) -> PMut<'a,[T]> {
         self.inner.range.borrow_mut()
     }

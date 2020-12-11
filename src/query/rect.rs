@@ -80,23 +80,25 @@ pub fn for_all_not_in_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
         let (nn, rest) = it.next();
         
         
-        
+        let (div,_,bots)=nn.into_range_full();
+
+
+        for a in bots.iter_mut() {
+            if !rect.contains_rect(a.get()) {
+                closure(a);
+            }
+        }
 
         match rest {
             Some([left, right]) => {
-                let div = match nn.div {
+                let div = match div {
                     Some(b) => b,
                     None => return closure,
                 };
 
 
-                for a in nn.into_range().iter_mut() {
-                    if !rect.contains_rect(a.get()) {
-                        closure(a);
-                    }
-                }
 
-                match rect.get_range(axis).contains_ext(div) {
+                match rect.get_range(axis).contains_ext(*div) {
                     core::cmp::Ordering::Greater => {
                         for a in right.into_slice() {
                             for b in a.into_range().iter_mut() {
@@ -120,13 +122,7 @@ pub fn for_all_not_in_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
                 }
             }
             None => {
-
-                for a in nn.into_range().iter_mut() {
-                    if !rect.contains_rect(a.get()) {
-                        closure(a);
-                    }
-                }
-            closure
+                closure
             },
         }
     }
