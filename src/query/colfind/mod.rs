@@ -86,7 +86,7 @@ where
 {
     #[inline(always)]
     pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
-        let b = inner::QueryFn::new(func);
+        let b = QueryFn::new(func);
         let mut sweeper = HandleNoSorted::new(b);
         let par = par::compute_level_switch_sequential(self.switch_height, self.vistr.get_height());
         ColFindRecurser::new().recurse_par(
@@ -119,14 +119,14 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a, 'b, A, T> {
         func: impl FnMut(PMut<T>, PMut<T>),
         splitter: &mut impl Splitter,
     ) {
-        let b = inner::QueryFnMut::new(func);
+        let b = QueryFnMut::new(func);
         let mut sweeper = HandleNoSorted::new(b);
         ColFindRecurser::new().recurse_seq(self.axis, &mut sweeper, self.vistr, splitter);
     }
 
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        let b = inner::QueryFnMut::new(func);
+        let b = QueryFnMut::new(func);
         let mut sweeper = HandleNoSorted::new(b);
         ColFindRecurser::new().recurse_seq(self.axis, &mut sweeper, self.vistr, &mut SplitterEmpty);
     }
@@ -146,7 +146,7 @@ where
     ///Perform the query in parallel
     #[inline(always)]
     pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
-        let b = inner::QueryFn::new(func);
+        let b = QueryFn::new(func);
         let mut sweeper = HandleSorted::new(b);
 
         let height = self.vistr.get_height();
@@ -295,7 +295,7 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> QueryBuilder<'a, 'b, A, T> {
     ///Perform the query sequentially.
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        let b = inner::QueryFnMut::new(func);
+        let b = QueryFnMut::new(func);
         let mut sweeper = HandleSorted::new(b);
         let mut splitter = SplitterEmpty;
 
@@ -309,9 +309,65 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> QueryBuilder<'a, 'b, A, T> {
         func: impl FnMut(PMut<T>, PMut<T>),
         splitter: &mut impl Splitter,
     ) {
-        let b = inner::QueryFnMut::new(func);
+        let b = QueryFnMut::new(func);
 
         let mut sweeper = HandleSorted::new(b);
         ColFindRecurser::new().recurse_seq(self.axis, &mut sweeper, self.vistr, splitter);
     }
+}
+
+
+
+pub(super) struct QueryFnMut<T, F>(F, PhantomData<T>);
+impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> QueryFnMut<T, F> {
+    #[inline(always)]
+    pub fn new(func: F) -> QueryFnMut<T, F> {
+        QueryFnMut(func, PhantomData)
+    }
+}
+
+impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> ColMulti for QueryFnMut<T, F> {
+    type T = T;
+    #[inline(always)]
+    fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
+        self.0(a, b);
+    }
+}
+impl<T, F> Splitter for QueryFnMut<T, F> {
+    #[inline(always)]
+    fn div(&mut self) -> (Self, Self) {
+        unreachable!()
+    }
+    #[inline(always)]
+    fn add(&mut self, _: Self, _: Self) {
+        unreachable!()
+    }
+}
+
+pub(super) struct QueryFn<T, F>(F, PhantomData<T>);
+impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> QueryFn<T, F> {
+    #[inline(always)]
+    pub fn new(func: F) -> QueryFn<T, F> {
+        QueryFn(func, PhantomData)
+    }
+}
+impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> ColMulti for QueryFn<T, F> {
+    type T = T;
+
+    #[inline(always)]
+    fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
+        self.0(a, b);
+    }
+}
+
+impl<T, F: Clone> Splitter for QueryFn<T, F> {
+    #[inline(always)]
+    fn div(&mut self) -> (Self, Self) {
+        (
+            QueryFn(self.0.clone(), PhantomData),
+            QueryFn(self.0.clone(), PhantomData),
+        )
+    }
+    #[inline(always)]
+    fn add(&mut self, _: Self, _: Self) {}
 }
