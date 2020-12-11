@@ -235,7 +235,7 @@ fn recc<'a,'b:'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     blap: &mut Blap<'a, R>,
 ) {
     let ((_depth, nn), rest) = stuff.next();
-    let nn = nn.get_mut();
+    //let nn = nn.get_mut();
     match rest {
         Some([left, right]) => {
             let axis_next = axis.next();
@@ -245,13 +245,13 @@ fn recc<'a,'b:'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
                 None => return,
             };
 
-            let (rleft, rright) = rect.subdivide(axis, *div);
+            let (rleft, rright) = rect.subdivide(axis, div);
 
             let range = &match nn.cont {
-                Some(range) => *range,
+                Some(range) => range,
                 None => Range {
-                    start: *div,
-                    end: *div,
+                    start: div,
+                    end: div,
                 },
             };
 
@@ -264,7 +264,7 @@ fn recc<'a,'b:'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
                     }
 
                     if blap.should_handle_rect(&rmiddle) {
-                        for b in nn.bots.iter_mut() {
+                        for b in nn.into_range().iter_mut() {
                             blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
                         }
                     }
@@ -279,7 +279,7 @@ fn recc<'a,'b:'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
                     }
 
                     if blap.should_handle_rect(&rmiddle) {
-                        for b in nn.bots.iter_mut() {
+                        for b in nn.into_range().iter_mut() {
                             blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
                         }
                     }
@@ -299,7 +299,7 @@ fn recc<'a,'b:'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
                         recc(axis_next, right, rright, blap);
                     }
                     if blap.should_handle_rect(&rmiddle) {
-                        for b in nn.bots.iter_mut() {
+                        for b in nn.into_range().iter_mut() {
                             blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
                         }
                     }
@@ -308,7 +308,7 @@ fn recc<'a,'b:'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
         }
         None => {
             //Can't do better here since for leafs, cont is none.
-            for b in nn.bots.iter_mut() {
+            for b in nn.into_range().iter_mut() {
                 blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
             }
         }
