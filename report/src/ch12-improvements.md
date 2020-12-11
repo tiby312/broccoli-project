@@ -6,7 +6,7 @@ If you don't sort the leafs, there could be some potential speed up. By the time
 
 #### Sort away from the divider.
 
-Currently, all elements are sorted using the left or top side of the aabb. It would be interesting if depending on the direction you recurse, you sorted along the left or right side of the aabb. This might help pruning elements from nodes on perpendicular axis. The downside is more code generated and complexity.
+Currently, all elements are sorted using the left or top side of the aabb. It would be interesting if depending on the direction you recurse, you sorted along the left or right side of the aabb. This might help pruning elements from nodes on perpendicular axis. It also make the algorithm have a nice symmetry of behaving exactly the same in each half of a partition. The downside is more code generated and complexity.
 
 #### Pointer Compression
 
