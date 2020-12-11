@@ -25,11 +25,6 @@ mod vistr_mut {
         }
 
         #[inline(always)]
-        pub fn as_slice_mut(&mut self) -> PMut<[N]> {
-            PMut::new(self.inner.as_slice_mut())
-        }
-
-        #[inline(always)]
         pub fn into_slice(self) -> PMut<'a, [N]> {
             PMut::new(self.inner.into_slice())
         }
@@ -74,6 +69,7 @@ mod vistr_mut {
 pub use vistr_mut::VistrMut;
 
 ///A Node in a Tree.
+#[repr(C)]
 pub(crate) struct NodePtr<T: Aabb> {
     _range: PMutPtr<[T]>,
 
@@ -86,13 +82,17 @@ pub(crate) struct NodePtr<T: Aabb> {
     //  div is none
     _div: Option<T::Num>,
 }
+
+
 impl<'a, T: Aabb> AsRef<NodePtr<T>> for NodeMut<'a, T> {
+    #[inline(always)]
     fn as_ref(&self) -> &NodePtr<T> {
         unsafe { &*(self as *const _ as *const _) }
     }
 }
 
 ///A node in [`Tree`].
+#[repr(C)]
 pub struct NodeMut<'a, T: Aabb> {
     pub range: PMut<'a, [T]>,
     //range is empty iff cont is none.
