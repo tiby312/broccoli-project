@@ -166,7 +166,7 @@ fn main() {
             let mut fb = FigureBuilder::new(folder);
 
             //done
-            //run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
+            run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
             
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
 
