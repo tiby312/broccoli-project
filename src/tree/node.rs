@@ -83,7 +83,6 @@ pub(crate) struct NodePtr<T: Aabb> {
     _div: Option<T::Num>,
 }
 
-
 impl<'a, T: Aabb> AsRef<NodePtr<T>> for NodeMut<'a, T> {
     #[inline(always)]
     fn as_ref(&self) -> &NodePtr<T> {

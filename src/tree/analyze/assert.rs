@@ -93,9 +93,8 @@ fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<NodeMut<T>>>) -
     Ok(())
 }
 
-
 use core::ops::Deref;
-fn into_ptr_usize<T>(a:&T)->usize{
+fn into_ptr_usize<T>(a: &T) -> usize {
     a as *const T as usize
 }
 pub fn find_colliding_pairs_mut<A: Axis, T: Aabb>(tree: &mut TreeRef<A, T>) {

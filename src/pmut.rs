@@ -124,7 +124,6 @@ impl<'a, T: HasInner> PMut<'a, T> {
     pub fn unpack_inner(self) -> &'a mut T::Inner {
         self.inner.get_inner_mut().1
     }
-
 }
 
 unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
@@ -168,7 +167,7 @@ impl<'a, T> PMut<'a, [T]> {
         }
     }
 
-    ///Return a smaller slice that starts and ends with the specified range. 
+    ///Return a smaller slice that starts and ends with the specified range.
     #[inline(always)]
     pub fn truncate(self, a: core::ops::Range<usize>) -> Self {
         PMut {

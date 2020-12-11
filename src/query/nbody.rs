@@ -591,13 +591,7 @@ pub fn nbody_par<
     T::Num: Send + Sync,
 {
     let mut misc_nodes = Vec::new();
-    buildtree(
-        axis,
-        vistr.borrow_mut(),
-        &mut misc_nodes,
-        ncontext,
-        rect,
-    );
+    buildtree(axis, vistr.borrow_mut(), &mut misc_nodes, ncontext, rect);
 
     let mut misc_tree = compt::dfs_order::CompleteTreeContainer::from_preorder(misc_nodes).unwrap();
 
@@ -627,13 +621,7 @@ pub fn nbody<
 {
     let mut misc_nodes = Vec::new();
 
-    buildtree(
-        axis,
-        vistr.borrow_mut(),
-        &mut misc_nodes,
-        ncontext,
-        rect,
-    );
+    buildtree(axis, vistr.borrow_mut(), &mut misc_nodes, ncontext, rect);
 
     let mut misc_tree = compt::dfs_order::CompleteTreeContainer::from_preorder(misc_nodes).unwrap();
 

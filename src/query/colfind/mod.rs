@@ -316,8 +316,6 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> QueryBuilder<'a, 'b, A, T> {
     }
 }
 
-
-
 pub(super) struct QueryFnMut<T, F>(F, PhantomData<T>);
 impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> QueryFnMut<T, F> {
     #[inline(always)]
