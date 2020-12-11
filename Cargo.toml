@@ -20,7 +20,7 @@ dists = {git="https://github.com/tiby312/dists.git"}
 is_sorted = "0.1"
 itertools = "0.9"
 rayon = "1.5"
-compt = "1.8"
+compt = "1.9"
 axgeom = {version="1.7",default-features = false}
 pdqselect = "0.1"
 unchecked_unwrap = "2.0.2"

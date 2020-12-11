@@ -67,8 +67,8 @@ fn wrap_mut<'a: 'b, 'b, 'c: 'a + 'b, N, J: Aabb>(
 
     let (a, b) = bla.as_inner_mut();
 
-    let a = a.create_wrap_mut();
-    let b = b.create_wrap_mut();
+    let a = a.borrow_mut();
+    let b = b.borrow_mut();
 
     a.zip(b) //.with_depth(Depth(depth))
 }
@@ -108,11 +108,11 @@ fn buildtree<J: Aabb, N: NodeMassTrait<Num = J::Num, Item = J>>(
 
                         let nodeb = {
                             let i1 = left
-                                .create_wrap()
+                                .borrow()
                                 .dfs_preorder_iter()
                                 .flat_map(|a| a.range.iter());
                             let i2 = right
-                                .create_wrap()
+                                .borrow()
                                 .dfs_preorder_iter()
                                 .flat_map(|a| a.range.iter());
                             let i3 = nn.range.iter().chain(i1.chain(i2));
@@ -150,13 +150,13 @@ fn apply_tree<N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb>(
                 let i1 = left
                     .as_inner_mut()
                     .1
-                    .create_wrap_mut()
+                    .borrow_mut()
                     .dfs_preorder_iter()
                     .flat_map(|a| a.into_range().iter_mut());
                 let i2 = right
                     .as_inner_mut()
                     .1
-                    .create_wrap_mut()
+                    .borrow_mut()
                     .dfs_preorder_iter()
                     .flat_map(|a| a.into_range().iter_mut());
                 let i3 = nn.into_range().iter_mut().chain(i1.chain(i2));
@@ -593,7 +593,7 @@ pub fn nbody_par<
     let mut misc_nodes = Vec::new();
     buildtree(
         axis,
-        vistr.create_wrap_mut(),
+        vistr.borrow_mut(),
         &mut misc_nodes,
         ncontext,
         rect,
@@ -605,7 +605,7 @@ pub fn nbody_par<
         let k = par::SWITCH_SEQUENTIAL_DEFAULT;
         let par = par::compute_level_switch_sequential(k, vistr.get_height());
 
-        let d = misc_tree.vistr_mut().zip(vistr.create_wrap_mut());
+        let d = misc_tree.vistr_mut().zip(vistr.borrow_mut());
         recc(par, axis, d, ncontext);
     }
 
@@ -629,7 +629,7 @@ pub fn nbody<
 
     buildtree(
         axis,
-        vistr.create_wrap_mut(),
+        vistr.borrow_mut(),
         &mut misc_nodes,
         ncontext,
         rect,
@@ -637,7 +637,7 @@ pub fn nbody<
 
     let mut misc_tree = compt::dfs_order::CompleteTreeContainer::from_preorder(misc_nodes).unwrap();
 
-    let d = misc_tree.vistr_mut().zip(vistr.create_wrap_mut());
+    let d = misc_tree.vistr_mut().zip(vistr.borrow_mut());
     recc(par::Sequential, axis, d, ncontext);
 
     let d = misc_tree.vistr().zip(vistr);

@@ -99,8 +99,8 @@ where
                     sweeper.handle_node(this_axis.next(), nn.borrow_mut().into_range());
 
                     if let Some(nn) = DestructuredNode::new(this_axis, nn) {
-                        let left = left.create_wrap_mut();
-                        let right = right.create_wrap_mut();
+                        let left = left.borrow_mut();
+                        let right = right.borrow_mut();
                         let mut g = InnerRecurser::new(nn, sweeper);
                         g.recurse(this_axis.next(), left);
                         g.recurse(this_axis.next(), right);
@@ -181,8 +181,8 @@ impl<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> ColFindRecurser<T, 
                     sweeper.handle_node(this_axis.next(), nn.borrow_mut().into_range());
 
                     if let Some(nn) = DestructuredNode::new(this_axis, nn) {
-                        let left = left.create_wrap_mut();
-                        let right = right.create_wrap_mut();
+                        let left = left.borrow_mut();
+                        let right = right.borrow_mut();
                         let mut g = InnerRecurser::new(nn, sweeper);
                         g.recurse(this_axis.next(), left);
                         g.recurse(this_axis.next(), right);

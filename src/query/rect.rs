@@ -261,7 +261,7 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> MultiRectMut<'a, 'b, A, T> {
 
         for_all_in_rect_mut(
             self.axis,
-            self.vistr.create_wrap_mut(),
+            self.vistr.borrow_mut(),
             &rect,
             |bbox: PMut<T>| {
                 //This is only safe to do because the user is unable to mutate the bounding box.

@@ -18,9 +18,9 @@ mod vistr_mut {
         ///It is safe to borrow the iterator and then produce mutable references from that
         ///as long as by the time the borrow ends, all the produced references also go away.
         #[inline(always)]
-        pub fn create_wrap_mut(&mut self) -> VistrMut<N> {
+        pub fn borrow_mut(&mut self) -> VistrMut<N> {
             VistrMut {
-                inner: self.inner.create_wrap_mut(),
+                inner: self.inner.borrow_mut(),
             }
         }
 

@@ -24,7 +24,7 @@ pub fn intersect_with_mut<A: Axis, T: Aabb, X: Aabb<Num = T::Num>>(
     for mut i in PMut::new(b).iter_mut() {
         let rect = *i.get();
 
-        for_all_intersect_rect_mut(axis, vistr.create_wrap_mut(), &rect, |a| {
+        for_all_intersect_rect_mut(axis, vistr.borrow_mut(), &rect, |a| {
             func(a, i.borrow_mut());
         });
     }
