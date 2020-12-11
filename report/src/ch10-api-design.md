@@ -15,6 +15,8 @@ between two nodes in the tree. So to get around that we have a `PMut<Node>` that
 So that's alot of work, but now the user is physically unable to violate the invariants of the tree at compile time and at the same time
 we do not have a level of indirection. 
 
+The downside to this static protection is the loss of the nice syntactic sugar using a regular `&mut T` would provide. The user has to manually extract the mutable inner part by calling `unpack_inner()`. 
+
 
 ### Knowing the axis at compile time
 

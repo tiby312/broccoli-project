@@ -4,6 +4,10 @@
 
 If you don't sort the leafs, there could be some potential speed up. By the time you get to the leafs, there are so few aabbs in a leaf that it may not be worth it. The aabbs also would not be strewn along a dividing line so sweep and prune would not be as fast.  However, this can only hurt the query algorithm so I didn't do it. However, if you want to make one (construct+query) sequence as fast as possible it might be better. But again, my goal was to make querying as fast as possible.
 
+#### Sort away from the divider.
+
+Currently, all elements are sorted using the left or top side of the aabb. It would be interesting if depending on the direction you recurse, you sorted along the left or right side of the aabb. This might help pruning elements from nodes on perpendicular axis. The downside is more code generated and complexity.
+
 #### Pointer Compression
 
 The broccoli tree data structure can be very pointer heavy. There may be some gains from using pointer compression if only during construction. During the query phase, i'm almost certain that using pointer compression would be slow given the extra overhead of having to unpack each pointer. However, if the tree was constructed with `BBox<N,u16>` which was then converted to `BBox<N,&mut T>` then maybe construction would be faster provided the conversion isnt too slow.
