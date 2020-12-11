@@ -103,8 +103,8 @@ pub trait Queries<'a> {
     /// let mut tree = broccoli::new(&mut bots);
     ///
     /// use compt::Visitor;
-    /// for mut b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.into_range().iter_mut()){
-    ///    *b.inner_mut()+=1;    
+    /// for b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.into_range().iter_mut()){
+    ///    *b.unpack_inner()+=1;    
     /// }
     /// assert_eq!(bots[0].inner,1);
     ///```
@@ -199,9 +199,9 @@ pub trait Queries<'a> {
     ///
     /// let builder=tree.new_colfind_builder();
     /// let builder=builder.with_switch_height(4);
-    /// builder.query_seq(|mut a,mut b|{
-    ///    *a.inner_mut()+=1;
-    ///    *b.inner_mut()+=1;
+    /// builder.query_seq(|a,b|{
+    ///    *a.unpack_inner()+=1;
+    ///    *b.unpack_inner()+=1;
     /// });
     ///
     /// assert_eq!(bots[0].inner,1);

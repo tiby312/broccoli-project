@@ -154,8 +154,8 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
 /// let mut tree = broccoli::new(&mut bots);
 ///
 /// use compt::Visitor;
-/// for mut b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.into_range().iter_mut()){
-///    *b.inner_mut()+=1;    
+/// for b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.into_range().iter_mut()){
+///    *b.unpack_inner()+=1;    
 /// }
 /// assert_eq!(bots[0].inner,1);
 ///```
@@ -236,7 +236,7 @@ impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
     /// let mut k=[bbox(rect(0,10,0,10),8)];
     /// let mut b=broccoli::container::TreeRef::new(&mut k);
     /// b.find_colliding_pairs_mut(|a,b|{});
-    /// *b.get_bbox_elements_mut().get_index_mut(0).inner_mut()=5;
+    /// *b.get_bbox_elements_mut().get_index_mut(0).unpack_inner()=5;
     /// b.find_colliding_pairs_mut(|a,b|{});
     /// ```
     ///

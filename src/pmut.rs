@@ -58,7 +58,6 @@ pub struct PMut<'a, T: ?Sized> {
 
 impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
     type Target = T;
-
     #[inline(always)]
     fn deref(&self) -> &T {
         self.inner
@@ -66,12 +65,15 @@ impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
 }
 
 impl<'a, 'b: 'a, T> PMut<'a, PMut<'b, T>> {
+    ///Flatten a double pointer
     #[inline(always)]
-    pub fn into_inner(self) -> PMut<'a, T> {
+    pub fn flatten(self) -> PMut<'a, T> {
         PMut::new(self.inner.inner)
     }
 }
+
 impl<'a, T> PMut<'a, T> {
+    ///Convert a PMut<T> inside a PMut<[T]> of size one.
     #[inline(always)]
     pub fn into_slice(self) -> PMut<'a, [T]> {
         PMut {
@@ -80,7 +82,7 @@ impl<'a, T> PMut<'a, T> {
     }
 }
 impl<'a, T: ?Sized> PMut<'a, T> {
-    ///Create a PMut
+    ///Create a protected pointer.
     #[inline(always)]
     pub fn new(inner: &'a mut T) -> PMut<'a, T> {
         PMut { inner }
@@ -94,6 +96,7 @@ impl<'a, T: ?Sized> PMut<'a, T> {
 }
 
 impl<'a, 'b: 'a, T: Aabb> PMut<'a, NodeMut<'b, T>> {
+    ///Destructure a node into its three parts.
     #[inline(always)]
     pub fn into_range_full(self) -> (&'a Option<T::Num>, &'a Option<Range<T::Num>>, PMut<'a, [T]>) {
         (
@@ -103,6 +106,7 @@ impl<'a, 'b: 'a, T: Aabb> PMut<'a, NodeMut<'b, T>> {
         )
     }
 
+    ///Return a mutable list of elements in this node.
     #[inline(always)]
     pub fn into_range(self) -> PMut<'a, [T]> {
         self.inner.range.borrow_mut()
@@ -121,11 +125,6 @@ impl<'a, T: HasInner> PMut<'a, T> {
         self.inner.get_inner_mut().1
     }
 
-    ///Get a mutable reference to only the innner component
-    #[inline(always)]
-    pub fn inner_mut(&mut self) -> &mut T::Inner {
-        self.inner.get_inner_mut().1
-    }
 }
 
 unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
@@ -137,6 +136,7 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
 }
 
 impl<'a, T> PMut<'a, [T]> {
+    ///Return the element at the specified index.
     ///We can't use the index trait because we don't want
     ///to return a mutable reference.
     #[inline(always)]
@@ -144,6 +144,7 @@ impl<'a, T> PMut<'a, [T]> {
         PMut::new(&mut self.inner[ind])
     }
 
+    ///Split off the first element.
     #[inline(always)]
     pub fn split_first_mut(self) -> Option<(PMut<'a, T>, PMut<'a, [T]>)> {
         self.inner
@@ -151,12 +152,15 @@ impl<'a, T> PMut<'a, [T]> {
             .map(|(first, inner)| (PMut { inner: first }, PMut { inner }))
     }
 
+    ///Return a smaller slice that ends with the specified index.
     #[inline(always)]
     pub fn truncate_to(self, a: core::ops::RangeTo<usize>) -> Self {
         PMut {
             inner: &mut self.inner[a],
         }
     }
+
+    ///Return a smaller slice that starts at the specified index.
     #[inline(always)]
     pub fn truncate_from(self, a: core::ops::RangeFrom<usize>) -> Self {
         PMut {
@@ -164,6 +168,7 @@ impl<'a, T> PMut<'a, [T]> {
         }
     }
 
+    ///Return a smaller slice that starts and ends with the specified range. 
     #[inline(always)]
     pub fn truncate(self, a: core::ops::Range<usize>) -> Self {
         PMut {
@@ -171,6 +176,7 @@ impl<'a, T> PMut<'a, [T]> {
         }
     }
 
+    ///Return a mutable iterator.
     #[inline(always)]
     pub fn iter_mut(self) -> PMutIter<'a, T> {
         PMutIter {

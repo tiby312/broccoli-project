@@ -78,7 +78,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     let mut rr1: Vec<PMut<F::T>> = r1.iter_mut().collect();
 
     rr1.sort_unstable_by(|a, b| compare_bots(axis, a, b));
-    self::find_bijective_parallel2(axis, (r2, PMut::new(&mut rr1)), |a| a.into_inner(), &mut b);
+    self::find_bijective_parallel2(axis, (r2, PMut::new(&mut rr1)), |a| a.flatten(), &mut b);
 
     //exploit the fact that they are sorted along an axis to
     //reduce the number of checks.
