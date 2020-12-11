@@ -18,10 +18,9 @@ pub use crate::query::nbody::NodeMassTrait;
 
 ///aabb broadphase collision detection
 mod colfind;
+pub use colfind::ColMulti;
 pub use colfind::NotSortedQueryBuilder;
 pub use colfind::QueryBuilder;
-pub use colfind::ColMulti;
-
 
 ///Provides functionality to draw the dividers of [`Tree`].
 mod graphics;
@@ -37,7 +36,6 @@ pub use k_nearest::KnearestResult;
 mod raycast;
 //pub use raycast::RayCastClosure;
 pub use raycast::RayCast;
-
 
 ///Allows user to intersect the tree with a seperate group of bots.
 mod intersect_with;
@@ -69,7 +67,7 @@ pub trait NotSortedQueries<'a> {
     #[must_use]
     fn axis(&self) -> Self::A;
 
-    fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c,'a,Self::A, Self::T> {
+    fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c, 'a, Self::A, Self::T> {
         NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
     }
 
@@ -83,7 +81,7 @@ pub trait NotSortedQueries<'a> {
         func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Clone + Send + Sync,
     ) where
         Self::T: Send + Sync,
-        Self::Num:Send+Sync
+        Self::Num: Send + Sync,
     {
         query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
             .query_par(move |a, b| func(a, b));
@@ -185,7 +183,7 @@ pub trait Queries<'a> {
         func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Send + Sync + Clone,
     ) where
         Self::T: Send + Sync,
-        Self::Num:Send+Sync
+        Self::Num: Send + Sync,
     {
         colfind::QueryBuilder::new(self.axis(), self.vistr_mut()).query_par(move |a, b| func(a, b));
     }
@@ -209,7 +207,7 @@ pub trait Queries<'a> {
     /// assert_eq!(bots[0].inner,1);
     /// assert_eq!(bots[1].inner,1);
     ///```
-    fn new_colfind_builder<'c>(&'c mut self) -> QueryBuilder<'c,'a,Self::A, Self::T> {
+    fn new_colfind_builder<'c>(&'c mut self) -> QueryBuilder<'c, 'a, Self::A, Self::T> {
         QueryBuilder::new(self.axis(), self.vistr_mut())
     }
 
@@ -349,7 +347,7 @@ pub trait Queries<'a> {
     /// assert_eq!(res,Err(broccoli::query::RectIntersectErr));
     ///```
     #[must_use]
-    fn multi_rect<'c>(&'c mut self) -> rect::MultiRectMut<'c,'a,Self::A, Self::T> {
+    fn multi_rect<'c>(&'c mut self) -> rect::MultiRectMut<'c, 'a, Self::A, Self::T> {
         rect::MultiRectMut::new(self.axis(), self.vistr_mut())
     }
 
@@ -414,18 +412,17 @@ pub trait Queries<'a> {
     where
         'a: 'b,
     {
-        let mut rtrait = raycast::RayCastClosure::new(acc,broad,fine);
+        let mut rtrait = raycast::RayCastClosure::new(acc, broad, fine);
         raycast::raycast_mut(self.axis(), self.vistr_mut(), border, ray, &mut rtrait)
     }
 
-
     /// Companion function to [`Queries::raycast_mut()`] for cases where the use wants to
     /// use the trait instead of closures.
-    fn raycast_trait_mut<'b,Acc,R:crate::query::RayCast<T=Self::T,N=Self::Num>>(
+    fn raycast_trait_mut<'b, Acc, R: crate::query::RayCast<T = Self::T, N = Self::Num>>(
         &'b mut self,
-        ray:axgeom::Ray<Self::Num>,
-        rtrait:R,
-        border:Rect<Self::Num>
+        ray: axgeom::Ray<Self::Num>,
+        rtrait: R,
+        border: Rect<Self::Num>,
     ) -> axgeom::CastResult<(Vec<PMut<'b, Self::T>>, Self::Num)>
     where
         'a: 'b,
@@ -504,7 +501,7 @@ pub trait Queries<'a> {
     where
         'a: 'b,
     {
-        let mut foo = k_nearest::KnearestClosure::new(acc,broad,fine);
+        let mut foo = k_nearest::KnearestClosure::new(acc, broad, fine);
 
         k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, &mut foo, border)
     }
@@ -512,11 +509,11 @@ pub trait Queries<'a> {
     /// Companion function to [`Queries::k_nearest_mut()`] for cases where the use wants to
     /// use the trait instead of closures.
     #[must_use]
-    fn k_nearest_trait_mut<'b, Acc,K:query::Knearest<T=Self::T,N=Self::Num>>(
+    fn k_nearest_trait_mut<'b, Acc, K: query::Knearest<T = Self::T, N = Self::Num>>(
         &'b mut self,
         point: Vec2<Self::Num>,
         num: usize,
-        ktrait:K,
+        ktrait: K,
         border: Rect<Self::Num>,
     ) -> KResult<Self::T>
     where
@@ -600,7 +597,7 @@ pub trait Queries<'a> {
     ) where
         X::No: Send,
         Self::T: Send + Sync,
-        Self::Num:Send+Sync
+        Self::Num: Send + Sync,
     {
         query::nbody::nbody(self.axis(), self.vistr_mut(), ncontext, rect)
     }
@@ -615,7 +612,7 @@ pub trait Queries<'a> {
     ) where
         X::No: Send,
         Self::T: Send + Sync,
-        Self::Num:Send+Sync
+        Self::Num: Send + Sync,
     {
         query::nbody::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
     }

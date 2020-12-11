@@ -9,15 +9,18 @@ pub struct TreeBuilder<'a, A: Axis, T> {
     axis: A,
     bots: &'a mut [T],
     rebal_strat: BinStrat,
-    height:TreePreBuilder,
+    height: TreePreBuilder,
 }
 
-impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T>where T::Num:Send+Sync {
+impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T>
+where
+    T::Num: Send + Sync,
+{
     ///Build not sorted in parallel
     pub fn build_not_sorted_par(&mut self) -> NotSorted<'a, A, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
-        let dlevel=self.height.switch_seq_level();
+        let dlevel = self.height.switch_seq_level();
         let inner = create_tree_par(
             self.axis,
             dlevel,
@@ -34,8 +37,8 @@ impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T>where T::Num:Send+
     pub fn build_par(&mut self) -> Tree<'a, A, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
-        let dlevel=self.height.switch_seq_level();
-        
+        let dlevel = self.height.switch_seq_level();
+
         create_tree_par(
             self.axis,
             dlevel,
@@ -56,19 +59,23 @@ impl<'a, T: Aabb> TreeBuilder<'a, DefaultA, T> {
 }
 
 impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
-    pub(crate)fn from_prebuilder(axis:A,bots:&'a mut [T],height:TreePreBuilder)->TreeBuilder<A,T>{
+    pub(crate) fn from_prebuilder(
+        axis: A,
+        bots: &'a mut [T],
+        height: TreePreBuilder,
+    ) -> TreeBuilder<A, T> {
         let rebal_strat = BinStrat::Checked;
-        TreeBuilder{
+        TreeBuilder {
             axis,
-            bots,rebal_strat,
-            height
+            bots,
+            rebal_strat,
+            height,
         }
     }
     ///Create a new builder with a slice of elements that implement `Aabb`.
     pub fn with_axis(axis: A, bots: &'a mut [T]) -> TreeBuilder<'a, A, T> {
-        
-        let height=TreePreBuilder::new(bots.len());
-        Self::from_prebuilder(axis,bots,height)
+        let height = TreePreBuilder::new(bots.len());
+        Self::from_prebuilder(axis, bots, height)
     }
 
     ///Build not sorted sequentially
@@ -108,7 +115,7 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
 
     #[inline(always)]
     pub fn with_height(&mut self, height: usize) -> &mut Self {
-        self.height=TreePreBuilder::with_height(height);
+        self.height = TreePreBuilder::with_height(height);
         self
     }
 
@@ -120,8 +127,6 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
         self
     }
 
-    
-    
     ///Build with a Splitter.
     pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: &mut S) -> Tree<'a, A, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
@@ -135,7 +140,6 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
             self.rebal_strat,
         )
     }
-    
 }
 
 fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
@@ -148,12 +152,12 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
 ) -> Tree<'a, A, T> {
     let num_bots = rest.len();
 
-    let cc= height.num_nodes();
+    let cc = height.num_nodes();
     //let cc = tree::nodes_left(0, height);
     let mut nodes = Vec::with_capacity(cc);
 
     let r = Recurser {
-        height:height.get_height(),
+        height: height.get_height(),
         binstrat,
         sorter,
         _p: PhantomData,
@@ -177,13 +181,7 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
     }
 }
 
-fn create_tree_par<
-    'a,
-    A: Axis,
-    JJ: par::Joiner,
-    T: Aabb + Send + Sync,
-    K: Splitter + Send + Sync,
->(
+fn create_tree_par<'a, A: Axis, JJ: par::Joiner, T: Aabb + Send + Sync, K: Splitter + Send + Sync>(
     div_axis: A,
     dlevel: JJ,
     rest: &'a mut [T],
@@ -191,15 +189,18 @@ fn create_tree_par<
     splitter: &mut K,
     height: TreePreBuilder,
     binstrat: BinStrat,
-) -> Tree<'a, A, T> where T::Num:Send+Sync{
+) -> Tree<'a, A, T>
+where
+    T::Num: Send + Sync,
+{
     let num_bots = rest.len();
 
-    let cc=height.num_nodes();
+    let cc = height.num_nodes();
     //let cc = tree::nodes_left(0, height);
     let mut nodes = Vec::with_capacity(cc);
 
     let r = Recurser {
-        height:height.get_height(),
+        height: height.get_height(),
         binstrat,
         sorter,
         _p: PhantomData,
@@ -301,18 +302,16 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
         splitter: &mut K,
         depth: usize,
     ) {
-
         if depth < self.height - 1 {
-            let (mut splitter11,mut splitter22) = splitter.div();
+            let (mut splitter11, mut splitter22) = splitter.div();
 
             let (node, left, right) = self.create_non_leaf(axis, rest);
             nodes.push(node.finish(self.sorter));
 
-            
             self.recurse_preorder_seq(axis.next(), left, nodes, &mut splitter11, depth + 1);
             self.recurse_preorder_seq(axis.next(), right, nodes, &mut splitter22, depth + 1);
 
-            splitter.add(splitter11,splitter22);
+            splitter.add(splitter11, splitter22);
         } else {
             splitter.leaf_start();
             let node = self.create_leaf(axis, rest);
@@ -322,7 +321,9 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
     }
 }
 impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'a, T, K, S>
- where T::Num:Send+Sync {
+where
+    T::Num: Send + Sync,
+{
     fn recurse_preorder<A: Axis, JJ: par::Joiner>(
         &self,
         axis: A,
@@ -332,16 +333,14 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
         splitter: &mut K,
         depth: usize,
     ) {
-
         if depth < self.height - 1 {
-            let (mut splitter11,mut splitter22) = splitter.div();
+            let (mut splitter11, mut splitter22) = splitter.div();
 
             let (node, left, right) = self.create_non_leaf(axis, rest);
 
-            
             match dlevel.next() {
                 par::ParResult::Parallel([dleft, dright]) => {
-                    let (splitter11ref,splitter22ref)=(&mut splitter11,&mut splitter22);
+                    let (splitter11ref, splitter22ref) = (&mut splitter11, &mut splitter22);
 
                     let (nodes, mut nodes2) = rayon::join(
                         move || {
@@ -378,12 +377,17 @@ impl<'a, T: Aabb + Send + Sync, K: Splitter + Send + Sync, S: Sorter> Recurser<'
                     nodes.push(node.finish(self.sorter));
 
                     self.recurse_preorder_seq(axis.next(), left, nodes, &mut splitter11, depth + 1);
-                    self.recurse_preorder_seq(axis.next(), right, nodes, &mut splitter22, depth + 1);
-                    
+                    self.recurse_preorder_seq(
+                        axis.next(),
+                        right,
+                        nodes,
+                        &mut splitter22,
+                        depth + 1,
+                    );
                 }
             }
 
-            splitter.add(splitter11,splitter22);
+            splitter.add(splitter11, splitter22);
         } else {
             splitter.leaf_start();
             let node = self.create_leaf(axis, rest);

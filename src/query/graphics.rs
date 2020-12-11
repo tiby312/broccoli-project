@@ -15,7 +15,7 @@ pub trait DividerDrawer {
 
 ///Calls the user supplied function on each divider.
 ///Since the leaves do not have dividers, it is not called for the leaves.
-pub fn draw<A: Axis,T:Aabb, D: DividerDrawer<N = T::Num>>(
+pub fn draw<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
     axis: A,
     vistr: Vistr<NodeMut<T>>,
     dr: &mut D,
@@ -28,7 +28,7 @@ pub fn draw<A: Axis,T:Aabb, D: DividerDrawer<N = T::Num>>(
         rect: &Rect<T::Num>,
     ) {
         let ((depth, nn), rest) = stuff.next();
-        
+
         if let Some([left, right]) = rest {
             let div = match nn.div {
                 Some(d) => d,

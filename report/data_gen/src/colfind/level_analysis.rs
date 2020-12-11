@@ -6,7 +6,6 @@ pub struct Bot {
     num: usize,
 }
 
-
 struct TheoryRes {
     grow: f32,
     rebal: Vec<usize>,
@@ -16,10 +15,9 @@ struct TheoryRes {
 fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> Vec<TheoryRes> {
     let mut rects = Vec::new();
     for grow in grow_iter {
-
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
-        let (rebal,query,height) = datanum::datanum_test2(|maker| {
+        let (rebal, query, height) = datanum::datanum_test2(|maker| {
             let mut bots: Vec<BBox<_, &mut _>> = abspiral_datanum_f32_nan(maker, grow as f64)
                 .zip(bot_inner.iter_mut())
                 .map(|(a, b)| bbox(a, b))
@@ -38,21 +36,20 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f32>) ->
                 &mut levelc2,
             );
 
-            (levelc.into_levels(),levelc2.into_levels(),tree.get_height())
+            (
+                levelc.into_levels(),
+                levelc2.into_levels(),
+                tree.get_height(),
+            )
         });
 
-        let mut t = TheoryRes {
-            grow,
-            rebal,
-            query,
-        };
+        let mut t = TheoryRes { grow, rebal, query };
 
         //grow_to_fit(&mut t.rebal, height);
         //grow_to_fit(&mut t.query, height);
 
         assert_eq!(t.rebal.len(), t.query.len());
         rects.push(t)
-    
     }
     rects
 }
@@ -95,7 +92,7 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> 
             rebal: times1.into_levels(),
             query: times2.into_levels(),
         };
-        assert_eq!(t.rebal.len(),t.query.len());
+        assert_eq!(t.rebal.len(), t.query.len());
         let height = tree.get_height();
 
         //grow_to_fit(&mut t.rebal, height);
@@ -149,22 +146,20 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         let x = res.iter().map(|a| a.grow);
 
         if rebal {
-            let cc = (0..num)
-                .map(|ii: usize| res.iter().map(move |a| a.rebal[ii]));
+            let cc = (0..num).map(|ii: usize| res.iter().map(move |a| a.rebal[ii]));
 
             for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
                 let s = format!("Level {}", i);
-                let yl=y.clone().map(|_|0.0);
-                ax.fill_between(x.clone(),yl,y,&[Color(col), Caption(&s), LineWidth(1.0)]);
+                let yl = y.clone().map(|_| 0.0);
+                ax.fill_between(x.clone(), yl, y, &[Color(col), Caption(&s), LineWidth(1.0)]);
             }
         } else {
-            let cc = (0..num)
-                .map(|ii: usize| res.iter().map(move |a| a.query[ii]));
+            let cc = (0..num).map(|ii: usize| res.iter().map(move |a| a.query[ii]));
 
             for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
                 let s = format!("Level {}", i);
-                let yl=y.clone().map(|_|0.0);
-                ax.fill_between(x.clone(),yl,y,&[Color(col), Caption(&s), LineWidth(1.0)]);
+                let yl = y.clone().map(|_| 0.0);
+                ax.fill_between(x.clone(), yl, y, &[Color(col), Caption(&s), LineWidth(1.0)]);
             }
         }
     }
@@ -243,16 +238,16 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
 
             for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
                 let s = format!("Level {}", i);
-                let yl=y.clone().map(|_|0.0);
-                ax.fill_between(x.clone(),yl,y,&[Color(col), Caption(&s), LineWidth(1.0)]);
+                let yl = y.clone().map(|_| 0.0);
+                ax.fill_between(x.clone(), yl, y, &[Color(col), Caption(&s), LineWidth(1.0)]);
             }
         } else {
             let cc = (0..num).map(|ii: usize| res.iter().map(move |a| a.query[ii]));
 
             for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
                 let s = format!("Level {}", i);
-                let yl=y.clone().map(|_|0.0);
-                ax.fill_between(x.clone(),yl,y,&[Color(col), Caption(&s), LineWidth(1.0)]);
+                let yl = y.clone().map(|_| 0.0);
+                ax.fill_between(x.clone(), yl, y, &[Color(col), Caption(&s), LineWidth(1.0)]);
             }
         }
     }

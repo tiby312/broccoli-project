@@ -14,7 +14,7 @@ use super::tools;
 use crate::query::inner_prelude::*;
 
 ///User trait to fill out which is then passed to the `nbody` query function.
-pub trait NodeMassTrait: Clone+Copy {
+pub trait NodeMassTrait: Clone + Copy {
     type No: Copy + Send;
     type Num: Num;
     type Item: Aabb<Num = Self::Num>;
@@ -55,14 +55,14 @@ pub fn naive_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
 }
 
 use compt::dfs_order;
-type CombinedVistr<'a,'b, N, J> =
-    compt::Zip<dfs_order::Vistr<'a, N, dfs_order::PreOrder>, VistrMut<'a, NodeMut<'b,J>>>;
-type CombinedVistrMut<'a,'b, N, J> =
-    compt::Zip<dfs_order::VistrMut<'a, N, dfs_order::PreOrder>, VistrMut<'a, NodeMut<'b,J>>>;
+type CombinedVistr<'a, 'b, N, J> =
+    compt::Zip<dfs_order::Vistr<'a, N, dfs_order::PreOrder>, VistrMut<'a, NodeMut<'b, J>>>;
+type CombinedVistrMut<'a, 'b, N, J> =
+    compt::Zip<dfs_order::VistrMut<'a, N, dfs_order::PreOrder>, VistrMut<'a, NodeMut<'b, J>>>;
 
-fn wrap_mut<'a:'b,'b,'c:'a+'b, N, J: Aabb>(
-    bla: &'b mut CombinedVistrMut<'a,'c, N, J>,
-) -> CombinedVistrMut<'b,'c, N, J> {
+fn wrap_mut<'a: 'b, 'b, 'c: 'a + 'b, N, J: Aabb>(
+    bla: &'b mut CombinedVistrMut<'a, 'c, N, J>,
+) -> CombinedVistrMut<'b, 'c, N, J> {
     //let depth=bla.depth();
 
     let (a, b) = bla.as_inner_mut();
@@ -197,12 +197,10 @@ fn handle_anchor_with_children<
     struct BoLeft<B: Axis, N: NodeMassTrait, J: Aabb> {
         _anchor_axis: B,
         _p: PhantomData<(N::No, J)>,
-        ncontext:N,
+        ncontext: N,
     }
 
-    impl<B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2
-        for BoLeft< B, N, J>
-    {
+    impl<B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2 for BoLeft<B, N, J> {
         type No = N::No;
         type T = J;
         type AnchorAxis = B;
@@ -235,15 +233,13 @@ fn handle_anchor_with_children<
         }
     }
 
-    struct BoRight< B: Axis, N: NodeMassTrait, J: Aabb> {
+    struct BoRight<B: Axis, N: NodeMassTrait, J: Aabb> {
         _anchor_axis: B,
         _p: PhantomData<(N::No, J)>,
         ncontext: N,
     }
 
-    impl<B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2
-        for BoRight< B, N, J>
-    {
+    impl<B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2 for BoRight<B, N, J> {
         type No = N::No;
         type T = J;
         type AnchorAxis = B;
@@ -293,16 +289,18 @@ fn handle_anchor_with_children<
     }
 }
 
-fn handle_left_with_right<'a,'b:'a,
+fn handle_left_with_right<
+    'a,
+    'b: 'a,
     A: Axis,
     B: Axis,
     N: NodeMassTrait<Num = J::Num, Item = J>,
     J: Aabb,
 >(
     axis: A,
-    anchor: & mut Anchor<B, J>,
-    left: CombinedVistrMut<'a,'b, N::No, J>,
-    mut right: CombinedVistrMut<'a,'b, N::No, J>,
+    anchor: &mut Anchor<B, J>,
+    left: CombinedVistrMut<'a, 'b, N::No, J>,
+    mut right: CombinedVistrMut<'a, 'b, N::No, J>,
     ncontext: N,
 ) {
     struct Bo4<'a, B: Axis, N: NodeMassTrait, J: Aabb> {
@@ -310,7 +308,7 @@ fn handle_left_with_right<'a,'b:'a,
         bot: PMut<'a, J>,
         ncontext: N,
         div: N::Num,
-        _p:PhantomData<J>
+        _p: PhantomData<J>,
     }
 
     impl<'a, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2 for Bo4<'a, B, N, J> {
@@ -375,14 +373,14 @@ fn handle_left_with_right<'a,'b:'a,
         }
     }
 
-    struct Bo<'a: 'b, 'b,'c, B: Axis, N: NodeMassTrait, J: Aabb> {
+    struct Bo<'a: 'b, 'b, 'c, B: Axis, N: NodeMassTrait, J: Aabb> {
         _anchor_axis: B,
-        right: &'c mut CombinedVistrMut<'b,'a, N::No, J>,
+        right: &'c mut CombinedVistrMut<'b, 'a, N::No, J>,
         ncontext: N,
     }
 
-    impl<'a: 'b, 'b,'c, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2
-        for Bo<'a, 'b,'c, B, N, J>
+    impl<'a: 'b, 'b, 'c, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2
+        for Bo<'a, 'b, 'c, B, N, J>
     {
         type No = N::No;
         type T = J;
@@ -448,7 +446,7 @@ fn recc<
     it: CombinedVistrMut<N::No, F>,
     ncontext: N,
 ) where
-    F::Num:Send+Sync,
+    F::Num: Send + Sync,
     N::No: Send,
 {
     let ((_, mut nn), rest) = it.next();
@@ -461,7 +459,9 @@ fn recc<
             };
 
             //handle bots in itself
-            tools::for_every_pair(nn.borrow_mut().into_range(), |a, b| ncontext.handle_bot_with_bot(a, b));
+            tools::for_every_pair(nn.borrow_mut().into_range(), |a, b| {
+                ncontext.handle_bot_with_bot(a, b)
+            });
             {
                 let l1 = wrap_mut(&mut left);
                 let l2 = wrap_mut(&mut right);

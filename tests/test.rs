@@ -18,7 +18,6 @@ fn create_bbox_mut<'a, N: Num, T>(
         .collect()
 }
 
-
 #[test]
 fn test_zero_sized() {
     let mut bots = vec![(); 1];

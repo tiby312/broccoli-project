@@ -46,7 +46,7 @@ impl<'a, N: Num, T> TreeRefInd<'a, DefaultA, N, T> {
     }
 }
 
-impl<'a, N: Num+Send+Sync, T: Send + Sync> TreeRefInd<'a, DefaultA, N, T> {
+impl<'a, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, DefaultA, N, T> {
     pub fn new_par(
         arr: &'a mut [T],
         func: impl FnMut(&mut T) -> Rect<N>,
@@ -55,7 +55,7 @@ impl<'a, N: Num+Send+Sync, T: Send + Sync> TreeRefInd<'a, DefaultA, N, T> {
     }
 }
 
-impl<'a, A: Axis, N: Num+Send+Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> {
+impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> {
     pub fn with_axis_par(
         axis: A,
         arr: &'a mut [T],
@@ -189,13 +189,19 @@ impl<'a, T: Aabb> TreeRef<'a, DefaultA, T> {
     }
 }
 
-impl<'a, T: Aabb + Send + Sync> TreeRef<'a, DefaultA, T> where T::Num:Send+Sync{
+impl<'a, T: Aabb + Send + Sync> TreeRef<'a, DefaultA, T>
+where
+    T::Num: Send + Sync,
+{
     pub fn new_par(arr: &'a mut [T]) -> TreeRef<'a, DefaultA, T> {
         TreeRef::with_axis_par(default_axis(), arr)
     }
 }
 
-impl<'a, A: Axis, T: Aabb + Send + Sync> TreeRef<'a, A, T> where T::Num:Send+Sync {
+impl<'a, A: Axis, T: Aabb + Send + Sync> TreeRef<'a, A, T>
+where
+    T::Num: Send + Sync,
+{
     pub fn with_axis_par(a: A, arr: &'a mut [T]) -> TreeRef<'a, A, T> {
         TreeRef {
             tree: inner::TreeRefInner::with_axis_par(a, arr),
@@ -262,7 +268,7 @@ pub struct TreeOwnedInd<A: Axis, N: Num, T> {
     _bots: Box<[T]>,
 }
 
-impl<N: Num+Send+Sync, T: Send + Sync> TreeOwnedInd<DefaultA, N, T> {
+impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<DefaultA, N, T> {
     pub fn new_par(
         bots: Box<[T]>,
         func: impl FnMut(&mut T) -> Rect<N>,
@@ -270,7 +276,7 @@ impl<N: Num+Send+Sync, T: Send + Sync> TreeOwnedInd<DefaultA, N, T> {
         TreeOwnedInd::with_axis_par(default_axis(), bots, func)
     }
 }
-impl<A: Axis, N: Num+Send+Sync, T: Send + Sync> TreeOwnedInd<A, N, T> {
+impl<A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<A, N, T> {
     pub fn with_axis_par(
         axis: A,
         mut bots: Box<[T]>,
@@ -335,12 +341,18 @@ pub struct TreeOwned<A: Axis, T: Aabb> {
     _bots: Box<[T]>,
 }
 
-impl<T: Aabb + Send + Sync> TreeOwned<DefaultA, T> where T::Num:Send+Sync {
+impl<T: Aabb + Send + Sync> TreeOwned<DefaultA, T>
+where
+    T::Num: Send + Sync,
+{
     pub fn new_par(bots: Box<[T]>) -> TreeOwned<DefaultA, T> {
         TreeOwned::with_axis_par(default_axis(), bots)
     }
 }
-impl<A: Axis, T: Aabb + Send + Sync> TreeOwned<A, T> where T::Num:Send+Sync{
+impl<A: Axis, T: Aabb + Send + Sync> TreeOwned<A, T>
+where
+    T::Num: Send + Sync,
+{
     pub fn with_axis_par(axis: A, mut bots: Box<[T]>) -> TreeOwned<A, T> {
         TreeOwned {
             tree: inner::TreeRefInner::with_axis_par(axis, &mut bots),

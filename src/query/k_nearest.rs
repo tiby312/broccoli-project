@@ -28,19 +28,20 @@ pub struct KnearestClosure<'a, Acc, B, F, T: Aabb> {
     pub fine: F,
     pub _p: PhantomData<T>,
 }
-impl<'a,
+impl<
+        'a,
         Acc,
         B: FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
         F: FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
         T: Aabb,
     > KnearestClosure<'a, Acc, B, F, T>
 {
-    pub fn new(acc:&'a mut Acc,broad:B,fine:F)->Self{
-        KnearestClosure{
+    pub fn new(acc: &'a mut Acc, broad: B, fine: F) -> Self {
+        KnearestClosure {
             acc,
             broad,
             fine,
-            _p:PhantomData
+            _p: PhantomData,
         }
     }
 }
@@ -224,11 +225,11 @@ impl<'a, K: Knearest> Blap<'a, K> {
     }
 }
 
-fn recc<'a,'b:'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
+fn recc<'a, 'b: 'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
     axis: A,
-    stuff: LevelIter<VistrMut<'a, NodeMut<'b,T>>>,
+    stuff: LevelIter<VistrMut<'a, NodeMut<'b, T>>>,
     rect: Rect<K::N>,
-    blap: &mut Blap<'a,K>,
+    blap: &mut Blap<'a, K>,
 ) {
     let ((_depth, nn), rest) = stuff.next();
     //let nn = nn.get_mut();
@@ -367,9 +368,9 @@ mod mutable {
         }
     }
 
-    pub fn k_nearest_mut<'a,'b:'a, A: Axis, T:Aabb>(
+    pub fn k_nearest_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: VistrMut<'a, NodeMut<'b,T>>,
+        vistr: VistrMut<'a, NodeMut<'b, T>>,
         point: Vec2<T::Num>,
         num: usize,
         knear: impl Knearest<N = T::Num, T = T>,

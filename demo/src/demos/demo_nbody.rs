@@ -179,7 +179,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             let border = dim;
 
             tree.nbody_mut(
-                & Bla {
+                &Bla {
                     _num_pairs_checked: 0,
                     _p: PhantomData,
                 },

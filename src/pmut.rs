@@ -65,20 +65,18 @@ impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
     }
 }
 
-
-
-
-
-impl<'a,'b:'a,T> PMut<'a,PMut<'b,T>>{
+impl<'a, 'b: 'a, T> PMut<'a, PMut<'b, T>> {
     #[inline(always)]
-    pub fn into_inner(self)->PMut<'a,T>{
+    pub fn into_inner(self) -> PMut<'a, T> {
         PMut::new(self.inner.inner)
     }
 }
-impl<'a,T> PMut<'a,T>{
+impl<'a, T> PMut<'a, T> {
     #[inline(always)]
-    pub fn into_slice(self)->PMut<'a,[T]>{
-        PMut{inner:core::slice::from_mut(self.inner)}   
+    pub fn into_slice(self) -> PMut<'a, [T]> {
+        PMut {
+            inner: core::slice::from_mut(self.inner),
+        }
     }
 }
 impl<'a, T: ?Sized> PMut<'a, T> {
@@ -101,15 +99,18 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     }
 }
 
-
-impl<'a,'b:'a,T:Aabb> PMut<'a,NodeMut<'b,T>>{
+impl<'a, 'b: 'a, T: Aabb> PMut<'a, NodeMut<'b, T>> {
     #[inline(always)]
-    pub fn into_range_full(self) -> (&'a Option<T::Num>,&'a Option<Range<T::Num>>,PMut<'a,[T]>) {
-        (&self.inner.div,&self.inner.cont,self.inner.range.borrow_mut())
+    pub fn into_range_full(self) -> (&'a Option<T::Num>, &'a Option<Range<T::Num>>, PMut<'a, [T]>) {
+        (
+            &self.inner.div,
+            &self.inner.cont,
+            self.inner.range.borrow_mut(),
+        )
     }
 
     #[inline(always)]
-    pub fn into_range(self) -> PMut<'a,[T]> {
+    pub fn into_range(self) -> PMut<'a, [T]> {
         self.inner.range.borrow_mut()
     }
 }
@@ -142,11 +143,10 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
 }
 
 impl<'a, T> PMut<'a, [T]> {
-
     ///We can't use the index trait because we don't want
     ///to return a mutable reference.
     #[inline(always)]
-    pub fn get_index_mut(self, ind: usize) -> PMut<'a,T> {
+    pub fn get_index_mut(self, ind: usize) -> PMut<'a, T> {
         PMut::new(&mut self.inner[ind])
     }
 

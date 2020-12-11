@@ -5,32 +5,29 @@ use super::ColMulti;
 use crate::query::inner_prelude::*;
 use unchecked_unwrap::*;
 
-
-pub(crate) struct DestructuredNode<'a,'b:'a, T: Aabb, AnchorAxis: Axis> {
-    pub node:PMut<'a,NodeMut<'b,T>>,
+pub(crate) struct DestructuredNode<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> {
+    pub node: PMut<'a, NodeMut<'b, T>>,
     pub axis: AnchorAxis,
 }
 
-impl<'a,'b:'a,T:Aabb,AnchorAxis:Axis>  DestructuredNode<'a,'b,T,AnchorAxis>{
+impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNode<'a, 'b, T, AnchorAxis> {
     #[inline(always)]
-    pub fn new(axis:AnchorAxis,node:PMut<'a,NodeMut<'b,T>>)->Option<DestructuredNode<'a,'b,T,AnchorAxis>>{
+    pub fn new(
+        axis: AnchorAxis,
+        node: PMut<'a, NodeMut<'b, T>>,
+    ) -> Option<DestructuredNode<'a, 'b, T, AnchorAxis>> {
         debug_assert!(node.div.is_some()); //TODO remove
-        if node.cont.is_some(){
-            Some(DestructuredNode {
-                node,
-                axis,
-            })
-        }else{
+        if node.cont.is_some() {
+            Some(DestructuredNode { node, axis })
+        } else {
             None
         }
     }
 
     #[inline(always)]
-    pub fn cont(&self)->&axgeom::Range<T::Num>{
+    pub fn cont(&self) -> &axgeom::Range<T::Num> {
         //TODO use unsafe and dont unwrap
-        unsafe{
-            self.node.cont.as_ref().unchecked_unwrap()
-        }
+        unsafe { self.node.cont.as_ref().unchecked_unwrap() }
     }
     /*
     #[inline(always)]
@@ -43,35 +40,30 @@ impl<'a,'b:'a,T:Aabb,AnchorAxis:Axis>  DestructuredNode<'a,'b,T,AnchorAxis>{
     */
 }
 
-
-pub(crate) struct DestructuredNodeLeaf<'a,'b:'a, T:Aabb, A: Axis> {
-    pub node:PMut<'a,NodeMut<'b,T>>,
+pub(crate) struct DestructuredNodeLeaf<'a, 'b: 'a, T: Aabb, A: Axis> {
+    pub node: PMut<'a, NodeMut<'b, T>>,
     pub axis: A,
 }
 
-impl<'a,'b:'a,T:Aabb,AnchorAxis:Axis>  DestructuredNodeLeaf<'a,'b,T,AnchorAxis>{
+impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNodeLeaf<'a, 'b, T, AnchorAxis> {
     #[inline(always)]
-    pub fn new(axis:AnchorAxis,node:PMut<'a,NodeMut<'b,T>>)->Option<DestructuredNodeLeaf<'a,'b,T,AnchorAxis>>{
-        if node.cont.is_some(){
-            Some(DestructuredNodeLeaf {
-                node,
-                axis,
-            })
-        }else{
+    pub fn new(
+        axis: AnchorAxis,
+        node: PMut<'a, NodeMut<'b, T>>,
+    ) -> Option<DestructuredNodeLeaf<'a, 'b, T, AnchorAxis>> {
+        if node.cont.is_some() {
+            Some(DestructuredNodeLeaf { node, axis })
+        } else {
             None
         }
     }
 
     #[inline(always)]
-    pub fn cont(&self)->&axgeom::Range<T::Num>{
+    pub fn cont(&self) -> &axgeom::Range<T::Num> {
         //TODO use unsafe and dont unwrap
-        unsafe{
-            self.node.cont.as_ref().unchecked_unwrap()
-        }
+        unsafe { self.node.cont.as_ref().unchecked_unwrap() }
     }
 }
-
-
 
 pub(crate) trait NodeHandler {
     type T: Aabb;
@@ -96,19 +88,14 @@ impl<K: ColMulti + Splitter> HandleNoSorted<K> {
 }
 
 impl<K: ColMulti + Splitter> Splitter for HandleNoSorted<K> {
-    
     #[inline(always)]
-    fn div(&mut self) -> (Self,Self) {
-        let (a,b)=self.func.div();
-        (HandleNoSorted {
-            func: a,
-        },HandleNoSorted {
-            func: b,
-        })
+    fn div(&mut self) -> (Self, Self) {
+        let (a, b) = self.func.div();
+        (HandleNoSorted { func: a }, HandleNoSorted { func: b })
     }
     #[inline(always)]
-    fn add(&mut self,a:Self, b: Self) {
-        self.func.add(a.func,b.func);
+    fn add(&mut self, a: Self, b: Self) {
+        self.func.add(a.func, b.func);
     }
 }
 
@@ -155,25 +142,18 @@ pub(super) struct HandleSorted<K: ColMulti + Splitter> {
 impl<K: ColMulti + Splitter> HandleSorted<K> {
     #[inline(always)]
     pub fn new(a: K) -> HandleSorted<K> {
-        HandleSorted {
-            func: a,
-        }
+        HandleSorted { func: a }
     }
 }
 impl<K: ColMulti + Splitter> Splitter for HandleSorted<K> {
-    
     #[inline(always)]
-    fn div(&mut self) -> (Self,Self) {
-        let (a,b)=self.func.div();
-        (HandleSorted {
-            func: a,
-        },HandleSorted {
-            func: b,
-        })
+    fn div(&mut self) -> (Self, Self) {
+        let (a, b) = self.func.div();
+        (HandleSorted { func: a }, HandleSorted { func: b })
     }
     #[inline(always)]
-    fn add(&mut self,a:Self, b: Self) {
-        self.func.add(a.func,b.func);
+    fn add(&mut self, a: Self, b: Self) {
+        self.func.add(a.func, b.func);
     }
 }
 
@@ -193,18 +173,15 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
         let func = &mut self.func;
 
         if !current.axis.is_equal_to(anchor.axis) {
-            let cc1=*anchor.cont();
-            let cc2=*current.cont();
+            let cc1 = *anchor.cont();
+            let cc2 = *current.cont();
 
-            let r1 = oned::get_section_mut(
-                anchor.axis,
-                current.node.into_range(), cc1);
+            let r1 = oned::get_section_mut(anchor.axis, current.node.into_range(), cc1);
 
-            let r2 = oned::get_section_mut(
-                current.axis,
-                anchor.node.borrow_mut().into_range(), cc2);
-            
-            oned::find_perp_2d1(current.axis,r1,r2, func);
+            let r2 =
+                oned::get_section_mut(current.axis, anchor.node.borrow_mut().into_range(), cc2);
+
+            oned::find_perp_2d1(current.axis, r1, r2, func);
         } else if current.cont().intersects(anchor.cont()) {
             oned::find_parallel_2d(
                 current.axis.next(),

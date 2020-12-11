@@ -67,7 +67,6 @@ impl Joiner for Sequential {
     }
 }
 
-
 #[test]
 fn test_parallel() {
     let k = Parallel::new(0);
@@ -78,7 +77,6 @@ fn test_parallel() {
         ParResult::Sequential(_) => {}
     }
 }
-
 
 #[test]
 fn test_par_heur() {

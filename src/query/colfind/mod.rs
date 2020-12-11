@@ -74,14 +74,15 @@ pub fn query_sweep_mut<T: Aabb>(
 }
 
 ///Builder for a query on a NotSorted Dinotree.
-pub struct NotSortedQueryBuilder<'a,'b:'a, A: Axis, T:Aabb> {
+pub struct NotSortedQueryBuilder<'a, 'b: 'a, A: Axis, T: Aabb> {
     switch_height: usize,
     axis: A,
-    vistr: VistrMut<'a, NodeMut<'b,T>>,
+    vistr: VistrMut<'a, NodeMut<'b, T>>,
 }
 
-impl<'a, 'b:'a,A: Axis, T: Aabb + Send + Sync> NotSortedQueryBuilder<'a,'b, A, T>
-where T::Num:Send+Sync
+impl<'a, 'b: 'a, A: Axis, T: Aabb + Send + Sync> NotSortedQueryBuilder<'a, 'b, A, T>
+where
+    T::Num: Send + Sync,
 {
     #[inline(always)]
     pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
@@ -98,9 +99,12 @@ where T::Num:Send+Sync
     }
 }
 
-impl<'a,'b:'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a,'b, A, T> {
+impl<'a, 'b: 'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a, 'b, A, T> {
     #[inline(always)]
-    pub fn new(axis: A, vistr: VistrMut<'a, NodeMut<'b,T>>) -> NotSortedQueryBuilder<'a,'b, A, T> {
+    pub fn new(
+        axis: A,
+        vistr: VistrMut<'a, NodeMut<'b, T>>,
+    ) -> NotSortedQueryBuilder<'a, 'b, A, T> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         NotSortedQueryBuilder {
             switch_height,
@@ -108,7 +112,6 @@ impl<'a,'b:'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a,'b, A, T> {
             vistr,
         }
     }
-
 
     #[inline(always)]
     pub fn query_with_splitter_seq(
@@ -129,16 +132,16 @@ impl<'a,'b:'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a,'b, A, T> {
     }
 }
 
-
 ///Builder for a query on a DinoTree.
-pub struct QueryBuilder<'a,'b:'a, A: Axis, T: Aabb> {
+pub struct QueryBuilder<'a, 'b: 'a, A: Axis, T: Aabb> {
     switch_height: usize,
     axis: A,
-    vistr: VistrMut<'a, NodeMut<'b,T>>,
+    vistr: VistrMut<'a, NodeMut<'b, T>>,
 }
 
-impl<'a, 'b:'a,A: Axis, T: Aabb + Send + Sync> QueryBuilder<'a,'b, A, T>
-where T::Num:Send+Sync
+impl<'a, 'b: 'a, A: Axis, T: Aabb + Send + Sync> QueryBuilder<'a, 'b, A, T>
+where
+    T::Num: Send + Sync,
 {
     ///Perform the query in parallel
     #[inline(always)]
@@ -157,7 +160,6 @@ where T::Num:Send+Sync
             &mut SplitterEmpty,
         );
     }
-
 
     /// An extended version of `find_colliding_pairs`. where the user can supply
     /// callbacks to when new worker tasks are spawned and joined by `rayon`.
@@ -180,14 +182,14 @@ where T::Num:Send+Sync
     ///```
     pub fn query_par_ext<B: Send + Sync>(
         self,
-        split: impl Fn(&mut B) -> (B,B) + Send + Sync + Copy,
-        fold: impl Fn(&mut B, B,B) + Send + Sync + Copy,
+        split: impl Fn(&mut B) -> (B, B) + Send + Sync + Copy,
+        fold: impl Fn(&mut B, B, B) + Send + Sync + Copy,
         collision: impl Fn(&mut B, PMut<T>, PMut<T>) + Send + Sync + Copy,
         acc: B,
     ) -> B
     where
         T: Send + Sync,
-        T::Num: Send+Sync,
+        T::Num: Send + Sync,
     {
         struct Foo<T, A, B, C, D> {
             _p: PhantomData<T>,
@@ -203,31 +205,32 @@ where T::Num:Send+Sync
                 (self.collision)(&mut self.acc, a, b)
             }
         }
-        impl<T, A, B: Fn(&mut A) -> (A,A) + Copy, C: Fn(&mut A, A,A) + Copy, D: Copy> Splitter
+        impl<T, A, B: Fn(&mut A) -> (A, A) + Copy, C: Fn(&mut A, A, A) + Copy, D: Copy> Splitter
             for Foo<T, A, B, C, D>
         {
-            fn div(&mut self) -> (Self,Self) {
-                let (acc1,acc2) = (self.split)(&mut self.acc);
-                (Foo {
-                    _p: PhantomData,
-                    acc:acc1,
-                    split: self.split,
-                    fold: self.fold,
-                    collision: self.collision,
-                },
-                Foo {
-                    _p: PhantomData,
-                    acc:acc2,
-                    split: self.split,
-                    fold: self.fold,
-                    collision: self.collision,
-                })
+            fn div(&mut self) -> (Self, Self) {
+                let (acc1, acc2) = (self.split)(&mut self.acc);
+                (
+                    Foo {
+                        _p: PhantomData,
+                        acc: acc1,
+                        split: self.split,
+                        fold: self.fold,
+                        collision: self.collision,
+                    },
+                    Foo {
+                        _p: PhantomData,
+                        acc: acc2,
+                        split: self.split,
+                        fold: self.fold,
+                        collision: self.collision,
+                    },
+                )
             }
 
-            fn add(&mut self, a:Self,b: Self) {
-                (self.fold)(&mut self.acc, a.acc,b.acc)
+            fn add(&mut self, a: Self, b: Self) {
+                (self.fold)(&mut self.acc, a.acc, b.acc)
             }
-
         }
 
         let foo = Foo {
@@ -267,11 +270,11 @@ where T::Num:Send+Sync
     }
 }
 
-impl<'a,'b:'a, A: Axis, T: Aabb> QueryBuilder<'a,'b, A, T> {
+impl<'a, 'b: 'a, A: Axis, T: Aabb> QueryBuilder<'a, 'b, A, T> {
     ///Create the builder.
     #[inline(always)]
     #[must_use]
-    pub fn new(axis: A, vistr: VistrMut<'a, NodeMut<'b,T>>) -> QueryBuilder<'a,'b, A, T> {
+    pub fn new(axis: A, vistr: VistrMut<'a, NodeMut<'b, T>>) -> QueryBuilder<'a, 'b, A, T> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         QueryBuilder {
             switch_height,
@@ -311,5 +314,4 @@ impl<'a,'b:'a, A: Axis, T: Aabb> QueryBuilder<'a,'b, A, T> {
         let mut sweeper = HandleSorted::new(b);
         ColFindRecurser::new().recurse_seq(self.axis, &mut sweeper, self.vistr, splitter);
     }
-    
 }

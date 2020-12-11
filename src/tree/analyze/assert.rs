@@ -12,7 +12,7 @@ pub fn tree_invariants<'a>(a: &impl Queries<'a>) -> bool {
     inner(a.axis(), a.vistr().with_depth(compt::Depth(0))).is_ok()
 }
 
-fn inner<A: Axis, T:Aabb>(axis: A, iter: compt::LevelIter<Vistr<NodeMut<T>>>) -> Result<(), ()> {
+fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<NodeMut<T>>>) -> Result<(), ()> {
     fn a_bot_has_value<N: Num>(it: impl Iterator<Item = N>, val: N) -> bool {
         for b in it {
             if b == val {

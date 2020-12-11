@@ -25,8 +25,11 @@ macro_rules! rect {
                         None => return,
                     };
 
-                    let sl =
-                        $get_section(this_axis.next(), $get_bots(nn), *rect.get_range(this_axis.next()));
+                    let sl = $get_section(
+                        this_axis.next(),
+                        $get_bots(nn),
+                        *rect.get_range(this_axis.next()),
+                    );
 
                     for i in sl {
                         func(i);
@@ -41,8 +44,11 @@ macro_rules! rect {
                     }
                 }
                 None => {
-                    let sl =
-                        $get_section(this_axis.next(), $get_bots(nn), *rect.get_range(this_axis.next()));
+                    let sl = $get_section(
+                        this_axis.next(),
+                        $get_bots(nn),
+                        *rect.get_range(this_axis.next()),
+                    );
 
                     for i in sl {
                         func(i);
@@ -65,23 +71,21 @@ pub fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
     }
 }
 
-pub fn for_all_not_in_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
+pub fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
     axis: A,
-    vistr: VistrMut<'a, NodeMut<'b,T>>,
+    vistr: VistrMut<'a, NodeMut<'b, T>>,
     rect: &Rect<T::Num>,
     closure: impl FnMut(PMut<'a, T>),
 ) {
-    fn rect_recurse<'a,'b:'a, A: Axis, T: Aabb, F: FnMut(PMut<'a, T>)>(
+    fn rect_recurse<'a, 'b: 'a, A: Axis, T: Aabb, F: FnMut(PMut<'a, T>)>(
         axis: A,
-        it: VistrMut<'a, NodeMut<'b,T>>,
+        it: VistrMut<'a, NodeMut<'b, T>>,
         rect: &Rect<T::Num>,
         mut closure: F,
     ) -> F {
         let (nn, rest) = it.next();
-        
-        
-        let (div,_,bots)=nn.into_range_full();
 
+        let (div, _, bots) = nn.into_range_full();
 
         for a in bots.iter_mut() {
             if !rect.contains_rect(a.get()) {
@@ -95,8 +99,6 @@ pub fn for_all_not_in_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
                     Some(b) => b,
                     None => return closure,
                 };
-
-
 
                 match rect.get_range(axis).contains_ext(*div) {
                     core::cmp::Ordering::Greater => {
@@ -121,9 +123,7 @@ pub fn for_all_not_in_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
                     }
                 }
             }
-            None => {
-                closure
-            },
+            None => closure,
         }
     }
     rect_recurse(axis, vistr, rect, closure);
@@ -135,13 +135,13 @@ pub use mutable::*;
 mod mutable {
     use super::*;
     use crate::query::colfind::oned::get_section_mut;
-    fn foo<'a,'b:'a,T:Aabb>(node:PMut<'a,NodeMut<'b,T>>)->PMut<'a,[T]>{
+    fn foo<'a, 'b: 'a, T: Aabb>(node: PMut<'a, NodeMut<'b, T>>) -> PMut<'a, [T]> {
         node.into_range()
     }
-    rect!(VistrMut<'a, NodeMut<T>>, PMut<'a, T>, get_section_mut,foo);
-    pub fn for_all_intersect_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
+    rect!(VistrMut<'a, NodeMut<T>>, PMut<'a, T>, get_section_mut, foo);
+    pub fn for_all_intersect_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: VistrMut<'a, NodeMut<'b,T>>,
+        vistr: VistrMut<'a, NodeMut<'b, T>>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(PMut<'a, T>),
     ) {
@@ -175,9 +175,9 @@ mod mutable {
             }
         }
     }
-    pub fn for_all_in_rect_mut<'a,'b:'a, A: Axis, T: Aabb>(
+    pub fn for_all_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: VistrMut<'a, NodeMut<'b,T>>,
+        vistr: VistrMut<'a, NodeMut<'b, T>>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(PMut<'a, T>),
     ) {
@@ -193,14 +193,14 @@ mod constant {
 
     use super::*;
     use crate::query::colfind::oned::get_section;
-    fn foo<'a,'b:'a,T:Aabb>(node:&'a NodeMut<'b,T>)->&'a [T]{
+    fn foo<'a, 'b: 'a, T: Aabb>(node: &'a NodeMut<'b, T>) -> &'a [T] {
         &node.range
     }
     rect!(Vistr<'a, NodeMut<T>>, &'a T, get_section, foo);
 
-    pub fn for_all_intersect_rect<'a,'b:'a, A: Axis, T: Aabb>(
+    pub fn for_all_intersect_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: Vistr<'a, NodeMut<'b,T>>,
+        vistr: Vistr<'a, NodeMut<'b, T>>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(&'a T),
     ) {
@@ -211,9 +211,9 @@ mod constant {
         });
     }
 
-    pub fn for_all_in_rect<'a,'b:'a, A: Axis, T:Aabb>(
+    pub fn for_all_in_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: Vistr<'a, NodeMut<'b,T>>,
+        vistr: Vistr<'a, NodeMut<'b, T>>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(&'a T),
     ) {
@@ -232,14 +232,14 @@ mod constant {
 pub struct RectIntersectErr;
 
 ///See the [`Queries::multi_rect`](crate::query::Queries::multi_rect) function.
-pub struct MultiRectMut<'a,'b:'a, A: Axis, T: Aabb> {
+pub struct MultiRectMut<'a, 'b: 'a, A: Axis, T: Aabb> {
     axis: A,
-    vistr: VistrMut<'a, NodeMut<'b,T>>,
+    vistr: VistrMut<'a, NodeMut<'b, T>>,
     rects: Vec<Rect<T::Num>>,
 }
 
-impl<'a,'b:'a, A: Axis, T: Aabb> MultiRectMut<'a,'b, A, T> {
-    pub(crate) fn new(axis: A, vistr: VistrMut<'a, NodeMut<'b,T>>) -> Self {
+impl<'a, 'b: 'a, A: Axis, T: Aabb> MultiRectMut<'a, 'b, A, T> {
+    pub(crate) fn new(axis: A, vistr: VistrMut<'a, NodeMut<'b, T>>) -> Self {
         MultiRectMut {
             axis,
             vistr,

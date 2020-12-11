@@ -79,7 +79,10 @@ pub fn with_axis<'a, A: Axis, T: Aabb>(axis: A, bots: &'a mut [T]) -> Tree<'a, A
 /// let tree = broccoli::new_par(&mut bots);
 ///
 ///```
-pub fn new_par<'a, T: Aabb + Send + Sync>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> where T::Num:Send+Sync{
+pub fn new_par<'a, T: Aabb + Send + Sync>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T>
+where
+    T::Num: Send + Sync,
+{
     TreeBuilder::new(bots).build_par()
 }
 
@@ -95,7 +98,10 @@ pub fn new_par<'a, T: Aabb + Send + Sync>(bots: &'a mut [T]) -> Tree<'a, Default
 pub fn with_axis_par<'a, A: Axis, T: Aabb + Send + Sync>(
     axis: A,
     bots: &'a mut [T],
-) -> Tree<'a, A, T> where T::Num :Send+Sync{
+) -> Tree<'a, A, T>
+where
+    T::Num: Send + Sync,
+{
     TreeBuilder::with_axis(axis, bots).build_par()
 }
 

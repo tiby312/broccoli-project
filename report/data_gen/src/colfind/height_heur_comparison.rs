@@ -89,7 +89,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         let heur = {
             let mut vec = Vec::new();
             for num_bots in its.clone() {
-                let height=broccoli::analyze::TreePreBuilder::new(num_bots).get_height();
+                let height = broccoli::analyze::TreePreBuilder::new(num_bots).get_height();
                 vec.push((num_bots, height));
             }
             vec

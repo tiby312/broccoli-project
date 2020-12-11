@@ -6,17 +6,14 @@ pub struct Bot {
     num: usize,
 }
 
-
-type LTree=compt::dfs_order::CompleteTreeContainer<usize,compt::dfs_order::PreOrder>;
-
+type LTree = compt::dfs_order::CompleteTreeContainer<usize, compt::dfs_order::PreOrder>;
 
 struct TheoryRes {
     grow: f32,
     query: LTree,
 }
 
-fn handle_inner_theory(num_bots: usize, grow:f32) -> TheoryRes {
-    
+fn handle_inner_theory(num_bots: usize, grow: f32) -> TheoryRes {
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
     let query = datanum::datanum_test2(|maker| {
@@ -40,10 +37,10 @@ fn handle_inner_theory(num_bots: usize, grow:f32) -> TheoryRes {
             &mut levelc2,
         );
 
-        let mut ll=levelc2.into_tree();
+        let mut ll = levelc2.into_tree();
         /*
         use broccoli::compt::Visitor;
-        
+
         for a in ll.vistr_mut().dfs_preorder_iter(){
             *a-=start;
         }
@@ -52,32 +49,21 @@ fn handle_inner_theory(num_bots: usize, grow:f32) -> TheoryRes {
         ll
     });
 
-    TheoryRes {
-        grow,
-        query,
-    }
+    TheoryRes { grow, query }
 }
-
-
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
     let num_bots = 3000;
 
-    let grow1=0.2;
-    let grow2=0.007;
-    let res1 = handle_inner_theory(
-        num_bots,
-        grow1,
-    );
+    let grow1 = 0.2;
+    let grow2 = 0.007;
+    let res1 = handle_inner_theory(num_bots, grow1);
 
-    let res2 = handle_inner_theory(
-        num_bots,
-        grow2,
-    );
+    let res2 = handle_inner_theory(num_bots, grow2);
 
     use gnuplot::*;
 
-    fn draw_graph(title_name: &str, fg: &mut Figure, res:TheoryRes, rebal: bool, pos: usize) {
+    fn draw_graph(title_name: &str, fg: &mut Figure, res: TheoryRes, rebal: bool, pos: usize) {
         let ax = fg
             .axes2d()
             .set_pos_grid(2, 1, pos as u32)
@@ -85,34 +71,49 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             .set_x_label("dfs inorder iteration", &[])
             .set_y_label("Number of Comparisons", &[]);
 
-            use broccoli::compt::Visitor;
-        
-            //height*x=num_nodes
-            //
-        let xx=res.query.get_nodes().len()/res.query.get_height();
-        let height=res.query.get_height();
-        //let num_nodes=res.query.get_nodes().len();
-        for (i,(depth,element)) in res.query.vistr().with_depth(compt::Depth(0)).dfs_inorder_iter().enumerate(){
-            let s=format!("depth:{}",depth.0);
-            //let width=(2 as f32).powi( 1+(height-1-depth.0)as i32) as usize;
-            let width=2;
-            let col=COLS.iter().cycle().nth(depth.0).unwrap();
-            ax.boxes_set_width(std::iter::once(i),std::iter::once(element),std::iter::once(width),&[Color(col)]);
-       
-        }
+        use broccoli::compt::Visitor;
 
+        //height*x=num_nodes
+        //
+        let xx = res.query.get_nodes().len() / res.query.get_height();
+        let height = res.query.get_height();
+        //let num_nodes=res.query.get_nodes().len();
+        for (i, (depth, element)) in res
+            .query
+            .vistr()
+            .with_depth(compt::Depth(0))
+            .dfs_inorder_iter()
+            .enumerate()
+        {
+            let s = format!("depth:{}", depth.0);
+            //let width=(2 as f32).powi( 1+(height-1-depth.0)as i32) as usize;
+            let width = 2;
+            let col = COLS.iter().cycle().nth(depth.0).unwrap();
+            ax.boxes_set_width(
+                std::iter::once(i),
+                std::iter::once(element),
+                std::iter::once(width),
+                &[Color(col)],
+            );
+        }
     }
 
     let mut fg = fb.build("query_evenness_theory");
     draw_graph(
-        &format!("Query Evenness with grow {} and {} Objects", grow1,num_bots),
+        &format!(
+            "Query Evenness with grow {} and {} Objects",
+            grow1, num_bots
+        ),
         &mut fg,
         res1,
         false,
         0,
     );
     draw_graph(
-        &format!("Query Evenness with grow {} and {} Objects", grow2,num_bots),
+        &format!(
+            "Query Evenness with grow {} and {} Objects",
+            grow2, num_bots
+        ),
         &mut fg,
         res2,
         false,
