@@ -117,8 +117,8 @@ fn main() {
         .build_global()
         .unwrap();
 
-    dbg!(colfind::construction_vs_query::all::handle_bench(30_000,0.2,false));
-    return;
+    //dbg!(colfind::construction_vs_query::all::handle_bench(30_000,0.2,false));
+    //return;
 
     //to run program to generate android bench data.
     //build armv7-linux-androideabi

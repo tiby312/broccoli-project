@@ -13,7 +13,7 @@ For every node we do the following:
 4. Now this node is fully set up. Recurse left and right with the aabbs that were binned left and right. This can be done in parallel.
 
 
-#### Finding all intersecting pairs
+#### Finding all colliding pairs
 
 Done via divide and conquer. For every node we do the following:
 1) First we find all intersections with aabbs in that node using sweep and prune..
@@ -23,6 +23,44 @@ Done via divide and conquer. For every node we do the following:
 3) At this point the aabbs in this node have been completely handled. We can safely move on to the children nodes 
    and treat them as two entirely seperate trees. Since these are two completely disjoint trees, they can be handling in
    parallel.
+
+#### Profiling Construction + Finding all colliding pairs.
+
+Here are some profiling results running construction + finding on `abspiral(0.2,30_000)`.
+
+```
+-  99.97%        data_gen
+   -  74.11%        data_gen
+      +  17.97%        [.] broccoli::query::colfind::oned::find_bijective_parallel
+      +   9.44%        [.] broccoli::query::colfind::oned::find
+      +   6.75%        [.] broccoli::query::colfind::oned::find
+      +   6.72%        [.] broccoli::query::colfind::oned::find_perp_2d1
+      +   5.82%        [.] pdqselect::select_by
+      +   4.17%        [.] broccoli::query::colfind::oned::find_perp_2d1
+      +   4.00%        [.] broccoli::query::colfind::oned::find_perp_2d1
+      +   3.60%        [.] core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &mut F>::call_once
+      +   3.25%        [.] ordered_float::<impl core::convert::From<ordered_float::NotNan<f32>> for f32>::from
+      +   2.40%        [.] pdqselect::select_by
+      +   1.28%        [.] core::str::<impl str>::trim
+      +   1.21%        [.] <core::iter::adapters::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
+      +   1.20%        [.] broccoli::oned::bin_middle_left_right
+      +   1.18%        [.] broccoli::query::colfind::oned::find_perp_2d1
+      +   1.12%        [.] core::slice::sort::recurse
+      +   1.08%        [.] broccoli::tree::analyze::builder::Recurser<T,K,S>::recurse_preorder_seq
+      +   1.08%        [.] crossbeam_deque::deque::Stealer<T>::steal
+      +   0.93%        [.] rayon_core::sleep::Sleep::sleep
+      +   0.90%        [.] broccoli::oned::bin_middle_left_right
+   +  17.78%        [kernel.kallsyms]
+   +   5.69%        libc-2.31.so
+   +   1.24%        ld-2.31.so
+   +   1.15%        libm-2.31.so
++   0.03%        perf
+```
+
+As you can see the query releated functions take up the most time, as opposed to the construction functions.
+
+
+
 
 
 #### nbody (experimental)
