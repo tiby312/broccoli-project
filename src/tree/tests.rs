@@ -37,8 +37,8 @@ fn test() {
         match rest {
             Some([mut left, mut right]) => {
                 {
-                    let left = left.create_wrap_mut();
-                    let right = right.create_wrap_mut();
+                    let left = left.borrow_mut();
+                    let right = right.borrow_mut();
                     assert_length(left.dfs_preorder_iter());
                     assert_length(right.dfs_preorder_iter());
                 }
