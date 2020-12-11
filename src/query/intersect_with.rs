@@ -25,7 +25,7 @@ pub fn intersect_with_mut<A: Axis, T: Aabb, X: Aabb<Num = T::Num>>(
         let rect = *i.get();
 
         for_all_intersect_rect_mut(axis, vistr.create_wrap_mut(), &rect, |a| {
-            func(a, i.as_mut());
+            func(a, i.borrow_mut());
         });
     }
 }

@@ -90,7 +90,7 @@ impl<'a, T: ?Sized> PMut<'a, T> {
 
     ///Start a new borrow lifetime
     #[inline(always)]
-    pub fn as_mut(&mut self) -> PMut<T> {
+    pub fn borrow_mut(&mut self) -> PMut<T> {
         PMut { inner: self.inner }
     }
 
@@ -105,14 +105,8 @@ impl<'a, T: ?Sized> PMut<'a, T> {
 impl<'a,'b:'a,T:Aabb> PMut<'a,NodeMut<'b,T>>{
     #[inline(always)]
     pub fn into_range(self) -> PMut<'a,[T]> {
-        self.inner.range.as_mut()
+        self.inner.range.borrow_mut()
     }
-    /*
-    #[inline(always)]
-    pub fn get_range(&mut self) -> &mut PMut<'b,[T]> {
-        &mut self.inner.range
-    }
-    */
 }
 impl<'a, T: Node> PMut<'a, T> {
     

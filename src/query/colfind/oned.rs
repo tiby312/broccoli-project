@@ -95,7 +95,7 @@ pub fn find_perp_2d1<A:Axis,F: ColMulti>(
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
 
     for y in r1.iter_mut(){
-        self.find_bijective_parallel(axis,(r2.as_mut(),y.into_slice()),&mut b);
+        self.find_bijective_parallel(axis,(r2.borrow_mut(),y.into_slice()),&mut b);
     }
     */
     
@@ -105,9 +105,9 @@ pub fn find_perp_2d1<A:Axis,F: ColMulti>(
     // benched and this is the slowest.
     /*
     for mut inda in r1.iter_mut() {
-        for mut indb in r2.as_mut().iter_mut() {
+        for mut indb in r2.borrow_mut().iter_mut() {
             if inda.get().intersects_rect(indb.get()) {
-                clos2.collide(inda.as_mut(), indb.as_mut());
+                clos2.collide(inda.borrow_mut(), indb.borrow_mut());
             }
         }
     }
@@ -153,7 +153,7 @@ fn find<'a, A: Axis, F: ColMulti>(
                     .get_range(axis)
                     .intersects(that_bot.get().get_range(axis)));
 
-                func.collide(curr_bot.as_mut(), that_bot.as_mut());
+                func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
             }
         }
         active.push(curr_bot);
@@ -195,7 +195,7 @@ fn find_bijective_parallel2<'a,A: Axis, F: ColMulti,K>(
             }
 
             debug_assert!(x.get().get_range(axis).intersects(y.get().get_range(axis)));
-            func.collide(x.as_mut(), y.as_mut());
+            func.collide(x.borrow_mut(), y.borrow_mut());
         }
     }
 }
@@ -377,7 +377,7 @@ pub(crate) fn get_section_mut<'a, I: Aabb, A: Axis>(
 
 
     let mut end = arr.as_ref().len();
-    for (e, i) in arr.as_mut().truncate_from(start..).iter().enumerate() {
+    for (e, i) in arr.borrow_mut().truncate_from(start..).iter().enumerate() {
         let rr = i.get().get_range(axis);
         if rr.start > range.end {
             end = start + e;

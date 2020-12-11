@@ -651,7 +651,7 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
             fine,
             _p: PhantomData,
         };
-        raycast::raycast_naive_mut(self.bots.as_mut(), ray, &mut rtrait, border)
+        raycast::raycast_naive_mut(self.bots.borrow_mut(), ray, &mut rtrait, border)
     }
 
     #[must_use]
@@ -669,24 +669,24 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
             fine,
             _p: PhantomData,
         };
-        k_nearest::k_nearest_naive_mut(self.bots.as_mut(), point, num, &mut knear)
+        k_nearest::k_nearest_naive_mut(self.bots.borrow_mut(), point, num, &mut knear)
     }
 }
 
 impl<'a, T: Aabb> NaiveAlgs<'a, T> {
     pub fn for_all_in_rect_mut(&mut self, rect: &Rect<T::Num>, func: impl FnMut(PMut<T>)) {
-        rect::naive_for_all_in_rect_mut(self.bots.as_mut(), rect, func);
+        rect::naive_for_all_in_rect_mut(self.bots.borrow_mut(), rect, func);
     }
     pub fn for_all_not_in_rect_mut(&mut self, rect: &Rect<T::Num>, func: impl FnMut(PMut<T>)) {
-        rect::naive_for_all_not_in_rect_mut(self.bots.as_mut(), rect, func);
+        rect::naive_for_all_not_in_rect_mut(self.bots.borrow_mut(), rect, func);
     }
 
     pub fn for_all_intersect_rect_mut(&mut self, rect: &Rect<T::Num>, func: impl FnMut(PMut<T>)) {
-        rect::naive_for_all_intersect_rect_mut(self.bots.as_mut(), rect, func);
+        rect::naive_for_all_intersect_rect_mut(self.bots.borrow_mut(), rect, func);
     }
 
     pub fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<T>, PMut<T>)) {
-        colfind::query_naive_mut(self.bots.as_mut(), |a, b| func(a, b));
+        colfind::query_naive_mut(self.bots.borrow_mut(), |a, b| func(a, b));
     }
 }
 
@@ -702,6 +702,6 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
 
     //#[cfg(feature = "nbody")]
     pub fn nbody(&mut self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        nbody::naive_mut(self.bots.as_mut(), func);
+        nbody::naive_mut(self.bots.borrow_mut(), func);
     }
 }

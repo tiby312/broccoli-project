@@ -209,8 +209,8 @@ fn handle_anchor_with_children<
         type AnchorAxis = B;
 
         fn handle_node<A: Axis>(&mut self, _axis: A, mut b: PMut<J::T>, anchor: &mut Anchor<B, J>) {
-            for i in anchor.range.as_mut().iter_mut() {
-                self.ncontext.handle_bot_with_bot(i, b.as_mut());
+            for i in anchor.range.borrow_mut().iter_mut() {
+                self.ncontext.handle_bot_with_bot(i, b.borrow_mut());
             }
         }
         fn handle_node_far_enough<A: Axis>(
@@ -219,7 +219,7 @@ fn handle_anchor_with_children<
             a: &mut N::No,
             anchor: &mut Anchor<B, J>,
         ) {
-            for i in anchor.range.as_mut().iter_mut() {
+            for i in anchor.range.borrow_mut().iter_mut() {
                 self.ncontext.handle_node_with_bot(a, i);
             }
         }
@@ -251,8 +251,8 @@ fn handle_anchor_with_children<
         type AnchorAxis = B;
 
         fn handle_node<A: Axis>(&mut self, _axis: A, mut b: PMut<J::T>, anchor: &mut Anchor<B, J>) {
-            for i in anchor.range.as_mut().iter_mut() {
-                self.ncontext.handle_bot_with_bot(i, b.as_mut());
+            for i in anchor.range.borrow_mut().iter_mut() {
+                self.ncontext.handle_bot_with_bot(i, b.borrow_mut());
             }
         }
         fn handle_node_far_enough<A: Axis>(
@@ -261,7 +261,7 @@ fn handle_anchor_with_children<
             a: &mut N::No,
             anchor: &mut Anchor<B, J>,
         ) {
-            for i in anchor.range.as_mut().iter_mut() {
+            for i in anchor.range.borrow_mut().iter_mut() {
                 self.ncontext.handle_node_with_bot(a, i);
             }
         }
@@ -322,7 +322,7 @@ fn handle_left_with_right<
         type J = J;
         type AnchorAxis = B;
         fn handle_node<A: Axis>(&mut self, _axis: A, b: PMut<J::T>, _anchor: &mut Anchor<B, J>) {
-            self.ncontext.handle_bot_with_bot(self.bot.as_mut(), b);
+            self.ncontext.handle_bot_with_bot(self.bot.borrow_mut(), b);
         }
         fn handle_node_far_enough<A: Axis>(
             &mut self,
@@ -330,7 +330,7 @@ fn handle_left_with_right<
             a: &mut N::No,
             _anchor: &mut Anchor<B, J>,
         ) {
-            self.ncontext.handle_node_with_bot(a, self.bot.as_mut());
+            self.ncontext.handle_node_with_bot(a, self.bot.borrow_mut());
         }
         fn is_far_enough<A: Axis>(
             &mut self,
@@ -467,13 +467,13 @@ fn recc<
             };
 
             //handle bots in itself
-            tools::for_every_pair(nn.bots.as_mut(), |a, b| ncontext.handle_bot_with_bot(a, b));
+            tools::for_every_pair(nn.bots.borrow_mut(), |a, b| ncontext.handle_bot_with_bot(a, b));
             {
                 let l1 = wrap_mut(&mut left);
                 let l2 = wrap_mut(&mut right);
                 let mut anchor = Anchor {
                     axis,
-                    range: nn.bots.as_mut(),
+                    range: nn.bots.borrow_mut(),
                     div: *div,
                 };
 

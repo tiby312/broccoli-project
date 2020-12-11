@@ -95,7 +95,7 @@ impl<'a, T: Aabb> Node for NodeMut<'a, T> {
     }
     fn get_mut(&mut self) -> NodeRefMut<Self::T> {
         NodeRefMut {
-            bots: self.range.as_mut(),
+            bots: self.range.borrow_mut(),
             cont: &self.cont,
             div: &self.div,
         }
@@ -144,7 +144,7 @@ impl<'a, T: Aabb> NodeMut<'a, T> {
     }
     pub fn get_mut(&mut self) -> NodeRefMut<T> {
         NodeRefMut {
-            bots: self.range.as_mut(),
+            bots: self.range.borrow_mut(),
             cont: &self.cont,
             div: &self.div,
         }

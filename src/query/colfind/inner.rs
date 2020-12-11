@@ -101,7 +101,7 @@ impl<
                 if let Some(_)=nn.div{
                  
                     
-                    sweeper.handle_node(this_axis.next(), nn.as_mut().into_range());
+                    sweeper.handle_node(this_axis.next(), nn.borrow_mut().into_range());
 
 
                     if let Some(nn)=DestructuredNode::new(this_axis,nn){
@@ -190,7 +190,7 @@ impl<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> ColFindRecurser<T, 
                 //This simplifies query algorithms that might be building up 
                 //a tree.
                 if let Some(_)=nn.div{
-                    sweeper.handle_node(this_axis.next(), nn.as_mut().into_range());
+                    sweeper.handle_node(this_axis.next(), nn.borrow_mut().into_range());
 
 
                     if let Some(nn)=DestructuredNode::new(this_axis,nn){

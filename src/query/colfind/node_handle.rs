@@ -139,9 +139,9 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
 
         if res {
             for mut a in current.node.into_range().iter_mut() {
-                for mut b in anchor.node.as_mut().into_range().iter_mut() {
+                for mut b in anchor.node.borrow_mut().into_range().iter_mut() {
                     if a.get().intersects_rect(b.get()) {
-                        func.collide(a.as_mut(), b.as_mut());
+                        func.collide(a.borrow_mut(), b.borrow_mut());
                     }
                 }
             }
@@ -202,14 +202,14 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
 
             let r2 = oned::get_section_mut(
                 current.axis,
-                anchor.node.as_mut().into_range(), cc2);
+                anchor.node.borrow_mut().into_range(), cc2);
             
             oned::find_perp_2d1(current.axis,r1,r2, func);
         } else if current.cont().intersects(anchor.cont()) {
             oned::find_parallel_2d(
                 current.axis.next(),
                 current.node.into_range(),
-                anchor.node.as_mut().into_range(),
+                anchor.node.borrow_mut().into_range(),
                 func,
             );
         }
