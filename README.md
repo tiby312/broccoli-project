@@ -1,9 +1,10 @@
 ### Overview
 
 Broccoli is a broadphase collision detection library. 
-Checkout the [github repo](https://github.com/tiby312/broccoli) and on [crates.io](https://crates.io/crates/broccoli).
 
 The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
+
+Checkout the [github repo](https://github.com/tiby312/broccoli) and on [crates.io](https://crates.io/crates/broccoli).
 
 ### Inner projects
 
