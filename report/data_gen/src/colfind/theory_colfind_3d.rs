@@ -213,7 +213,7 @@ fn draw_rects(rects: &mut [Record], fb: &mut FigureBuilder, name1: &str) {
                 y.clone(),
                 z1.clone(),
                 &[
-                    Caption("Dinotree"),
+                    Caption("broccoli"),
                     PointSymbol('O'),
                     Color(COLS[0]),
                     PointSize(1.0),

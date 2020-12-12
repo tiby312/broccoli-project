@@ -188,7 +188,7 @@ fn handle2d(fb: &mut FigureBuilder) {
     fg.axes2d()
         .set_pos_grid(2, 1, 1)
         .set_title("Bench times with different numbers of objects per node (seq,colfind) with abspiral(10000,2.0)", &[])
-        .points(x,y,&[Color(COLS[1]), LineWidth(2.0)])
+        .points(x,y,&[Color(COLS[0]), LineWidth(2.0)])
         .set_x_label("Tree Height", &[])
         .set_y_label("Time in seconds", &[]);
 
