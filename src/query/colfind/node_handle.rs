@@ -191,13 +191,15 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
                 func,
             );
             */
+            
             //This is faster than above.
             oned::find_parallel_2d(
-                current.axis,
+                current.axis.next(),
                 anchor.node.borrow_mut().into_range(),
                 current.node.into_range(),
                 func,
             );
+            
         }
     }
 }
