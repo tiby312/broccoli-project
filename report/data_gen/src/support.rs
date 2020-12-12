@@ -260,3 +260,29 @@ pub fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
         r
     })
 }
+
+
+use broccoli::pmut::PMut;
+pub fn abspiral_all(
+    num:usize,
+    grow:f64,halfway:impl FnOnce()){
+    
+    struct Bot{
+        inner:usize
+    }
+    
+    let mut cc:Vec<_>=abspiral_f32_nan(grow).take(num).map(|a|bbox(a,Bot{inner:0})).collect();
+
+    let mut ccref:Vec<_>=cc.iter_mut().map(|a|bbox(a.rect,&mut a.inner)).collect();
+
+
+    let mut tree=broccoli::new(&mut ccref);
+
+    halfway();
+
+    tree.find_colliding_pairs_mut(|a,b|{
+        a.unpack_inner().inner+=1;
+        b.unpack_inner().inner+=1;
+    });
+
+}
