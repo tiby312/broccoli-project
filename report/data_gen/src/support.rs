@@ -176,7 +176,7 @@ pub const COLS: &[&str] = &[
     "yellow",
     "aquamarine",
     "turquoise",
-    "green"
+    "green",
 ];
 
 pub fn bench_closure(func: impl FnOnce()) -> f64 {

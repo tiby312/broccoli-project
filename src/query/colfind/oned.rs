@@ -124,27 +124,24 @@ fn find<'a, A: Axis, F: ColMulti>(axis: A, collision_botids: PMut<'a, [F::T]>, f
     //     in the axisList.
 
     let mut active: Vec<PMut<F::T>> = Vec::new();
-   
+
     for mut curr_bot in collision_botids.iter_mut() {
-        {
-        
-            let crr = *curr_bot.get().get_range(axis);
-            
-            active.retain_mut_unordered(|that_bot|{
-                if that_bot.get().get_range(axis).end > crr.start{
-                    debug_assert!(curr_bot
-                        .get()
-                        .get_range(axis)
-                        .intersects(that_bot.get().get_range(axis)));
-    
-                    func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
-                    true
-                }else{
-                    false
-                }
-            });
-            
-        }
+        let crr = *curr_bot.get().get_range(axis);
+
+        active.retain_mut_unordered(|that_bot| {
+            if that_bot.get().get_range(axis).end > crr.start {
+                debug_assert!(curr_bot
+                    .get()
+                    .get_range(axis)
+                    .intersects(that_bot.get().get_range(axis)));
+
+                func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
+                true
+            } else {
+                false
+            }
+        });
+
         active.push(curr_bot);
     }
 }
@@ -170,22 +167,21 @@ fn find_bijective_parallel2<'a, A: Axis, F: ColMulti, K>(
             active_x.push(x);
         }
 
-        let yr=*y.get().get_range(axis);
+        let yr = *y.get().get_range(axis);
         //Prune all the x's that are no longer touching the y.
-        active_x.retain_mut_unordered(|x|{
-
-            if x.get().get_range(axis).end > yr.start{
+        active_x.retain_mut_unordered(|x| {
+            if x.get().get_range(axis).end > yr.start {
                 //So at this point some of the x's could actualy not intersect y.
                 //These are the x's that are to the complete right of y.
                 //So to handle collisions, we want to make sure to not hit these.
                 //That is why have an if condition.
-                
+
                 if x.get().get_range(axis).start < yr.end {
                     debug_assert!(x.get().get_range(axis).intersects(&yr));
                     func.collide(x.borrow_mut(), y.borrow_mut());
                 }
                 true
-            }else{
+            } else {
                 false
             }
         });
