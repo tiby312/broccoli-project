@@ -25,29 +25,29 @@ pub trait RetainMutUnordered<T> {
 
 
 impl<T> RetainMutUnordered<T> for Vec<T> {
+
     fn retain_mut_unordered<F>(&mut self, mut f: F)
     where
         F: FnMut(&mut T) -> bool,
     {
         let len = self.len();
-        let mut del = len-1;
+        let mut del = 0;
         {
             let v = &mut **self;
-    
+
             let mut cursor=0;
             for _ in 0..len {
                 if !f(&mut v[cursor]) {
-                    v.swap(cursor,del);
-                    del-=1;
+                    v.swap(cursor,len-1-del);
+                    del+=1;
                     
                 }else{
                     cursor+=1;
                 }
             }
         }
-        if del != len-1 {
-            self.truncate(del);
+        if del > 0 {
+            self.truncate(len-del);
         }
-    }
-    
+    }    
 }

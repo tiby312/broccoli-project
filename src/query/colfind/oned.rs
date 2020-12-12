@@ -129,16 +129,19 @@ fn find<'a, A: Axis, F: ColMulti>(axis: A, collision_botids: PMut<'a, [F::T]>, f
     for mut curr_bot in collision_botids.iter_mut() {
         {
             {
-                let crr = curr_bot.get().get_range(axis);
+                let crr = *curr_bot.get().get_range(axis);
                 //change this to do retain and then iter
                 //active.retain(move |that_bot| that_bot.get().get_range(axis).end > crr.start);
                 
-                active.retain_mut_unordered(move |that_bot|{
+                active.retain_mut_unordered(|that_bot|{
                     that_bot.get().get_range(axis).end > crr.start
                 });
                 
+                
+                
+                
             }
-
+            
             for that_bot in active.iter_mut() {
                 debug_assert!(curr_bot
                     .get()
@@ -147,6 +150,8 @@ fn find<'a, A: Axis, F: ColMulti>(axis: A, collision_botids: PMut<'a, [F::T]>, f
 
                 func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
             }
+            
+            
         }
         active.push(curr_bot);
     }
@@ -181,17 +186,17 @@ fn find_bijective_parallel2<'a, A: Axis, F: ColMulti, K>(
             x.get().get_range(axis).end > y.get().get_range(axis).start
         });
         
+        
+        
         //So at this point some of the x's could actualy not intersect y.
         //These are the x's that are to the complete right of y.
         //So to handle collisions, we want to make sure to not hit these.
         //That is why we have that condition to break out of the below loop
         for x in active_x.iter_mut() {
-            if x.get().get_range(axis).start >= y.get().get_range(axis).end {
-                break;
+            if x.get().get_range(axis).start < y.get().get_range(axis).end {
+                debug_assert!(x.get().get_range(axis).intersects(y.get().get_range(axis)));
+                func.collide(x.borrow_mut(), y.borrow_mut());
             }
-
-            debug_assert!(x.get().get_range(axis).intersects(y.get().get_range(axis)));
-            func.collide(x.borrow_mut(), y.borrow_mut());
         }
         
         
