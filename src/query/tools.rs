@@ -15,3 +15,39 @@ pub(crate) fn for_every_pair<T: Aabb>(mut arr: PMut<[T]>, mut func: impl FnMut(P
         }
     }
 }
+
+pub trait RetainMutUnordered<T> {
+
+    fn retain_mut_unordered<F>(&mut self, f: F)
+    where
+        F: FnMut(&mut T) -> bool;
+}
+
+
+impl<T> RetainMutUnordered<T> for Vec<T> {
+    fn retain_mut_unordered<F>(&mut self, mut f: F)
+    where
+        F: FnMut(&mut T) -> bool,
+    {
+        let len = self.len();
+        let mut del = len-1;
+        {
+            let v = &mut **self;
+    
+            let mut cursor=0;
+            for _ in 0..len {
+                if !f(&mut v[cursor]) {
+                    v.swap(cursor,del);
+                    del-=1;
+                    
+                }else{
+                    cursor+=1;
+                }
+            }
+        }
+        if del != len-1 {
+            self.truncate(del);
+        }
+    }
+    
+}

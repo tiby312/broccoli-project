@@ -1,6 +1,8 @@
 use super::super::ColMulti;
 use crate::query::inner_prelude::*;
 
+use super::tools::RetainMutUnordered;
+
 //For sweep and prune type algorithms, we can narrow down which bots
 //intersection in one dimension. We also need to check the other direction
 //because we know for sure they are colliding. That is the purpose of
@@ -129,7 +131,12 @@ fn find<'a, A: Axis, F: ColMulti>(axis: A, collision_botids: PMut<'a, [F::T]>, f
             {
                 let crr = curr_bot.get().get_range(axis);
                 //change this to do retain and then iter
-                active.retain(move |that_bot| that_bot.get().get_range(axis).end > crr.start);
+                //active.retain(move |that_bot| that_bot.get().get_range(axis).end > crr.start);
+                
+                active.retain_mut_unordered(move |that_bot|{
+                    that_bot.get().get_range(axis).end > crr.start
+                });
+                
             }
 
             for that_bot in active.iter_mut() {
@@ -166,9 +173,14 @@ fn find_bijective_parallel2<'a, A: Axis, F: ColMulti, K>(
             active_x.push(x);
         }
 
+        
         //Prune all the x's that are no longer touching the y.
-        active_x.retain(|x| x.get().get_range(axis).end > y.get().get_range(axis).start);
-
+        //active_x.retain(|x| x.get().get_range(axis).end > y.get().get_range(axis).start);
+        
+        active_x.retain_mut_unordered(|x|{
+            x.get().get_range(axis).end > y.get().get_range(axis).start
+        });
+        
         //So at this point some of the x's could actualy not intersect y.
         //These are the x's that are to the complete right of y.
         //So to handle collisions, we want to make sure to not hit these.
@@ -181,6 +193,8 @@ fn find_bijective_parallel2<'a, A: Axis, F: ColMulti, K>(
             debug_assert!(x.get().get_range(axis).intersects(y.get().get_range(axis)));
             func.collide(x.borrow_mut(), y.borrow_mut());
         }
+        
+        
     }
 }
 
