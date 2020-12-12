@@ -45,7 +45,7 @@ pub fn find_parallel_2d<A: Axis, F: ColMulti>(
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
 
-    self::find_bijective_parallel(axis, (bots1, bots2), &mut b);
+    self::find_other_parallel(axis, (bots1, bots2), &mut b);
 }
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
@@ -80,7 +80,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     let mut rr1: Vec<PMut<F::T>> = r1.iter_mut().collect();
 
     rr1.sort_unstable_by(|a, b| compare_bots(axis, a, b));
-    self::find_bijective_parallel2(axis, (r2, PMut::new(&mut rr1)), |a| a.flatten(), &mut b);
+    self::find_other_parallel2(axis, (r2, PMut::new(&mut rr1)), |a| a.flatten(), &mut b);
 
     //exploit the fact that they are sorted along an axis to
     //reduce the number of checks.
@@ -90,7 +90,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
 
     for y in r1.iter_mut(){
-        self.find_bijective_parallel(axis,(r2.borrow_mut(),y.into_slice()),&mut b);
+        self.find_other_parallel(axis,(r2.borrow_mut(),y.into_slice()),&mut b);
     }
     */
 
@@ -147,7 +147,7 @@ fn find<'a, A: Axis, F: ColMulti>(axis: A, collision_botids: PMut<'a, [F::T]>, f
 }
 
 // needed for OPTION1
-fn find_bijective_parallel2<'a, A: Axis, F: ColMulti, K>(
+fn find_other_parallel2<'a, A: Axis, F: ColMulti, K>(
     axis: A,
     cols: (PMut<'a, [F::T]>, PMut<[K]>),
     mut conv: impl FnMut(PMut<K>) -> PMut<F::T>,
@@ -191,12 +191,12 @@ fn find_bijective_parallel2<'a, A: Axis, F: ColMulti, K>(
     }
 }
 
-fn find_bijective_parallel<'a, A: Axis, F: ColMulti>(
+fn find_other_parallel<'a, A: Axis, F: ColMulti>(
     axis: A,
     cols: (PMut<'a, [F::T]>, PMut<'a, [F::T]>),
     func: &mut F,
 ) {
-    self::find_bijective_parallel2(axis, cols, |a| a, func)
+    self::find_other_parallel2(axis, cols, |a| a, func)
 }
 
 #[test]
@@ -261,7 +261,7 @@ fn test_parallel() {
     let mut test1 = Test {
         set: BTreeSet::new(),
     };
-    self::find_bijective_parallel(
+    self::find_other_parallel(
         axgeom::XAXIS,
         (PMut::new(&mut left), PMut::new(&mut right)),
         &mut test1,
@@ -270,7 +270,7 @@ fn test_parallel() {
     let mut test2 = Test {
         set: BTreeSet::new(),
     };
-    self::find_bijective_parallel(
+    self::find_other_parallel(
         axgeom::XAXIS,
         (PMut::new(&mut right), PMut::new(&mut left)),
         &mut test2,
