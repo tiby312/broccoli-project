@@ -10,7 +10,7 @@ Currently, all elements are sorted using the left or top side of the aabb. It wo
 
 #### Pointer Compression
 
-The broccoli tree data structure can be very pointer heavy. There may be some gains from using pointer compression if only during construction. During the query phase, i'm almost certain that using pointer compression would be slow given the extra overhead of having to unpack each pointer. However, if the tree was constructed with `BBox<N,u16>` which was then converted to `BBox<N,&mut T>` then maybe construction would be faster provided the conversion isnt too slow.
+The broccoli tree data structure can be very pointer heavy. There may be some gains from using pointer compression if only during construction. During the query phase, i'm certain that using pointer compression would be slow given the extra overhead of having to unpack each pointer. However, if the tree was constructed with `BBox<N,u16>` which was then converted to `BBox<N,&mut T>` then maybe construction would be faster provided the conversion isnt too slow.
 A cleaner solution would just be to target a 32bit arch instead of 64bit. (Sidenode: The webassembly arch is 
 32bit)
 

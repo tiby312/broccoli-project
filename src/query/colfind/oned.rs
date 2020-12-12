@@ -160,14 +160,16 @@ fn find_bijective_parallel2<'a, A: Axis, F: ColMulti, K>(
     let mut active_x: Vec<PMut<F::T>> = Vec::new();
     for y in ys {
         let mut y = conv(y);
+        
+        let yr = *y.get().get_range(axis);
+        
         //Add all the x's that are touching the y to the active x.
         for x in
-            xs.peeking_take_while(|x| x.get().get_range(axis).start <= y.get().get_range(axis).end)
+            xs.peeking_take_while(|x| x.get().get_range(axis).start <= yr.end)
         {
             active_x.push(x);
         }
 
-        let yr = *y.get().get_range(axis);
         //Prune all the x's that are no longer touching the y.
         active_x.retain_mut_unordered(|x| {
             if x.get().get_range(axis).end > yr.start {
@@ -175,7 +177,6 @@ fn find_bijective_parallel2<'a, A: Axis, F: ColMulti, K>(
                 //These are the x's that are to the complete right of y.
                 //So to handle collisions, we want to make sure to not hit these.
                 //That is why have an if condition.
-
                 if x.get().get_range(axis).start < yr.end {
                     debug_assert!(x.get().get_range(axis).intersects(&yr));
                     func.collide(x.borrow_mut(), y.borrow_mut());
@@ -185,6 +186,8 @@ fn find_bijective_parallel2<'a, A: Axis, F: ColMulti, K>(
                 false
             }
         });
+
+
     }
 }
 
