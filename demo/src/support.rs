@@ -16,4 +16,16 @@ pub mod prelude {
     pub use duckduckgeo::*;
     pub use egaku2d::*;
     pub use ordered_float::NotNan;
+    pub use crate::*;
+}
+
+
+use broccoli::*;
+use axgeom::ordered_float::NotNan;
+pub fn point_to_rect_f32(a:axgeom::Vec2<f32>,radius:f32)->Rect<NotNan<f32>>{
+    Rect::from_point(a,axgeom::vec2same(radius)).inner_try_into().unwrap()
+}
+
+pub fn distribute<X,T:Num>(inner:&mut [X],mut func:impl FnMut(&X)->Rect<T>)->Vec<BBox<T,&mut X>>{
+    inner.iter_mut().map(|a|bbox(func(a),a)).collect()
 }

@@ -6,7 +6,7 @@ pub struct Bot {
     pos: Vec2<f32>,
     vel: Vec2<f32>,
     force: Vec2<f32>,
-    rect: Rect<f32>,
+    //rect: Rect<f32>,
     wall_move: [Option<(F32n, f32)>; 2],
 }
 
@@ -35,7 +35,6 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             vel: vec2same(0.0),
             force: vec2same(0.0),
             wall_move: [None; 2],
-            rect: Rect::from_point(pos, vec2same(radius)),
         })
         .collect();
 
@@ -71,22 +70,18 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
 
             duckduckgeo::wrap_position(&mut b.pos, dim.inner_into());
 
-            b.rect = Rect::from_point(b.pos, vec2same(radius));
         }
         bots[0].pos = cursor.inner_into();
 
-        let mut k = bots
-            .iter_mut()
-            .map(|b| bbox(b.rect.inner_try_into().unwrap(), b))
-            .collect::<Vec<_>>();
+        let mut k=support::distribute(&mut bots,|b|support::point_to_rect_f32(b.pos,radius));
 
         {
             let mut walls = walls.iter_mut().map(|a| bbox(a.0, a)).collect::<Vec<_>>();
-            //let mut walls = bbox_helper::create_bbox_mut(&mut walls, |wall| wall.0);
+            
             let mut tree = broccoli::new_par(&mut k);
 
-            tree.intersect_with_mut(&mut walls, |bot, wall| {
-                let bot = bot.unpack_inner();
+            tree.intersect_with_mut(&mut walls, |bot2, wall| {
+                let (rect,bot) = bot2.unpack();
                 let wall = wall.unpack_inner();
 
                 let fric = 0.8;
@@ -96,7 +91,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 let vel = bot.vel;
 
                 let ret = match duckduckgeo::collide_with_rect::<f32>(
-                    &bot.rect.inner_into(),
+                    &rect.inner_into(),
                     wall.0.as_ref(),
                 )
                 .unwrap()
