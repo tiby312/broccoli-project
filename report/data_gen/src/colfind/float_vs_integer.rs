@@ -51,7 +51,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_i32 = {
-            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+            let bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
             let border = compute_border(&bb).unwrap();
 
@@ -160,7 +160,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_u16_par = {
-            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+            let bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
             let border = compute_border(&bb).unwrap();
 

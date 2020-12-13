@@ -72,21 +72,11 @@ fn handle2(fb: &mut FigureBuilder) {
     fn make(grow: f64) -> Vec<Vec2<f32>> {
         let mut bot_inner: Vec<_> = (0..1000).map(|_| 0isize).collect();
 
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+        let bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
         bots.into_iter()
             .map(|a| vec2(*a.rect.x.start, *a.rect.y.start))
             .collect()
-        /*
-        let num_bots = 1000;
-
-        let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64);
-
-        let bots: Vec<Vec2<f32>> = s
-            .map(|[x, y]| vec2(x as f32, y as f32))
-            .take(num_bots)
-            .collect();
-        bots
-        */
+        
     };
 
     let mut fg = fb.build("spiral_visualize");

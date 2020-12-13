@@ -1,10 +1,6 @@
 use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
 
-#[derive(Copy, Clone)]
-pub struct Bot {
-    pos: Vec2<i32>,
-}
 
 struct Res {
     num_pairs: usize,

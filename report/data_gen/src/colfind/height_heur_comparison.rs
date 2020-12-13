@@ -1,10 +1,6 @@
 use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
-#[derive(Copy, Clone)]
-pub struct Bot {
-    pos: Vec2<i32>,
-    num: usize,
-}
+
 
 pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> f64 {
     bench_closure(|| {

@@ -42,7 +42,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     let mut walls: Vec<_> = rand2_iter(dim.inner_into())
         .zip(rand_iter(10.0, 60.0))
         .map(|([x, y], radius)| (vec2(x, y), vec2same(radius)))
-        .take(40)
+        .take(10)
         .map(|(pos, radius)| Wall(Rect::from_point(pos, radius).inner_try_into().unwrap()))
         .collect();
 

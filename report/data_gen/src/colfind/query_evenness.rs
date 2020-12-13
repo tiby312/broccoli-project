@@ -1,15 +1,9 @@
 use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
-#[derive(Copy, Clone)]
-pub struct Bot {
-    pos: Vec2<i32>,
-    num: usize,
-}
 
 type LTree = compt::dfs_order::CompleteTreeContainer<usize, compt::dfs_order::PreOrder>;
 
 struct TheoryRes {
-    grow: f64,
     query: LTree,
 }
 
@@ -36,7 +30,7 @@ fn handle_inner_theory(num_bots: usize, grow: f64) -> TheoryRes {
         levelc2.into_tree()
     });
 
-    TheoryRes { grow, query }
+    TheoryRes {  query }
 }
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
@@ -50,7 +44,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
 
     use gnuplot::*;
 
-    fn draw_graph(title_name: &str, fg: &mut Figure, res: TheoryRes, rebal: bool, pos: usize) {
+    fn draw_graph(title_name: &str, fg: &mut Figure, res: TheoryRes, pos: usize) {
         let ax = fg
             .axes2d()
             .set_pos_grid(2, 1, pos as u32)
@@ -59,8 +53,6 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             .set_y_label("Number of Comparisons", &[]);
 
         use broccoli::compt::Visitor;
-        let xx = res.query.get_nodes().len() / res.query.get_height();
-        let height = res.query.get_height();
         for (i, (depth, element)) in res
             .query
             .vistr()
@@ -68,7 +60,6 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             .dfs_inorder_iter()
             .enumerate()
         {
-            let s = format!("depth:{}", depth.0);
             let width = 2;
             let col = COLS.iter().cycle().nth(depth.0).unwrap();
             ax.boxes_set_width(
@@ -88,7 +79,6 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         ),
         &mut fg,
         res1,
-        false,
         0,
     );
     draw_graph(
@@ -98,7 +88,6 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         ),
         &mut fg,
         res2,
-        false,
         1,
     );
     fb.finish(fg);

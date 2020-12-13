@@ -1,10 +1,5 @@
 use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
-#[derive(Copy, Clone)]
-pub struct Bot {
-    pos: Vec2<i32>,
-    num: usize,
-}
 
 struct TheoryRes {
     grow: f64,
@@ -17,7 +12,7 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) ->
     for grow in grow_iter {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
-        let (rebal, query, height) = datanum::datanum_test2(|maker| {
+        let (rebal, query) = datanum::datanum_test2(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
             let mut levelc = LevelCounter::new();
@@ -35,12 +30,11 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) ->
 
             (
                 levelc.into_levels(),
-                levelc2.into_levels(),
-                tree.get_height(),
+                levelc2.into_levels()
             )
         });
 
-        let mut t = TheoryRes { grow, rebal, query };
+        let t = TheoryRes { grow, rebal, query };
 
         assert_eq!(t.rebal.len(), t.query.len());
         rects.push(t)
@@ -74,14 +68,13 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> 
             &mut times2,
         );
 
-        let mut t = BenchRes {
+        let t = BenchRes {
             grow,
             rebal: times1.into_levels(),
             query: times2.into_levels(),
         };
         assert_eq!(t.rebal.len(), t.query.len());
-        let height = tree.get_height();
-
+        
         assert_eq!(t.rebal.len(), t.query.len());
         rects.push(t)
     }

@@ -1,10 +1,6 @@
 use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
-#[derive(Copy, Clone)]
-pub struct Bot {
-    _num: usize,
-    pos: Vec2<i32>,
-}
+
 
 pub fn handle(fb: &mut FigureBuilder) {
     handle_num_bots(fb, 0.2);

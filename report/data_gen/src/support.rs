@@ -39,13 +39,6 @@ mod levelcounter {
             tree
         }
 
-        pub fn into_inorder_dfs(self) -> Vec<usize> {
-            let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
-            use compt::Visitor;
-
-            let vals: Vec<_> = tree.vistr().dfs_inorder_iter().map(|a| *a).collect();
-            vals
-        }
         pub fn into_levels(self) -> Vec<usize> {
             let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
 

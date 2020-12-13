@@ -1,10 +1,5 @@
 use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
-#[derive(Copy, Clone)]
-pub struct Bot {
-    num: usize,
-    pos: Vec2<i32>,
-}
 
 fn test1(bots: &mut [BBox<NotNan<f32>, &mut isize>]) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(bots).build_seq());
