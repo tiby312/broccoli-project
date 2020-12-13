@@ -7,7 +7,7 @@ pub struct Bot {
     vel: Vec2<f32>,
     force: Vec2<f32>,
     //rect: Rect<f32>,
-    wall_move: [Option<(F32n, f32)>; 2],
+    wall_move: [Option<(f32, f32)>; 2],
 }
 
 impl Bot {
@@ -23,25 +23,25 @@ impl Bot {
 }
 
 #[derive(Copy, Clone)]
-struct Wall(axgeom::Rect<F32n>);
+struct Wall(BBoxFloat<f32,()>);
 
-pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
+pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
     let radius = 5.0;
 
-    let mut bots=support::make_rand(4000,dim.inner_into(),|pos|Bot {
+    let mut bots=support::make_rand(4000,dim,|pos|Bot {
         pos,
         vel: vec2same(0.0),
         force: vec2same(0.0),
         wall_move: [None; 2],
     });
 
-    let mut walls=support::make_rand_rect(10,dim.inner_into(),[10.0,60.0],|a|{
-        Wall(a)
+    let mut walls=support::make_rand_rect(10,dim,[10.0,60.0],|a|{
+        Wall(bbox_float(a,()))
     });
     
     let mut rects = canvas.rects();
     for wall in walls.iter() {
-        rects.add(wall.0.inner_into().into());
+        rects.add(wall.0.rect.into());
     }
     let rect_save = rects.save(canvas);
 
@@ -50,12 +50,12 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             b.update();
 
             if let Some((pos, vel)) = b.wall_move[0] {
-                b.pos.x = pos.into_inner();
+                b.pos.x = pos;
                 b.vel.x = vel;
             }
 
             if let Some((pos, vel)) = b.wall_move[1] {
-                b.pos.y = pos.into_inner();
+                b.pos.y = pos;
                 b.vel.y = vel;
             }
 
@@ -67,26 +67,26 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         }
         bots[0].pos = cursor.inner_into();
 
-        let mut k=support::distribute(&mut bots,|b|support::point_to_rect_f32(b.pos,radius));
+        let mut k=support::distribute(&mut bots,|b|support::point_to_rect_f32(b.pos,radius).inner_into());
 
         {
-            let mut walls = walls.iter_mut().map(|a| bbox(a.0, a)).collect::<Vec<_>>();
+            let mut walls = walls.iter_mut().map(|a| &mut a.0).collect::<Vec<_>>();
             
             let mut tree = broccoli::new_par(&mut k);
 
             tree.intersect_with_mut(&mut walls, |bot2, wall| {
                 let (rect,bot) = bot2.unpack();
-                let wall = wall.unpack_inner();
+                let wall = &wall.rect;
 
                 let fric = 0.8;
 
-                let wallx = &wall.0.x;
-                let wally = &wall.0.y;
+                let wallx = &wall.x;
+                let wally = &wall.y;
                 let vel = bot.vel;
 
                 let ret = match duckduckgeo::collide_with_rect::<f32>(
                     &rect.inner_into(),
-                    wall.0.as_ref(),
+                    wall,
                 )
                 .unwrap()
                 {

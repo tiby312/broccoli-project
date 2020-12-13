@@ -14,12 +14,12 @@ use duckduckgeo::F32n;
 
 use self::support::prelude::*;
 
-pub struct Demo(Box<dyn FnMut(Vec2<F32n>, &mut SimpleCanvas, bool)>);
+pub struct Demo(Box<dyn FnMut(Vec2<f32>, &mut SimpleCanvas, bool)>);
 impl Demo {
-    pub fn new(func: impl FnMut(Vec2<F32n>, &mut SimpleCanvas, bool) + 'static) -> Self {
+    pub fn new(func: impl FnMut(Vec2<f32>, &mut SimpleCanvas, bool) + 'static) -> Self {
         Demo(Box::new(func))
     }
-    pub fn step(&mut self, point: Vec2<F32n>, sys: &mut SimpleCanvas, check_naive: bool) {
+    pub fn step(&mut self, point: Vec2<f32>, sys: &mut SimpleCanvas, check_naive: bool) {
         self.0(point, sys, check_naive);
     }
 }
@@ -37,19 +37,20 @@ mod demo_iter {
             let curr = self.0;
 
             let area = Rect::new(0.0, area.x as f32, 0.0, area.y as f32);
-            let area: Rect<F32n> = area.inner_try_into().unwrap();
-
+            
             let k: Demo = match curr {
+                0 => demo_intersect_with::make_demo(area, canvas),
+                
+                /*
                 0 => demo_original_order::make_demo(area),
                 1 => demo_liquid::make_demo(area),
                 2 => demo_raycast_f32::make_demo(area, canvas),
                 3 => demo_raycast_f32_debug::make_demo(area, canvas),
                 4 => demo_multirect::make_demo(area, canvas),
-                5 => demo_intersect_with::make_demo(area, canvas),
                 6 => demo_knearest::make_demo(area, canvas),
                 7 => demo_nbody::make_demo(area),
                 8 => demo_raycast_grid::make_demo(area, canvas),
-
+                */
                 _ => unreachable!("Not possible"),
             };
             self.0 += 1;

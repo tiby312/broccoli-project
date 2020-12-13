@@ -1,5 +1,59 @@
 use crate::inner_prelude::*;
 
+
+use axgeom::ordered_float::OrderedFloat;
+use axgeom::num_traits::float::FloatCore;
+
+
+pub fn bbox_float<N:FloatCore,T>(rect:Rect<N>,inner:T)->BBoxFloat<N,T>{
+    BBoxFloat{rect,inner}
+}
+
+#[derive(Copy,Clone,Debug)]
+pub struct BBoxFloat<N:FloatCore,T>{
+    pub rect:Rect<N>,
+    pub inner:T
+}
+
+unsafe impl<N:FloatCore, T> Aabb for &mut BBoxFloat<N, T> {
+    type Num = OrderedFloat<N>;
+    #[inline(always)]
+    fn get(&self) -> &Rect<Self::Num> {
+        unimplemented!()
+    }
+}
+
+unsafe impl<N:FloatCore, T> Aabb for BBoxFloat<N, T> {
+    type Num = OrderedFloat<N>;
+    #[inline(always)]
+    fn get(&self) -> &Rect<Self::Num> {
+        unimplemented!()
+    }
+}
+
+unsafe impl<N: FloatCore, T> HasInner for BBoxFloat<N, T> {
+    type Inner = T;
+
+    #[inline(always)]
+    fn get_inner_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        unimplemented!()
+        //(&self.rect, &mut self.inner)
+    }
+}
+
+unsafe impl<N: FloatCore, T> HasInner for &mut BBoxFloat<N, T> {
+    type Inner = T;
+
+    #[inline(always)]
+    fn get_inner_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        unimplemented!()
+        //(&self.rect, &mut self.inner)
+    }
+}
+
+
+
+
 ///Shorthand constructor of [`BBox`]
 #[inline(always)]
 #[must_use]
@@ -15,6 +69,7 @@ pub fn bbox<N, T>(rect: Rect<N>, inner: T) -> BBox<N, T> {
 ///* `BBox<N,T>`  (direct)
 ///* `&mut BBox<N,T>` (indirect)
 ///* `BBox<N,&mut T>` (rect direct, T indirect)
+#[deprecated]
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
 pub struct BBox<N, T> {
