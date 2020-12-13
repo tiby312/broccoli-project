@@ -160,13 +160,11 @@ fn find_other_parallel2<'a, A: Axis, F: ColMulti, K>(
     let mut active_x: Vec<PMut<F::T>> = Vec::new();
     for y in ys {
         let mut y = conv(y);
-        
+
         let yr = *y.get().get_range(axis);
-        
+
         //Add all the x's that are touching the y to the active x.
-        for x in
-            xs.peeking_take_while(|x| x.get().get_range(axis).start <= yr.end)
-        {
+        for x in xs.peeking_take_while(|x| x.get().get_range(axis).start <= yr.end) {
             active_x.push(x);
         }
 
@@ -186,8 +184,6 @@ fn find_other_parallel2<'a, A: Axis, F: ColMulti, K>(
                 false
             }
         });
-
-
     }
 }
 

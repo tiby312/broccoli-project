@@ -18,10 +18,7 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) ->
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
         let (rebal, query, height) = datanum::datanum_test2(|maker| {
-
-
-            let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32dnum(maker));
-       
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
             let mut levelc = LevelCounter::new();
             let mut tree = TreeBuilder::new(&mut bots).build_with_splitter_seq(&mut levelc);
@@ -63,9 +60,8 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> 
     let mut rects = Vec::new();
     for grow in grow_iter {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
-       
-        let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32n());
-       
+
+        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
         let mut times1 = LevelTimer::new();
 

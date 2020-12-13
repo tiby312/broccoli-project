@@ -24,10 +24,8 @@ fn handle_bench(fg: &mut Figure) {
 
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
-        
         let bench_integer = {
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_i32());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_i32());
 
             bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
@@ -40,8 +38,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_i64 = {
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_i64());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_i64());
 
             bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
@@ -54,8 +51,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_i32 = {
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f32n());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
             let border = {
                 let (first, rest) = bb.split_first().unwrap();
@@ -90,9 +86,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_ordered = {
-       
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f32ord());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32ord());
 
             bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
@@ -104,8 +98,7 @@ fn handle_bench(fg: &mut Figure) {
             })
         };
         let bench_float = {
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f32n());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
             bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
@@ -118,8 +111,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_par = {
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f32n());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
             bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
@@ -132,8 +124,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_integer_par = {
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f64n());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
             bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
@@ -146,8 +137,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_i64_par = {
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_i64());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_i64());
 
             bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
@@ -160,8 +150,8 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_f64 = {
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f64n());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f64n());
+
             bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
 
@@ -173,8 +163,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_f64_par = {
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f64n());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
             bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
@@ -187,8 +176,7 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_u16_par = {
-            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f32n());
-       
+            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
             let border = {
                 let (first, rest) = bb.split_first().unwrap();

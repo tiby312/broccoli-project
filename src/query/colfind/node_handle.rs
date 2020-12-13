@@ -191,7 +191,7 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
                 func,
             );
             */
-            
+
             //This is faster than above.
             oned::find_parallel_2d(
                 current.axis.next(),
@@ -199,7 +199,6 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
                 current.node.into_range(),
                 func,
             );
-            
         }
     }
 }

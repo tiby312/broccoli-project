@@ -18,7 +18,6 @@ fn test1(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
 
 fn test2(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
     bench_closure(|| {
-        
         let tree = TreeBuilder::new(scene)
             .with_bin_strat(BinStrat::NotChecked)
             .build_par();
@@ -29,7 +28,6 @@ fn test2(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
 
 fn test3(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
     bench_closure(|| {
-        
         let tree = TreeBuilder::new(scene)
             .with_bin_strat(BinStrat::Checked)
             .build_seq();
@@ -40,7 +38,6 @@ fn test3(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
 
 fn test4(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
     bench_closure(|| {
-        
         let tree = TreeBuilder::new(scene)
             .with_bin_strat(BinStrat::NotChecked)
             .build_seq();
@@ -95,13 +92,12 @@ fn handle_num_bots(fb: &mut FigureBuilder, grow: f64) {
 
     for num_bots in (0..700_000).step_by(5000) {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
-        
 
         let arr = [
-            test1(&mut distribute(grow,&mut bot_inner,|a|a.to_f32n())),
-            test2(&mut distribute(grow,&mut bot_inner,|a|a.to_f32n())),
-            test3(&mut distribute(grow,&mut bot_inner,|a|a.to_f32n())),
-            test4(&mut distribute(grow,&mut bot_inner,|a|a.to_f32n())),
+            test1(&mut distribute(grow, &mut bot_inner, |a| a.to_f32n())),
+            test2(&mut distribute(grow, &mut bot_inner, |a| a.to_f32n())),
+            test3(&mut distribute(grow, &mut bot_inner, |a| a.to_f32n())),
+            test4(&mut distribute(grow, &mut bot_inner, |a| a.to_f32n())),
         ];
 
         let r = Record { num_bots, arr };

@@ -11,12 +11,9 @@ struct Res {
     num_comparison: usize,
 }
 
-fn test1(grow:f64,inner:&mut [isize]) -> Res {
-    
+fn test1(grow: f64, inner: &mut [isize]) -> Res {
     let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
-            
-
-        let mut bots = distribute(grow,inner,|a|a.to_isize_dnum(maker));
+        let mut bots = distribute(grow, inner, |a| a.to_isize_dnum(maker));
 
         let mut tree = TreeBuilder::new(&mut bots).build_seq();
 
@@ -34,17 +31,14 @@ fn test1(grow:f64,inner:&mut [isize]) -> Res {
     }
 }
 
-fn test2(grow:f64,inner:&mut [isize]) -> Res {
-    
+fn test2(grow: f64, inner: &mut [isize]) -> Res {
     let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
-            
-        let mut bb = distribute(grow,inner,|a|a.to_isize_dnum(maker));
+        let mut bb = distribute(grow, inner, |a| a.to_isize_dnum(maker));
 
         let mut num_pairs = 0;
         find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |_a, _b| {
             num_pairs += 1;
         });
-
 
         num_pairs
     });
@@ -55,12 +49,9 @@ fn test2(grow:f64,inner:&mut [isize]) -> Res {
     }
 }
 
-fn test3(grow:f64,inner:&mut [isize]) -> Res {
-   
-
+fn test3(grow: f64, inner: &mut [isize]) -> Res {
     let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
-            
-        let mut bb = distribute(grow,inner,|a|a.to_isize_dnum(maker));
+        let mut bb = distribute(grow, inner, |a| a.to_isize_dnum(maker));
         let mut num_pairs = 0;
         NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|_a, _b| {
             num_pairs += 1;
@@ -75,12 +66,9 @@ fn test3(grow:f64,inner:&mut [isize]) -> Res {
     }
 }
 
-fn test4(grow:f64,inner:&mut [isize]) -> Res {
-    
-
+fn test4(grow: f64, inner: &mut [isize]) -> Res {
     let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
-        
-        let mut bots = distribute(grow,inner,|a|a.to_isize_dnum(maker));
+        let mut bots = distribute(grow, inner, |a| a.to_isize_dnum(maker));
         let mut tree = NotSorted::new_par(&mut bots);
 
         let mut num_pairs = 0;
@@ -119,13 +107,12 @@ fn handle_spiral(fb: &mut FigureBuilder) {
             let a: f64 = a as f64;
             0.0005 + a * 0.0002
         }) {
-            
             let mut scene: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
-            
-            let z1 = test1(grow,&mut scene);
-            let z2 = test2(grow,&mut scene);
-            let z3 = test3(grow,&mut scene);
-            let z4 = test4(grow,&mut scene);
+
+            let z1 = test1(grow, &mut scene);
+            let z2 = test2(grow, &mut scene);
+            let z3 = test3(grow, &mut scene);
+            let z4 = test4(grow, &mut scene);
 
             //black_box(scene.bots.drain(..).map(|a| a.num).count());
             black_box(scene);
@@ -142,7 +129,7 @@ fn handle_spiral(fb: &mut FigureBuilder) {
             let z4 = z4.num_comparison;
             let r = Record {
                 num_bots,
-                grow:grow as f32,
+                grow: grow as f32,
                 num_pairs,
                 z1,
                 z2,

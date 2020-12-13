@@ -7,7 +7,6 @@ pub struct Bot {
 }
 
 fn test1(bots: &mut [BBox<NotNan<f32>, &mut isize>]) -> (f64, f64) {
-    
     let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(bots).build_seq());
 
     let (tree, query_time) = bench_closure_ret(|| {
@@ -23,8 +22,11 @@ fn test1(bots: &mut [BBox<NotNan<f32>, &mut isize>]) -> (f64, f64) {
     (construction_time, query_time)
 }
 
-fn test3(bots: &mut [BBox<NotNan<f32>, &mut isize>], rebal_height: usize, query_height: usize) -> (f64, f64) {
-    
+fn test3(
+    bots: &mut [BBox<NotNan<f32>, &mut isize>],
+    rebal_height: usize,
+    query_height: usize,
+) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| {
         TreeBuilder::new(bots)
             .with_height_switch_seq(rebal_height)
@@ -53,7 +55,7 @@ pub fn handle(fb: &mut FigureBuilder) {
     //let s=dists::spiral::Spiral::new([400.0,400.0],17.0,grow);
 
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
-    
+
     /*
     let mut scene = bot::BotSceneBuilder::new(num_bots)
         .with_grow(0.2)
@@ -67,13 +69,21 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut rebals = Vec::new();
     for rebal_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {
-        let (a, _b) = test3(&mut distribute(0.2,&mut bot_inner,|a|a.to_f32n()), rebal_height, 4);
+        let (a, _b) = test3(
+            &mut distribute(0.2, &mut bot_inner, |a| a.to_f32n()),
+            rebal_height,
+            4,
+        );
         rebals.push((rebal_height, a));
     }
 
     let mut queries = Vec::new();
     for query_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {
-        let (_a, b) = test3(&mut distribute(0.2,&mut bot_inner,|a|a.to_f32n()), 4, query_height);
+        let (_a, b) = test3(
+            &mut distribute(0.2, &mut bot_inner, |a| a.to_f32n()),
+            4,
+            query_height,
+        );
         queries.push((query_height, b));
     }
 
@@ -84,7 +94,7 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut seqs = Vec::new();
     for _ in 0..100 {
-        let (a, b) = test1(&mut distribute(0.2,&mut bot_inner,|a|a.to_f32n()));
+        let (a, b) = test1(&mut distribute(0.2, &mut bot_inner, |a| a.to_f32n()));
         seqs.push((a, b));
     }
     let xx = seqs.iter().map(|_| height);

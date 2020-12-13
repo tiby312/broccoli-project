@@ -31,8 +31,8 @@ pub mod all {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
         let bench = Some({
-            let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32n());
-            
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+
             let (mut tree, t1) = bench_closure_ret(|| broccoli::new(&mut bots));
             let t2 = bench_closure(|| {
                 tree.find_colliding_pairs_mut(|a, b| {
@@ -45,8 +45,8 @@ pub mod all {
         });
 
         let bench_par = Some({
-            let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32n());
-            
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+
             let (mut tree, t1) = bench_closure_ret(|| broccoli::new_par(&mut bots));
             let t2 = bench_closure(|| {
                 tree.find_colliding_pairs_mut_par(|a, b| {
@@ -59,8 +59,7 @@ pub mod all {
         });
 
         let nosort = bool_then(do_all || num_bots < 2000, || {
-            let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32n());
-            
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
             let (mut tree, t1) = bench_closure_ret(|| NotSorted::new(&mut bots));
             let t2 = bench_closure(|| {
@@ -74,8 +73,8 @@ pub mod all {
         });
 
         let nosort_par = bool_then(do_all || num_bots < 2500, || {
-            let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32n());
-            
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+
             let (mut tree, t1) = bench_closure_ret(|| NotSorted::new_par(&mut bots));
             let t2 = bench_closure(|| {
                 tree.find_colliding_pairs_mut_par(|a, b| {
@@ -100,9 +99,8 @@ pub mod all {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
         let theory = datanum::datanum_test2(|maker| {
-            
-            let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32dnum(maker));
-            
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
+
             let mut tree = broccoli::new(&mut bots);
 
             let count = maker.count();
@@ -118,8 +116,8 @@ pub mod all {
         });
 
         let nosort_theory = datanum::datanum_test2(|maker| {
-            let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32dnum(maker));
-            
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
+
             let mut tree = NotSorted::new(&mut bots);
 
             let count = maker.count();
