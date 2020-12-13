@@ -68,6 +68,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cc, 0.001, 20.0);
         });
 
+        //Draw the dividers
         let rects = canvas.rects();
         let mut dd = Bla { rects };
         tree.draw_divider(&mut dd, &dim);
@@ -76,8 +77,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             .with_color([0.0, 1.0, 1.0, 0.6])
             .draw();
 
-        //draw lines to the bots.
-
+        //Draw lines to the bots.
         let mut lines = canvas.lines(2.0);
         draw_bot_lines(tree.axis(), tree.vistr(), &dim, &mut lines);
         lines
@@ -96,7 +96,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
 
         let mut circles = canvas.circles();
         for bot in bots.iter() {
-            circles.add(bot.pos.into()); //TODO we're not testing that the bots were draw in the right order
+            circles.add(bot.pos.into());
         }
         circles
             .send_and_uniforms(canvas, radius)
@@ -132,27 +132,8 @@ impl broccoli::query::DividerDrawer for Bla {
     ) {
         let _div = div.into_inner();
 
-        /*
-        let arr = if axis.is_xaxis() {
-            [
-                div as f64,
-                length[0].into_inner() as f64,
-                div as f64,
-                length[1].into_inner() as f64,
-            ]
-        } else {
-            [
-                length[0].into_inner() as f64,
-                div as f64,
-                length[1].into_inner() as f64,
-                div as f64,
-            ]
-        };
-        */
         let cont = Range::new(cont[0], cont[1]).inner_into();
         let length = Range::new(length[0], length[1]).inner_into();
-
-        //let radius = (1isize.max(5 - depth as isize)) as f64;
 
         let rect = if axis.is_xaxis() {
             Rect { x: cont, y: length }
@@ -162,7 +143,6 @@ impl broccoli::query::DividerDrawer for Bla {
 
         self.rects.add(rect.into());
 
-        //rectangle([0.0, 1.0, 1.0, 0.2], square, self.c.transform, self.g);
     }
 }
 
@@ -214,12 +194,10 @@ fn draw_bot_lines<A: axgeom::Axis>(
     };
 
     if let Some((midx, midy)) = mid {
-        //let color_delta = 1.0 / nn.bots.len() as f32;
         for b in nn.range.iter() {
             let _bx = b.inner.pos.x;
             let _by = b.inner.pos.y;
             lines.add(b.inner.pos.into(), vec2(midx, midy).into());
-            //counter += color_delta;
         }
     }
 }

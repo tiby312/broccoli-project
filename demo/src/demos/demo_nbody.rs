@@ -171,8 +171,6 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
 
         let mut k: Vec<_> = bots.iter_mut().map(|b| bbox(b.create_aabb(), b)).collect();
 
-        //let mut k = bbox_helper::create_bbox_mut(bots, |b| b.create_aabb());
-
         {
             let mut tree = broccoli::new_par(&mut k);
 
@@ -188,7 +186,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
 
             if check_naive {
 
-                /*
+                /* TODO update
                 let mut bla = Bla {
                     num_pairs_checked: 0,
                     _p: PhantomData,
@@ -271,11 +269,8 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
                     b.pos = vec2same(0.0);
                 }
             });
-
-            if check_naive {
-                //TODO
-            }
         }
+
         //Draw bots.
         let mut rects = canvas.rects();
         for bot in k.iter() {
@@ -286,6 +281,8 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             .with_color([0.9, 0.9, 0.3, 0.6])
             .draw();
 
+        //Remove bots that have no mass, and add them to the pool
+        //of bots that don't exist yet.
         {
             let mut new_bots = Vec::new();
             for b in bots.drain(..) {
@@ -304,6 +301,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
             duckduckgeo::wrap_position(&mut bot.pos, *dim.as_ref());
         }
 
+        //Add one bott each iteration.
         if let Some(mut b) = no_mass_bots.pop() {
             b.mass = 30.0;
             b.pos = cursor.inner_into();

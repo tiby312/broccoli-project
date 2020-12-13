@@ -108,10 +108,6 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             .with_color([0.0, 0.0, 1.0, 0.2])
             .draw();
 
-        //test for_all_not_in_rect_mut
-        //let mut r1 = dim.inner_into::<f32>().inner_as::<i32>().clone();
-        //r1.grow(-40);
-
         canvas
             .rects()
             .add(r1.inner_as().into())
@@ -119,6 +115,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             .with_color([1.0, 0.0, 0.0, 0.2])
             .draw();
 
+        //test for_all_not_in_rect_mut
         let mut rects = canvas.rects();
         tree.as_tree_mut().for_all_not_in_rect_mut(&r1, |b| {
             rects.add(b.rect.inner_as().into());
