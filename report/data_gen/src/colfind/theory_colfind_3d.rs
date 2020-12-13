@@ -85,7 +85,6 @@ fn test4(grow: f64, inner: &mut [isize]) -> Res {
     }
 }
 
-
 #[derive(Debug)]
 struct Record {
     num_bots: usize,
@@ -147,7 +146,6 @@ fn draw_rects(rects: &mut [Record], fb: &mut FigureBuilder, name1: &str) {
         let z2 = rects.iter().map(|a| a.z2 as f32);
         let z3 = rects.iter().map(|a| a.z3 as f32);
         let z4 = rects.iter().map(|a| a.z4 as f32);
-
 
         let mut fg = fb.build(name1);
 

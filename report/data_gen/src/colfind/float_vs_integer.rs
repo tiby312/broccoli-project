@@ -53,14 +53,13 @@ fn handle_bench(fg: &mut Figure) {
         let bench_float_i32 = {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let border=compute_border(&bb).unwrap();
-            
+            let border = compute_border(&bb).unwrap();
+
             bench_closure(|| {
-                let mut bb=convert_dist(bb,|a| broccoli::convert::rect_f32_to_u32(
-                    a.inner_into(),
-                    &border.as_ref(),
-                ));
-                
+                let mut bb = convert_dist(bb, |a| {
+                    broccoli::convert::rect_f32_to_u32(a.inner_into(), &border.as_ref())
+                });
+
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
@@ -163,14 +162,12 @@ fn handle_bench(fg: &mut Figure) {
         let bench_float_u16_par = {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let border=compute_border(&bb).unwrap();
-            
+            let border = compute_border(&bb).unwrap();
+
             bench_closure(|| {
-                let mut bb=convert_dist(bb,|a| broccoli::convert::rect_f32_to_u16(
-                    a.inner_into(),
-                    &border.as_ref(),
-                ));
-                
+                let mut bb = convert_dist(bb, |a| {
+                    broccoli::convert::rect_f32_to_u16(a.inner_into(), &border.as_ref())
+                });
 
                 let mut tree = broccoli::new_par(&mut bb);
 

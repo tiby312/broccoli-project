@@ -6,7 +6,6 @@ pub struct Bot {
     pos: Vec2<i32>,
 }
 
-
 pub fn handle(fb: &mut FigureBuilder) {
     handle_num_bots(fb, 0.2);
 }
@@ -56,49 +55,49 @@ fn handle_num_bots(fb: &mut FigureBuilder, grow: f64) {
 
         let arr = [
             {
-                let mut scene=distribute(grow, &mut bot_inner, |a| a.to_f32n());
-             
+                let mut scene = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+
                 bench_closure(|| {
                     let tree = TreeBuilder::new(&mut scene)
                         .with_bin_strat(BinStrat::Checked)
                         .build_par();
-            
+
                     black_box(tree);
                 })
             },
             {
-                let mut scene=distribute(grow, &mut bot_inner, |a| a.to_f32n());
-             
+                let mut scene = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+
                 bench_closure(|| {
                     let tree = TreeBuilder::new(&mut scene)
                         .with_bin_strat(BinStrat::NotChecked)
                         .build_par();
-            
+
                     black_box(tree);
                 })
             },
             {
-                let mut scene=distribute(grow, &mut bot_inner, |a| a.to_f32n());
-             
+                let mut scene = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+
                 bench_closure(|| {
                     let tree = TreeBuilder::new(&mut scene)
                         .with_bin_strat(BinStrat::Checked)
                         .build_seq();
-            
+
                     black_box(tree);
                 })
             },
             {
-                let mut scene=distribute(grow, &mut bot_inner, |a| a.to_f32n());
-             
+                let mut scene = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+
                 bench_closure(|| {
                     let tree = TreeBuilder::new(&mut scene)
                         .with_bin_strat(BinStrat::NotChecked)
                         .build_seq();
-            
+
                     black_box(tree);
                 })
-            }
+            },
         ];
 
         let r = Record { num_bots, arr };

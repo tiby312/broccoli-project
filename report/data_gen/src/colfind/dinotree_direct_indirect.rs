@@ -90,11 +90,11 @@ fn complete_test<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTest
             test_seq(&mut bots, |b, c| {
                 b.unpack_inner().0 += 1;
                 c.unpack_inner().0 += 1;
-            }), 
+            }),
             test_par(&mut bots, |b, c| {
                 b.unpack_inner().0 += 1;
                 c.unpack_inner().0 += 1;
-            })
+            }),
         )
     };
 
@@ -103,7 +103,6 @@ fn complete_test<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTest
             distribute_iter(grow, (0..num_bots as isize).map(|a| (a, t)), |a| a.to_i32());
 
         let mut indirect: Vec<_> = bots.iter_mut().collect();
-
 
         (
             test_seq(&mut indirect, |b, c| {

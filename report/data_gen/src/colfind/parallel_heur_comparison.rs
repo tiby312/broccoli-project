@@ -50,10 +50,9 @@ fn test3(
 
 pub fn handle(fb: &mut FigureBuilder) {
     let num_bots = 20_000;
-    
+
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
-    
     let height = broccoli::analyze::TreePreBuilder::new(num_bots).get_height();
 
     let mut rebals = Vec::new();

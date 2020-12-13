@@ -42,7 +42,6 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) ->
 
         let mut t = TheoryRes { grow, rebal, query };
 
-
         assert_eq!(t.rebal.len(), t.query.len());
         rects.push(t)
     }
@@ -83,13 +82,11 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> 
         assert_eq!(t.rebal.len(), t.query.len());
         let height = tree.get_height();
 
-
         assert_eq!(t.rebal.len(), t.query.len());
         rects.push(t)
     }
     rects
 }
-
 
 pub fn handle_bench(fb: &mut FigureBuilder) {
     let num_bots = 5000;

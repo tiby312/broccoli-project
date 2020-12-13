@@ -210,7 +210,6 @@ pub fn abspiral_grow_iter2(start: f64, end: f64, delta: f64) -> impl Iterator<It
 }
 pub const RADIUS: f32 = 5.0;
 
-
 fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
     let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64);
     s.map(move |a| {
@@ -248,17 +247,19 @@ impl RectConv {
     }
 }
 
-pub fn compute_border<T:Aabb>(bb:&[T])->Option<Rect<T::Num>>{
+pub fn compute_border<T: Aabb>(bb: &[T]) -> Option<Rect<T::Num>> {
     let (first, rest) = bb.split_first()?;
     let mut r = *first.get();
     for a in rest.iter() {
         r.grow_to_fit(&a.get());
     }
     Some(r)
-
 }
-pub fn convert_dist<T,T2,X>(a:Vec<BBox<T,X>>,mut func:impl FnMut(Rect<T>)->Rect<T2>)->Vec<BBox<T2,X>>{
-    a.into_iter().map(|a|bbox(func(a.rect),a.inner)).collect()
+pub fn convert_dist<T, T2, X>(
+    a: Vec<BBox<T, X>>,
+    mut func: impl FnMut(Rect<T>) -> Rect<T2>,
+) -> Vec<BBox<T2, X>> {
+    a.into_iter().map(|a| bbox(func(a.rect), a.inner)).collect()
 }
 
 pub fn distribute_iter<'a, T, X>(
