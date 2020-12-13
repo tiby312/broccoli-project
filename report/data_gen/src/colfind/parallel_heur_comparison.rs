@@ -50,21 +50,10 @@ fn test3(
 
 pub fn handle(fb: &mut FigureBuilder) {
     let num_bots = 20_000;
-    //let grow=0.2;
-
-    //let s=dists::spiral::Spiral::new([400.0,400.0],17.0,grow);
-
+    
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
-    /*
-    let mut scene = bot::BotSceneBuilder::new(num_bots)
-        .with_grow(0.2)
-        .build_specialized(|_, pos| Bot {
-            pos: pos.inner_as(),
-            num: 0,
-        });
-    */
-
+    
     let height = broccoli::analyze::TreePreBuilder::new(num_bots).get_height();
 
     let mut rebals = Vec::new();

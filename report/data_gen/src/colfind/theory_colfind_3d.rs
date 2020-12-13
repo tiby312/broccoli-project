@@ -85,8 +85,6 @@ fn test4(grow: f64, inner: &mut [isize]) -> Res {
     }
 }
 
-//fn make<'a,'b>(grow:f64, maker: &'b datanum::Maker,bot_inner:&'a mut [isize])->Vec<BBox<datanum::Dnum<'b,isize>, &'a mut isize>>{
-//}
 
 #[derive(Debug)]
 struct Record {
@@ -114,7 +112,6 @@ fn handle_spiral(fb: &mut FigureBuilder) {
             let z3 = test3(grow, &mut scene);
             let z4 = test4(grow, &mut scene);
 
-            //black_box(scene.bots.drain(..).map(|a| a.num).count());
             black_box(scene);
 
             let num_pairs = {
@@ -151,16 +148,6 @@ fn draw_rects(rects: &mut [Record], fb: &mut FigureBuilder, name1: &str) {
         let z3 = rects.iter().map(|a| a.z3 as f32);
         let z4 = rects.iter().map(|a| a.z4 as f32);
 
-        /*
-        let (x2, y2, z3) = {
-            let ii = rects.iter().filter(|a| a.z3.is_some());
-            let x = ii.clone().map(|a| a.num_bots as f32);
-            let y = ii.clone().map(|a| a.grow as f32);
-            let z3 = ii.clone().map(|a| a.z3.unwrap());
-
-            (x, y, z3)
-        };
-        */
 
         let mut fg = fb.build(name1);
 

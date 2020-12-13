@@ -22,7 +22,6 @@ fn handle_inner_theory(num_bots: usize, grow: f64) -> TheoryRes {
         let mut levelc = LevelCounter::new();
         let mut tree = TreeBuilder::new(&mut bots).build_with_splitter_seq(&mut levelc);
 
-        //let start=maker.count();
         maker.reset();
 
         let mut levelc2 = LevelCounter::new();
@@ -34,16 +33,7 @@ fn handle_inner_theory(num_bots: usize, grow: f64) -> TheoryRes {
             &mut levelc2,
         );
 
-        let mut ll = levelc2.into_tree();
-        /*
-        use broccoli::compt::Visitor;
-
-        for a in ll.vistr_mut().dfs_preorder_iter(){
-            *a-=start;
-        }
-        */
-
-        ll
+        levelc2.into_tree()
     });
 
     TheoryRes { grow, query }
@@ -69,12 +59,8 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             .set_y_label("Number of Comparisons", &[]);
 
         use broccoli::compt::Visitor;
-
-        //height*x=num_nodes
-        //
         let xx = res.query.get_nodes().len() / res.query.get_height();
         let height = res.query.get_height();
-        //let num_nodes=res.query.get_nodes().len();
         for (i, (depth, element)) in res
             .query
             .vistr()
@@ -83,7 +69,6 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             .enumerate()
         {
             let s = format!("depth:{}", depth.0);
-            //let width=(2 as f32).powi( 1+(height-1-depth.0)as i32) as usize;
             let width = 2;
             let col = COLS.iter().cycle().nth(depth.0).unwrap();
             ax.boxes_set_width(

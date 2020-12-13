@@ -42,8 +42,6 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) ->
 
         let mut t = TheoryRes { grow, rebal, query };
 
-        //grow_to_fit(&mut t.rebal, height);
-        //grow_to_fit(&mut t.query, height);
 
         assert_eq!(t.rebal.len(), t.query.len());
         rects.push(t)
@@ -85,8 +83,6 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> 
         assert_eq!(t.rebal.len(), t.query.len());
         let height = tree.get_height();
 
-        //grow_to_fit(&mut t.rebal, height);
-        //grow_to_fit(&mut t.query, height);
 
         assert_eq!(t.rebal.len(), t.query.len());
         rects.push(t)
@@ -94,14 +90,6 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> 
     rects
 }
 
-/*
-fn grow_to_fit<T: Default>(a: &mut Vec<T>, b: usize) {
-    let diff = b - a.len();
-    for _ in 0..diff {
-        a.push(std::default::Default::default());
-    }
-}
-*/
 
 pub fn handle_bench(fb: &mut FigureBuilder) {
     let num_bots = 5000;

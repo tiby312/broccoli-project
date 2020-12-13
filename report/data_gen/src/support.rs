@@ -210,16 +210,6 @@ pub fn abspiral_grow_iter2(start: f64, end: f64, delta: f64) -> impl Iterator<It
 }
 pub const RADIUS: f32 = 5.0;
 
-/*
-
-pub const ABSPIRAL_PROP: bot::BotProp = bot::BotProp {
-    radius: bot::Dist::manual_create(RADIUS, RADIUS * 2.0, RADIUS * RADIUS),
-    collision_push: 0.1,
-    collision_drag: 0.1,
-    minimum_dis_sqr: 0.0001,
-    viscousity_coeff: 0.1,
-};
-*/
 
 fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
     let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64);
