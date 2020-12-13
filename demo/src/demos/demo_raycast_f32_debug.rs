@@ -35,13 +35,13 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         let ray: Ray<F32n> = {
             counter += 0.004;
             let point: Vec2<f32> = cursor.inner_into::<f32>().inner_as();
-            //*counter=10.0;
             let dir = vec2(counter.cos() * 10.0, counter.sin() * 10.0);
 
             let dir = dir.inner_as();
             Ray { point, dir }.inner_try_into().unwrap()
         };
 
+        //Draw the walls
         rect_save
             .uniforms(canvas)
             .with_color([0.0, 0.0, 0.0, 0.3])

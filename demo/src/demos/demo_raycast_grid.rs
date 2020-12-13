@@ -34,7 +34,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             .with_color([1.0, 0.6, 0.6, 1.0])
             .draw();
 
-        let point = viewport.origin + vec2same(viewport.spacing * 5.0); //vec2(310.0,310.0);
+        let point = viewport.origin + vec2same(viewport.spacing * 5.0);
 
         let cursor = cursor.inner_into();
         let ray = axgeom::Ray {

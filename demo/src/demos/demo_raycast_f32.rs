@@ -45,7 +45,6 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             let mut ray_cast = canvas.lines(1.0);
 
             for dir in 0..360i32
-            //let dir=200;
             {
                 let dir = dir as f32 * (std::f32::consts::PI / 180.0);
                 let x = (dir.cos() * 20.0) as f32;
