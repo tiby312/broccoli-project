@@ -133,10 +133,10 @@ fn main() {
 
     //to run program to generate android bench data.
     //build armv7-linux-androideabi
-    //adb -d push broccoli_data /data/local/tmp/dinotree_data
-    //adb -d shell pm grant /data/local/tmp/dinotree_data android.permission.WRITE_EXTERNAL_STORAGE
-    //adb -d shell /data/local/tmp/dinotree_data bench /sdcard/dinotree/graphs
-    //adb -d pull "/sdcard/dinotree/graphs"
+    //adb -d push broccoli_data /data/local/tmp/broccoli_data
+    //adb -d shell pm grant /data/local/tmp/broccoli_data android.permission.WRITE_EXTERNAL_STORAGE
+    //adb -d shell /data/local/tmp/broccoli_data bench /sdcard/broccoli/graphs
+    //adb -d pull "/sdcard/broccoli/graphs"
     //
     //TODO
     //seperate into benches versus theory runs
@@ -180,7 +180,7 @@ fn main() {
 
             run_test!(&mut fb, colfind::colfind::handle_bench);
 
-            run_test!(&mut fb, colfind::dinotree_direct_indirect::handle);
+            run_test!(&mut fb, colfind::tree_direct_indirect::handle);
 
             run_test!(&mut fb, colfind::float_vs_integer::handle);
 

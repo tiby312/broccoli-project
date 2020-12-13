@@ -102,7 +102,7 @@ fn test_many() {
 
 #[test]
 #[cfg_attr(miri, ignore)]
-fn test_send_sync_dinotree() {
+fn test_send_sync_tree() {
     let mut bots1: Vec<()> = Vec::new();
     let mut bots2: Vec<()> = Vec::new();
 

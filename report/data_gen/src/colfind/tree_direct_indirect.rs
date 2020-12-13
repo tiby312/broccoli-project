@@ -180,7 +180,7 @@ impl Record {
                 .axes2d()
                 .set_title(
                     &format!(
-                        "{} Dinotree vs Direct vs Indirect with abspiral-size(x, {}, {})",
+                        "{} Semi-Direct vs Direct vs Indirect with abspiral-size(x, {}, {})",
                         construction, grow, name
                     ),
                     &[],
@@ -215,11 +215,11 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
     let name = format!("{}_bytes", core::mem::size_of::<T>());
     let name2 = format!("{} bytes", core::mem::size_of::<T>());
 
-    let mut fg = fb.build(&format!("dinotree_direct_indirect_rebal_{}_{}", grow, name));
+    let mut fg = fb.build(&format!("tree_direct_indirect_rebal_{}_{}", grow, name));
     Record::draw(&rects, &mut fg, grow, "Construction:", &name2, |a| a.rebal);
     fb.finish(fg);
 
-    let mut fg = fb.build(&format!("dinotree_direct_indirect_query_{}_{}", grow, name));
+    let mut fg = fb.build(&format!("tree_direct_indirect_query_{}_{}", grow, name));
     Record::draw(&rects, &mut fg, grow, "Querying:", &name2, |a| a.query);
     fb.finish(fg);
 }
