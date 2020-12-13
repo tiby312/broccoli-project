@@ -62,27 +62,22 @@ struct BenchRes {
 fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> Vec<BenchRes> {
     let mut rects = Vec::new();
     for grow in grow_iter {
-        let mut scene = bot::BotSceneBuilder::new(num_bots)
-            .with_grow(grow)
-            .build_specialized(|_, pos| Bot {
-                num: 0,
-                pos: pos.inner_as(),
-            });
+        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
+        let mut bots: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow as f64)
+            .zip(bot_inner.iter_mut())
+            .map(|(a, b)| bbox(a, b))
+            .collect();
 
-        let bots = &mut scene.bots;
-        let prop = &scene.bot_prop;
         let mut times1 = LevelTimer::new();
 
-        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
-        let mut tree = TreeBuilder::new(&mut bb).build_with_splitter_seq(&mut times1);
+        let mut tree = TreeBuilder::new(&mut bots).build_with_splitter_seq(&mut times1);
 
         let mut times2 = LevelTimer::new();
 
         tree.new_colfind_builder().query_with_splitter_seq(
             |a, b| {
-                a.unpack_inner().num += 1;
-                b.unpack_inner().num += 1
+                **a.unpack_inner() += 1;
+                **b.unpack_inner() += 1
             },
             &mut times2,
         );

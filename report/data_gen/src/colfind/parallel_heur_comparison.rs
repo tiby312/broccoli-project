@@ -6,17 +6,14 @@ pub struct Bot {
     pos: Vec2<i32>,
 }
 
-fn test1(scene: &mut bot::BotScene<Bot>) -> (f64, f64) {
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
-    let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(&mut bb).build_seq());
+fn test1(bots: &mut [BBox<NotNan<f32>, &mut isize>]) -> (f64, f64) {
+    
+    let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(bots).build_seq());
 
     let (tree, query_time) = bench_closure_ret(|| {
         tree.new_colfind_builder().query_seq(|a, b| {
-            a.unpack_inner().num += 2;
-            b.unpack_inner().num += 2;
+            **a.unpack_inner() += 2;
+            **b.unpack_inner() += 2;
         });
         tree
     });
@@ -26,13 +23,10 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> (f64, f64) {
     (construction_time, query_time)
 }
 
-fn test3(scene: &mut bot::BotScene<Bot>, rebal_height: usize, query_height: usize) -> (f64, f64) {
-    let bots = &mut scene.bots;
-    let prop = &scene.bot_prop;
-    let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
+fn test3(bots: &mut [BBox<NotNan<f32>, &mut isize>], rebal_height: usize, query_height: usize) -> (f64, f64) {
+    
     let (mut tree, construction_time) = bench_closure_ret(|| {
-        TreeBuilder::new(&mut bb)
+        TreeBuilder::new(bots)
             .with_height_switch_seq(rebal_height)
             .build_par()
     });
@@ -41,8 +35,8 @@ fn test3(scene: &mut bot::BotScene<Bot>, rebal_height: usize, query_height: usiz
         tree.new_colfind_builder()
             .with_switch_height(query_height)
             .query_par(|a, b| {
-                a.unpack_inner().num += 2;
-                b.unpack_inner().num += 2;
+                **a.unpack_inner() += 2;
+                **b.unpack_inner() += 2;
             });
         tree
     });
@@ -58,24 +52,34 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     //let s=dists::spiral::Spiral::new([400.0,400.0],17.0,grow);
 
+    let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
+    
+    fn make(bots:&mut [isize])->Vec<BBox<NotNan<f32>, &mut isize>> {
+        abspiral_f32_nan(0.2)
+        .zip(bots.iter_mut())
+        .map(|(a, b)| bbox(a, b))
+        .collect()   
+    }
+    /*
     let mut scene = bot::BotSceneBuilder::new(num_bots)
         .with_grow(0.2)
         .build_specialized(|_, pos| Bot {
             pos: pos.inner_as(),
             num: 0,
         });
+    */
 
     let height = broccoli::analyze::TreePreBuilder::new(num_bots).get_height();
 
     let mut rebals = Vec::new();
     for rebal_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {
-        let (a, _b) = test3(&mut scene, rebal_height, 4);
+        let (a, _b) = test3(&mut make(&mut bot_inner), rebal_height, 4);
         rebals.push((rebal_height, a));
     }
 
     let mut queries = Vec::new();
     for query_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {
-        let (_a, b) = test3(&mut scene, 4, query_height);
+        let (_a, b) = test3(&mut make(&mut bot_inner), 4, query_height);
         queries.push((query_height, b));
     }
 
@@ -86,7 +90,7 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut seqs = Vec::new();
     for _ in 0..100 {
-        let (a, b) = test1(&mut scene);
+        let (a, b) = test1(&mut make(&mut bot_inner));
         seqs.push((a, b));
     }
     let xx = seqs.iter().map(|_| height);

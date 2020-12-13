@@ -6,13 +6,9 @@ pub struct Bot {
     pos: Vec2<i32>,
 }
 
-fn test1(scene: &mut bot::BotScene<Bot>) -> f64 {
+fn test1(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
     bench_closure(|| {
-        let bots = &mut scene.bots;
-        let prop = &scene.bot_prop;
-        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
-        let tree = TreeBuilder::new(&mut bb)
+        let tree = TreeBuilder::new(scene)
             .with_bin_strat(BinStrat::Checked)
             .build_par();
 
@@ -20,14 +16,10 @@ fn test1(scene: &mut bot::BotScene<Bot>) -> f64 {
     })
 }
 
-fn test2(scene: &mut bot::BotScene<Bot>) -> f64 {
+fn test2(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
     bench_closure(|| {
-        let bots = &mut scene.bots;
-        let prop = &scene.bot_prop;
-
-        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
-        let tree = TreeBuilder::new(&mut bb)
+        
+        let tree = TreeBuilder::new(scene)
             .with_bin_strat(BinStrat::NotChecked)
             .build_par();
 
@@ -35,14 +27,10 @@ fn test2(scene: &mut bot::BotScene<Bot>) -> f64 {
     })
 }
 
-fn test3(scene: &mut bot::BotScene<Bot>) -> f64 {
+fn test3(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
     bench_closure(|| {
-        let bots = &mut scene.bots;
-        let prop = &scene.bot_prop;
-
-        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
-        let tree = TreeBuilder::new(&mut bb)
+        
+        let tree = TreeBuilder::new(scene)
             .with_bin_strat(BinStrat::Checked)
             .build_seq();
 
@@ -50,14 +38,10 @@ fn test3(scene: &mut bot::BotScene<Bot>) -> f64 {
     })
 }
 
-fn test4(scene: &mut bot::BotScene<Bot>) -> f64 {
+fn test4(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
     bench_closure(|| {
-        let bots = &mut scene.bots;
-        let prop = &scene.bot_prop;
-
-        let mut bb = bbox_helper::create_bbox_mut(bots, |b| prop.create_bbox_i32(b.pos));
-
-        let tree = TreeBuilder::new(&mut bb)
+        
+        let tree = TreeBuilder::new(scene)
             .with_bin_strat(BinStrat::NotChecked)
             .build_seq();
 
@@ -110,18 +94,21 @@ fn handle_num_bots(fb: &mut FigureBuilder, grow: f32) {
     let mut rects = Vec::new();
 
     for num_bots in (0..700_000).step_by(5000) {
-        let mut scene = bot::BotSceneBuilder::new(num_bots)
-            .with_grow(grow)
-            .build_specialized(|_, pos| Bot {
-                pos: pos.inner_as(),
-                _num: 0,
-            });
+        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
+        
 
+        fn make(grow:f64,bot_inner:&mut [isize])->Vec<BBox<NotNan<f32>, &mut isize>>{
+            abspiral_f32_nan(grow)
+            .zip(bot_inner.iter_mut())
+            .map(|(a, b)| bbox(a, b))
+            .collect()
+        }
+        
         let arr = [
-            test1(&mut scene),
-            test2(&mut scene),
-            test3(&mut scene),
-            test4(&mut scene),
+            test1(&mut make(0.2,&mut bot_inner)),
+            test2(&mut make(0.2,&mut bot_inner)),
+            test3(&mut make(0.2,&mut bot_inner)),
+            test4(&mut make(0.2,&mut bot_inner)),
         ];
 
         let r = Record { num_bots, arr };
