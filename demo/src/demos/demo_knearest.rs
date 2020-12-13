@@ -2,7 +2,7 @@ use crate::support::prelude::*;
 
 #[derive(Copy, Clone)]
 struct Bot {
-    rect: Rect<f32>,
+    rect: Rect<F32n>,
 }
 
 fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
@@ -33,17 +33,11 @@ fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
 }
 
 pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
-    let bots = dists::rand2_iter(dim.inner_into())
-        .zip(dists::rand_iter(2.0, 4.0))
-        .take(2000)
-        .map(|([x, y], radius)| Bot {
-            rect: Rect::from_point(vec2(x as f32, y as f32), vec2same(radius)),
-        })
-        .collect::<Vec<_>>()
-        .into_boxed_slice();
+
+    let mut bots=support::make_rand_rect(200,dim.inner_into(),[2.0,20.0],|a|Bot{rect:a}).into_boxed_slice();
 
     let mut tree =
-        broccoli::container::TreeOwnedInd::new(bots, |bot| bot.rect.inner_try_into().unwrap());
+        broccoli::container::TreeOwnedInd::new(bots, |bot| bot.rect);
 
     let mut rects = canvas.rects();
     for bot in tree.as_tree().get_bbox_elements().iter() {
