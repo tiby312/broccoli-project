@@ -53,29 +53,14 @@ fn handle_bench(fg: &mut Figure) {
         let bench_float_i32 = {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let border = {
-                let (first, rest) = bb.split_first().unwrap();
-                let mut r = first.rect;
-                for a in rest.iter() {
-                    r.grow_to_fit(&a.rect);
-                }
-                r
-            };
-
+            let border=compute_border(&bb).unwrap();
+            
             bench_closure(|| {
-                let mut bb: Vec<_> = bb
-                    .into_iter()
-                    .map(|a| {
-                        bbox(
-                            broccoli::convert::rect_f32_to_u32(
-                                a.rect.inner_into(),
-                                &border.as_ref(),
-                            ),
-                            a.inner,
-                        )
-                    })
-                    .collect();
-
+                let mut bb=convert_dist(bb,|a| broccoli::convert::rect_f32_to_u32(
+                    a.inner_into(),
+                    &border.as_ref(),
+                ));
+                
                 let mut tree = broccoli::new(&mut bb);
 
                 tree.find_colliding_pairs_mut(|a, b| {
@@ -178,28 +163,14 @@ fn handle_bench(fg: &mut Figure) {
         let bench_float_u16_par = {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let border = {
-                let (first, rest) = bb.split_first().unwrap();
-                let mut r = first.rect;
-                for a in rest.iter() {
-                    r.grow_to_fit(&a.rect);
-                }
-                r
-            };
-
+            let border=compute_border(&bb).unwrap();
+            
             bench_closure(|| {
-                let mut bb: Vec<_> = bb
-                    .into_iter()
-                    .map(|a| {
-                        bbox(
-                            broccoli::convert::rect_f32_to_u16(
-                                a.rect.inner_into(),
-                                &border.as_ref(),
-                            ),
-                            a.inner,
-                        )
-                    })
-                    .collect();
+                let mut bb=convert_dist(bb,|a| broccoli::convert::rect_f32_to_u16(
+                    a.inner_into(),
+                    &border.as_ref(),
+                ));
+                
 
                 let mut tree = broccoli::new_par(&mut bb);
 

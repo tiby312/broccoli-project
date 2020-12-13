@@ -6,45 +6,6 @@ pub struct Bot {
     pos: Vec2<i32>,
 }
 
-fn test1(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
-    bench_closure(|| {
-        let tree = TreeBuilder::new(scene)
-            .with_bin_strat(BinStrat::Checked)
-            .build_par();
-
-        black_box(tree);
-    })
-}
-
-fn test2(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
-    bench_closure(|| {
-        let tree = TreeBuilder::new(scene)
-            .with_bin_strat(BinStrat::NotChecked)
-            .build_par();
-
-        black_box(tree);
-    })
-}
-
-fn test3(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
-    bench_closure(|| {
-        let tree = TreeBuilder::new(scene)
-            .with_bin_strat(BinStrat::Checked)
-            .build_seq();
-
-        black_box(tree);
-    })
-}
-
-fn test4(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
-    bench_closure(|| {
-        let tree = TreeBuilder::new(scene)
-            .with_bin_strat(BinStrat::NotChecked)
-            .build_seq();
-
-        black_box(tree);
-    })
-}
 
 pub fn handle(fb: &mut FigureBuilder) {
     handle_num_bots(fb, 0.2);
@@ -94,10 +55,50 @@ fn handle_num_bots(fb: &mut FigureBuilder, grow: f64) {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
         let arr = [
-            test1(&mut distribute(grow, &mut bot_inner, |a| a.to_f32n())),
-            test2(&mut distribute(grow, &mut bot_inner, |a| a.to_f32n())),
-            test3(&mut distribute(grow, &mut bot_inner, |a| a.to_f32n())),
-            test4(&mut distribute(grow, &mut bot_inner, |a| a.to_f32n())),
+            {
+                let mut scene=distribute(grow, &mut bot_inner, |a| a.to_f32n());
+             
+                bench_closure(|| {
+                    let tree = TreeBuilder::new(&mut scene)
+                        .with_bin_strat(BinStrat::Checked)
+                        .build_par();
+            
+                    black_box(tree);
+                })
+            },
+            {
+                let mut scene=distribute(grow, &mut bot_inner, |a| a.to_f32n());
+             
+                bench_closure(|| {
+                    let tree = TreeBuilder::new(&mut scene)
+                        .with_bin_strat(BinStrat::NotChecked)
+                        .build_par();
+            
+                    black_box(tree);
+                })
+            },
+            {
+                let mut scene=distribute(grow, &mut bot_inner, |a| a.to_f32n());
+             
+                bench_closure(|| {
+                    let tree = TreeBuilder::new(&mut scene)
+                        .with_bin_strat(BinStrat::Checked)
+                        .build_seq();
+            
+                    black_box(tree);
+                })
+            },
+            {
+                let mut scene=distribute(grow, &mut bot_inner, |a| a.to_f32n());
+             
+                bench_closure(|| {
+                    let tree = TreeBuilder::new(&mut scene)
+                        .with_bin_strat(BinStrat::NotChecked)
+                        .build_seq();
+            
+                    black_box(tree);
+                })
+            }
         ];
 
         let r = Record { num_bots, arr };

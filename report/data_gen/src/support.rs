@@ -258,6 +258,19 @@ impl RectConv {
     }
 }
 
+pub fn compute_border<T:Aabb>(bb:&[T])->Option<Rect<T::Num>>{
+    let (first, rest) = bb.split_first()?;
+    let mut r = *first.get();
+    for a in rest.iter() {
+        r.grow_to_fit(&a.get());
+    }
+    Some(r)
+
+}
+pub fn convert_dist<T,T2,X>(a:Vec<BBox<T,X>>,mut func:impl FnMut(Rect<T>)->Rect<T2>)->Vec<BBox<T2,X>>{
+    a.into_iter().map(|a|bbox(func(a.rect),a.inner)).collect()
+}
+
 pub fn distribute_iter<'a, T, X>(
     grow: f64,
     i: impl ExactSizeIterator<Item = T> + core::iter::FusedIterator,
