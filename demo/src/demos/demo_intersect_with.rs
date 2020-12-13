@@ -27,24 +27,18 @@ struct Wall(axgeom::Rect<F32n>);
 
 pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
     let radius = 5.0;
-    let mut bots: Vec<_> = rand2_iter(dim.inner_into())
-        .take(4000)
-        .map(|[x, y]| vec2(x, y))
-        .map(|pos| Bot {
-            pos,
-            vel: vec2same(0.0),
-            force: vec2same(0.0),
-            wall_move: [None; 2],
-        })
-        .collect();
 
-    let mut walls: Vec<_> = rand2_iter(dim.inner_into())
-        .zip(rand_iter(10.0, 60.0))
-        .map(|([x, y], radius)| (vec2(x, y), vec2same(radius)))
-        .take(10)
-        .map(|(pos, radius)| Wall(Rect::from_point(pos, radius).inner_try_into().unwrap()))
-        .collect();
+    let mut bots=support::make_rand(4000,dim.inner_into(),|pos|Bot {
+        pos,
+        vel: vec2same(0.0),
+        force: vec2same(0.0),
+        wall_move: [None; 2],
+    });
 
+    let mut walls=support::make_rand_rect(10,dim.inner_into(),10.0,60.0,|a|{
+        Wall(a)
+    });
+    
     let mut rects = canvas.rects();
     for wall in walls.iter() {
         rects.add(wall.0.inner_into().into());
