@@ -9,7 +9,7 @@ pub struct Bot {
 type LTree = compt::dfs_order::CompleteTreeContainer<usize, compt::dfs_order::PreOrder>;
 
 struct TheoryRes {
-    grow: f32,
+    grow: f64,
     query: LTree,
 }
 

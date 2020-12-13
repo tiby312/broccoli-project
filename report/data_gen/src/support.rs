@@ -209,17 +209,7 @@ pub fn abspiral_grow_iter2(start: f64, end: f64, delta: f64) -> impl Iterator<It
     })
 }
 
-/*
-#[deprecated(
-    note = "abspiral_grow_iter2"
-)]
-pub fn abspiral_grow_iter(range:core::ops::Range<usize>,start:f64,delta:f64)->impl Iterator<Item=f64>{
-    range.map(move |a|{
-        let a: f64 = a as f64;
-        start + a * delta
-    })
-}
-*/
+
 
 pub const RADIUS: f32 = 5.0;
 pub const ABSPIRAL_PROP: bot::BotProp = bot::BotProp {
@@ -230,31 +220,7 @@ pub const ABSPIRAL_PROP: bot::BotProp = bot::BotProp {
     viscousity_coeff: 0.1,
 };
 
-/*
-pub fn abspiral_datanum<'a>(
-    maker: &'a datanum::Maker,
-    grow: f64,
-) -> impl Iterator<Item = Rect<datanum::Dnum<'a, isize>>> {
-    abspiral_f64(grow)
-        .map(|a| a.inner_as::<isize>())
-        .map(move |a| maker.from_rect(a))
-}
-
-pub fn abspiral_datanum_f32_nan<'a>(
-    maker: &'a datanum::Maker,
-    grow: f64,
-) -> impl Iterator<Item = Rect<datanum::Dnum<'a, NotNan<f32>>>> {
-    abspiral_f32_nan(grow).map(move |a| maker.from_rect(a))
-}
-
-pub fn abspiral_f32_nan(grow: f64) -> impl Iterator<Item = Rect<NotNan<f32>>> {
-    abspiral_f32(grow).map(|a| a.inner_try_into().unwrap())
-}
-pub fn abspiral_f32(grow: f64) -> impl Iterator<Item = Rect<f32>> {
-    abspiral_f64(grow).map(|a| a.inner_as())
-}
-*/
-pub fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
+fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
     let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64);
     s.map(move |a| {
         let r = axgeom::Rect::from_point(vec2(a[0], a[1]), vec2same(RADIUS as f64));
@@ -311,30 +277,3 @@ pub fn distribute<'a,T,X>(grow:f64,inner:&'a mut [T],mut func:impl FnMut(RectCon
 
 
 
-
-
-/*
-use broccoli::pmut::PMut;
-pub fn abspiral_all(
-    num:usize,
-    grow:f64,halfway:impl FnOnce()){
-    
-    struct Bot{
-        inner:usize
-    }
-    
-    let mut cc:Vec<_>=abspiral_f32_nan(grow).take(num).map(|a|bbox(a,Bot{inner:0})).collect();
-
-    let mut ccref:Vec<_>=cc.iter_mut().map(|a|bbox(a.rect,&mut a.inner)).collect();
-
-
-    let mut tree=broccoli::new(&mut ccref);
-
-    halfway();
-
-    tree.find_colliding_pairs_mut(|a,b|{
-        a.unpack_inner().inner+=1;
-        b.unpack_inner().inner+=1;
-    });
-
-}*/

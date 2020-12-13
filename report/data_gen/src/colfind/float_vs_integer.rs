@@ -148,11 +148,6 @@ fn handle_bench(fg: &mut Figure) {
         let bench_i64_par = {
             let mut bb=distribute(grow,&mut bot_inner,|a|a.to_i64());
        
-            let mut bb: Vec<BBox<i64, &mut isize>> = abspiral_f64(grow)
-                .map(|a| a.inner_as())
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
 
             bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);

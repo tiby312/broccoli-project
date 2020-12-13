@@ -7,7 +7,7 @@ pub struct Bot {
 }
 
 struct TheoryRes {
-    grow: f32,
+    grow: f64,
     rebal: Vec<usize>,
     query: Vec<usize>,
 }
@@ -54,7 +54,7 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) ->
     rects
 }
 struct BenchRes {
-    grow: f32,
+    grow: f64,
     rebal: Vec<f64>,
     query: Vec<f64>,
 }
@@ -199,7 +199,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
     let res1 = handle_inner_theory(
         num_bots,
         (0..100).map(|a| {
-            let a: f32 = a as f32;
+            let a: f64 = a as f64;
             0.0005 + a * 0.0001
         }),
     );
@@ -207,7 +207,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
     let res2 = handle_inner_theory(
         num_bots,
         (0..100).map(|a| {
-            let a: f32 = a as f32;
+            let a: f64 = a as f64;
             0.01 + a * 0.0002
         }),
     );
