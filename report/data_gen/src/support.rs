@@ -230,6 +230,7 @@ pub const ABSPIRAL_PROP: bot::BotProp = bot::BotProp {
     viscousity_coeff: 0.1,
 };
 
+/*
 pub fn abspiral_datanum<'a>(
     maker: &'a datanum::Maker,
     grow: f64,
@@ -252,7 +253,7 @@ pub fn abspiral_f32_nan(grow: f64) -> impl Iterator<Item = Rect<NotNan<f32>>> {
 pub fn abspiral_f32(grow: f64) -> impl Iterator<Item = Rect<f32>> {
     abspiral_f64(grow).map(|a| a.inner_as())
 }
-
+*/
 pub fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
     let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64);
     s.map(move |a| {
@@ -262,6 +263,57 @@ pub fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
 }
 
 
+
+
+pub struct RectConv(pub Rect<f64>);
+use axgeom::ordered_float::OrderedFloat;
+
+impl RectConv{
+    pub fn to_f32n(self)->Rect<NotNan<f32>>{
+        self.0.inner_as::<f32>().inner_try_into().unwrap()
+    }
+    pub fn to_f64n(self)->Rect<NotNan<f64>>{
+        self.0.inner_try_into().unwrap()
+    }
+    pub fn to_isize_dnum(self,maker:&datanum::Maker)->Rect<datanum::Dnum<isize>>{
+        maker.from_rect(self.0.inner_as())
+    }
+    pub fn to_f32dnum(self,maker:&datanum::Maker)->Rect<datanum::Dnum<NotNan<f32>>>{
+        maker.from_rect(self.0.inner_as::<f32>().inner_try_into().unwrap())
+    }
+
+    pub fn to_i32(self)->Rect<i32>{
+        self.0.inner_as()
+    }
+
+    pub fn to_i64(self)->Rect<i64>{
+        self.0.inner_as()
+    }
+    pub fn to_f32ord(self)->Rect<OrderedFloat<f32>>{
+        self.0.inner_as::<f32>().inner_into()
+    }
+
+}
+
+pub fn distribute_iter<'a,T,X>(
+    grow:f64,
+    i:impl ExactSizeIterator<Item=T>+core::iter::FusedIterator,
+    mut func:impl FnMut(RectConv)->Rect<X>)->Vec<BBox<X,T>>{
+    abspiral_f64(grow).zip(i).map(|(a,b)|bbox(func(RectConv(a)),b)).collect()
+}
+
+pub fn distribute<'a,T,X>(grow:f64,inner:&'a mut [T],mut func:impl FnMut(RectConv)->Rect<X>)->Vec<BBox<X,&'a mut T>>{
+    abspiral_f64(grow).
+    zip(inner.iter_mut()).
+    map(|(a,b)|bbox(func(RectConv(a)),b)).
+    collect()
+}
+
+
+
+
+
+/*
 use broccoli::pmut::PMut;
 pub fn abspiral_all(
     num:usize,
@@ -285,4 +337,4 @@ pub fn abspiral_all(
         b.unpack_inner().inner+=1;
     });
 
-}
+}*/

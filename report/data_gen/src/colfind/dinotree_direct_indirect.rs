@@ -84,11 +84,9 @@ impl CompleteTestResult {
 
 fn complete_test<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTestResult {
     let (direct_seq, direct_par) = {
-        let mut bots: Vec<_> = abspiral_f64(grow as f64)
-            .take(num_bots)
-            .map(|a| a.inner_as::<i32>())
-            .map(|a| bbox(a, (0isize, t)))
-            .collect();
+
+        let mut bots=distribute_iter(grow,(0..num_bots as isize).map(|a|(a,t)),|a|a.to_i32());
+            
 
         let collide = |b: PMut<BBox<i32, (isize, T)>>, c: PMut<BBox<i32, (isize, T)>>| {
             b.unpack_inner().0 += 1;
@@ -99,11 +97,8 @@ fn complete_test<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTest
     };
 
     let (indirect_seq, indirect_par) = {
-        let mut bots: Vec<_> = abspiral_f64(grow as f64)
-            .take(num_bots)
-            .map(|a| a.inner_as::<i32>())
-            .map(|a| bbox(a, (0isize, t)))
-            .collect();
+        let mut bots=distribute_iter(grow,(0..num_bots as isize).map(|a|(a,t)),|a|a.to_i32());
+        
         let mut indirect: Vec<_> = bots.iter_mut().collect();
 
         let collide = |b: PMut<&mut BBox<i32, (isize, T)>>, c: PMut<&mut BBox<i32, (isize, T)>>| {
@@ -118,12 +113,9 @@ fn complete_test<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTest
     };
     let (default_seq, default_par) = {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| (0isize, t)).collect();
-        let mut default: Vec<BBox<i32, &mut (isize, T)>> = abspiral_f64(grow)
-            .take(num_bots)
-            .map(|a| a.inner_as::<i32>())
-            .zip(bot_inner.iter_mut())
-            .map(|(a, b)| bbox(a, b))
-            .collect();
+        
+        let mut default=distribute(grow,&mut bot_inner,|a|a.to_i32());
+        
 
         let collide = |b: PMut<BBox<i32, &mut (isize, T)>>, c: PMut<BBox<i32, &mut (isize, T)>>| {
             b.unpack_inner().0 += 1;

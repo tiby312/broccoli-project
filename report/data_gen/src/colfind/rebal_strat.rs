@@ -50,7 +50,7 @@ fn test4(scene: &mut [BBox<NotNan<f32>, &mut isize>]) -> f64 {
 }
 
 pub fn handle(fb: &mut FigureBuilder) {
-    handle_num_bots(fb, 1.0);
+    handle_num_bots(fb, 0.2);
 }
 
 #[derive(Debug)]
@@ -90,25 +90,18 @@ impl Record {
     }
 }
 
-fn handle_num_bots(fb: &mut FigureBuilder, grow: f32) {
+fn handle_num_bots(fb: &mut FigureBuilder, grow: f64) {
     let mut rects = Vec::new();
 
     for num_bots in (0..700_000).step_by(5000) {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
         
 
-        fn make(grow:f64,bot_inner:&mut [isize])->Vec<BBox<NotNan<f32>, &mut isize>>{
-            abspiral_f32_nan(grow)
-            .zip(bot_inner.iter_mut())
-            .map(|(a, b)| bbox(a, b))
-            .collect()
-        }
-        
         let arr = [
-            test1(&mut make(0.2,&mut bot_inner)),
-            test2(&mut make(0.2,&mut bot_inner)),
-            test3(&mut make(0.2,&mut bot_inner)),
-            test4(&mut make(0.2,&mut bot_inner)),
+            test1(&mut distribute(grow,&mut bot_inner,|a|a.to_f32n())),
+            test2(&mut distribute(grow,&mut bot_inner,|a|a.to_f32n())),
+            test3(&mut distribute(grow,&mut bot_inner,|a|a.to_f32n())),
+            test4(&mut distribute(grow,&mut bot_inner,|a|a.to_f32n())),
         ];
 
         let r = Record { num_bots, arr };

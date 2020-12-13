@@ -13,14 +13,13 @@ struct TheoryRes {
     query: LTree,
 }
 
-fn handle_inner_theory(num_bots: usize, grow: f32) -> TheoryRes {
+fn handle_inner_theory(num_bots: usize, grow: f64) -> TheoryRes {
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
     let query = datanum::datanum_test2(|maker| {
-        let mut bots: Vec<BBox<_, &mut _>> = abspiral_datanum_f32_nan(maker, grow as f64)
-            .zip(bot_inner.iter_mut())
-            .map(|(a, b)| bbox(a, b))
-            .collect();
+
+        let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32dnum(maker));
+       
 
         let mut levelc = LevelCounter::new();
         let mut tree = TreeBuilder::new(&mut bots).build_with_splitter_seq(&mut levelc);

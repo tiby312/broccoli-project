@@ -12,16 +12,16 @@ struct TheoryRes {
     query: Vec<usize>,
 }
 
-fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> Vec<TheoryRes> {
+fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> Vec<TheoryRes> {
     let mut rects = Vec::new();
     for grow in grow_iter {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
         let (rebal, query, height) = datanum::datanum_test2(|maker| {
-            let mut bots: Vec<BBox<_, &mut _>> = abspiral_datanum_f32_nan(maker, grow as f64)
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
+
+
+            let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32dnum(maker));
+       
 
             let mut levelc = LevelCounter::new();
             let mut tree = TreeBuilder::new(&mut bots).build_with_splitter_seq(&mut levelc);
@@ -59,14 +59,13 @@ struct BenchRes {
     query: Vec<f64>,
 }
 
-fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f32>) -> Vec<BenchRes> {
+fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> Vec<BenchRes> {
     let mut rects = Vec::new();
     for grow in grow_iter {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
-        let mut bots: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow as f64)
-            .zip(bot_inner.iter_mut())
-            .map(|(a, b)| bbox(a, b))
-            .collect();
+       
+        let mut bots=distribute(grow,&mut bot_inner,|a|a.to_f32n());
+       
 
         let mut times1 = LevelTimer::new();
 
@@ -114,7 +113,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
     let res1 = handle_inner_bench(
         num_bots,
         (0..1000).map(|a| {
-            let a: f32 = a as f32;
+            let a: f64 = a as f64;
             0.0005 + a * 0.00001
         }),
     );
@@ -122,7 +121,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
     let res2 = handle_inner_bench(
         num_bots,
         (0..1000).map(|a| {
-            let a: f32 = a as f32;
+            let a: f64 = a as f64;
             0.01 + a * 0.00002
         }),
     );

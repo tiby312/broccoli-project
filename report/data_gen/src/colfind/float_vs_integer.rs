@@ -24,12 +24,10 @@ fn handle_bench(fg: &mut Figure) {
 
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
+        
         let bench_integer = {
-            let mut bb: Vec<BBox<i32, &mut isize>> = abspiral_f64(grow)
-                .map(|a| a.inner_as())
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_i32());
+       
 
             bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
@@ -42,11 +40,8 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_i64 = {
-            let mut bb: Vec<BBox<i64, &mut isize>> = abspiral_f64(grow)
-                .map(|a| a.inner_as())
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_i64());
+       
 
             bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
@@ -59,10 +54,8 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_i32 = {
-            let bb: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow)
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f32n());
+       
 
             let border = {
                 let (first, rest) = bb.split_first().unwrap();
@@ -97,13 +90,9 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_ordered = {
-            use axgeom::ordered_float::OrderedFloat;
-
-            let mut bb: Vec<BBox<OrderedFloat<f32>, &mut isize>> = abspiral_f32(grow)
-                .map(|a| a.inner_into())
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
+       
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f32ord());
+       
 
             bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
@@ -115,10 +104,8 @@ fn handle_bench(fg: &mut Figure) {
             })
         };
         let bench_float = {
-            let mut bb: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow)
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f32n());
+       
 
             bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
@@ -131,10 +118,8 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_par = {
-            let mut bb: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow)
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f32n());
+       
 
             bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
@@ -147,11 +132,8 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_integer_par = {
-            let mut bb: Vec<BBox<i32, &mut isize>> = abspiral_f64(grow)
-                .map(|a| a.inner_as())
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f64n());
+       
 
             bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
@@ -164,6 +146,8 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_i64_par = {
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_i64());
+       
             let mut bb: Vec<BBox<i64, &mut isize>> = abspiral_f64(grow)
                 .map(|a| a.inner_as())
                 .zip(bot_inner.iter_mut())
@@ -181,12 +165,8 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_f64 = {
-            let mut bb: Vec<BBox<NotNan<f64>, &mut isize>> = abspiral_f64(grow)
-                .map(|a| a.inner_try_into().unwrap())
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
-
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f64n());
+       
             bench_closure(|| {
                 let mut tree = broccoli::new(&mut bb);
 
@@ -198,11 +178,8 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_f64_par = {
-            let mut bb: Vec<BBox<NotNan<f64>, &mut isize>> = abspiral_f64(grow)
-                .map(|a| a.inner_try_into().unwrap())
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f64n());
+       
 
             bench_closure(|| {
                 let mut tree = broccoli::new_par(&mut bb);
@@ -215,10 +192,8 @@ fn handle_bench(fg: &mut Figure) {
         };
 
         let bench_float_u16_par = {
-            let bb: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow)
-                .zip(bot_inner.iter_mut())
-                .map(|(a, b)| bbox(a, b))
-                .collect();
+            let mut bb=distribute(grow,&mut bot_inner,|a|a.to_f32n());
+       
 
             let border = {
                 let (first, rest) = bb.split_first().unwrap();

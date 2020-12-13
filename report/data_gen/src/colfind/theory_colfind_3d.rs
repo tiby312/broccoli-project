@@ -15,7 +15,8 @@ fn test1(grow:f64,inner:&mut [isize]) -> Res {
     
     let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
             
-        let mut bots = make(grow,maker,inner);
+
+        let mut bots = distribute(grow,inner,|a|a.to_isize_dnum(maker));
 
         let mut tree = TreeBuilder::new(&mut bots).build_seq();
 
@@ -37,7 +38,7 @@ fn test2(grow:f64,inner:&mut [isize]) -> Res {
     
     let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
             
-        let mut bb = make(grow,maker,inner);
+        let mut bb = distribute(grow,inner,|a|a.to_isize_dnum(maker));
 
         let mut num_pairs = 0;
         find_collisions_sweep_mut(&mut bb, axgeom::XAXIS, |_a, _b| {
@@ -59,8 +60,7 @@ fn test3(grow:f64,inner:&mut [isize]) -> Res {
 
     let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
             
-        let mut bb = make(grow,maker,inner);
-
+        let mut bb = distribute(grow,inner,|a|a.to_isize_dnum(maker));
         let mut num_pairs = 0;
         NaiveAlgs::from_slice(&mut bb).find_colliding_pairs_mut(|_a, _b| {
             num_pairs += 1;
@@ -80,8 +80,7 @@ fn test4(grow:f64,inner:&mut [isize]) -> Res {
 
     let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
         
-        let mut bots = make(grow,maker,inner);
-
+        let mut bots = distribute(grow,inner,|a|a.to_isize_dnum(maker));
         let mut tree = NotSorted::new_par(&mut bots);
 
         let mut num_pairs = 0;
@@ -98,12 +97,8 @@ fn test4(grow:f64,inner:&mut [isize]) -> Res {
     }
 }
 
-fn make<'a,'b>(grow:f64, maker: &'b datanum::Maker,bot_inner:&'a mut [isize])->Vec<BBox<datanum::Dnum<'b,isize>, &'a mut isize>>{
-    abspiral_datanum(maker,grow)
-    .zip(bot_inner.iter_mut())
-    .map(|(a, b)| bbox(a, b))
-    .collect()
-}
+//fn make<'a,'b>(grow:f64, maker: &'b datanum::Maker,bot_inner:&'a mut [isize])->Vec<BBox<datanum::Dnum<'b,isize>, &'a mut isize>>{
+//}
 
 #[derive(Debug)]
 struct Record {

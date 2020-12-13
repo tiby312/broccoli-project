@@ -54,12 +54,6 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
     
-    fn make(bots:&mut [isize])->Vec<BBox<NotNan<f32>, &mut isize>> {
-        abspiral_f32_nan(0.2)
-        .zip(bots.iter_mut())
-        .map(|(a, b)| bbox(a, b))
-        .collect()   
-    }
     /*
     let mut scene = bot::BotSceneBuilder::new(num_bots)
         .with_grow(0.2)
@@ -73,13 +67,13 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut rebals = Vec::new();
     for rebal_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {
-        let (a, _b) = test3(&mut make(&mut bot_inner), rebal_height, 4);
+        let (a, _b) = test3(&mut distribute(0.2,&mut bot_inner,|a|a.to_f32n()), rebal_height, 4);
         rebals.push((rebal_height, a));
     }
 
     let mut queries = Vec::new();
     for query_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {
-        let (_a, b) = test3(&mut make(&mut bot_inner), 4, query_height);
+        let (_a, b) = test3(&mut distribute(0.2,&mut bot_inner,|a|a.to_f32n()), 4, query_height);
         queries.push((query_height, b));
     }
 
@@ -90,7 +84,7 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut seqs = Vec::new();
     for _ in 0..100 {
-        let (a, b) = test1(&mut make(&mut bot_inner));
+        let (a, b) = test1(&mut distribute(0.2,&mut bot_inner,|a|a.to_f32n()));
         seqs.push((a, b));
     }
     let xx = seqs.iter().map(|_| height);

@@ -8,10 +8,8 @@ pub struct Bot {
 
 pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> f64 {
     bench_closure(|| {
-        let mut bots: Vec<BBox<NotNan<f32>, &mut isize>> = abspiral_f32_nan(grow)
-            .zip(bot_inner.iter_mut())
-            .map(|(a, b)| bbox(a, b))
-            .collect();
+        let mut bots=distribute(grow,bot_inner,|a|a.to_f32n());
+       
 
         let mut tree = TreeBuilder::new(&mut bots).with_height(height).build_seq();
         assert_eq!(tree.get_height(), height);
@@ -25,10 +23,8 @@ pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> 
 
 pub fn handle_theory_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> usize {
     datanum::datanum_test(|maker| {
-        let mut bots: Vec<BBox<_, &mut isize>> = abspiral_datanum(maker, grow)
-            .zip(bot_inner.iter_mut())
-            .map(|(a, b)| bbox(a, b))
-            .collect();
+        let mut bots=distribute(grow,bot_inner,|a|a.to_isize_dnum(maker));
+       
 
         let mut tree = TreeBuilder::new(&mut bots).with_height(height).build_seq();
         assert_eq!(tree.get_height(), height);
