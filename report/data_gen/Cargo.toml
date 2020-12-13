@@ -7,8 +7,9 @@ publish = false
 
 [dependencies]
 gnuplot = "0.0.32"
-duckduckgeo = {git="https://github.com/tiby312/duckduckgeo"}
 num_cpus = "1.*"
+dists={git="https://github.com/tiby312/dists.git"}
+
 
 [dependencies.broccoli]
 path = "../.."

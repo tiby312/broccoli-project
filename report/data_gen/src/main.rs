@@ -40,8 +40,8 @@ mod inner_prelude {
     pub use broccoli::query::*;
     pub use broccoli::*;
     pub use broccoli::*;
-    pub(crate) use duckduckgeo::bot;
-    pub(crate) use duckduckgeo::dists;
+    //pub(crate) use duckduckgeo::bot;
+    //pub(crate) use duckduckgeo::dists;
     pub use gnuplot::*;
     pub use std::time::Duration;
     pub use std::time::Instant;

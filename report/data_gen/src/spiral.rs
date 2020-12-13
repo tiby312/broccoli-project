@@ -11,18 +11,11 @@ fn handle_num(fb: &mut FigureBuilder) {
 
     let mut rects = Vec::new();
     for num in 0..10000 {
-        let mut scene = bot::BotSceneBuilder::new(num).build_specialized(|scene, pos| {
-            let p = pos.inner_try_into().unwrap();
-            let r = NotNan::new(scene.radius.dis()).unwrap();
-            bbox(
-                axgeom::Rect::from_point(p, vec2same(r))
-                    .inner_try_into::<NotNan<f32>>()
-                    .unwrap(),
-                (),
-            )
-        });
+        let mut bot_inner: Vec<_> = (0..num).map(|_| 0isize).collect();
 
-        let mut tree = broccoli::new_par(&mut scene.bots);
+        let mut bots = distribute(0.2, &mut bot_inner, |a| a.to_f32n());
+        
+        let mut tree = broccoli::new_par(&mut bots);
         let mut num_intersection = 0;
         tree.find_colliding_pairs_mut(|_a, _b| {
             num_intersection += 1;
@@ -47,23 +40,16 @@ fn handle_grow(fb: &mut FigureBuilder) {
     let num_bots = 10000;
     let mut rects = Vec::new();
     for grow in (0..100).map(|a| {
-        let a: f32 = a as f32;
+        let a: f64 = a as f64;
         0.2 + a * 0.02
     }) {
-        let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64); // dists::spiral::Spiral::new([0.0, 0.0], 17.0, grow);
 
-        let mut bots: Vec<Vec2<f32>> = s
-            .map(|[x, y]| vec2(x as f32, y as f32))
-            .take(num_bots)
-            .collect();
+        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
-        let mut bb = bbox_helper::create_bbox_mut(&mut bots, |b| {
-            axgeom::Rect::from_point(*b, vec2same(5.0))
-                .inner_try_into::<NotNan<f32>>()
-                .unwrap()
-        });
+        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-        let mut tree = broccoli::new_par(&mut bb);
+
+        let mut tree = broccoli::new_par(&mut bots);
 
         let mut num_intersection = 0;
         tree.find_colliding_pairs_mut(|_a, _b| {
@@ -85,7 +71,12 @@ fn handle_grow(fb: &mut FigureBuilder) {
 }
 
 fn handle2(fb: &mut FigureBuilder) {
-    fn make(grow: f32) -> Vec<Vec2<f32>> {
+    fn make(grow: f64) -> Vec<Vec2<f32>> {
+        let mut bot_inner: Vec<_> = (0..1000).map(|_| 0isize).collect();
+
+        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+        bots.into_iter().map(|a|vec2(*a.rect.x.start,*a.rect.y.start)).collect()
+        /*
         let num_bots = 1000;
 
         let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64);
@@ -95,6 +86,7 @@ fn handle2(fb: &mut FigureBuilder) {
             .take(num_bots)
             .collect();
         bots
+        */
     };
 
     let mut fg = fb.build("spiral_visualize");
