@@ -30,7 +30,6 @@ mod inner_prelude {
     pub use crate::support::bool_then;
     pub use crate::support::*;
     pub(crate) use crate::FigureBuilder;
-    pub use axgeom::ordered_float::NotNan;
     pub use axgeom::vec2;
     pub use axgeom::vec2same;
     pub use axgeom::Rect;
