@@ -94,7 +94,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
                 &[],
             )
             .set_title(
-                "Dinotree Colfind Query: Optimal Height vs Heuristic Height with abspiral(x,2.0)",
+                "Broccoli Colfind Query: Optimal Height vs Heuristic Height with abspiral(x,2.0)",
                 &[],
             )
             .set_x_label("Num bots", &[])

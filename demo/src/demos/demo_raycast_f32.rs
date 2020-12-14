@@ -33,7 +33,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             .draw();
 
         {
-            let tree = tree.as_tree_mut(); //DinoTree::new(&mut vv);
+            let tree = tree.as_tree_mut();
             let mut ray_cast = canvas.lines(1.0);
 
             for dir in 0..360i32 {
