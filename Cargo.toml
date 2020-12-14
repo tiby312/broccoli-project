@@ -1,6 +1,6 @@
 [package]
 name = "broccoli"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
 license = "MIT/Apache-2.0"
@@ -30,7 +30,3 @@ unchecked_unwrap = "2.0.2"
 # This sets the default target to `x86_64-unknown-linux-gnu`
 # and only builds that target
 targets = ["x86_64-unknown-linux-gnu"]
-
-
-[patch.crates-io]
-axgeom={path="../axgeom"}
