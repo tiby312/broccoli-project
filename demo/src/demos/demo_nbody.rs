@@ -167,8 +167,6 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             support::point_to_rect_f32(b.pos,radius)
         });
 
-        //let mut k: Vec<_> = bots.iter_mut().map(|b| bbox(b.create_aabb(), b)).collect();
-
         {
             let mut tree = broccoli::new_par(&mut k);
 

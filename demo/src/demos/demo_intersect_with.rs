@@ -32,9 +32,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         wall_move: [None; 2],
     });
 
-    let mut walls=support::make_rand_rect(10,dim,[10.0,60.0],|a|{
-        a
-    });
+    let mut walls=support::make_rand_rect(10,dim,[10.0,60.0],|a|a);
     
     let mut rects = canvas.rects();
     for wall in walls.iter() {
