@@ -12,7 +12,6 @@ pub mod prelude {
     pub use dists::uniform_rand::UniformRandGen;
     pub use duckduckgeo::array2_inner_into;
     pub use duckduckgeo::bot::*;
-    pub use duckduckgeo::F32n;
     pub use duckduckgeo::*;
     pub use egaku2d::*;
     pub use crate::*;
