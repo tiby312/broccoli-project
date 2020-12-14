@@ -26,14 +26,6 @@
 //! are provided. They use `rayon` under the hood which uses work stealing to
 //! parallelize divide and conquer style recursive functions.
 //!
-//! ### Floating Point
-//!
-//! The [`Num`] trait used for the aabbs inserted into the tree must implement [`Ord`],
-//! thus you can't add `f32` or `f64`. However, you can use the `ordered_float` crate, which
-//! is re-exported at [`axgeom::ordered_float`].
-//! The broccoli book mentioned above compares performance. For best performance,
-//! you will likely want to convert the floats to integers anyway.
-//!
 //! ### Protecting Invariants Statically
 //!
 //! A lot is done to forbid the user from violating the invariants of the tree once constructed
