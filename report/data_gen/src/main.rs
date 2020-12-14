@@ -118,13 +118,7 @@ fn main() {
 
     /*
     dbg!(
-        support::bench_closure(
-            ||support::abspiral_all(
-                30_000,
-                0.2,
-                ||{}
-            )
-        )
+        colfind::construction_vs_query::all::handle_bench(50_000,0.2,true)  
     );
 
     return;
