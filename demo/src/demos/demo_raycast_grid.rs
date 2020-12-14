@@ -3,8 +3,7 @@ use crate::support::prelude::*;
 use duckduckgeo::grid::raycast::*;
 use duckduckgeo::grid::*;
 
-pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
-    let dim = dim.inner_into();
+pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
     let radius = 3.0;
     let viewport = GridViewPort {
         spacing: 60.0,

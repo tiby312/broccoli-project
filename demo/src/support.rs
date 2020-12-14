@@ -5,8 +5,8 @@ pub mod prelude {
     pub use broccoli::compt;
     pub use broccoli::prelude::*;
     pub use broccoli::rayon;
-    pub use broccoli::*;
-
+    pub use broccoli::bbox;
+    pub use broccoli::BBox;
     //pub use dists;
     pub use crate::dists::*;
     pub use dists::uniform_rand::UniformRandGen;
@@ -15,15 +15,10 @@ pub mod prelude {
     pub use duckduckgeo::F32n;
     pub use duckduckgeo::*;
     pub use egaku2d::*;
-    //TODO remove
-    pub use ordered_float::NotNan;
-    pub use ordered_float::OrderedFloat;
     pub use crate::*;
 }
 
 use axgeom::*;
-use axgeom::ordered_float::OrderedFloat;
-use axgeom::ordered_float::NotNan;
 
 
 pub fn make_rand<T>(num:usize,border:Rect<f32>,mut func:impl FnMut(Vec2<f32>)->T)->Vec<T>{

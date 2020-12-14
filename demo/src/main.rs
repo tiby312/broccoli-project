@@ -10,7 +10,6 @@ use glutin::event_loop::ControlFlow;
 #[macro_use]
 pub(crate) mod support;
 pub(crate) mod demos;
-use duckduckgeo::F32n;
 
 use self::support::prelude::*;
 
@@ -39,18 +38,16 @@ mod demo_iter {
             let area = Rect::new(0.0, area.x as f32, 0.0, area.y as f32);
             
             let k: Demo = match curr {
-                0 => demo_intersect_with::make_demo(area, canvas),
-                
-                /*
                 0 => demo_original_order::make_demo(area),
                 1 => demo_liquid::make_demo(area),
                 2 => demo_raycast_f32::make_demo(area, canvas),
                 3 => demo_raycast_f32_debug::make_demo(area, canvas),
                 4 => demo_multirect::make_demo(area, canvas),
+                5 => demo_intersect_with::make_demo(area, canvas),
                 6 => demo_knearest::make_demo(area, canvas),
                 7 => demo_nbody::make_demo(area),
                 8 => demo_raycast_grid::make_demo(area, canvas),
-                */
+                
                 _ => unreachable!("Not possible"),
             };
             self.0 += 1;

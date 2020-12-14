@@ -32,3 +32,5 @@ unchecked_unwrap = "2.0.2"
 targets = ["x86_64-unknown-linux-gnu"]
 
 
+[patch.crates-io]
+axgeom={path="../axgeom"}

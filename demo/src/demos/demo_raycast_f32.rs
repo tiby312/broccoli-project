@@ -9,21 +9,18 @@ struct Bot {
     center: Vec2<f32>,
 }
 
-pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
+pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
     let radius = 10.0;
 
-    let vv = dists::rand2_iter(dim.inner_into())
-        .map(|[x, y]| {
-            let center = vec2(x, y);
-            let b = Bot { center };
-            let r = Rect::from_point(center, vec2same(radius))
-                .inner_try_into()
-                .unwrap();
-            bbox(r, b)
-        })
-        .take(300)
-        .collect::<Vec<_>>()
-        .into_boxed_slice();
+
+    let vv=support::make_rand(
+        400,
+        dim,
+        |center|bbox(
+            Rect::from_point(
+                center,
+                vec2same(radius)
+            ),Bot{center})).into_boxed_slice();
 
     //Draw bots
     let mut r = canvas.circles();
@@ -61,42 +58,36 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 let mut radius = radius;
 
                 if check_naive {
+                    
                     assert::raycast_mut(
                         tree,
-                        ray,
+                        ray.inner_into(),
                         &mut radius,
                         move |_r, ray, rect| {
-                            ray.inner_into::<f32>()
-                                .cast_to_rect(rect.as_ref())
-                                .map(|a| f32n(a))
+                            ray.cast_to_rect(rect)
                         },
                         move |r, ray, t| {
-                            ray.inner_into::<f32>()
-                                .cast_to_circle(t.inner.center, *r)
-                                .map(|a| NotNan::new(a).unwrap())
+                            ray.cast_to_circle(t.inner.center, *r)
                         },
-                        dim,
+                        dim.inner_into(),
                     );
+                    
                 }
 
                 let res = tree.raycast_mut(
                     ray,
                     &mut radius,
                     move |_r, ray, rect| {
-                        ray.inner_into::<f32>()
-                            .cast_to_rect(rect.as_ref())
-                            .map(|a| f32n(a))
+                        ray.cast_to_rect(rect)
                     },
                     move |r, ray, t| {
-                        ray.inner_into::<f32>()
-                            .cast_to_circle(t.inner.center, *r)
-                            .map(|a| NotNan::new(a).unwrap())
+                        ray.cast_to_circle(t.inner.center, *r)
                     },
                     dim,
                 );
 
                 let dis = match res {
-                    axgeom::CastResult::Hit((_, dis)) => dis.into_inner(),
+                    axgeom::CastResult::Hit((_, dis)) => dis,
                     axgeom::CastResult::NoHit => 800.0,
                 };
 

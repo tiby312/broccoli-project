@@ -20,21 +20,23 @@ impl Bot {
     }
 }
 
-pub fn make_demo(dim: Rect<F32n>) -> Demo {
-    let num_bot = 4000;
-
+pub fn make_demo(dim: Rect<f32>) -> Demo {
+    
     let radius = 5.0;
 
-    let mut bots: Vec<_> = dists::rand2_iter(dim.inner_into())
-        .take(num_bot)
-        .enumerate()
-        .map(|(id, [x, y])| Bot {
-            id,
-            pos: vec2(x, y),
-            vel: vec2same(0.0),
-            force: vec2same(0.0),
+    let mut bots={
+        let mut idcounter=0;
+        support::make_rand(4000,dim,|pos|{
+            let b=Bot {
+                id:idcounter,
+                pos,
+                vel: vec2same(0.0),
+                force: vec2same(0.0),
+            };
+            idcounter+=1;
+            b
         })
-        .collect();
+    };
 
     Demo::new(move |cursor, canvas, check_naive| {
         for b in bots.iter_mut() {
@@ -121,24 +123,20 @@ struct Bla {
     rects: egaku2d::shapes::RectSession,
 }
 impl broccoli::query::DividerDrawer for Bla {
-    type N = F32n;
+    type N = f32;
     fn draw_divider<A: axgeom::Axis>(
         &mut self,
         axis: A,
-        div: F32n,
-        cont: [F32n; 2],
-        length: [F32n; 2],
+        _div: f32,
+        cont: [f32; 2],
+        length: [f32; 2],
         _depth: usize,
     ) {
-        let _div = div.into_inner();
-
-        let cont = Range::new(cont[0], cont[1]).inner_into();
-        let length = Range::new(length[0], length[1]).inner_into();
-
+        
         let rect = if axis.is_xaxis() {
-            Rect { x: cont, y: length }
+            Rect { x: cont.into(), y: length.into() }
         } else {
-            Rect { x: length, y: cont }
+            Rect { x: length.into(), y: cont.into() }
         };
 
         self.rects.add(rect.into());
@@ -151,8 +149,8 @@ use broccoli::node::Vistr;
 
 fn draw_bot_lines<A: axgeom::Axis>(
     axis: A,
-    stuff: Vistr<NodeMut<BBox<F32n, &mut Bot>>>,
-    rect: &axgeom::Rect<F32n>,
+    stuff: Vistr<NodeMut<BBox<f32, &mut Bot>>>,
+    rect: &axgeom::Rect<f32>,
     lines: &mut egaku2d::shapes::LineSession,
 ) {
     use compt::Visitor;
@@ -166,17 +164,17 @@ fn draw_bot_lines<A: axgeom::Axis>(
                 draw_bot_lines(axis.next(), start, &a, lines);
                 draw_bot_lines(axis.next(), end, &b, lines);
 
-                let ((x1, x2), (y1, y2)) = rect.inner_into::<f32>().get();
+                let ((x1, x2), (y1, y2)) = rect.get();
                 let midx = if !axis.is_xaxis() {
                     x1 + (x2 - x1) / 2.0
                 } else {
-                    div.into_inner()
+                    div
                 };
 
                 let midy = if axis.is_xaxis() {
                     y1 + (y2 - y1) / 2.0
                 } else {
-                    div.into_inner()
+                    div
                 };
 
                 Some((midx, midy))
@@ -184,7 +182,7 @@ fn draw_bot_lines<A: axgeom::Axis>(
             None => None,
         },
         None => {
-            let ((x1, x2), (y1, y2)) = rect.inner_into::<f32>().get();
+            let ((x1, x2), (y1, y2)) = rect.get();
             let midx = x1 + (x2 - x1) / 2.0;
 
             let midy = y1 + (y2 - y1) / 2.0;
