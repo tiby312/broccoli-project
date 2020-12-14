@@ -74,7 +74,7 @@ fn handle2(fb: &mut FigureBuilder) {
 
         let bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
         bots.into_iter()
-            .map(|a| vec2(*a.rect.x.start, *a.rect.y.start))
+            .map(|a| vec2(a.rect.x.start, a.rect.y.start))
             .collect()
         
     };

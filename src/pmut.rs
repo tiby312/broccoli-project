@@ -113,6 +113,12 @@ impl<'a, 'b: 'a, T: Aabb> PMut<'a, NodeMut<'b, T>> {
     }
 }
 
+impl<'a, T: Aabb> PMut<'a, T> {
+    #[inline(always)]
+    pub fn unpack_rect(self) -> &'a Rect<T::Num> {
+        self.inner.get()
+    }
+}
 impl<'a, T: HasInner> PMut<'a, T> {
     ///Unpack for the read-only rect and the mutable inner component
     #[inline(always)]

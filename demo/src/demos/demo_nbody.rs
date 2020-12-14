@@ -4,7 +4,7 @@ use broccoli::pmut::PMut;
 use duckduckgeo;
 #[derive(Copy, Clone)]
 struct NodeMass {
-    rect: axgeom::Rect<F32n>,
+    rect: axgeom::Rect<f32>,
     center: Vec2<f32>,
     mass: f32,
     force: Vec2<f32>,
@@ -19,10 +19,10 @@ struct Bla<'a> {
 }
 impl<'b> broccoli::query::NodeMassTrait for &Bla<'b> {
     type No = NodeMass;
-    type Item = BBox<F32n, &'b mut Bot>;
-    type Num = F32n;
+    type Item = BBox<f32, &'b mut Bot>;
+    type Num = f32;
 
-    fn get_rect(a: &Self::No) -> &axgeom::Rect<F32n> {
+    fn get_rect(a: &Self::No) -> &axgeom::Rect<f32> {
         &a.rect
     }
 
@@ -66,7 +66,7 @@ impl<'b> broccoli::query::NodeMassTrait for &Bla<'b> {
     fn new<'a, I: Iterator<Item = &'a Self::Item>>(
         &'a self,
         it: I,
-        rect: axgeom::Rect<F32n>,
+        rect: axgeom::Rect<f32>,
     ) -> Self::No {
         let mut total_x = 0.0;
         let mut total_y = 0.0;
@@ -111,12 +111,12 @@ impl<'b> broccoli::query::NodeMassTrait for &Bla<'b> {
         }
     }
 
-    fn is_far_enough(&self, b: [F32n; 2]) -> bool {
-        (b[0].into_inner() - b[1].into_inner()).abs() > 200.0
+    fn is_far_enough(&self, b: [f32; 2]) -> bool {
+        (b[0] - b[1]).abs() > 200.0
     }
 
-    fn is_far_enough_half(&self, b: [F32n; 2]) -> bool {
-        (b[0].into_inner() - b[1].into_inner()).abs() > 100.0
+    fn is_far_enough_half(&self, b: [f32; 2]) -> bool {
+        (b[0] - b[1]).abs() > 100.0
     }
 }
 
@@ -141,24 +141,17 @@ impl Bot {
 
         b.force = vec2same(0.0);
     }
-    fn create_aabb(&self) -> axgeom::Rect<F32n> {
-        let r = 5.0f32.min(self.mass.sqrt() / 10.0);
-        axgeom::Rect::from_point(self.pos, vec2same(r))
-            .inner_try_into()
-            .unwrap()
-    }
 }
 
-pub fn make_demo(dim: Rect<F32n>) -> Demo {
-    let mut bots: Vec<_> = dists::rand2_iter(dim.inner_into())
-        .take(4000)
-        .map(|[x, y]| Bot {
-            mass: 100.0,
-            pos: vec2(x, y),
-            vel: vec2same(0.0),
-            force: vec2same(0.0),
-        })
-        .collect();
+pub fn make_demo(dim: Rect<f32>) -> Demo {
+
+
+    let mut bots=support::make_rand(4000,dim,|pos|Bot {
+        mass: 100.0,
+        pos,
+        vel: vec2same(0.0),
+        force: vec2same(0.0),
+    });
 
     //Make one of the bots have a lot of mass.
     bots.last_mut().unwrap().mass = 10000.0;
@@ -167,9 +160,12 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
 
     Demo::new(move |cursor, canvas, check_naive| {
         let no_mass_bots = &mut no_mass_bots;
-        let bots = &mut bots;
+        
 
-        let mut k: Vec<_> = bots.iter_mut().map(|b| bbox(b.create_aabb(), b)).collect();
+        let mut k=support::distribute(&mut bots,|b|{
+            let radius = 5.0f32.min(b.mass.sqrt() / 10.0);
+            support::point_to_rect_f32(b.pos,radius)
+        });
 
         {
             let mut tree = broccoli::new_par(&mut k);
@@ -274,7 +270,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         //Draw bots.
         let mut rects = canvas.rects();
         for bot in k.iter() {
-            rects.add(bot.rect.inner_into().into());
+            rects.add(bot.rect.into());
         }
         rects
             .send_and_uniforms(canvas)
@@ -298,7 +294,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         //Update bot locations.
         for bot in bots.iter_mut() {
             Bot::handle(bot);
-            duckduckgeo::wrap_position(&mut bot.pos, *dim.as_ref());
+            duckduckgeo::wrap_position(&mut bot.pos, dim);
         }
 
         //Add one bott each iteration.

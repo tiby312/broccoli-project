@@ -2,37 +2,22 @@ use crate::support::prelude::*;
 
 #[derive(Copy, Clone, Debug)]
 struct Bot {
-    id: usize,
-    radius: Vec2<i32>,
-    pos: Vec2<i32>,
     rect: Rect<i32>,
 }
 
-pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
-    let bots = dists::rand2_iter(dim.inner_into())
-        .zip(dists::rand_iter(5.0, 20.0))
-        .take(200)
-        .enumerate()
-        .map(|(id, ([x, y], radius))| {
-            let pos: Vec2<f32> = vec2(x, y);
-            let pos = pos.inner_as::<i32>();
-            let radius = vec2same(radius).inner_as();
-            let rect = Rect::from_point(pos, radius);
-            Bot {
-                pos,
-                radius,
-                id,
-                rect,
-            }
-        })
-        .collect::<Vec<_>>()
-        .into_boxed_slice();
+pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
+
+
+    let bots=support::make_rand_rect(200,dim,[5.0,20.0],|rect|{
+        Bot{rect:rect.inner_as()}
+    }).into_boxed_slice();
+
 
     let mut tree = broccoli::container::TreeOwnedInd::new_par(bots, |b| b.rect);
 
     let mut rects = canvas.rects();
     for bot in tree.as_tree().get_bbox_elements().iter() {
-        rects.add(bot.get().inner_as().into());
+        rects.add(bot.rect.inner_as().into());
     }
     let rect_save = rects.save(canvas);
 
@@ -79,7 +64,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
 
                     let mut rects = canvas.rects();
                     for r in to_draw.iter() {
-                        rects.add(r.get().inner_as().into());
+                        rects.add(r.rect.inner_as().into());
                     }
                     rects
                         .send_and_uniforms(canvas)
@@ -101,7 +86,7 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
         //test for_all_intersect_rect
         let mut rects = canvas.rects();
         tree.as_tree().for_all_intersect_rect(&r1, |a| {
-            rects.add(a.get().inner_as().into());
+            rects.add(a.rect.inner_as().into());
         });
         rects
             .send_and_uniforms(canvas)

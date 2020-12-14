@@ -2,43 +2,32 @@ use crate::support::prelude::*;
 
 use axgeom::Ray;
 
-#[derive(Copy, Clone, Debug)]
-pub struct Bot;
 
-pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
-    let ii = dists::rand2_iter(dim.inner_into())
-        .zip(dists::rand_iter(1.0, 10.0))
-        .take(500)
-        .map(|([x, y], radius)| {
-            bbox(
-                Rect::from_point(vec2(x, y), vec2same(radius))
-                    .inner_try_into()
-                    .unwrap(),
-                Bot,
-            )
-        })
-        .collect::<Vec<_>>()
-        .into_boxed_slice();
+pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
+
+
+    let walls=support::make_rand_rect(500,dim,[1.0,10.0],|a|{
+        bbox(a,())
+    }).into_boxed_slice();
 
     let mut counter: f32 = 0.0;
-    let mut tree = broccoli::container::TreeOwned::new_par(ii);
+    let mut tree = broccoli::container::TreeOwned::new_par(walls);
 
     let mut rects = canvas.rects();
     for bot in tree.as_tree().get_bbox_elements().iter() {
-        rects.add(bot.get().inner_into().into());
+        rects.add(bot.rect.into());
     }
     let rect_save = rects.save(canvas);
 
     Demo::new(move |cursor, canvas, check_naive| {
         let tree = tree.as_tree_mut();
 
-        let ray: Ray<F32n> = {
+        let ray: Ray<f32> = {
             counter += 0.004;
-            let point: Vec2<f32> = cursor.inner_into::<f32>().inner_as();
+            let point: Vec2<f32> = cursor;
             let dir = vec2(counter.cos() * 10.0, counter.sin() * 10.0);
 
-            let dir = dir.inner_as();
-            Ray { point, dir }.inner_try_into().unwrap()
+            Ray { point, dir }
         };
 
         //Draw the walls
@@ -53,15 +42,11 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 ray,
                 &mut rects,
                 move |_r, ray, rect| {
-                    ray.inner_into::<f32>()
-                        .cast_to_rect(rect.as_ref())
-                        .map(|a| f32n(a))
+                    ray.cast_to_rect(&rect)
                 },
                 move |rects, ray, t| {
-                    rects.add(t.get().inner_into().into());
-                    ray.inner_into::<f32>()
-                        .cast_to_rect(t.get().as_ref())
-                        .map(|a| f32n(a))
+                    rects.add(t.rect.into());
+                    ray.cast_to_rect(&t.rect)
                 },
                 dim,
             );
@@ -74,16 +59,12 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
                 ray,
                 &mut rects,
                 move |_r, ray, rect| {
-                    ray.inner_into::<f32>()
-                        .cast_to_rect(rect.as_ref())
-                        .map(|a| f32n(a))
+                    ray.cast_to_rect(&rect)
                 },
                 move |r, ray, d| {
-                    r.add(d.get().inner_into().into());
+                    r.add(d.rect.into());
 
-                    ray.inner_into::<f32>()
-                        .cast_to_rect(d.get().as_ref())
-                        .map(|a| f32n(a))
+                    ray.cast_to_rect(&d.rect)
                 },
                 dim,
             );
@@ -94,10 +75,9 @@ pub fn make_demo(dim: Rect<F32n>, canvas: &mut SimpleCanvas) -> Demo {
             test
         };
 
-        let ray: Ray<f32> = ray.inner_into();
 
         let dis = match test {
-            axgeom::CastResult::Hit((_, dis)) => dis.into_inner(),
+            axgeom::CastResult::Hit((_, dis)) => dis,
             axgeom::CastResult::NoHit => 800.0,
         };
 

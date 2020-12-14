@@ -1,7 +1,7 @@
 use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
 
-fn test1(bots: &mut [BBox<NotNan<f32>, &mut isize>]) -> (f64, f64) {
+fn test1(bots: &mut [BBox<f32, &mut isize>]) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(bots).build_seq());
 
     let (tree, query_time) = bench_closure_ret(|| {
@@ -18,7 +18,7 @@ fn test1(bots: &mut [BBox<NotNan<f32>, &mut isize>]) -> (f64, f64) {
 }
 
 fn test3(
-    bots: &mut [BBox<NotNan<f32>, &mut isize>],
+    bots: &mut [BBox<f32, &mut isize>],
     rebal_height: usize,
     query_height: usize,
 ) -> (f64, f64) {

@@ -8,7 +8,7 @@ use crate::tree::*;
 use container::TreeRef;
 ///Returns false if the tree's invariants are not met.
 #[must_use]
-pub fn tree_invariants<'a>(a: &impl Queries<'a>) -> bool {
+pub fn tree_invariants<'a,T:Queries<'a>>(a: &T) -> bool  {
     inner(a.axis(), a.vistr().with_depth(compt::Depth(0))).is_ok()
 }
 
@@ -39,7 +39,8 @@ fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<NodeMut<T>>>) -
             .get()
             .get_range(axis_next)
             .start
-            .cmp(&b.get().get_range(axis_next).start);
+            .partial_cmp(&b.get().get_range(axis_next).start)
+            .unwrap();
         Some(j)
     };
 
@@ -129,7 +130,7 @@ pub fn k_nearest_mut<Acc, A: Axis, T: Aabb>(
     mut broad: impl FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
     mut fine: impl FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
     rect: Rect<T::Num>,
-) {
+){
     let bots = tree.get_bbox_elements_mut();
 
     let mut res_naive = NaiveAlgs::new(bots)
@@ -146,8 +147,8 @@ pub fn k_nearest_mut<Acc, A: Axis, T: Aabb>(
         .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
         .collect();
 
-    res_naive.sort();
-    res_dino.sort();
+    res_naive.sort_by(|a,b|a.partial_cmp(b).unwrap());
+    res_dino.sort_by(|a,b|a.partial_cmp(b).unwrap());
 
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));
@@ -191,8 +192,8 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb>(
         }
     }
 
-    res_naive.sort();
-    res_dino.sort();
+    res_naive.sort_by(|a,b|a.partial_cmp(b).unwrap());
+    res_dino.sort_by(|a,b|a.partial_cmp(b).unwrap());
 
     //dbg!("{:?}  {:?}",res_naive.len(),res_dino.len());
     assert_eq!(

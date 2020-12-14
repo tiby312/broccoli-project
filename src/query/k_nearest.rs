@@ -181,7 +181,13 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
                     }; //$unit_create!(curr_bot,curr_dis);
                     arr.insert(i, unit);
 
-                    let max = arr.iter().map(|a| a.mag).max().unwrap();
+                    let max = arr.iter().map(|a| a.mag).max_by(|a,b|{
+                        if a>b{
+                            Ordering::Greater
+                        }else{
+                            Ordering::Less
+                        }
+                    }).unwrap();
                     assert!(max < v.mag);
                     return true;
                 } else if curr_dis == arr[i].mag {

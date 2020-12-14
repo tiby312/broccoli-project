@@ -56,30 +56,25 @@ impl Liquid {
         spring_force_mag
     }
 }
-pub fn make_demo(dim: Rect<F32n>) -> Demo {
+pub fn make_demo(dim: Rect<f32>) -> Demo {
     let radius = 50.0;
-    let mut bots: Vec<_> = dists::rand2_iter(dim.inner_into())
-        .take(2000)
-        .map(|[x, y]| Liquid::new(vec2(x, y)))
-        .collect();
+   
+    let mut bots=support::make_rand(2000,dim,|a|Liquid::new(a));
 
     Demo::new(move |cursor, canvas, _check_naive| {
-        let mut dim2 = dim.inner_into();
-        let dim2 = dim2.grow(20.0);
-        let dim_float = dim.inner_into();
+        let dim2 = &{
+            let mut dim=dim;
+            *dim.grow(20.0) //TODO fix api
+        };
 
-        let mut k: Vec<_> = bots
-            .iter_mut()
-            .map(|bot| {
-                let p = bot.pos;
-                let r = radius;
-                let rect = Rect::new(p.x - r, p.x + r, p.y - r, p.y + r);
+        let mut k=support::distribute(&mut bots,|bot|{
+            let p = bot.pos;
+            let r = radius;
+            let rect = Rect::new(p.x - r, p.x + r, p.y - r, p.y + r);
 
-                let rect = broccoli::convert::rect_f32_to_u16(rect, dim2);
-                bbox(rect, bot)
-            })
-            .collect();
-
+            broccoli::convert::rect_f32_to_u16(rect, dim2)
+        });
+        
         let mut tree = broccoli::new_par(&mut k);
 
         tree.find_colliding_pairs_mut_par(move |a, b| {
@@ -100,7 +95,7 @@ pub fn make_demo(dim: Rect<F32n>) -> Demo {
         {
             let dim3 = dim.inner_into();
 
-            let jj = broccoli::convert::rect_f32_to_u16(dim_float, dim2);
+            let jj = broccoli::convert::rect_f32_to_u16(dim, dim2);
             tree.for_all_not_in_rect_mut(&jj, move |a| {
                 let a = a.unpack_inner();
                 duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim3, 0.5);
