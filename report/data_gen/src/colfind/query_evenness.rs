@@ -30,7 +30,7 @@ fn handle_inner_theory(num_bots: usize, grow: f64) -> TheoryRes {
         levelc2.into_tree()
     });
 
-    TheoryRes {  query }
+    TheoryRes { query }
 }
 
 pub fn handle_theory(fb: &mut FigureBuilder) {

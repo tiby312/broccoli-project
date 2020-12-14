@@ -76,7 +76,6 @@ fn handle2(fb: &mut FigureBuilder) {
         bots.into_iter()
             .map(|a| vec2(a.rect.x.start, a.rect.y.start))
             .collect()
-        
     };
 
     let mut fg = fb.build("spiral_visualize");

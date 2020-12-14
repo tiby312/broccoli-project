@@ -118,7 +118,7 @@ fn main() {
 
     /*
     dbg!(
-        colfind::construction_vs_query::all::handle_bench(50_000,0.2,true)  
+        colfind::construction_vs_query::all::handle_bench(50_000,0.2,true)
     );
 
     return;

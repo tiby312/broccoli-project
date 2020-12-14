@@ -58,23 +58,23 @@ impl Liquid {
 }
 pub fn make_demo(dim: Rect<f32>) -> Demo {
     let radius = 50.0;
-   
-    let mut bots=support::make_rand(2000,dim,|a|Liquid::new(a));
+
+    let mut bots = support::make_rand(2000, dim, |a| Liquid::new(a));
 
     Demo::new(move |cursor, canvas, _check_naive| {
         let dim2 = &{
-            let mut dim=dim;
+            let mut dim = dim;
             *dim.grow(20.0) //TODO fix api
         };
 
-        let mut k=support::distribute(&mut bots,|bot|{
+        let mut k = support::distribute(&mut bots, |bot| {
             let p = bot.pos;
             let r = radius;
             let rect = Rect::new(p.x - r, p.x + r, p.y - r, p.y + r);
 
             broccoli::convert::rect_f32_to_u16(rect, dim2)
         });
-        
+
         let mut tree = broccoli::new_par(&mut k);
 
         tree.find_colliding_pairs_mut_par(move |a, b| {

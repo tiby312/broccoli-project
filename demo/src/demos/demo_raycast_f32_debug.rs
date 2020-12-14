@@ -2,13 +2,8 @@ use crate::support::prelude::*;
 
 use axgeom::Ray;
 
-
 pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
-
-
-    let walls=support::make_rand_rect(500,dim,[1.0,10.0],|a|{
-        bbox(a,())
-    }).into_boxed_slice();
+    let walls = support::make_rand_rect(500, dim, [1.0, 10.0], |a| bbox(a, ())).into_boxed_slice();
 
     let mut counter: f32 = 0.0;
     let mut tree = broccoli::container::TreeOwned::new_par(walls);
@@ -41,9 +36,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                 tree,
                 ray,
                 &mut rects,
-                move |_r, ray, rect| {
-                    ray.cast_to_rect(&rect)
-                },
+                move |_r, ray, rect| ray.cast_to_rect(&rect),
                 move |rects, ray, t| {
                     rects.add(t.rect.into());
                     ray.cast_to_rect(&t.rect)
@@ -58,9 +51,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             let test = tree.raycast_mut(
                 ray,
                 &mut rects,
-                move |_r, ray, rect| {
-                    ray.cast_to_rect(&rect)
-                },
+                move |_r, ray, rect| ray.cast_to_rect(&rect),
                 move |r, ray, d| {
                     r.add(d.rect.into());
 
@@ -74,7 +65,6 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                 .draw();
             test
         };
-
 
         let dis = match test {
             axgeom::CastResult::Hit((_, dis)) => dis,

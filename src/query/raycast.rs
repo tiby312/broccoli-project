@@ -149,11 +149,11 @@ impl<'a, T: Aabb> Closest<'a, T> {
 
         match self.closest.as_mut() {
             Some(dis) => {
-                if y>dis.1{
+                if y > dis.1 {
                     //no way this bot will be a candidate, return.
                     return;
-                }else{
-                    //this aabb could be a candidate, continue.   
+                } else {
+                    //this aabb could be a candidate, continue.
                 }
                 /*
                 match y.cmp(&dis.1) {
@@ -184,9 +184,9 @@ impl<'a, T: Aabb> Closest<'a, T> {
 
         match self.closest.as_mut() {
             Some(mut dis) => {
-                if x>dis.1{
+                if x > dis.1 {
                     //do nothing
-                }else{
+                } else {
                     dis.0.clear();
                     dis.0.push(b);
                     dis.1 = x;

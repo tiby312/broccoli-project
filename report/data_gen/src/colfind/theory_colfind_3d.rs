@@ -1,7 +1,6 @@
 use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
 
-
 struct Res {
     num_pairs: usize,
     num_comparison: usize,

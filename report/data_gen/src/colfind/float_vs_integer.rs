@@ -55,9 +55,7 @@ fn handle_bench(fg: &mut Figure) {
             let border = compute_border(&bb).unwrap();
 
             bench_closure(|| {
-                let mut bb = convert_dist(bb, |a| {
-                    broccoli::convert::rect_f32_to_u32(a, &border)
-                });
+                let mut bb = convert_dist(bb, |a| broccoli::convert::rect_f32_to_u32(a, &border));
 
                 let mut tree = broccoli::new(&mut bb);
 
@@ -152,9 +150,7 @@ fn handle_bench(fg: &mut Figure) {
             let border = compute_border(&bb).unwrap();
 
             bench_closure(|| {
-                let mut bb = convert_dist(bb, |a| {
-                    broccoli::convert::rect_f32_to_u16(a, &border)
-                });
+                let mut bb = convert_dist(bb, |a| broccoli::convert::rect_f32_to_u16(a, &border));
 
                 let mut tree = broccoli::new_par(&mut bb);
 

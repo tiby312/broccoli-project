@@ -33,11 +33,10 @@ fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
 }
 
 pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
+    let bots =
+        support::make_rand_rect(200, dim, [2.0, 20.0], |a| Bot { rect: a }).into_boxed_slice();
 
-    let bots=support::make_rand_rect(200,dim,[2.0,20.0],|a|Bot{rect:a}).into_boxed_slice();
-
-    let mut tree =
-        broccoli::container::TreeOwnedInd::new(bots, |bot| bot.rect);
+    let mut tree = broccoli::container::TreeOwnedInd::new(bots, |bot| bot.rect);
 
     let mut rects = canvas.rects();
     for bot in tree.as_tree().get_bbox_elements().iter() {
@@ -52,7 +51,6 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             [0.0, 0.0, 1.0, 0.6], //blue third closets
         ];
         if check_naive {
-            
             broccoli::analyze::assert::k_nearest_mut(
                 tree.as_tree_mut(),
                 cursor,
@@ -65,7 +63,6 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                 },
                 dim,
             );
-            
         }
 
         let mut vv = {

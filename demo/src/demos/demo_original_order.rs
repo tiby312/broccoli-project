@@ -21,19 +21,18 @@ impl Bot {
 }
 
 pub fn make_demo(dim: Rect<f32>) -> Demo {
-    
     let radius = 5.0;
 
-    let mut bots={
-        let mut idcounter=0;
-        support::make_rand(4000,dim,|pos|{
-            let b=Bot {
-                id:idcounter,
+    let mut bots = {
+        let mut idcounter = 0;
+        support::make_rand(4000, dim, |pos| {
+            let b = Bot {
+                id: idcounter,
                 pos,
                 vel: vec2same(0.0),
                 force: vec2same(0.0),
             };
-            idcounter+=1;
+            idcounter += 1;
             b
         })
     };
@@ -132,15 +131,19 @@ impl broccoli::query::DividerDrawer for Bla {
         length: [f32; 2],
         _depth: usize,
     ) {
-        
         let rect = if axis.is_xaxis() {
-            Rect { x: cont.into(), y: length.into() }
+            Rect {
+                x: cont.into(),
+                y: length.into(),
+            }
         } else {
-            Rect { x: length.into(), y: cont.into() }
+            Rect {
+                x: length.into(),
+                y: cont.into(),
+            }
         };
 
         self.rects.add(rect.into());
-
     }
 }
 

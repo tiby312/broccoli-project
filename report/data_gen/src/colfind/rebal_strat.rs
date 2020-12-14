@@ -1,7 +1,6 @@
 use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
 
-
 pub fn handle(fb: &mut FigureBuilder) {
     handle_num_bots(fb, 0.2);
 }

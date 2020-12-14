@@ -1,6 +1,5 @@
 use crate::inner_prelude::*;
 
-
 ///Shorthand constructor of [`BBox`]
 #[inline(always)]
 #[must_use]

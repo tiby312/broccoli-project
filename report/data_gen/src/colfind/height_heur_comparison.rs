@@ -1,7 +1,6 @@
 use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
 
-
 pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> f64 {
     bench_closure(|| {
         let mut bots = distribute(grow, bot_inner, |a| a.to_f32n());

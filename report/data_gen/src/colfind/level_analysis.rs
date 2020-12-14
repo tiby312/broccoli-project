@@ -28,10 +28,7 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) ->
                 &mut levelc2,
             );
 
-            (
-                levelc.into_levels(),
-                levelc2.into_levels()
-            )
+            (levelc.into_levels(), levelc2.into_levels())
         });
 
         let t = TheoryRes { grow, rebal, query };
@@ -74,7 +71,7 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> 
             query: times2.into_levels(),
         };
         assert_eq!(t.rebal.len(), t.query.len());
-        
+
         assert_eq!(t.rebal.len(), t.query.len());
         rects.push(t)
     }

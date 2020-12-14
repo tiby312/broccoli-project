@@ -144,9 +144,7 @@ impl Bot {
 }
 
 pub fn make_demo(dim: Rect<f32>) -> Demo {
-
-
-    let mut bots=support::make_rand(4000,dim,|pos|Bot {
+    let mut bots = support::make_rand(4000, dim, |pos| Bot {
         mass: 100.0,
         pos,
         vel: vec2same(0.0),
@@ -160,11 +158,10 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
     Demo::new(move |cursor, canvas, check_naive| {
         let no_mass_bots = &mut no_mass_bots;
-        
 
-        let mut k=support::distribute(&mut bots,|b|{
+        let mut k = support::distribute(&mut bots, |b| {
             let radius = 5.0f32.min(b.mass.sqrt() / 10.0);
-            support::point_to_rect_f32(b.pos,radius)
+            support::point_to_rect_f32(b.pos, radius)
         });
 
         {

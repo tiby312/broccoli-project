@@ -6,12 +6,10 @@ struct Bot {
 }
 
 pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
-
-
-    let bots=support::make_rand_rect(200,dim,[5.0,20.0],|rect|{
-        Bot{rect:rect.inner_as()}
-    }).into_boxed_slice();
-
+    let bots = support::make_rand_rect(200, dim, [5.0, 20.0], |rect| Bot {
+        rect: rect.inner_as(),
+    })
+    .into_boxed_slice();
 
     let mut tree = broccoli::container::TreeOwnedInd::new_par(bots, |b| b.rect);
 
