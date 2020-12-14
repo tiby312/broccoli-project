@@ -10,7 +10,4 @@ You could also covert floats to `u16`. This way an entire `Rect<u16>` is only 64
 
 If you do convert your floats to integers, make sure to normalize it over all possible values of the integer to make it as accurate as possible. If it is important to you to not miss any interesections, then you'd also have make sure that the rouding is conservative always producing a bounding box that is slightly bigger than it needs to be.
 
-One thing that surprised me is that `ordered_float::OrderedFloat<T>` is only slightly slower than `ordered_float::NotNan<T>`. I thought that because we are doing a lot of comparisons, the extra
-overhead of the comparison function for `OrderedFloat` would add up, but it only slightly affects it. 
-
 <img alt="Float vs Integer" src="graphs/float_vs_integer.svg" class="center" style="width: 100%;" />

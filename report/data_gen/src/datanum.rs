@@ -9,25 +9,20 @@ pub struct Dnum<'a, I: Num>(pub I, PhantomData<&'a usize>);
 
 impl<'a, I: Num> PartialOrd for Dnum<'a, I> {
     fn partial_cmp(&self, other: &Dnum<I>) -> Option<Ordering> {
-        Some(self.cmp(other))
+        unsafe {
+            COUNTER += 1;
+        }
+        self.0.partial_cmp(&other.0)
     }
 }
 
 impl<'a, I: Num> PartialEq for Dnum<'a, I> {
     fn eq(&self, other: &Dnum<I>) -> bool {
-        self.0.cmp(&other.0) == Ordering::Equal
+        self.0.eq(&other.0)
     }
 }
 
 impl<'a, I: Num> Eq for Dnum<'a, I> {}
-impl<'a, I: Num> Ord for Dnum<'a, I> {
-    fn cmp(&self, other: &Dnum<I>) -> Ordering {
-        unsafe {
-            COUNTER += 1;
-        }
-        self.0.cmp(&other.0)
-    }
-}
 
 pub static mut COUNTER: usize = 0;
 

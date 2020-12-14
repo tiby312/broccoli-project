@@ -212,20 +212,19 @@ fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
 }
 
 pub struct RectConv(pub Rect<f64>);
-use axgeom::ordered_float::OrderedFloat;
 
 impl RectConv {
-    pub fn to_f32n(self) -> Rect<NotNan<f32>> {
-        self.0.inner_as::<f32>().inner_try_into().unwrap()
+    pub fn to_f32n(self) -> Rect<f32> {
+        self.0.inner_as::<f32>()
     }
-    pub fn to_f64n(self) -> Rect<NotNan<f64>> {
-        self.0.inner_try_into().unwrap()
+    pub fn to_f64n(self) -> Rect<f64> {
+        self.0
     }
     pub fn to_isize_dnum(self, maker: &datanum::Maker) -> Rect<datanum::Dnum<isize>> {
         maker.from_rect(self.0.inner_as())
     }
-    pub fn to_f32dnum(self, maker: &datanum::Maker) -> Rect<datanum::Dnum<NotNan<f32>>> {
-        maker.from_rect(self.0.inner_as::<f32>().inner_try_into().unwrap())
+    pub fn to_f32dnum(self, maker: &datanum::Maker) -> Rect<datanum::Dnum<f32>> {
+        maker.from_rect(self.0.inner_as::<f32>())
     }
 
     pub fn to_i32(self) -> Rect<i32> {
@@ -234,9 +233,6 @@ impl RectConv {
 
     pub fn to_i64(self) -> Rect<i64> {
         self.0.inner_as()
-    }
-    pub fn to_f32ord(self) -> Rect<OrderedFloat<f32>> {
-        self.0.inner_as::<f32>().inner_into()
     }
 }
 

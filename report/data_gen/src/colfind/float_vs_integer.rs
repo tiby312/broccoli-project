@@ -13,7 +13,6 @@ fn handle_bench(fg: &mut Figure) {
         bench_i64: f64,
         bench_i64_par: f64,
         bench_float_i32: f64,
-        bench_float_ordered: f64,
         bench_float_u16_par: f64,
     }
 
@@ -57,7 +56,7 @@ fn handle_bench(fg: &mut Figure) {
 
             bench_closure(|| {
                 let mut bb = convert_dist(bb, |a| {
-                    broccoli::convert::rect_f32_to_u32(a.inner_into(), &border.as_ref())
+                    broccoli::convert::rect_f32_to_u32(a, &border)
                 });
 
                 let mut tree = broccoli::new(&mut bb);
@@ -69,18 +68,6 @@ fn handle_bench(fg: &mut Figure) {
             })
         };
 
-        let bench_float_ordered = {
-            let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32ord());
-
-            bench_closure(|| {
-                let mut tree = broccoli::new(&mut bb);
-
-                tree.find_colliding_pairs_mut(|a, b| {
-                    **a.unpack_inner() += 1;
-                    **b.unpack_inner() += 1;
-                });
-            })
-        };
         let bench_float = {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
@@ -166,7 +153,7 @@ fn handle_bench(fg: &mut Figure) {
 
             bench_closure(|| {
                 let mut bb = convert_dist(bb, |a| {
-                    broccoli::convert::rect_f32_to_u16(a.inner_into(), &border.as_ref())
+                    broccoli::convert::rect_f32_to_u16(a, &border)
                 });
 
                 let mut tree = broccoli::new_par(&mut bb);
@@ -189,7 +176,6 @@ fn handle_bench(fg: &mut Figure) {
             bench_f64,
             bench_f64_par,
             bench_float_i32,
-            bench_float_ordered,
             bench_float_u16_par,
         });
     }
@@ -206,8 +192,7 @@ fn handle_bench(fg: &mut Figure) {
     let y7 = rects.iter().map(|a| a.bench_i64);
     let y8 = rects.iter().map(|a| a.bench_i64_par);
     let y9 = rects.iter().map(|a| a.bench_float_i32);
-    let y10 = rects.iter().map(|a| a.bench_float_ordered);
-    let y11 = rects.iter().map(|a| a.bench_float_u16_par);
+    let y10 = rects.iter().map(|a| a.bench_float_u16_par);
 
     let ww = 1.0;
     fg.axes2d()
@@ -264,11 +249,6 @@ fn handle_bench(fg: &mut Figure) {
         .lines(
             x.clone(),
             y10,
-            &[Caption("f32 ordered"), Color(COLS[9]), LineWidth(ww)],
-        )
-        .lines(
-            x.clone(),
-            y11,
             &[Caption("f32 to u16 par"), Color(COLS[10]), LineWidth(ww)],
         )
         .set_x_label("Number of Objects", &[])
