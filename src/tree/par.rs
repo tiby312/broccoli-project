@@ -77,5 +77,5 @@ fn test_parallel() {
 #[test]
 fn test_par_heur() {
     let p = compute_level_switch_sequential(6, 6);
-    assert_eq!(p.get_depth_to_switch_at(), 0);
+    assert_eq!(p.depth_to_switch_at, 0);
 }
