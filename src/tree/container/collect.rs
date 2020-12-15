@@ -144,38 +144,35 @@ impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> 
             }
         }
 
+        /*
         let height = 1 + par::compute_level_switch_sequential(
             par::SWITCH_SEQUENTIAL_DEFAULT,
             self.get_height(),
         )
         .get_depth_to_switch_at();
+
         let mut cols: Vec<Vec<D>> = (0..compt::compute_num_nodes(height))
             .map(|_| Vec::new())
             .collect();
         let mtree = compt::dfs_order::CompleteTree::from_preorder_mut(&mut cols).unwrap();
+        */
+
 
         self.new_colfind_builder().query_par_ext(
-            move |a| {
-                let next = a.next.take();
-                if let Some([left, right]) = next {
-                    let l = Foo::new(left);
-                    let r = Foo::new(right);
-                    (l, r)
-                } else {
-                    unreachable!()
-                }
+            move |a:&mut Vec<Vec<_>>| {
+                (Vec::new(),Vec::new())
             },
-            move |_a, _b, _c| {},
-            move |c, a, b| {
+            move |a: &mut Vec<Vec<_>>, mut b:Vec<Vec<_>>,mut c:Vec<Vec<_>>| {
+                a.first_mut().unwrap().append(&mut b.pop().unwrap());
+                a.append(&mut c);
+            },
+            move |c:&mut Vec<Vec<_>>, a, b| {
                 if let Some(d) = func(a.unpack_inner(), b.unpack_inner()) {
-                    c.current.push(d);
+                    c.first_mut().unwrap().push(d);
                 }
             },
-            Foo::new(mtree.vistr_mut()),
-        );
-
-        cols
-        //CollidingPairsPar{cols,_p:PhantomData}
+            Vec::new(),
+        )
     }
 }
 
