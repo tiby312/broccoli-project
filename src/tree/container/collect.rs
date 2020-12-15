@@ -57,20 +57,8 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
         func: impl Fn(&mut T, &mut T, &mut D) + Send + Sync + Copy,
     ) {
         assert_eq!(arr as *mut _, self.original.0);
-
-        fn parallelize<T: Visitor + Send + Sync>(a: T, func: impl Fn(T::Item) + Sync + Send + Copy)
-        where
-            T::Item: Send + Sync,
-        {
-            let (n, l) = a.next();
-            func(n);
-            if let Some([left, right]) = l {
-                rayon::join(|| parallelize(left, func), || parallelize(right, func));
-            }
-        }
-        let mtree = compt::dfs_order::CompleteTree::from_preorder_mut(&mut self.cols).unwrap();
-
-        parallelize(mtree.vistr_mut(), |a| {
+        use rayon::prelude::*;
+        self.cols.par_iter_mut().for_each(|a|{
             for (a, b, d) in a.iter_mut() {
                 let a = unsafe { &mut *a.0 };
                 let b = unsafe { &mut *b.0 };
@@ -144,23 +132,10 @@ impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> 
             }
         }
 
-        /*
-        let height = 1 + par::compute_level_switch_sequential(
-            par::SWITCH_SEQUENTIAL_DEFAULT,
-            self.get_height(),
-        )
-        .get_depth_to_switch_at();
-
-        let mut cols: Vec<Vec<D>> = (0..compt::compute_num_nodes(height))
-            .map(|_| Vec::new())
-            .collect();
-        let mtree = compt::dfs_order::CompleteTree::from_preorder_mut(&mut cols).unwrap();
-        */
-
 
         self.new_colfind_builder().query_par_ext(
             move |a:&mut Vec<Vec<_>>| {
-                (Vec::new(),Vec::new())
+                (vec!(Vec::new()),vec!(Vec::new()))
             },
             move |a: &mut Vec<Vec<_>>, mut b:Vec<Vec<_>>,mut c:Vec<Vec<_>>| {
                 a.first_mut().unwrap().append(&mut b.pop().unwrap());
@@ -171,7 +146,7 @@ impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> 
                     c.first_mut().unwrap().push(d);
                 }
             },
-            Vec::new(),
+            vec!(Vec::new()),
         )
     }
 }
