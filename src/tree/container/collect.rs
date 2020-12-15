@@ -44,6 +44,13 @@ pub struct CollidingPairsPar<T, D> {
     original: Ptr<[T]>,
 }
 
+impl<T,D> From<CollidingPairsPar<T,D>> for CollidingPairs<T,D>{
+    fn from(a:CollidingPairsPar<T,D>)->Self{
+        let cols=a.cols.into_iter().flatten().collect();
+        CollidingPairs{cols,orig:a.original}
+    }
+}
+
 impl<T, D> CollidingPairsPar<T, D> {
     pub fn get(&self, arr: &[T]) -> &[Vec<(&T, &T, D)>] {
         assert_eq!(arr as *const _, self.original.0 as *const _);
@@ -118,30 +125,16 @@ impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> 
         &mut self,
         func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync + Copy,
     ) -> Vec<Vec<D>> {
-        struct Foo<T: Visitor> {
-            current: T::Item,
-            next: Option<[T; 2]>,
-        }
-        impl<T: Visitor> Foo<T> {
-            fn new(a: T) -> Foo<T> {
-                let (n, f) = a.next();
-                Foo {
-                    current: n,
-                    next: f,
-                }
-            }
-        }
-
-
+       
         self.new_colfind_builder().query_par_ext(
-            move |a:&mut Vec<Vec<_>>| {
+            move |_| {
                 (vec!(Vec::new()),vec!(Vec::new()))
             },
-            move |a: &mut Vec<Vec<_>>, mut b:Vec<Vec<_>>,mut c:Vec<Vec<_>>| {
+            move |a, mut b,mut c| {
                 a.first_mut().unwrap().append(&mut b.pop().unwrap());
                 a.append(&mut c);
             },
-            move |c:&mut Vec<Vec<_>>, a, b| {
+            move |c, a, b| {
                 if let Some(d) = func(a.unpack_inner(), b.unpack_inner()) {
                     c.first_mut().unwrap().push(d);
                 }

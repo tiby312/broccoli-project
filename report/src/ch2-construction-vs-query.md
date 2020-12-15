@@ -34,6 +34,8 @@ The above graph shows the performance of `collect_colliding_pairs()` and `collec
 
 The above graph shows the performance of iterating over the pairs collected from calling `collect_colliding_pairs()` and `collect_colliding_pairs_par()`. The parallel version returns multiple disjoint pairs that can be iterated on in parallel. Notice that it is much faster to iterate over the pre-found colliding pairs when compared to the earlier chart. The graph makes it obvious that there are gains to iterating over disjoint pairs in parallel, but keep in mind that the times we are looking at are extremely small to begin with.
 
+So as you can see, you pay a small cost, for collecting the colliding pairs, but then you are able to iterate 
+over them over and over again faster.
 
 
 

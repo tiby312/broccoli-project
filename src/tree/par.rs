@@ -40,10 +40,6 @@ impl Parallel {
             current_depth: 0,
         }
     }
-
-    pub fn get_depth_to_switch_at(&self) -> usize {
-        self.depth_to_switch_at
-    }
 }
 
 impl Joiner for Parallel {

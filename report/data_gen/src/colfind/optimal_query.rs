@@ -11,6 +11,8 @@ pub fn handle_broccoli(grow:f64,fb: &mut FigureBuilder){
         num_bots:usize,
         bench:f64,
         bench_par:f64,
+        collect:f64,
+        collect_par:f64,
         
     }
 
@@ -46,6 +48,37 @@ pub fn handle_broccoli(grow:f64,fb: &mut FigureBuilder){
             };
             
 
+            let collect = {
+                
+                let mut tree =
+                    crate::support::make_tree_ref_ind(&mut bot_inner,grow,|a|a.to_f32n());
+                
+                bench_closure(|| {
+                    let c= tree.collect_colliding_pairs(|a, b| {
+                        *a+=1;
+                        *b+=1;
+                        Some(())
+                    });
+                    black_box(c);
+                })
+            };
+
+            let collect_par = {
+                
+                let mut tree =
+                    crate::support::make_tree_ref_ind(&mut bot_inner,grow,|a|a.to_f32n());
+                
+                    bench_closure(|| {
+                        let c=tree.collect_colliding_pairs_par(|a, b| {
+                            *a+=1;
+                            *b+=1;
+                            Some(())
+                        });
+                        black_box(c);
+                    })
+            };
+            
+
             
 
             black_box(bot_inner);
@@ -54,6 +87,8 @@ pub fn handle_broccoli(grow:f64,fb: &mut FigureBuilder){
                 num_bots,
                 bench,
                 bench_par,
+                collect,
+                collect_par
             }
         }
     ).collect();
@@ -62,6 +97,8 @@ pub fn handle_broccoli(grow:f64,fb: &mut FigureBuilder){
     let x = rects.iter().map(|a| a.num_bots);
     let y1 = rects.iter().map(|a| a.bench);
     let y2 = rects.iter().map(|a| a.bench_par);
+    let y3 = rects.iter().map(|a| a.collect);
+    let y4 = rects.iter().map(|a| a.collect_par);
 
 
     let mut fg = fb.build("broccoli_query");
@@ -75,14 +112,28 @@ pub fn handle_broccoli(grow:f64,fb: &mut FigureBuilder){
             y1,
             &[
                 Caption("broccoli"),
-                Color(COLS[2]),
+                Color(COLS[0]),
                 LineWidth(linew),
             ],
         )
         .lines(
             x.clone(),
             y2,
-            &[Caption("broccoli par"), Color(COLS[3]), LineWidth(linew)],
+            &[Caption("broccoli par"), Color(COLS[1]), LineWidth(linew)],
+        )
+        .lines(
+            x.clone(),
+            y3,
+            &[
+                Caption("collect"),
+                Color(COLS[2]),
+                LineWidth(linew),
+            ],
+        )
+        .lines(
+            x.clone(),
+            y4,
+            &[Caption("collect par"), Color(COLS[3]), LineWidth(linew)],
         )
         .set_x_label("Number of Objects", &[])
         .set_y_label("Time taken in seconds", &[]);
