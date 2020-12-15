@@ -66,3 +66,8 @@ For a while I had the design where the dividers would move as thoought they had 
 
 
 
+
+### TODO talk to
+
+<img alt="Construction vs Query" src="graphs/optimal_query.svg" class="center" style="width: 100%;" />
+<img alt="Construction vs Query" src="graphs/broccoli_query.svg" class="center" style="width: 100%;" />
