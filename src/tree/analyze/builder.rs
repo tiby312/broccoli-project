@@ -313,10 +313,8 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
 
             splitter.add(splitter11, splitter22);
         } else {
-            splitter.leaf_start();
             let node = self.create_leaf(axis, rest);
             nodes.push(node);
-            splitter.leaf_end();
         }
     }
 }
@@ -389,10 +387,8 @@ where
 
             splitter.add(splitter11, splitter22);
         } else {
-            splitter.leaf_start();
             let node = self.create_leaf(axis, rest);
             nodes.push(node);
-            splitter.leaf_end();
         }
     }
 }

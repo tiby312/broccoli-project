@@ -135,10 +135,8 @@ where
                             sweeper.add(sweeper1, sweeper2);
                         }
                         par::ParResult::Sequential(_) => {
-                            sweeper.leaf_start();
                             self.recurse_seq(this_axis.next(), sweeper, left, &mut splitter11);
                             self.recurse_seq(this_axis.next(), sweeper, right, &mut splitter22);
-                            sweeper.leaf_end();
                         }
                     }
                 }
@@ -146,9 +144,7 @@ where
                 splitter.add(splitter11, splitter22);
             }
             None => {
-                splitter.leaf_start();
                 sweeper.handle_node(this_axis.next(), nn.into_range());
-                splitter.leaf_end();
             }
         }
     }
@@ -195,9 +191,7 @@ impl<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> ColFindRecurser<T, 
                 splitter.add(splitter11, splitter22);
             }
             None => {
-                splitter.leaf_start();
                 sweeper.handle_node(this_axis.next(), nn.into_range());
-                splitter.leaf_end();
             }
         }
     }

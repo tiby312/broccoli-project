@@ -76,6 +76,7 @@ mod levelcounter {
             self.stuff.append(&mut b.stuff);
         }
 
+        /*
         fn leaf_start(&mut self) {
             assert!(self.start.is_none());
             let now = unsafe { datanum::COUNTER };
@@ -85,6 +86,7 @@ mod levelcounter {
             let inst = self.start.take().unwrap();
             self.stuff.push(unsafe { datanum::COUNTER - inst });
         }
+        */
     }
 }
 
@@ -144,7 +146,7 @@ mod leveltimer {
             self.stuff.append(&mut a.stuff);
             self.stuff.append(&mut b.stuff);
         }
-
+        /*
         fn leaf_start(&mut self) {
             assert!(self.start.is_none());
             let now = Instant::now();
@@ -154,6 +156,7 @@ mod leveltimer {
             let inst = self.start.take().unwrap();
             self.stuff.push(into_secs(inst.elapsed()));
         }
+        */
     }
 }
 

@@ -179,9 +179,6 @@ pub trait Splitter: Sized {
     ///Called to add the results of the recursive calls on the children.
     fn add(&mut self, a: Self, b: Self);
 
-    fn leaf_start(&mut self) {}
-
-    fn leaf_end(&mut self) {}
 }
 
 ///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
