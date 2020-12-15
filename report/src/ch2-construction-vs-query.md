@@ -22,6 +22,10 @@ It makes sense that querying in more 'parallelizable' than rebalancing since the
 
 ### Collect Performance
 
+Sometimes you need to iterate over all colliding pairs multiple times even though the elements havent moved.
+You could call `find_colliding_pairs()` multiple times, but it is slow.
+Broccoli provides functions to save off query results so that they can be iterated on though `TreeRefInd`.
+
 <img alt="Construction vs Query" src="graphs/broccoli_query.svg" class="center" style="width: 100%;" />
 
 The above graph shows the performance of `collect_colliding_pairs()` and `collect_colliding_pairs_par()`. These functions generate lists of colliding pairs. The graph shows only the time taken to construct the lists.
