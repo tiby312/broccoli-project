@@ -35,7 +35,6 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
         let point = viewport.origin + vec2same(viewport.spacing * 5.0);
 
-        let cursor = cursor.inner_into();
         let ray = axgeom::Ray {
             point,
             dir: (cursor - point).normalize_to(1.0),

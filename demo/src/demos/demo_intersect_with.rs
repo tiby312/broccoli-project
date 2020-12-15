@@ -35,7 +35,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
     let mut rects = canvas.rects();
     for wall in walls.iter() {
-        rects.add(wall.inner_into().into());
+        rects.add(wall.into());
     }
     let rect_save = rects.save(canvas);
 
@@ -92,10 +92,9 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                 bot.wall_move = ret;
             });
 
-            let cc = cursor.inner_into();
-            tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cc, vec2same(100.0)), |b| {
+            tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vec2same(100.0)), |b| {
                 let b = b.unpack_inner();
-                let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cc, 0.001, 20.0);
+                let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
             });
 
             tree.find_colliding_pairs_mut_par(|a, b| {

@@ -25,7 +25,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             .with_color([0.0, 1.0, 0.0, 0.2])
             .draw();
 
-        let cc: Vec2<i32> = cursor.inner_into::<f32>().inner_as();
+        let cc: Vec2<i32> = cursor.inner_as();
         let r1 = axgeom::Rect::new(cc.x - 100, cc.x + 100, cc.y - 100, cc.y + 100);
         let r2 = axgeom::Rect::new(100, 400, 100, 400);
 

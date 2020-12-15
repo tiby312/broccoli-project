@@ -62,10 +62,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
     let mut bots = support::make_rand(2000, dim, |a| Liquid::new(a));
 
     Demo::new(move |cursor, canvas, _check_naive| {
-        let dim2 = &{
-            let mut dim = dim;
-            *dim.grow(20.0) //TODO fix api
-        };
+        let dim2 = &dim.grow(20.0);
 
         let mut k = support::distribute(&mut bots, |bot| {
             let p = bot.pos;
@@ -82,23 +79,20 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             let _ = a.solve(b, radius);
         });
 
-        let vv = vec2same(100.0).inner_try_into().unwrap();
-        let cc = cursor.inner_into();
+        let vv = vec2same(100.0);
 
         let k = axgeom::Rect::from_point(cursor, vv);
-        let j = broccoli::convert::rect_f32_to_u16(k.inner_into(), dim2);
+        let j = broccoli::convert::rect_f32_to_u16(k, dim2);
         tree.for_all_in_rect_mut(&j, move |b| {
             let b = b.unpack_inner();
-            let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cc, 0.001, 100.0);
+            let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cursor, 0.001, 100.0);
         });
 
         {
-            let dim3 = dim.inner_into();
-
             let jj = broccoli::convert::rect_f32_to_u16(dim, dim2);
             tree.for_all_not_in_rect_mut(&jj, move |a| {
                 let a = a.unpack_inner();
-                duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim3, 0.5);
+                duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
             });
         }
 

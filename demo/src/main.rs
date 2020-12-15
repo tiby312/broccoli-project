@@ -47,8 +47,7 @@ mod demo_iter {
                 6 => demo_knearest::make_demo(area, canvas),
                 7 => demo_nbody::make_demo(area),
                 8 => demo_raycast_grid::make_demo(area, canvas),
-
-                _ => unreachable!("Not possible"),
+                _ => unreachable!(),
             };
             self.0 += 1;
 

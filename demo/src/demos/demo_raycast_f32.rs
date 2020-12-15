@@ -42,7 +42,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                 let y = (dir.sin() * 20.0) as f32;
 
                 let ray = {
-                    let k = vec2(x, y).inner_try_into().unwrap();
+                    let k = vec2(x, y);
                     Ray {
                         point: cursor,
                         dir: k,
@@ -54,11 +54,11 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                 if check_naive {
                     assert::raycast_mut(
                         tree,
-                        ray.inner_into(),
+                        ray,
                         &mut radius,
                         move |_r, ray, rect| ray.cast_to_rect(rect),
                         move |r, ray, t| ray.cast_to_circle(t.inner.center, *r),
-                        dim.inner_into(),
+                        dim,
                     );
                 }
 
@@ -75,8 +75,8 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                     axgeom::CastResult::NoHit => 800.0,
                 };
 
-                let end = ray.inner_into().point_at_tval(dis);
-                ray_cast.add(ray.point.inner_into().into(), end.into());
+                let end = ray.point_at_tval(dis);
+                ray_cast.add(ray.point.into(), end.into());
             }
             ray_cast
                 .send_and_uniforms(canvas)

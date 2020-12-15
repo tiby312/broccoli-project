@@ -45,9 +45,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         let mut k: Vec<_> = bots
             .iter_mut()
             .map(|b| {
-                let r = Rect::from_point(b.pos, vec2same(radius))
-                    .inner_try_into()
-                    .unwrap();
+                let r = Rect::from_point(b.pos, vec2same(radius));
                 bbox(r, b)
             })
             .collect();
@@ -55,18 +53,16 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         let mut tree = broccoli::container::TreeRef::new_par(&mut k);
 
         {
-            let dim2 = dim.inner_into();
             tree.for_all_not_in_rect_mut(&dim, |a| {
                 let a = a.unpack_inner();
-                duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim2, 0.5);
+                duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
             });
         }
 
-        let vv = vec2same(100.0).inner_try_into().unwrap();
-        let cc = cursor.inner_into();
+        let vv = vec2same(100.0);
         tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), |b| {
             let b = b.unpack_inner();
-            let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cc, 0.001, 20.0);
+            let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
         });
 
         //Draw the dividers

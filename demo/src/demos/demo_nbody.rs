@@ -297,7 +297,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         //Add one bott each iteration.
         if let Some(mut b) = no_mass_bots.pop() {
             b.mass = 30.0;
-            b.pos = cursor.inner_into();
+            b.pos = cursor;
             b.force = vec2same(0.0);
             b.vel = vec2(1.0, 0.0);
             bots.push(b);
