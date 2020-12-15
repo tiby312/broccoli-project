@@ -1,3 +1,37 @@
+### Ord vs Partial-Ord
+
+As any rust user eventually learns, the floating point standard doesnt provide a total ordering of floats.
+This makes it impossible to implement a true `max()` or `min()` function. Rust's floating point primitive types
+only implement `PartialOrd` and not `Ord`, requiring that the user specify what to do in cases where there is no
+clear comparison when using functions like max. 
+
+broccoli construction and query requires sorting or finding the max and min at various times. There are basically
+3 ways to handle floating points.
+
+* Enforce `Ord`
+    * Impossible for the user to incorrectly use the tree.
+        * Detected at compile time.
+    * Cumbersome for the user to use wrapper types like `NotNan` or `OrderedFloat`
+    * Wrapper types can incur performance hits. 
+        * `OrderedFloat` has a slightly more expensive comparison
+        * `NotNan` can introduce error paths making auto-vectorization not possible.
+
+* Require `PartialOrd` and panic on failure
+    * Impossible for the user to incorrectly use the tree.
+        * Detected at runtime.
+    * Performance hit from extra checks and error paths in the query algorithms themselves.
+
+* Require `PartialOrd` and silently fail.
+    * No performance hit
+    * Flexible to user.
+        * User can still opt into static checking by passing their own wrapper types.
+    * User could mis-use the tree. They need to be cognizant that they are not passing NaN values
+      if they are opting out of using a wrapper type.
+
+For a long time I used the first option, but have since moved to the last option. Mainly because
+it makes the code using this crate much more egronomic and easier to read since there is no need
+to juggle a wrapper type.
+
 
 ### Forbidding the user from violating the invariants of the tree statically
 

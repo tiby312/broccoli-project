@@ -26,6 +26,17 @@
 //! are provided. They use `rayon` under the hood which uses work stealing to
 //! parallelize divide and conquer style recursive functions.
 //!
+//! ### Floating Point
+//!
+//! Broccoli only requires PartialOrd for its number type. Instead of panicking on comparisons
+//! it doesnt understand, it will just arbitrary pick a result. So if there is even just one NaN,
+//! tree construction and querying will not panick, but would have unspecified results.
+//! If using floats, it's the users responsibility to not pass NaN numbers.
+//! There is no static protection against this, though if this is desired you can use
+//! the [ordered-float](https://crates.io/crates/ordered-float) crate. The Ord trait was not
+//! enforced to give users the option to use primitive floats directly which can be easier to 
+//! work with.
+//!
 //! ### Protecting Invariants Statically
 //!
 //! A lot is done to forbid the user from violating the invariants of the tree once constructed
