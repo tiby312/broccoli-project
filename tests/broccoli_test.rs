@@ -62,7 +62,8 @@ fn test2() {
 
 #[test]
 fn test3() {
-    for &num_bots in [0, 20, 100, 200].iter() {
+    for &num_bots in [0, 20, 100, 200,1000].iter() {
+    
         let s = dists::spiral_iter([400.0, 400.0], 12.0, 1.0);
 
         let mut bots: Vec<_> = s
@@ -89,6 +90,8 @@ fn test3() {
             use std::sync::Mutex;
             let mut rects=Mutex::new(Vec::new());
             let mut v=tree.collect_colliding_pairs_par(|a,b|Some(()));
+            dbg!(v.get(tree.get_elements_mut()).len());
+
             let mutex=&rects;
             v.for_every_pair_mut_par(tree.get_elements_mut(),|a,b,()|{
                 let mut rects=mutex.lock().unwrap();
@@ -103,8 +106,9 @@ fn test3() {
             rects
         };
 
+        //TODO assert all the same.
         assert_eq!(rects1.len(),rects2.len());
         assert_eq!(rects2.len(),rects3.len());
-
+       
     }
 }
