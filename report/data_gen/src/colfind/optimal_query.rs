@@ -68,7 +68,7 @@ pub fn handle_broccoli(grow:f64,fb: &mut FigureBuilder){
     
     let linew=1.0;
     fg.axes2d()
-        .set_title("broccoli query", &[])
+        .set_title("broccoli query with abspiral(0.2,n)", &[])
         .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])
         .lines(
             x.clone(),
@@ -82,7 +82,7 @@ pub fn handle_broccoli(grow:f64,fb: &mut FigureBuilder){
         .lines(
             x.clone(),
             y2,
-            &[Caption("broccoli_par"), Color(COLS[3]), LineWidth(linew)],
+            &[Caption("broccoli par"), Color(COLS[3]), LineWidth(linew)],
         )
         .set_x_label("Number of Objects", &[])
         .set_y_label("Time taken in seconds", &[]);
@@ -156,7 +156,7 @@ pub fn handle_optimal(grow:f64,fb: &mut FigureBuilder){
     
     let linew=1.0;
     fg.axes2d()
-        .set_title("optimal query", &[])
+        .set_title("optimal query with abspiral(0.2,n)", &[])
         .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])
         .lines(
             x.clone(),
@@ -170,7 +170,7 @@ pub fn handle_optimal(grow:f64,fb: &mut FigureBuilder){
         .lines(
             x.clone(),
             y4,
-            &[Caption("optimal_par"), Color(COLS[3]), LineWidth(linew)],
+            &[Caption("optimal par"), Color(COLS[3]), LineWidth(linew)],
         )
         .set_x_label("Number of Objects", &[])
         .set_y_label("Time taken in seconds", &[]);

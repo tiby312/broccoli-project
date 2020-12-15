@@ -65,9 +65,13 @@ I would love to try the following: Instead of finding the median at every level,
 For a while I had the design where the dividers would move as thoought they had mass. They would gently be pushed to which ever side had more aabbs. Dividers near the root had more mass and were harder to sway than those below. The problem with this approach is that the divider locations will mostly of the time be sub optimial. And the cost saved in rebalancing just isnt enough for the cost added to querying with a suboptimal partitioning. By always partitioning optimally, we get guarentees of the maximum number of aabbs in a node. Remember querying is the bottleneck, not rebalancing.
 
 
+### Collect Performance
 
+<img alt="Construction vs Query" src="graphs/broccoli_query.svg" class="center" style="width: 100%;" />
 
-### TODO talk to
+The above graph shows the performance of `collect_colliding_pairs()` and `collect_colliding_pairs_par()`. These functions generate lists of colliding pairs.
 
 <img alt="Construction vs Query" src="graphs/optimal_query.svg" class="center" style="width: 100%;" />
-<img alt="Construction vs Query" src="graphs/broccoli_query.svg" class="center" style="width: 100%;" />
+
+The above graph shows the performance of iterating over the pairs collected from calling `collect_colliding_pairs()` and `collect_colliding_pairs_par()`. The parallel version returns multiple disjoint groups that can be iterated on in parallel. Notice that it is much faster to iterate over the pre-found colliding pairs when compared to the earlier chart.
+
