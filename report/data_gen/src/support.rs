@@ -211,6 +211,14 @@ fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
     })
 }
 
+use broccoli::container::TreeRefInd;
+pub fn make_tree_ref_ind<N:Num,T>(bots:&mut [T],grow:f64,mut func:impl FnMut(RectConv)->Rect<N>)->TreeRefInd<broccoli::DefaultA,N,T>{
+    let mut k=abspiral_f64(grow);
+    TreeRefInd::new(bots,|a|{
+        func(RectConv(k.next().unwrap()))
+    })
+}
+
 pub struct RectConv(pub Rect<f64>);
 
 impl RectConv {

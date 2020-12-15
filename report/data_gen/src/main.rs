@@ -145,6 +145,7 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
+            
 
             run_test!(&mut fb, colfind::query_evenness::handle_theory);
 
@@ -157,6 +158,7 @@ fn main() {
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
 
             run_test!(&mut fb, colfind::theory_colfind_3d::handle);
+            
         }
         "bench" => {
             let folder = args[2].clone();
@@ -164,6 +166,8 @@ fn main() {
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
 
+            run_test!(&mut fb,colfind::optimal_query::handle);
+            
             //done
             run_test!(&mut fb, colfind::rebal_strat::handle);
 
@@ -180,7 +184,7 @@ fn main() {
             //This is the one thats interesting to see what the results are on phone/vs/laptop
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
-
+            
             //nbody::theory::handle(&mut fb);
         }
         "graph" => {
