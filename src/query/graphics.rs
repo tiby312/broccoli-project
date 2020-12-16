@@ -17,13 +17,13 @@ pub trait DividerDrawer {
 ///Since the leaves do not have dividers, it is not called for the leaves.
 pub fn draw<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
     axis: A,
-    vistr: Vistr<NodeMut<T>>,
+    vistr: Vistr<Node<T>>,
     dr: &mut D,
     rect: &Rect<T::Num>,
 ) {
     fn recc<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
         axis: A,
-        stuff: LevelIter<Vistr<NodeMut<T>>>,
+        stuff: LevelIter<Vistr<Node<T>>>,
         dr: &mut D,
         rect: &Rect<T::Num>,
     ) {

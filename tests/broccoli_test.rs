@@ -88,8 +88,8 @@ fn test3() {
 
         let rects2={
             use std::sync::Mutex;
-            let mut rects=Mutex::new(Vec::new());
-            let mut v=tree.collect_colliding_pairs_par(|a,b|Some(()));
+            let rects=Mutex::new(Vec::new());
+            let mut v=tree.collect_colliding_pairs_par(|_,_|Some(()));
             dbg!(v.get(tree.get_elements_mut()).len());
 
             let mutex=&rects;
@@ -101,7 +101,7 @@ fn test3() {
         };
         let rects3={
             let mut rects=Vec::new();
-            let mut v=tree.collect_colliding_pairs(|a,b|Some(()));
+            let mut v=tree.collect_colliding_pairs(|_,_|Some(()));
             v.for_every_pair_mut(tree.get_elements_mut(),|a,b,()|rects.push((a.rect,b.rect)));
             rects
         };

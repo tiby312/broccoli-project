@@ -6,7 +6,7 @@ use crate::query::inner_prelude::*;
 use unchecked_unwrap::*;
 
 pub(crate) struct DestructuredNode<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> {
-    pub node: PMut<'a, NodeMut<'b, T>>,
+    pub node: PMut<'a, Node<'b, T>>,
     pub axis: AnchorAxis,
 }
 
@@ -14,7 +14,7 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNode<'a, 'b, T, AnchorAx
     #[inline(always)]
     pub fn new(
         axis: AnchorAxis,
-        node: PMut<'a, NodeMut<'b, T>>,
+        node: PMut<'a, Node<'b, T>>,
     ) -> Option<DestructuredNode<'a, 'b, T, AnchorAxis>> {
         debug_assert!(node.div.is_some()); //TODO remove
         if node.cont.is_some() {
@@ -29,19 +29,10 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNode<'a, 'b, T, AnchorAx
         //TODO use unsafe and dont unwrap
         unsafe { self.node.cont.as_ref().unchecked_unwrap() }
     }
-    /*
-    #[inline(always)]
-    pub fn div(&self)->N::Num{
-        //TODO use unsafe and dont unwrap
-        unsafe{
-        self.node.get().div.unchecked_unwrap()
-        }
-    }
-    */
 }
 
 pub(crate) struct DestructuredNodeLeaf<'a, 'b: 'a, T: Aabb, A: Axis> {
-    pub node: PMut<'a, NodeMut<'b, T>>,
+    pub node: PMut<'a, Node<'b, T>>,
     pub axis: A,
 }
 
@@ -49,7 +40,7 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNodeLeaf<'a, 'b, T, Anch
     #[inline(always)]
     pub fn new(
         axis: AnchorAxis,
-        node: PMut<'a, NodeMut<'b, T>>,
+        node: PMut<'a, Node<'b, T>>,
     ) -> Option<DestructuredNodeLeaf<'a, 'b, T, AnchorAxis>> {
         if node.cont.is_some() {
             Some(DestructuredNodeLeaf { node, axis })

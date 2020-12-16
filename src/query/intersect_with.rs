@@ -14,7 +14,7 @@ use crate::query::rect::*;
 ///The two trees could be recursed at the same time to break up the problem.
 pub fn intersect_with_mut<A: Axis, T: Aabb, X: Aabb<Num = T::Num>>(
     axis: A,
-    mut vistr: VistrMut<NodeMut<T>>,
+    mut vistr: VistrMut<Node<T>>,
     b: &mut [X],
     func: impl Fn(PMut<T>, PMut<X>),
 ) {

@@ -59,10 +59,10 @@ pub trait NotSortedQueries<'a> {
     type Num: Num;
 
     #[must_use]
-    fn vistr_mut(&mut self) -> VistrMut<NodeMut<'a, Self::T>>;
+    fn vistr_mut(&mut self) -> VistrMut<Node<'a, Self::T>>;
 
     #[must_use]
-    fn vistr(&self) -> Vistr<NodeMut<'a, Self::T>>;
+    fn vistr(&self) -> Vistr<Node<'a, Self::T>>;
 
     #[must_use]
     fn axis(&self) -> Self::A;
@@ -109,7 +109,7 @@ pub trait Queries<'a> {
     /// assert_eq!(bots[0].inner,1);
     ///```
     #[must_use]
-    fn vistr_mut(&mut self) -> VistrMut<NodeMut<'a, Self::T>>;
+    fn vistr_mut(&mut self) -> VistrMut<Node<'a, Self::T>>;
 
     /// # Examples
     ///
@@ -126,17 +126,17 @@ pub trait Queries<'a> {
     /// assert_eq!(test[0],&axgeom::rect(0,10,0,10));
     ///```
     #[must_use]
-    fn vistr(&self) -> Vistr<NodeMut<'a, Self::T>>;
+    fn vistr(&self) -> Vistr<Node<'a, Self::T>>;
 
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{prelude::*,bbox,rect,analyze};
     /// let mut bots = [rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
     /// use axgeom::Axis;
-    /// assert!(tree.axis().is_equal_to(broccoli::default_axis()));
+    /// assert!(tree.axis().is_equal_to(analyze::default_axis()));
     ///```
     #[must_use]
     fn axis(&self) -> Self::A;

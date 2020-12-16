@@ -1,3 +1,8 @@
+//!Contains code to write generic code that can be run in parallel, or sequentially. The api is exposed
+//!in case users find it useful when writing parallel query code to operate on the tree.
+
+
+
 ///A suggested height at which to switch from parallel
 ///to sequential. Once the tree construction reaches
 ///this height, it will no longer call `rayon::join()`,

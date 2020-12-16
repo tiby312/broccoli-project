@@ -1,6 +1,6 @@
 use axgeom::vec2;
 use broccoli::prelude::*;
-use broccoli::{convert::rect_f32_to_u32, Rect};
+use broccoli::{convert::rect_f32_to_u32, node::Rect};
 
 ///This showcases making normalized integer aabbs from floats and a specified border.
 fn main() {

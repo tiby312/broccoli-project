@@ -6,7 +6,7 @@ pub mod prelude {
     pub use broccoli::compt;
     pub use broccoli::prelude::*;
     pub use broccoli::rayon;
-    pub use broccoli::BBox;
+    pub use broccoli::node::*;
     pub use crate::dists::*;
     pub use crate::*;
     pub use dists::uniform_rand::UniformRandGen;
@@ -16,6 +16,7 @@ pub mod prelude {
 }
 
 use axgeom::*;
+use broccoli::node::*;
 
 pub fn make_rand<T>(num: usize, border: Rect<f32>, mut func: impl FnMut(Vec2<f32>) -> T) -> Vec<T> {
     crate::dists::rand2_iter(border)

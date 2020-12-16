@@ -1,3 +1,7 @@
+
+
+
+
 use crate::inner_prelude::*;
 
 #[cfg(test)]
@@ -5,25 +9,16 @@ mod tests;
 
 pub mod analyze;
 
-///Contains code to write generic code that can be run in parallel, or sequentially. The api is exposed
-///in case users find it useful when writing parallel query code to operate on the tree.
-pub(crate) mod par;
-
-//mod notsorted;
-//pub use self::notsorted::NotSorted;
 
 use analyze::TreeBuilder;
 
-pub(crate) use self::node::*;
-
-///Contains node-level building block structs and visitors used for a [`Tree`].
-pub mod node;
+//pub mod node;
 
 pub mod container;
 
 use crate::query::*;
 
-pub(crate) struct TreeInner<A: Axis, N> {
+struct TreeInner<A: Axis, N> {
     axis: A,
     inner: compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>,
 }
@@ -31,18 +26,9 @@ pub(crate) struct TreeInner<A: Axis, N> {
 ///The data structure this crate revoles around.
 #[repr(transparent)]
 pub struct Tree<'a, A: Axis, T: Aabb> {
-    inner: TreeInner<A, NodeMut<'a, T>>,
+    inner: TreeInner<A, Node<'a, T>>,
 }
 
-///The default starting axis of a [`Tree`]. It is set to be the `Y` axis.
-///This means that the first divider is a horizontal line since it is
-///partitioning space based off of the aabb's `Y` value.
-pub type DefaultA = YAXIS;
-
-///Returns the default axis type.
-pub const fn default_axis() -> YAXIS {
-    YAXIS
-}
 
 ///Create a [`Tree`] using the default axis.
 ///
@@ -57,18 +43,7 @@ pub fn new<'a, T: Aabb>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> {
     TreeBuilder::new(bots).build_seq()
 }
 
-///Create a [`Tree`] using a specified axis.
-///
-/// # Examples
-///
-///```
-/// let mut bots = [axgeom::rect(0,10,0,10)];
-/// let tree = broccoli::with_axis(axgeom::XAXIS,&mut bots);
-///
-///```
-pub fn with_axis<'a, A: Axis, T: Aabb>(axis: A, bots: &'a mut [T]) -> Tree<'a, A, T> {
-    TreeBuilder::with_axis(axis, bots).build_seq()
-}
+
 
 ///Create a [`Tree`] using the default axis in parallel.
 ///
@@ -86,25 +61,6 @@ where
     TreeBuilder::new(bots).build_par()
 }
 
-///Create a [`Tree`] using a specified axis in parallel.
-///
-/// # Examples
-///
-///```
-/// let mut bots = [axgeom::rect(0,10,0,10)];
-/// let tree = broccoli::with_axis_par(axgeom::XAXIS,&mut bots);
-///
-///```
-pub fn with_axis_par<'a, A: Axis, T: Aabb + Send + Sync>(
-    axis: A,
-    bots: &'a mut [T],
-) -> Tree<'a, A, T>
-where
-    T::Num: Send + Sync,
-{
-    TreeBuilder::with_axis(axis, bots).build_par()
-}
-
 impl<'a, A: Axis, T: Aabb> Queries<'a> for Tree<'a, A, T> {
     type A = A;
     type T = T;
@@ -116,19 +72,53 @@ impl<'a, A: Axis, T: Aabb> Queries<'a> for Tree<'a, A, T> {
     }
 
     #[inline(always)]
-    fn vistr_mut(&mut self) -> VistrMut<NodeMut<'a, T>> {
+    fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
         VistrMut {
             inner: self.inner.inner.vistr_mut(),
         }
     }
 
     #[inline(always)]
-    fn vistr(&self) -> Vistr<NodeMut<'a, T>> {
+    fn vistr(&self) -> Vistr<Node<'a, T>> {
         self.inner.inner.vistr()
     }
 }
 
 impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
+
+    ///Create a [`Tree`] using a specified axis.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut bots = [axgeom::rect(0,10,0,10)];
+    /// let tree = broccoli::Tree::with_axis(axgeom::XAXIS,&mut bots);
+    ///
+    ///```
+    pub fn with_axis(axis: A, bots: &'a mut [T]) -> Tree<'a, A, T> {
+        TreeBuilder::with_axis(axis, bots).build_seq()
+    }
+
+    ///Create a [`Tree`] using a specified axis in parallel.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut bots = [axgeom::rect(0,10,0,10)];
+    /// let tree = broccoli::Tree::with_axis_par(axgeom::XAXIS,&mut bots);
+    ///
+    ///```
+    pub fn with_axis_par(
+        axis: A,
+        bots: &'a mut [T],
+    ) -> Tree<'a, A, T>
+    where
+        T:Send+Sync,T::Num: Send + Sync,
+    {
+        TreeBuilder::with_axis(axis, bots).build_par()
+    }
+
+
     /// # Examples
     ///
     ///```
@@ -174,7 +164,7 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     ///
     ///```
     #[must_use]
-    pub fn get_nodes(&self) -> &[NodeMut<'a, T>] {
+    pub fn get_nodes(&self) -> &[Node<'a, T>] {
         self.inner.inner.get_nodes()
     }
 
@@ -189,7 +179,7 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     ///
     ///```
     #[must_use]
-    pub fn get_nodes_mut(&mut self) -> PMut<[NodeMut<'a, T>]> {
+    pub fn get_nodes_mut(&mut self) -> PMut<[Node<'a, T>]> {
         PMut::new(self.inner.inner.get_nodes_mut())
     }
 }

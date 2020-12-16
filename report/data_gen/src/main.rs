@@ -11,10 +11,7 @@ pub fn black_box<T>(dummy: T) -> T {
 
 pub mod bbox_helper {
     use broccoli::axgeom::Rect;
-    use broccoli::bbox;
-    use broccoli::BBox;
-    use broccoli::Num;
-
+    use broccoli::{bbox,node::*};
     pub fn create_bbox_mut<T, N: Num>(
         arr: &mut [T],
         mut func: impl FnMut(&T) -> Rect<N>,
@@ -37,7 +34,7 @@ mod inner_prelude {
     pub use broccoli::analyze::*;
     pub use broccoli::prelude::*;
     pub use broccoli::query::*;
-    pub use broccoli::*;
+    pub use broccoli::node::*;
     pub use broccoli::*;
     //pub(crate) use duckduckgeo::bot;
     //pub(crate) use duckduckgeo::dists;

@@ -21,7 +21,7 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,
     >(
         &mut self,
         this_axis: A,
-        m: VistrMut<NodeMut<T>>,
+        m: VistrMut<Node<T>>,
     ) {
         let anchor_axis = self.anchor.axis;
         let (nn, rest) = m.next();
@@ -83,7 +83,7 @@ where
         this_axis: A,
         par: JJ,
         sweeper: &mut S,
-        m: VistrMut<NodeMut<T>>,
+        m: VistrMut<Node<T>>,
         splitter: &mut K,
     ) {
         let (mut nn, rest) = m.next();
@@ -160,7 +160,7 @@ impl<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> ColFindRecurser<T, 
         &self,
         this_axis: A,
         sweeper: &mut S,
-        m: VistrMut<NodeMut<T>>,
+        m: VistrMut<Node<T>>,
         splitter: &mut K,
     ) {
         let (mut nn, rest) = m.next();

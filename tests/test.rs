@@ -6,7 +6,7 @@ use compt::*;
 
 use axgeom::*;
 use broccoli::prelude::*;
-use broccoli::*;
+use broccoli::node::*;
 
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.
 fn create_bbox_mut<'a, N: Num, T>(

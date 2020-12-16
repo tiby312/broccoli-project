@@ -158,7 +158,7 @@ pub fn handle_optimal(grow:f64,fb: &mut FigureBuilder){
                 let mut tree= 
                     crate::support::make_tree_ref_ind(&mut bot_inner,grow,|a|a.to_f32n());
                 
-                let mut pairs=tree.collect_colliding_pairs(|a,b|{
+                let mut pairs=tree.collect_colliding_pairs(|_,_|{
                     Some(())
                 });
 
@@ -175,7 +175,7 @@ pub fn handle_optimal(grow:f64,fb: &mut FigureBuilder){
                 let mut tree= 
                     crate::support::make_tree_ref_ind(&mut bot_inner,grow,|a|a.to_f32n());
                 
-                let mut pairs=tree.collect_colliding_pairs_par(|a,b|{
+                let mut pairs=tree.collect_colliding_pairs_par(|_,_|{
                     Some(())
                 });
 

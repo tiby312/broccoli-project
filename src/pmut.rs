@@ -95,7 +95,7 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     }
 }
 
-impl<'a, 'b: 'a, T: Aabb> PMut<'a, NodeMut<'b, T>> {
+impl<'a, 'b: 'a, T: Aabb> PMut<'a, Node<'b, T>> {
     ///Destructure a node into its three parts.
     #[inline(always)]
     pub fn into_range_full(self) -> (&'a Option<T::Num>, &'a Option<Range<T::Num>>, PMut<'a, [T]>) {

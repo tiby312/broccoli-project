@@ -237,7 +237,7 @@ impl<'a, K: Knearest> Blap<'a, K> {
 
 fn recc<'a, 'b: 'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
     axis: A,
-    stuff: LevelIter<VistrMut<'a, NodeMut<'b, T>>>,
+    stuff: LevelIter<VistrMut<'a, Node<'b, T>>>,
     rect: Rect<K::N>,
     blap: &mut Blap<'a, K>,
 ) {
@@ -380,7 +380,7 @@ mod mutable {
 
     pub fn k_nearest_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: VistrMut<'a, NodeMut<'b, T>>,
+        vistr: VistrMut<'a, Node<'b, T>>,
         point: Vec2<T::Num>,
         num: usize,
         knear: impl Knearest<N = T::Num, T = T>,

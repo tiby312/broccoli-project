@@ -249,7 +249,7 @@ impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
 ///
 /// ```rust
 /// use axgeom::*;
-/// use broccoli::{*,container::*,DefaultA};
+/// use broccoli::{*,container::*,analyze::DefaultA};
 ///
 /// fn not_lifetimed()->TreeOwnedInd<DefaultA,i32,Vec2<i32>>
 /// {
@@ -325,7 +325,7 @@ impl<A: Axis, N: Num, T> TreeOwnedInd<A, N, T> {
 /// An owned `(Rect<N>,T)` example
 ///
 /// ```rust
-/// use broccoli::{BBox,bbox,rect,prelude::*,container::*,DefaultA};
+/// use broccoli::{node::BBox,bbox,rect,prelude::*,container::*,analyze::DefaultA};
 ///
 /// fn not_lifetimed()->TreeOwned<DefaultA,BBox<i32,f32>>
 /// {

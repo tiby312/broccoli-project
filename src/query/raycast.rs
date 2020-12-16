@@ -247,7 +247,7 @@ impl<'a, R: RayCast> Blap<'a, R> {
 //Returns the first object that touches the ray.
 fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     axis: A,
-    stuff: LevelIter<VistrMut<'a, NodeMut<'b, T>>>,
+    stuff: LevelIter<VistrMut<'a, Node<'b, T>>>,
     rect: Rect<T::Num>,
     blap: &mut Blap<'a, R>,
 ) {
@@ -360,7 +360,7 @@ mod mutable {
 
     pub fn raycast_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: VistrMut<'a, NodeMut<'b, T>>,
+        vistr: VistrMut<'a, Node<'b, T>>,
         rect: Rect<T::Num>,
         ray: Ray<T::Num>,
         rtrait: impl RayCast<N = T::Num, T = T>,

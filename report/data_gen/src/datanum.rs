@@ -1,5 +1,5 @@
 use broccoli::axgeom::Rect;
-use broccoli::Num;
+use broccoli::node::Num;
 use std::cmp::Ordering;
 
 use core::marker::PhantomData;

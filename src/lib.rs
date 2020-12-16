@@ -51,7 +51,7 @@
 //!
 //! [`query::Queries::multi_rect`] uses unsafety to allow the user to have mutable references to elements
 //! that belong to rectangle regions that don't intersect at the same time. This is why
-//! the [`Aabb`] trait is unsafe.
+//! the [`bbox::Aabb`] trait is unsafe.
 //!
 //! ### Name
 //!
@@ -75,8 +75,14 @@ pub use compt;
 pub use rayon;
 
 mod inner_prelude {
-    pub(crate) use super::*;
+    pub(crate) use crate::par;
+    pub(crate) use crate::tree::*;
+    pub(crate) use crate::query;
+     
+
+    pub(crate) use crate::node::*;
     pub(crate) use crate::pmut::*;
+    
     pub(crate) use crate::tree::analyze::*;
     pub use alloc::vec::Vec;
     pub use axgeom::*;
@@ -84,20 +90,23 @@ mod inner_prelude {
     pub use core::marker::PhantomData;
 }
 
+mod par;
+
 pub mod query;
 
 ///Contains generic tree construction code
 mod tree;
 pub use tree::*;
 
-///A collection of 1d functions that operate on lists of 2d objects.
-mod oned;
-
 pub mod pmut;
 
+///Contains node-level building block structs and visitors used for a [`Tree`].
+pub mod node;
+
+
 ///A collection of different bounding box containers.
-mod bbox;
-pub use crate::bbox::*;
+//pub mod bbox;
+//pub use crate::bbox::*;
 
 ///Generic slice utillity functions.
 mod util;
@@ -105,39 +114,18 @@ mod util;
 ///Helper functions to convert aabbs in floats to integers
 pub mod convert;
 
-pub use axgeom::rect;
-pub use axgeom::Range;
-pub use axgeom::Rect;
 
 ///The broccoli prelude.
 pub mod prelude {
     pub use crate::query::Queries;
 }
 
-///The underlying number type used for the tree.
-///It is auto implemented by all types that satisfy the type constraints.
-///Notice that no arithmatic is possible. The tree is constructed
-///using only comparisons and copying.
-pub trait Num: PartialOrd + Copy {}
-impl<T> Num for T where T: PartialOrd + Copy {}
+pub use axgeom::rect;
 
-///Trait to signify that this object has an axis aligned bounding box.
-///[`Aabb::get()`] must return a aabb with the same value in it while the element
-///is in the tree. This is hard for the user not to do, this the user
-///does not have `&mut self`,
-///but it is still possible through the use of static objects or `RefCell` / `Mutex`, etc.
-///Using these type of methods the user could make different calls to get()
-///return different aabbs.
-///This is unsafe since we allow query algorithms to assume the following:
-///If two object's aabb's don't intersect, then they can be mutated at the same time.
-pub unsafe trait Aabb {
-    type Num: Num;
-    fn get(&self) -> &Rect<Self::Num>;
+///Shorthand constructor of [`node::BBox`]
+#[inline(always)]
+#[must_use]
+pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
+    node::BBox::new(rect, inner)
 }
 
-unsafe impl<N: Num> Aabb for Rect<N> {
-    type Num = N;
-    fn get(&self) -> &Rect<Self::Num> {
-        self
-    }
-}

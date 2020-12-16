@@ -56,9 +56,9 @@ pub fn naive_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
 
 use compt::dfs_order;
 type CombinedVistr<'a, 'b, N, J> =
-    compt::Zip<dfs_order::Vistr<'a, N, dfs_order::PreOrder>, VistrMut<'a, NodeMut<'b, J>>>;
+    compt::Zip<dfs_order::Vistr<'a, N, dfs_order::PreOrder>, VistrMut<'a, Node<'b, J>>>;
 type CombinedVistrMut<'a, 'b, N, J> =
-    compt::Zip<dfs_order::VistrMut<'a, N, dfs_order::PreOrder>, VistrMut<'a, NodeMut<'b, J>>>;
+    compt::Zip<dfs_order::VistrMut<'a, N, dfs_order::PreOrder>, VistrMut<'a, Node<'b, J>>>;
 
 fn wrap_mut<'a: 'b, 'b, 'c: 'a + 'b, N, J: Aabb>(
     bla: &'b mut CombinedVistrMut<'a, 'c, N, J>,
@@ -77,14 +77,14 @@ fn wrap_mut<'a: 'b, 'b, 'c: 'a + 'b, N, J: Aabb>(
 //build up a tree where every nodemass has the mass of all the bots in that node and all the bots under it.
 fn buildtree<J: Aabb, N: NodeMassTrait<Num = J::Num, Item = J>>(
     axis: impl Axis,
-    node: VistrMut<NodeMut<J>>,
+    node: VistrMut<Node<J>>,
     misc_nodes: &mut Vec<N::No>,
     ncontext: N,
     rect: Rect<J::Num>,
 ) {
     fn recc<J: Aabb, N: NodeMassTrait<Num = J::Num, Item = J>>(
         axis: impl Axis,
-        stuff: VistrMut<NodeMut<J>>,
+        stuff: VistrMut<Node<J>>,
         misc_nodes: &mut Vec<N::No>,
         ncontext: N,
         rect: Rect<J::Num>,
@@ -584,7 +584,7 @@ pub fn nbody_par<
     NO: NodeMassTrait<Num = T::Num, Item = T> + Sync + Send,
 >(
     axis: A,
-    mut vistr: VistrMut<NodeMut<T>>,
+    mut vistr: VistrMut<Node<T>>,
     ncontext: NO,
     rect: Rect<T::Num>,
 ) where
@@ -613,7 +613,7 @@ pub fn nbody<
     NO: NodeMassTrait<Num = T::Num, Item = T> + Send + Sync,
 >(
     axis: A,
-    mut vistr: VistrMut<NodeMut<T>>,
+    mut vistr: VistrMut<Node<T>>,
     ncontext: NO,
     rect: Rect<T::Num>,
 ) where

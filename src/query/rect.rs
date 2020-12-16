@@ -73,13 +73,13 @@ pub fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
 
 pub fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
     axis: A,
-    vistr: VistrMut<'a, NodeMut<'b, T>>,
+    vistr: VistrMut<'a, Node<'b, T>>,
     rect: &Rect<T::Num>,
     closure: impl FnMut(PMut<'a, T>),
 ) {
     fn rect_recurse<'a, 'b: 'a, A: Axis, T: Aabb, F: FnMut(PMut<'a, T>)>(
         axis: A,
-        it: VistrMut<'a, NodeMut<'b, T>>,
+        it: VistrMut<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
         mut closure: F,
     ) -> F {
@@ -135,13 +135,13 @@ pub use mutable::*;
 mod mutable {
     use super::*;
     use crate::query::colfind::oned::get_section_mut;
-    fn foo<'a, 'b: 'a, T: Aabb>(node: PMut<'a, NodeMut<'b, T>>) -> PMut<'a, [T]> {
+    fn foo<'a, 'b: 'a, T: Aabb>(node: PMut<'a, Node<'b, T>>) -> PMut<'a, [T]> {
         node.into_range()
     }
-    rect!(VistrMut<'a, NodeMut<T>>, PMut<'a, T>, get_section_mut, foo);
+    rect!(VistrMut<'a, Node<T>>, PMut<'a, T>, get_section_mut, foo);
     pub fn for_all_intersect_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: VistrMut<'a, NodeMut<'b, T>>,
+        vistr: VistrMut<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(PMut<'a, T>),
     ) {
@@ -177,7 +177,7 @@ mod mutable {
     }
     pub fn for_all_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: VistrMut<'a, NodeMut<'b, T>>,
+        vistr: VistrMut<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(PMut<'a, T>),
     ) {
@@ -193,14 +193,14 @@ mod constant {
 
     use super::*;
     use crate::query::colfind::oned::get_section;
-    fn foo<'a, 'b: 'a, T: Aabb>(node: &'a NodeMut<'b, T>) -> &'a [T] {
+    fn foo<'a, 'b: 'a, T: Aabb>(node: &'a Node<'b, T>) -> &'a [T] {
         &node.range
     }
-    rect!(Vistr<'a, NodeMut<T>>, &'a T, get_section, foo);
+    rect!(Vistr<'a, Node<T>>, &'a T, get_section, foo);
 
     pub fn for_all_intersect_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: Vistr<'a, NodeMut<'b, T>>,
+        vistr: Vistr<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(&'a T),
     ) {
@@ -213,7 +213,7 @@ mod constant {
 
     pub fn for_all_in_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
-        vistr: Vistr<'a, NodeMut<'b, T>>,
+        vistr: Vistr<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(&'a T),
     ) {
@@ -234,12 +234,12 @@ pub struct RectIntersectErr;
 ///See the [`Queries::multi_rect`](crate::query::Queries::multi_rect) function.
 pub struct MultiRectMut<'a, 'b: 'a, A: Axis, T: Aabb> {
     axis: A,
-    vistr: VistrMut<'a, NodeMut<'b, T>>,
+    vistr: VistrMut<'a, Node<'b, T>>,
     rects: Vec<Rect<T::Num>>,
 }
 
 impl<'a, 'b: 'a, A: Axis, T: Aabb> MultiRectMut<'a, 'b, A, T> {
-    pub(crate) fn new(axis: A, vistr: VistrMut<'a, NodeMut<'b, T>>) -> Self {
+    pub(crate) fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> Self {
         MultiRectMut {
             axis,
             vistr,

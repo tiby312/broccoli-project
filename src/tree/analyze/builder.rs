@@ -1,5 +1,5 @@
 use super::*;
-
+use super::super::TreeInner;
 ///Builder pattern for Tree.
 ///For most usecases, the user is suggested to use
 ///the built in new() functions to create the tree.
@@ -237,11 +237,11 @@ struct NonLeafFinisher<'a, A, T: Aabb> {
     mid: &'a mut [T],
 }
 impl<'a, A: Axis, T: Aabb> NonLeafFinisher<'a, A, T> {
-    fn finish(self, sorter: impl Sorter) -> NodeMut<'a, T> {
+    fn finish(self, sorter: impl Sorter) -> Node<'a, T> {
         sorter.sort(self.axis.next(), self.mid);
         let cont = create_cont(self.axis, self.mid);
 
-        NodeMut {
+        Node {
             range: PMut::new(self.mid),
             cont,
             div: self.div,
@@ -250,12 +250,12 @@ impl<'a, A: Axis, T: Aabb> NonLeafFinisher<'a, A, T> {
 }
 
 impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
-    fn create_leaf<A: Axis>(&self, axis: A, rest: &'a mut [T]) -> NodeMut<'a, T> {
+    fn create_leaf<A: Axis>(&self, axis: A, rest: &'a mut [T]) -> Node<'a, T> {
         self.sorter.sort(axis.next(), rest);
 
         let cont = create_cont(axis, rest);
 
-        NodeMut {
+        Node {
             range: PMut::new(rest),
             cont,
             div: None,
@@ -298,7 +298,7 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
         &self,
         axis: A,
         rest: &'a mut [T],
-        nodes: &mut Vec<NodeMut<'a, T>>,
+        nodes: &mut Vec<Node<'a, T>>,
         splitter: &mut K,
         depth: usize,
     ) {
@@ -327,7 +327,7 @@ where
         axis: A,
         dlevel: JJ,
         rest: &'a mut [T],
-        nodes: &mut Vec<NodeMut<'a, T>>,
+        nodes: &mut Vec<Node<'a, T>>,
         splitter: &mut K,
         depth: usize,
     ) {
@@ -537,3 +537,4 @@ fn construct_non_leaf<T: Aabb>(
         right: binned.right,
     }
 }
+

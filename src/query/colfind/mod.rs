@@ -77,7 +77,7 @@ pub fn query_sweep_mut<T: Aabb>(
 pub struct NotSortedQueryBuilder<'a, 'b: 'a, A: Axis, T: Aabb> {
     switch_height: usize,
     axis: A,
-    vistr: VistrMut<'a, NodeMut<'b, T>>,
+    vistr: VistrMut<'a, Node<'b, T>>,
 }
 
 impl<'a, 'b: 'a, A: Axis, T: Aabb + Send + Sync> NotSortedQueryBuilder<'a, 'b, A, T>
@@ -103,7 +103,7 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a, 'b, A, T> {
     #[inline(always)]
     pub fn new(
         axis: A,
-        vistr: VistrMut<'a, NodeMut<'b, T>>,
+        vistr: VistrMut<'a, Node<'b, T>>,
     ) -> NotSortedQueryBuilder<'a, 'b, A, T> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         NotSortedQueryBuilder {
@@ -136,7 +136,7 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a, 'b, A, T> {
 pub struct QueryBuilder<'a, 'b: 'a, A: Axis, T: Aabb> {
     switch_height: usize,
     axis: A,
-    vistr: VistrMut<'a, NodeMut<'b, T>>,
+    vistr: VistrMut<'a, Node<'b, T>>,
 }
 
 impl<'a, 'b: 'a, A: Axis, T: Aabb + Send + Sync> QueryBuilder<'a, 'b, A, T>
@@ -274,7 +274,7 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> QueryBuilder<'a, 'b, A, T> {
     ///Create the builder.
     #[inline(always)]
     #[must_use]
-    pub fn new(axis: A, vistr: VistrMut<'a, NodeMut<'b, T>>) -> QueryBuilder<'a, 'b, A, T> {
+    pub fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> QueryBuilder<'a, 'b, A, T> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         QueryBuilder {
             switch_height,

@@ -64,7 +64,7 @@ impl<A: Axis, N: Num, T> TreeIndInner<A, N, T> {
 }
 
 pub(super) fn make_owned<A: Axis, T: Aabb>(axis: A, bots: &mut [T]) -> TreeInner<A, NodePtr<T>> {
-    let inner = crate::with_axis(axis, bots);
+    let inner = crate::Tree::with_axis(axis, bots);
 
     let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>, _> = inner.inner.inner.convert();
 
@@ -78,7 +78,7 @@ fn make_owned_par<A: Axis, T: Aabb + Send + Sync>(
 where
     T::Num: Send + Sync,
 {
-    let inner = crate::with_axis_par(axis, bots);
+    let inner = crate::Tree::with_axis_par(axis, bots);
 
     let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>, _> = inner.inner.inner.convert();
 

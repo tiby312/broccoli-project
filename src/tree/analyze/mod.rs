@@ -3,20 +3,31 @@
 
 use crate::inner_prelude::*;
 
+///The default starting axis of a [`Tree`]. It is set to be the `Y` axis.
+///This means that the first divider is a horizontal line since it is
+///partitioning space based off of the aabb's `Y` value.
+pub type DefaultA = YAXIS;
+
+///Returns the default axis type.
+pub const fn default_axis() -> YAXIS {
+    YAXIS
+}
+
 pub mod assert;
 
+mod oned;
 pub use builder::TreeBuilder;
 mod builder;
 
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one
 ///does nothing when sort() is called.
-pub(crate) trait Sorter: Copy + Clone + Send + Sync {
+trait Sorter: Copy + Clone + Send + Sync {
     fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]);
 }
 
 #[derive(Copy, Clone)]
-pub(crate) struct DefaultSorter;
+struct DefaultSorter;
 
 impl Sorter for DefaultSorter {
     fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]) {
@@ -25,7 +36,7 @@ impl Sorter for DefaultSorter {
 }
 
 #[derive(Copy, Clone)]
-pub(crate) struct NoSorter;
+struct NoSorter;
 
 impl Sorter for NoSorter {
     fn sort(&self, _axis: impl Axis, _bots: &mut [impl Aabb]) {}
@@ -241,12 +252,12 @@ impl<'a, A: Axis, T: Aabb> NotSortedQueries<'a> for NotSorted<'a, A, T> {
     }
 
     #[inline(always)]
-    fn vistr_mut(&mut self) -> VistrMut<NodeMut<'a, T>> {
+    fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
         self.0.vistr_mut()
     }
 
     #[inline(always)]
-    fn vistr(&self) -> Vistr<NodeMut<'a, T>> {
+    fn vistr(&self) -> Vistr<Node<'a, T>> {
         self.0.vistr()
     }
 }

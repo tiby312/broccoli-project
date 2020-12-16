@@ -143,12 +143,12 @@ impl broccoli::query::DividerDrawer for Bla {
     }
 }
 
-use broccoli::node::NodeMut;
+use broccoli::node::Node;
 use broccoli::node::Vistr;
 
 fn draw_bot_lines<A: axgeom::Axis>(
     axis: A,
-    stuff: Vistr<NodeMut<BBox<f32, &mut Bot>>>,
+    stuff: Vistr<Node<BBox<f32, &mut Bot>>>,
     rect: &axgeom::Rect<f32>,
     lines: &mut egaku2d::shapes::LineSession,
 ) {
