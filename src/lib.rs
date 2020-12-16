@@ -51,7 +51,7 @@
 //!
 //! [`query::Queries::multi_rect`] uses unsafety to allow the user to have mutable references to elements
 //! that belong to rectangle regions that don't intersect at the same time. This is why
-//! the [`bbox::Aabb`] trait is unsafe.
+//! the [`node::Aabb`] trait is unsafe.
 //!
 //! ### Name
 //!
