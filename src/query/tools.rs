@@ -22,6 +22,7 @@ pub trait RetainMutUnordered<T> {
         F: FnMut(&mut T) -> bool;
 }
 
+use alloc::vec::Vec;
 impl<T> RetainMutUnordered<T> for Vec<T> {
     fn retain_mut_unordered<F>(&mut self, mut f: F)
     where

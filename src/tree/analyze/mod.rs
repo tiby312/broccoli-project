@@ -109,9 +109,8 @@ impl TreePreBuilder {
         self.height_switch_seq = height;
     }
 
-    //TODO try and make const??
     ///Create a [`par::Joiner`] that will switch to sequential at the approriate level
-    pub(crate) fn switch_seq_level(&self) -> Parallel {
+    pub(crate) const fn switch_seq_level(&self) -> Parallel {
         crate::par::compute_level_switch_sequential(self.height_switch_seq, self.height)
     }
 
@@ -166,7 +165,6 @@ const fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> 
         let (num_bots, num_per_node) = (num_bots as u64, num_per_node as u64);
         let a = num_bots / num_per_node;
         let a = log_2(a);
-        //let ans=(a/2)*2+1;
         (a + 1) as usize
     }
 }
@@ -175,8 +173,6 @@ const fn log_2(x: u64) -> u64 {
     const fn num_bits<T>() -> usize {
         core::mem::size_of::<T>() * 8
     }
-
-    //assert!(x > 0);
     num_bits::<u64>() as u64 - x.leading_zeros() as u64 - 1
 }
 

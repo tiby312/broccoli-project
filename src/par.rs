@@ -11,7 +11,7 @@ pub const SWITCH_SEQUENTIAL_DEFAULT: usize = 6;
 
 ///Returns the height at which the recursive construction algorithm turns to sequential from parallel.
 #[inline]
-pub fn compute_level_switch_sequential(depth: usize, height: usize) -> Parallel {
+pub const fn compute_level_switch_sequential(depth: usize, height: usize) -> Parallel {
     let dd = depth;
 
     let gg = if height <= dd { 0 } else { height - dd };
@@ -39,7 +39,7 @@ pub struct Parallel {
 }
 impl Parallel {
     ///The depth at which to switch to sequential.
-    pub fn new(depth_to_switch_at: usize) -> Self {
+    pub const fn new(depth_to_switch_at: usize) -> Self {
         Parallel {
             depth_to_switch_at,
             current_depth: 0,

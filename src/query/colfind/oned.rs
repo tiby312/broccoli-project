@@ -84,7 +84,6 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
 
     //exploit the fact that they are sorted along an axis to
     //reduce the number of checks.
-    //TODO check which range is smaller???
     // OPTION2
     /*
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
@@ -297,7 +296,7 @@ pub(crate) fn get_section<'a, I: Aabb, A: Axis>(
             break;
         }
     }
-    //TODO get rid of unwrap?
+
     let start = start.unwrap();
 
     let mut end = arr.as_ref().len();
@@ -308,8 +307,6 @@ pub(crate) fn get_section<'a, I: Aabb, A: Axis>(
             break;
         }
     }
-
-    //println!("{:?},{},[{},{}]",range,ll,start,end);
 
     &arr[start..end]
 }
@@ -354,7 +351,7 @@ pub(crate) fn get_section_mut<'a, I: Aabb, A: Axis>(
             break;
         }
     }
-    //TODO get rid of unwrap?
+
     let start = start.unwrap();
 
     let mut end = arr.as_ref().len();
@@ -365,8 +362,6 @@ pub(crate) fn get_section_mut<'a, I: Aabb, A: Axis>(
             break;
         }
     }
-
-    //println!("{:?},{},[{},{}]",range,ll,start,end);
 
     arr.truncate(start..end)
 }

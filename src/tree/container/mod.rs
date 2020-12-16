@@ -107,13 +107,11 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
 impl<'a, A: Axis, N: Num + 'a, T> core::ops::Deref for TreeRefInd<'a, A, N, T> {
     type Target = TreeRef<'a, A, BBox<N, &'a mut T>>;
     fn deref(&self) -> &Self::Target {
-        //TODO do these in one place
         unsafe { &*(self.tree.inner.as_tree() as *const _ as *const _) }
     }
 }
 impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        //TODO do these in one place
         unsafe { &mut *(self.tree.inner.as_tree_mut() as *mut _ as *mut _) }
     }
 }
@@ -172,13 +170,11 @@ pub struct TreeRef<'a, A: Axis, T: Aabb> {
 impl<'a, A: Axis, T: Aabb> core::ops::Deref for TreeRef<'a, A, T> {
     type Target = Tree<'a, A, T>;
     fn deref(&self) -> &Self::Target {
-        //TODO do these in one place
         unsafe { &*(&self.tree.inner as *const _ as *const _) }
     }
 }
 impl<'a, A: Axis, T: Aabb> core::ops::DerefMut for TreeRef<'a, A, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        //TODO do these in one place
         unsafe { &mut *(&mut self.tree.inner as *mut _ as *mut _) }
     }
 }

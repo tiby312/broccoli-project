@@ -16,7 +16,7 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNode<'a, 'b, T, AnchorAx
         axis: AnchorAxis,
         node: PMut<'a, Node<'b, T>>,
     ) -> Option<DestructuredNode<'a, 'b, T, AnchorAxis>> {
-        debug_assert!(node.div.is_some()); //TODO remove
+        debug_assert!(node.div.is_some());
         if node.cont.is_some() {
             Some(DestructuredNode { node, axis })
         } else {
@@ -26,7 +26,6 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNode<'a, 'b, T, AnchorAx
 
     #[inline(always)]
     pub fn cont(&self) -> &axgeom::Range<T::Num> {
-        //TODO use unsafe and dont unwrap
         unsafe { self.node.cont.as_ref().unchecked_unwrap() }
     }
 }
@@ -51,7 +50,6 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNodeLeaf<'a, 'b, T, Anch
 
     #[inline(always)]
     pub fn cont(&self) -> &axgeom::Range<T::Num> {
-        //TODO use unsafe and dont unwrap
         unsafe { self.node.cont.as_ref().unchecked_unwrap() }
     }
 }
