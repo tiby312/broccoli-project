@@ -26,5 +26,5 @@ Some observations:
 <img alt="Level Analysis" src="graphs/query_evenness_theory.svg" class="center" style="width: 100%;" />
 
 The above chart shows that the work load is pretty even between the left and right recursing of the algorithm.
-As aabbs get more clumped up, the right side starts to dominate more. This is because when we pick a median,
-we are using the left most value of the aabb as our median.
+As aabbs get more clumped up, the right side starts to dominate more. This is not because when we pick a median,
+we are using the left most value of the aabb as our median. I think it is because all the aabbs are sorted using either their left or top sides. To make it more even, bots could be sorted away from the divider to make things more symetric. I mention this in the improvements section.
