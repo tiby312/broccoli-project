@@ -10,7 +10,6 @@ broccoli construction and query requires sorting or finding the max and min at v
 
 * Enforce `Ord`
     * Impossible for the user to incorrectly use the tree.
-        * Detected at compile time.
     * Cumbersome for the user to use wrapper types like `NotNan` or `OrderedFloat`
     * Wrapper types can incur performance hits. 
         * `OrderedFloat` has a slightly more expensive comparison
@@ -18,7 +17,6 @@ broccoli construction and query requires sorting or finding the max and min at v
 
 * Require `PartialOrd` and panic on failure
     * Impossible for the user to incorrectly use the tree.
-        * Detected at runtime.
     * Performance hit from extra checks and error paths in the query algorithms themselves.
 
 * Require `PartialOrd` and silently fail.
