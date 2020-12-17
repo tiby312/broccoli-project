@@ -24,10 +24,10 @@ Some observations:
 ### Evenness of load
 
 <img alt="Level Analysis" src="graphs/query_evenness_theory.svg" class="center" style="width: 100%;" />
-
-The above chart shows that the work load is pretty even between the left and right recursing of the algorithm.
-As aabbs get more clumped up, the right side starts to dominate more. This is not because when we pick a median,
-we are using the left most value of the aabb as our median. If you look at the graph below, you can see that each side of the tree still has an roughly even number of aabbs with a grow of 0.007. I think it is something to do with the fact that all the aabbs are sorted using either their left or top sides. To make it more even, bots could be sorted away from the divider to make things more symetric. I mention this in the improvements section. Regardless this imbalance only happens for extremely clumped up sets.
-
 <img alt="Level Analysis" src="graphs/tree_num_per_node_theory.svg" class="center" style="width: 100%;" />
+
+The above two charts shows that the work load is pretty even between the left and right recursing of the algorithm.
+As aabbs get more clumped up, the right side starts to dominate more. I'm not sure why this is, but I do know that picking the median based off of the right and bottom of the aabbs instead of left and top makes no difference in this case. I think this particular distribution becomes not so uniform when the aabbs are extremely clumped up.
+
+
 

@@ -41,15 +41,14 @@ pub fn handle_num_node(fb: &mut FigureBuilder){
 
     let grow1 = 0.2;
     let grow2 = 0.007;
-    handle_tree_num_per_node(num_bots,grow1,&format!("Query Evenness with abspiral({},{})",num_bots,grow1),&mut fg,0);
+    handle_tree_num_per_node(num_bots,grow1,&format!("Num of aabbs per node with abspiral({},{})",num_bots,grow1),&mut fg,0);
 
-    handle_tree_num_per_node(num_bots,0.2,&format!("Query Evenness with abspiral({},{})",num_bots,grow2),&mut fg,1);
+    handle_tree_num_per_node(num_bots,grow2,&format!("Num of aabbs per node abspiral({},{})",num_bots,grow2),&mut fg,1);
 
     fb.finish(fg);
 }
 pub fn handle_tree_num_per_node(num_bots:usize,grow:f64,title_name:&str,fg:&mut Figure,pos:usize){
     use broccoli::compt::Visitor;
-    let grow=0.2;
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
