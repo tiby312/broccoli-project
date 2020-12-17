@@ -17,6 +17,13 @@ Screen capture from the inner `broccoli_demo` project.
 
 <img src="./assets/screenshot.gif" alt="screenshot">
 
+
+### Name
+
+If you shorten "broadphase collision" to "broad colli" and say it fast, it sounds like broccoli.
+Broccoli also have tree like properties and broccoli uses a tree data structure.
+
+
 ### Example
 
 ```rust

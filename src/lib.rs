@@ -53,12 +53,6 @@
 //! [`query::Queries::multi_rect`] uses unsafety to allow the user to have mutable references to elements
 //! that belong to rectangle regions that don't intersect at the same time. This is why
 //! the [`node::Aabb`] trait is unsafe.
-//!
-//! ### Name
-//!
-//! If you shorten "broadphase collision" to "broad colli" and say it fast, it sounds like broccoli.
-//! Broccoli also have tree like properties and broccoli uses a tree data structure.
-//!
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
