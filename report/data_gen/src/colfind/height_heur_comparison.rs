@@ -42,7 +42,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
 
     let mut benches: Vec<BenchRecord> = Vec::new();
 
-    let its = (1usize..80_000).step_by(2000);
+    let its = (1usize..140_000).step_by(2000);
     for num_bots in its.clone() {
         let mut minimum = None;
         let max_height = (num_bots as f64).log2() as usize;
