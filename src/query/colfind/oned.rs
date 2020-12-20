@@ -31,7 +31,6 @@ impl<'a, A: Axis + 'a, F: ColMulti + 'a> ColMulti for OtherAxisCollider<'a, A, F
 
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
-#[inline(always)]
 pub fn find_2d<A: Axis, F: ColMulti>(prevec1:&mut PreVecMut<F::T>,axis: A, bots: PMut<[F::T]>, clos2: &mut F) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
     self::find(prevec1,axis, bots, &mut b);
@@ -39,7 +38,6 @@ pub fn find_2d<A: Axis, F: ColMulti>(prevec1:&mut PreVecMut<F::T>,axis: A, bots:
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
-#[inline(always)]
 pub fn find_parallel_2d<A: Axis, F: ColMulti>(
     prevec1:&mut PreVecMut<F::T>,
     prevec2:&mut PreVecMut<F::T>, 
@@ -127,6 +125,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     */
 }
 
+#[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.
 fn find<'a, A: Axis, F: ColMulti>(prevec1:&mut PreVecMut<F::T>,axis: A, collision_botids: PMut<'a, [F::T]>, func: &mut F) {
     //    Create a new temporary list called “activeList”.
@@ -168,7 +167,7 @@ fn find<'a, A: Axis, F: ColMulti>(prevec1:&mut PreVecMut<F::T>,axis: A, collisio
 }
 
 
-
+#[inline(always)]
 //does less comparisons than option 2.
 fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
     prevec1:&mut PreVecMut<F::T>,
@@ -249,6 +248,7 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
 
 //This only uses one stack, but it ends up being more comparisons.
 #[allow(dead_code)]
+#[inline(always)]
 fn find_other_parallel2<'a, 'b,A: Axis, F: ColMulti>(
     axis: A,
     cols: (impl IntoIterator<Item=PMut<'a,F::T>>,impl IntoIterator<Item=PMut<'b,F::T>>),
@@ -393,6 +393,7 @@ fn test_parallel() {
 
 //this can have some false positives.
 //but it will still prune a lot of bots.
+#[inline(always)]
 pub(crate) fn get_section<'a, I: Aabb, A: Axis>(
     axis: A,
     arr: &'a [I],
@@ -448,6 +449,7 @@ fn test_section() {
 
 //this can have some false positives.
 //but it will still prune a lot of bots.
+#[inline(always)]
 pub(crate) fn get_section_mut<'a, I: Aabb, A: Axis>(
     axis: A,
     mut arr: PMut<'a, [I]>,
