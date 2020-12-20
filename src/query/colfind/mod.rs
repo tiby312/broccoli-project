@@ -34,21 +34,8 @@ pub fn query_sweep_mut<T: Aabb>(
     bots: &mut [T],
     func: impl FnMut(PMut<T>, PMut<T>),
 ) {
-    ///Sorts the bots.
-    #[inline(always)]
-    fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {
-        let sclosure = move |a: &I, b: &I| -> core::cmp::Ordering {
-            let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
-            if p1 > p2 {
-                return core::cmp::Ordering::Greater;
-            }
-            core::cmp::Ordering::Less
-        };
-
-        collision_botids.sort_unstable_by(sclosure);
-    }
-
-    sweeper_update(axis, bots);
+    
+    crate::analyze::sweeper_update(axis, bots);
 
     struct Bl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> {
         func: F,

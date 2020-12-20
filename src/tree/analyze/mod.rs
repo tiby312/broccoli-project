@@ -15,7 +15,9 @@ pub const fn default_axis() -> YAXIS {
 
 pub mod assert;
 
+pub(crate) use oned::sweeper_update;
 mod oned;
+
 pub use builder::TreeBuilder;
 mod builder;
 

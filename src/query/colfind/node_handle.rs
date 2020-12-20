@@ -129,12 +129,13 @@ use crate::util::PreVecMut;
 pub(super) struct HandleSorted<K: ColMulti + Splitter> {
     pub func: K,
     prevec1:PreVecMut<K::T>,
-    prevec2:PreVecMut<K::T>
+    prevec2:PreVecMut<K::T>,
+    prevec3:PreVecMut<K::T>
 }
 impl<K: ColMulti + Splitter> HandleSorted<K> {
     #[inline(always)]
     pub fn new(a: K) -> HandleSorted<K> {
-        HandleSorted { func: a ,prevec1:PreVecMut::new(),prevec2:PreVecMut::new()}
+        HandleSorted { func: a ,prevec1:PreVecMut::new(),prevec2:PreVecMut::new(),prevec3:PreVecMut::new()}
     }
 }
 impl<K: ColMulti + Splitter> Splitter for HandleSorted<K> {
@@ -173,7 +174,7 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
             let r2 =
                 oned::get_section_mut(current.axis, anchor.node.borrow_mut().into_range(), cc2);
 
-            oned::find_perp_2d1(&mut self.prevec1,&mut self.prevec2,current.axis, r1, r2, func);
+            oned::find_perp_2d1(&mut self.prevec1,&mut self.prevec2,&mut self.prevec3,current.axis, r1, r2, func);
         } else if current.cont().intersects(anchor.cont()) {
             /*
             oned::find_parallel_2d(

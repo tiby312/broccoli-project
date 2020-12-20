@@ -59,6 +59,7 @@ pub fn find_parallel_2d<A: Axis, F: ColMulti>(
 pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     prevec1:&mut PreVecMut<F::T>, 
     prevec2:&mut PreVecMut<F::T>, 
+    prevec3:&mut PreVecMut<F::T>,
     axis: A, //the axis of r1.
     r1: PMut<[F::T]>,
     r2: PMut<[F::T]>,
@@ -85,7 +86,9 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     }
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
 
-    let mut rr1: Vec<PMut<F::T>> = r1.iter_mut().collect();
+    let mut rr1=prevec3.get_empty_vec_mut();
+    rr1.extend(r1);
+    //let mut rr1: Vec<PMut<F::T>> = r1.iter_mut().collect();
 
     rr1.sort_unstable_by(|a, b| compare_bots(axis, a, b));
 
@@ -343,30 +346,48 @@ fn test_parallel() {
         b.make(6, 7),
     ];
 
+    analyze::sweeper_update(axgeom::XAXIS,&mut left);
+    analyze::sweeper_update(axgeom::XAXIS,&mut right);
+
     //let mut left=[b.make(0,10),b.make(5,20)];
     //let mut right=[b.make(16,20)];
 
+    let mut p1=PreVecMut::new();
+    let mut p2=PreVecMut::new();
     let mut test1 = Test {
         set: BTreeSet::new(),
     };
-    self::find_other_parallel(
+
+    let j1:PMut<[BBox<_,_>]>=PMut::new(&mut left);
+    let j2:PMut<[BBox<_,_>]>=PMut::new(&mut right);
+    
+    self::find_other_parallel3(
+        &mut p1,
+        &mut p2,
         axgeom::XAXIS,
-        (PMut::new(&mut left), PMut::new(&mut right)),
+        (j1.iter_mut(), j2.iter_mut()),
         &mut test1,
     );
 
     let mut test2 = Test {
         set: BTreeSet::new(),
     };
-    self::find_other_parallel(
+    let j1:PMut<[BBox<_,_>]>=PMut::new(&mut right);
+    let j2:PMut<[BBox<_,_>]>=PMut::new(&mut left);
+    
+    self::find_other_parallel3(
+        &mut p1,
+        &mut p2,
         axgeom::XAXIS,
-        (PMut::new(&mut right), PMut::new(&mut left)),
+        (j1.iter_mut(), j2.iter_mut()),
         &mut test2,
     );
 
-    let num = test1.set.symmetric_difference(&test2.set).count();
-
-    assert_eq!(num, 0);
+    let diff = test1.set.symmetric_difference(&test2.set);
+    let num=diff.clone().count();
+    let diff2:Vec<_>=diff.collect();
+    //TODO this fails???
+    assert_eq!(num, 0,"{:?}",&diff2);
 }
 
 //this can have some false positives.
