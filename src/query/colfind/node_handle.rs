@@ -155,7 +155,7 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
     #[inline(always)]
     fn handle_node(&mut self, axis: impl Axis, bots: PMut<[Self::T]>) {
         let func = &mut self.func;
-        oned::find_2d(axis, bots, func);
+        oned::find_2d(&mut self.prevec1,axis, bots, func);
     }
     #[inline(always)]
     fn handle_children<A: Axis, B: Axis>(

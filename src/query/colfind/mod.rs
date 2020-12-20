@@ -49,8 +49,10 @@ pub fn query_sweep_mut<T: Aabb>(
             (self.func)(a, b);
         }
     }
+    let mut prevec=crate::util::PreVecMut::new();
     let bots = PMut::new(bots);
     oned::find_2d(
+        &mut prevec,
         axis,
         bots,
         &mut Bl {

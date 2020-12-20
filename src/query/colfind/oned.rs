@@ -32,9 +32,9 @@ impl<'a, A: Axis + 'a, F: ColMulti + 'a> ColMulti for OtherAxisCollider<'a, A, F
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
 #[inline(always)]
-pub fn find_2d<A: Axis, F: ColMulti>(axis: A, bots: PMut<[F::T]>, clos2: &mut F) {
+pub fn find_2d<A: Axis, F: ColMulti>(prevec1:&mut PreVecMut<F::T>,axis: A, bots: PMut<[F::T]>, clos2: &mut F) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
-    self::find(axis, bots, &mut b);
+    self::find(prevec1,axis, bots, &mut b);
 }
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
@@ -128,7 +128,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
 }
 
 ///Find colliding pairs using the mark and sweep algorithm.
-fn find<'a, A: Axis, F: ColMulti>(axis: A, collision_botids: PMut<'a, [F::T]>, func: &mut F) {
+fn find<'a, A: Axis, F: ColMulti>(prevec1:&mut PreVecMut<F::T>,axis: A, collision_botids: PMut<'a, [F::T]>, func: &mut F) {
     //    Create a new temporary list called “activeList”.
     //    You begin on the left of your axisList, adding the first item to the activeList.
     //
@@ -143,7 +143,8 @@ fn find<'a, A: Axis, F: ColMulti>(axis: A, collision_botids: PMut<'a, [F::T]>, f
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let mut active: Vec<PMut<F::T>> = Vec::new();
+    let active=prevec1.get_empty_vec_mut();
+    //let mut active: Vec<PMut<F::T>> = Vec::new();
 
     for mut curr_bot in collision_botids.iter_mut() {
         let crr = *curr_bot.get().get_range(axis);
