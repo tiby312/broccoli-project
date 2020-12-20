@@ -50,7 +50,7 @@ pub fn find_parallel_2d<A: Axis, F: ColMulti>(
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
 
-    self::find_other_parallel3(prevec1,prevec2,axis,(bots1.iter_mut(),bots2.iter_mut()),&mut b)
+    self::find_other_parallel3(prevec1,prevec2,axis,(bots1,bots2),&mut b)
    
 }
 
@@ -98,7 +98,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
         prevec2,
         axis,
         (
-            r2.iter_mut(),
+            r2,
             rrr.iter_mut().map(|a|PMut::new(a).flatten())
         ),
         &mut b);
@@ -173,11 +173,11 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
     prevec1:&mut PreVecMut<F::T>,
     prevec2:&mut PreVecMut<F::T>, 
     axis: A,
-    cols: (impl Iterator<Item=PMut<'a,F::T>>,impl Iterator<Item=PMut<'b,F::T>>),
+    cols: (impl IntoIterator<Item=PMut<'a,F::T>>,impl IntoIterator<Item=PMut<'b,F::T>>),
     func: &mut F,
 ) where F::T:'a+'b{
-    let mut f1=cols.0.peekable();
-    let mut f2=cols.1.peekable();
+    let mut f1=cols.0.into_iter().peekable();
+    let mut f2=cols.1.into_iter().peekable();
 
     //let mut active_x: Vec<PMut<F::T>> = Vec::new();
     //let mut active_y: Vec<PMut<F::T>> = Vec::new();
@@ -250,12 +250,12 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
 #[allow(dead_code)]
 fn find_other_parallel2<'a, 'b,A: Axis, F: ColMulti>(
     axis: A,
-    cols: (impl Iterator<Item=PMut<'a,F::T>>,impl Iterator<Item=PMut<'b,F::T>>),
+    cols: (impl IntoIterator<Item=PMut<'a,F::T>>,impl IntoIterator<Item=PMut<'b,F::T>>),
     func: &mut F,
 ) where F::T:'a+'b{
     
-    let mut xs = cols.0.peekable();
-    let ys = cols.1;
+    let mut xs = cols.0.into_iter().peekable();
+    let ys = cols.1.into_iter();
 
     //let active_x = self.helper.get_empty_vec_mut();
     let mut active_x: Vec<PMut<F::T>> = Vec::new();
@@ -365,7 +365,7 @@ fn test_parallel() {
         &mut p1,
         &mut p2,
         axgeom::XAXIS,
-        (j1.iter_mut(), j2.iter_mut()),
+        (j1, j2),
         &mut test1,
     );
 
@@ -379,7 +379,7 @@ fn test_parallel() {
         &mut p1,
         &mut p2,
         axgeom::XAXIS,
-        (j1.iter_mut(), j2.iter_mut()),
+        (j1, j2),
         &mut test2,
     );
 
