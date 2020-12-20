@@ -26,50 +26,12 @@ Done via divide and conquer. For every node we do the following:
 
 #### Profiling Construction + Finding all colliding pairs.
 
-Here are some profiling results running construction + finding on `abspiral(0.2,30_000)`.
+Here are some profiling results running construction + finding on `abspiral(0.2,50_000)` with one 
+construction and 30 queries.
 
-```
--  99.99%        data_gen
-   -  83.20%        data_gen
-      +  16.61%        [.] <alloc::vec::Vec<T> as broccoli::query::tools::RetainMutUnordered<T>>::retain_mut_unordered
-      +  15.07%        [.] <alloc::vec::Vec<T> as broccoli::query::tools::RetainMutUnordered<T>>::retain_mut_unordered
-      +  14.06%        [.] <alloc::vec::Vec<T> as broccoli::query::tools::RetainMutUnordered<T>>::retain_mut_unordered
-      +   5.60%        [.] pdqselect::select_by
-      +   5.06%        [.] pdqselect::select_by
-      +   4.28%        [.] <alloc::vec::Vec<T> as broccoli::query::tools::RetainMutUnordered<T>>::retain_mut_unordered
-          3.68%        [.] ordered_float::<impl core::convert::From<ordered_float::NotNan<f32>> for f32>::from
-      +   1.70%        [.] broccoli::oned::bin_middle_left_right
-      +   1.61%        [.] broccoli::oned::bin_middle_left_right
-      +   1.55%        [.] broccoli::query::colfind::oned::find_perp_2d1
-      +   1.23%        [.] <core::iter::adapters::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
-      +   1.23%        [.] broccoli::tree::analyze::builder::Recurser<T,K,S>::recurse_preorder_seq
-      +   1.22%        [.] broccoli::query::colfind::oned::find_perp_2d1
-      +   1.22%        [.] alloc::raw_vec::RawVec<T,A>::reserve
-      +   1.16%        [.] broccoli::query::colfind::oned::find_other_parallel
-      +   1.11%        [.] core::slice::sort::recurse
-      +   0.82%        [.] core::slice::sort::recurse
-      +   0.81%        [.] broccoli::query::colfind::oned::find_other_parallel
-          0.77%        [.] broccoli::query::colfind::oned::find_other_parallel
-      +   0.76%        [.] broccoli::query::colfind::oned::find
-          0.65%        [.] core::slice::sort::recurse
-          0.42%        [.] <ordered_float::NotNan<f32> as core::convert::TryFrom<f32>>::try_from
-          0.41%        [.] broccoli::query::colfind::oned::find
-          0.41%        [.] broccoli::query::colfind::oned::get_section_mut
-          0.41%        [.] broccoli::query::colfind::inner::InnerRecurser<T,NN,B>::recurse
-          0.41%        [.] core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &mut F>::call_once
-          0.41%        [.] broccoli::query::colfind::oned::find_perp_2d1
-          0.41%        [.] __rdl_realloc
-          0.11%        [.] std::sys::unix::stack_overflow::imp::make_handler
-   +   7.88%        [kernel.kallsyms]
-   +   4.17%        libm-2.31.so
-   +   3.85%        libc-2.31.so
-   +   0.87%        ld-2.31.so
-   +   0.03%        libpthread-2.31.so
-+   0.01%        perf
-```
+<img alt="Flamegraph" src="graphs/flamegraph.svg" class="center" style="width: 100%;" />
 
-As you can see the query releated functions take up the most time, as opposed to the construction functions.
-
+As you can see all functions are split up into smaller problems.
 
 
 

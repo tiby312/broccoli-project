@@ -113,14 +113,6 @@ fn main() {
         .build_global()
         .unwrap();
 
-    /*
-    dbg!(
-        colfind::construction_vs_query::all::handle_bench(50_000,0.2,true)
-    );
-
-    return;
-    */
-
     //to run program to generate android bench data.
     //build armv7-linux-androideabi
     //adb -d push broccoli_data /data/local/tmp/broccoli_data
@@ -137,6 +129,27 @@ fn main() {
 
     dbg!(&args);
     match args[1].as_ref() {
+        "profile"=>{
+            let grow=0.2;
+            let num_bots=50_000; 
+            use crate::support::*;
+            use broccoli::query::Queries;
+            let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
+    
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+    
+            for _ in 0..30{
+                let c0 = bench_closure(|| {
+                    let mut tree = broccoli::new(&mut bots);
+                    tree.find_colliding_pairs_mut(|a, b| {
+                        **a.unpack_inner() += 1;
+                        **b.unpack_inner() += 1;
+                    });
+                });
+    
+                dbg!(c0);
+            }
+        }
         "theory" => {
             let folder = args[2].clone();
             let path = Path::new(folder.trim_end_matches('/'));
