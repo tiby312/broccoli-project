@@ -11,6 +11,7 @@ pub mod all {
         pub nosort: Option<(f64, f64)>,
         pub nosort_par: Option<(f64, f64)>,
     }
+    #[derive(Debug)]
     pub struct RecordTheory {
         pub grow: f64,
         pub num_bots: usize,

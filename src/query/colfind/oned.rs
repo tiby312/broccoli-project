@@ -3,6 +3,9 @@ use crate::query::inner_prelude::*;
 
 use super::tools::RetainMutUnordered;
 
+
+
+
 //For sweep and prune type algorithms, we can narrow down which bots
 //intersection in one dimension. We also need to check the other direction
 //because we know for sure they are colliding. That is the purpose of
@@ -45,7 +48,8 @@ pub fn find_parallel_2d<A: Axis, F: ColMulti>(
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
 
-    self::find_other_parallel(axis, (bots1, bots2), &mut b);
+    self::find_other_parallel3(axis,(bots1.iter_mut(),bots2.iter_mut()),&mut b)
+   
 }
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
@@ -80,7 +84,15 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     let mut rr1: Vec<PMut<F::T>> = r1.iter_mut().collect();
 
     rr1.sort_unstable_by(|a, b| compare_bots(axis, a, b));
-    self::find_other_parallel2(axis, (r2, PMut::new(&mut rr1)), |a| a.flatten(), &mut b);
+
+    let mut rrr:&mut [PMut<F::T>]=(&mut rr1) as &mut [PMut<F::T>];
+    self::find_other_parallel3(
+        axis,
+        (
+            r2.iter_mut(),
+            rrr.iter_mut().map(|a|PMut::new(a).flatten())
+        ),
+        &mut b);
 
     //exploit the fact that they are sorted along an axis to
     //reduce the number of checks.
@@ -145,20 +157,96 @@ fn find<'a, A: Axis, F: ColMulti>(axis: A, collision_botids: PMut<'a, [F::T]>, f
     }
 }
 
-// needed for OPTION1
-fn find_other_parallel2<'a, A: Axis, F: ColMulti, K>(
+
+
+//does less comparisons than option 2.
+fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
     axis: A,
-    cols: (PMut<'a, [F::T]>, PMut<[K]>),
-    mut conv: impl FnMut(PMut<K>) -> PMut<F::T>,
+    cols: (impl Iterator<Item=PMut<'a,F::T>>,impl Iterator<Item=PMut<'b,F::T>>),
     func: &mut F,
-) {
-    let mut xs = cols.0.iter_mut().peekable();
-    let ys = cols.1.iter_mut();
+) where F::T:'a+'b{
+    let mut f1=cols.0.peekable();
+    let mut f2=cols.1.peekable();
+
+    let mut active_x: Vec<PMut<F::T>> = Vec::new();
+    let mut active_y: Vec<PMut<F::T>> = Vec::new();
+    
+    loop{
+        match (f1.peek(),f2.peek()){
+            (Some(x),None)=>{
+                let mut x=f1.next().unwrap();
+                active_y.retain_mut_unordered(|y| {
+                    if y.get().get_range(axis).end > x.get().get_range(axis).start {
+                        func.collide(x.borrow_mut(), y.borrow_mut());
+                        true
+                    } else {
+                        false
+                    }
+                });
+
+                active_x.push(x);
+            },
+            (None,Some(y))=>{
+                let mut y=f2.next().unwrap();
+                active_x.retain_mut_unordered(|x| {
+                    if x.get().get_range(axis).end > y.get().get_range(axis).start {
+                        func.collide(x.borrow_mut(), y.borrow_mut());
+                        true
+                    } else {
+                        false
+                    }
+                });
+
+                active_y.push(y); 
+            },
+            (None,None)=>{
+                break;
+            },
+            (Some(x),Some(y))=>{
+                if x.get().get_range(axis).start<y.get().get_range(axis).start{
+                    let mut x=f1.next().unwrap();
+                    active_y.retain_mut_unordered(|y| {
+                        if y.get().get_range(axis).end > x.get().get_range(axis).start {
+                            func.collide(x.borrow_mut(), y.borrow_mut());
+                            true
+                        } else {
+                            false
+                        }
+                    });
+    
+                    active_x.push(x);
+                }else{
+                    let mut y=f2.next().unwrap();
+                    active_x.retain_mut_unordered(|x| {
+                        if x.get().get_range(axis).end > y.get().get_range(axis).start {
+                            func.collide(x.borrow_mut(), y.borrow_mut());
+                            true
+                        } else {
+                            false
+                        }
+                    });
+    
+                    active_y.push(y); 
+
+                }
+            }
+        }
+    }
+}
+
+//This only uses one stack, but it ends up being more comparisons.
+fn find_other_parallel2<'a, 'b,A: Axis, F: ColMulti>(
+    axis: A,
+    cols: (impl Iterator<Item=PMut<'a,F::T>>,impl Iterator<Item=PMut<'b,F::T>>),
+    func: &mut F,
+) where F::T:'a+'b{
+    
+    let mut xs = cols.0.peekable();
+    let ys = cols.1;
 
     //let active_x = self.helper.get_empty_vec_mut();
     let mut active_x: Vec<PMut<F::T>> = Vec::new();
-    for y in ys {
-        let mut y = conv(y);
+    for mut y in ys {
 
         let yr = *y.get().get_range(axis);
 
@@ -184,15 +272,10 @@ fn find_other_parallel2<'a, A: Axis, F: ColMulti, K>(
             }
         });
     }
+    
+    //dbg!(active_x.capacity());
 }
 
-fn find_other_parallel<'a, A: Axis, F: ColMulti>(
-    axis: A,
-    cols: (PMut<'a, [F::T]>, PMut<'a, [F::T]>),
-    func: &mut F,
-) {
-    self::find_other_parallel2(axis, cols, |a| a, func)
-}
 
 #[test]
 #[cfg_attr(miri, ignore)]
