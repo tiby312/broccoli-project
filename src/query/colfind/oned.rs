@@ -184,7 +184,25 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
     let active_x=prevec1.get_empty_vec_mut();
     let active_y=prevec2.get_empty_vec_mut();
     loop{
-        match (f1.peek(),f2.peek()){
+        let j=match (f1.peek(),f2.peek()){
+            (Some(x),None)=>{
+                (Some(x),None)
+            },
+            (None,Some(x))=>{
+                (None,Some(x))
+            },
+            (None,None)=>{
+                break;
+            },
+            (Some(x),Some(y))=>{
+                if x.get().get_range(axis).start<y.get().get_range(axis).start{
+                    (Some(x),None)
+                }else{
+                    (None,Some(x))
+                }
+            }
+        };
+        match j{
             (Some(_),None)=>{
                 let mut x=f1.next().unwrap();
                 active_y.retain_mut_unordered(|y| {
@@ -211,37 +229,7 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
 
                 active_y.push(y); 
             },
-            (None,None)=>{
-                break;
-            },
-            (Some(x),Some(y))=>{
-                if x.get().get_range(axis).start<y.get().get_range(axis).start{
-                    let mut x=f1.next().unwrap();
-                    active_y.retain_mut_unordered(|y| {
-                        if y.get().get_range(axis).end > x.get().get_range(axis).start {
-                            func.collide(x.borrow_mut(), y.borrow_mut());
-                            true
-                        } else {
-                            false
-                        }
-                    });
-    
-                    active_x.push(x);
-                }else{
-                    let mut y=f2.next().unwrap();
-                    active_x.retain_mut_unordered(|x| {
-                        if x.get().get_range(axis).end > y.get().get_range(axis).start {
-                            func.collide(x.borrow_mut(), y.borrow_mut());
-                            true
-                        } else {
-                            false
-                        }
-                    });
-    
-                    active_y.push(y); 
-
-                }
-            }
+            _=>unreachable!()
         }
     }
 }
