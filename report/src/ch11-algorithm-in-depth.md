@@ -26,10 +26,11 @@ Done via divide and conquer. For every node we do the following:
 
 #### Profiling Construction + Finding all colliding pairs.
 
-Here are some profiling results running construction + finding on `abspiral(0.2,50_000)` with one 
-construction and 30 queries.
+Here are some profiling results finding all intersections on `abspiral(0.2,50_000)` 30 times. 
+The image below is a SVG image and is interactive. Hover over blocks to see the full names.
+Try this link for a full page view of the image: [SVG](graphs/flamegraph.svg)
 
-<img alt="Flamegraph" src="graphs/flamegraph.svg" class="center" style="width: 100%;" />
+<object class="p" data="graphs/flamegraph.svg" type="image/svg+xml" style="width: 100%;">
 
 As you can see all functions are split up into smaller problems.
 
