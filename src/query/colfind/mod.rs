@@ -190,6 +190,8 @@ where
 
         impl<T: Aabb, A, B, C, D: Fn(&mut A, PMut<T>, PMut<T>)> ColMulti for Foo<T, A, B, C, D> {
             type T = T;
+
+            #[inline(always)]
             fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
                 (self.collision)(&mut self.acc, a, b)
             }
@@ -197,6 +199,7 @@ where
         impl<T, A, B: Fn(&mut A) -> (A, A) + Copy, C: Fn(&mut A, A, A) + Copy, D: Copy> Splitter
             for Foo<T, A, B, C, D>
         {
+            #[inline(always)]
             fn div(&mut self) -> (Self, Self) {
                 let (acc1, acc2) = (self.split)(&mut self.acc);
                 (
@@ -216,7 +219,7 @@ where
                     },
                 )
             }
-
+            #[inline(always)]
             fn add(&mut self, a: Self, b: Self) {
                 (self.fold)(&mut self.acc, a.acc, b.acc)
             }

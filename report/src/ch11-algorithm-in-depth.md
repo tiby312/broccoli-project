@@ -32,8 +32,9 @@ Try this link for a full page view of the image: [SVG](graphs/flamegraph.svg)
 
 <object class="p" data="graphs/flamegraph.svg" type="image/svg+xml" style="width: 100%;">
 
-As you can see all functions are split up into smaller problems.
-
+The flame graph shows a very insightful map of how much time is spent in which sections of the algorithm.
+You can clearly see how the rebalancing and the querying are each individually broken down.
+You can see how at each recursive step, a piece of the problem is broken off.
 
 
 
