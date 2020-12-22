@@ -35,8 +35,7 @@ fn handle_inner_theory(num_bots: usize, grow: f64) -> TheoryRes {
 
 pub fn handle_num_node(fb: &mut FigureBuilder){
     let num_bots=3000;
-    use gnuplot::*;
-
+    
     let mut fg = fb.build("tree_num_per_node_theory");
 
     let grow1 = 0.2;

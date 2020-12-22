@@ -58,14 +58,10 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     prevec1:&mut PreVecMut<F::T>, 
     prevec2:&mut PreVecMut<F::T>,
     axis: A, //the axis of r1.
-    mut r1: PMut<[F::T]>,
+    r1: PMut<[F::T]>,
     mut r2: PMut<[F::T]>,
     clos2: &mut F,
 ) {
-    //option1 is slightly faster than option 2.
-    //but requires dynamic allocation.
-    //option3 is the slowest.
-    //
     //OPTION 1
     /*
     #[inline(always)]
@@ -100,8 +96,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
         ),
         &mut b);
     */
-    //exploit the fact that they are sorted along an axis to
-    //reduce the number of checks.
+
     // OPTION2
     
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
@@ -142,8 +137,7 @@ fn find<'a, A: Axis, F: ColMulti>(prevec1:&mut PreVecMut<F::T>,axis: A, collisio
     //     in the axisList.
 
     let active=prevec1.get_empty_vec_mut();
-    //let mut active: Vec<PMut<F::T>> = Vec::new();
-
+    
     for mut curr_bot in collision_botids.iter_mut() {
         let crr = *curr_bot.get().get_range(axis);
 
@@ -178,31 +172,33 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
     let mut f1=cols.0.into_iter().peekable();
     let mut f2=cols.1.into_iter().peekable();
 
-    //let mut active_x: Vec<PMut<F::T>> = Vec::new();
-    //let mut active_y: Vec<PMut<F::T>> = Vec::new();
     let active_x=prevec1.get_empty_vec_mut();
     let active_y=prevec2.get_empty_vec_mut();
     loop{
+        enum NextP{
+            X,
+            Y
+        }
         let j=match (f1.peek(),f2.peek()){
-            (Some(x),None)=>{
-                (Some(x),None)
+            (Some(_),None)=>{
+                NextP::X
             },
-            (None,Some(x))=>{
-                (None,Some(x))
+            (None,Some(_))=>{
+                NextP::Y
             },
             (None,None)=>{
                 break;
             },
             (Some(x),Some(y))=>{
                 if x.get().get_range(axis).start<y.get().get_range(axis).start{
-                    (Some(x),None)
+                    NextP::X
                 }else{
-                    (None,Some(x))
+                    NextP::Y
                 }
             }
         };
         match j{
-            (Some(_),None)=>{
+            NextP::X=>{
                 let mut x=f1.next().unwrap();
                 active_y.retain_mut_unordered(|y| {
                     if y.get().get_range(axis).end > x.get().get_range(axis).start {
@@ -215,7 +211,7 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
 
                 active_x.push(x);
             },
-            (None,Some(_))=>{
+            NextP::Y=>{
                 let mut y=f2.next().unwrap();
                 active_x.retain_mut_unordered(|x| {
                     if x.get().get_range(axis).end > y.get().get_range(axis).start {
@@ -227,8 +223,7 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
                 });
 
                 active_y.push(y); 
-            },
-            _=>unreachable!()
+            }
         }
     }
 }
