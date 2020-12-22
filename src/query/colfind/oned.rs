@@ -56,11 +56,10 @@ pub fn find_parallel_2d<A: Axis, F: ColMulti>(
 //that intsect.
 pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     prevec1:&mut PreVecMut<F::T>, 
-    prevec2:&mut PreVecMut<F::T>, 
-    prevec3:&mut PreVecMut<F::T>,
+    prevec2:&mut PreVecMut<F::T>,
     axis: A, //the axis of r1.
-    r1: PMut<[F::T]>,
-    r2: PMut<[F::T]>,
+    mut r1: PMut<[F::T]>,
+    mut r2: PMut<[F::T]>,
     clos2: &mut F,
 ) {
     //option1 is slightly faster than option 2.
@@ -68,7 +67,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     //option3 is the slowest.
     //
     //OPTION 1
-
+    /*
     #[inline(always)]
     pub fn compare_bots<T: Aabb, K: Aabb<Num = T::Num>>(
         axis: impl Axis,
@@ -100,17 +99,17 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
             rrr.iter_mut().map(|a|PMut::new(a).flatten())
         ),
         &mut b);
-
+    */
     //exploit the fact that they are sorted along an axis to
     //reduce the number of checks.
     // OPTION2
-    /*
+    
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
 
     for y in r1.iter_mut(){
-        self.find_other_parallel(axis,(r2.borrow_mut(),y.into_slice()),&mut b);
+        self::find_other_parallel3(prevec1,prevec2,axis,(r2.borrow_mut(),y.into_slice()),&mut b);
     }
-    */
+    
 
     //OPTION3
     // benched and this is the slowest.
