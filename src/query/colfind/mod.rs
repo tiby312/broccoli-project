@@ -257,7 +257,7 @@ where
             self.vistr,
             &mut SplitterEmpty,
         );
-
+        
         sweeper.func
     }
 }

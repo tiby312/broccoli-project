@@ -60,9 +60,10 @@ Option3:
 	-fewest allocations
 	-fewest comparisons
 	-slow to push and truncate each vec since it requires shuffling things around.
-	-slightly slower than option 2.
 
-I went with option3, since it is only slightly slower than option2, but also avoids extra allocations.
+
+I went with option3. The performance hit from pushing and truncating can be made up with a big allocation up front.
+Doing two big allocations upfront for option2 is wasteful.
 
 
 #### Profiling Construction + Finding all colliding pairs.

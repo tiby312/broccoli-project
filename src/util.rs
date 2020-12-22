@@ -26,7 +26,7 @@ impl<T> PreVecMut<T> {
             core::mem::size_of::<&mut T>()
         );
 
-        PreVecMut { vec: Vec::with_capacity(8) }
+        PreVecMut { vec: Vec::with_capacity(1024) }
     }
 
     ///Clears the vec and returns a mutable reference to a vec.

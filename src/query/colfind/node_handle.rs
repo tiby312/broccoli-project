@@ -128,10 +128,11 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
 use crate::util::PreVecMut;
 pub(super) struct HandleSorted<K: ColMulti + Splitter> {
     pub func: K,
-    prevec1:PreVecMut<K::T>,
+    pub(crate) prevec1:PreVecMut<K::T>,
     //prevec2:PreVecMut<K::T>,
     //prevec3:PreVecMut<K::T>
 }
+
 impl<K: ColMulti + Splitter> HandleSorted<K> {
     #[inline(always)]
     pub fn new(a: K) -> HandleSorted<K> {
