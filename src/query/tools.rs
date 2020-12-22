@@ -18,12 +18,13 @@ pub(crate) fn for_every_pair<T: Aabb>(mut arr: PMut<[T]>, mut func: impl FnMut(P
 
 #[cfg(test)]
 mod test{
-
+    use super::*;
 
 
     #[test]
     fn test_other(){
-        let mut k=TwoUnorderedVecs::new();
+        let mut vec=Vec::new();
+        let mut k=TwoUnorderedVecs::new(&mut vec);
         k.push_second(5);
         k.push_first(6);
         k.push_second(5);
@@ -43,7 +44,9 @@ mod test{
     //TODO put in module
     #[test]
     fn test_push(){
-        let mut k=TwoUnorderedVecs::new();
+
+        let mut vec=Vec::new();
+        let mut k=TwoUnorderedVecs::new(&mut vec);
         k.push_first(9);    
         k.push_second(0);
         k.push_first(3);

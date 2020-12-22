@@ -354,7 +354,7 @@ fn test_parallel() {
     //let mut right=[b.make(16,20)];
 
     let mut p1=PreVecMut::new();
-    let mut p2=PreVecMut::new();
+    //let mut p2=PreVecMut::new();
     let mut test1 = Test {
         set: BTreeSet::new(),
     };
@@ -364,7 +364,6 @@ fn test_parallel() {
     
     self::find_other_parallel3(
         &mut p1,
-        &mut p2,
         axgeom::XAXIS,
         (j1, j2),
         &mut test1,
@@ -378,7 +377,6 @@ fn test_parallel() {
     
     self::find_other_parallel3(
         &mut p1,
-        &mut p2,
         axgeom::XAXIS,
         (j1, j2),
         &mut test2,
