@@ -72,7 +72,7 @@ pub enum BinStrat {
 ///and you will end up with just sweep and prune.
 ///This number was chosen emprically from running the Tree_alg_data project,
 ///on two different machines.
-pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 32;
+pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 64;
 
 use crate::par::Parallel;
 
