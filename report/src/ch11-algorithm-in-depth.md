@@ -43,6 +43,28 @@ Option2:
 Turns out these both appear to be about the same, if we adjust the target number of aabbs for node. Option2 prefers like 64 aabbs, while option2 prefers a smaller amount like 32. Because of this I chose option2 since it does
 not require any special dynamic allocation.
 
+### How to handle parallel cases
+
+We have three options that all sound pretty good:
+
+Option1:
+	-use just one stack of active list
+	-aabbs are kept in the active list longer than normal
+	-more comparisons, but simple and only useso ne vec
+Option2:
+	-use two active lists. 
+	-fewest comparisons
+	-needs two vecs.
+Option3:
+	-use two active lists, but implement it as one vec under the hood.
+	-fewest allocations
+	-fewest comparisons
+	-slow to push and truncate each vec since it requires shuffling things around.
+	-slightly slower than option 2.
+
+I went with option3, since it is only slightly slower than option2, but also avoids extra allocations.
+
+
 #### Profiling Construction + Finding all colliding pairs.
 
 Here are some profiling results finding all intersections on `abspiral(0.2,50_000)` 30 times. 

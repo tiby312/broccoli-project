@@ -40,7 +40,6 @@ pub fn find_2d<A: Axis, F: ColMulti>(prevec1:&mut PreVecMut<F::T>,axis: A, bots:
 //that intsect.
 pub fn find_parallel_2d<A: Axis, F: ColMulti>(
     prevec1:&mut PreVecMut<F::T>,
-    prevec2:&mut PreVecMut<F::T>, 
     axis: A,
     bots1: PMut<[F::T]>,
     bots2: PMut<[F::T]>,
@@ -48,15 +47,14 @@ pub fn find_parallel_2d<A: Axis, F: ColMulti>(
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
 
-    self::find_other_parallel3(prevec1,prevec2,axis,(bots1,bots2),&mut b)
+    self::find_other_parallel3(prevec1,axis,(bots1,bots2),&mut b)
    
 }
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
 pub fn find_perp_2d1<A: Axis, F: ColMulti>(
-    prevec1:&mut PreVecMut<F::T>, 
-    prevec2:&mut PreVecMut<F::T>,
+    prevec1:&mut PreVecMut<F::T>,
     axis: A, //the axis of r1.
     r1: PMut<[F::T]>,
     mut r2: PMut<[F::T]>,
@@ -102,7 +100,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     let mut b = OtherAxisCollider { a: clos2, axis };
 
     for y in r1.iter_mut(){
-        self::find_other_parallel3(prevec1,prevec2,axis,(r2.borrow_mut(),y.into_slice()),&mut b);
+        self::find_other_parallel3(prevec1,axis,(y.into_slice(),r2.borrow_mut()),&mut b);
     }
     
 
@@ -164,7 +162,6 @@ fn find<'a, A: Axis, F: ColMulti>(prevec1:&mut PreVecMut<F::T>,axis: A, collisio
 //does less comparisons than option 2.
 fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
     prevec1:&mut PreVecMut<F::T>,
-    prevec2:&mut PreVecMut<F::T>, 
     axis: A,
     cols: (impl IntoIterator<Item=PMut<'a,F::T>>,impl IntoIterator<Item=PMut<'b,F::T>>),
     func: &mut F,
@@ -172,8 +169,15 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
     let mut f1=cols.0.into_iter().peekable();
     let mut f2=cols.1.into_iter().peekable();
 
-    let active_x=prevec1.get_empty_vec_mut();
-    let active_y=prevec2.get_empty_vec_mut();
+    //let active_x=prevec1.get_empty_vec_mut();
+    //let active_y=prevec2.get_empty_vec_mut();
+    //let mut active_x:Vec<PMut<F::T>>=Vec::new();
+    //let mut active_y:Vec<PMut<F::T>>=Vec::new();
+
+    use super::tools::TwoUnorderedVecs;
+    let mut active_lists=TwoUnorderedVecs::new(prevec1.get_empty_vec_mut());
+    //let mut active_lists:TwoUnorderedVecs<PMut<F::T>>=TwoUnorderedVecs::new();
+
     loop{
         enum NextP{
             X,
@@ -200,7 +204,7 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
         match j{
             NextP::X=>{
                 let mut x=f1.next().unwrap();
-                active_y.retain_mut_unordered(|y| {
+                active_lists.retain_second_mut_unordered(|y| {
                     if y.get().get_range(axis).end > x.get().get_range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
                         true
@@ -208,20 +212,20 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
                         false
                     }
                 });
-                
-                /* results in less comparisons but slower overall
-                active_x.retain_mut_unordered(|x2|{
+                /*
+                active_lists.retain_first_mut_unordered(|x2|{
                     x2.get().get_range(axis).end > x.get().get_range(axis).start
                 });
                 */
                 
                 
-
-                active_x.push(x);
+                
+                //active_x.push(x);
+                active_lists.push_first(x);
             },
             NextP::Y=>{
                 let mut y=f2.next().unwrap();
-                active_x.retain_mut_unordered(|x| {
+                active_lists.retain_first_mut_unordered(|x| {
                     if x.get().get_range(axis).end > y.get().get_range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
                         true
@@ -229,14 +233,14 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
                         false
                     }
                 });
-
-                /* results in less comparisons but slower overall
-                active_y.retain_mut_unordered(|y2|{
+                /*
+                active_lists.retain_second_mut_unordered(|y2|{
                     y2.get().get_range(axis).end > y.get().get_range(axis).start
                 });
                 */
                 
-                active_y.push(y); 
+                //active_y.push(y);
+                active_lists.push_second(y); 
             }
         }
     }
