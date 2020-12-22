@@ -170,7 +170,7 @@ impl<'a,T> TwoUnorderedVecs<'a,T>{
         self.inner.truncate(self.first_length+num);
     }
 
-    //#[inline(always)]
+    #[inline(always)]
     pub fn retain_first_mut_unordered(&mut self,mut func:impl FnMut(&mut T)->bool){
         let len = self.get_first_mut().len();
         let mut del = 0;
@@ -193,7 +193,7 @@ impl<'a,T> TwoUnorderedVecs<'a,T>{
         }
     }
 
-    //#[inline(always)]
+    #[inline(always)]
     pub fn retain_second_mut_unordered(&mut self,mut func:impl FnMut(&mut T)->bool){
         let len = self.get_second_mut().len();
         let mut del = 0;
