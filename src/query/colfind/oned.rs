@@ -99,7 +99,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
 
     // OPTION2
     
-    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
+    let mut b = OtherAxisCollider { a: clos2, axis };
 
     for y in r1.iter_mut(){
         self::find_other_parallel3(prevec1,prevec2,axis,(r2.borrow_mut(),y.into_slice()),&mut b);
@@ -208,6 +208,14 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
                         false
                     }
                 });
+                
+                /* results in less comparisons but slower overall
+                active_x.retain_mut_unordered(|x2|{
+                    x2.get().get_range(axis).end > x.get().get_range(axis).start
+                });
+                */
+                
+                
 
                 active_x.push(x);
             },
@@ -222,6 +230,12 @@ fn find_other_parallel3<'a, 'b,A: Axis, F: ColMulti>(
                     }
                 });
 
+                /* results in less comparisons but slower overall
+                active_y.retain_mut_unordered(|y2|{
+                    y2.get().get_range(axis).end > y.get().get_range(axis).start
+                });
+                */
+                
                 active_y.push(y); 
             }
         }

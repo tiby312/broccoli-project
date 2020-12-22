@@ -150,6 +150,28 @@ fn main() {
                 dbg!(c0);
             }
         }
+        "profile_cmp"=>{
+            let grow=0.2;
+            let num_bots=50_000; 
+            use crate::support::*;
+            use broccoli::query::Queries;
+            let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
+    
+    
+            for _ in 0..30{
+                let c0 = datanum::datanum_test(|maker| {
+                    let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
+    
+                    let mut tree = broccoli::new(&mut bots);
+                    tree.find_colliding_pairs_mut(|a, b| {
+                        **a.unpack_inner() += 1;
+                        **b.unpack_inner() += 1;
+                    });
+                });
+    
+                dbg!(c0);
+            }
+        }
         "theory" => {
             let folder = args[2].clone();
             let path = Path::new(folder.trim_end_matches('/'));
