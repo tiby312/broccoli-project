@@ -25,45 +25,48 @@ Done via divide and conquer. For every node we do the following:
    parallel.
 
 
-### How to speed up perpendicular cases
+#### How to handle parallel cases
+
+Part of the colliding pair finding algorithm requires that we find all colliding pairs between two nodes. 
+Some times the aabbs between two nodes are sorted along the same dimension and sometimes not. When they are
+we have three options that all sound pretty good:
+
+* Option 1:
+	* Use just one stack of active list
+	* Aabbs are kept in the active list longer than normal
+	* More comparisons, but simple and only uses one vec
+* Option 2:
+	* Use two active lists. 
+	* Fewest comparisons
+	* Needs two vecs.
+* Option 3:
+	* Use two active lists, but implement it as one vec under the hood.
+	* Fewest allocations
+	* Fewest comparisons
+	* Slow to push and truncate each vec since it requires shuffling things around.
+
+
+I went with option 3. The performance hit from pushing and truncating can be made up with a big allocation up front.
+Doing two big allocations upfront for option2 is wasteful.
+
+
+#### How to speed up perpendicular cases
 
 Its slow to naively find intersections between the aabbs in two nodes that are sorted along different dimensions.
 There are a couple of options:
 
-Option1:
--Cut off each list by using the other node's bounding box to deal with smaller lists.
--Now iterate over each element, and perform parallel sweep where one list has size one.
+* Option 1:
+	* Cut off each list by using the other node's bounding box to deal with smaller lists.
+	* Now iterate over each element, and perform parallel sweep where one list has size one.
 
-Option2:
--Cut off each list by using the other node's bounding box to deal with smaller list.
--collect a list of pointers of one list. 
--sort that list along the other lists axis
--perform parallel sweep 
+* Option 2:
+	* Cut off each list by using the other node's bounding box to deal with smaller list.
+	* Collect a list of pointers of one list. 
+	* Sort that list along the other lists axis
+	* Perform parallel sweep 
 
 Turns out these both appear to be about the same, if we adjust the target number of aabbs for node. Option2 prefers like 64 aabbs, while option2 prefers a smaller amount like 32. Because of this I chose option2 since it does
 not require any special dynamic allocation.
-
-### How to handle parallel cases
-
-We have three options that all sound pretty good:
-
-Option1:
-	-use just one stack of active list
-	-aabbs are kept in the active list longer than normal
-	-more comparisons, but simple and only useso ne vec
-Option2:
-	-use two active lists. 
-	-fewest comparisons
-	-needs two vecs.
-Option3:
-	-use two active lists, but implement it as one vec under the hood.
-	-fewest allocations
-	-fewest comparisons
-	-slow to push and truncate each vec since it requires shuffling things around.
-
-
-I went with option3. The performance hit from pushing and truncating can be made up with a big allocation up front.
-Doing two big allocations upfront for option2 is wasteful.
 
 
 #### Profiling Construction + Finding all colliding pairs.
