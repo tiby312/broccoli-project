@@ -24,6 +24,25 @@ Done via divide and conquer. For every node we do the following:
    and treat them as two entirely seperate trees. Since these are two completely disjoint trees, they can be handling in
    parallel.
 
+
+### How to speed up perpendicular cases
+
+Its slow to naively find intersections between the aabbs in two nodes that are sorted along different dimensions.
+There are a couple of options:
+
+Option1:
+-Cut off each list by using the other node's bounding box to deal with smaller lists.
+-Now iterate over each element, and perform parallel sweep where one list has size one.
+
+Option2:
+-Cut off each list by using the other node's bounding box to deal with smaller list.
+-collect a list of pointers of one list. 
+-sort that list along the other lists axis
+-perform parallel sweep 
+
+Turns out these both appear to be about the same, if we adjust the target number of aabbs for node. Option2 prefers like 64 aabbs, while option2 prefers a smaller amount like 32. Because of this I chose option2 since it does
+not require any special dynamic allocation.
+
 #### Profiling Construction + Finding all colliding pairs.
 
 Here are some profiling results finding all intersections on `abspiral(0.2,50_000)` 30 times. 
