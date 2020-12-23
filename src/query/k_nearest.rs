@@ -97,6 +97,7 @@ fn range_side<N: Num>(point: Vec2<N>, axis: impl axgeom::Axis, range: &Range<N>)
 }
 
 /// Returned by k_nearest_mut
+#[derive(Debug)]
 pub struct KnearestResult<'a, T: Aabb> {
     pub bot: PMut<'a, T>,
     pub mag: T::Num,

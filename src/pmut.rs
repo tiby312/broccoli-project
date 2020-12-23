@@ -52,6 +52,7 @@ unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
 ///A protected mutable reference. A protected mutable reference that derefs to `&T`.
 ///See the pmut module documentation for more explanation.
 #[repr(transparent)]
+#[derive(Debug)]
 pub struct PMut<'a, T: ?Sized> {
     inner: &'a mut T,
 }
@@ -92,6 +93,11 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     #[inline(always)]
     pub fn borrow_mut(&mut self) -> PMut<T> {
         PMut { inner: self.inner }
+    }
+    
+    #[inline(always)]
+    pub fn into_ref(self)->&'a T{
+        self.inner
     }
 }
 

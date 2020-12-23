@@ -18,6 +18,91 @@ fn create_bbox_mut<'a, N: Num, T>(
         .collect()
 }
 
+
+#[test]
+fn test_tie_knearest(){
+    use broccoli::{*,analyze::assert};
+    
+    let mut bots = [
+        bbox(rect(5isize, 10, 0, 10), ()),
+        bbox(rect(6, 10, 0, 10), ()),
+    ];
+
+    let border = rect(0, 100, 0, 100);
+
+    let mut tree = broccoli::container::TreeRef::new(&mut bots);
+
+    let mut res = tree.k_nearest_mut(
+        vec2(15, 30),
+        2,
+        &mut (),
+        |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
+        |(), a, b| b.rect.distance_squared_to_point(a).unwrap_or(0),
+        border,
+    );
+
+
+    assert_eq!(res.len(), 2);
+    assert_eq!(res.total_len(), 2);
+    
+    use broccoli::query::KnearestResult;
+    let r:&[KnearestResult<_>]=res.iter().next().unwrap();
+    assert_eq!(r.len(),2);
+    
+    assert::k_nearest_mut(
+        &mut tree,
+        vec2(15, 30),
+    2,
+    &mut (),
+    |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
+    |(), a, b| b.rect.distance_squared_to_point(a).unwrap_or(0),
+    border,
+    );
+}
+
+#[test]
+fn test_tie_raycast(){
+    use broccoli::{*,analyze::assert};
+    let mut bots:&mut [BBox<isize,()>]=&mut [
+        bbox(rect(0,10,0,20),()),
+        bbox(rect(5,10,0,20),())
+    ];
+
+    let dim=rect(-20,20,-20,20);
+    let mut tree=broccoli::container::TreeRef::new(&mut bots);
+
+    let ray=axgeom::Ray{
+        point:vec2(15,4),
+        dir:vec2(-1,0)
+    };
+
+    let ans=tree.raycast_mut(
+        ray,
+        &mut (),
+        move |_r, ray, rect| ray.cast_to_rect(rect),
+        move |r, ray, t| ray.cast_to_rect(&t.rect),
+        dim);
+
+    match ans{
+        CastResult::Hit((ans,mag))=>{
+            assert_eq!(mag,5);
+            assert_eq!(ans.len(),2);
+        },
+        CastResult::NoHit=>{
+            panic!("should have hit");
+        }
+    }
+
+    assert::raycast_mut(
+        &mut tree,
+        ray,
+        &mut (),
+        move |_r, ray, rect| ray.cast_to_rect(rect),
+        move |r, ray, t| ray.cast_to_rect(&t.rect),
+        dim,
+    );
+}
+
 #[test]
 fn test_zero_sized() {
     let mut bots = vec![(); 1];

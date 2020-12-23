@@ -169,9 +169,11 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb>(
     let mut res_naive = Vec::new();
     match NaiveAlgs::new(bots).raycast_mut(ray, start, &mut broad, &mut fine, border) {
         axgeom::CastResult::Hit((bots, mag)) => {
-            for a in bots.iter() {
-                let j = into_ptr_usize(a);
-                res_naive.push((j, mag))
+            for a in bots.into_iter() {
+                
+                let r=*a.get();
+                let j = into_ptr_usize(a.into_ref());
+                res_naive.push((j,r, mag))
             }
         }
         axgeom::CastResult::NoHit => {
@@ -182,9 +184,10 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb>(
     let mut res_dino = Vec::new();
     match tree.raycast_mut(ray, start, broad, fine, border) {
         axgeom::CastResult::Hit((bots, mag)) => {
-            for a in bots.iter() {
-                let j = into_ptr_usize(a);
-                res_dino.push((j, mag))
+            for a in bots.into_iter() {
+                let r=*a.get();
+                let j = into_ptr_usize(a.into_ref());
+                res_dino.push((j,r, mag))
             }
         }
         axgeom::CastResult::NoHit => {
@@ -192,8 +195,8 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb>(
         }
     }
 
-    res_naive.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    res_dino.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    res_naive.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    res_dino.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
     //dbg!("{:?}  {:?}",res_naive.len(),res_dino.len());
     assert_eq!(
@@ -204,8 +207,9 @@ pub fn raycast_mut<Acc, A: Axis, T: Aabb>(
     );
     assert!(
         res_naive.iter().eq(res_dino.iter()),
-        "nop:{:?}",
-        (res_naive, res_dino)
+        "nop:\n\n naive:{:?} \n\n broc:{:?}",
+        res_naive,
+        res_dino
     );
 }
 

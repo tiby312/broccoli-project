@@ -155,20 +155,6 @@ impl<'a, T: Aabb> Closest<'a, T> {
                 } else {
                     //this aabb could be a candidate, continue.
                 }
-                /*
-                match y.cmp(&dis.1) {
-                    Ordering::Greater => {
-                        //no way this bot will be a candidate, return.
-                        return;
-                    }
-                    Ordering::Less => {
-                        //this aabb could be a candidate, continue.
-                    }
-                    Ordering::Equal => {
-                        //this aabb could be a candidate, continue.
-                    }
-                }
-                */
             }
             None => {
                 //this aabb could be a candidate, continue,
@@ -186,27 +172,13 @@ impl<'a, T: Aabb> Closest<'a, T> {
             Some(mut dis) => {
                 if x > dis.1 {
                     //do nothing
-                } else {
+                } else if x< dis.1{
                     dis.0.clear();
                     dis.0.push(b);
                     dis.1 = x;
+                }else{
+                    dis.0.push(b);
                 }
-                /*
-                match x.cmp(&dis.1) {
-                    Ordering::Greater => {
-                        //dis
-                        //do nothing.
-                    }
-                    Ordering::Less => {
-                        dis.0.clear();
-                        dis.0.push(b);
-                        dis.1 = x;
-                    }
-                    Ordering::Equal => {
-                        dis.0.push(b);
-                    }
-                }
-                */
             }
             None => self.closest = Some((vec![b], x)),
         };
@@ -228,19 +200,23 @@ struct Blap<'a, R: RayCast> {
 impl<'a, R: RayCast> Blap<'a, R> {
     fn should_handle_rect(&mut self, rect: &Rect<R::N>) -> bool {
         match self.rtrait.compute_distance_to_rect(&self.ray, rect) {
+            
             axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
                 Some(dis) => {
                     if val <= dis {
-                        return true;
+                        true
+                    }else{
+                        false
                     }
                 }
                 None => {
-                    return true;
+                    true
                 }
             },
-            axgeom::CastResult::NoHit => {}
+            axgeom::CastResult::NoHit => {
+                false
+            }
         }
-        false
     }
 }
 
@@ -273,7 +249,7 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
             };
 
             let rmiddle = make_rect_from_range(axis, range, &rect);
-
+          
             match blap.ray.range_side(axis, range) {
                 Ordering::Less => {
                     if blap.should_handle_rect(&rleft) {
@@ -344,6 +320,9 @@ mod mutable {
         mut rtrait: impl RayCast<N = T::Num, T = T>,
         border: Rect<T::Num>,
     ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
+        if !border.contains_point(ray.point){
+            return axgeom::CastResult::NoHit
+        }
         let mut closest = Closest { closest: None };
 
         for b in bots.iter_mut() {
@@ -365,6 +344,9 @@ mod mutable {
         ray: Ray<T::Num>,
         rtrait: impl RayCast<N = T::Num, T = T>,
     ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
+        if !rect.contains_point(ray.point){
+            return axgeom::CastResult::NoHit
+        }
         let dt = vistr.with_depth(Depth(0));
 
         let closest = Closest { closest: None };

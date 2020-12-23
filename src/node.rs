@@ -8,8 +8,8 @@ pub use axgeom::Rect;
 ///It is auto implemented by all types that satisfy the type constraints.
 ///Notice that no arithmatic is possible. The tree is constructed
 ///using only comparisons and copying.
-pub trait Num: PartialOrd + Copy {}
-impl<T> Num for T where T: PartialOrd + Copy {}
+pub trait Num: PartialOrd + Copy{}
+impl<T> Num for T where T: PartialOrd + Copy{}
 
 ///Trait to signify that this object has an axis aligned bounding box.
 ///[`Aabb::get()`] must return a aabb with the same value in it while the element
