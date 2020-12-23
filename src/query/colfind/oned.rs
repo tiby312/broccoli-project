@@ -347,8 +347,8 @@ fn test_parallel() {
         b.make(6, 7),
     ];
 
-    analyze::sweeper_update(axgeom::XAXIS,&mut left);
-    analyze::sweeper_update(axgeom::XAXIS,&mut right);
+    crate::util::sweeper_update(axgeom::XAXIS,&mut left);
+    crate::util::sweeper_update(axgeom::XAXIS,&mut right);
 
     //let mut left=[b.make(0,10),b.make(5,20)];
     //let mut right=[b.make(16,20)];
