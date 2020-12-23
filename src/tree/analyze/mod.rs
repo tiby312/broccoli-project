@@ -13,6 +13,8 @@ pub const fn default_axis() -> YAXIS {
     YAXIS
 }
 
+pub use crate::query::naive::NaiveAlgs;
+
 pub use assert::NaiveCheck;
 mod assert;
 
