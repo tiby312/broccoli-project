@@ -13,10 +13,10 @@ fn test() {
         .iter_mut()
         .map(|a| crate::bbox(rect(0isize, 0, 0, 0), a))
         .collect();
+    use crate::analyze::NaiveCheck;
+    let mut tree = crate::container::TreeRef::new(&mut bots);
 
-    let mut tree = crate::new(&mut bots);
-
-    assert!(assert::tree_invariants(&tree));
+    assert!(tree.assert_tree_invariants());
 
     assert_length(tree.vistr_mut().dfs_preorder_iter());
     assert_length(tree.vistr().dfs_preorder_iter());

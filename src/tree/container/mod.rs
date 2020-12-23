@@ -167,6 +167,16 @@ pub struct TreeRef<'a, A: Axis, T: Aabb> {
     _p: PhantomData<&'a mut T>,
 }
 
+use crate::analyze::NaiveCheck;
+impl<'a,A:Axis,T:Aabb> NaiveCheck<'a,Tree<'a,A,T>> for TreeRef<'a,A,T>{
+    type A=A;
+    type T=T;
+    type Num=T::Num;
+    fn get_underlying_slice_mut(&mut self)->PMut<[T]>{
+        self.get_bbox_elements_mut()
+    }
+}
+
 impl<'a, A: Axis, T: Aabb> core::ops::Deref for TreeRef<'a, A, T> {
     type Target = Tree<'a, A, T>;
     fn deref(&self) -> &Self::Target {

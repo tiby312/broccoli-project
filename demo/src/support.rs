@@ -3,6 +3,7 @@ pub mod prelude {
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
     pub use broccoli::bbox;
+    pub use broccoli::analyze::*;
     pub use broccoli::compt;
     pub use broccoli::prelude::*;
     pub use broccoli::rayon;

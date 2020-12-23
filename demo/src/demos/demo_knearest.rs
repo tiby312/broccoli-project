@@ -51,8 +51,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             [0.0, 0.0, 1.0, 0.6], //blue third closets
         ];
         if check_naive {
-            broccoli::analyze::assert::k_nearest_mut(
-                tree.as_tree_mut(),
+            tree.as_tree_mut().assert_k_nearest_mut(
                 cursor,
                 3,
                 &mut rects,

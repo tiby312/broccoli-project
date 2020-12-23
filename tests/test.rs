@@ -7,7 +7,8 @@ use compt::*;
 use axgeom::*;
 use broccoli::prelude::*;
 use broccoli::node::*;
-
+use broccoli::analyze::NaiveCheck;
+    
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.
 fn create_bbox_mut<'a, N: Num, T>(
     bots: &'a mut [T],
@@ -21,7 +22,7 @@ fn create_bbox_mut<'a, N: Num, T>(
 
 #[test]
 fn test_tie_knearest(){
-    use broccoli::{*,analyze::assert};
+    use broccoli::*;
     
     let mut bots = [
         bbox(rect(5isize, 10, 0, 10), ()),
@@ -49,8 +50,8 @@ fn test_tie_knearest(){
     let r:&[KnearestResult<_>]=res.iter().next().unwrap();
     assert_eq!(r.len(),2);
     
-    assert::k_nearest_mut(
-        &mut tree,
+
+    tree.assert_k_nearest_mut(
         vec2(15, 30),
     2,
     &mut (),
@@ -62,7 +63,7 @@ fn test_tie_knearest(){
 
 #[test]
 fn test_tie_raycast(){
-    use broccoli::{*,analyze::assert};
+    use broccoli::*;
     let mut bots:&mut [BBox<isize,()>]=&mut [
         bbox(rect(0,10,0,20),()),
         bbox(rect(5,10,0,20),())
@@ -80,7 +81,7 @@ fn test_tie_raycast(){
         ray,
         &mut (),
         move |_r, ray, rect| ray.cast_to_rect(rect),
-        move |r, ray, t| ray.cast_to_rect(&t.rect),
+        move |_r, ray, t| ray.cast_to_rect(&t.rect),
         dim);
 
     match ans{
@@ -93,12 +94,11 @@ fn test_tie_raycast(){
         }
     }
 
-    assert::raycast_mut(
-        &mut tree,
+    tree.assert_raycast_mut(
         ray,
         &mut (),
         move |_r, ray, rect| ray.cast_to_rect(rect),
-        move |r, ray, t| ray.cast_to_rect(&t.rect),
+        move |_r, ray, t| ray.cast_to_rect(&t.rect),
         dim,
     );
 }

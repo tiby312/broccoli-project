@@ -13,7 +13,8 @@ pub const fn default_axis() -> YAXIS {
     YAXIS
 }
 
-pub mod assert;
+pub use assert::NaiveCheck;
+mod assert;
 
 pub(crate) use oned::sweeper_update;
 mod oned;

@@ -88,7 +88,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         });
 
         if check_naive {
-            broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
+            tree.assert_colliding_pairs_mut();
         }
 
         let mut circles = canvas.circles();

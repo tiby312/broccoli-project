@@ -86,8 +86,6 @@ mod test{
         k.retain_first_mut_unordered(|&mut a|a%2==1);
         k.retain_second_mut_unordered(|&mut a|a%2==0);
         
-        dbg!(k.get_first_mut());
-        dbg!(k.get_second_mut());
 
         slices_match(k.get_first_mut(),&mut [9,3,7]);
         slices_match(k.get_second_mut(),&mut [8,2,4]);

@@ -32,8 +32,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             .draw();
 
         if check_naive {
-            broccoli::analyze::assert::raycast_mut(
-                tree,
+            tree.assert_raycast_mut(
                 ray,
                 &mut rects,
                 move |_r, ray, rect| ray.cast_to_rect(&rect),

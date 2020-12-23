@@ -2,7 +2,6 @@ use crate::support::prelude::*;
 use std;
 
 use axgeom::Ray;
-use broccoli::analyze::assert;
 
 #[derive(Copy, Clone)]
 struct Bot {
@@ -52,8 +51,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                 let mut radius = radius;
 
                 if check_naive {
-                    assert::raycast_mut(
-                        tree,
+                    tree.assert_raycast_mut(
                         ray,
                         &mut radius,
                         move |_r, ray, rect| ray.cast_to_rect(rect),

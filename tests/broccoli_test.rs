@@ -2,6 +2,8 @@ use axgeom;
 
 use broccoli::*;
 use broccoli::prelude::*;
+
+use broccoli::analyze::NaiveCheck;
 #[test]
 fn test1() {
     for &num_bots in [0, 20, 100, 200].iter() {
@@ -23,8 +25,8 @@ fn test1() {
             .collect();
 
         let mut tree = broccoli::container::TreeRef::new(&mut bots);
-        broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
-        assert!(broccoli::analyze::assert::tree_invariants(&*tree));
+        tree.assert_colliding_pairs_mut();
+        assert!(tree.assert_tree_invariants());
     }
 }
 
@@ -49,8 +51,7 @@ fn test2() {
             .collect();
 
         let mut tree = broccoli::container::TreeRefInd::new(&mut bots, |a| a.rect);
-        broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
-        broccoli::analyze::assert::find_colliding_pairs_mut(&mut tree);
+        tree.assert_colliding_pairs_mut();
         let mut p = tree.collect_colliding_pairs(|_a, _b| Some(()));
         let mut k = tree.collect_all(|_r, _a| Some(()));
         p.for_every_pair_mut(tree.get_elements_mut(), |_a, _b, _c| {});

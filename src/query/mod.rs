@@ -379,7 +379,7 @@ pub trait Queries<'a> {
     /// use broccoli::{prelude::*,bbox,rect};
     /// use axgeom::{vec2,ray};
     ///
-    /// let border = rect(0,100,0,100);
+    /// let border = rect(-100,100,-100,100);
     ///
     /// let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
     ///                bbox(rect(2,5,2,5),vec2(4,4)),
