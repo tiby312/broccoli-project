@@ -12,7 +12,7 @@ fn main() {
         bbox(rect(5, 15, 5, 15), &mut inner3),
     ];
 
-    let border = broccoli::rect(0, 100, 0, 100);
+    let border = broccoli::rect(-100, 100, -100, 100);
 
     let mut tree = broccoli::new(&mut aabbs);
 
