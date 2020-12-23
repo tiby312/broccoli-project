@@ -180,151 +180,157 @@ mod test {
     }
 }
 
-///Two unordered vecs backed by one vec.
-///Pushing and retaining from the first cec,
-///can change the ordering of the second vec.
-///Assume both vecs ordering can change at any time.
-#[derive(Debug)]
-pub struct TwoUnorderedVecs<'a, T> {
-    inner: &'a mut Vec<T>,
-    first_length: usize,
-}
 
-impl<'a, T> TwoUnorderedVecs<'a, T> {
-    #[inline(always)]
-    pub fn new(inner: &'a mut Vec<T>) -> Self {
-        TwoUnorderedVecs {
-            inner,
-            first_length: 0,
-        }
-    }
-    #[inline(always)]
-    pub fn get_first_mut(&mut self) -> &mut [T] {
-        &mut self.inner[..self.first_length]
+pub use self::unordered::TwoUnorderedVecs;
+pub use self::unordered::RetainMutUnordered;
+mod unordered{
+    use alloc::vec::Vec;
+    
+    ///Two unordered vecs backed by one vec.
+    ///Pushing and retaining from the first cec,
+    ///can change the ordering of the second vec.
+    ///Assume both vecs ordering can change at any time.
+    #[derive(Debug)]
+    pub struct TwoUnorderedVecs<'a, T> {
+        inner: &'a mut Vec<T>,
+        first_length: usize,
     }
 
-    #[inline(always)]
-    pub fn get_second_mut(&mut self) -> &mut [T] {
-        &mut self.inner[self.first_length..]
-    }
-
-    #[inline(always)]
-    pub fn push_first(&mut self, a: T) {
-        let total_len = self.inner.len();
-
-        self.inner.push(a);
-
-        //now len is actually one less than current length.
-        self.inner.swap(self.first_length, total_len);
-
-        self.first_length += 1;
-    }
-
-    #[inline(always)]
-    pub fn push_second(&mut self, b: T) {
-        self.inner.push(b);
-    }
-
-    #[inline(always)]
-    pub fn truncate_first(&mut self, num: usize) {
-        let total_len = self.inner.len();
-
-        //the number to be removed
-        let diff = self.first_length - num;
-
-        for a in 0..diff {
-            self.inner
-                .swap(self.first_length - a - 1, total_len - a - 1);
-        }
-
-        self.first_length = num;
-
-        self.inner.truncate(total_len - diff);
-    }
-
-    #[inline(always)]
-    pub fn truncate_second(&mut self, num: usize) {
-        self.inner.truncate(self.first_length + num);
-    }
-
-    #[inline(always)]
-    pub fn retain_first_mut_unordered(&mut self, mut func: impl FnMut(&mut T) -> bool) {
-        let len = self.get_first_mut().len();
-        let mut del = 0;
-        {
-            //let v = &mut **self;
-            let v = self.get_first_mut();
-
-            let mut cursor = 0;
-            for _ in 0..len {
-                if !func(&mut v[cursor]) {
-                    v.swap(cursor, len - 1 - del);
-                    del += 1;
-                } else {
-                    cursor += 1;
-                }
+    impl<'a, T> TwoUnorderedVecs<'a, T> {
+        #[inline(always)]
+        pub fn new(inner: &'a mut Vec<T>) -> Self {
+            TwoUnorderedVecs {
+                inner,
+                first_length: 0,
             }
         }
-        if del > 0 {
-            self.truncate_first(len - del);
+        #[inline(always)]
+        pub fn get_first_mut(&mut self) -> &mut [T] {
+            &mut self.inner[..self.first_length]
+        }
+
+        #[inline(always)]
+        pub fn get_second_mut(&mut self) -> &mut [T] {
+            &mut self.inner[self.first_length..]
+        }
+
+        #[inline(always)]
+        pub fn push_first(&mut self, a: T) {
+            let total_len = self.inner.len();
+
+            self.inner.push(a);
+
+            //now len is actually one less than current length.
+            self.inner.swap(self.first_length, total_len);
+
+            self.first_length += 1;
+        }
+
+        #[inline(always)]
+        pub fn push_second(&mut self, b: T) {
+            self.inner.push(b);
+        }
+
+        #[inline(always)]
+        pub fn truncate_first(&mut self, num: usize) {
+            let total_len = self.inner.len();
+
+            //the number to be removed
+            let diff = self.first_length - num;
+
+            for a in 0..diff {
+                self.inner
+                    .swap(self.first_length - a - 1, total_len - a - 1);
+            }
+
+            self.first_length = num;
+
+            self.inner.truncate(total_len - diff);
+        }
+
+        #[inline(always)]
+        pub fn truncate_second(&mut self, num: usize) {
+            self.inner.truncate(self.first_length + num);
+        }
+
+        #[inline(always)]
+        pub fn retain_first_mut_unordered(&mut self, mut func: impl FnMut(&mut T) -> bool) {
+            let len = self.get_first_mut().len();
+            let mut del = 0;
+            {
+                //let v = &mut **self;
+                let v = self.get_first_mut();
+
+                let mut cursor = 0;
+                for _ in 0..len {
+                    if !func(&mut v[cursor]) {
+                        v.swap(cursor, len - 1 - del);
+                        del += 1;
+                    } else {
+                        cursor += 1;
+                    }
+                }
+            }
+            if del > 0 {
+                self.truncate_first(len - del);
+            }
+        }
+
+        #[inline(always)]
+        pub fn retain_second_mut_unordered(&mut self, mut func: impl FnMut(&mut T) -> bool) {
+            let len = self.get_second_mut().len();
+            let mut del = 0;
+            {
+                //let v = &mut **self;
+                let v = self.get_second_mut();
+
+                let mut cursor = 0;
+                for _ in 0..len {
+                    if !func(&mut v[cursor]) {
+                        v.swap(cursor, len - 1 - del);
+                        del += 1;
+                    } else {
+                        cursor += 1;
+                    }
+                }
+            }
+            if del > 0 {
+                self.truncate_second(len - del);
+            }
         }
     }
 
-    #[inline(always)]
-    pub fn retain_second_mut_unordered(&mut self, mut func: impl FnMut(&mut T) -> bool) {
-        let len = self.get_second_mut().len();
-        let mut del = 0;
-        {
-            //let v = &mut **self;
-            let v = self.get_second_mut();
-
-            let mut cursor = 0;
-            for _ in 0..len {
-                if !func(&mut v[cursor]) {
-                    v.swap(cursor, len - 1 - del);
-                    del += 1;
-                } else {
-                    cursor += 1;
-                }
-            }
-        }
-        if del > 0 {
-            self.truncate_second(len - del);
-        }
+    pub trait RetainMutUnordered<T> {
+        fn retain_mut_unordered<F>(&mut self, f: F)
+        where
+            F: FnMut(&mut T) -> bool;
     }
-}
 
-pub trait RetainMutUnordered<T> {
-    fn retain_mut_unordered<F>(&mut self, f: F)
-    where
-        F: FnMut(&mut T) -> bool;
-}
-
-use alloc::vec::Vec;
-impl<T> RetainMutUnordered<T> for Vec<T> {
-    //TODO remove this inline?
-    #[inline(always)]
-    fn retain_mut_unordered<F>(&mut self, mut f: F)
-    where
-        F: FnMut(&mut T) -> bool,
-    {
-        let len = self.len();
-        let mut del = 0;
+    impl<T> RetainMutUnordered<T> for Vec<T> {
+        //TODO remove this inline?
+        #[inline(always)]
+        fn retain_mut_unordered<F>(&mut self, mut f: F)
+        where
+            F: FnMut(&mut T) -> bool,
         {
-            let v = &mut **self;
+            let len = self.len();
+            let mut del = 0;
+            {
+                let v = &mut **self;
 
-            let mut cursor = 0;
-            for _ in 0..len {
-                if !f(&mut v[cursor]) {
-                    v.swap(cursor, len - 1 - del);
-                    del += 1;
-                } else {
-                    cursor += 1;
+                let mut cursor = 0;
+                for _ in 0..len {
+                    if !f(&mut v[cursor]) {
+                        v.swap(cursor, len - 1 - del);
+                        del += 1;
+                    } else {
+                        cursor += 1;
+                    }
                 }
             }
-        }
-        if del > 0 {
-            self.truncate(len - del);
+            if del > 0 {
+                self.truncate(len - del);
+            }
         }
     }
 }
