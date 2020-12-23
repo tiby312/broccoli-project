@@ -5,10 +5,10 @@ extern crate compt;
 use compt::*;
 
 use axgeom::*;
-use broccoli::prelude::*;
-use broccoli::node::*;
 use broccoli::analyze::NaiveCheck;
-    
+use broccoli::node::*;
+use broccoli::prelude::*;
+
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.
 fn create_bbox_mut<'a, N: Num, T>(
     bots: &'a mut [T],
@@ -19,11 +19,10 @@ fn create_bbox_mut<'a, N: Num, T>(
         .collect()
 }
 
-
 #[test]
-fn test_tie_knearest(){
+fn test_tie_knearest() {
     use broccoli::*;
-    
+
     let mut bots = [
         bbox(rect(5isize, 10, 0, 10), ()),
         bbox(rect(6, 10, 0, 10), ()),
@@ -42,54 +41,51 @@ fn test_tie_knearest(){
         border,
     );
 
-
     assert_eq!(res.len(), 2);
     assert_eq!(res.total_len(), 2);
-    
+
     use broccoli::query::KnearestResult;
-    let r:&[KnearestResult<_>]=res.iter().next().unwrap();
-    assert_eq!(r.len(),2);
-    
+    let r: &[KnearestResult<_>] = res.iter().next().unwrap();
+    assert_eq!(r.len(), 2);
 
     tree.assert_k_nearest_mut(
         vec2(15, 30),
-    2,
-    &mut (),
-    |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
-    |(), a, b| b.rect.distance_squared_to_point(a).unwrap_or(0),
-    border,
+        2,
+        &mut (),
+        |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
+        |(), a, b| b.rect.distance_squared_to_point(a).unwrap_or(0),
+        border,
     );
 }
 
 #[test]
-fn test_tie_raycast(){
+fn test_tie_raycast() {
     use broccoli::*;
-    let mut bots:&mut [BBox<isize,()>]=&mut [
-        bbox(rect(0,10,0,20),()),
-        bbox(rect(5,10,0,20),())
-    ];
+    let mut bots: &mut [BBox<isize, ()>] =
+        &mut [bbox(rect(0, 10, 0, 20), ()), bbox(rect(5, 10, 0, 20), ())];
 
-    let dim=rect(-20,20,-20,20);
-    let mut tree=broccoli::container::TreeRef::new(&mut bots);
+    let dim = rect(-20, 20, -20, 20);
+    let mut tree = broccoli::container::TreeRef::new(&mut bots);
 
-    let ray=axgeom::Ray{
-        point:vec2(15,4),
-        dir:vec2(-1,0)
+    let ray = axgeom::Ray {
+        point: vec2(15, 4),
+        dir: vec2(-1, 0),
     };
 
-    let ans=tree.raycast_mut(
+    let ans = tree.raycast_mut(
         ray,
         &mut (),
         move |_r, ray, rect| ray.cast_to_rect(rect),
         move |_r, ray, t| ray.cast_to_rect(&t.rect),
-        dim);
+        dim,
+    );
 
-    match ans{
-        CastResult::Hit((ans,mag))=>{
-            assert_eq!(mag,5);
-            assert_eq!(ans.len(),2);
-        },
-        CastResult::NoHit=>{
+    match ans {
+        CastResult::Hit((ans, mag)) => {
+            assert_eq!(mag, 5);
+            assert_eq!(ans.len(), 2);
+        }
+        CastResult::NoHit => {
             panic!("should have hit");
         }
     }

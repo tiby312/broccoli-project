@@ -1,15 +1,15 @@
 pub mod prelude {
+    pub use crate::dists::*;
     pub use crate::Demo;
+    pub use crate::*;
+    pub use broccoli::analyze::*;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
     pub use broccoli::bbox;
-    pub use broccoli::analyze::*;
     pub use broccoli::compt;
+    pub use broccoli::node::*;
     pub use broccoli::prelude::*;
     pub use broccoli::rayon;
-    pub use broccoli::node::*;
-    pub use crate::dists::*;
-    pub use crate::*;
     pub use dists::uniform_rand::UniformRandGen;
     pub use duckduckgeo::array2_inner_into;
     pub use duckduckgeo::*;

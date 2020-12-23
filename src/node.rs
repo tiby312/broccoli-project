@@ -1,4 +1,3 @@
-
 use crate::inner_prelude::*;
 
 pub use axgeom::Range;
@@ -8,8 +7,8 @@ pub use axgeom::Rect;
 ///It is auto implemented by all types that satisfy the type constraints.
 ///Notice that no arithmatic is possible. The tree is constructed
 ///using only comparisons and copying.
-pub trait Num: PartialOrd + Copy{}
-impl<T> Num for T where T: PartialOrd + Copy{}
+pub trait Num: PartialOrd + Copy {}
+impl<T> Num for T where T: PartialOrd + Copy {}
 
 ///Trait to signify that this object has an axis aligned bounding box.
 ///[`Aabb::get()`] must return a aabb with the same value in it while the element
@@ -31,7 +30,6 @@ unsafe impl<N: Num> Aabb for Rect<N> {
         self
     }
 }
-
 
 ///A bounding box container object that implements [`Aabb`] and [`HasInner`].
 ///Note that `&mut BBox<N,T>` also implements [`Aabb`] and [`HasInner`].
@@ -145,7 +143,6 @@ unsafe impl<N: Num, T> HasInner for &mut BBox<N, T> {
     }
 }
 
-
 ///When we traverse the tree in read-only mode, we can simply return a reference to each node.
 ///We don't need to protect the user from only mutating parts of the BBox's since they can't
 ///change anything.
@@ -161,8 +158,8 @@ mod vistr_mut {
     }
 
     impl<'a, N> VistrMut<'a, N> {
-        pub fn new(inner:compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>)->Self{
-            VistrMut{inner}
+        pub fn new(inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>) -> Self {
+            VistrMut { inner }
         }
         ///It is safe to borrow the iterator and then produce mutable references from that
         ///as long as by the time the borrow ends, all the produced references also go away.

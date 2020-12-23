@@ -13,17 +13,13 @@ pub const fn default_axis() -> YAXIS {
     YAXIS
 }
 
-
 pub use assert::NaiveCheck;
 mod assert;
-
 
 mod oned;
 
 pub use builder::TreeBuilder;
 mod builder;
-
-
 
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one
@@ -191,9 +187,7 @@ pub trait Splitter: Sized {
 
     ///Called to add the results of the recursive calls on the children.
     fn add(&mut self, a: Self, b: Self);
-
 }
-
 
 use crate::tree::NotSortedQueries;
 use crate::tree::Queries;

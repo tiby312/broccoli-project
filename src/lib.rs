@@ -35,7 +35,7 @@
 //! If using floats, it's the users responsibility to not pass `NaN` values into the tree.
 //! There is no static protection against this, though if this is desired you can use
 //! the [ordered-float](https://crates.io/crates/ordered-float) crate. The Ord trait was not
-//! enforced to give users the option to use primitive floats directly which can be easier to 
+//! enforced to give users the option to use primitive floats directly which can be easier to
 //! work with.
 //!
 //! ### Protecting Invariants Statically
@@ -58,7 +58,6 @@
     html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
 )]
-
 #![no_std]
 
 #[macro_use]
@@ -72,13 +71,13 @@ pub use rayon;
 
 mod inner_prelude {
     pub(crate) use crate::par;
-    pub(crate) use crate::tree::*;
     pub(crate) use crate::query;
+    pub(crate) use crate::tree::*;
     pub(crate) use crate::util::*;
 
     pub(crate) use crate::node::*;
     pub(crate) use crate::pmut::*;
-    
+
     pub(crate) use crate::tree::analyze::*;
     pub use alloc::vec::Vec;
     pub use axgeom::*;
@@ -99,7 +98,6 @@ pub mod pmut;
 ///Contains node-level building block structs and visitors used for a [`Tree`].
 pub mod node;
 
-
 ///A collection of different bounding box containers.
 //pub mod bbox;
 //pub use crate::bbox::*;
@@ -109,7 +107,6 @@ mod util;
 
 ///Helper functions to convert aabbs in floats to integers
 pub mod convert;
-
 
 ///The broccoli prelude.
 pub mod prelude {
@@ -124,4 +121,3 @@ pub use axgeom::rect;
 pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
-

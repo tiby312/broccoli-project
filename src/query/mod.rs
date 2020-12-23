@@ -13,7 +13,6 @@ mod inner_prelude {
 pub use naive::NaiveAlgs;
 mod naive;
 
-
 pub use graphics::DividerDrawer;
 //pub use raycast::RayCastResult;
 pub use rect::{MultiRectMut, RectIntersectErr};
@@ -630,6 +629,3 @@ pub fn find_collisions_sweep_mut<A: Axis, T: Aabb>(
 ) {
     colfind::query_sweep_mut(axis, bots, |a, b| func(a, b));
 }
-
-
-

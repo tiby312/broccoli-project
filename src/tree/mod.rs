@@ -1,14 +1,9 @@
-
-
-
-
 use crate::inner_prelude::*;
 
 #[cfg(test)]
 mod tests;
 
 pub mod analyze;
-
 
 use analyze::TreeBuilder;
 
@@ -29,7 +24,6 @@ pub struct Tree<'a, A: Axis, T: Aabb> {
     inner: TreeInner<A, Node<'a, T>>,
 }
 
-
 ///Create a [`Tree`] using the default axis.
 ///
 /// # Examples
@@ -42,8 +36,6 @@ pub struct Tree<'a, A: Axis, T: Aabb> {
 pub fn new<'a, T: Aabb>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> {
     TreeBuilder::new(bots).build_seq()
 }
-
-
 
 ///Create a [`Tree`] using the default axis in parallel.
 ///
@@ -83,7 +75,6 @@ impl<'a, A: Axis, T: Aabb> Queries<'a> for Tree<'a, A, T> {
 }
 
 impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
-
     ///Create a [`Tree`] using a specified axis.
     ///
     /// # Examples
@@ -106,16 +97,13 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// let tree = broccoli::Tree::with_axis_par(axgeom::XAXIS,&mut bots);
     ///
     ///```
-    pub fn with_axis_par(
-        axis: A,
-        bots: &'a mut [T],
-    ) -> Tree<'a, A, T>
+    pub fn with_axis_par(axis: A, bots: &'a mut [T]) -> Tree<'a, A, T>
     where
-        T:Send+Sync,T::Num: Send + Sync,
+        T: Send + Sync,
+        T::Num: Send + Sync,
     {
         TreeBuilder::with_axis(axis, bots).build_par()
     }
-
 
     /// # Examples
     ///

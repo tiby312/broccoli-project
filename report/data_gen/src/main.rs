@@ -11,7 +11,7 @@ pub fn black_box<T>(dummy: T) -> T {
 
 pub mod bbox_helper {
     use broccoli::axgeom::Rect;
-    use broccoli::{bbox,node::*};
+    use broccoli::{bbox, node::*};
     pub fn create_bbox_mut<T, N: Num>(
         arr: &mut [T],
         mut func: impl FnMut(&T) -> Rect<N>,
@@ -32,9 +32,9 @@ mod inner_prelude {
     pub use axgeom::Rect;
     pub use axgeom::Vec2;
     pub use broccoli::analyze::*;
+    pub use broccoli::node::*;
     pub use broccoli::prelude::*;
     pub use broccoli::query::*;
-    pub use broccoli::node::*;
     pub use broccoli::*;
     //pub(crate) use duckduckgeo::bot;
     //pub(crate) use duckduckgeo::dists;
@@ -129,16 +129,16 @@ fn main() {
 
     dbg!(&args);
     match args[1].as_ref() {
-        "profile"=>{
-            let grow=0.2;
-            let num_bots=50_000; 
+        "profile" => {
+            let grow = 0.2;
+            let num_bots = 50_000;
             use crate::support::*;
             use broccoli::query::Queries;
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
-    
+
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
-    
-            for _ in 0..30{
+
+            for _ in 0..30 {
                 let c0 = bench_closure(|| {
                     let mut tree = broccoli::new(&mut bots);
                     tree.find_colliding_pairs_mut(|a, b| {
@@ -146,29 +146,28 @@ fn main() {
                         **b.unpack_inner() += 1;
                     });
                 });
-    
+
                 dbg!(c0);
             }
         }
-        "profile_cmp"=>{
-            let grow=0.2;
-            let num_bots=50_000; 
+        "profile_cmp" => {
+            let grow = 0.2;
+            let num_bots = 50_000;
             use crate::support::*;
             use broccoli::query::Queries;
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
-    
-    
-            for _ in 0..30{
+
+            for _ in 0..30 {
                 let c0 = datanum::datanum_test(|maker| {
                     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
-    
+
                     let mut tree = broccoli::new(&mut bots);
                     tree.find_colliding_pairs_mut(|a, b| {
                         **a.unpack_inner() += 1;
                         **b.unpack_inner() += 1;
                     });
                 });
-    
+
                 dbg!(c0);
             }
         }
@@ -178,15 +177,11 @@ fn main() {
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
             run_test!(&mut fb, colfind::query_evenness::handle_num_node);
-            
-            
+
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
 
-            
             run_test!(&mut fb, colfind::query_evenness::handle_theory);
-            
-            
-            
+
             run_test!(&mut fb, colfind::colfind::handle_theory);
 
             run_test!(&mut fb, spiral::handle);
@@ -194,24 +189,21 @@ fn main() {
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
 
             run_test!(&mut fb, colfind::theory_colfind_3d::handle);
-            
         }
         "bench" => {
             let folder = args[2].clone();
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-            
-            run_test!(&mut fb,colfind::optimal_query::handle);
+
+            run_test!(&mut fb, colfind::optimal_query::handle);
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
 
-            
             //done
             run_test!(&mut fb, colfind::rebal_strat::handle);
 
             run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
 
-            
             run_test!(&mut fb, colfind::colfind::handle_bench);
 
             run_test!(&mut fb, colfind::tree_direct_indirect::handle);
@@ -221,7 +213,7 @@ fn main() {
             //This is the one thats interesting to see what the results are on phone/vs/laptop
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
-            
+
             //nbody::theory::handle(&mut fb);
         }
         "graph" => {

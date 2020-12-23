@@ -44,10 +44,13 @@ pub struct CollidingPairsPar<T, D> {
     original: Ptr<[T]>,
 }
 
-impl<T,D> From<CollidingPairsPar<T,D>> for CollidingPairs<T,D>{
-    fn from(a:CollidingPairsPar<T,D>)->Self{
-        let cols=a.cols.into_iter().flatten().collect();
-        CollidingPairs{cols,orig:a.original}
+impl<T, D> From<CollidingPairsPar<T, D>> for CollidingPairs<T, D> {
+    fn from(a: CollidingPairsPar<T, D>) -> Self {
+        let cols = a.cols.into_iter().flatten().collect();
+        CollidingPairs {
+            cols,
+            orig: a.original,
+        }
     }
 }
 
@@ -65,7 +68,7 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
     ) {
         assert_eq!(arr as *mut _, self.original.0);
         use rayon::prelude::*;
-        self.cols.par_iter_mut().for_each(|a|{
+        self.cols.par_iter_mut().for_each(|a| {
             for (a, b, d) in a.iter_mut() {
                 let a = unsafe { &mut *a.0 };
                 let b = unsafe { &mut *b.0 };
@@ -125,12 +128,9 @@ impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> 
         &mut self,
         func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync + Copy,
     ) -> Vec<Vec<D>> {
-       
         self.new_colfind_builder().query_par_ext(
-            move |_| {
-                (vec!(Vec::new()),vec!(Vec::new()))
-            },
-            move |a, mut b,mut c| {
+            move |_| (vec![Vec::new()], vec![Vec::new()]),
+            move |a, mut b, mut c| {
                 a.first_mut().unwrap().append(&mut b.pop().unwrap());
                 a.append(&mut c);
             },
@@ -139,7 +139,7 @@ impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> 
                     c.first_mut().unwrap().push(d);
                 }
             },
-            vec!(Vec::new()),
+            vec![Vec::new()],
         )
     }
 }

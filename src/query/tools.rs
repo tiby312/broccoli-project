@@ -1,13 +1,8 @@
-
 use super::inner_prelude::*;
 //this can have some false positives.
 //but it will still prune a lot of bots.
 #[inline(always)]
-pub fn get_section<'a, I: Aabb, A: Axis>(
-    axis: A,
-    arr: &'a [I],
-    range: Range<I::Num>,
-) -> &'a [I] {
+pub fn get_section<'a, I: Aabb, A: Axis>(axis: A, arr: &'a [I], range: Range<I::Num>) -> &'a [I] {
     if arr.is_empty() {
         return arr;
     }
@@ -92,8 +87,6 @@ pub fn get_section_mut<'a, I: Aabb, A: Axis>(
     arr.truncate(start..end)
 }
 
-
-
 pub fn for_every_pair<T: Aabb>(mut arr: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {
     loop {
         let temp = arr;
@@ -110,14 +103,13 @@ pub fn for_every_pair<T: Aabb>(mut arr: PMut<[T]>, mut func: impl FnMut(PMut<T>,
 }
 
 #[cfg(test)]
-mod test{
+mod test {
     use super::*;
 
-
     #[test]
-    fn test_other(){
-        let mut vec=Vec::new();
-        let mut k=TwoUnorderedVecs::new(&mut vec);
+    fn test_other() {
+        let mut vec = Vec::new();
+        let mut k = TwoUnorderedVecs::new(&mut vec);
         k.push_second(5);
         k.push_first(6);
         k.push_second(5);
@@ -128,42 +120,37 @@ mod test{
         k.push_first(6);
         k.truncate_first(2);
         k.truncate_second(2);
-        slices_match(k.get_first_mut(),&mut [6,6]);
-        slices_match(k.get_second_mut(),&mut [5,5]);
-
+        slices_match(k.get_first_mut(), &mut [6, 6]);
+        slices_match(k.get_second_mut(), &mut [5, 5]);
     }
-
 
     //TODO put in module
     #[test]
-    fn test_push(){
-
-        let mut vec=Vec::new();
-        let mut k=TwoUnorderedVecs::new(&mut vec);
-        k.push_first(9);    
+    fn test_push() {
+        let mut vec = Vec::new();
+        let mut k = TwoUnorderedVecs::new(&mut vec);
+        k.push_first(9);
         k.push_second(0);
         k.push_first(3);
-        
+
         k.push_first(6);
         k.push_second(8);
         k.push_first(5);
-        
-        slices_match(k.get_first_mut(),&mut [9,3,6,5]);
-        slices_match(k.get_second_mut(),&mut [0,8]);
 
-        assert_eq!(k.first_length,4);
+        slices_match(k.get_first_mut(), &mut [9, 3, 6, 5]);
+        slices_match(k.get_second_mut(), &mut [0, 8]);
+
+        assert_eq!(k.first_length, 4);
 
         k.truncate_first(2);
         k.truncate_second(1);
 
+        slices_match(k.get_first_mut(), &mut [3, 9]);
+        slices_match(k.get_second_mut(), &mut [8]);
 
-        
-        slices_match(k.get_first_mut(),&mut [3,9]);
-        slices_match(k.get_second_mut(),&mut [8]);
-        
-        assert_eq!(k.get_first_mut().len(),2);
-        assert_eq!(k.get_second_mut().len(),1);
-        assert_eq!(k.first_length,2);
+        assert_eq!(k.get_first_mut().len(), 2);
+        assert_eq!(k.get_second_mut().len(), 1);
+        assert_eq!(k.first_length, 2);
 
         k.push_first(4);
         k.push_first(6);
@@ -174,103 +161,99 @@ mod test{
         k.push_second(3);
         k.push_second(2);
         k.push_second(4);
-        
 
-        k.retain_first_mut_unordered(|&mut a|a%2==1);
-        k.retain_second_mut_unordered(|&mut a|a%2==0);
-        
+        k.retain_first_mut_unordered(|&mut a| a % 2 == 1);
+        k.retain_second_mut_unordered(|&mut a| a % 2 == 0);
 
-        slices_match(k.get_first_mut(),&mut [9,3,7]);
-        slices_match(k.get_second_mut(),&mut [8,2,4]);
+        slices_match(k.get_first_mut(), &mut [9, 3, 7]);
+        slices_match(k.get_second_mut(), &mut [8, 2, 4]);
     }
 
-    fn slices_match<T:Eq>(arr1:&[T],arr2:&[T]){
-        for a in arr2.iter(){
+    fn slices_match<T: Eq>(arr1: &[T], arr2: &[T]) {
+        for a in arr2.iter() {
             assert!(arr1.contains(a));
         }
-        for b in arr1.iter(){
+        for b in arr1.iter() {
             assert!(arr2.contains(b));
         }
-        assert_eq!(arr1.len(),arr2.len());
+        assert_eq!(arr1.len(), arr2.len());
     }
 }
-
-
 
 ///Two unordered vecs backed by one vec.
 ///Pushing and retaining from the first cec,
 ///can change the ordering of the second vec.
 ///Assume both vecs ordering can change at any time.
 #[derive(Debug)]
-pub struct TwoUnorderedVecs<'a,T>{
-    inner:&'a mut Vec<T>,
-    first_length:usize
+pub struct TwoUnorderedVecs<'a, T> {
+    inner: &'a mut Vec<T>,
+    first_length: usize,
 }
 
-impl<'a,T> TwoUnorderedVecs<'a,T>{
+impl<'a, T> TwoUnorderedVecs<'a, T> {
     #[inline(always)]
-    pub fn new(inner:&'a mut Vec<T>)->Self{
-        TwoUnorderedVecs{inner,first_length:0}
+    pub fn new(inner: &'a mut Vec<T>) -> Self {
+        TwoUnorderedVecs {
+            inner,
+            first_length: 0,
+        }
     }
     #[inline(always)]
-    pub fn get_first_mut(&mut self)->&mut [T]{
+    pub fn get_first_mut(&mut self) -> &mut [T] {
         &mut self.inner[..self.first_length]
     }
 
     #[inline(always)]
-    pub fn get_second_mut(&mut self)->&mut [T]{
+    pub fn get_second_mut(&mut self) -> &mut [T] {
         &mut self.inner[self.first_length..]
     }
 
     #[inline(always)]
-    pub fn push_first(&mut self,a:T){
-        
-        let total_len=self.inner.len();
+    pub fn push_first(&mut self, a: T) {
+        let total_len = self.inner.len();
 
-        self.inner.push(a); 
-        
+        self.inner.push(a);
+
         //now len is actually one less than current length.
-        self.inner.swap(self.first_length,total_len);
-        
-        self.first_length+=1;
+        self.inner.swap(self.first_length, total_len);
+
+        self.first_length += 1;
     }
 
     #[inline(always)]
-    pub fn push_second(&mut self,b:T){
+    pub fn push_second(&mut self, b: T) {
         self.inner.push(b);
     }
 
-
     #[inline(always)]
-    pub fn truncate_first(&mut self,num:usize){
-        let total_len=self.inner.len();
+    pub fn truncate_first(&mut self, num: usize) {
+        let total_len = self.inner.len();
 
         //the number to be removed
-        let diff=self.first_length-num;
+        let diff = self.first_length - num;
 
-
-        for a in 0..diff{
-            self.inner.swap(self.first_length-a-1,total_len-a-1);
+        for a in 0..diff {
+            self.inner
+                .swap(self.first_length - a - 1, total_len - a - 1);
         }
 
-        self.first_length=num;
+        self.first_length = num;
 
-        self.inner.truncate(total_len-diff);
-
+        self.inner.truncate(total_len - diff);
     }
 
     #[inline(always)]
-    pub fn truncate_second(&mut self,num:usize){
-        self.inner.truncate(self.first_length+num);
+    pub fn truncate_second(&mut self, num: usize) {
+        self.inner.truncate(self.first_length + num);
     }
 
     #[inline(always)]
-    pub fn retain_first_mut_unordered(&mut self,mut func:impl FnMut(&mut T)->bool){
+    pub fn retain_first_mut_unordered(&mut self, mut func: impl FnMut(&mut T) -> bool) {
         let len = self.get_first_mut().len();
         let mut del = 0;
         {
             //let v = &mut **self;
-            let v= self.get_first_mut();
+            let v = self.get_first_mut();
 
             let mut cursor = 0;
             for _ in 0..len {
@@ -288,12 +271,12 @@ impl<'a,T> TwoUnorderedVecs<'a,T>{
     }
 
     #[inline(always)]
-    pub fn retain_second_mut_unordered(&mut self,mut func:impl FnMut(&mut T)->bool){
+    pub fn retain_second_mut_unordered(&mut self, mut func: impl FnMut(&mut T) -> bool) {
         let len = self.get_second_mut().len();
         let mut del = 0;
         {
             //let v = &mut **self;
-            let v= self.get_second_mut();
+            let v = self.get_second_mut();
 
             let mut cursor = 0;
             for _ in 0..len {
@@ -310,7 +293,6 @@ impl<'a,T> TwoUnorderedVecs<'a,T>{
         }
     }
 }
-
 
 pub trait RetainMutUnordered<T> {
     fn retain_mut_unordered<F>(&mut self, f: F)

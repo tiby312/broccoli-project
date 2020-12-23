@@ -7,7 +7,7 @@ fn assert_length<I: core::iter::ExactSizeIterator>(it: I) {
 
 #[test]
 fn test() {
-    let mut bots = vec![0usize; 64]; 
+    let mut bots = vec![0usize; 64];
 
     let mut bots: Vec<_> = bots
         .iter_mut()

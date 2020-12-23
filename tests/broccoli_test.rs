@@ -1,7 +1,7 @@
 use axgeom;
 
-use broccoli::*;
 use broccoli::prelude::*;
+use broccoli::*;
 
 use broccoli::analyze::NaiveCheck;
 #[test]
@@ -60,11 +60,9 @@ fn test2() {
     }
 }
 
-
 #[test]
 fn test3() {
-    for &num_bots in [0, 20, 100, 200,1000].iter() {
-    
+    for &num_bots in [0, 20, 100, 200, 1000].iter() {
         let s = dists::spiral_iter([400.0, 400.0], 12.0, 1.0);
 
         let mut bots: Vec<_> = s
@@ -81,35 +79,35 @@ fn test3() {
             })
             .collect();
 
-        
-        let mut tree = broccoli::container::TreeRefInd::new(&mut bots,|a|a.rect);
+        let mut tree = broccoli::container::TreeRefInd::new(&mut bots, |a| a.rect);
 
-        let mut rects1=Vec::new();
-        tree.find_colliding_pairs_mut(|a,b|rects1.push((a.rect,b.rect)));
+        let mut rects1 = Vec::new();
+        tree.find_colliding_pairs_mut(|a, b| rects1.push((a.rect, b.rect)));
 
-        let rects2={
+        let rects2 = {
             use std::sync::Mutex;
-            let rects=Mutex::new(Vec::new());
-            let mut v=tree.collect_colliding_pairs_par(|_,_|Some(()));
+            let rects = Mutex::new(Vec::new());
+            let mut v = tree.collect_colliding_pairs_par(|_, _| Some(()));
             dbg!(v.get(tree.get_elements_mut()).len());
 
-            let mutex=&rects;
-            v.for_every_pair_mut_par(tree.get_elements_mut(),|a,b,()|{
-                let mut rects=mutex.lock().unwrap();
-                rects.push((a.rect,b.rect))
+            let mutex = &rects;
+            v.for_every_pair_mut_par(tree.get_elements_mut(), |a, b, ()| {
+                let mut rects = mutex.lock().unwrap();
+                rects.push((a.rect, b.rect))
             });
             rects.into_inner().unwrap()
         };
-        let rects3={
-            let mut rects=Vec::new();
-            let mut v=tree.collect_colliding_pairs(|_,_|Some(()));
-            v.for_every_pair_mut(tree.get_elements_mut(),|a,b,()|rects.push((a.rect,b.rect)));
+        let rects3 = {
+            let mut rects = Vec::new();
+            let mut v = tree.collect_colliding_pairs(|_, _| Some(()));
+            v.for_every_pair_mut(tree.get_elements_mut(), |a, b, ()| {
+                rects.push((a.rect, b.rect))
+            });
             rects
         };
 
         //TODO assert all the same.
-        assert_eq!(rects1.len(),rects2.len());
-        assert_eq!(rects2.len(),rects3.len());
-       
+        assert_eq!(rects1.len(), rects2.len());
+        assert_eq!(rects2.len(), rects3.len());
     }
 }

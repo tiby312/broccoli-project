@@ -94,9 +94,9 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     pub fn borrow_mut(&mut self) -> PMut<T> {
         PMut { inner: self.inner }
     }
-    
+
     #[inline(always)]
-    pub fn into_ref(self)->&'a T{
+    pub fn into_ref(self) -> &'a T {
         self.inner
     }
 }

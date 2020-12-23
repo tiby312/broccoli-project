@@ -172,11 +172,11 @@ impl<'a, T: Aabb> Closest<'a, T> {
             Some(mut dis) => {
                 if x > dis.1 {
                     //do nothing
-                } else if x< dis.1{
+                } else if x < dis.1 {
                     dis.0.clear();
                     dis.0.push(b);
                     dis.1 = x;
-                }else{
+                } else {
                     dis.0.push(b);
                 }
             }
@@ -200,22 +200,17 @@ struct Blap<'a, R: RayCast> {
 impl<'a, R: RayCast> Blap<'a, R> {
     fn should_handle_rect(&mut self, rect: &Rect<R::N>) -> bool {
         match self.rtrait.compute_distance_to_rect(&self.ray, rect) {
-            
             axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
                 Some(dis) => {
                     if val <= dis {
                         true
-                    }else{
+                    } else {
                         false
                     }
                 }
-                None => {
-                    true
-                }
+                None => true,
             },
-            axgeom::CastResult::NoHit => {
-                false
-            }
+            axgeom::CastResult::NoHit => false,
         }
     }
 }
@@ -249,7 +244,7 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
             };
 
             let rmiddle = make_rect_from_range(axis, range, &rect);
-          
+
             match blap.ray.range_side(axis, range) {
                 Ordering::Less => {
                     if blap.should_handle_rect(&rleft) {
@@ -320,8 +315,8 @@ mod mutable {
         mut rtrait: impl RayCast<N = T::Num, T = T>,
         border: Rect<T::Num>,
     ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
-        if !border.contains_point(ray.point){
-            return axgeom::CastResult::NoHit
+        if !border.contains_point(ray.point) {
+            return axgeom::CastResult::NoHit;
         }
         let mut closest = Closest { closest: None };
 
@@ -344,8 +339,8 @@ mod mutable {
         ray: Ray<T::Num>,
         rtrait: impl RayCast<N = T::Num, T = T>,
     ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
-        if !rect.contains_point(ray.point){
-            return axgeom::CastResult::NoHit
+        if !rect.contains_point(ray.point) {
+            return axgeom::CastResult::NoHit;
         }
         let dt = vistr.with_depth(Depth(0));
 

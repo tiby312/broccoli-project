@@ -167,11 +167,11 @@ pub struct TreeRef<'a, A: Axis, T: Aabb> {
 }
 
 use crate::analyze::NaiveCheck;
-impl<'a,A:Axis,T:Aabb> NaiveCheck<'a,Tree<'a,A,T>> for TreeRef<'a,A,T>{
-    type A=A;
-    type T=T;
-    type Num=T::Num;
-    fn get_underlying_slice_mut(&mut self)->PMut<[T]>{
+impl<'a, A: Axis, T: Aabb> NaiveCheck<'a, Tree<'a, A, T>> for TreeRef<'a, A, T> {
+    type A = A;
+    type T = T;
+    type Num = T::Num;
+    fn get_underlying_slice_mut(&mut self) -> PMut<[T]> {
         self.get_bbox_elements_mut()
     }
 }

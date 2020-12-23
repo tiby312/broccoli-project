@@ -1,7 +1,5 @@
 use crate::inner_prelude::*;
 
-
-
 #[inline(always)]
 pub fn compare_bots<T: Aabb>(axis: impl Axis, a: &T, b: &T) -> core::cmp::Ordering {
     let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
@@ -20,7 +18,6 @@ pub fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {
     collision_botids.sort_unstable_by(sclosure);
 }
 
-
 ///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
 pub struct SplitterEmpty;
 
@@ -33,21 +30,14 @@ impl Splitter for SplitterEmpty {
     fn add(&mut self, _: Self, _: Self) {}
 }
 
-
-
-
 pub use self::prevec::PreVecMut;
-mod prevec{
-    use alloc::vec::Vec;
+mod prevec {
     use crate::pmut::PMut;
+    use alloc::vec::Vec;
     //They are always send and sync because the only time the vec is used
     //is when it is borrowed for the lifetime.
     unsafe impl<T> core::marker::Send for PreVecMut<T> {}
     unsafe impl<T> core::marker::Sync for PreVecMut<T> {}
-
-
-
-
 
     ///An vec api to avoid excessive dynamic allocation by reusing a Vec
     #[derive(Default)]
@@ -63,7 +53,9 @@ mod prevec{
                 core::mem::size_of::<&mut T>()
             );
 
-            PreVecMut { vec: Vec::with_capacity(1024) }
+            PreVecMut {
+                vec: Vec::with_capacity(1024),
+            }
         }
 
         ///Clears the vec and returns a mutable reference to a vec.
@@ -76,15 +68,14 @@ mod prevec{
 
         #[inline(always)]
         #[allow(dead_code)]
-        pub fn capacity(&self)->usize{
+        pub fn capacity(&self) -> usize {
             self.vec.capacity()
         }
     }
 }
 
-
 pub use self::slicesplit::SliceSplitMut;
-mod slicesplit{
+mod slicesplit {
     use itertools::Itertools;
 
     ///Splits a mutable slice into multiple slices

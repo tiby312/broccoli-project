@@ -1,5 +1,5 @@
-use super::*;
 use super::super::TreeInner;
+use super::*;
 ///Builder pattern for Tree.
 ///For most usecases, the user is suggested to use
 ///the built in new() functions to create the tree.
@@ -505,8 +505,9 @@ fn construct_non_leaf<T: Aabb>(
     let med = if bots.is_empty() {
         return ConstructResult::Empty(bots);
     } else {
-        let closure =
-            move |a: &T, b: &T| -> core::cmp::Ordering { crate::util::compare_bots(div_axis, a, b) };
+        let closure = move |a: &T, b: &T| -> core::cmp::Ordering {
+            crate::util::compare_bots(div_axis, a, b)
+        };
 
         let k = {
             let mm = bots.len() / 2;
@@ -537,4 +538,3 @@ fn construct_non_leaf<T: Aabb>(
         right: binned.right,
     }
 }
-

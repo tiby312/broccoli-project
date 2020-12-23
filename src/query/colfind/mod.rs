@@ -34,7 +34,6 @@ pub fn query_sweep_mut<T: Aabb>(
     bots: &mut [T],
     func: impl FnMut(PMut<T>, PMut<T>),
 ) {
-    
     crate::util::sweeper_update(axis, bots);
 
     struct Bl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> {
@@ -49,7 +48,7 @@ pub fn query_sweep_mut<T: Aabb>(
             (self.func)(a, b);
         }
     }
-    let mut prevec=crate::util::PreVecMut::new();
+    let mut prevec = crate::util::PreVecMut::new();
     let bots = PMut::new(bots);
     oned::find_2d(
         &mut prevec,
@@ -90,10 +89,7 @@ where
 
 impl<'a, 'b: 'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a, 'b, A, T> {
     #[inline(always)]
-    pub fn new(
-        axis: A,
-        vistr: VistrMut<'a, Node<'b, T>>,
-    ) -> NotSortedQueryBuilder<'a, 'b, A, T> {
+    pub fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> NotSortedQueryBuilder<'a, 'b, A, T> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         NotSortedQueryBuilder {
             switch_height,
@@ -257,7 +253,7 @@ where
             self.vistr,
             &mut SplitterEmpty,
         );
-        
+
         sweeper.func
     }
 }

@@ -128,13 +128,16 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
 use crate::util::PreVecMut;
 pub struct HandleSorted<K: ColMulti + Splitter> {
     pub func: K,
-    prevec1:PreVecMut<K::T>,
+    prevec1: PreVecMut<K::T>,
 }
 
 impl<K: ColMulti + Splitter> HandleSorted<K> {
     #[inline(always)]
     pub fn new(a: K) -> HandleSorted<K> {
-        HandleSorted { func: a ,prevec1:PreVecMut::new()}
+        HandleSorted {
+            func: a,
+            prevec1: PreVecMut::new(),
+        }
     }
 }
 impl<K: ColMulti + Splitter> Splitter for HandleSorted<K> {
@@ -154,7 +157,7 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
     #[inline(always)]
     fn handle_node(&mut self, axis: impl Axis, bots: PMut<[Self::T]>) {
         let func = &mut self.func;
-        oned::find_2d(&mut self.prevec1,axis, bots, func);
+        oned::find_2d(&mut self.prevec1, axis, bots, func);
     }
     #[inline(always)]
     fn handle_children<A: Axis, B: Axis>(
@@ -170,10 +173,13 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
 
             let r1 = super::tools::get_section_mut(anchor.axis, current.node.into_range(), cc1);
 
-            let r2 =
-                super::tools::get_section_mut(current.axis, anchor.node.borrow_mut().into_range(), cc2);
+            let r2 = super::tools::get_section_mut(
+                current.axis,
+                anchor.node.borrow_mut().into_range(),
+                cc2,
+            );
 
-            oned::find_perp_2d1(&mut self.prevec1,current.axis, r1, r2, func);
+            oned::find_perp_2d1(&mut self.prevec1, current.axis, r1, r2, func);
         } else if current.cont().intersects(anchor.cont()) {
             /*
             oned::find_parallel_2d(
