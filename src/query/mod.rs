@@ -3,14 +3,15 @@
 mod inner_prelude {
     pub use crate::inner_prelude::*;
     pub use alloc::vec::Vec;
-    pub(crate) use axgeom;
+    pub use axgeom;
     pub use axgeom::Rect;
     pub use compt::*;
     pub use core::marker::PhantomData;
     pub use itertools::Itertools;
 }
 
-pub(crate) mod naive;
+pub use naive::NaiveAlgs;
+mod naive;
 
 
 pub use graphics::DividerDrawer;
@@ -629,3 +630,6 @@ pub fn find_collisions_sweep_mut<A: Axis, T: Aabb>(
 ) {
     colfind::query_sweep_mut(axis, bots, |a, b| func(a, b));
 }
+
+
+

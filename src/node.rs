@@ -157,10 +157,13 @@ mod vistr_mut {
     /// Tree Iterator that returns a protected mutable reference to each node.
     #[repr(transparent)]
     pub struct VistrMut<'a, N> {
-        pub(crate) inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
+        inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
     }
 
     impl<'a, N> VistrMut<'a, N> {
+        pub fn new(inner:compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>)->Self{
+            VistrMut{inner}
+        }
         ///It is safe to borrow the iterator and then produce mutable references from that
         ///as long as by the time the borrow ends, all the produced references also go away.
         #[inline(always)]

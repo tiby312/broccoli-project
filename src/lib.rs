@@ -74,7 +74,7 @@ mod inner_prelude {
     pub(crate) use crate::par;
     pub(crate) use crate::tree::*;
     pub(crate) use crate::query;
-     
+    pub(crate) use crate::util::*;
 
     pub(crate) use crate::node::*;
     pub(crate) use crate::pmut::*;

@@ -73,9 +73,7 @@ impl<'a, A: Axis, T: Aabb> Queries<'a> for Tree<'a, A, T> {
 
     #[inline(always)]
     fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
-        VistrMut {
-            inner: self.inner.inner.vistr_mut(),
-        }
+        VistrMut::new(self.inner.inner.vistr_mut())
     }
 
     #[inline(always)]

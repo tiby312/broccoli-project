@@ -5,7 +5,7 @@ use super::ColMulti;
 use crate::query::inner_prelude::*;
 use unchecked_unwrap::*;
 
-pub(crate) struct DestructuredNode<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> {
+pub struct DestructuredNode<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
     pub axis: AnchorAxis,
 }
@@ -30,7 +30,7 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNode<'a, 'b, T, AnchorAx
     }
 }
 
-pub(crate) struct DestructuredNodeLeaf<'a, 'b: 'a, T: Aabb, A: Axis> {
+pub struct DestructuredNodeLeaf<'a, 'b: 'a, T: Aabb, A: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
     pub axis: A,
 }
@@ -54,7 +54,7 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNodeLeaf<'a, 'b, T, Anch
     }
 }
 
-pub(crate) trait NodeHandler {
+pub trait NodeHandler {
     type T: Aabb;
 
     fn handle_node(&mut self, axis: impl Axis, bots: PMut<[Self::T]>);
@@ -66,7 +66,7 @@ pub(crate) trait NodeHandler {
     );
 }
 
-pub(super) struct HandleNoSorted<K: ColMulti + Splitter> {
+pub struct HandleNoSorted<K: ColMulti + Splitter> {
     pub func: K,
 }
 impl<K: ColMulti + Splitter> HandleNoSorted<K> {
@@ -126,11 +126,9 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
 }
 
 use crate::util::PreVecMut;
-pub(super) struct HandleSorted<K: ColMulti + Splitter> {
+pub struct HandleSorted<K: ColMulti + Splitter> {
     pub func: K,
-    pub(crate) prevec1:PreVecMut<K::T>,
-    //prevec2:PreVecMut<K::T>,
-    //prevec3:PreVecMut<K::T>
+    prevec1:PreVecMut<K::T>,
 }
 
 impl<K: ColMulti + Splitter> HandleSorted<K> {
@@ -170,10 +168,10 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
             let cc1 = *anchor.cont();
             let cc2 = *current.cont();
 
-            let r1 = oned::get_section_mut(anchor.axis, current.node.into_range(), cc1);
+            let r1 = super::tools::get_section_mut(anchor.axis, current.node.into_range(), cc1);
 
             let r2 =
-                oned::get_section_mut(current.axis, anchor.node.borrow_mut().into_range(), cc2);
+                super::tools::get_section_mut(current.axis, anchor.node.borrow_mut().into_range(), cc2);
 
             oned::find_perp_2d1(&mut self.prevec1,current.axis, r1, r2, func);
         } else if current.cont().intersects(anchor.cont()) {

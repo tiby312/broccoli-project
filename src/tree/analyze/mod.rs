@@ -13,16 +13,17 @@ pub const fn default_axis() -> YAXIS {
     YAXIS
 }
 
-pub use crate::query::naive::NaiveAlgs;
 
 pub use assert::NaiveCheck;
 mod assert;
 
-pub(crate) use oned::sweeper_update;
+
 mod oned;
 
 pub use builder::TreeBuilder;
 mod builder;
+
+
 
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one
@@ -36,7 +37,7 @@ struct DefaultSorter;
 
 impl Sorter for DefaultSorter {
     fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]) {
-        oned::sweeper_update(axis, bots);
+        crate::util::sweeper_update(axis, bots);
     }
 }
 
@@ -115,7 +116,7 @@ impl TreePreBuilder {
     }
 
     ///Create a [`par::Joiner`] that will switch to sequential at the approriate level
-    pub(crate) const fn switch_seq_level(&self) -> Parallel {
+    const fn switch_seq_level(&self) -> Parallel {
         crate::par::compute_level_switch_sequential(self.height_switch_seq, self.height)
     }
 
@@ -193,17 +194,6 @@ pub trait Splitter: Sized {
 
 }
 
-///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
-pub(crate) struct SplitterEmpty;
-
-impl Splitter for SplitterEmpty {
-    #[inline(always)]
-    fn div(&mut self) -> (Self, Self) {
-        (SplitterEmpty, SplitterEmpty)
-    }
-    #[inline(always)]
-    fn add(&mut self, _: Self, _: Self) {}
-}
 
 use crate::tree::NotSortedQueries;
 use crate::tree::Queries;
@@ -212,7 +202,7 @@ use crate::tree::Queries;
 /// along an axis at each level. Construction of [`NotSorted`] is faster than [`Tree`] since it does not have to
 /// sort bots that belong to each node along an axis. But most query algorithms can usually take advantage of this
 /// extra property to be faster.
-pub struct NotSorted<'a, A: Axis, T: Aabb>(pub(crate) Tree<'a, A, T>);
+pub struct NotSorted<'a, A: Axis, T: Aabb>(Tree<'a, A, T>);
 
 impl<'a, T: Aabb + Send + Sync> NotSorted<'a, DefaultA, T>
 where

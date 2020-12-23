@@ -59,7 +59,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, DefaultA, T> {
 }
 
 impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
-    pub(crate) fn from_prebuilder(
+    pub fn from_prebuilder(
         axis: A,
         bots: &'a mut [T],
         height: TreePreBuilder,
@@ -506,7 +506,7 @@ fn construct_non_leaf<T: Aabb>(
         return ConstructResult::Empty(bots);
     } else {
         let closure =
-            move |a: &T, b: &T| -> core::cmp::Ordering { oned::compare_bots(div_axis, a, b) };
+            move |a: &T, b: &T| -> core::cmp::Ordering { crate::util::compare_bots(div_axis, a, b) };
 
         let k = {
             let mm = bots.len() / 2;

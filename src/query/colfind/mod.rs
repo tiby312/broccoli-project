@@ -2,7 +2,7 @@
 
 mod inner;
 mod node_handle;
-pub(crate) mod oned;
+mod oned;
 
 use self::inner::*;
 use self::node_handle::*;
@@ -35,7 +35,7 @@ pub fn query_sweep_mut<T: Aabb>(
     func: impl FnMut(PMut<T>, PMut<T>),
 ) {
     
-    crate::analyze::sweeper_update(axis, bots);
+    crate::util::sweeper_update(axis, bots);
 
     struct Bl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> {
         func: F,

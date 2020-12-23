@@ -67,7 +67,7 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,
     }
 }
 
-pub(crate) struct ColFindRecurser<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> {
+pub struct ColFindRecurser<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> {
     _p: PhantomData<(T, K, S)>,
 }
 impl<

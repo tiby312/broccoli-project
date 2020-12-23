@@ -134,7 +134,7 @@ pub use mutable::*;
 
 mod mutable {
     use super::*;
-    use crate::query::colfind::oned::get_section_mut;
+    use crate::query::tools::get_section_mut;
     fn foo<'a, 'b: 'a, T: Aabb>(node: PMut<'a, Node<'b, T>>) -> PMut<'a, [T]> {
         node.into_range()
     }
@@ -192,7 +192,7 @@ mod mutable {
 mod constant {
 
     use super::*;
-    use crate::query::colfind::oned::get_section;
+    use crate::query::tools::get_section;
     fn foo<'a, 'b: 'a, T: Aabb>(node: &'a Node<'b, T>) -> &'a [T] {
         &node.range
     }
@@ -239,7 +239,7 @@ pub struct MultiRectMut<'a, 'b: 'a, A: Axis, T: Aabb> {
 }
 
 impl<'a, 'b: 'a, A: Axis, T: Aabb> MultiRectMut<'a, 'b, A, T> {
-    pub(crate) fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> Self {
+    pub fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> Self {
         MultiRectMut {
             axis,
             vistr,
