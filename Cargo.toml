@@ -1,6 +1,6 @@
 [package]
 name = "broccoli"
-version = "0.7.4"
+version = "0.7.5"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
 license = "MIT"
