@@ -24,7 +24,7 @@ compt = "1.9"
 axgeom = {version="1.9",default-features = false}
 pdqselect = "0.1"
 unchecked_unwrap = "2.0.2"
-
+twounordered={path="../twounordered"}
 
 [package.metadata.docs.rs]
 # This sets the default target to `x86_64-unknown-linux-gnu`

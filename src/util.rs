@@ -32,6 +32,7 @@ impl Splitter for SplitterEmpty {
 
 pub use self::prevec::PreVecMut;
 mod prevec {
+    use twounordered::TwoUnorderedVecs;
     use crate::pmut::PMut;
     use alloc::vec::Vec;
     //They are always send and sync because the only time the vec is used
@@ -40,36 +41,39 @@ mod prevec {
     unsafe impl<T> core::marker::Sync for PreVecMut<T> {}
 
     ///An vec api to avoid excessive dynamic allocation by reusing a Vec
-    #[derive(Default)]
     pub struct PreVecMut<T> {
-        vec: Vec<core::ptr::NonNull<T>>,
+        vec: TwoUnorderedVecs<core::ptr::NonNull<T>>,
     }
 
     impl<T> PreVecMut<T> {
+        
         #[inline(always)]
         pub fn new() -> PreVecMut<T> {
-            debug_assert_eq!(
-                core::mem::size_of::<core::ptr::NonNull<T>>(),
-                core::mem::size_of::<&mut T>()
-            );
-
             PreVecMut {
-                vec: Vec::with_capacity(1024),
+                vec: TwoUnorderedVecs::new(),
+            }
+        }
+        
+
+        #[inline(always)]
+        pub fn with_capacity(num:usize) -> PreVecMut<T> {
+            PreVecMut {
+                vec: TwoUnorderedVecs::with_capacity(num),
             }
         }
 
         ///Clears the vec and returns a mutable reference to a vec.
         #[inline(always)]
-        pub fn get_empty_vec_mut<'a, 'b: 'a>(&'a mut self) -> &'a mut Vec<PMut<'b, T>> {
+        pub fn get_empty_vec_mut<'a, 'b: 'a>(&'a mut self) -> &'a mut TwoUnorderedVecs<PMut<'b, T>> {
             self.vec.clear();
-            let v: &mut Vec<_> = &mut self.vec;
-            unsafe { &mut *(v as *mut _ as *mut Vec<_>) }
+            let v: &mut TwoUnorderedVecs<_> = &mut self.vec;
+            unsafe { &mut *(v as *mut _ as *mut TwoUnorderedVecs<_>) }
         }
 
         #[inline(always)]
         #[allow(dead_code)]
         pub fn capacity(&self) -> usize {
-            self.vec.capacity()
+            self.vec.as_vec().capacity()
         }
     }
 }

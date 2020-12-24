@@ -136,7 +136,7 @@ impl<K: ColMulti + Splitter> HandleSorted<K> {
     pub fn new(a: K) -> HandleSorted<K> {
         HandleSorted {
             func: a,
-            prevec1: PreVecMut::new(),
+            prevec1: PreVecMut::with_capacity(64),
         }
     }
 }

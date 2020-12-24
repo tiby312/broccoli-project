@@ -1,5 +1,4 @@
 use super::super::ColMulti;
-use super::tools::RetainMutUnordered;
 use crate::query::inner_prelude::*;
 use crate::util::PreVecMut;
 
@@ -125,6 +124,7 @@ fn find<'a, A: Axis, F: ColMulti>(
     collision_botids: PMut<'a, [F::T]>,
     func: &mut F,
 ) {
+    use twounordered::RetainMutUnordered;
     //    Create a new temporary list called “activeList”.
     //    You begin on the left of your axisList, adding the first item to the activeList.
     //
@@ -139,7 +139,7 @@ fn find<'a, A: Axis, F: ColMulti>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let active = prevec1.get_empty_vec_mut();
+    let active = prevec1.get_empty_vec_mut().clear();
 
     for mut curr_bot in collision_botids.iter_mut() {
         let crr = *curr_bot.get().get_range(axis);
@@ -175,6 +175,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: ColMulti>(
 ) where
     F::T: 'a + 'b,
 {
+    use twounordered::RetainMutUnordered;
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
 
@@ -183,8 +184,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: ColMulti>(
     //let mut active_x:Vec<PMut<F::T>>=Vec::new();
     //let mut active_y:Vec<PMut<F::T>>=Vec::new();
 
-    use super::tools::TwoUnorderedVecs;
-    let mut active_lists = TwoUnorderedVecs::new(prevec1.get_empty_vec_mut());
+    let mut active_lists = prevec1.get_empty_vec_mut();
     //let mut active_lists:TwoUnorderedVecs<PMut<F::T>>=TwoUnorderedVecs::new();
 
     loop {
@@ -209,7 +209,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: ColMulti>(
         match j {
             NextP::X => {
                 let mut x = f1.next().unwrap();
-                active_lists.retain_second_mut_unordered(|y| {
+                active_lists.second().retain_mut_unordered(|y| {
                     if y.get().get_range(axis).end > x.get().get_range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
                         true
@@ -224,11 +224,11 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: ColMulti>(
                 */
 
                 //active_x.push(x);
-                active_lists.push_first(x);
+                active_lists.first().push(x);
             }
             NextP::Y => {
                 let mut y = f2.next().unwrap();
-                active_lists.retain_first_mut_unordered(|x| {
+                active_lists.first().retain_mut_unordered(|x| {
                     if x.get().get_range(axis).end > y.get().get_range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
                         true
@@ -243,7 +243,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: ColMulti>(
                 */
 
                 //active_y.push(y);
-                active_lists.push_second(y);
+                active_lists.second().push(y);
             }
         }
     }
@@ -275,6 +275,7 @@ fn find_other_parallel2<'a, 'b, A: Axis, F: ColMulti>(
             active_x.push(x);
         }
 
+        use twounordered::RetainMutUnordered;
         //Prune all the x's that are no longer touching the y.
         active_x.retain_mut_unordered(|x| {
             if x.get().get_range(axis).end > yr.start {

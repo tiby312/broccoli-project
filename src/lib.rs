@@ -58,7 +58,7 @@
     html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
 )]
-#![no_std]
+//#![no_std]
 
 #[macro_use]
 extern crate alloc;
@@ -70,6 +70,7 @@ pub use compt;
 pub use rayon;
 
 mod inner_prelude {
+    pub(crate) use twounordered::TwoUnorderedVecs;
     pub(crate) use crate::par;
     pub(crate) use crate::query;
     pub(crate) use crate::tree::*;

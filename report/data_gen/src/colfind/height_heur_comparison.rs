@@ -2,8 +2,9 @@ use crate::inner_prelude::*;
 use broccoli::analyze::TreeBuilder;
 
 pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> f64 {
+    let mut bots = distribute(grow, bot_inner, |a| a.to_f32n());
+
     bench_closure(|| {
-        let mut bots = distribute(grow, bot_inner, |a| a.to_f32n());
 
         let mut tree = TreeBuilder::new(&mut bots).with_height(height).build_seq();
         assert_eq!(tree.get_height(), height);
@@ -42,12 +43,12 @@ fn handle_lowest(fb: &mut FigureBuilder) {
 
     let mut benches: Vec<BenchRecord> = Vec::new();
 
-    let its = (1usize..140_000).step_by(2000);
+    let its = (1usize..50_000).step_by(2000);
     for num_bots in its.clone() {
         let mut minimum = None;
         let max_height = (num_bots as f64).log2() as usize;
 
-        let grow = 2.0;
+        let grow = 0.2;
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
         for height in 1..max_height {
@@ -94,7 +95,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
                 &[],
             )
             .set_title(
-                "Broccoli Colfind Query: Optimal Height vs Heuristic Height with abspiral(x,2.0)",
+                "Broccoli Colfind Query: Optimal Height vs Heuristic Height with abspiral(x,0.2)",
                 &[],
             )
             .set_x_label("Num bots", &[])
@@ -141,7 +142,7 @@ fn handle2d(fb: &mut FigureBuilder) {
 
     let mut bench_records: Vec<BenchRecord> = Vec::new();
     let num_bots = 10000;
-    let grow = 2.0;
+    let grow = 0.2;
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
     for height in 2..13 {
@@ -166,7 +167,7 @@ fn handle2d(fb: &mut FigureBuilder) {
 
     fg.axes2d()
         .set_pos_grid(2, 1, 0)
-        .set_title("Number of Comparisons with different numbers of objects per node with abspiral(10000,2.0)", &[])
+        .set_title("Number of Comparisons with different numbers of objects per node with abspiral(10000,0.2)", &[])
         .lines(x,y,&[Color(COLS[0]), LineWidth(2.0)])
         .set_x_label("Tree Height", &[])
         .set_y_label("Number of Comparisons", &[]);
@@ -176,7 +177,7 @@ fn handle2d(fb: &mut FigureBuilder) {
 
     fg.axes2d()
         .set_pos_grid(2, 1, 1)
-        .set_title("Bench times with different numbers of objects per node (seq,colfind) with abspiral(10000,2.0)", &[])
+        .set_title("Bench times with different numbers of objects per node (seq,colfind) with abspiral(10000,0.2)", &[])
         .points(x,y,&[Color(COLS[0]), LineWidth(2.0)])
         .set_x_label("Tree Height", &[])
         .set_y_label("Time in seconds", &[]);
