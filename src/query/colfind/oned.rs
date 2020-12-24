@@ -56,7 +56,7 @@ pub fn find_parallel_2d<A: Axis, F: ColMulti>(
 pub fn find_perp_2d1<A: Axis, F: ColMulti>(
     prevec1: &mut PreVecMut<F::T>,
     axis: A, //the axis of r1.
-    r1: PMut<[F::T]>,
+    mut r1: PMut<[F::T]>,
     mut r2: PMut<[F::T]>,
     clos2: &mut F,
 ) {
@@ -95,13 +95,14 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
         &mut b);
     */
 
-    // OPTION2
-
+    //OPTION2
+    /*
     let mut b = OtherAxisCollider { a: clos2, axis };
 
     for y in r1.iter_mut() {
         self::find_other_parallel3(prevec1, axis, (y.into_slice(), r2.borrow_mut()), &mut b);
     }
+    */
 
     //OPTION3
     // benched and this is the slowest.
@@ -114,6 +115,25 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
         }
     }
     */
+
+
+    // OPTION4
+    let mut b = OtherAxisCollider { a: clos2, axis };
+
+    for mut y in r1.iter_mut() {
+        for y2 in r2.borrow_mut(){
+            
+            //Exploit the sorted property, to exit early
+            if y.get().get_range(axis).end<= y2.get().get_range(axis).start{
+                break;
+            }
+            
+            //Because we didnt exit from the previous comparion, we only need to check one thing.
+            if y.get().get_range(axis).start<y2.get().get_range(axis).end{
+                b.collide(y.borrow_mut(),y2);
+            }
+        }
+    }
 }
 
 #[inline(always)]

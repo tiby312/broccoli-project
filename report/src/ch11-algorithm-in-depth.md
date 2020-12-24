@@ -65,9 +65,18 @@ There are a couple of options:
 	* Sort that list along the other lists axis
 	* Perform parallel sweep 
 
-Turns out these both appear to be about the same, if we adjust the target number of aabbs for node. Option2 prefers like 64 aabbs, while option2 prefers a smaller amount like 32. Because of this I chose option2 since it does
-not require any special dynamic allocation.
+* Option 3:
+	* Cut off each list as always
+	* do a simple nested loop and check if the aabbs intersect
 
+* Option 4:
+	* Cut off each list as always
+	* For each element in node A, iterate over each element in node B.
+		* Exit early if the B element is completely to the right of the A element.
+		* Now we only have to check if the B element's right side is touching A.
+		
+Option 4 is the fastest. It exploits the sorted property of the aabbs, but also does not require
+any kind of storage of an active list.
 
 #### Profiling Construction + Finding all colliding pairs.
 
