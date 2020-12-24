@@ -52,7 +52,8 @@ Additionally, we have been assuming that once we build the tree, we are just fin
 ### Inserting elements after construction
 
 broccoli does not support inserting elements after construction. If you want to add more elements,
-you have to rebuild the tree. In most usecases, I think you want to do this anyway. In a dynamic
+you have to rebuild the tree. However, broccoli provides a `intersect_with()` function that lets you
+find collisions between two groups. This way you can have one group of static objects and another group of dynamic objects, and update the static objects less frequently. In a dynamic
 particle system for example, most of the time, enough particles move about in one step to justify
 recreating the whole tree. Trying to avoid this using loose bounding boxes can make querying take
 longer as there are more intersections to detect than necessary. 
