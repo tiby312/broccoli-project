@@ -46,6 +46,13 @@ mod prevec {
 
     impl<T> PreVecMut<T> {
         
+        #[inline(always)]
+        #[allow(dead_code)]
+        pub fn new() -> PreVecMut<T> {
+            PreVecMut {
+                vec: TwoUnorderedVecs::new(),
+            }
+        }
         
 
         #[inline(always)]
