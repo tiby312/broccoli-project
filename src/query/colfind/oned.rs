@@ -184,7 +184,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: ColMulti>(
     //let mut active_x:Vec<PMut<F::T>>=Vec::new();
     //let mut active_y:Vec<PMut<F::T>>=Vec::new();
 
-    let mut active_lists = prevec1.get_empty_vec_mut();
+    let active_lists = prevec1.get_empty_vec_mut();
     //let mut active_lists:TwoUnorderedVecs<PMut<F::T>>=TwoUnorderedVecs::new();
 
     loop {

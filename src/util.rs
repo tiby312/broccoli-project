@@ -34,7 +34,6 @@ pub use self::prevec::PreVecMut;
 mod prevec {
     use twounordered::TwoUnorderedVecs;
     use crate::pmut::PMut;
-    use alloc::vec::Vec;
     //They are always send and sync because the only time the vec is used
     //is when it is borrowed for the lifetime.
     unsafe impl<T> core::marker::Send for PreVecMut<T> {}
@@ -47,12 +46,6 @@ mod prevec {
 
     impl<T> PreVecMut<T> {
         
-        #[inline(always)]
-        pub fn new() -> PreVecMut<T> {
-            PreVecMut {
-                vec: TwoUnorderedVecs::new(),
-            }
-        }
         
 
         #[inline(always)]
