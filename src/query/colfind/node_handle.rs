@@ -179,18 +179,19 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
                 cc2,
             );
 
-            oned::find_perp_2d1(&mut self.prevec1, current.axis, r1, r2, func);
+            oned::find_perp_2d1(current.axis, r1, r2, func);
+            
         } else if current.cont().intersects(anchor.cont()) {
             /*
             oned::find_parallel_2d(
+                &mut self.prevec1,
                 current.axis.next(),
                 current.node.into_range(),
                 anchor.node.borrow_mut().into_range(),
                 func,
             );
             */
-
-            //This is faster than above.
+            
             oned::find_parallel_2d(
                 &mut self.prevec1,
                 current.axis.next(),
@@ -198,6 +199,7 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
                 current.node.into_range(),
                 func,
             );
+            
         }
     }
 }

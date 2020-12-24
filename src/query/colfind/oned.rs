@@ -54,9 +54,8 @@ pub fn find_parallel_2d<A: Axis, F: ColMulti>(
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
 pub fn find_perp_2d1<A: Axis, F: ColMulti>(
-    prevec1: &mut PreVecMut<F::T>,
     axis: A, //the axis of r1.
-    mut r1: PMut<[F::T]>,
+    r1: PMut<[F::T]>,
     mut r2: PMut<[F::T]>,
     clos2: &mut F,
 ) {
