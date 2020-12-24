@@ -5,7 +5,6 @@ pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> 
     let mut bots = distribute(grow, bot_inner, |a| a.to_f32n());
 
     bench_closure(|| {
-
         let mut tree = TreeBuilder::new(&mut bots).with_height(height).build_seq();
         assert_eq!(tree.get_height(), height);
 

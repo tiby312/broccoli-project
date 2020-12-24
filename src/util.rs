@@ -32,8 +32,8 @@ impl Splitter for SplitterEmpty {
 
 pub use self::prevec::PreVecMut;
 mod prevec {
-    use twounordered::TwoUnorderedVecs;
     use crate::pmut::PMut;
+    use twounordered::TwoUnorderedVecs;
     //They are always send and sync because the only time the vec is used
     //is when it is borrowed for the lifetime.
     unsafe impl<T> core::marker::Send for PreVecMut<T> {}
@@ -45,7 +45,6 @@ mod prevec {
     }
 
     impl<T> PreVecMut<T> {
-        
         #[inline(always)]
         #[allow(dead_code)]
         pub fn new() -> PreVecMut<T> {
@@ -53,10 +52,9 @@ mod prevec {
                 vec: TwoUnorderedVecs::new(),
             }
         }
-        
 
         #[inline(always)]
-        pub fn with_capacity(num:usize) -> PreVecMut<T> {
+        pub fn with_capacity(num: usize) -> PreVecMut<T> {
             PreVecMut {
                 vec: TwoUnorderedVecs::with_capacity(num),
             }
@@ -64,7 +62,9 @@ mod prevec {
 
         ///Clears the vec and returns a mutable reference to a vec.
         #[inline(always)]
-        pub fn get_empty_vec_mut<'a, 'b: 'a>(&'a mut self) -> &'a mut TwoUnorderedVecs<PMut<'b, T>> {
+        pub fn get_empty_vec_mut<'a, 'b: 'a>(
+            &'a mut self,
+        ) -> &'a mut TwoUnorderedVecs<PMut<'b, T>> {
             self.vec.clear();
             let v: &mut TwoUnorderedVecs<_> = &mut self.vec;
             unsafe { &mut *(v as *mut _ as *mut TwoUnorderedVecs<_>) }
