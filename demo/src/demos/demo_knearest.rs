@@ -44,6 +44,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
     }
     let rect_save = rects.save(canvas);
 
+    let dim=dim.grow(10.0);
     Demo::new(move |cursor, canvas, check_naive| {
         let cols = [
             [1.0, 0.0, 0.0, 0.6], //red closest

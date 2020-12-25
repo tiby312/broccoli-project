@@ -25,6 +25,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
     let mut tree = broccoli::container::TreeOwned::new(vv);
 
+    let dim=dim.grow(10.0);
     Demo::new(move |cursor, canvas, check_naive| {
         circle_save
             .uniforms(canvas, radius * 2.0)
