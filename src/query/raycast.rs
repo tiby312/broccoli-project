@@ -269,79 +269,63 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     blap: &mut Blap<'a, R>,
 ) {
     let ((_depth, nn), rest) = stuff.next();
-    //let nn = nn.get_mut();
-    match rest {
-        Some([left, right]) => {
-            let axis_next = axis.next();
+    let handle_curr=if let Some([left,right])= rest
+    {
+        let axis_next = axis.next();
 
-            let div = match nn.div {
-                Some(b) => b,
-                None => return,
-            };
+        let div = match nn.div {
+            Some(b) => b,
+            None => return,
+        };
 
 
-            let range = &match nn.cont {
-                Some(range) => range,
-                None => Range {
-                    start: div,
-                    end: div,
-                },
-            };
+        let range = &match nn.cont {
+            Some(range) => range,
+            None => Range {
+                start: div,
+                end: div,
+            },
+        };
 
-            let line=(axis,div);
+        let line=(axis,div);
+        
+
+
+        
+        //more likely to find closest in child than curent node.
+        //so recurse first before handling this node.
+        if *blap.ray.point.get_axis(axis)<div{
+            recc(axis_next, left, blap);
             
-
-
-            
-            //more likely to find closest in child than curent node.
-            //so recurse first before handling this node.
-            if *blap.ray.point.get_axis(axis)<div{
-                recc(axis_next, left, blap);
-                
-                if blap.should_recurse(line){
-                    recc(axis_next, right, blap);
-                }
-            }else{
+            if blap.should_recurse(line){
                 recc(axis_next, right, blap);
-                
-                if blap.should_recurse(line){
-                    recc(axis_next, left, blap);
-                }
             }
-
-            let foo=match range.contains_ext(*blap.ray.point.get_axis(axis)){
-                core::cmp::Ordering::Less=>{
-                    if blap.should_recurse((axis,range.start)){
-                        true
-                    }else{
-                        false
-                    }
-                },
-                core::cmp::Ordering::Greater=>{
-                    if blap.should_recurse((axis,range.end)){
-                        true
-                    }else{
-                        false
-                    }
-                },
-                core::cmp::Ordering::Equal=>{
-                    true
-                }
-            };
+        }else{
+            recc(axis_next, right, blap);
             
-            if foo{
-                for b in nn.into_range().iter_mut() {
-                    blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
-                }
+            if blap.should_recurse(line){
+                recc(axis_next, left, blap);
             }
-
-
         }
-        None => {
-            //Can't do better here since for leafs, cont is none.
-            for b in nn.into_range().iter_mut() {
-                blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
+
+        //Determine if we should handle this node or not.
+        match range.contains_ext(*blap.ray.point.get_axis(axis)){
+            core::cmp::Ordering::Less=>{
+                blap.should_recurse((axis,range.start))
+            },
+            core::cmp::Ordering::Greater=>{
+                blap.should_recurse((axis,range.end))
+            },
+            core::cmp::Ordering::Equal=>{
+                true
             }
+        }
+    }else{
+        true
+    };
+    if handle_curr{
+        for b in nn.into_range().iter_mut() {
+            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
         }
     }
 }
