@@ -247,14 +247,13 @@ impl<'a, R: RayCast> Blap<'a, R> {
         match self.rtrait.compute_distance_to_aaline(&self.ray,line.0,line.1){
             axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
                 Some(dis) => {
-                    /*
+                    
                     if val <= dis {
                         true
                     } else {
                         false
                     }
-                    */
-                    true
+                    
                 }
                 None => true,
             },
@@ -292,9 +291,6 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
             let line=(axis,div);
             
 
-            for b in nn.into_range().iter_mut() {
-                blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
-            }
 
             
             if *blap.ray.point.get_axis(axis)<div{
@@ -302,7 +298,6 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
                 
                 if blap.should_recurse(line){
                     recc(axis_next, right, blap);
-                }else{
                 }
             }else{
                 recc(axis_next, right, blap);
@@ -311,6 +306,31 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
                     recc(axis_next, left, blap);
                 }
             }
+
+            //more likely to find closest in child than curent node.
+
+            if !range.contains(*blap.ray.point.get_axis(axis)){
+                
+                if *blap.ray.point.get_axis(axis)<range.start{
+                    if blap.should_recurse((axis,range.start)){
+                        for b in nn.into_range().iter_mut() {
+                            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
+                        }
+                    }
+                }else{
+                    if blap.should_recurse((axis,range.end)){
+                        for b in nn.into_range().iter_mut() {
+                            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
+                        }
+                    }
+                }
+                
+            }else{
+                for b in nn.into_range().iter_mut() {
+                    blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
+                } 
+            }
+
 
         }
         None => {

@@ -3,7 +3,7 @@ use crate::support::prelude::*;
 use axgeom::Ray;
 
 pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
-    let walls = support::make_rand_rect(500, dim, [1.0, 10.0], |a| bbox(a, ())).into_boxed_slice();
+    let walls = support::make_rand_rect(5000, dim, [1.0, 4.0], |a| bbox(a, ())).into_boxed_slice();
 
     let mut counter: f32 = 0.0;
     let mut tree = broccoli::container::TreeOwned::new_par(walls);
