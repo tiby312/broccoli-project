@@ -293,6 +293,8 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
 
 
             
+            //more likely to find closest in child than curent node.
+            //so recurse first before handling this node.
             if *blap.ray.point.get_axis(axis)<div{
                 recc(axis_next, left, blap);
                 
@@ -307,28 +309,30 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
                 }
             }
 
-            //more likely to find closest in child than curent node.
-
-            if !range.contains(*blap.ray.point.get_axis(axis)){
-                
-                if *blap.ray.point.get_axis(axis)<range.start{
+            let foo=match range.contains_ext(*blap.ray.point.get_axis(axis)){
+                core::cmp::Ordering::Less=>{
                     if blap.should_recurse((axis,range.start)){
-                        for b in nn.into_range().iter_mut() {
-                            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
-                        }
+                        true
+                    }else{
+                        false
                     }
-                }else{
+                },
+                core::cmp::Ordering::Greater=>{
                     if blap.should_recurse((axis,range.end)){
-                        for b in nn.into_range().iter_mut() {
-                            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
-                        }
+                        true
+                    }else{
+                        false
                     }
+                },
+                core::cmp::Ordering::Equal=>{
+                    true
                 }
-                
-            }else{
+            };
+            
+            if foo{
                 for b in nn.into_range().iter_mut() {
                     blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
-                } 
+                }
             }
 
 
