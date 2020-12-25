@@ -15,7 +15,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
     let rect_save = rects.save(canvas);
 
     Demo::new(move |cursor, canvas, check_naive| {
-        /*
+        
         let tree = tree.as_tree_mut();
 
         let ray: Ray<f32> = {
@@ -32,34 +32,61 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             .with_color([0.0, 0.0, 0.0, 0.3])
             .draw();
 
+
+        struct Foo{
+            rects:egaku2d::shapes::RectSession,
+        }
+        impl broccoli::query::RayCast for Foo{
+            type T=BBox<f32,()>;
+            type N=f32;
+
+            fn compute_distance_to_aaline<A:Axis>(&mut self,ray:&Ray<Self::N>,axis:A,val:Self::N)->axgeom::CastResult<Self::N>{
+                ray.cast_to_aaline(axis,val)
+            }
+        
+        
+            ///Returns true if the ray intersects with this rectangle.
+            ///This function allows as to prune which nodes to visit.
+            fn compute_distance_to_rect(
+                &mut self,
+                ray: &Ray<Self::N>,
+                a: &Rect<Self::N>,
+            ) -> axgeom::CastResult<Self::N>{
+                self.rects.add(a.into());
+                ray.cast_to_rect(a)
+            }
+        
+            ///The expensive collision detection
+            ///This is where the user can do expensive collision detection on the shape
+            ///contains within it's bounding box.
+            ///Its default implementation just calls compute_distance_to_rect()
+            fn compute_distance_to_bot(
+                &mut self,
+                ray: &Ray<Self::N>,
+                a: &Self::T,
+            ) -> axgeom::CastResult<Self::N> {
+                ray.cast_to_rect(&a.rect)
+            }
+        }
+
+        let mut rects = canvas.rects();
+
+        let mut foo=Foo{rects};
+        
         if check_naive {
             tree.assert_raycast_mut(
                 ray,
-                &mut rects,
-                move |_r, ray, rect| ray.cast_to_rect(&rect),
-                move |rects, ray, t| {
-                    rects.add(t.rect.into());
-                    ray.cast_to_rect(&t.rect)
-                },
-                dim,
+                &mut foo
             );
         }
 
         let test = {
-            let mut rects = canvas.rects();
-
+            
             let test = tree.raycast_mut(
                 ray,
-                &mut rects,
-                move |_r, ray, rect| ray.cast_to_rect(&rect),
-                move |r, ray, d| {
-                    r.add(d.rect.into());
-
-                    ray.cast_to_rect(&d.rect)
-                },
-                dim,
+                &mut foo
             );
-            rects
+            foo.rects
                 .send_and_uniforms(canvas)
                 .with_color([4.0, 0.0, 0.0, 0.4])
                 .draw();
@@ -79,6 +106,6 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             .send_and_uniforms(canvas)
             .with_color([1., 1., 1., 0.2])
             .draw();
-            */
+            
     })
 }
