@@ -279,17 +279,7 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
         };
 
 
-        let range = &match nn.cont {
-            Some(range) => range,
-            None => Range {
-                start: div,
-                end: div,
-            },
-        };
-
         let line=(axis,div);
-        
-
 
         
         //more likely to find closest in child than curent node.
@@ -308,18 +298,23 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
             }
         }
 
-        //Determine if we should handle this node or not.
-        match range.contains_ext(*blap.ray.point.get_axis(axis)){
-            core::cmp::Ordering::Less=>{
-                blap.should_recurse((axis,range.start))
-            },
-            core::cmp::Ordering::Greater=>{
-                blap.should_recurse((axis,range.end))
-            },
-            core::cmp::Ordering::Equal=>{
-                true
+        if let Some(range)=nn.cont{
+            //Determine if we should handle this node or not.
+            match range.contains_ext(*blap.ray.point.get_axis(axis)){
+                core::cmp::Ordering::Less=>{
+                    blap.should_recurse((axis,range.start))
+                },
+                core::cmp::Ordering::Greater=>{
+                    blap.should_recurse((axis,range.end))
+                },
+                core::cmp::Ordering::Equal=>{
+                    true
+                }
             }
+        }else{
+            false
         }
+        
     }else{
         true
     };
