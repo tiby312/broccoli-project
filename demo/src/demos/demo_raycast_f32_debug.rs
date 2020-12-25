@@ -15,6 +15,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
     let rect_save = rects.save(canvas);
 
     Demo::new(move |cursor, canvas, check_naive| {
+        /*
         let tree = tree.as_tree_mut();
 
         let ray: Ray<f32> = {
@@ -78,5 +79,6 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             .send_and_uniforms(canvas)
             .with_color([1., 1., 1., 0.2])
             .draw();
+            */
     })
 }

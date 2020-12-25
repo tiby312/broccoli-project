@@ -87,21 +87,19 @@ where
         assert_eq!(res_naive.len(), res_dino.len());
         assert!(res_naive.iter().eq(res_dino.iter()));
     }
-    fn assert_raycast_mut<'b, Acc>(
+    fn assert_raycast_mut<'b>(
         &'b mut self,
         ray: axgeom::Ray<Self::Num>,
-        acc: &mut Acc,
-        mut broad: impl FnMut(&mut Acc, &Ray<Self::Num>, &Rect<Self::Num>) -> CastResult<Self::Num>,
-        mut fine: impl FnMut(&mut Acc, &Ray<Self::Num>, &Self::T) -> CastResult<Self::Num>,
-        border: Rect<Self::Num>,
+        mut rtrait:&mut impl crate::query::RayCast<T=Self::T,N=Self::Num>
     ) where
         'a: 'b,
         Self::Num: core::fmt::Debug,
     {
+     
         let bots = self.get_underlying_slice_mut();
 
         let mut res_naive = Vec::new();
-        match NaiveAlgs::new(bots).raycast_mut(ray, acc, &mut broad, &mut fine, border) {
+        match NaiveAlgs::new(bots).raycast_mut(ray, rtrait) {
             axgeom::CastResult::Hit((bots, mag)) => {
                 for a in bots.into_iter() {
                     let r = *a.get();
@@ -115,7 +113,7 @@ where
         }
 
         let mut res_dino = Vec::new();
-        match self.raycast_mut(ray, acc, broad, fine, border) {
+        match self.raycast_mut(ray, rtrait) {
             axgeom::CastResult::Hit((bots, mag)) => {
                 for a in bots.into_iter() {
                     let r = *a.get();

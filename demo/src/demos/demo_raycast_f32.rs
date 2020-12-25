@@ -51,22 +51,50 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
                 let mut radius = radius;
 
+                struct Foo{
+                    radius:f32
+                }
+                impl broccoli::query::RayCast for Foo{
+                    type T=BBox<f32,Bot>;
+                    type N=f32;
+
+                    fn compute_distance_to_aaline<A:Axis>(&mut self,ray:&Ray<Self::N>,axis:A,val:Self::N)->axgeom::CastResult<Self::N>{
+                        ray.cast_to_aaline(axis,val)
+                    }
+                
+                
+                    ///Returns true if the ray intersects with this rectangle.
+                    ///This function allows as to prune which nodes to visit.
+                    fn compute_distance_to_rect(
+                        &mut self,
+                        ray: &Ray<Self::N>,
+                        a: &Rect<Self::N>,
+                    ) -> axgeom::CastResult<Self::N>{
+                        ray.cast_to_rect(a)
+                    }
+                
+                    ///The expensive collision detection
+                    ///This is where the user can do expensive collision detection on the shape
+                    ///contains within it's bounding box.
+                    ///Its default implementation just calls compute_distance_to_rect()
+                    fn compute_distance_to_bot(
+                        &mut self,
+                        ray: &Ray<Self::N>,
+                        a: &Self::T,
+                    ) -> axgeom::CastResult<Self::N> {
+                        ray.cast_to_circle(a.inner.center, self.radius)
+                    }
+                }
                 if check_naive {
                     tree.assert_raycast_mut(
                         ray,
-                        &mut radius,
-                        move |_r, ray, rect| ray.cast_to_rect(rect),
-                        move |r, ray, t| ray.cast_to_circle(t.inner.center, *r),
-                        dim,
+                        &mut Foo{radius}
                     );
                 }
 
                 let res = tree.raycast_mut(
                     ray,
-                    &mut radius,
-                    move |_r, ray, rect| ray.cast_to_rect(rect),
-                    move |r, ray, t| ray.cast_to_circle(t.inner.center, *r),
-                    dim,
+                    &mut Foo{radius}
                 );
 
                 let dis = match res {

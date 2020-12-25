@@ -354,6 +354,7 @@ pub trait Queries<'a> {
         rect::MultiRectMut::new(self.axis(), self.vistr_mut())
     }
 
+    /*
     /// Find the elements that are hit by a ray.
     ///
     /// The user supplies to functions:
@@ -418,19 +419,18 @@ pub trait Queries<'a> {
         let mut rtrait = raycast::RayCastClosure::new(acc, broad, fine);
         raycast::raycast_mut(self.axis(), self.vistr_mut(), border, ray, &mut rtrait)
     }
-
+*/
     /// Companion function to [`Queries::raycast_mut()`] for cases where the use wants to
     /// use the trait instead of closures.
-    fn raycast_trait_mut<'b, Acc, R: crate::query::RayCast<T = Self::T, N = Self::Num>>(
+    fn raycast_mut<'b, R: crate::query::RayCast<T = Self::T, N = Self::Num>>(
         &'b mut self,
         ray: axgeom::Ray<Self::Num>,
-        rtrait: R,
-        border: Rect<Self::Num>,
+        rtrait: &mut R,
     ) -> axgeom::CastResult<(Vec<PMut<'b, Self::T>>, Self::Num)>
     where
         'a: 'b,
     {
-        raycast::raycast_mut(self.axis(), self.vistr_mut(), border, ray, rtrait)
+        raycast::raycast_mut(self.axis(), self.vistr_mut(), ray, rtrait)
     }
 
     /// Find the closest `num` elements to the specified `point`.

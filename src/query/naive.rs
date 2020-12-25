@@ -5,6 +5,7 @@ pub struct NaiveAlgs<'a, T> {
 }
 
 impl<'a, T: Aabb> NaiveAlgs<'a, T> {
+    /*
     #[must_use]
     pub fn raycast_mut<Acc>(
         &mut self,
@@ -21,6 +22,10 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
             _p: PhantomData,
         };
         raycast::raycast_naive_mut(self.bots.borrow_mut(), ray, &mut rtrait, border)
+    }
+    */
+    pub fn raycast_mut(&mut self,ray:axgeom::Ray<T::Num>,rtrait: &mut impl crate::query::RayCast<T=T,N=T::Num>)-> axgeom::CastResult<(Vec<PMut<T>>, T::Num)>{
+        raycast::raycast_naive_mut(self.bots.borrow_mut(), ray, rtrait)
     }
 
     #[must_use]
