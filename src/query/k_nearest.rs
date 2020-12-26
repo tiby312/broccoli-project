@@ -34,12 +34,12 @@ pub trait Knearest {
         val: Self::N,
     ) -> Self::N;
 
-    fn distance_to_rect(&mut self, point: Vec2<Self::N>, rect: &Rect<Self::N>) -> Self::N;
+    fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Self::N;
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
-    fn distance_to_bot(&mut self, point: Vec2<Self::N>, bot: &Self::T) -> Self::N {
-        self.distance_to_rect(point, bot.get())
+    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
+        self.distance_to_broad(point, bot)
     }
 }
 
@@ -56,14 +56,14 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
         self.0.distance_to_aaline(point, axis, val)
     }
 
-    fn distance_to_rect(&mut self, point: Vec2<Self::N>, rect: &Rect<Self::N>) -> Self::N {
-        self.0.distance_to_rect(point, rect)
+    fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Self::N {
+        self.0.distance_to_broad(point, rect)
     }
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
-    fn distance_to_bot(&mut self, point: Vec2<Self::N>, bot: &Self::T) -> Self::N {
-        self.0.distance_to_bot(point, bot)
+    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
+        self.0.didstance_to_fine(point, bot)
     }
 }
 
@@ -80,8 +80,8 @@ pub struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
 impl<
         T: Aabb,
         Acc,
-        B: FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
-        C: FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
+        B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+        C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
         D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
         E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
     > KnearestClosure<T, Acc, B, C, D, E>
@@ -108,8 +108,8 @@ impl<
         'a,
         T: Aabb,
         Acc,
-        B: FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
-        C: FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
+        B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+        C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
         D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
         E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
     > Knearest for KnearestClosure<T, Acc, B, C, D, E>
@@ -130,11 +130,11 @@ impl<
         }
     }
 
-    fn distance_to_rect(&mut self, point: Vec2<Self::N>, rect: &Rect<Self::N>) -> Self::N {
+    fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Self::N {
         (self.broad)(&mut self.acc, point, rect)
     }
 
-    fn distance_to_bot(&mut self, point: Vec2<Self::N>, bot: &Self::T) -> Self::N {
+    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
         (self.fine)(&mut self.acc, point, bot)
     }
 }
@@ -172,9 +172,9 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         &mut self,
         point: &Vec2<K::N>,
         knear: &mut K,
-        curr_bot: PMut<'a, T>,
+        mut curr_bot: PMut<'a, T>,
     ) -> bool {
-        let long_dis = knear.distance_to_rect(*point, curr_bot.get());
+        let long_dis = knear.distance_to_broad(*point, curr_bot.borrow_mut());
 
         if self.curr_num == self.num {
             if let Some(l) = self.bots.last() {
@@ -184,7 +184,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
             }
         }
 
-        let curr_dis = knear.distance_to_bot(*point, &curr_bot);
+        let curr_dis = knear.didstance_to_fine(*point, curr_bot.borrow_mut());
 
         if self.curr_num < self.num {
             let arr = &mut self.bots;
@@ -326,7 +326,7 @@ fn recc<'a, 'b: 'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
 
     if handle_node {
         for bot in nn.into_range().iter_mut() {
-            //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
+            //let dis_sqr = blap.knear.didstance_to_fine(blap.point, bot.as_ref());
             blap.closest.consider(&blap.point, &mut blap.knear, bot);
         }
     }

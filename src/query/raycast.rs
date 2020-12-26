@@ -47,7 +47,7 @@ pub trait RayCast {
     type T: Aabb<Num = Self::N>;
     type N: Num;
 
-    fn compute_distance_to_aaline<A: Axis>(
+    fn cast_to_aaline<A: Axis>(
         &mut self,
         ray: &Ray<Self::N>,
         line: A,
@@ -56,23 +56,21 @@ pub trait RayCast {
 
     ///Returns true if the ray intersects with this rectangle.
     ///This function allows as to prune which nodes to visit.
-    fn compute_distance_to_rect(
+    fn cast_broad(
         &mut self,
         ray: &Ray<Self::N>,
-        a: &Rect<Self::N>,
+        a: PMut<Self::T>,
     ) -> axgeom::CastResult<Self::N>;
 
     ///The expensive collision detection
     ///This is where the user can do expensive collision detection on the shape
     ///contains within it's bounding box.
-    ///Its default implementation just calls compute_distance_to_rect()
-    fn compute_distance_to_bot(
+    ///Its default implementation just calls cast_broad()
+    fn cast_fine(
         &mut self,
         ray: &Ray<Self::N>,
-        a: &Self::T,
-    ) -> axgeom::CastResult<Self::N> {
-        self.compute_distance_to_rect(ray, a.get())
-    }
+        a: PMut<Self::T>,
+    ) -> axgeom::CastResult<Self::N>;
 }
 
 
@@ -90,8 +88,8 @@ pub struct RayCastClosure<T, A, B, C, D, E> {
 impl<
         T: Aabb,
         A,
-        B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
-        C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
+        B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
         D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     > RayCastClosure<T, A, B, C, D, E>
@@ -113,12 +111,28 @@ impl<
             yline,
         }
     }
+    pub fn new2(
+        acc: A,
+        broad: B,
+        fine: C,
+        xline: D,
+        yline: E,
+    ) -> RayCastClosure<T, A, B, C, D, E> {
+        RayCastClosure {
+            _p: PhantomData,
+            acc,
+            broad,
+            fine,
+            xline,
+            yline,
+        }
+    }
 }
 impl<
         T: Aabb,
         A,
-        B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
-        C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
+        B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
         D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     > RayCast for RayCastClosure< T, A, B, C, D, E>
@@ -126,7 +140,7 @@ impl<
     type T = T;
     type N = T::Num;
 
-    fn compute_distance_to_aaline<X: Axis>(
+    fn cast_to_aaline<X: Axis>(
         &mut self,
         ray: &Ray<Self::N>,
         line: X,
@@ -138,15 +152,15 @@ impl<
             (self.yline)(&mut self.acc, ray, val)
         }
     }
-    fn compute_distance_to_rect(
+    fn cast_broad(
         &mut self,
         ray: &Ray<Self::N>,
-        a: &Rect<Self::N>,
+        a: PMut<Self::T>,
     ) -> CastResult<Self::N> {
         (self.broad)(&mut self.acc, ray, a)
     }
 
-    fn compute_distance_to_bot(&mut self, ray: &Ray<Self::N>, a: &Self::T) -> CastResult<Self::N> {
+    fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> CastResult<Self::N> {
         (self.fine)(&mut self.acc, ray, a)
     }
 }
@@ -156,35 +170,35 @@ struct RayCastBorrow<'a, R>(&'a mut R);
 impl<'a, R: RayCast> RayCast for RayCastBorrow<'a, R> {
     type T = R::T;
     type N = R::N;
-    fn compute_distance_to_aaline<A: Axis>(
+    fn cast_to_aaline<A: Axis>(
         &mut self,
         ray: &Ray<Self::N>,
         line: A,
         val: Self::N,
     ) -> axgeom::CastResult<Self::N> {
-        self.0.compute_distance_to_aaline(ray, line, val)
+        self.0.cast_to_aaline(ray, line, val)
     }
 
     ///Returns true if the ray intersects with this rectangle.
     ///This function allows as to prune which nodes to visit.
-    fn compute_distance_to_rect(
+    fn cast_broad(
         &mut self,
         ray: &Ray<Self::N>,
-        a: &Rect<Self::N>,
+        a: PMut<Self::T>,
     ) -> axgeom::CastResult<Self::N> {
-        self.0.compute_distance_to_rect(ray, a)
+        self.0.cast_broad(ray, a)
     }
 
     ///The expensive collision detection
     ///This is where the user can do expensive collision detection on the shape
     ///contains within it's bounding box.
-    ///Its default implementation just calls compute_distance_to_rect()
-    fn compute_distance_to_bot(
+    ///Its default implementation just calls cast_broad()
+    fn cast_fine(
         &mut self,
         ray: &Ray<Self::N>,
-        a: &Self::T,
+        a: PMut<Self::T>,
     ) -> axgeom::CastResult<Self::N> {
-        self.0.compute_distance_to_bot(ray, a)
+        self.0.cast_fine(ray, a)
     }
 }
 
@@ -195,11 +209,11 @@ impl<'a, T: Aabb> Closest<'a, T> {
     fn consider<R: RayCast<N = T::Num, T = T>>(
         &mut self,
         ray: &Ray<T::Num>,
-        b: PMut<'a, T>,
+        mut b: PMut<'a, T>,
         raytrait: &mut R,
     ) {
         //first check if bounding box could possibly be a candidate.
-        let y = match raytrait.compute_distance_to_rect(ray, b.get()) {
+        let y = match raytrait.cast_broad(ray, b.borrow_mut()) {
             axgeom::CastResult::Hit(val) => val,
             axgeom::CastResult::NoHit => {
                 return;
@@ -220,7 +234,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
             }
         }
 
-        let x = match raytrait.compute_distance_to_bot(ray, &b) {
+        let x = match raytrait.cast_fine(ray, b.borrow_mut()) {
             axgeom::CastResult::Hit(val) => val,
             axgeom::CastResult::NoHit => {
                 return;
@@ -260,7 +274,7 @@ impl<'a, R: RayCast> Blap<'a, R> {
     fn should_recurse<A: Axis>(&mut self, line: (A, R::N)) -> bool {
         match self
             .rtrait
-            .compute_distance_to_aaline(&self.ray, line.0, line.1)
+            .cast_to_aaline(&self.ray, line.0, line.1)
         {
             axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
                 Some(dis) => {

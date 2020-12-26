@@ -23,10 +23,10 @@ fn main() {
     let mut knearest_stuff = broccoli::query::KnearestClosure::new(
         &tree,
         (),
-        |_, point, rect| rect.distance_squared_to_point(point).unwrap_or(0),
-        |_, point, bot| bot.inner.distance_squared_to_point(point),
-        |_, point, val| distance_squared(point.x,val),
-        |_, point, val| distance_squared(point.y,val),
+        |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
+        |_, point, a| a.inner.distance_squared_to_point(point),
+        |_, point, a| distance_squared(point.x,a),
+        |_, point, a| distance_squared(point.y,a),
     );
 
     let mut res = tree.k_nearest_mut(
