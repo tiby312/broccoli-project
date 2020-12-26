@@ -48,7 +48,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                     }
                 };
 
-                let mut handler=broccoli::query::raycast_from_closure(
+                let mut handler=broccoli::query::RayCastClosure::new(
                     tree,
                     radius,
                     |_, ray, rect| ray.cast_to_rect(rect),
