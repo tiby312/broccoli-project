@@ -19,6 +19,38 @@ fn create_bbox_mut<'a, N: Num, T>(
         .collect()
 }
 
+
+use broccoli::{node::*,Tree,query::*};
+pub fn default_raycast_handler_isize<
+    A:axgeom::Axis,
+    T>(tree:&Tree<A,BBox<isize,T>>)->impl RayCast<T=BBox<isize,T>,N=isize>{
+
+    RayCastClosure::new(
+        &tree,
+        (),
+        |_, ray, rect| ray.cast_to_rect(rect),
+        |_, ray, bot| ray.cast_to_rect(&bot.rect),
+        |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
+        |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
+    )
+}
+pub fn default_knearest_handler_isize<
+    A:axgeom::Axis,
+    T>(tree:&Tree<A,BBox<isize,T>>)->impl Knearest<T=BBox<isize,T>,N=isize>{
+    broccoli::query::KnearestClosure::new(
+        tree,
+        (),
+        |rects, point, rect| rect.distance_squared_to_point(point).unwrap_or(0),
+        |_, point, bot| bot.rect.distance_squared_to_point(point).unwrap_or(0),
+        |_, point, val| (point.x-val).abs()*(point.x-val).abs(),
+        |_, point, val| (point.y-val).abs()*(point.y-val).abs(),
+    )
+
+}
+
+
+
+
 #[test]
 fn test_tie_knearest() {
     use broccoli::*;
@@ -32,13 +64,11 @@ fn test_tie_knearest() {
 
     let mut tree = broccoli::container::TreeRef::new(&mut bots);
 
+    let mut handler=default_knearest_handler_isize(&tree);
     let mut res = tree.k_nearest_mut(
         vec2(15, 30),
         2,
-        &mut (),
-        |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
-        |(), a, b| b.rect.distance_squared_to_point(a).unwrap_or(0),
-        border,
+        &mut handler
     );
 
     assert_eq!(res.len(), 2);
@@ -51,10 +81,7 @@ fn test_tie_knearest() {
     tree.assert_k_nearest_mut(
         vec2(15, 30),
         2,
-        &mut (),
-        |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
-        |(), a, b| b.rect.distance_squared_to_point(a).unwrap_or(0),
-        border,
+        &mut default_knearest_handler_isize(&tree)
     );
 }
 
@@ -72,12 +99,10 @@ fn test_tie_raycast() {
         dir: vec2(-1, 0),
     };
 
+    let mut handler=default_raycast_handler_isize(&tree);
     let ans = tree.raycast_mut(
         ray,
-        &mut (),
-        move |_r, ray, rect| ray.cast_to_rect(rect),
-        move |_r, ray, t| ray.cast_to_rect(&t.rect),
-        dim,
+        &mut handler
     );
 
     match ans {
@@ -90,12 +115,10 @@ fn test_tie_raycast() {
         }
     }
 
+    let mut handler=default_raycast_handler_isize(&tree);
     tree.assert_raycast_mut(
         ray,
-        &mut (),
-        move |_r, ray, rect| ray.cast_to_rect(rect),
-        move |_r, ray, t| ray.cast_to_rect(&t.rect),
-        dim,
+        &mut handler
     );
 }
 

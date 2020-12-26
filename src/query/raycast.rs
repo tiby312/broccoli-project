@@ -75,6 +75,8 @@ pub trait RayCast {
     }
 }
 
+
+
 pub struct RayCastClosure<T, A, B, C, D, E> {
     _p: PhantomData<T>,
     acc: A,
