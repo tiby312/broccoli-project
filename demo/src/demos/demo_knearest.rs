@@ -50,14 +50,11 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         ];
 
         let mut rects = canvas.rects();
-        let mut knearest_stuff = broccoli::query::KnearestClosure::new(
+        let mut knearest_stuff = broccoli::query::KnearestClosure::from_tree(
             tree.as_tree(),
             &mut rects,
-            |rects, point, rect| {
-                rects.add(rect.into());
-                distance_to_rect(rect, point)
-            },
-            |_, point, bot| distance_to_rect(&bot.rect, point),
+            |rects, point, a| {rects.add(a.rect.into());distance_to_rect(&a.rect, point)},
+            |_, point, a| distance_to_rect(&a.rect, point),
             |_, point, val| distance_to_line(point, axgeom::XAXIS, val),
             |_, point, val| distance_to_line(point, axgeom::YAXIS, val),
         );

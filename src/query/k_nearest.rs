@@ -86,8 +86,26 @@ impl<
         E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
     > KnearestClosure<T, Acc, B, C, D, E>
 {
-    pub fn new<AA: Axis>(
+    //By passing a reference to the tree at construction,
+    //we can avoid explicit typing.
+    pub fn from_tree<AA: Axis>(
         _tree: &Tree<AA, T>,
+        acc: Acc,
+        broad: B,
+        fine: C,
+        xline: D,
+        yline: E,
+    ) -> Self {
+        KnearestClosure {
+            _p: PhantomData,
+            acc,
+            broad,
+            fine,
+            xline,
+            yline,
+        }
+    }
+    pub fn new(
         acc: Acc,
         broad: B,
         fine: C,

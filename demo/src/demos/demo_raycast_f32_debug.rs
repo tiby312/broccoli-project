@@ -31,56 +31,25 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             .with_color([0.0, 0.0, 0.0, 0.3])
             .draw();
 
-        struct Foo {
-            rects: egaku2d::shapes::RectSession,
-        }
-        impl broccoli::query::RayCast for Foo {
-            type T = BBox<f32, ()>;
-            type N = f32;
 
-            fn compute_distance_to_aaline<A: Axis>(
-                &mut self,
-                ray: &Ray<Self::N>,
-                axis: A,
-                val: Self::N,
-            ) -> axgeom::CastResult<Self::N> {
-                ray.cast_to_aaline(axis, val)
-            }
+        let mut rects = canvas.rects();
 
-            ///Returns true if the ray intersects with this rectangle.
-            ///This function allows as to prune which nodes to visit.
-            fn compute_distance_to_rect(
-                &mut self,
-                ray: &Ray<Self::N>,
-                a: &Rect<Self::N>,
-            ) -> axgeom::CastResult<Self::N> {
-                self.rects.add(a.into());
-                ray.cast_to_rect(a)
-            }
-
-            ///The expensive collision detection
-            ///This is where the user can do expensive collision detection on the shape
-            ///contains within it's bounding box.
-            ///Its default implementation just calls compute_distance_to_rect()
-            fn compute_distance_to_bot(
-                &mut self,
-                ray: &Ray<Self::N>,
-                a: &Self::T,
-            ) -> axgeom::CastResult<Self::N> {
-                ray.cast_to_rect(&a.rect)
-            }
-        }
-
-        let rects = canvas.rects();
-        let mut foo = Foo { rects };
+        let mut handler=broccoli::query::RayCastClosure::from_tree(
+            tree,
+            &mut rects,
+            |rects, ray, a| {rects.add(a.rect.into());ray.cast_to_rect(&a.rect)},
+            |_, ray, a| ray.cast_to_rect(&a.rect),
+            |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
+            |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
+        );
 
         if check_naive {
-            tree.assert_raycast_mut(ray, &mut foo);
+            tree.assert_raycast_mut(ray, &mut handler);
         }
 
         let test = {
-            let test = tree.raycast_mut(ray, &mut foo);
-            foo.rects
+            let test = tree.raycast_mut(ray, &mut handler);
+            rects
                 .send_and_uniforms(canvas)
                 .with_color([4.0, 0.0, 0.0, 0.4])
                 .draw();

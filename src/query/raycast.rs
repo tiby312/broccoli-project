@@ -94,8 +94,11 @@ impl<
         E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     > RayCastClosure<T, A, B, C, D, E>
 {
-    pub fn new<AA: Axis>(
-        _tree: &Tree<AA, T>,
+    
+    //By passing a reference to the tree at construction,
+    //we can avoid explicit typing.
+    pub fn from_tree<AA: Axis>(
+        _tree:&Tree<AA,T>,
         acc: A,
         broad: B,
         fine: C,
@@ -111,7 +114,8 @@ impl<
             yline,
         }
     }
-    pub fn new2(
+
+    pub fn new(
         acc: A,
         broad: B,
         fine: C,
