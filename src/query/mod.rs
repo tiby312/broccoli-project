@@ -31,14 +31,15 @@ mod graphics;
 ///Contains all k_nearest code.
 mod k_nearest;
 pub use k_nearest::Knearest;
-//pub use k_nearest::KnearestClosure;
+pub use k_nearest::KnearestClosure;
 pub use k_nearest::KResult;
 pub use k_nearest::KnearestResult;
 
 ///Contains all raycast code.
 mod raycast;
-//pub use raycast::RayCastClosure;
+pub use raycast::RayCastClosure;
 pub use raycast::RayCast;
+
 
 ///Allows user to intersect the tree with a seperate group of bots.
 mod intersect_with;
@@ -405,21 +406,24 @@ pub trait Queries<'a> {
     /// assert_eq!(bots[0].inner,vec2(5,5));
     ///```
     #[must_use]
-    fn raycast_mut<'b, Acc>(
+    fn raycast_closure_mut<'b, Acc>(
         &'b mut self,
         ray: axgeom::Ray<Self::Num>,
         acc: &mut Acc,
         broad: impl FnMut(&mut Acc, &Ray<Self::Num>, &Rect<Self::Num>) -> CastResult<Self::Num>,
         fine: impl FnMut(&mut Acc, &Ray<Self::Num>, &Self::T) -> CastResult<Self::Num>,
-        border: Rect<Self::Num>,
+        xline: impl FnMut(&mut Acc,&Ray<Self::Num>,Self::Num)->CastResult<Self::Num>,
+        yline: impl FnMut(&mut Acc,&Ray<Self::Num>,Self::Num)->CastResult<Self::Num>
     ) -> axgeom::CastResult<(Vec<PMut<'b, Self::T>>, Self::Num)>
     where
         'a: 'b,
     {
-        let mut rtrait = raycast::RayCastClosure::new(acc, broad, fine);
-        raycast::raycast_mut(self.axis(), self.vistr_mut(), border, ray, &mut rtrait)
-    }
-*/
+
+
+        let mut rtrait = RayCastClosure{acc, broad, fine,xline,yline,_p:PhantomData};
+        raycast::raycast_mut(self.axis(), self.vistr_mut(), ray, &mut rtrait)
+    }*/
+
     /// Companion function to [`Queries::raycast_mut()`] for cases where the use wants to
     /// use the trait instead of closures.
     fn raycast_mut<'b, R: crate::query::RayCast<T = Self::T, N = Self::Num>>(

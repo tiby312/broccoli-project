@@ -2,6 +2,10 @@ use crate::support::prelude::*;
 
 
 
+fn distance_to_line(point:Vec2<f32>,axis:impl Axis,val:f32)->f32{
+    let dis=(val-*point.get_axis(axis)).abs();
+    dis*dis
+}
 fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
     let dis = rect.distance_squared_to_point(point);
     let dis = match dis {
@@ -52,42 +56,35 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             [0.0, 0.0, 1.0, 0.6], //blue third closets
         ];
 
-        struct Foo{
-            rects:egaku2d::shapes::RectSession,
-        }
-        impl broccoli::query::Knearest for Foo{
-            type T=BBox<f32,()>;
-            type N=f32;
-
-            fn distance_to_aaline<A:Axis>(&mut self,point:Vec2<f32>,axis:A,val:f32)->f32{
-                let dis=(val-*point.get_axis(axis)).abs();
-                dis*dis
-            }
-
-            fn distance_to_rect(&mut self, point: Vec2<Self::N>, rect: &Rect<Self::N>) -> Self::N{
-                self.rects.add(rect.into());
-                distance_to_rect(rect,point)
-            }
-        }
         
-        let rects=canvas.rects();
-
-        let mut foo=Foo{rects};
+        let mut rects=canvas.rects();
+        let mut knearest_stuff=broccoli::query::KnearestClosure::new(
+            tree.as_tree(),
+            &mut rects,
+            |rects,point,rect|{
+                rects.add(rect.into());
+                distance_to_rect(rect,point)
+            },
+            |_,point,bot|distance_to_rect(&bot.rect,point),
+            |_,point,val|distance_to_line(point,axgeom::XAXIS,val),
+            |_,point,val|distance_to_line(point,axgeom::YAXIS,val),
+        );
 
         let tree=tree.as_tree_mut();
         if check_naive {
+            
             tree.assert_k_nearest_mut(
                 cursor,
                 3,
-                &mut foo
+                &mut knearest_stuff
             );
         }
         
           
         let mut vv = {
            
-            let k = tree.k_nearest_mut(cursor,3,&mut foo);
-            foo.rects
+            let k = tree.k_nearest_mut(cursor,3,&mut knearest_stuff);
+            rects
                 .send_and_uniforms(canvas)
                 .with_color([1.0, 1.0, 0.0, 0.3])
                 .draw();

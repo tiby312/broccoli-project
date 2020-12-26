@@ -71,6 +71,64 @@ pub trait RayCast {
     }
 }
 
+
+pub struct RayCastClosure<'a,T, A, B, C, D,E> {
+    _p: PhantomData<T>,
+    acc: &'a mut A,
+    broad: B,
+    fine: C,
+    xline:D,
+    yline:E,
+}
+
+impl<'a,
+        T: Aabb,
+        A,
+        B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
+        C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
+        D: FnMut(&mut A, &Ray<T::Num>, T::Num )->CastResult<T::Num>,
+        E: FnMut(&mut A, &Ray<T::Num>, T::Num )->CastResult<T::Num>,
+        
+    > RayCastClosure<'a, T,A, B, C, D,E>
+{
+    pub fn new<AA:Axis>(_tree:&Tree<AA,T>,acc:&'a mut A,broad:B,fine:C,xline:D,yline:E)->RayCastClosure<'a,T,A,B,C,D,E>{
+        RayCastClosure{_p:PhantomData,acc,broad,fine,xline,yline}
+    }
+}
+impl<
+        T:Aabb,
+        A,
+        B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
+        C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
+        D: FnMut(&mut A, &Ray<T::Num>, T::Num )->CastResult<T::Num>,
+        E: FnMut(&mut A, &Ray<T::Num>, T::Num )->CastResult<T::Num>,
+    > RayCast for RayCastClosure<'_, T,A, B, C, D,E>
+{
+    type T = T;
+    type N = T::Num;
+
+    fn compute_distance_to_aaline<X:Axis>(&mut self,ray: &Ray<Self::N>,line:X,val:Self::N)->axgeom::CastResult<Self::N>{
+        if line.is_xaxis(){
+            (self.xline)(self.acc,ray,val)
+        }else{
+            (self.yline)(self.acc,ray,val)
+        }
+    }
+    fn compute_distance_to_rect(
+        &mut self,
+        ray: &Ray<Self::N>,
+        a: &Rect<Self::N>,
+    ) -> CastResult<Self::N> {
+        (self.broad)(self.acc, ray, a)
+    }
+
+    fn compute_distance_to_bot(&mut self, ray: &Ray<Self::N>, a: &Self::T) -> CastResult<Self::N> {
+        (self.fine)(self.acc, ray, a)
+    }
+}
+
+
+
 struct RayCastBorrow<'a,R>(&'a mut R);
 
 impl<'a,R:RayCast> RayCast for RayCastBorrow<'a, R>{

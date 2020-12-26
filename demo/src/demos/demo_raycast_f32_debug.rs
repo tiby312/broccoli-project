@@ -73,6 +73,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         let mut foo=Foo{rects};
         
         if check_naive {
+            
             tree.assert_raycast_mut(
                 ray,
                 &mut foo
