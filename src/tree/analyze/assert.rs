@@ -1,5 +1,3 @@
-
-
 /// Functions that panic if a disconnect between query results is detected
 /// between `broccoli::Tree` and the naive equivalent.
 pub trait NaiveCheck<'a, K>: core::ops::DerefMut<Target = K>
@@ -92,11 +90,10 @@ where
     fn assert_raycast_mut(
         &mut self,
         ray: axgeom::Ray<Self::Num>,
-        rtrait:&mut impl crate::query::RayCast<T=Self::T,N=Self::Num>
-    ) 
-        where Self::Num: core::fmt::Debug,
+        rtrait: &mut impl crate::query::RayCast<T = Self::T, N = Self::Num>,
+    ) where
+        Self::Num: core::fmt::Debug,
     {
-     
         let bots = self.get_underlying_slice_mut();
 
         let mut res_naive = Vec::new();
@@ -149,7 +146,7 @@ where
         &'v mut self,
         point: Vec2<Self::Num>,
         num: usize,
-        knear:&'v mut impl Knearest<T=Self::T,N=Self::Num>
+        knear: &'v mut impl Knearest<T = Self::T, N = Self::Num>,
     ) {
         let bots = self.get_underlying_slice_mut();
 

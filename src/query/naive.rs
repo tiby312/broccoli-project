@@ -24,16 +24,19 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
         raycast::raycast_naive_mut(self.bots.borrow_mut(), ray, &mut rtrait, border)
     }
     */
-    pub fn raycast_mut(&mut self,ray:axgeom::Ray<T::Num>,rtrait: &mut impl crate::query::RayCast<T=T,N=T::Num>)-> axgeom::CastResult<(Vec<PMut<T>>, T::Num)>{
+    pub fn raycast_mut(
+        &mut self,
+        ray: axgeom::Ray<T::Num>,
+        rtrait: &mut impl crate::query::RayCast<T = T, N = T::Num>,
+    ) -> axgeom::CastResult<(Vec<PMut<T>>, T::Num)> {
         raycast::raycast_naive_mut(self.bots.borrow_mut(), ray, rtrait)
     }
-
 
     pub fn k_nearest_mut<'b, K: query::Knearest<T = T, N = T::Num>>(
         &'b mut self,
         point: Vec2<T::Num>,
         num: usize,
-        ktrait: &mut K
+        ktrait: &mut K,
     ) -> KResult<T>
     where
         'a: 'b,

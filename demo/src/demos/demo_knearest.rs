@@ -1,10 +1,8 @@
 use crate::support::prelude::*;
 
-
-
-fn distance_to_line(point:Vec2<f32>,axis:impl Axis,val:f32)->f32{
-    let dis=(val-*point.get_axis(axis)).abs();
-    dis*dis
+fn distance_to_line(point: Vec2<f32>, axis: impl Axis, val: f32) -> f32 {
+    let dis = (val - *point.get_axis(axis)).abs();
+    dis * dis
 }
 fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
     let dis = rect.distance_squared_to_point(point);
@@ -34,9 +32,7 @@ fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
 }
 
 pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
-    let bots =
-        support::make_rand_rect(2000, dim, [1.0, 4.0], |a| bbox(a,())).into_boxed_slice();
-
+    let bots = support::make_rand_rect(2000, dim, [1.0, 4.0], |a| bbox(a, ())).into_boxed_slice();
 
     let mut rects = canvas.rects();
     for bot in bots.iter() {
@@ -47,43 +43,32 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
     let mut tree = broccoli::container::TreeOwned::new(bots);
 
     Demo::new(move |cursor, canvas, check_naive| {
-        
-        
-        
         let cols = [
             [1.0, 0.0, 0.0, 0.6], //red closest
             [0.0, 1.0, 0.0, 0.6], //green second closest
             [0.0, 0.0, 1.0, 0.6], //blue third closets
         ];
 
-        
-        let mut rects=canvas.rects();
-        let mut knearest_stuff=broccoli::query::KnearestClosure::new(
+        let mut rects = canvas.rects();
+        let mut knearest_stuff = broccoli::query::KnearestClosure::new(
             tree.as_tree(),
             &mut rects,
-            |rects,point,rect|{
+            |rects, point, rect| {
                 rects.add(rect.into());
-                distance_to_rect(rect,point)
+                distance_to_rect(rect, point)
             },
-            |_,point,bot|distance_to_rect(&bot.rect,point),
-            |_,point,val|distance_to_line(point,axgeom::XAXIS,val),
-            |_,point,val|distance_to_line(point,axgeom::YAXIS,val),
+            |_, point, bot| distance_to_rect(&bot.rect, point),
+            |_, point, val| distance_to_line(point, axgeom::XAXIS, val),
+            |_, point, val| distance_to_line(point, axgeom::YAXIS, val),
         );
 
-        let tree=tree.as_tree_mut();
+        let tree = tree.as_tree_mut();
         if check_naive {
-            
-            tree.assert_k_nearest_mut(
-                cursor,
-                3,
-                &mut knearest_stuff
-            );
+            tree.assert_k_nearest_mut(cursor, 3, &mut knearest_stuff);
         }
-        
-          
+
         let mut vv = {
-           
-            let k = tree.k_nearest_mut(cursor,3,&mut knearest_stuff);
+            let k = tree.k_nearest_mut(cursor, 3, &mut knearest_stuff);
             rects
                 .send_and_uniforms(canvas)
                 .with_color([1.0, 1.0, 0.0, 0.3])

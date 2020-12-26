@@ -30,16 +30,15 @@ mod graphics;
 
 ///Contains all k_nearest code.
 mod k_nearest;
+pub use k_nearest::KResult;
 pub use k_nearest::Knearest;
 pub use k_nearest::KnearestClosure;
-pub use k_nearest::KResult;
 pub use k_nearest::KnearestResult;
 
 ///Contains all raycast code.
 mod raycast;
-pub use raycast::RayCastClosure;
 pub use raycast::RayCast;
-
+pub use raycast::RayCastClosure;
 
 ///Allows user to intersect the tree with a seperate group of bots.
 mod intersect_with;
@@ -366,7 +365,7 @@ pub trait Queries<'a> {
     /// `broad` is a function that returns the length of a ray cast to
     /// a axis aligned rectangle. This function
     /// is used as a conservative estimate to prune out elements which minimizes
-    /// how often the `fine` function gets called.  
+    /// how often the `fine` function gets called.
     ///
     /// `border` is the starting axis axis aligned rectangle to use. This
     /// rectangle will be split up and used to prune candidated. All candidate elements
@@ -437,83 +436,83 @@ pub trait Queries<'a> {
         raycast::raycast_mut(self.axis(), self.vistr_mut(), ray, rtrait)
     }
 
-/*
-    /// Find the closest `num` elements to the specified `point`.
-    /// The user provides two functions:
-    ///
-    /// * `fine` is a function that gives the true distance between the `point`
-    /// and the specified tree element.
-    ///
-    /// * `broad` is a function that gives the distance between the `point`
-    /// and the closest point of a axis aligned rectangle. This function
-    /// is used as a conservative estimate to prune out elements which minimizes
-    /// how often the `fine` function gets called.  
-    ///
-    /// `border` is the starting axis axis aligned rectangle to use. This
-    /// rectangle will be split up and used to prune candidated. All candidate elements
-    /// should be within this starting rectangle.
-    ///  
-    /// The result is returned as one `Vec`. The closest elements will
-    /// appear first. Multiple elements can be returned
-    /// with the same distance in the event of ties. These groups of elements are seperated by
-    /// one entry of `Option::None`. In order to iterate over each group,
-    /// try using the slice function: `arr.split(|a| a.is_none())`
-    ///
-    /// `acc` is a user defined object that is passed to every call to either
-    /// the `fine` or `broad` functions.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// use axgeom::vec2;
-    ///
-    /// let mut inner1=vec2(5,5);
-    /// let mut inner2=vec2(3,3);
-    /// let mut inner3=vec2(7,7);
-    ///
-    /// let mut bots = [bbox(rect(0,10,0,10),&mut inner1),
-    ///               bbox(rect(2,4,2,4),&mut inner2),
-    ///               bbox(rect(6,8,6,8),&mut inner3)];
-    ///
-    /// let border = broccoli::rect(0, 100, 0, 100);
-    ///
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// let mut res = tree.k_nearest_mut(
-    ///       vec2(30, 30),
-    ///       2,
-    ///       &mut (),
-    ///       |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
-    ///       |(), a, b| b.inner.distance_squared_to_point(a),
-    ///       border,
-    /// );
-    ///
-    /// assert_eq!(res.len(),2);
-    /// assert_eq!(res.total_len(),2);
-    ///
-    /// let foo:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
-    ///
-    /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)])
-    ///```
-    #[must_use]
-    fn k_nearest_mut<'b, Acc>(
-        &'b mut self,
-        point: Vec2<Self::Num>,
-        num: usize,
-        acc: &mut Acc,
-        broad: impl FnMut(&mut Acc, Vec2<Self::Num>, &Rect<Self::Num>) -> Self::Num,
-        fine: impl FnMut(&mut Acc, Vec2<Self::Num>, &Self::T) -> Self::Num,
-        border: Rect<Self::Num>,
-    ) -> KResult<Self::T>
-    where
-        'a: 'b,
-    {
-        let mut foo = k_nearest::KnearestClosure::new(acc, broad, fine);
+    /*
+        /// Find the closest `num` elements to the specified `point`.
+        /// The user provides two functions:
+        ///
+        /// * `fine` is a function that gives the true distance between the `point`
+        /// and the specified tree element.
+        ///
+        /// * `broad` is a function that gives the distance between the `point`
+        /// and the closest point of a axis aligned rectangle. This function
+        /// is used as a conservative estimate to prune out elements which minimizes
+        /// how often the `fine` function gets called.
+        ///
+        /// `border` is the starting axis axis aligned rectangle to use. This
+        /// rectangle will be split up and used to prune candidated. All candidate elements
+        /// should be within this starting rectangle.
+        ///
+        /// The result is returned as one `Vec`. The closest elements will
+        /// appear first. Multiple elements can be returned
+        /// with the same distance in the event of ties. These groups of elements are seperated by
+        /// one entry of `Option::None`. In order to iterate over each group,
+        /// try using the slice function: `arr.split(|a| a.is_none())`
+        ///
+        /// `acc` is a user defined object that is passed to every call to either
+        /// the `fine` or `broad` functions.
+        ///
+        /// # Examples
+        ///
+        ///```
+        /// use broccoli::{prelude::*,bbox,rect};
+        /// use axgeom::vec2;
+        ///
+        /// let mut inner1=vec2(5,5);
+        /// let mut inner2=vec2(3,3);
+        /// let mut inner3=vec2(7,7);
+        ///
+        /// let mut bots = [bbox(rect(0,10,0,10),&mut inner1),
+        ///               bbox(rect(2,4,2,4),&mut inner2),
+        ///               bbox(rect(6,8,6,8),&mut inner3)];
+        ///
+        /// let border = broccoli::rect(0, 100, 0, 100);
+        ///
+        /// let mut tree = broccoli::new(&mut bots);
+        ///
+        /// let mut res = tree.k_nearest_mut(
+        ///       vec2(30, 30),
+        ///       2,
+        ///       &mut (),
+        ///       |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
+        ///       |(), a, b| b.inner.distance_squared_to_point(a),
+        ///       border,
+        /// );
+        ///
+        /// assert_eq!(res.len(),2);
+        /// assert_eq!(res.total_len(),2);
+        ///
+        /// let foo:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
+        ///
+        /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)])
+        ///```
+        #[must_use]
+        fn k_nearest_mut<'b, Acc>(
+            &'b mut self,
+            point: Vec2<Self::Num>,
+            num: usize,
+            acc: &mut Acc,
+            broad: impl FnMut(&mut Acc, Vec2<Self::Num>, &Rect<Self::Num>) -> Self::Num,
+            fine: impl FnMut(&mut Acc, Vec2<Self::Num>, &Self::T) -> Self::Num,
+            border: Rect<Self::Num>,
+        ) -> KResult<Self::T>
+        where
+            'a: 'b,
+        {
+            let mut foo = k_nearest::KnearestClosure::new(acc, broad, fine);
 
-        k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, &mut foo, border)
-    }
-*/
+            k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, &mut foo, border)
+        }
+    */
     /// Companion function to [`Queries::k_nearest_mut()`] for cases where the use wants to
     /// use the trait instead of closures.
     #[must_use]
@@ -521,7 +520,7 @@ pub trait Queries<'a> {
         &'b mut self,
         point: Vec2<Self::Num>,
         num: usize,
-        ktrait: &mut K
+        ktrait: &mut K,
     ) -> KResult<Self::T>
     where
         'a: 'b,
