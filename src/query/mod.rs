@@ -38,7 +38,8 @@ pub use k_nearest::KnearestResult;
 ///Contains all raycast code.
 mod raycast;
 pub use raycast::RayCast;
-pub use raycast::RayCastClosure;
+pub use raycast::raycast_from_closure;
+//pub use raycast::RayCastClosure;
 
 ///Allows user to intersect the tree with a seperate group of bots.
 mod intersect_with;
