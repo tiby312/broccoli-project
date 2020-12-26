@@ -67,27 +67,28 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
     }
 }
 
-pub struct KnearestClosure<'a, T: Aabb, Acc, B, C, D, E> {
+
+pub struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
     pub _p: PhantomData<T>,
-    pub acc: &'a mut Acc,
+    pub acc: Acc,
     pub broad: B,
     pub fine: C,
     pub xline: D,
     pub yline: E,
 }
+
 impl<
-        'a,
         T: Aabb,
         Acc,
         B: FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
         C: FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
         D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
         E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    > KnearestClosure<'a, T, Acc, B, C, D, E>
+    > KnearestClosure<T, Acc, B, C, D, E>
 {
     pub fn new<AA: Axis>(
         _tree: &Tree<AA, T>,
-        acc: &'a mut Acc,
+        acc: Acc,
         broad: B,
         fine: C,
         xline: D,
@@ -111,7 +112,7 @@ impl<
         C: FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
         D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
         E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    > Knearest for KnearestClosure<'a, T, Acc, B, C, D, E>
+    > Knearest for KnearestClosure<T, Acc, B, C, D, E>
 {
     type T = T;
     type N = T::Num;
@@ -123,18 +124,18 @@ impl<
         val: Self::N,
     ) -> Self::N {
         if axis.is_xaxis() {
-            (self.xline)(self.acc, point, val)
+            (self.xline)(&mut self.acc, point, val)
         } else {
-            (self.yline)(self.acc, point, val)
+            (self.yline)(&mut self.acc, point, val)
         }
     }
 
     fn distance_to_rect(&mut self, point: Vec2<Self::N>, rect: &Rect<Self::N>) -> Self::N {
-        (self.broad)(self.acc, point, rect)
+        (self.broad)(&mut self.acc, point, rect)
     }
 
     fn distance_to_bot(&mut self, point: Vec2<Self::N>, bot: &Self::T) -> Self::N {
-        (self.fine)(self.acc, point, bot)
+        (self.fine)(&mut self.acc, point, bot)
     }
 }
 

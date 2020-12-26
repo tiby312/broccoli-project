@@ -1,6 +1,11 @@
 use axgeom::vec2;
 use broccoli::{bbox, prelude::*, rect};
 
+fn distance_squared(a:isize,b:isize)->isize{
+    let a=(a-b).abs();
+    a*a
+}
+
 fn main() {
     let mut inner1 = vec2(5, 5);
     let mut inner2 = vec2(3, 3);
@@ -12,17 +17,22 @@ fn main() {
         bbox(rect(6, 8, 6, 8), &mut inner3),
     ];
 
-    let border = broccoli::rect(0, 100, 0, 100);
 
     let mut tree = broccoli::new(&mut bots);
+
+    let mut knearest_stuff = broccoli::query::KnearestClosure::new(
+        &tree,
+        (),
+        |_, point, rect| rect.distance_squared_to_point(point).unwrap_or(0),
+        |_, point, bot| bot.inner.distance_squared_to_point(point),
+        |_, point, val| distance_squared(point.x,val),
+        |_, point, val| distance_squared(point.y,val),
+    );
 
     let mut res = tree.k_nearest_mut(
         vec2(30, 30),
         2,
-        &mut (),
-        |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
-        |(), a, b| b.inner.distance_squared_to_point(a),
-        border,
+       &mut knearest_stuff
     );
     assert_eq!(res.len(), 2);
     assert_eq!(res.total_len(), 2);
