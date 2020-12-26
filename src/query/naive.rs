@@ -28,6 +28,19 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
         raycast::raycast_naive_mut(self.bots.borrow_mut(), ray, rtrait)
     }
 
+
+    pub fn k_nearest_mut<'b, K: query::Knearest<T = T, N = T::Num>>(
+        &'b mut self,
+        point: Vec2<T::Num>,
+        num: usize,
+        ktrait: &mut K
+    ) -> KResult<T>
+    where
+        'a: 'b,
+    {
+        k_nearest::k_nearest_naive_mut(self.bots.borrow_mut(), point, num, ktrait)
+    }
+    /*
     #[must_use]
     pub fn k_nearest_mut<Acc>(
         &mut self,
@@ -45,6 +58,7 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
         };
         k_nearest::k_nearest_naive_mut(self.bots.borrow_mut(), point, num, &mut knear)
     }
+    */
 }
 
 impl<'a, T: Aabb> NaiveAlgs<'a, T> {

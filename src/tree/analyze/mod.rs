@@ -14,7 +14,7 @@ pub const fn default_axis() -> YAXIS {
 }
 
 pub use assert::NaiveCheck;
-mod assert;
+pub mod assert;
 
 mod oned;
 

@@ -1,3 +1,5 @@
+
+
 /// Functions that panic if a disconnect between query results is detected
 /// between `broccoli::Tree` and the naive equivalent.
 pub trait NaiveCheck<'a, K>: core::ops::DerefMut<Target = K>
@@ -87,13 +89,12 @@ where
         assert_eq!(res_naive.len(), res_dino.len());
         assert!(res_naive.iter().eq(res_dino.iter()));
     }
-    fn assert_raycast_mut<'b>(
-        &'b mut self,
+    fn assert_raycast_mut(
+        &mut self,
         ray: axgeom::Ray<Self::Num>,
-        mut rtrait:&mut impl crate::query::RayCast<T=Self::T,N=Self::Num>
-    ) where
-        'a: 'b,
-        Self::Num: core::fmt::Debug,
+        rtrait:&mut impl crate::query::RayCast<T=Self::T,N=Self::Num>
+    ) 
+        where Self::Num: core::fmt::Debug,
     {
      
         let bots = self.get_underlying_slice_mut();
@@ -144,25 +145,22 @@ where
         );
     }
 
-    fn assert_k_nearest_mut<Acc>(
-        &mut self,
+    fn assert_k_nearest_mut<'v>(
+        &'v mut self,
         point: Vec2<Self::Num>,
         num: usize,
-        acc: &mut Acc,
-        mut broad: impl FnMut(&mut Acc, Vec2<Self::Num>, &Rect<Self::Num>) -> Self::Num,
-        mut fine: impl FnMut(&mut Acc, Vec2<Self::Num>, &Self::T) -> Self::Num,
-        border: Rect<Self::Num>,
+        knear:&'v mut impl Knearest<T=Self::T,N=Self::Num>
     ) {
         let bots = self.get_underlying_slice_mut();
 
         let mut res_naive = NaiveAlgs::new(bots)
-            .k_nearest_mut(point, num, acc, &mut broad, &mut fine)
+            .k_nearest_mut(point, num, knear)
             .into_vec()
             .drain(..)
             .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
             .collect::<Vec<_>>();
 
-        let r = self.k_nearest_mut(point, num, acc, broad, fine, border);
+        let r = self.k_nearest_mut(point, num, knear);
         let mut res_dino: Vec<_> = r
             .into_vec()
             .drain(..)

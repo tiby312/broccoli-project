@@ -22,51 +22,13 @@
 use crate::query::inner_prelude::*;
 use core::cmp::Ordering;
 
-pub struct KnearestClosure<'a, Acc, B, F, T: Aabb> {
-    pub acc: &'a mut Acc,
-    pub broad: B,
-    pub fine: F,
-    pub _p: PhantomData<T>,
-}
-impl<
-        'a,
-        Acc,
-        B: FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
-        F: FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
-        T: Aabb,
-    > KnearestClosure<'a, Acc, B, F, T>
-{
-    pub fn new(acc: &'a mut Acc, broad: B, fine: F) -> Self {
-        KnearestClosure {
-            acc,
-            broad,
-            fine,
-            _p: PhantomData,
-        }
-    }
-}
-impl<
-        Acc,
-        B: FnMut(&mut Acc, Vec2<T::Num>, &Rect<T::Num>) -> T::Num,
-        F: FnMut(&mut Acc, Vec2<T::Num>, &T) -> T::Num,
-        T: Aabb,
-    > Knearest for &mut KnearestClosure<'_, Acc, B, F, T>
-{
-    type T = T;
-    type N = T::Num;
-    fn distance_to_rect(&mut self, point: Vec2<Self::N>, rect: &Rect<Self::N>) -> Self::N {
-        (self.broad)(self.acc, point, rect)
-    }
-
-    fn distance_to_bot(&mut self, point: Vec2<Self::N>, bot: &Self::T) -> Self::N {
-        (self.fine)(self.acc, point, bot)
-    }
-}
 
 ///The geometric functions that the user must provide.
 pub trait Knearest {
     type T: Aabb<Num = Self::N>;
     type N: Num;
+
+    fn distance_to_aaline<A:Axis>(&mut self,point:Vec2<Self::N>,axis:A,val:Self::N)->Self::N;
 
     fn distance_to_rect(&mut self, point: Vec2<Self::N>, rect: &Rect<Self::N>) -> Self::N;
 
@@ -77,24 +39,27 @@ pub trait Knearest {
     }
 }
 
-fn make_rect_from_range<A: Axis, N: Num>(axis: A, range: &Range<N>, rect: &Rect<N>) -> Rect<N> {
-    if axis.is_xaxis() {
-        Rect {
-            x: *range,
-            y: rect.y,
-        }
-    } else {
-        Rect {
-            x: rect.x,
-            y: *range,
-        }
+struct KnearestBorrow<'a,K>(&'a mut K);
+impl<'a,K:Knearest> Knearest for KnearestBorrow<'a,K>{
+    type T=K::T;
+    type N=K::N;
+    fn distance_to_aaline<A:Axis>(&mut self,point:Vec2<Self::N>,axis:A,val:Self::N)->Self::N{
+        self.0.distance_to_aaline(point,axis,val)
+    }
+
+    fn distance_to_rect(&mut self, point: Vec2<Self::N>, rect: &Rect<Self::N>) -> Self::N{
+        self.0.distance_to_rect(point,rect)
+    }
+
+    ///User defined expensive distance function. Here the user can return fine-grained distance
+    ///of the shape contained in T instead of its bounding box.
+    fn distance_to_bot(&mut self, point: Vec2<Self::N>, bot: &Self::T) -> Self::N {
+        self.0.distance_to_bot(point, bot)
     }
 }
 
-fn range_side<N: Num>(point: Vec2<N>, axis: impl axgeom::Axis, range: &Range<N>) -> Ordering {
-    let v = if axis.is_xaxis() { point.x } else { point.y };
-    range.contains_ext(v)
-}
+
+
 
 /// Returned by k_nearest_mut
 #[derive(Debug)]
@@ -133,6 +98,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
     ) -> bool {
         let long_dis = knear.distance_to_rect(*point, curr_bot.get());
 
+        
         if self.curr_num == self.num {
             if let Some(l) = self.bots.last() {
                 if long_dis > l.mag {
@@ -140,6 +106,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
                 }
             }
         }
+        
 
         let curr_dis = knear.distance_to_bot(*point, &curr_bot);
 
@@ -227,99 +194,86 @@ struct Blap<'a, K: Knearest> {
 }
 
 impl<'a, K: Knearest> Blap<'a, K> {
-    fn should_traverse_rect(&mut self, rect: &Rect<K::N>) -> bool {
-        if let Some(dis) = self.closest.full_and_max_distance() {
-            self.knear.distance_to_rect(self.point, rect) < dis
-        } else {
+    fn should_recurse<A:Axis>(&mut self, line:(A,K::N)) -> bool {
+        
+        
+        if let Some(m)=self.closest.full_and_max_distance(){
+            let dis=self.knear.distance_to_aaline(self.point,line.0,line.1);
+        
+            dis<m //TODO double check
+        }else{
             true
         }
+        
     }
 }
 
 fn recc<'a, 'b: 'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
     axis: A,
     stuff: LevelIter<VistrMut<'a, Node<'b, T>>>,
-    rect: Rect<K::N>,
     blap: &mut Blap<'a, K>,
 ) {
     let ((_depth, nn), rest) = stuff.next();
     //let nn = nn.get_mut();
-    match rest {
+    let handle_node=match rest {
         Some([left, right]) => {
             let div = match nn.div {
                 Some(b) => b,
                 None => return,
             };
 
-            let (rleft, rright) = rect.subdivide(axis, div);
 
-            let range = &match nn.cont {
-                Some(cont) => cont,
-                None => Range {
-                    start: div,
-                    end: div,
-                },
-            };
+            let line=(axis,div);
+            
+            
+            //recurse first. more likely closest is in a child.
+            if *blap.point.get_axis(axis)<div{
+                recc(axis.next(),left,blap);
+                if blap.should_recurse(line){
+                    recc(axis.next(),right,blap);
+                }
+            }else{
+                recc(axis.next(),right,blap);
+                if blap.should_recurse(line){
+                    recc(axis.next(),left,blap);
+                }
+            }
 
-            let rmiddle = make_rect_from_range(axis, range, &rect);
 
-            match range_side(blap.point, axis, range) {
-                Ordering::Less => {
-                    if blap.should_traverse_rect(&rleft) {
-                        recc(axis.next(), left, rleft, blap);
-                    }
+            if let Some(range)=nn.cont{
+                
 
-                    if blap.should_traverse_rect(&rmiddle) {
-                        for bot in nn.into_range().iter_mut() {
-                            //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider(&blap.point, &mut blap.knear, bot);
-                        }
-                    }
-
-                    if blap.should_traverse_rect(&rright) {
-                        recc(axis.next(), right, rright, blap);
+                //Determine if we should handle this node or not.
+                match range.contains_ext(*blap.point.get_axis(axis)){
+                    core::cmp::Ordering::Less=>{
+                        blap.should_recurse((axis,range.start))
+                        
+                    },
+                    core::cmp::Ordering::Greater=>{
+                        blap.should_recurse((axis,range.end))
+                        
+                    },
+                    core::cmp::Ordering::Equal=>{
+                        true
                     }
                 }
-                Ordering::Greater => {
-                    if blap.should_traverse_rect(&rright) {
-                        recc(axis.next(), right, rright, blap);
-                    }
-
-                    if blap.should_traverse_rect(&rmiddle) {
-                        for bot in nn.into_range().iter_mut() {
-                            //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider(&blap.point, &mut blap.knear, bot);
-                        }
-                    }
-                    if blap.should_traverse_rect(&rleft) {
-                        recc(axis.next(), left, rleft, blap);
-                    }
-                }
-                Ordering::Equal => {
-                    //Assume there are more elements in the children than the current node,
-                    //so recurse first.
-                    if blap.should_traverse_rect(&rright) {
-                        recc(axis.next(), right, rright, blap);
-                    }
-                    if blap.should_traverse_rect(&rleft) {
-                        recc(axis.next(), left, rleft, blap);
-                    }
-                    if blap.should_traverse_rect(&rmiddle) {
-                        for bot in nn.into_range().iter_mut() {
-                            //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                            blap.closest.consider(&blap.point, &mut blap.knear, bot);
-                        }
-                    }
-                }
+            }else{
+                false
             }
         }
         None => {
-            for bot in nn.into_range().iter_mut() {
-                //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
-                blap.closest.consider(&blap.point, &mut blap.knear, bot);
-            }
+            
+            true 
         }
+    };
+
+    if handle_node{
+        for bot in nn.into_range().iter_mut() {
+            //let dis_sqr = blap.knear.distance_to_bot(blap.point, bot.as_ref());
+            blap.closest.consider(&blap.point, &mut blap.knear, bot);
+        } 
     }
+
 }
 
 ///Returned by knearest.
@@ -364,12 +318,12 @@ mod mutable {
         bots: PMut<'a, [T]>,
         point: Vec2<K::N>,
         num: usize,
-        mut k: K,
+        k: &mut K,
     ) -> KResult<'a, T> {
         let mut closest = ClosestCand::new(num);
-
+        
         for b in bots.iter_mut() {
-            closest.consider(&point, &mut k, b);
+            closest.consider(&point,  k, b);
         }
 
         let num_entires = closest.curr_num;
@@ -384,10 +338,11 @@ mod mutable {
         vistr: VistrMut<'a, Node<'b, T>>,
         point: Vec2<T::Num>,
         num: usize,
-        knear: impl Knearest<N = T::Num, T = T>,
-        rect: Rect<T::Num>,
+        knear: &mut impl Knearest<N = T::Num, T = T>
     ) -> KResult<'a, T> {
         let dt = vistr.with_depth(Depth(0));
+
+        let knear=KnearestBorrow(knear);
 
         let closest = ClosestCand::new(num);
 
@@ -397,7 +352,7 @@ mod mutable {
             closest,
         };
 
-        recc(axis, dt, rect, &mut blap);
+        recc(axis, dt, &mut blap);
         /*
         let mut res: Vec<Option<(PMut<'a,N::T>, N::Num)>> = Vec::new();
         for a in blap.closest.into_sorted().into_iter() {

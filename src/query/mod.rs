@@ -433,6 +433,7 @@ pub trait Queries<'a> {
         raycast::raycast_mut(self.axis(), self.vistr_mut(), ray, rtrait)
     }
 
+/*
     /// Find the closest `num` elements to the specified `point`.
     /// The user provides two functions:
     ///
@@ -508,21 +509,20 @@ pub trait Queries<'a> {
 
         k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, &mut foo, border)
     }
-
+*/
     /// Companion function to [`Queries::k_nearest_mut()`] for cases where the use wants to
     /// use the trait instead of closures.
     #[must_use]
-    fn k_nearest_trait_mut<'b, Acc, K: query::Knearest<T = Self::T, N = Self::Num>>(
+    fn k_nearest_mut<'b, K: query::Knearest<T = Self::T, N = Self::Num>>(
         &'b mut self,
         point: Vec2<Self::Num>,
         num: usize,
-        ktrait: K,
-        border: Rect<Self::Num>,
+        ktrait: &mut K
     ) -> KResult<Self::T>
     where
         'a: 'b,
     {
-        k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, ktrait, border)
+        k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, ktrait)
     }
 
     /// Find collisions between elements in this tree,

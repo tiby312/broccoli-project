@@ -36,7 +36,6 @@
 
 use crate::query::inner_prelude::*;
 use axgeom::Ray;
-use core::cmp::Ordering;
 
 ///A Vec<T> is returned since there coule be ties where the ray hits multiple T at a length N away.
 //pub type RayCastResult<T, N> = axgeom::CastResult<(Vec<T>, N)>;
@@ -104,75 +103,8 @@ impl<'a,R:RayCast> RayCast for RayCastBorrow<'a, R>{
         self.0.compute_distance_to_bot(ray,a)
     }
 }
-/*
-pub struct RayCastClosure<'a, A, B, C, T> {
-    pub a: &'a mut A,
-    pub broad: B,
-    pub fine: C,
-    pub _p: PhantomData<T>,
-}
 
-impl<
-        'a,
-        A,
-        B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
-        C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
-        D: FnMut(&mut A, &Ray<T::Num>, val:T::Num )->CastResult<T::Num>,
-        E: FnMut(&mut A, &Ray<T::Num>, val:T::Num )->CastResult<T::Num>
-        T: Aabb,
-    > RayCastClosure<'a, A, B, C, T>
-{
-    pub fn new(acc: &'a mut A, broad: B, fine: C, xline:D,yline:E) -> Self {
-        RayCastClosure {
-            a: acc,
-            broad,
-            fine,
-            xline,
-            yline,
-            _p: PhantomData,
-        }
-    }
-}
-impl<
-        A,
-        B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
-        C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
-        T: Aabb,
-    > RayCast for &mut RayCastClosure<'_, A, B, C, T>
-{
-    type T = T;
-    type N = T::Num;
 
-    fn compute_distance_to_aaline<A:Axis>(&mut self,line:A,val:Self::N)->axgeom::CastResult<Self::N>{
-        (self.line)(&mut self.a,line,val)
-    }
-    fn compute_distance_to_rect(
-        &mut self,
-        ray: &Ray<Self::N>,
-        a: &Rect<Self::N>,
-    ) -> CastResult<Self::N> {
-        (self.broad)(&mut self.a, ray, a)
-    }
-
-    fn compute_distance_to_bot(&mut self, ray: &Ray<Self::N>, a: &Self::T) -> CastResult<Self::N> {
-        (self.fine)(&mut self.a, ray, a)
-    }
-}
-*/
-
-fn make_rect_from_range<A: Axis, N: Num>(axis: A, range: &Range<N>, rect: &Rect<N>) -> Rect<N> {
-    if axis.is_xaxis() {
-        Rect {
-            x: *range,
-            y: rect.y,
-        }
-    } else {
-        Rect {
-            x: rect.x,
-            y: *range,
-        }
-    }
-}
 
 struct Closest<'a, T: Aabb> {
     closest: Option<(Vec<PMut<'a, T>>, T::Num)>,
@@ -334,7 +266,7 @@ mod mutable {
     pub fn raycast_naive_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         ray: Ray<T::Num>,
-        mut rtrait: &mut impl RayCast<N = T::Num, T = T>
+        rtrait: &mut impl RayCast<N = T::Num, T = T>
     ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
         let mut closest = Closest { closest: None };
 
