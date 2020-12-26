@@ -38,9 +38,7 @@ pub trait Knearest {
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
-    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
-        self.distance_to_broad(point, bot)
-    }
+    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N;
 }
 
 struct KnearestBorrow<'a, K>(&'a mut K);
