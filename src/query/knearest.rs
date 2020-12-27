@@ -27,6 +27,7 @@ pub trait Knearest {
     type T: Aabb<Num = Self::N>;
     type N: Num;
 
+    ///User define distance function from a point to a line.
     fn distance_to_aaline<A: Axis>(
         &mut self,
         point: Vec2<Self::N>,
@@ -34,11 +35,12 @@ pub trait Knearest {
         val: Self::N,
     ) -> Self::N;
 
-    fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Self::N;
+    ///User defined inexpensive distance function that that can be overly conservative.
+    fn distance_to_broad(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N;
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
-    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N;
+    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N;
 }
 
 struct KnearestBorrow<'a, K>(&'a mut K);
@@ -58,15 +60,14 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
         self.0.distance_to_broad(point, rect)
     }
 
-    ///User defined expensive distance function. Here the user can return fine-grained distance
-    ///of the shape contained in T instead of its bounding box.
     fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
         self.0.didstance_to_fine(point, bot)
     }
 }
 
 
-
+///Construct an object that implements [`Knearest`] from closures.
+///We pass the tree so that we can infer the type of `T`.
 pub fn from_closure<
     AA:Axis,
     T:Aabb,
@@ -83,6 +84,7 @@ pub fn from_closure<
         KnearestClosure{_p:PhantomData,acc,broad,fine,xline,yline}
     }
 
+///Container of closures that implements [`Knearest`]
 pub struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
     pub _p: PhantomData<T>,
     pub acc: Acc,
