@@ -99,7 +99,7 @@ where
 
 impl<'a, 'b: 'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a, 'b, A, T> {
     #[inline(always)]
-    pub fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> NotSortedQueryBuilder<'a, 'b, A, T> {
+    fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> NotSortedQueryBuilder<'a, 'b, A, T> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         NotSortedQueryBuilder {
             switch_height,
@@ -446,3 +446,45 @@ pub trait ColfindQuery<'a>: Queries<'a>{
 
 
 }
+
+
+
+
+///Queries that can be performed on a tree that is not sorted
+///These functions are not documented since they match the same
+///behavior as those in the [`Queries`] trait.
+pub trait NotSortedQueries<'a> {
+    type A: Axis;
+    type T: Aabb<Num = Self::Num> + 'a;
+    type Num: Num;
+
+    #[must_use]
+    fn vistr_mut(&mut self) -> VistrMut<Node<'a, Self::T>>;
+
+    #[must_use]
+    fn vistr(&self) -> Vistr<Node<'a, Self::T>>;
+
+    #[must_use]
+    fn axis(&self) -> Self::A;
+
+    fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c, 'a, Self::A, Self::T> {
+        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
+    }
+
+    fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
+        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
+            .query_seq(move |a, b| func(a, b));
+    }
+
+    fn find_colliding_pairs_mut_par(
+        &mut self,
+        func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Clone + Send + Sync,
+    ) where
+        Self::T: Send + Sync,
+        Self::Num: Send + Sync,
+    {
+        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
+            .query_par(move |a, b| func(a, b));
+    }
+}
+

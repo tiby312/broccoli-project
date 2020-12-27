@@ -10,13 +10,44 @@ mod inner_prelude {
     pub use itertools::Itertools;
 }
 
-pub use naive::NaiveAlgs;
-mod naive;
+
+///Provides the naive implementation of the [`Tree`] api.
+pub struct NaiveAlgs<'a, T> {
+    bots: PMut<'a, [T]>,
+}
+
+
+impl<'a,T:Aabb> NaiveQueries for NaiveAlgs<'a,T>{
+    type T=T;
+    type Num=T::Num;
+    fn get_slice_mut(&mut self)->PMut<[T]>{
+        self.bots.borrow_mut()
+    }
+
+}
+
+
+
+impl<'a, T: Aabb> NaiveAlgs<'a, T> {
+    #[must_use]
+    pub fn from_slice(a: &'a mut [T]) -> NaiveAlgs<'a, T> {
+        NaiveAlgs { bots: PMut::new(a) }
+    }
+    #[must_use]
+    pub fn new(bots: PMut<'a, [T]>) -> NaiveAlgs<'a, T> {
+        NaiveAlgs { bots }
+    }
+
+    //#[cfg(feature = "nbody")]
+    pub fn nbody(&mut self, func: impl FnMut(PMut<T>, PMut<T>)) {
+        nbody::naive_mut(self.bots.borrow_mut(), func);
+    }
+}
+
 
 
 ///aabb broadphase collision detection
 pub mod colfind;
-use colfind::NotSortedQueryBuilder;
 
 ///Provides functionality to draw the dividers of [`Tree`].
 pub mod graphics;
@@ -40,45 +71,6 @@ pub mod rect;
 mod tools;
 
 use self::inner_prelude::*;
-
-///Queries that can be performed on a tree that is not sorted
-///These functions are not documented since they match the same
-///behavior as those in the [`Queries`] trait.
-pub trait NotSortedQueries<'a> {
-    type A: Axis;
-    type T: Aabb<Num = Self::Num> + 'a;
-    type Num: Num;
-
-    #[must_use]
-    fn vistr_mut(&mut self) -> VistrMut<Node<'a, Self::T>>;
-
-    #[must_use]
-    fn vistr(&self) -> Vistr<Node<'a, Self::T>>;
-
-    #[must_use]
-    fn axis(&self) -> Self::A;
-
-    fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c, 'a, Self::A, Self::T> {
-        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
-    }
-
-    fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
-        query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
-            .query_seq(move |a, b| func(a, b));
-    }
-
-    fn find_colliding_pairs_mut_par(
-        &mut self,
-        func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Clone + Send + Sync,
-    ) where
-        Self::T: Send + Sync,
-        Self::Num: Send + Sync,
-    {
-        query::colfind::NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
-            .query_par(move |a, b| func(a, b));
-    }
-}
-
 pub trait NaiveQueries{
     type T:Aabb<Num=Self::Num>;
     type Num:Num;
