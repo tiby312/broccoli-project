@@ -19,8 +19,18 @@ pub trait ColMulti {
     fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>);
 }
 
+
+
+use super::NaiveQueries;
+impl<K:NaiveQueries> ColfindNaiveQuery for K{}
+pub trait ColfindNaiveQuery:NaiveQueries{
+    fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
+        self::query_naive_mut(self.get_slice_mut(), |a, b| func(a, b));
+    }
+
+}
 ///Naive algorithm.
-pub fn query_naive_mut<T: Aabb>(bots: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {
+fn query_naive_mut<T: Aabb>(bots: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {
     tools::for_every_pair(bots, move |a, b| {
         if a.get().intersects_rect(b.get()) {
             func(a, b);

@@ -59,7 +59,7 @@ macro_rules! rect {
     };
 }
 
-pub(crate) fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
+fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
     bots: PMut<'a, [T]>,
     rect: &Rect<T::Num>,
     mut closure: impl FnMut(PMut<'a, T>),
@@ -152,7 +152,7 @@ mod mutable {
         });
     }
 
-    pub(crate) fn naive_for_all_in_rect_mut<'a, T: Aabb>(
+    pub(super) fn naive_for_all_in_rect_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(PMut<'a, T>),
@@ -164,7 +164,7 @@ mod mutable {
         }
     }
 
-    pub(crate) fn naive_for_all_intersect_rect_mut<'a, T: Aabb>(
+    pub(super) fn naive_for_all_intersect_rect_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(PMut<'a, T>),
@@ -272,6 +272,26 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> MultiRectMut<'a, 'b, A, T> {
 
         Ok(())
     }
+}
+
+
+
+use super::NaiveQueries;
+impl<K:NaiveQueries> RectNaiveQuery for K{}
+pub trait RectNaiveQuery:NaiveQueries{
+
+    fn for_all_in_rect_mut(&mut self, rect: &Rect<Self::Num>, func: impl FnMut(PMut<Self::T>)) {
+        self::naive_for_all_in_rect_mut(self.get_slice_mut(), rect, func);
+    }
+    fn for_all_not_in_rect_mut(&mut self, rect: &Rect<Self::Num>, func: impl FnMut(PMut<Self::T>)) {
+        self::naive_for_all_not_in_rect_mut(self.get_slice_mut(), rect, func);
+    }
+
+    fn for_all_intersect_rect_mut(&mut self, rect: &Rect<Self::Num>, func: impl FnMut(PMut<Self::T>)) {
+        self::naive_for_all_intersect_rect_mut(self.get_slice_mut(), rect, func);
+    }
+
+
 }
 
 

@@ -359,26 +359,30 @@ impl<'a, T: Aabb> KResult<'a, T> {
 }
 
 
-
-pub(crate) fn k_nearest_naive_mut<'a, K: Knearest<T = T, N = T::Num>, T: Aabb>(
-    bots: PMut<'a, [T]>,
-    point: Vec2<K::N>,
-    num: usize,
-    k: &mut K,
-) -> KResult<'a, T> {
-    let mut closest = ClosestCand::new(num);
-
-    for b in bots.iter_mut() {
-        closest.consider(&point, k, b);
+use super::NaiveQueries;
+impl<K:NaiveQueries> KnearestNaiveQuery for K{}
+pub trait KnearestNaiveQuery:NaiveQueries{
+    fn k_nearest_mut<'a, K: Knearest<T = Self::T, N = Self::Num>>(
+        &'a mut self,
+        point: Vec2<K::N>,
+        num: usize,
+        k: &mut K,
+    ) -> KResult<'a, Self::T> {
+        let bots=self.get_slice_mut();
+        let mut closest = ClosestCand::new(num);
+    
+        for b in bots.iter_mut() {
+            closest.consider(&point, k, b);
+        }
+    
+        let num_entires = closest.curr_num;
+        KResult {
+            num_entires,
+            inner: closest.into_sorted(),
+        }
     }
-
-    let num_entires = closest.curr_num;
-    KResult {
-        num_entires,
-        inner: closest.into_sorted(),
-    }
+    
 }
-
 
 
 use super::Queries;

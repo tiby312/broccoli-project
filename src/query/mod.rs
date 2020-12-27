@@ -79,6 +79,12 @@ pub trait NotSortedQueries<'a> {
     }
 }
 
+pub trait NaiveQueries{
+    type T:Aabb<Num=Self::Num>;
+    type Num:Num;
+    fn get_slice_mut(&mut self) -> PMut<[Self::T]>;
+}
+
 ///Query functions. User defines `vistr()` functions, and the query functions
 ///are automatically provided by this trait.
 pub trait Queries<'a> {

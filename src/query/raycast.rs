@@ -337,7 +337,25 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
 
 
 
-pub(crate) fn raycast_naive_mut<'a, T: Aabb>(
+
+use super::NaiveQueries;
+impl<K:NaiveQueries> RaycastNaiveQuery for K{}
+pub trait RaycastNaiveQuery:NaiveQueries{
+
+    fn raycast_mut<'a>(
+        &'a mut self,
+        ray: axgeom::Ray<Self::Num>,
+        rtrait: &mut impl RayCast<T = Self::T, N = Self::Num>,
+    ) -> axgeom::CastResult<(Vec<PMut<'a,Self::T>>, Self::Num)> {
+        raycast_naive_mut(self.get_slice_mut(), ray, rtrait)
+    }
+
+
+
+}
+
+//TODO condense
+fn raycast_naive_mut<'a, T: Aabb>(
     bots: PMut<'a, [T]>,
     ray: Ray<T::Num>,
     rtrait: &mut impl RayCast<N = T::Num, T = T>,

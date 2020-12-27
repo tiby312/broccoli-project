@@ -1,6 +1,10 @@
 use crate::query::knearest::*;
 use crate::query::raycast::*;
 
+
+use crate::query::NaiveQueries;
+use crate::query::rect::RectNaiveQuery;
+use crate::query::colfind::ColfindNaiveQuery;
 /// Functions that panic if a disconnect between query results is detected
 /// between `broccoli::Tree` and the naive equivalent.
 pub trait NaiveCheck<'a, K>: core::ops::DerefMut<Target = K>
