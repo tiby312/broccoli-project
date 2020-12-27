@@ -129,8 +129,8 @@ fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
     rect_recurse(axis, vistr, rect, closure);
 }
 
-pub use constant::*;
-pub use mutable::*;
+use constant::*;
+use mutable::*;
 
 mod mutable {
     use super::*;
@@ -435,7 +435,7 @@ pub trait RectQuery<'a>:Queries<'a>{
     ///
     /// multi.for_all_in_rect_mut(rect(0,10,0,10),|a|{}).unwrap();
     /// let res = multi.for_all_in_rect_mut(rect(5,15,5,15),|a|{});
-    /// assert_eq!(res,Err(broccoli::query::RectIntersectErr));
+    /// assert_eq!(res,Err(broccoli::query::rect::RectIntersectErr));
     ///```
     #[must_use]
     fn multi_rect<'c>(&'c mut self) -> MultiRectMut<'c, 'a, Self::A, Self::T> {

@@ -1,6 +1,6 @@
 use super::*;
-use super::raycast::*;
-use super::knearest::*;
+
+
 ///Provides the naive implementation of the [`Tree`] api.
 pub struct NaiveAlgs<'a, T> {
     bots: PMut<'a, [T]>,

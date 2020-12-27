@@ -2,7 +2,7 @@ use crate::query::knearest::*;
 use crate::query::raycast::*;
 
 
-use crate::query::NaiveQueries;
+
 use crate::query::rect::RectNaiveQuery;
 use crate::query::colfind::ColfindNaiveQuery;
 /// Functions that panic if a disconnect between query results is detected

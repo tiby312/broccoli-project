@@ -70,7 +70,7 @@ pub trait DrawQuery<'a>: Queries<'a>+RectQuery<'a>{
     /// use broccoli::{prelude::*,bbox,rect};
     ///
     /// struct Drawer;
-    /// impl broccoli::query::DividerDrawer for Drawer{
+    /// impl broccoli::query::graphics::DividerDrawer for Drawer{
     ///     type N=i32;
     ///     fn draw_divider<A:axgeom::Axis>(
     ///             &mut self,
