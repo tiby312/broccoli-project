@@ -3,14 +3,9 @@ use super::inner_prelude::*;
 //this can have some false positives.
 //but it will still prune a lot of bots.
 #[inline(always)]
-pub fn get_section<'a, I: Aabb, A: Axis>(
-    axis: A,
-    arr: &'a [I],
-    range: Range<I::Num>,
-) -> &'a [I] {
-    
+pub fn get_section<'a, I: Aabb, A: Axis>(axis: A, arr: &'a [I], range: Range<I::Num>) -> &'a [I] {
     let mut start = None;
-    let mut ii=arr.iter().enumerate();
+    let mut ii = arr.iter().enumerate();
     for (e, i) in &mut ii {
         let rr = i.get().get_range(axis);
         if rr.end >= range.start {
@@ -19,33 +14,27 @@ pub fn get_section<'a, I: Aabb, A: Axis>(
         }
     }
 
-    let start=if let Some(start)=start{
+    let start = if let Some(start) = start {
         start
-    }else{
-        return &[]
+    } else {
+        return &[];
     };
-    
-    let mut end=None;
-    for (e,i) in ii{
+
+    let mut end = None;
+    for (e, i) in ii {
         let rr = i.get().get_range(axis);
-        if rr.start > range.end{
-            end=Some(e);
+        if rr.start > range.end {
+            end = Some(e);
             break;
         }
     }
 
-    if let Some(end)=end{
+    if let Some(end) = end {
         &arr[start..end]
-    }else{
+    } else {
         &arr[start..]
     }
-
-    
-
-    
 }
-
-
 
 #[test]
 fn test_section() {
@@ -67,8 +56,6 @@ fn test_section() {
     assert_eq!(k.len(), 3);
 }
 
-
-
 //this can have some false positives.
 //but it will still prune a lot of bots.
 #[inline(always)]
@@ -77,9 +64,8 @@ pub fn get_section_mut<'a, I: Aabb, A: Axis>(
     arr: PMut<'a, [I]>,
     range: Range<I::Num>,
 ) -> PMut<'a, [I]> {
-    
     let mut start = None;
-    let mut ii=arr.iter().enumerate();
+    let mut ii = arr.iter().enumerate();
     for (e, i) in &mut ii {
         let rr = i.get().get_range(axis);
         if rr.end >= range.start {
@@ -88,30 +74,26 @@ pub fn get_section_mut<'a, I: Aabb, A: Axis>(
         }
     }
 
-    let start=if let Some(start)=start{
+    let start = if let Some(start) = start {
         start
-    }else{
-        return PMut::new(&mut [])
+    } else {
+        return PMut::new(&mut []);
     };
-    
-    let mut end=None;
-    for (e,i) in ii{
+
+    let mut end = None;
+    for (e, i) in ii {
         let rr = i.get().get_range(axis);
-        if rr.start > range.end{
-            end=Some(e);
+        if rr.start > range.end {
+            end = Some(e);
             break;
         }
     }
 
-    if let Some(end)=end{
+    if let Some(end) = end {
         arr.truncate(start..end)
-    }else{
+    } else {
         arr.truncate_from(start..)
     }
-
-    
-
-    
 }
 
 pub fn for_every_pair<T: Aabb>(mut arr: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {

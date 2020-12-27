@@ -25,7 +25,6 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
     let mut tree = broccoli::container::TreeOwned::new(vv);
 
-    let dim=dim.grow(10.0);
     Demo::new(move |cursor, canvas, check_naive| {
         circle_save
             .uniforms(canvas, radius * 2.0)
@@ -49,25 +48,21 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                     }
                 };
 
-                let mut radius = radius;
+                let mut handler=broccoli::query::raycast::from_closure(
+                    tree,
+                    radius,
+                    |_, ray, a| ray.cast_to_rect(&a.rect),
+                    |radius, ray, a| ray.cast_to_circle(a.inner.center, *radius),
+                    |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
+                    |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
+                );
+
 
                 if check_naive {
-                    tree.assert_raycast_mut(
-                        ray,
-                        &mut radius,
-                        move |_r, ray, rect| ray.cast_to_rect(rect),
-                        move |r, ray, t| ray.cast_to_circle(t.inner.center, *r),
-                        dim,
-                    );
+                    tree.assert_raycast_mut(ray, &mut handler);
                 }
 
-                let res = tree.raycast_mut(
-                    ray,
-                    &mut radius,
-                    move |_r, ray, rect| ray.cast_to_rect(rect),
-                    move |r, ray, t| ray.cast_to_circle(t.inner.center, *r),
-                    dim,
-                );
+                let res = tree.raycast_mut(ray, &mut handler);
 
                 let dis = match res {
                     axgeom::CastResult::Hit((_, dis)) => dis,

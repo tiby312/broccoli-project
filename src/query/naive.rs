@@ -1,10 +1,13 @@
 use super::*;
+use super::raycast::*;
+use super::knearest::*;
 ///Provides the naive implementation of the [`Tree`] api.
 pub struct NaiveAlgs<'a, T> {
     bots: PMut<'a, [T]>,
 }
 
 impl<'a, T: Aabb> NaiveAlgs<'a, T> {
+    /*
     #[must_use]
     pub fn raycast_mut<Acc>(
         &mut self,
@@ -22,7 +25,27 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
         };
         raycast::raycast_naive_mut(self.bots.borrow_mut(), ray, &mut rtrait, border)
     }
+    */
+    pub fn raycast_mut(
+        &mut self,
+        ray: axgeom::Ray<T::Num>,
+        rtrait: &mut impl RayCast<T = T, N = T::Num>,
+    ) -> axgeom::CastResult<(Vec<PMut<T>>, T::Num)> {
+        raycast::raycast_naive_mut(self.bots.borrow_mut(), ray, rtrait)
+    }
 
+    pub fn k_nearest_mut<'b, K: Knearest<T = T, N = T::Num>>(
+        &'b mut self,
+        point: Vec2<T::Num>,
+        num: usize,
+        ktrait: &mut K,
+    ) -> KResult<T>
+    where
+        'a: 'b,
+    {
+        knearest::k_nearest_naive_mut(self.bots.borrow_mut(), point, num, ktrait)
+    }
+    /*
     #[must_use]
     pub fn k_nearest_mut<Acc>(
         &mut self,
@@ -40,6 +63,7 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
         };
         k_nearest::k_nearest_naive_mut(self.bots.borrow_mut(), point, num, &mut knear)
     }
+    */
 }
 
 impl<'a, T: Aabb> NaiveAlgs<'a, T> {

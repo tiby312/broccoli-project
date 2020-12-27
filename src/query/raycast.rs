@@ -36,7 +36,6 @@
 
 use crate::query::inner_prelude::*;
 use axgeom::Ray;
-use core::cmp::Ordering;
 
 ///A Vec<T> is returned since there coule be ties where the ray hits multiple T at a length N away.
 //pub type RayCastResult<T, N> = axgeom::CastResult<(Vec<T>, N)>;
@@ -48,84 +47,149 @@ pub trait RayCast {
     type T: Aabb<Num = Self::N>;
     type N: Num;
 
-    ///Returns true if the ray intersects with this rectangle.
-    ///This function allows as to prune which nodes to visit.
-    fn compute_distance_to_rect(
+    fn cast_to_aaline<A: Axis>(
         &mut self,
         ray: &Ray<Self::N>,
-        a: &Rect<Self::N>,
+        line: A,
+        val: Self::N,
+    ) -> axgeom::CastResult<Self::N>;
+
+    ///Returns true if the ray intersects with this rectangle.
+    ///This function allows as to prune which nodes to visit.
+    fn cast_broad(
+        &mut self,
+        ray: &Ray<Self::N>,
+        a: PMut<Self::T>,
     ) -> axgeom::CastResult<Self::N>;
 
     ///The expensive collision detection
     ///This is where the user can do expensive collision detection on the shape
     ///contains within it's bounding box.
-    ///Its default implementation just calls compute_distance_to_rect()
-    fn compute_distance_to_bot(
+    ///Its default implementation just calls cast_broad()
+    fn cast_fine(
         &mut self,
         ray: &Ray<Self::N>,
-        a: &Self::T,
-    ) -> axgeom::CastResult<Self::N> {
-        self.compute_distance_to_rect(ray, a.get())
-    }
+        a: PMut<Self::T>,
+    ) -> axgeom::CastResult<Self::N>;
 }
 
-pub struct RayCastClosure<'a, A, B, C, T> {
-    pub a: &'a mut A,
+
+
+
+pub struct RayCastClosure<T, A, B, C, D, E> {
+    pub _p: PhantomData<T>,
+    pub acc: A,
     pub broad: B,
     pub fine: C,
-    pub _p: PhantomData<T>,
+    pub xline: D,
+    pub yline: E,
+}
+
+pub fn from_closure<
+    AA:Axis,
+    T: Aabb,
+    A,
+    B,
+    C,
+    D,
+    E,
+>( _tree:&Tree<AA,T>,
+    acc: A,
+    broad: B,
+    fine: C,
+    xline: D,
+    yline: E)->RayCastClosure<T,A,B,C,D,E> 
+    where 
+        B:FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+        E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>{
+        RayCastClosure {
+            _p: PhantomData,
+            acc,
+            broad,
+            fine,
+            xline,
+            yline,
+        }
 }
 
 impl<
-        'a,
-        A,
-        B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
-        C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
         T: Aabb,
-    > RayCastClosure<'a, A, B, C, T>
-{
-    pub fn new(acc: &'a mut A, broad: B, fine: C) -> Self {
-        RayCastClosure {
-            a: acc,
-            broad,
-            fine,
-            _p: PhantomData,
-        }
-    }
-}
-impl<
         A,
-        B: FnMut(&mut A, &Ray<T::Num>, &Rect<T::Num>) -> CastResult<T::Num>,
-        C: FnMut(&mut A, &Ray<T::Num>, &T) -> CastResult<T::Num>,
-        T: Aabb,
-    > RayCast for &mut RayCastClosure<'_, A, B, C, T>
+        B,
+        C,
+        D,
+        E,
+    > RayCast for RayCastClosure< T, A, B, C, D, E>
+where
+        B:FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+        E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>
 {
     type T = T;
     type N = T::Num;
-    fn compute_distance_to_rect(
+
+    fn cast_to_aaline<X: Axis>(
         &mut self,
         ray: &Ray<Self::N>,
-        a: &Rect<Self::N>,
+        line: X,
+        val: Self::N,
+    ) -> axgeom::CastResult<Self::N> {
+        if line.is_xaxis() {
+            (self.xline)(&mut self.acc, ray, val)
+        } else {
+            (self.yline)(&mut self.acc, ray, val)
+        }
+    }
+    fn cast_broad(
+        &mut self,
+        ray: &Ray<Self::N>,
+        a: PMut<Self::T>,
     ) -> CastResult<Self::N> {
-        (self.broad)(&mut self.a, ray, a)
+        (self.broad)(&mut self.acc, ray, a)
     }
 
-    fn compute_distance_to_bot(&mut self, ray: &Ray<Self::N>, a: &Self::T) -> CastResult<Self::N> {
-        (self.fine)(&mut self.a, ray, a)
+    fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> CastResult<Self::N> {
+        (self.fine)(&mut self.acc, ray, a)
     }
 }
 
-fn make_rect_from_range<A: Axis, N: Num>(axis: A, range: &Range<N>, rect: &Rect<N>) -> Rect<N> {
-    if axis.is_xaxis() {
-        Rect {
-            x: *range,
-            y: rect.y,
-        }
-    } else {
-        Rect {
-            x: rect.x,
-            y: *range,
-        }
+struct RayCastBorrow<'a, R>(&'a mut R);
+
+impl<'a, R: RayCast> RayCast for RayCastBorrow<'a, R> {
+    type T = R::T;
+    type N = R::N;
+    fn cast_to_aaline<A: Axis>(
+        &mut self,
+        ray: &Ray<Self::N>,
+        line: A,
+        val: Self::N,
+    ) -> axgeom::CastResult<Self::N> {
+        self.0.cast_to_aaline(ray, line, val)
+    }
+
+    ///Returns true if the ray intersects with this rectangle.
+    ///This function allows as to prune which nodes to visit.
+    fn cast_broad(
+        &mut self,
+        ray: &Ray<Self::N>,
+        a: PMut<Self::T>,
+    ) -> axgeom::CastResult<Self::N> {
+        self.0.cast_broad(ray, a)
+    }
+
+    ///The expensive collision detection
+    ///This is where the user can do expensive collision detection on the shape
+    ///contains within it's bounding box.
+    ///Its default implementation just calls cast_broad()
+    fn cast_fine(
+        &mut self,
+        ray: &Ray<Self::N>,
+        a: PMut<Self::T>,
+    ) -> axgeom::CastResult<Self::N> {
+        self.0.cast_fine(ray, a)
     }
 }
 
@@ -136,11 +200,11 @@ impl<'a, T: Aabb> Closest<'a, T> {
     fn consider<R: RayCast<N = T::Num, T = T>>(
         &mut self,
         ray: &Ray<T::Num>,
-        b: PMut<'a, T>,
+        mut b: PMut<'a, T>,
         raytrait: &mut R,
     ) {
         //first check if bounding box could possibly be a candidate.
-        let y = match raytrait.compute_distance_to_rect(ray, b.get()) {
+        let y = match raytrait.cast_broad(ray, b.borrow_mut()) {
             axgeom::CastResult::Hit(val) => val,
             axgeom::CastResult::NoHit => {
                 return;
@@ -161,7 +225,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
             }
         }
 
-        let x = match raytrait.compute_distance_to_bot(ray, &b) {
+        let x = match raytrait.cast_fine(ray, b.borrow_mut()) {
             axgeom::CastResult::Hit(val) => val,
             axgeom::CastResult::NoHit => {
                 return;
@@ -198,8 +262,11 @@ struct Blap<'a, R: RayCast> {
     closest: Closest<'a, R::T>,
 }
 impl<'a, R: RayCast> Blap<'a, R> {
-    fn should_handle_rect(&mut self, rect: &Rect<R::N>) -> bool {
-        match self.rtrait.compute_distance_to_rect(&self.ray, rect) {
+    fn should_recurse<A: Axis>(&mut self, line: (A, R::N)) -> bool {
+        match self
+            .rtrait
+            .cast_to_aaline(&self.ray, line.0, line.1)
+        {
             axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
                 Some(dis) => {
                     if val <= dis {
@@ -219,111 +286,70 @@ impl<'a, R: RayCast> Blap<'a, R> {
 fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     axis: A,
     stuff: LevelIter<VistrMut<'a, Node<'b, T>>>,
-    rect: Rect<T::Num>,
     blap: &mut Blap<'a, R>,
 ) {
     let ((_depth, nn), rest) = stuff.next();
-    //let nn = nn.get_mut();
-    match rest {
-        Some([left, right]) => {
-            let axis_next = axis.next();
+    let handle_curr = if let Some([left, right]) = rest {
+        let axis_next = axis.next();
 
-            let div = match nn.div {
-                Some(b) => b,
-                None => return,
-            };
+        let div = match nn.div {
+            Some(b) => b,
+            None => return,
+        };
 
-            let (rleft, rright) = rect.subdivide(axis, div);
+        let line = (axis, div);
 
-            let range = &match nn.cont {
-                Some(range) => range,
-                None => Range {
-                    start: div,
-                    end: div,
-                },
-            };
+        //more likely to find closest in child than curent node.
+        //so recurse first before handling this node.
+        if *blap.ray.point.get_axis(axis) < div {
+            recc(axis_next, left, blap);
 
-            let rmiddle = make_rect_from_range(axis, range, &rect);
+            if blap.should_recurse(line) {
+                recc(axis_next, right, blap);
+            }
+        } else {
+            recc(axis_next, right, blap);
 
-            match blap.ray.range_side(axis, range) {
-                Ordering::Less => {
-                    if blap.should_handle_rect(&rleft) {
-                        recc(axis_next, left, rleft, blap);
-                    }
-
-                    if blap.should_handle_rect(&rmiddle) {
-                        for b in nn.into_range().iter_mut() {
-                            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
-                        }
-                    }
-
-                    if blap.should_handle_rect(&rright) {
-                        recc(axis_next, right, rright, blap);
-                    }
-                }
-                Ordering::Greater => {
-                    if blap.should_handle_rect(&rright) {
-                        recc(axis_next, right, rright, blap);
-                    }
-
-                    if blap.should_handle_rect(&rmiddle) {
-                        for b in nn.into_range().iter_mut() {
-                            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
-                        }
-                    }
-
-                    if blap.should_handle_rect(&rleft) {
-                        recc(axis_next, left, rleft, blap);
-                    }
-                }
-                Ordering::Equal => {
-                    //Assume there are more elements in the children than the current node,
-                    //so recurse first.
-                    if blap.should_handle_rect(&rleft) {
-                        recc(axis_next, left, rleft, blap);
-                    }
-
-                    if blap.should_handle_rect(&rright) {
-                        recc(axis_next, right, rright, blap);
-                    }
-                    if blap.should_handle_rect(&rmiddle) {
-                        for b in nn.into_range().iter_mut() {
-                            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
-                        }
-                    }
-                }
+            if blap.should_recurse(line) {
+                recc(axis_next, left, blap);
             }
         }
-        None => {
-            //Can't do better here since for leafs, cont is none.
-            for b in nn.into_range().iter_mut() {
-                blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
+
+        if let Some(range) = nn.cont {
+            //Determine if we should handle this node or not.
+            match range.contains_ext(*blap.ray.point.get_axis(axis)) {
+                core::cmp::Ordering::Less => blap.should_recurse((axis, range.start)),
+                core::cmp::Ordering::Greater => blap.should_recurse((axis, range.end)),
+                core::cmp::Ordering::Equal => true,
             }
+        } else {
+            false
+        }
+    } else {
+        true
+    };
+    if handle_curr {
+        for b in nn.into_range().iter_mut() {
+            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
         }
     }
 }
 
-pub use self::mutable::raycast_mut;
-pub use self::mutable::raycast_naive_mut;
+pub(crate) use self::mutable::raycast_mut;
+pub(crate) use self::mutable::raycast_naive_mut;
 
 mod mutable {
     use super::*;
 
-    pub fn raycast_naive_mut<'a, T: Aabb>(
+    pub(crate) fn raycast_naive_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         ray: Ray<T::Num>,
-        mut rtrait: impl RayCast<N = T::Num, T = T>,
-        border: Rect<T::Num>,
+        rtrait: &mut impl RayCast<N = T::Num, T = T>,
     ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
-        if !border.contains_point(ray.point) {
-            return axgeom::CastResult::NoHit;
-        }
         let mut closest = Closest { closest: None };
 
         for b in bots.iter_mut() {
-            if border.intersects_rect(b.get()) {
-                closest.consider(&ray, b, &mut rtrait);
-            }
+            closest.consider(&ray, b, rtrait);
         }
 
         match closest.closest {
@@ -332,16 +358,13 @@ mod mutable {
         }
     }
 
-    pub fn raycast_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(crate) fn raycast_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: VistrMut<'a, Node<'b, T>>,
-        rect: Rect<T::Num>,
         ray: Ray<T::Num>,
-        rtrait: impl RayCast<N = T::Num, T = T>,
+        rtrait: &mut impl RayCast<N = T::Num, T = T>,
     ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
-        if !rect.contains_point(ray.point) {
-            return axgeom::CastResult::NoHit;
-        }
+        let rtrait = RayCastBorrow(rtrait);
         let dt = vistr.with_depth(Depth(0));
 
         let closest = Closest { closest: None };
@@ -350,7 +373,7 @@ mod mutable {
             ray,
             closest,
         };
-        recc(axis, dt, rect, &mut blap);
+        recc(axis, dt, &mut blap);
 
         match blap.closest.closest {
             Some((a, b)) => axgeom::CastResult::Hit((a, b)),

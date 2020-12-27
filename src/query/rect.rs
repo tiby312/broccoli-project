@@ -59,7 +59,7 @@ macro_rules! rect {
     };
 }
 
-pub fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
+pub(crate) fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
     bots: PMut<'a, [T]>,
     rect: &Rect<T::Num>,
     mut closure: impl FnMut(PMut<'a, T>),
@@ -71,7 +71,7 @@ pub fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
     }
 }
 
-pub fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
+pub(crate) fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
     axis: A,
     vistr: VistrMut<'a, Node<'b, T>>,
     rect: &Rect<T::Num>,
@@ -139,7 +139,7 @@ mod mutable {
         node.into_range()
     }
     rect!(VistrMut<'a, Node<T>>, PMut<'a, T>, get_section_mut, foo);
-    pub fn for_all_intersect_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(crate) fn for_all_intersect_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: VistrMut<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
@@ -152,7 +152,7 @@ mod mutable {
         });
     }
 
-    pub fn naive_for_all_in_rect_mut<'a, T: Aabb>(
+    pub(crate) fn naive_for_all_in_rect_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(PMut<'a, T>),
@@ -164,7 +164,7 @@ mod mutable {
         }
     }
 
-    pub fn naive_for_all_intersect_rect_mut<'a, T: Aabb>(
+    pub(crate) fn naive_for_all_intersect_rect_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(PMut<'a, T>),
@@ -175,7 +175,7 @@ mod mutable {
             }
         }
     }
-    pub fn for_all_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(crate) fn for_all_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: VistrMut<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
@@ -198,7 +198,7 @@ mod constant {
     }
     rect!(Vistr<'a, Node<T>>, &'a T, get_section, foo);
 
-    pub fn for_all_intersect_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(crate) fn for_all_intersect_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: Vistr<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
@@ -211,7 +211,7 @@ mod constant {
         });
     }
 
-    pub fn for_all_in_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(crate) fn for_all_in_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: Vistr<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
@@ -239,7 +239,7 @@ pub struct MultiRectMut<'a, 'b: 'a, A: Axis, T: Aabb> {
 }
 
 impl<'a, 'b: 'a, A: Axis, T: Aabb> MultiRectMut<'a, 'b, A, T> {
-    pub fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> Self {
+    pub(crate) fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> Self {
         MultiRectMut {
             axis,
             vistr,

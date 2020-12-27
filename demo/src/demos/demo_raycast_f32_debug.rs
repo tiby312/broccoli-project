@@ -3,7 +3,7 @@ use crate::support::prelude::*;
 use axgeom::Ray;
 
 pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
-    let walls = support::make_rand_rect(500, dim, [1.0, 10.0], |a| bbox(a, ())).into_boxed_slice();
+    let walls = support::make_rand_rect(5000, dim, [1.0, 4.0], |a| bbox(a, ())).into_boxed_slice();
 
     let mut counter: f32 = 0.0;
     let mut tree = broccoli::container::TreeOwned::new_par(walls);
@@ -31,33 +31,24 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             .with_color([0.0, 0.0, 0.0, 0.3])
             .draw();
 
+
+        let mut rects = canvas.rects();
+
+        let mut handler=broccoli::query::raycast::from_closure(
+            tree,
+            &mut rects,
+            |rects, ray, a| {rects.add(a.rect.into());ray.cast_to_rect(&a.rect)},
+            |_, ray, a| ray.cast_to_rect(&a.rect),
+            |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
+            |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
+        );
+
         if check_naive {
-            tree.assert_raycast_mut(
-                ray,
-                &mut rects,
-                move |_r, ray, rect| ray.cast_to_rect(&rect),
-                move |rects, ray, t| {
-                    rects.add(t.rect.into());
-                    ray.cast_to_rect(&t.rect)
-                },
-                dim,
-            );
+            tree.assert_raycast_mut(ray, &mut handler);
         }
 
         let test = {
-            let mut rects = canvas.rects();
-
-            let test = tree.raycast_mut(
-                ray,
-                &mut rects,
-                move |_r, ray, rect| ray.cast_to_rect(&rect),
-                move |r, ray, d| {
-                    r.add(d.rect.into());
-
-                    ray.cast_to_rect(&d.rect)
-                },
-                dim,
-            );
+            let test = tree.raycast_mut(ray, &mut handler);
             rects
                 .send_and_uniforms(canvas)
                 .with_color([4.0, 0.0, 0.0, 0.4])
