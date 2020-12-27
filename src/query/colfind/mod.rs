@@ -394,7 +394,7 @@ pub trait ColfindQuery<'a>: Queries<'a>{
         QueryBuilder::new(self.axis(), self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
 
-    /// The parallel version of [`Queries::find_colliding_pairs_mut`].
+    /// The parallel version of [`ColfindQuery::find_colliding_pairs_mut`].
     ///
     /// # Examples
     ///

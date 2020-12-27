@@ -231,7 +231,7 @@ mod constant {
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
 pub struct RectIntersectErr;
 
-///See the [`Queries::multi_rect`](crate::query::Queries::multi_rect) function.
+///See the [`Queries::multi_rect`](crate::query::rect::RectQuery::multi_rect) function.
 pub struct MultiRectMut<'a, 'b: 'a, A: Axis, T: Aabb> {
     axis: A,
     vistr: VistrMut<'a, Node<'b, T>>,

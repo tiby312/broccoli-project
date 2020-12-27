@@ -433,7 +433,7 @@ pub trait RaycastQuery<'a>:Queries<'a>{
     /// assert_eq!(bots[0].inner,vec2(5,5));
     ///```
     */
-    /// Companion function to [`Queries::raycast_mut()`] for cases where the use wants to
+    /// Companion function to [`RaycastQuery::raycast_mut()`] for cases where the use wants to
     /// use the trait instead of closures.
     fn raycast_mut<'b, R: RayCast<T = Self::T, N = Self::Num>>(
         &'b mut self,
