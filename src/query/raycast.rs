@@ -335,37 +335,99 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     }
 }
 
-pub(crate) use self::mutable::raycast_mut;
-pub(crate) use self::mutable::raycast_naive_mut;
 
-mod mutable {
-    use super::*;
 
-    pub(crate) fn raycast_naive_mut<'a, T: Aabb>(
-        bots: PMut<'a, [T]>,
-        ray: Ray<T::Num>,
-        rtrait: &mut impl RayCast<N = T::Num, T = T>,
-    ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
-        let mut closest = Closest { closest: None };
+pub(crate) fn raycast_naive_mut<'a, T: Aabb>(
+    bots: PMut<'a, [T]>,
+    ray: Ray<T::Num>,
+    rtrait: &mut impl RayCast<N = T::Num, T = T>,
+) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
+    let mut closest = Closest { closest: None };
 
-        for b in bots.iter_mut() {
-            closest.consider(&ray, b, rtrait);
-        }
-
-        match closest.closest {
-            Some((a, b)) => axgeom::CastResult::Hit((a, b)),
-            None => axgeom::CastResult::NoHit,
-        }
+    for b in bots.iter_mut() {
+        closest.consider(&ray, b, rtrait);
     }
 
-    pub(crate) fn raycast_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
-        axis: A,
-        vistr: VistrMut<'a, Node<'b, T>>,
-        ray: Ray<T::Num>,
-        rtrait: &mut impl RayCast<N = T::Num, T = T>,
-    ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
+    match closest.closest {
+        Some((a, b)) => axgeom::CastResult::Hit((a, b)),
+        None => axgeom::CastResult::NoHit,
+    }
+}
+
+
+
+
+
+use super::Queries;
+impl<'a,K:Queries<'a>> RaycastQuery<'a> for K{}
+
+pub trait RaycastQuery<'a>:Queries<'a>{
+
+
+/*
+/// Find the elements that are hit by a ray.
+    ///
+    /// The user supplies to functions:
+    ///
+    /// `fine` is a function that returns the true length of a ray
+    /// cast to an object.
+    ///
+    /// `broad` is a function that returns the length of a ray cast to
+    /// a axis aligned rectangle. This function
+    /// is used as a conservative estimate to prune out elements which minimizes
+    /// how often the `fine` function gets called.
+    ///
+    /// `border` is the starting axis axis aligned rectangle to use. This
+    /// rectangle will be split up and used to prune candidated. All candidate elements
+    /// should be within this starting rectangle.
+    ///
+    /// The result is returned as a `Vec`. In the event of a tie, multiple
+    /// elements can be returned.
+    ///
+    /// `acc` is a user defined object that is passed to every call to either
+    /// the `fine` or `broad` functions.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// use axgeom::{vec2,ray};
+    ///
+    /// let border = rect(-100,100,-100,100);
+    ///
+    /// let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
+    ///                bbox(rect(2,5,2,5),vec2(4,4)),
+    ///                bbox(rect(4,10,4,10),vec2(5,5))];
+    ///
+    /// let mut bots_copy=bots.clone();
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let ray=ray(vec2(5,-5),vec2(1,2));
+    /// let mut counter =0;
+    /// let res = tree.raycast_mut(
+    ///     ray,&mut counter,
+    ///     |c,ray,r|{*c+=1;ray.cast_to_rect(r)},
+    ///     |c,ray,t|{*c+=1;ray.cast_to_rect(&t.rect)},   //Do more fine-grained checking here.
+    ///     border);
+    ///
+    /// let (bots,dis)=res.unwrap();
+    /// assert_eq!(dis,2);
+    /// assert_eq!(bots.len(),1);
+    /// assert_eq!(bots[0].inner,vec2(5,5));
+    ///```
+    */
+    /// Companion function to [`Queries::raycast_mut()`] for cases where the use wants to
+    /// use the trait instead of closures.
+    fn raycast_mut<'b, R: RayCast<T = Self::T, N = Self::Num>>(
+        &'b mut self,
+        ray: axgeom::Ray<Self::Num>,
+        rtrait: &mut R,
+    ) -> axgeom::CastResult<(Vec<PMut<'b, Self::T>>, Self::Num)>
+    where
+        'a: 'b,
+    {
+        let axis=self.axis();
         let rtrait = RayCastBorrow(rtrait);
-        let dt = vistr.with_depth(Depth(0));
+        let dt = self.vistr_mut().with_depth(Depth(0));
 
         let closest = Closest { closest: None };
         let mut blap = Blap {

@@ -358,41 +358,108 @@ impl<'a, T: Aabb> KResult<'a, T> {
     }
 }
 
-pub(crate) use self::mutable::k_nearest_mut;
 
-pub(crate) use self::mutable::k_nearest_naive_mut;
-mod mutable {
-    use super::*;
 
-    pub(crate) fn k_nearest_naive_mut<'a, K: Knearest<T = T, N = T::Num>, T: Aabb>(
-        bots: PMut<'a, [T]>,
-        point: Vec2<K::N>,
-        num: usize,
-        k: &mut K,
-    ) -> KResult<'a, T> {
-        let mut closest = ClosestCand::new(num);
+pub(crate) fn k_nearest_naive_mut<'a, K: Knearest<T = T, N = T::Num>, T: Aabb>(
+    bots: PMut<'a, [T]>,
+    point: Vec2<K::N>,
+    num: usize,
+    k: &mut K,
+) -> KResult<'a, T> {
+    let mut closest = ClosestCand::new(num);
 
-        for b in bots.iter_mut() {
-            closest.consider(&point, k, b);
-        }
-
-        let num_entires = closest.curr_num;
-        KResult {
-            num_entires,
-            inner: closest.into_sorted(),
-        }
+    for b in bots.iter_mut() {
+        closest.consider(&point, k, b);
     }
 
-    pub(crate) fn k_nearest_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
-        axis: A,
-        vistr: VistrMut<'a, Node<'b, T>>,
-        point: Vec2<T::Num>,
-        num: usize,
-        knear: &mut impl Knearest<N = T::Num, T = T>,
-    ) -> KResult<'a, T> {
-        let dt = vistr.with_depth(Depth(0));
+    let num_entires = closest.curr_num;
+    KResult {
+        num_entires,
+        inner: closest.into_sorted(),
+    }
+}
 
-        let knear = KnearestBorrow(knear);
+
+
+use super::Queries;
+impl<'a,K:Queries<'a>> KnearestQuery<'a> for K{}
+
+pub trait KnearestQuery<'a>:Queries<'a>{
+    ///TODO document
+    /*
+    /// Find the closest `num` elements to the specified `point`.
+    /// The user provides two functions:
+    ///
+    /// * `fine` is a function that gives the true distance between the `point`
+    /// and the specified tree element.
+    ///
+    /// * `broad` is a function that gives the distance between the `point`
+    /// and the closest point of a axis aligned rectangle. This function
+    /// is used as a conservative estimate to prune out elements which minimizes
+    /// how often the `fine` function gets called.
+    ///
+    /// `border` is the starting axis axis aligned rectangle to use. This
+    /// rectangle will be split up and used to prune candidated. All candidate elements
+    /// should be within this starting rectangle.
+    ///
+    /// The result is returned as one `Vec`. The closest elements will
+    /// appear first. Multiple elements can be returned
+    /// with the same distance in the event of ties. These groups of elements are seperated by
+    /// one entry of `Option::None`. In order to iterate over each group,
+    /// try using the slice function: `arr.split(|a| a.is_none())`
+    ///
+    /// `acc` is a user defined object that is passed to every call to either
+    /// the `fine` or `broad` functions.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// use axgeom::vec2;
+    ///
+    /// let mut inner1=vec2(5,5);
+    /// let mut inner2=vec2(3,3);
+    /// let mut inner3=vec2(7,7);
+    ///
+    /// let mut bots = [bbox(rect(0,10,0,10),&mut inner1),
+    ///               bbox(rect(2,4,2,4),&mut inner2),
+    ///               bbox(rect(6,8,6,8),&mut inner3)];
+    ///
+    /// let border = broccoli::rect(0, 100, 0, 100);
+    ///
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// let mut res = tree.k_nearest_mut(
+    ///       vec2(30, 30),
+    ///       2,
+    ///       &mut (),
+    ///       |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
+    ///       |(), a, b| b.inner.distance_squared_to_point(a),
+    ///       border,
+    /// );
+    ///
+    /// assert_eq!(res.len(),2);
+    /// assert_eq!(res.total_len(),2);
+    ///
+    /// let foo:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
+    ///
+    /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)])
+    ///```
+    */
+    #[must_use]
+    fn k_nearest_mut<'b, K: Knearest<T = Self::T, N = Self::Num>>(
+        &'b mut self,
+        point: Vec2<Self::Num>,
+        num: usize,
+        ktrait: &mut K,
+    ) -> KResult<Self::T>
+    where
+        'a: 'b,
+    {
+        let axis=self.axis();
+        let dt = self.vistr_mut().with_depth(Depth(0));
+
+        let knear = KnearestBorrow(ktrait);
 
         let closest = ClosestCand::new(num);
 
@@ -403,19 +470,7 @@ mod mutable {
         };
 
         recc(axis, dt, &mut blap);
-        /*
-        let mut res: Vec<Option<(PMut<'a,N::T>, N::Num)>> = Vec::new();
-        for a in blap.closest.into_sorted().into_iter() {
-            if let Some(Some(k)) = res.last() {
-                if k.1 != a.mag {
-                    res.push(None);
-                }
-            }
-            res.push(Some((a.bot, a.mag)));
-        }
-        res
-        */
-
+        
         let num_entires = blap.closest.curr_num;
         KResult {
             num_entires,

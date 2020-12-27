@@ -15,7 +15,7 @@ pub trait DividerDrawer {
 
 ///Calls the user supplied function on each divider.
 ///Since the leaves do not have dividers, it is not called for the leaves.
-pub fn draw<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
+fn draw<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
     axis: A,
     vistr: Vistr<Node<T>>,
     dr: &mut D,
@@ -52,4 +52,54 @@ pub fn draw<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
     }
 
     recc(axis, vistr.with_depth(Depth(0)), dr, rect);
+}
+
+
+
+
+use super::Queries;
+impl<'a,K:Queries<'a>> DrawQuery<'a> for K{}
+
+pub trait DrawQuery<'a>: Queries<'a>+RectQuery<'a>{
+
+
+
+    /// # Examples
+    ///
+    /// ```
+    /// use broccoli::{prelude::*,bbox,rect};
+    ///
+    /// struct Drawer;
+    /// impl broccoli::query::DividerDrawer for Drawer{
+    ///     type N=i32;
+    ///     fn draw_divider<A:axgeom::Axis>(
+    ///             &mut self,
+    ///             axis:A,
+    ///             div:Self::N,
+    ///             cont:[Self::N;2],
+    ///             length:[Self::N;2],
+    ///             depth:usize)
+    ///     {
+    ///         if axis.is_xaxis(){
+    ///             //draw vertical line
+    ///         }else{
+    ///             //draw horizontal line
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// let border=rect(0,100,0,100);
+    /// let mut bots =[rect(0,10,0,10)];
+    /// let tree=broccoli::new(&mut bots);
+    /// tree.draw_divider(&mut Drawer,&border);
+    /// ```
+    ///
+    fn draw_divider(
+        &self,
+        drawer: &mut impl DividerDrawer<N = Self::Num>,
+        rect: &Rect<Self::Num>,
+    ) {
+        draw(self.axis(), self.vistr(), drawer, rect)
+    }
+
 }
