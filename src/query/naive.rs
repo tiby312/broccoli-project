@@ -1,4 +1,6 @@
 use super::*;
+use super::raycast::*;
+use super::knearest::*;
 ///Provides the naive implementation of the [`Tree`] api.
 pub struct NaiveAlgs<'a, T> {
     bots: PMut<'a, [T]>,
@@ -27,12 +29,12 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
     pub fn raycast_mut(
         &mut self,
         ray: axgeom::Ray<T::Num>,
-        rtrait: &mut impl crate::query::RayCast<T = T, N = T::Num>,
+        rtrait: &mut impl RayCast<T = T, N = T::Num>,
     ) -> axgeom::CastResult<(Vec<PMut<T>>, T::Num)> {
         raycast::raycast_naive_mut(self.bots.borrow_mut(), ray, rtrait)
     }
 
-    pub fn k_nearest_mut<'b, K: query::Knearest<T = T, N = T::Num>>(
+    pub fn k_nearest_mut<'b, K: Knearest<T = T, N = T::Num>>(
         &'b mut self,
         point: Vec2<T::Num>,
         num: usize,
@@ -41,7 +43,7 @@ impl<'a, T: Aabb> NaiveAlgs<'a, T> {
     where
         'a: 'b,
     {
-        k_nearest::k_nearest_naive_mut(self.bots.borrow_mut(), point, num, ktrait)
+        knearest::k_nearest_naive_mut(self.bots.borrow_mut(), point, num, ktrait)
     }
     /*
     #[must_use]

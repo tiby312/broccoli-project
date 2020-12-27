@@ -21,7 +21,7 @@ fn main() {
 
 
     
-    let mut raycast_stuff = broccoli::query::RayCastClosure::new(
+    let mut raycast_stuff = broccoli::query::raycast::from_closure(
         &tree,
         (),
         |_, ray, a| ray.cast_to_rect(&a.rect),

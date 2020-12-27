@@ -66,6 +66,23 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
 }
 
 
+
+pub fn from_closure<
+    AA:Axis,
+    T:Aabb,
+    Acc,
+    B,
+    C,
+    D,
+    E>(_tree:&Tree<AA,T>,acc:Acc,broad:B,fine:C,xline:D,yline:E)->KnearestClosure<T,Acc,B,C,D,E>
+    where  
+    B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+    C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+    D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+    E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num{
+        KnearestClosure{_p:PhantomData,acc,broad,fine,xline,yline}
+    }
+
 pub struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
     pub _p: PhantomData<T>,
     pub acc: Acc,
@@ -75,60 +92,21 @@ pub struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
     pub yline: E,
 }
 
-impl<
-        T: Aabb,
-        Acc,
-        B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-        C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-        D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-        E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    > KnearestClosure<T, Acc, B, C, D, E>
-{
-    //By passing a reference to the tree at construction,
-    //we can avoid explicit typing.
-    pub fn from_tree<AA: Axis>(
-        _tree: &Tree<AA, T>,
-        acc: Acc,
-        broad: B,
-        fine: C,
-        xline: D,
-        yline: E,
-    ) -> Self {
-        KnearestClosure {
-            _p: PhantomData,
-            acc,
-            broad,
-            fine,
-            xline,
-            yline,
-        }
-    }
-    pub fn new(
-        acc: Acc,
-        broad: B,
-        fine: C,
-        xline: D,
-        yline: E,
-    ) -> Self {
-        KnearestClosure {
-            _p: PhantomData,
-            acc,
-            broad,
-            fine,
-            xline,
-            yline,
-        }
-    }
-}
+
 impl<
         'a,
         T: Aabb,
         Acc,
+        B,
+        C,
+        D,
+        E,
+    > Knearest for KnearestClosure<T, Acc, B, C, D, E>
+    where
         B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
         C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
         D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-        E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    > Knearest for KnearestClosure<T, Acc, B, C, D, E>
+        E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num
 {
     type T = T;
     type N = T::Num;
@@ -380,13 +358,13 @@ impl<'a, T: Aabb> KResult<'a, T> {
     }
 }
 
-pub use self::mutable::k_nearest_mut;
+pub(crate) use self::mutable::k_nearest_mut;
 
-pub use self::mutable::k_nearest_naive_mut;
+pub(crate) use self::mutable::k_nearest_naive_mut;
 mod mutable {
     use super::*;
 
-    pub fn k_nearest_naive_mut<'a, K: Knearest<T = T, N = T::Num>, T: Aabb>(
+    pub(crate) fn k_nearest_naive_mut<'a, K: Knearest<T = T, N = T::Num>, T: Aabb>(
         bots: PMut<'a, [T]>,
         point: Vec2<K::N>,
         num: usize,
@@ -405,7 +383,7 @@ mod mutable {
         }
     }
 
-    pub fn k_nearest_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(crate) fn k_nearest_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: VistrMut<'a, Node<'b, T>>,
         point: Vec2<T::Num>,

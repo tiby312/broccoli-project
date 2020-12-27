@@ -15,30 +15,26 @@ mod naive;
 
 pub use graphics::DividerDrawer;
 //pub use raycast::RayCastResult;
-pub use rect::{MultiRectMut, RectIntersectErr};
 
 pub use crate::query::nbody::NodeMassTrait;
 
 ///aabb broadphase collision detection
-mod colfind;
-pub use colfind::ColMulti;
-pub use colfind::NotSortedQueryBuilder;
-pub use colfind::QueryBuilder;
+pub mod colfind;
+use colfind::ColMulti;
+use colfind::NotSortedQueryBuilder;
+use colfind::QueryBuilder;
 
 ///Provides functionality to draw the dividers of [`Tree`].
 mod graphics;
 
 ///Contains all k_nearest code.
-mod k_nearest;
-pub use k_nearest::KResult;
-pub use k_nearest::Knearest;
-pub use k_nearest::KnearestClosure;
-pub use k_nearest::KnearestResult;
+pub mod knearest;
+use knearest::KResult;
+use knearest::Knearest;
 
 ///Contains all raycast code.
-mod raycast;
-pub use raycast::RayCast;
-pub use raycast::RayCastClosure;
+pub mod raycast;
+use raycast::RayCast;
 
 ///Allows user to intersect the tree with a seperate group of bots.
 mod intersect_with;
@@ -46,7 +42,9 @@ mod intersect_with;
 mod nbody;
 
 ///Contains rect code.
-mod rect;
+pub mod rect;
+use rect::{MultiRectMut, RectIntersectErr};
+
 
 ///Contains misc tools
 mod tools;
@@ -525,7 +523,7 @@ pub trait Queries<'a> {
     where
         'a: 'b,
     {
-        k_nearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, ktrait)
+        knearest::k_nearest_mut(self.axis(), self.vistr_mut(), point, num, ktrait)
     }
 
     /// Find collisions between elements in this tree,
@@ -622,13 +620,4 @@ pub trait Queries<'a> {
     {
         query::nbody::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
     }
-}
-
-///For comparison, the sweep and prune algorithm
-pub fn find_collisions_sweep_mut<A: Axis, T: Aabb>(
-    bots: &mut [T],
-    axis: A,
-    mut func: impl FnMut(PMut<T>, PMut<T>),
-) {
-    colfind::query_sweep_mut(axis, bots, |a, b| func(a, b));
 }

@@ -22,9 +22,9 @@ fn create_bbox_mut<'a, N: Num, T>(
 
 pub fn default_raycast_handler_isize<
     A:axgeom::Axis,
-    T>(tree:&Tree<A,BBox<isize,T>>)->impl RayCast<T=BBox<isize,T>,N=isize>{
+    T>(tree:&Tree<A,BBox<isize,T>>)->impl raycast::RayCast<T=BBox<isize,T>,N=isize>{
 
-    RayCastClosure::new(
+    raycast::from_closure(
         &tree,
         (),
         |_, ray, a| ray.cast_to_rect(&a.rect),
@@ -35,8 +35,8 @@ pub fn default_raycast_handler_isize<
 }
 pub fn default_knearest_handler_isize<
     A:axgeom::Axis,
-    T>(tree:&Tree<A,BBox<isize,T>>)->impl Knearest<T=BBox<isize,T>,N=isize>{
-    broccoli::query::KnearestClosure::new(
+    T>(tree:&Tree<A,BBox<isize,T>>)->impl knearest::Knearest<T=BBox<isize,T>,N=isize>{
+    knearest::from_closure(
         tree,
         (),
         |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
@@ -71,7 +71,7 @@ fn test_tie_knearest() {
     assert_eq!(res.len(), 2);
     assert_eq!(res.total_len(), 2);
 
-    use broccoli::query::KnearestResult;
+    use broccoli::query::knearest::KnearestResult;
     let r: &[KnearestResult<_>] = res.iter().next().unwrap();
     assert_eq!(r.len(), 2);
 

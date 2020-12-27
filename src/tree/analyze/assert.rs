@@ -1,3 +1,6 @@
+use crate::query::knearest::*;
+use crate::query::raycast::*;
+
 /// Functions that panic if a disconnect between query results is detected
 /// between `broccoli::Tree` and the naive equivalent.
 pub trait NaiveCheck<'a, K>: core::ops::DerefMut<Target = K>
@@ -90,7 +93,7 @@ where
     fn assert_raycast_mut(
         &mut self,
         ray: axgeom::Ray<Self::Num>,
-        rtrait: &mut impl crate::query::RayCast<T = Self::T, N = Self::Num>,
+        rtrait: &mut impl RayCast<T = Self::T, N = Self::Num>,
     ) where
         Self::Num: core::fmt::Debug,
     {

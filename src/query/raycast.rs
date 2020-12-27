@@ -77,34 +77,33 @@ pub trait RayCast {
 
 
 pub struct RayCastClosure<T, A, B, C, D, E> {
-    _p: PhantomData<T>,
+    pub _p: PhantomData<T>,
+    pub acc: A,
+    pub broad: B,
+    pub fine: C,
+    pub xline: D,
+    pub yline: E,
+}
+
+pub fn from_closure<
+    AA:Axis,
+    T: Aabb,
+    A,
+    B,
+    C,
+    D,
+    E,
+>( _tree:&Tree<AA,T>,
     acc: A,
     broad: B,
     fine: C,
     xline: D,
-    yline: E,
-}
-
-impl<
-        T: Aabb,
-        A,
-        B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+    yline: E)->RayCastClosure<T,A,B,C,D,E> 
+    where 
+        B:FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
         C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
         D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-        E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-    > RayCastClosure<T, A, B, C, D, E>
-{
-    
-    //By passing a reference to the tree at construction,
-    //we can avoid explicit typing.
-    pub fn from_tree<AA: Axis>(
-        _tree:&Tree<AA,T>,
-        acc: A,
-        broad: B,
-        fine: C,
-        xline: D,
-        yline: E,
-    ) -> RayCastClosure<T, A, B, C, D, E> {
+        E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>{
         RayCastClosure {
             _p: PhantomData,
             acc,
@@ -113,33 +112,21 @@ impl<
             xline,
             yline,
         }
-    }
-
-    pub fn new(
-        acc: A,
-        broad: B,
-        fine: C,
-        xline: D,
-        yline: E,
-    ) -> RayCastClosure<T, A, B, C, D, E> {
-        RayCastClosure {
-            _p: PhantomData,
-            acc,
-            broad,
-            fine,
-            xline,
-            yline,
-        }
-    }
 }
+
 impl<
         T: Aabb,
         A,
-        B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
-        C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
-        D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-        E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+        B,
+        C,
+        D,
+        E,
     > RayCast for RayCastClosure< T, A, B, C, D, E>
+where
+        B:FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+        E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>
 {
     type T = T;
     type N = T::Num;
@@ -348,13 +335,13 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     }
 }
 
-pub use self::mutable::raycast_mut;
-pub use self::mutable::raycast_naive_mut;
+pub(crate) use self::mutable::raycast_mut;
+pub(crate) use self::mutable::raycast_naive_mut;
 
 mod mutable {
     use super::*;
 
-    pub fn raycast_naive_mut<'a, T: Aabb>(
+    pub(crate) fn raycast_naive_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         ray: Ray<T::Num>,
         rtrait: &mut impl RayCast<N = T::Num, T = T>,
@@ -371,7 +358,7 @@ mod mutable {
         }
     }
 
-    pub fn raycast_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(crate) fn raycast_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: VistrMut<'a, Node<'b, T>>,
         ray: Ray<T::Num>,

@@ -20,7 +20,7 @@ fn main() {
 
     let mut tree = broccoli::new(&mut bots);
 
-    let mut knearest_stuff = broccoli::query::KnearestClosure::new(
+    let mut knearest_stuff = broccoli::query::knearest::from_closure(
         &tree,
         (),
         |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
