@@ -272,7 +272,7 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> QueryBuilder<'a, 'b, A, T> {
     ///Create the builder.
     #[inline(always)]
     #[must_use]
-    pub(crate) fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> QueryBuilder<'a, 'b, A, T> {
+    fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> QueryBuilder<'a, 'b, A, T> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         QueryBuilder {
             switch_height,
