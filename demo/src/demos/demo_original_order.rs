@@ -88,7 +88,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         });
 
         if check_naive {
-            tree.assert_colliding_pairs_mut();
+            broccoli::query::colfind::assert_query(&mut tree);
         }
 
         let mut circles = canvas.circles();
@@ -117,7 +117,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 struct Bla {
     rects: egaku2d::shapes::RectSession,
 }
-impl broccoli::query::DividerDrawer for Bla {
+impl broccoli::query::graphics::DividerDrawer for Bla {
     type N = f32;
     fn draw_divider<A: axgeom::Axis>(
         &mut self,

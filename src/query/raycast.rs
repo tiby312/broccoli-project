@@ -336,26 +336,64 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
 }
 
 
-
-
-use super::NaiveQueries;
-impl<K:NaiveQueries> RaycastNaiveQuery for K{}
-pub trait RaycastNaiveQuery:NaiveQueries{
-
-    fn raycast_mut<'a>(
-        &'a mut self,
-        ray: axgeom::Ray<Self::Num>,
-        rtrait: &mut impl RayCast<T = Self::T, N = Self::Num>,
-    ) -> axgeom::CastResult<(Vec<PMut<'a,Self::T>>, Self::Num)> {
-        raycast_naive_mut(self.get_slice_mut(), ray, rtrait)
+use super::NaiveComparable;
+pub fn assert_raycast<'a,K:NaiveComparable<'a>>( 
+    tree:&mut K,
+    ray: axgeom::Ray<K::Num>,
+    rtrait: &mut impl RayCast<T = K::T, N = K::Num>) where K::Num:core::fmt::Debug{
+    let bots = tree.get_elements_mut();
+    fn into_ptr_usize<T>(a: &T) -> usize {
+        a as *const T as usize
+    }
+    let mut res_naive = Vec::new();
+    match raycast_naive_mut(bots,ray, rtrait) {
+        axgeom::CastResult::Hit((bots, mag)) => {
+            for a in bots.into_iter() {
+                let r = *a.get();
+                let j = into_ptr_usize(a.into_ref());
+                res_naive.push((j, r, mag))
+            }
+        }
+        axgeom::CastResult::NoHit => {
+            //do nothing
+        }
     }
 
+    let mut res_dino = Vec::new();
+    match tree.get_tree().raycast_mut(ray, rtrait) {
+        axgeom::CastResult::Hit((bots, mag)) => {
+            for a in bots.into_iter() {
+                let r = *a.get();
+                let j = into_ptr_usize(a.into_ref());
+                res_dino.push((j, r, mag))
+            }
+        }
+        axgeom::CastResult::NoHit => {
+            //do nothing
+        }
+    }
 
+    res_naive.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    res_dino.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
+    //dbg!("{:?}  {:?}",res_naive.len(),res_dino.len());
+    assert_eq!(
+        res_naive.len(),
+        res_dino.len(),
+        "len:{:?}",
+        (res_naive, res_dino)
+    );
+    assert!(
+        res_naive.iter().eq(res_dino.iter()),
+        "nop:\n\n naive:{:?} \n\n broc:{:?}",
+        res_naive,
+        res_dino
+    );
 }
 
+
 //TODO condense
-fn raycast_naive_mut<'a, T: Aabb>(
+pub fn raycast_naive_mut<'a, T: Aabb>(
     bots: PMut<'a, [T]>,
     ray: Ray<T::Num>,
     rtrait: &mut impl RayCast<N = T::Num, T = T>,

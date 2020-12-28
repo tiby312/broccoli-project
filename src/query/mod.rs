@@ -77,6 +77,107 @@ pub trait NaiveQueries{
     fn get_slice_mut(&mut self) -> PMut<[Self::T]>;
 }
 
+
+pub trait NaiveComparable<'a>{
+    type K:Queries<'a,T=Self::T,Num=Self::Num>+'a;
+    type T:Aabb<Num=Self::Num>+'a;
+    type Num:Num;
+    fn get_tree(&mut self)->&mut Self::K;
+    fn get_elements_mut(&mut self)->PMut<[<Self::K as Queries<'a>>::T]>;
+
+    #[must_use]
+    fn assert_tree_invariants(&mut self)->bool{
+
+        fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>) -> Result<(), ()> {
+            fn a_bot_has_value<N: Num>(it: impl Iterator<Item = N>, val: N) -> bool {
+                for b in it {
+                    if b == val {
+                        return true;
+                    }
+                }
+                false
+            }
+
+            macro_rules! assert2 {
+                ($bla:expr) => {
+                    if !$bla {
+                        return Err(());
+                    }
+                };
+            }
+
+            let ((_depth, nn), rest) = iter.next();
+            //let nn = nn.get();
+            let axis_next = axis.next();
+
+            let f = |a: &&T, b: &&T| -> Option<core::cmp::Ordering> {
+                let j = a
+                    .get()
+                    .get_range(axis_next)
+                    .start
+                    .partial_cmp(&b.get().get_range(axis_next).start)
+                    .unwrap();
+                Some(j)
+            };
+
+            {
+                use is_sorted::IsSorted;
+                assert2!(IsSorted::is_sorted_by(&mut nn.range.iter(), f));
+            }
+
+            if let Some([start, end]) = rest {
+                match nn.div {
+                    Some(div) => {
+                        match nn.cont {
+                            Some(cont) => {
+                                for bot in nn.range.iter() {
+                                    assert2!(bot.get().get_range(axis).contains(div));
+                                }
+
+                                assert2!(a_bot_has_value(
+                                    nn.range.iter().map(|b| b.get().get_range(axis).start),
+                                    div
+                                ));
+
+                                for bot in nn.range.iter() {
+                                    assert2!(cont.contains_range(bot.get().get_range(axis)));
+                                }
+
+                                assert2!(a_bot_has_value(
+                                    nn.range.iter().map(|b| b.get().get_range(axis).start),
+                                    cont.start
+                                ));
+                                assert2!(a_bot_has_value(
+                                    nn.range.iter().map(|b| b.get().get_range(axis).end),
+                                    cont.end
+                                ));
+                            }
+                            None => assert2!(nn.range.is_empty()),
+                        }
+
+                        inner(axis_next, start)?;
+                        inner(axis_next, end)?;
+                    }
+                    None => {
+                        for (_depth, n) in start.dfs_preorder_iter().chain(end.dfs_preorder_iter()) {
+                            assert2!(n.range.is_empty());
+                            assert2!(n.cont.is_none());
+                            assert2!(n.div.is_none());
+                        }
+                    }
+                }
+            }
+            Ok(())
+        }
+
+        let tree=self.get_tree();
+        inner(tree.axis(), tree.vistr().with_depth(compt::Depth(0))).is_ok()
+
+    }
+}
+
+
+
 ///Query functions. User defines `vistr()` functions, and the query functions
 ///are automatically provided by this trait.
 pub trait Queries<'a> {

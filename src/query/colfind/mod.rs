@@ -21,16 +21,37 @@ pub trait ColMulti {
 
 
 
-use super::NaiveQueries;
-impl<K:NaiveQueries> ColfindNaiveQuery for K{}
-pub trait ColfindNaiveQuery:NaiveQueries{
-    fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
-        self::query_naive_mut(self.get_slice_mut(), |a, b| func(a, b));
+use super::NaiveComparable;
+pub fn assert_query<'a,K:NaiveComparable<'a>>(tree:&mut K){
+    use core::ops::Deref;
+    fn into_ptr_usize<T>(a: &T) -> usize {
+        a as *const T as usize
     }
+    let mut res_dino = Vec::new();
+    tree.get_tree().find_colliding_pairs_mut(|a, b| {
+        let a = into_ptr_usize(a.deref());
+        let b = into_ptr_usize(b.deref());
+        let k = if a < b { (a, b) } else { (b, a) };
+        res_dino.push(k);
+    });
 
+    let mut res_naive = Vec::new();
+    query_naive_mut(tree.get_elements_mut(),|a, b| {
+        let a = into_ptr_usize(a.deref());
+        let b = into_ptr_usize(b.deref());
+        let k = if a < b { (a, b) } else { (b, a) };
+        res_naive.push(k);
+    });
+
+    res_naive.sort();
+    res_dino.sort();
+
+    assert_eq!(res_naive.len(), res_dino.len());
+    assert!(res_naive.iter().eq(res_dino.iter()));
 }
+
 ///Naive algorithm.
-fn query_naive_mut<T: Aabb>(bots: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {
+pub fn query_naive_mut<T: Aabb>(bots: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {
     tools::for_every_pair(bots, move |a, b| {
         if a.get().intersects_rect(b.get()) {
             func(a, b);

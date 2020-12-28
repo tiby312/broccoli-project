@@ -361,30 +361,63 @@ impl<'a, T: Aabb> KResult<'a, T> {
 }
 
 
-use super::NaiveQueries;
-impl<K:NaiveQueries> KnearestNaiveQuery for K{}
-pub trait KnearestNaiveQuery:NaiveQueries{
-    fn k_nearest_mut<'a, K: Knearest<T = Self::T, N = Self::Num>>(
-        &'a mut self,
-        point: Vec2<K::N>,
-        num: usize,
-        k: &mut K,
-    ) -> KResult<'a, Self::T> {
-        let bots=self.get_slice_mut();
-        let mut closest = ClosestCand::new(num);
+
+
+
+use super::NaiveComparable;
+pub fn assert_k_nearest_mut<'a,K:NaiveComparable<'a>>(
+    tree:&mut K,
+    point: Vec2<K::Num>,
+    num: usize,
+    knear: &mut impl Knearest<T = K::T, N = K::Num>,
+) {
+    let bots = tree.get_elements_mut();
+    use core::ops::Deref;
     
-        for b in bots.iter_mut() {
-            closest.consider(&point, k, b);
-        }
-    
-        let num_entires = closest.curr_num;
-        KResult {
-            num_entires,
-            inner: closest.into_sorted(),
-        }
+    fn into_ptr_usize<T>(a: &T) -> usize {
+        a as *const T as usize
     }
-    
+    let mut res_naive = 
+        naive_k_nearest_mut(bots,point, num, knear)
+        .into_vec()
+        .drain(..)
+        .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+        .collect::<Vec<_>>();
+
+    let r = tree.get_tree().k_nearest_mut(point, num, knear);
+    let mut res_dino: Vec<_> = r
+        .into_vec()
+        .drain(..)
+        .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+        .collect();
+
+    res_naive.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    res_dino.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+    assert_eq!(res_naive.len(), res_dino.len());
+    assert!(res_naive.iter().eq(res_dino.iter()));
 }
+
+
+pub fn naive_k_nearest_mut<'a,T:Aabb>(
+    elems:PMut<'a,[T]>,
+    point:Vec2<T::Num>,
+    num:usize,
+    k:&mut impl Knearest<T=T,N=T::Num>)->KResult<'a,T>{
+    let mut closest = ClosestCand::new(num);
+
+    for b in elems.iter_mut() {
+        closest.consider(&point, k, b);
+    }
+
+    let num_entires = closest.curr_num;
+    KResult {
+        num_entires,
+        inner: closest.into_sorted(),
+    }
+}
+
+
 
 
 use super::Queries;
