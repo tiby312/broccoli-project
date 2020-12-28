@@ -15,4 +15,5 @@
 - [Algorithm In-Depth](./ch11-algorithm-in-depth.md)
 - [Improvements](./ch12-improvements.md)
 - [How to make Aabb](./ch13-how-to-make-aabb.md)
-- [General Thoughts](./ch14-general-thoughts.md)
+- [Code Layout](./ch14-code-layout.md)
+- [General Thoughts](./ch15-general-thoughts.md)
