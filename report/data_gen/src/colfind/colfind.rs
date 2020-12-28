@@ -16,8 +16,8 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
     let stop_naive_at = 5000;
     let stop_sweep_at = 40000;
 
-    let rects = (0..80_000)
-        .step_by(2000)
+    let rects = (0..50_000)
+        .step_by(500)
         .map(move |num_bots| {
             dbg!(num_bots);
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
