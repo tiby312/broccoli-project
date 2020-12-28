@@ -15,7 +15,7 @@ mod inner_prelude {
 
 pub mod colfind;
 
-pub mod graphics;
+pub mod draw;
 
 pub mod knearest;
 

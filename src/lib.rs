@@ -114,7 +114,7 @@ pub mod convert;
 ///The broccoli prelude.
 pub mod prelude {
     pub use crate::query::nbody::NbodyQuery;
-    pub use crate::query::graphics::DrawQuery;
+    pub use crate::query::draw::DrawQuery;
     
     pub use crate::query::intersect_with::IntersectQuery;
     pub use crate::query::rect::RectQuery;

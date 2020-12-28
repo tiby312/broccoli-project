@@ -292,9 +292,9 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
     let mut fg = fb.build("colfind_theory");
 
     handle_theory_inner(
-        1.0,
+        0.2,
         &mut fg,
-        "Comparison of space partitioning algs with abspiral(x,1.0)",
+        "Comparison of space partitioning algs with abspiral(x,0.2)",
         0,
     );
     handle_theory_inner(
@@ -309,9 +309,9 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
 pub fn handle_bench(fb: &mut FigureBuilder) {
     let mut fg = fb.build("colfind_bench");
     handle_bench_inner(
-        1.0,
+        0.2,
         &mut fg,
-        "Comparison of space partitioning algs with abspiral(x,1.0)",
+        "Comparison of space partitioning algs with abspiral(x,0.2)",
         0,
     );
     handle_bench_inner(

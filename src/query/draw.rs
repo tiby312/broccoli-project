@@ -2,8 +2,30 @@
 //!
 use crate::query::inner_prelude::*;
 
+
+struct DrawClosure<N,Acc,A,B>{
+    _p:PhantomData<N>,
+    acc:Acc,
+    xline:A,
+    yline:B
+}
+
+impl<N:Num,Acc,A,B> DividerDrawer for DrawClosure<N,Acc,A,B>
+    where   A:FnMut(&mut Acc,N,[N;2],[N;2],usize),
+            B:FnMut(&mut Acc,N,[N;2],[N;2],usize)
+{
+    type N=N;
+    fn draw_divider<AA:Axis>(&mut self,axis:AA,div:Self::N,cont:[Self::N;2],length:[Self::N;2],depth:usize){
+        if axis.is_xaxis(){
+            (self.xline)(&mut self.acc,div,cont,length,depth);
+        }else{
+            (self.yline)(&mut self.acc,div,cont,length,depth);
+        }
+    }
+}
+
 ///Trait user must implement.
-pub trait DividerDrawer {
+trait DividerDrawer {
     type N: Num;
     fn draw_divider<A: Axis>(
         &mut self,
@@ -70,38 +92,36 @@ pub trait DrawQuery<'a>: Queries<'a>+RectQuery<'a>{
     ///
     /// ```
     /// use broccoli::{prelude::*,bbox,rect};
+    /// use axgeom::Rect;
     ///
-    /// struct Drawer;
-    /// impl broccoli::query::graphics::DividerDrawer for Drawer{
-    ///     type N=i32;
-    ///     fn draw_divider<A:axgeom::Axis>(
-    ///             &mut self,
-    ///             axis:A,
-    ///             div:Self::N,
-    ///             cont:[Self::N;2],
-    ///             length:[Self::N;2],
-    ///             depth:usize)
-    ///     {
-    ///         if axis.is_xaxis(){
-    ///             //draw vertical line
-    ///         }else{
-    ///             //draw horizontal line
-    ///         }
-    ///     }
-    /// }
-    ///
-    /// let border=rect(0,100,0,100);
+    /// let dim=rect(0,100,0,100);
     /// let mut bots =[rect(0,10,0,10)];
     /// let tree=broccoli::new(&mut bots);
-    /// tree.draw_divider(&mut Drawer,&border);
+    ///
+    /// let mut rects=Vec::new();
+    /// tree.draw_divider(&mut rects,
+    ///     |rects,_,cont,length,_| rects.push(Rect {x: cont.into(),y: length.into()}),
+    ///     |rects,_,cont,length,_| rects.push(Rect {x: length.into(),y:cont.into()}),
+    ///     &dim
+    /// );
+    ///
+    /// //rects now contains a bunch of rectangles that can be drawn to visualize
+    /// //where all the dividers are and how thick they each are.
+    ///
     /// ```
     ///
-    fn draw_divider(
+    fn draw_divider<A>(
         &self,
-        drawer: &mut impl DividerDrawer<N = Self::Num>,
+        acc:A,
+        xline: impl FnMut(&mut A,Self::Num,[Self::Num;2],[Self::Num;2],usize),
+        yline: impl FnMut(&mut A,Self::Num,[Self::Num;2],[Self::Num;2],usize),
+        //drawer: &mut impl DividerDrawer<N = Self::Num>,
         rect: &Rect<Self::Num>,
     ) {
-        draw(self.axis(), self.vistr(), drawer, rect)
+        let mut d=DrawClosure{_p:PhantomData,acc,xline,yline};
+
+        draw(self.axis(), self.vistr(), &mut d, rect)
     }
+
 
 }

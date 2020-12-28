@@ -66,10 +66,14 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         });
 
         //Draw the dividers
-        let rects = canvas.rects();
-        let mut dd = Bla { rects };
-        tree.draw_divider(&mut dd, &dim);
-        dd.rects
+        let mut rects = canvas.rects();
+        
+        tree.draw_divider(&mut rects,
+            |rects,_,cont,length,_| {rects.add(Rect {x: cont.into(),y: length.into()}.into());},
+            |rects,_,cont,length,_| {rects.add(Rect {x: length.into(),y:cont.into()}.into());},
+            &dim
+        );
+        rects
             .send_and_uniforms(canvas)
             .with_color([0.0, 1.0, 1.0, 0.6])
             .draw();
@@ -113,35 +117,6 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             .with_color([0.0, 0.0, 1.0, 0.5])
             .draw();
     })
-}
-
-struct Bla {
-    rects: egaku2d::shapes::RectSession,
-}
-impl broccoli::query::graphics::DividerDrawer for Bla {
-    type N = f32;
-    fn draw_divider<A: axgeom::Axis>(
-        &mut self,
-        axis: A,
-        _div: f32,
-        cont: [f32; 2],
-        length: [f32; 2],
-        _depth: usize,
-    ) {
-        let rect = if axis.is_xaxis() {
-            Rect {
-                x: cont.into(),
-                y: length.into(),
-            }
-        } else {
-            Rect {
-                x: length.into(),
-                y: cont.into(),
-            }
-        };
-
-        self.rects.add(rect.into());
-    }
 }
 
 use broccoli::node::Node;
