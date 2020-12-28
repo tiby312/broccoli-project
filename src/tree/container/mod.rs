@@ -79,7 +79,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
         }
     }
 
-    //TODO doc
+    ///Explicitly DerefMut.
     pub fn as_tree_ref_mut(&mut self)->&mut TreeRef<'a,A,BBox<N, &'a mut T>>{
         &mut *self
     }
@@ -163,7 +163,7 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
 /// assert_eq!(bots[0].inner,1);
 ///```
 ///
-/// However it is useful to implement the [`crate::analyze::NaiveCheck`]
+/// However it is useful to implement the [`crate::query::NaiveComparable`]
 ///
 #[repr(transparent)]
 pub struct TreeRef<'a, A: Axis, T: Aabb> {

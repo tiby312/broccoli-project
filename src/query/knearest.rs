@@ -27,7 +27,7 @@ pub trait Knearest {
     type T: Aabb<Num = Self::N>;
     type N: Num;
 
-    ///User define distance function from a point to a line.
+    ///User define distance function from a point to an axis aligned line of infinite length.
     fn distance_to_aaline<A: Axis>(
         &mut self,
         point: Vec2<Self::N>,
@@ -68,6 +68,24 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
 
 ///Construct an object that implements [`Knearest`] from closures.
 ///We pass the tree so that we can infer the type of `T`.
+///
+/// `fine` is a function that gives the true distance between the `point`
+/// and the specified tree element.
+///
+/// `broad` is a function that gives the distance between the `point`
+/// and the closest point of a axis aligned rectangle. This function
+/// is used as a conservative estimate to prune out elements which minimizes
+/// how often the `fine` function gets called.
+///
+/// `xline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values. 
+///
+/// `yline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values. 
+///
+/// `acc` is a user defined object that is passed to every call to either
+/// the `fine` or `broad` functions.
+///
 pub fn from_closure<
     AA:Axis,
     T:Aabb,
@@ -365,6 +383,7 @@ impl<'a, T: Aabb> KResult<'a, T> {
 
 
 use super::NaiveComparable;
+///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_k_nearest_mut<'a,K:NaiveComparable<'a>>(
     tree:&mut K,
     point: Vec2<K::Num>,
@@ -399,6 +418,7 @@ pub fn assert_k_nearest_mut<'a,K:NaiveComparable<'a>>(
 }
 
 
+///Naive implementation
 pub fn naive_k_nearest_mut<'a,T:Aabb>(
     elems:PMut<'a,[T]>,
     point:Vec2<T::Num>,
@@ -423,32 +443,17 @@ pub fn naive_k_nearest_mut<'a,T:Aabb>(
 use super::Queries;
 impl<'a,K:Queries<'a>> KnearestQuery<'a> for K{}
 
+///Knearest functions that can be called on a tree.
 pub trait KnearestQuery<'a>:Queries<'a>{
-    ///TODO document
-    /*
+    
     /// Find the closest `num` elements to the specified `point`.
     /// The user provides two functions:
-    ///
-    /// * `fine` is a function that gives the true distance between the `point`
-    /// and the specified tree element.
-    ///
-    /// * `broad` is a function that gives the distance between the `point`
-    /// and the closest point of a axis aligned rectangle. This function
-    /// is used as a conservative estimate to prune out elements which minimizes
-    /// how often the `fine` function gets called.
-    ///
-    /// `border` is the starting axis axis aligned rectangle to use. This
-    /// rectangle will be split up and used to prune candidated. All candidate elements
-    /// should be within this starting rectangle.
     ///
     /// The result is returned as one `Vec`. The closest elements will
     /// appear first. Multiple elements can be returned
     /// with the same distance in the event of ties. These groups of elements are seperated by
     /// one entry of `Option::None`. In order to iterate over each group,
     /// try using the slice function: `arr.split(|a| a.is_none())`
-    ///
-    /// `acc` is a user defined object that is passed to every call to either
-    /// the `fine` or `broad` functions.
     ///
     /// # Examples
     ///
@@ -464,17 +469,21 @@ pub trait KnearestQuery<'a>:Queries<'a>{
     ///               bbox(rect(2,4,2,4),&mut inner2),
     ///               bbox(rect(6,8,6,8),&mut inner3)];
     ///
-    /// let border = broccoli::rect(0, 100, 0, 100);
-    ///
     /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// let mut handler = broccoli::query::knearest::from_closure(
+    ///    &tree,
+    ///    (),
+    ///    |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
+    ///    |_, point, a| a.inner.distance_squared_to_point(point),
+    ///    |_, point, a| distance_squared(point.x,a),
+    ///    |_, point, a| distance_squared(point.y,a),
+    /// );
     ///
     /// let mut res = tree.k_nearest_mut(
     ///       vec2(30, 30),
     ///       2,
-    ///       &mut (),
-    ///       |(), a, b| b.distance_squared_to_point(a).unwrap_or(0),
-    ///       |(), a, b| b.inner.distance_squared_to_point(a),
-    ///       border,
+    ///       &mut handler
     /// );
     ///
     /// assert_eq!(res.len(),2);
@@ -482,9 +491,14 @@ pub trait KnearestQuery<'a>:Queries<'a>{
     ///
     /// let foo:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
     ///
-    /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)])
+    /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)]);
+    ///
+    /// 
+    /// fn distance_squared(a:isize,b:isize)->isize{
+    ///     let a=(a-b).abs();
+    ///     a*a
+    /// }
     ///```
-    */
     #[must_use]
     fn k_nearest_mut<'b, K: Knearest<T = Self::T, N = Self::Num>>(
         &'b mut self,

@@ -47,6 +47,7 @@ pub trait RayCast {
     type T: Aabb<Num = Self::N>;
     type N: Num;
 
+    ///Return the cast result to a axis aligned line of infinite length.
     fn cast_to_aaline<A: Axis>(
         &mut self,
         ray: &Ray<Self::N>,
@@ -54,18 +55,14 @@ pub trait RayCast {
         val: Self::N,
     ) -> axgeom::CastResult<Self::N>;
 
-    ///Returns true if the ray intersects with this rectangle.
-    ///This function allows as to prune which nodes to visit.
+    ///Return the cast result that is cheap and overly conservative.
     fn cast_broad(
         &mut self,
         ray: &Ray<Self::N>,
         a: PMut<Self::T>,
     ) -> axgeom::CastResult<Self::N>;
 
-    ///The expensive collision detection
-    ///This is where the user can do expensive collision detection on the shape
-    ///contains within it's bounding box.
-    ///Its default implementation just calls cast_broad()
+    ///Return the exact cast result.
     fn cast_fine(
         &mut self,
         ray: &Ray<Self::N>,
@@ -85,6 +82,26 @@ pub struct RayCastClosure<T, A, B, C, D, E> {
     pub yline: E,
 }
 
+
+///Construct an object that implements [`RayCast`] from closures.
+///We pass the tree so that we can infer the type of `T`.
+///
+/// `fine` is a function that returns the true length of a ray
+/// cast to an object.
+///
+/// `broad` is a function that returns the length of a ray cast to
+/// a axis aligned rectangle. This function
+/// is used as a conservative estimate to prune out elements which minimizes
+/// how often the `fine` function gets called.
+///
+/// `xline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values. 
+///
+/// `yline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values. 
+///
+/// `acc` is a user defined object that is passed to every call to either
+/// the `fine` or `broad` functions.
 pub fn from_closure<
     AA:Axis,
     T: Aabb,
@@ -337,6 +354,8 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
 
 
 use super::NaiveComparable;
+
+///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_raycast<'a,K:NaiveComparable<'a>>( 
     tree:&mut K,
     ray: axgeom::Ray<K::Num>,
@@ -391,8 +410,7 @@ pub fn assert_raycast<'a,K:NaiveComparable<'a>>(
     );
 }
 
-
-//TODO condense
+///Naive implementation
 pub fn raycast_naive_mut<'a, T: Aabb>(
     bots: PMut<'a, [T]>,
     ray: Ray<T::Num>,
@@ -417,31 +435,17 @@ pub fn raycast_naive_mut<'a, T: Aabb>(
 use super::Queries;
 impl<'a,K:Queries<'a>> RaycastQuery<'a> for K{}
 
+
+///Raycast functions that can be called on a tree.
 pub trait RaycastQuery<'a>:Queries<'a>{
 
 
-/*
-/// Find the elements that are hit by a ray.
-    ///
-    /// The user supplies to functions:
-    ///
-    /// `fine` is a function that returns the true length of a ray
-    /// cast to an object.
-    ///
-    /// `broad` is a function that returns the length of a ray cast to
-    /// a axis aligned rectangle. This function
-    /// is used as a conservative estimate to prune out elements which minimizes
-    /// how often the `fine` function gets called.
-    ///
-    /// `border` is the starting axis axis aligned rectangle to use. This
-    /// rectangle will be split up and used to prune candidated. All candidate elements
-    /// should be within this starting rectangle.
+
+    /// Find the elements that are hit by a ray.
     ///
     /// The result is returned as a `Vec`. In the event of a tie, multiple
     /// elements can be returned.
     ///
-    /// `acc` is a user defined object that is passed to every call to either
-    /// the `fine` or `broad` functions.
     ///
     /// # Examples
     ///
@@ -449,7 +453,6 @@ pub trait RaycastQuery<'a>:Queries<'a>{
     /// use broccoli::{prelude::*,bbox,rect};
     /// use axgeom::{vec2,ray};
     ///
-    /// let border = rect(-100,100,-100,100);
     ///
     /// let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
     ///                bbox(rect(2,5,2,5),vec2(4,4)),
@@ -458,21 +461,24 @@ pub trait RaycastQuery<'a>:Queries<'a>{
     /// let mut bots_copy=bots.clone();
     /// let mut tree = broccoli::new(&mut bots);
     /// let ray=ray(vec2(5,-5),vec2(1,2));
-    /// let mut counter =0;
+    ///
+    /// let mut handler = broccoli::query::raycast::from_closure(
+    ///    &tree,
+    ///    (),
+    ///    |_, ray, a| ray.cast_to_rect(&a.rect),
+    ///    |_, ray, a| ray.cast_to_rect(&a.rect),
+    ///    |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
+    ///    |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
+    /// );
     /// let res = tree.raycast_mut(
-    ///     ray,&mut counter,
-    ///     |c,ray,r|{*c+=1;ray.cast_to_rect(r)},
-    ///     |c,ray,t|{*c+=1;ray.cast_to_rect(&t.rect)},   //Do more fine-grained checking here.
-    ///     border);
+    ///     ray,
+    ///     &mut handler);
     ///
     /// let (bots,dis)=res.unwrap();
     /// assert_eq!(dis,2);
     /// assert_eq!(bots.len(),1);
     /// assert_eq!(bots[0].inner,vec2(5,5));
     ///```
-    */
-    /// Companion function to [`RaycastQuery::raycast_mut()`] for cases where the use wants to
-    /// use the trait instead of closures.
     fn raycast_mut<'b, R: RayCast<T = Self::T, N = Self::Num>>(
         &'b mut self,
         ray: axgeom::Ray<Self::Num>,

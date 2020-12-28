@@ -59,6 +59,8 @@ macro_rules! rect {
     };
 }
 
+
+///Naive implementation
 pub fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
     bots: PMut<'a, [T]>,
     rect: &Rect<T::Num>,
@@ -152,6 +154,8 @@ mod mutable {
         });
     }
 
+
+    ///Naive implementation
     pub fn naive_for_all_in_rect_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         rect: &Rect<T::Num>,
@@ -164,6 +168,8 @@ mod mutable {
         }
     }
 
+
+    ///Naive implementation
     pub fn naive_for_all_intersect_rect_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         rect: &Rect<T::Num>,
@@ -282,6 +288,8 @@ fn into_ptr_usize<T>(a: &T) -> usize {
     a as *const T as usize
 }
 use super::NaiveComparable;
+
+///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_for_all_not_in_rect_mut<'a,K:NaiveComparable<'a>>(tree:&mut K, rect: &axgeom::Rect<K::Num>) {
     let mut res_dino = Vec::new();
     tree.get_tree().for_all_not_in_rect_mut(rect, |a| {
@@ -300,6 +308,7 @@ pub fn assert_for_all_not_in_rect_mut<'a,K:NaiveComparable<'a>>(tree:&mut K, rec
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
+///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_for_all_intersect_rect_mut<'a,K:NaiveComparable<'a>>(tree:&mut K, rect: &axgeom::Rect<K::Num>) {
     let mut res_dino = Vec::new();
     tree.get_tree().for_all_intersect_rect_mut(rect, |a| {
@@ -318,6 +327,7 @@ pub fn assert_for_all_intersect_rect_mut<'a,K:NaiveComparable<'a>>(tree:&mut K, 
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
+///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_for_all_in_rect_mut<'a,K:NaiveComparable<'a>>(tree:&mut K, rect: &axgeom::Rect<K::Num>) {
     let mut res_dino = Vec::new();
     tree.get_tree().for_all_in_rect_mut(rect, |a| {
@@ -344,6 +354,9 @@ pub fn assert_for_all_in_rect_mut<'a,K:NaiveComparable<'a>>(tree:&mut K, rect: &
 use super::Queries;
 impl<'a,K:Queries<'a>> RectQuery<'a> for K{}
 
+
+
+///Rect functions that can be called on a tree.
 pub trait RectQuery<'a>:Queries<'a>{
 
     /// # Examples

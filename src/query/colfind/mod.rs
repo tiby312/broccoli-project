@@ -22,6 +22,8 @@ pub trait ColMulti {
 
 
 use super::NaiveComparable;
+
+///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_query<'a,K:NaiveComparable<'a>>(tree:&mut K){
     use core::ops::Deref;
     fn into_ptr_usize<T>(a: &T) -> usize {
@@ -50,7 +52,7 @@ pub fn assert_query<'a,K:NaiveComparable<'a>>(tree:&mut K){
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
-///Naive algorithm.
+///Naive implementation
 pub fn query_naive_mut<T: Aabb>(bots: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {
     tools::for_every_pair(bots, move |a, b| {
         if a.get().intersects_rect(b.get()) {
@@ -392,6 +394,8 @@ impl<T, F: Clone> Splitter for QueryFn<T, F> {
 use super::Queries;
 impl<'a,K:Queries<'a>> ColfindQuery<'a> for K{}
 
+
+///Colfind functions that can be called on a tree.
 pub trait ColfindQuery<'a>: Queries<'a>{
 
     /// Find all aabb intersections and return a PMut<T> of it. Unlike the regular `find_colliding_pairs_mut`, this allows the
