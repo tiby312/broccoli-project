@@ -76,6 +76,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
         //Draw lines to the bots.
         let mut lines = canvas.lines(2.0);
+        use broccoli::query::Queries;
         draw_bot_lines(tree.axis(), tree.vistr(), &dim, &mut lines);
         lines
             .send_and_uniforms(canvas)

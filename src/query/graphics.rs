@@ -60,7 +60,6 @@ fn draw<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
 
 
 use super::Queries;
-impl<'a,K:Queries<'a>> DrawQuery<'a> for K{}
 
 ///Draw functions that can be called on a tree.
 pub trait DrawQuery<'a>: Queries<'a>+RectQuery<'a>{

@@ -152,7 +152,7 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
 /// Especially since you can already iterate over all elements mutably by calling `vistr_mut`.
 ///
 ///```
-/// use broccoli::{prelude::*,bbox,rect};
+/// use broccoli::{prelude::*,bbox,rect,query::Queries};
 /// let mut bots = [bbox(rect(0,10,0,10),0)];
 /// let mut tree = broccoli::new(&mut bots);
 ///
@@ -173,7 +173,7 @@ pub struct TreeRef<'a, A: Axis, T: Aabb> {
 
 use crate::query::NaiveComparable;
 impl<'a, A: Axis+'a, T: Aabb> NaiveComparable<'a> for TreeRef<'a, A, T> {
-    type K=Tree<'a,A,T>;
+    type Inner=Tree<'a,A,T>;
     type T = T;
     type Num = T::Num;
     fn get_tree(&mut self) -> &mut Tree<'a,A,T>{

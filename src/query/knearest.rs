@@ -370,7 +370,7 @@ pub fn assert_k_nearest_mut<'a,K:NaiveComparable<'a>>(
     point: Vec2<K::Num>,
     num: usize,
     knear: &mut impl Knearest<T = K::T, N = K::Num>,
-) {
+) where K::Inner:KnearestQuery<'a>{
     let bots = tree.get_elements_mut();
     use core::ops::Deref;
     
@@ -422,7 +422,6 @@ pub fn naive_k_nearest_mut<'a,T:Aabb>(
 
 
 use super::Queries;
-impl<'a,K:Queries<'a>> KnearestQuery<'a> for K{}
 
 ///Knearest functions that can be called on a tree.
 pub trait KnearestQuery<'a>:Queries<'a>{

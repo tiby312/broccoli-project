@@ -24,7 +24,8 @@ pub trait ColMulti {
 use super::NaiveComparable;
 
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_query<'a,K:NaiveComparable<'a>>(tree:&mut K){
+pub fn assert_query<'a,K:NaiveComparable<'a>>(tree:&mut K)
+    where K::Inner:ColfindQuery<'a>{
     use core::ops::Deref;
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
@@ -392,8 +393,6 @@ impl<T, F: Clone> Splitter for QueryFn<T, F> {
 }
 
 use super::Queries;
-impl<'a,K:Queries<'a>> ColfindQuery<'a> for K{}
-
 
 ///Colfind functions that can be called on a tree.
 pub trait ColfindQuery<'a>: Queries<'a>{

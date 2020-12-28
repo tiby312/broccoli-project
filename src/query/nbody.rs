@@ -635,7 +635,6 @@ fn nbody<
 
 
 use super::Queries;
-impl<'a,K:Queries<'a>> NbodyQuery<'a> for K{}
 
 ///Nbody functions that can be called on a tree.
 pub trait NbodyQuery<'a>:Queries<'a>{

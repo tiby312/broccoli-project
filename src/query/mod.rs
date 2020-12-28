@@ -35,11 +35,11 @@ use self::inner_prelude::*;
 
 ///Query modules provide assert functions that operate on this trait.
 pub trait NaiveComparable<'a>{
-    type K:Queries<'a,T=Self::T,Num=Self::Num>+'a;
+    type Inner:Queries<'a,T=Self::T,Num=Self::Num>+'a;
     type T:Aabb<Num=Self::Num>+'a;
     type Num:Num;
-    fn get_tree(&mut self)->&mut Self::K;
-    fn get_elements_mut(&mut self)->PMut<[<Self::K as Queries<'a>>::T]>;
+    fn get_tree(&mut self)->&mut Self::Inner;
+    fn get_elements_mut(&mut self)->PMut<[Self::T]>;
 
 }
 
@@ -53,7 +53,7 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{prelude::*,bbox,rect,query::Queries};
     /// let mut bots = [bbox(rect(0,10,0,10),0)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
@@ -69,7 +69,7 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{prelude::*,bbox,rect,query::Queries};
     /// let mut bots = [rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
@@ -86,7 +86,7 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect,analyze};
+    /// use broccoli::{prelude::*,bbox,rect,analyze,query::Queries};
     /// let mut bots = [rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///

@@ -326,7 +326,7 @@ use super::NaiveComparable;
 pub fn assert_raycast<'a,K:NaiveComparable<'a>>( 
     tree:&mut K,
     ray: axgeom::Ray<K::Num>,
-    rtrait: &mut impl RayCast<T = K::T, N = K::Num>) where K::Num:core::fmt::Debug{
+    rtrait: &mut impl RayCast<T = K::T, N = K::Num>) where K::Inner:RaycastQuery<'a>,K::Num:core::fmt::Debug{
     let bots = tree.get_elements_mut();
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
@@ -400,7 +400,6 @@ pub fn raycast_naive_mut<'a, T: Aabb>(
 
 
 use super::Queries;
-impl<'a,K:Queries<'a>> RaycastQuery<'a> for K{}
 
 
 ///Raycast functions that can be called on a tree.

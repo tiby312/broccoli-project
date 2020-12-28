@@ -49,6 +49,15 @@ where
     TreeBuilder::new(bots).build_par()
 }
 
+
+impl<'a, A: Axis, T: Aabb> NbodyQuery<'a> for Tree<'a, A, T> {}
+impl<'a, A: Axis, T: Aabb> DrawQuery<'a> for Tree<'a, A, T> {}
+impl<'a, A: Axis, T: Aabb> IntersectQuery<'a> for Tree<'a, A, T> {}
+impl<'a, A: Axis, T: Aabb> RectQuery<'a> for Tree<'a, A, T> {}
+impl<'a, A: Axis, T: Aabb> ColfindQuery<'a> for Tree<'a, A, T> {}
+impl<'a, A: Axis, T: Aabb> RaycastQuery<'a> for Tree<'a, A, T> {}
+impl<'a, A: Axis, T: Aabb> KnearestQuery<'a> for Tree<'a, A, T> {}
+
 impl<'a, A: Axis, T: Aabb> Queries<'a> for Tree<'a, A, T> {
     type A = A;
     type T = T;
