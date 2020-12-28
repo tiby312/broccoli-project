@@ -13,7 +13,7 @@ use crate::query::inner_prelude::*;
 ///Trait that user implements to handling aabb collisions.
 ///The user supplies a struct that implements this trait instead of just a closure
 ///so that the user may also have the struct implement Splitter.
-pub trait ColMulti {
+pub trait CollisionHandler{
     type T: Aabb;
 
     fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>);
@@ -72,7 +72,7 @@ pub fn query_sweep_mut<T: Aabb>(
         _p: PhantomData<T>,
     }
 
-    impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> ColMulti for Bl<T, F> {
+    impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler for Bl<T, F> {
         type T = T;
         #[inline(always)]
         fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
@@ -215,7 +215,7 @@ where
             collision: D,
         }
 
-        impl<T: Aabb, A, B, C, D: Fn(&mut A, PMut<T>, PMut<T>)> ColMulti for Foo<T, A, B, C, D> {
+        impl<T: Aabb, A, B, C, D: Fn(&mut A, PMut<T>, PMut<T>)> CollisionHandler for Foo<T, A, B, C, D> {
             type T = T;
 
             #[inline(always)]
@@ -271,7 +271,7 @@ where
     ///The leaf end function will get called when the sequential processing finishes.
     ///This can be useful if the use wants to create a list of colliding pair indicies, but still wants paralleism.
     #[inline(always)]
-    pub fn query_splitter_par<C: ColMulti<T = T> + Splitter + Send + Sync>(self, clos: C) -> C {
+    pub fn query_splitter_par<C: CollisionHandler<T = T> + Splitter + Send + Sync>(self, clos: C) -> C {
         let height = self.vistr.get_height();
 
         let par = par::compute_level_switch_sequential(self.switch_height, height);
@@ -343,13 +343,14 @@ impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> QueryFnMut<T, F> {
     }
 }
 
-impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> ColMulti for QueryFnMut<T, F> {
+impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler for QueryFnMut<T, F> {
     type T = T;
     #[inline(always)]
     fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
         self.0(a, b);
     }
 }
+
 impl<T, F> Splitter for QueryFnMut<T, F> {
     #[inline(always)]
     fn div(&mut self) -> (Self, Self) {
@@ -368,9 +369,9 @@ impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> QueryFn<T, F> {
         QueryFn(func, PhantomData)
     }
 }
-impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> ColMulti for QueryFn<T, F> {
-    type T = T;
 
+impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> CollisionHandler for QueryFn<T, F> {
+    type T = T;
     #[inline(always)]
     fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
         self.0(a, b);

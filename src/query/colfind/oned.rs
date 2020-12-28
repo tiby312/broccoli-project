@@ -1,4 +1,4 @@
-use super::ColMulti;
+use super::CollisionHandler;
 use crate::query::inner_prelude::*;
 use crate::util::PreVecMut;
 
@@ -6,12 +6,12 @@ use crate::util::PreVecMut;
 //intersection in one dimension. We also need to check the other direction
 //because we know for sure they are colliding. That is the purpose of
 //this object.
-struct OtherAxisCollider<'a, A: Axis + 'a, F: ColMulti + 'a> {
+struct OtherAxisCollider<'a, A: Axis + 'a, F: CollisionHandler + 'a> {
     a: &'a mut F,
     axis: A,
 }
 
-impl<'a, A: Axis + 'a, F: ColMulti + 'a> ColMulti for OtherAxisCollider<'a, A, F> {
+impl<'a, A: Axis + 'a, F: CollisionHandler + 'a> CollisionHandler for OtherAxisCollider<'a, A, F> {
     type T = F::T;
 
     #[inline(always)]
@@ -27,7 +27,7 @@ impl<'a, A: Axis + 'a, F: ColMulti + 'a> ColMulti for OtherAxisCollider<'a, A, F
 
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
-pub fn find_2d<A: Axis, F: ColMulti>(
+pub fn find_2d<A: Axis, F: CollisionHandler>(
     prevec1: &mut PreVecMut<F::T>,
     axis: A,
     bots: PMut<[F::T]>,
@@ -39,7 +39,7 @@ pub fn find_2d<A: Axis, F: ColMulti>(
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
-pub fn find_parallel_2d<A: Axis, F: ColMulti>(
+pub fn find_parallel_2d<A: Axis, F: CollisionHandler>(
     prevec1: &mut PreVecMut<F::T>,
     axis: A,
     bots1: PMut<[F::T]>,
@@ -53,7 +53,7 @@ pub fn find_parallel_2d<A: Axis, F: ColMulti>(
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
-pub fn find_perp_2d1<A: Axis, F: ColMulti>(
+pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
     axis: A, //the axis of r1.
     r1: PMut<[F::T]>,
     mut r2: PMut<[F::T]>,
@@ -135,7 +135,7 @@ pub fn find_perp_2d1<A: Axis, F: ColMulti>(
 
 #[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.
-fn find<'a, A: Axis, F: ColMulti>(
+fn find<'a, A: Axis, F: CollisionHandler>(
     prevec1: &mut PreVecMut<F::T>,
     axis: A,
     collision_botids: PMut<'a, [F::T]>,
@@ -181,7 +181,7 @@ fn find<'a, A: Axis, F: ColMulti>(
 
 #[inline(always)]
 //does less comparisons than option 2.
-fn find_other_parallel3<'a, 'b, A: Axis, F: ColMulti>(
+fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
     prevec1: &mut PreVecMut<F::T>,
     axis: A,
     cols: (
@@ -269,7 +269,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: ColMulti>(
 //This only uses one stack, but it ends up being more comparisons.
 #[allow(dead_code)]
 #[inline(always)]
-fn find_other_parallel2<'a, 'b, A: Axis, F: ColMulti>(
+fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
     axis: A,
     cols: (
         impl IntoIterator<Item = PMut<'a, F::T>>,
@@ -329,7 +329,7 @@ fn test_parallel() {
     struct Test {
         set: BTreeSet<[usize; 2]>,
     };
-    impl ColMulti for Test {
+    impl CollisionHandler for Test {
         type T = BBox<isize, Bot>;
         fn collide(&mut self, a: PMut<BBox<isize, Bot>>, b: PMut<BBox<isize, Bot>>) {
             let [a, b] = [a.unpack_inner().id, b.unpack_inner().id];

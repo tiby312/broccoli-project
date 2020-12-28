@@ -1,6 +1,6 @@
 use crate::query::colfind::oned;
 use super::super::tools;
-use super::ColMulti;
+use super::CollisionHandler;
 use crate::query::inner_prelude::*;
 use unchecked_unwrap::*;
 
@@ -65,17 +65,17 @@ pub trait NodeHandler {
     );
 }
 
-pub struct HandleNoSorted<K: ColMulti + Splitter> {
+pub struct HandleNoSorted<K: CollisionHandler + Splitter> {
     pub func: K,
 }
-impl<K: ColMulti + Splitter> HandleNoSorted<K> {
+impl<K: CollisionHandler + Splitter> HandleNoSorted<K> {
     #[inline(always)]
     pub fn new(func: K) -> Self {
         HandleNoSorted { func }
     }
 }
 
-impl<K: ColMulti + Splitter> Splitter for HandleNoSorted<K> {
+impl<K: CollisionHandler + Splitter> Splitter for HandleNoSorted<K> {
     #[inline(always)]
     fn div(&mut self) -> (Self, Self) {
         let (a, b) = self.func.div();
@@ -87,7 +87,7 @@ impl<K: ColMulti + Splitter> Splitter for HandleNoSorted<K> {
     }
 }
 
-impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
+impl<K: CollisionHandler + Splitter> NodeHandler for HandleNoSorted<K> {
     type T = K::T;
     fn handle_node(&mut self, _axis: impl Axis, bots: PMut<[Self::T]>) {
         let func = &mut self.func;
@@ -125,12 +125,12 @@ impl<K: ColMulti + Splitter> NodeHandler for HandleNoSorted<K> {
 }
 
 use crate::util::PreVecMut;
-pub struct HandleSorted<K: ColMulti + Splitter> {
+pub struct HandleSorted<K: CollisionHandler + Splitter> {
     pub func: K,
     prevec1: PreVecMut<K::T>,
 }
 
-impl<K: ColMulti + Splitter> HandleSorted<K> {
+impl<K: CollisionHandler + Splitter> HandleSorted<K> {
     #[inline(always)]
     pub fn new(a: K) -> HandleSorted<K> {
         HandleSorted {
@@ -139,7 +139,7 @@ impl<K: ColMulti + Splitter> HandleSorted<K> {
         }
     }
 }
-impl<K: ColMulti + Splitter> Splitter for HandleSorted<K> {
+impl<K: CollisionHandler + Splitter> Splitter for HandleSorted<K> {
     #[inline(always)]
     fn div(&mut self) -> (Self, Self) {
         let (a, b) = self.func.div();
@@ -151,7 +151,7 @@ impl<K: ColMulti + Splitter> Splitter for HandleSorted<K> {
     }
 }
 
-impl<K: ColMulti + Splitter> NodeHandler for HandleSorted<K> {
+impl<K: CollisionHandler + Splitter> NodeHandler for HandleSorted<K> {
     type T = K::T;
     #[inline(always)]
     fn handle_node(&mut self, axis: impl Axis, bots: PMut<[Self::T]>) {
