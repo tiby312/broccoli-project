@@ -70,10 +70,10 @@ pub use compt;
 pub use rayon;
 
 mod inner_prelude {
-    pub(crate) use crate::prelude::*;
-    pub(crate) use crate::query::Queries;
     pub(crate) use crate::par;
+    pub(crate) use crate::prelude::*;
     pub(crate) use crate::query;
+    pub(crate) use crate::query::Queries;
 
     pub(crate) use crate::tree::*;
     pub(crate) use crate::util::*;
@@ -113,14 +113,14 @@ pub mod convert;
 
 ///The broccoli prelude.
 pub mod prelude {
-    pub use crate::query::nbody::NbodyQuery;
     pub use crate::query::draw::DrawQuery;
-    
-    pub use crate::query::intersect_with::IntersectQuery;
-    pub use crate::query::rect::RectQuery;
+    pub use crate::query::nbody::NbodyQuery;
+
     pub use crate::query::colfind::ColfindQuery;
-    pub use crate::query::raycast::RaycastQuery;
+    pub use crate::query::intersect_with::IntersectQuery;
     pub use crate::query::knearest::KnearestQuery;
+    pub use crate::query::raycast::RaycastQuery;
+    pub use crate::query::rect::RectQuery;
     //pub use crate::query::Queries;
 }
 

@@ -607,11 +607,7 @@ fn nbody_par<
 }
 
 ///Sequential version.
-fn nbody<
-    A: Axis,
-    T: Aabb + Send + Sync,
-    NO: NodeMassTrait<Num = T::Num, Item = T> + Send + Sync,
->(
+fn nbody<A: Axis, T: Aabb + Send + Sync, NO: NodeMassTrait<Num = T::Num, Item = T> + Send + Sync>(
     axis: A,
     mut vistr: VistrMut<Node<T>>,
     ncontext: NO,
@@ -632,13 +628,10 @@ fn nbody<
     apply_tree(axis, d, ncontext);
 }
 
-
-
 use super::Queries;
 
 ///Nbody functions that can be called on a tree.
-pub trait NbodyQuery<'a>:Queries<'a>{
-
+pub trait NbodyQuery<'a>: Queries<'a> {
     ///Experimental. See broccoli demo
     fn nbody_mut<X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Send + Sync>(
         &mut self,
@@ -666,6 +659,4 @@ pub trait NbodyQuery<'a>:Queries<'a>{
     {
         query::nbody::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
     }
-
-
 }

@@ -3,13 +3,10 @@
 use crate::query::inner_prelude::*;
 use crate::query::rect::*;
 
-
-
 use super::Queries;
 
 ///Intersect functions that can be called on a tree.
-pub trait IntersectQuery<'a>: Queries<'a>+RectQuery<'a>{
-
+pub trait IntersectQuery<'a>: Queries<'a> + RectQuery<'a> {
     /// Find collisions between elements in this tree,
     /// with the specified slice of elements.
     ///
@@ -34,7 +31,7 @@ pub trait IntersectQuery<'a>: Queries<'a>+RectQuery<'a>{
         other: &mut [X],
         func: impl Fn(PMut<Self::T>, PMut<X>),
     ) {
-         //TODO instead of create just a list of BBox, construct a tree using the dividors of the current tree.
+        //TODO instead of create just a list of BBox, construct a tree using the dividors of the current tree.
         //This way we can parallelize this function.
         //Find all intersecting pairs between the elements in this tree, and the specified elements.
         //No intersecting pairs within each group are looked for, only those between the two groups.
@@ -50,12 +47,9 @@ pub trait IntersectQuery<'a>: Queries<'a>+RectQuery<'a>{
 
         for mut i in PMut::new(other).iter_mut() {
             let rect = *i.get();
-            self.for_all_intersect_rect_mut( &rect, |a| {
+            self.for_all_intersect_rect_mut(&rect, |a| {
                 func(a, i.borrow_mut());
             });
         }
     }
-
-
 }
-

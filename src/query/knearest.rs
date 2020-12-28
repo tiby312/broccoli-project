@@ -46,7 +46,6 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
     }
 }
 
-
 ///Construct an object that implements [`Knearest`] from closures.
 ///We pass the tree so that we can infer the type of `T`.
 ///
@@ -59,29 +58,37 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
 /// how often the `fine` function gets called.
 ///
 /// `xline` is a function that gives the distance between the point and a axis aligned line
-///    that was a fixed x value and spans the y values. 
+///    that was a fixed x value and spans the y values.
 ///
 /// `yline` is a function that gives the distance between the point and a axis aligned line
-///    that was a fixed x value and spans the y values. 
+///    that was a fixed x value and spans the y values.
 ///
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
 ///
-pub fn from_closure<
-    AA:Axis,
-    T:Aabb,
-    Acc,
-    B,
-    C,
-    D,
-    E>(_tree:&Tree<AA,T>,acc:Acc,broad:B,fine:C,xline:D,yline:E)->KnearestClosure<T,Acc,B,C,D,E>
-    where  
+pub fn from_closure<AA: Axis, T: Aabb, Acc, B, C, D, E>(
+    _tree: &Tree<AA, T>,
+    acc: Acc,
+    broad: B,
+    fine: C,
+    xline: D,
+    yline: E,
+) -> KnearestClosure<T, Acc, B, C, D, E>
+where
     B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
     C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
     D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num{
-        KnearestClosure{_p:PhantomData,acc,broad,fine,xline,yline}
+    E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+{
+    KnearestClosure {
+        _p: PhantomData,
+        acc,
+        broad,
+        fine,
+        xline,
+        yline,
     }
+}
 
 ///Container of closures that implements [`Knearest`]
 pub struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
@@ -93,21 +100,12 @@ pub struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
     pub yline: E,
 }
 
-
-impl<
-        'a,
-        T: Aabb,
-        Acc,
-        B,
-        C,
-        D,
-        E,
-    > Knearest for KnearestClosure<T, Acc, B, C, D, E>
-    where
-        B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-        C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-        D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-        E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num
+impl<'a, T: Aabb, Acc, B, C, D, E> Knearest for KnearestClosure<T, Acc, B, C, D, E>
+where
+    B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+    C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+    D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+    E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
 {
     type T = T;
     type N = T::Num;
@@ -359,26 +357,23 @@ impl<'a, T: Aabb> KResult<'a, T> {
     }
 }
 
-
-
-
-
 use super::NaiveComparable;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_k_nearest_mut<'a,K:NaiveComparable<'a>>(
-    tree:&mut K,
+pub fn assert_k_nearest_mut<'a, K: NaiveComparable<'a>>(
+    tree: &mut K,
     point: Vec2<K::Num>,
     num: usize,
     knear: &mut impl Knearest<T = K::T, N = K::Num>,
-) where K::Inner:KnearestQuery<'a>{
+) where
+    K::Inner: KnearestQuery<'a>,
+{
     let bots = tree.get_elements_mut();
     use core::ops::Deref;
-    
+
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
     }
-    let mut res_naive = 
-        naive_k_nearest_mut(bots,point, num, knear)
+    let mut res_naive = naive_k_nearest_mut(bots, point, num, knear)
         .into_vec()
         .drain(..)
         .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
@@ -398,13 +393,13 @@ pub fn assert_k_nearest_mut<'a,K:NaiveComparable<'a>>(
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
-
 ///Naive implementation
-pub fn naive_k_nearest_mut<'a,T:Aabb>(
-    elems:PMut<'a,[T]>,
-    point:Vec2<T::Num>,
-    num:usize,
-    k:&mut impl Knearest<T=T,N=T::Num>)->KResult<'a,T>{
+pub fn naive_k_nearest_mut<'a, T: Aabb>(
+    elems: PMut<'a, [T]>,
+    point: Vec2<T::Num>,
+    num: usize,
+    k: &mut impl Knearest<T = T, N = T::Num>,
+) -> KResult<'a, T> {
     let mut closest = ClosestCand::new(num);
 
     for b in elems.iter_mut() {
@@ -418,14 +413,10 @@ pub fn naive_k_nearest_mut<'a,T:Aabb>(
     }
 }
 
-
-
-
 use super::Queries;
 
 ///Knearest functions that can be called on a tree.
-pub trait KnearestQuery<'a>:Queries<'a>{
-    
+pub trait KnearestQuery<'a>: Queries<'a> {
     /// Find the closest `num` elements to the specified `point`.
     /// The user provides two functions:
     ///
@@ -473,7 +464,7 @@ pub trait KnearestQuery<'a>:Queries<'a>{
     ///
     /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)]);
     ///
-    /// 
+    ///
     /// fn distance_squared(a:isize,b:isize)->isize{
     ///     let a=(a-b).abs();
     ///     a*a
@@ -489,7 +480,7 @@ pub trait KnearestQuery<'a>:Queries<'a>{
     where
         'a: 'b,
     {
-        let axis=self.axis();
+        let axis = self.axis();
         let dt = self.vistr_mut().with_depth(Depth(0));
 
         let knear = KnearestBorrow(ktrait);
@@ -503,7 +494,7 @@ pub trait KnearestQuery<'a>:Queries<'a>{
         };
 
         recc(axis, dt, &mut blap);
-        
+
         let num_entires = blap.closest.curr_num;
         KResult {
             num_entires,

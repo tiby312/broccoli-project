@@ -13,7 +13,6 @@ pub const fn default_axis() -> YAXIS {
     YAXIS
 }
 
-
 mod oned;
 
 pub use builder::TreeBuilder;

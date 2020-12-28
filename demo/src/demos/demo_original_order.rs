@@ -67,11 +67,28 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
         //Draw the dividers
         let mut rects = canvas.rects();
-        
-        tree.draw_divider(&mut rects,
-            |rects,_,cont,length,_| {rects.add(Rect {x: cont.into(),y: length.into()}.into());},
-            |rects,_,cont,length,_| {rects.add(Rect {x: length.into(),y:cont.into()}.into());},
-            &dim
+
+        tree.draw_divider(
+            &mut rects,
+            |rects, _, cont, length, _| {
+                rects.add(
+                    Rect {
+                        x: cont.into(),
+                        y: length.into(),
+                    }
+                    .into(),
+                );
+            },
+            |rects, _, cont, length, _| {
+                rects.add(
+                    Rect {
+                        x: length.into(),
+                        y: cont.into(),
+                    }
+                    .into(),
+                );
+            },
+            &dim,
         );
         rects
             .send_and_uniforms(canvas)

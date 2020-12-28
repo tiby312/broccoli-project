@@ -10,9 +10,6 @@ mod inner_prelude {
     pub use itertools::Itertools;
 }
 
-
-
-
 pub mod colfind;
 
 pub mod draw;
@@ -27,22 +24,18 @@ pub mod nbody;
 
 pub mod rect;
 
-
 mod tools;
 
 use self::inner_prelude::*;
 
-
 ///Query modules provide assert functions that operate on this trait.
-pub trait NaiveComparable<'a>{
-    type Inner:Queries<'a,T=Self::T,Num=Self::Num>+'a;
-    type T:Aabb<Num=Self::Num>+'a;
-    type Num:Num;
-    fn get_tree(&mut self)->&mut Self::Inner;
-    fn get_elements_mut(&mut self)->PMut<[Self::T]>;
-
+pub trait NaiveComparable<'a> {
+    type Inner: Queries<'a, T = Self::T, Num = Self::Num> + 'a;
+    type T: Aabb<Num = Self::Num> + 'a;
+    type Num: Num;
+    fn get_tree(&mut self) -> &mut Self::Inner;
+    fn get_elements_mut(&mut self) -> PMut<[Self::T]>;
 }
-
 
 ///Query modules provide functions based off of this trait.
 pub trait Queries<'a> {
@@ -95,18 +88,15 @@ pub trait Queries<'a> {
     ///```
     #[must_use]
     fn axis(&self) -> Self::A;
-
 }
-
-
-
-
 
 ///panics if a broken broccoli tree invariant is detected.
 ///For debugging purposes only.
-pub fn assert_tree_invariants<'a,K:Queries<'a>>(tree:&K) where K::Num:core::fmt::Debug{
-
-    fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>)  {
+pub fn assert_tree_invariants<'a, K: Queries<'a>>(tree: &K)
+where
+    K::Num: core::fmt::Debug,
+{
+    fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>) {
         fn a_bot_has_value<N: Num>(it: impl Iterator<Item = N>, val: N) -> bool {
             for b in it {
                 if b == val {
@@ -115,7 +105,6 @@ pub fn assert_tree_invariants<'a,K:Queries<'a>>(tree:&K) where K::Num:core::fmt:
             }
             false
         }
-
 
         let ((_depth, nn), rest) = iter.next();
         let axis_next = axis.next();
@@ -180,5 +169,4 @@ pub fn assert_tree_invariants<'a,K:Queries<'a>>(tree:&K) where K::Num:core::fmt:
     }
 
     inner(tree.axis(), tree.vistr().with_depth(compt::Depth(0)))
-
 }

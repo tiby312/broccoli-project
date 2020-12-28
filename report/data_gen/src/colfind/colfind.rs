@@ -46,7 +46,7 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
 
             let c3 = bool_then(num_bots < stop_sweep_at, || {
                 bench_closure(|| {
-                    broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS,&mut bots, |a, b| {
+                    broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS, &mut bots, |a, b| {
                         **a.unpack_inner() -= 2;
                         **b.unpack_inner() -= 2;
                     });
@@ -57,7 +57,7 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
 
             let c4 = bool_then(num_bots < stop_naive_at, || {
                 bench_closure(|| {
-                    broccoli::query::colfind::query_naive_mut(PMut::new(&mut bots),|a, b| {
+                    broccoli::query::colfind::query_naive_mut(PMut::new(&mut bots), |a, b| {
                         **a.unpack_inner() += 2;
                         **b.unpack_inner() += 2;
                     });
@@ -203,7 +203,7 @@ fn handle_theory_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize
                 datanum::datanum_test(|maker| {
                     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
-                    broccoli::query::colfind::query_naive_mut(PMut::new(&mut bots),|a, b| {
+                    broccoli::query::colfind::query_naive_mut(PMut::new(&mut bots), |a, b| {
                         **a.unpack_inner() -= 1;
                         **b.unpack_inner() -= 1;
                     });
@@ -214,7 +214,7 @@ fn handle_theory_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize
                 datanum::datanum_test(|maker| {
                     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
-                    broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS,&mut bots, |a, b| {
+                    broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS, &mut bots, |a, b| {
                         **a.unpack_inner() -= 3;
                         **b.unpack_inner() -= 3;
                     });

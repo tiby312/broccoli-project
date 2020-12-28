@@ -1,6 +1,5 @@
 //! Raycast query module
 
-
 use crate::query::inner_prelude::*;
 use axgeom::Ray;
 
@@ -23,21 +22,11 @@ pub trait RayCast {
     ) -> axgeom::CastResult<Self::N>;
 
     ///Return the cast result that is cheap and overly conservative.
-    fn cast_broad(
-        &mut self,
-        ray: &Ray<Self::N>,
-        a: PMut<Self::T>,
-    ) -> axgeom::CastResult<Self::N>;
+    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N>;
 
     ///Return the exact cast result.
-    fn cast_fine(
-        &mut self,
-        ray: &Ray<Self::N>,
-        a: PMut<Self::T>,
-    ) -> axgeom::CastResult<Self::N>;
+    fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N>;
 }
-
-
 
 ///Container of closures that implements [`RayCast`]
 pub struct RayCastClosure<T, A, B, C, D, E> {
@@ -48,7 +37,6 @@ pub struct RayCastClosure<T, A, B, C, D, E> {
     pub xline: D,
     pub yline: E,
 }
-
 
 ///Construct an object that implements [`RayCast`] from closures.
 ///We pass the tree so that we can infer the type of `T`.
@@ -62,55 +50,43 @@ pub struct RayCastClosure<T, A, B, C, D, E> {
 /// how often the `fine` function gets called.
 ///
 /// `xline` is a function that gives the distance between the point and a axis aligned line
-///    that was a fixed x value and spans the y values. 
+///    that was a fixed x value and spans the y values.
 ///
 /// `yline` is a function that gives the distance between the point and a axis aligned line
-///    that was a fixed x value and spans the y values. 
+///    that was a fixed x value and spans the y values.
 ///
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
-pub fn from_closure<
-    AA:Axis,
-    T: Aabb,
-    A,
-    B,
-    C,
-    D,
-    E,
->( _tree:&Tree<AA,T>,
+pub fn from_closure<AA: Axis, T: Aabb, A, B, C, D, E>(
+    _tree: &Tree<AA, T>,
     acc: A,
     broad: B,
     fine: C,
     xline: D,
-    yline: E)->RayCastClosure<T,A,B,C,D,E> 
-    where 
-        B:FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
-        C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
-        D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-        E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>{
-        RayCastClosure {
-            _p: PhantomData,
-            acc,
-            broad,
-            fine,
-            xline,
-            yline,
-        }
+    yline: E,
+) -> RayCastClosure<T, A, B, C, D, E>
+where
+    B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+    C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+    D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+    E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+{
+    RayCastClosure {
+        _p: PhantomData,
+        acc,
+        broad,
+        fine,
+        xline,
+        yline,
+    }
 }
 
-impl<
-        T: Aabb,
-        A,
-        B,
-        C,
-        D,
-        E,
-    > RayCast for RayCastClosure< T, A, B, C, D, E>
+impl<T: Aabb, A, B, C, D, E> RayCast for RayCastClosure<T, A, B, C, D, E>
 where
-        B:FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
-        C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
-        D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-        E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>
+    B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+    C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+    D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+    E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
 {
     type T = T;
     type N = T::Num;
@@ -127,11 +103,7 @@ where
             (self.yline)(&mut self.acc, ray, val)
         }
     }
-    fn cast_broad(
-        &mut self,
-        ray: &Ray<Self::N>,
-        a: PMut<Self::T>,
-    ) -> CastResult<Self::N> {
+    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> CastResult<Self::N> {
         (self.broad)(&mut self.acc, ray, a)
     }
 
@@ -156,11 +128,7 @@ impl<'a, R: RayCast> RayCast for RayCastBorrow<'a, R> {
 
     ///Returns true if the ray intersects with this rectangle.
     ///This function allows as to prune which nodes to visit.
-    fn cast_broad(
-        &mut self,
-        ray: &Ray<Self::N>,
-        a: PMut<Self::T>,
-    ) -> axgeom::CastResult<Self::N> {
+    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N> {
         self.0.cast_broad(ray, a)
     }
 
@@ -168,11 +136,7 @@ impl<'a, R: RayCast> RayCast for RayCastBorrow<'a, R> {
     ///This is where the user can do expensive collision detection on the shape
     ///contains within it's bounding box.
     ///Its default implementation just calls cast_broad()
-    fn cast_fine(
-        &mut self,
-        ray: &Ray<Self::N>,
-        a: PMut<Self::T>,
-    ) -> axgeom::CastResult<Self::N> {
+    fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N> {
         self.0.cast_fine(ray, a)
     }
 }
@@ -247,10 +211,7 @@ struct Blap<'a, R: RayCast> {
 }
 impl<'a, R: RayCast> Blap<'a, R> {
     fn should_recurse<A: Axis>(&mut self, line: (A, R::N)) -> bool {
-        match self
-            .rtrait
-            .cast_to_aaline(&self.ray, line.0, line.1)
-        {
+        match self.rtrait.cast_to_aaline(&self.ray, line.0, line.1) {
             axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
                 Some(dis) => {
                     if val <= dis {
@@ -319,20 +280,23 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     }
 }
 
-
 use super::NaiveComparable;
 
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_raycast<'a,K:NaiveComparable<'a>>( 
-    tree:&mut K,
+pub fn assert_raycast<'a, K: NaiveComparable<'a>>(
+    tree: &mut K,
     ray: axgeom::Ray<K::Num>,
-    rtrait: &mut impl RayCast<T = K::T, N = K::Num>) where K::Inner:RaycastQuery<'a>,K::Num:core::fmt::Debug{
+    rtrait: &mut impl RayCast<T = K::T, N = K::Num>,
+) where
+    K::Inner: RaycastQuery<'a>,
+    K::Num: core::fmt::Debug,
+{
     let bots = tree.get_elements_mut();
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
     }
     let mut res_naive = Vec::new();
-    match raycast_naive_mut(bots,ray, rtrait) {
+    match raycast_naive_mut(bots, ray, rtrait) {
         axgeom::CastResult::Hit((bots, mag)) => {
             for a in bots.into_iter() {
                 let r = *a.get();
@@ -395,18 +359,10 @@ pub fn raycast_naive_mut<'a, T: Aabb>(
     }
 }
 
-
-
-
-
 use super::Queries;
 
-
 ///Raycast functions that can be called on a tree.
-pub trait RaycastQuery<'a>:Queries<'a>{
-
-
-
+pub trait RaycastQuery<'a>: Queries<'a> {
     /// Find the elements that are hit by a ray.
     ///
     /// The result is returned as a `Vec`. In the event of a tie, multiple
@@ -453,7 +409,7 @@ pub trait RaycastQuery<'a>:Queries<'a>{
     where
         'a: 'b,
     {
-        let axis=self.axis();
+        let axis = self.axis();
         let rtrait = RayCastBorrow(rtrait);
         let dt = self.vistr_mut().with_depth(Depth(0));
 

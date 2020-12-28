@@ -80,7 +80,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
     }
 
     ///Explicitly DerefMut.
-    pub fn as_tree_ref_mut(&mut self)->&mut TreeRef<'a,A,BBox<N, &'a mut T>>{
+    pub fn as_tree_ref_mut(&mut self) -> &mut TreeRef<'a, A, BBox<N, &'a mut T>> {
         &mut *self
     }
 
@@ -172,15 +172,14 @@ pub struct TreeRef<'a, A: Axis, T: Aabb> {
 }
 
 use crate::query::NaiveComparable;
-impl<'a, A: Axis+'a, T: Aabb> NaiveComparable<'a> for TreeRef<'a, A, T> {
-    type Inner=Tree<'a,A,T>;
+impl<'a, A: Axis + 'a, T: Aabb> NaiveComparable<'a> for TreeRef<'a, A, T> {
+    type Inner = Tree<'a, A, T>;
     type T = T;
     type Num = T::Num;
-    fn get_tree(&mut self) -> &mut Tree<'a,A,T>{
+    fn get_tree(&mut self) -> &mut Tree<'a, A, T> {
         &mut *self
-        
     }
-    fn get_elements_mut(&mut self)->PMut<[T]>{
+    fn get_elements_mut(&mut self) -> PMut<[T]> {
         self.get_bbox_elements_mut()
     }
 }

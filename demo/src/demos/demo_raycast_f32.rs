@@ -48,7 +48,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                     }
                 };
 
-                let mut handler=broccoli::query::raycast::from_closure(
+                let mut handler = broccoli::query::raycast::from_closure(
                     tree,
                     radius,
                     |_, ray, a| ray.cast_to_rect(&a.rect),
@@ -57,9 +57,8 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                     |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
                 );
 
-
                 if check_naive {
-                    broccoli::query::raycast::assert_raycast(tree,ray, &mut handler);
+                    broccoli::query::raycast::assert_raycast(tree, ray, &mut handler);
                 }
 
                 let res = tree.raycast_mut(ray, &mut handler);

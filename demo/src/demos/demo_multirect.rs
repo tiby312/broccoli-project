@@ -33,11 +33,11 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             let tree = tree.as_tree_mut().as_tree_ref_mut();
             use broccoli::query::rect::*;
 
-            assert_for_all_in_rect_mut(tree,&r1);
-            assert_for_all_in_rect_mut(tree,&r2);
-            assert_for_all_intersect_rect_mut(tree,&r1);
-            assert_for_all_intersect_rect_mut(tree,&r2);
-            assert_for_all_not_in_rect_mut(tree,&r1);
+            assert_for_all_in_rect_mut(tree, &r1);
+            assert_for_all_in_rect_mut(tree, &r2);
+            assert_for_all_intersect_rect_mut(tree, &r1);
+            assert_for_all_intersect_rect_mut(tree, &r2);
+            assert_for_all_not_in_rect_mut(tree, &r1);
         }
 
         //test MultiRect

@@ -19,13 +19,13 @@ pub trait ColMulti {
     fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>);
 }
 
-
-
 use super::NaiveComparable;
 
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_query<'a,K:NaiveComparable<'a>>(tree:&mut K)
-    where K::Inner:ColfindQuery<'a>{
+pub fn assert_query<'a, K: NaiveComparable<'a>>(tree: &mut K)
+where
+    K::Inner: ColfindQuery<'a>,
+{
     use core::ops::Deref;
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
@@ -39,7 +39,7 @@ pub fn assert_query<'a,K:NaiveComparable<'a>>(tree:&mut K)
     });
 
     let mut res_naive = Vec::new();
-    query_naive_mut(tree.get_elements_mut(),|a, b| {
+    query_naive_mut(tree.get_elements_mut(), |a, b| {
         let a = into_ptr_usize(a.deref());
         let b = into_ptr_usize(b.deref());
         let k = if a < b { (a, b) } else { (b, a) };
@@ -395,8 +395,7 @@ impl<T, F: Clone> Splitter for QueryFn<T, F> {
 use super::Queries;
 
 ///Colfind functions that can be called on a tree.
-pub trait ColfindQuery<'a>: Queries<'a>{
-
+pub trait ColfindQuery<'a>: Queries<'a> {
     /// Find all aabb intersections and return a PMut<T> of it. Unlike the regular `find_colliding_pairs_mut`, this allows the
     /// user to access a read only reference of the AABB.
     ///
@@ -466,13 +465,7 @@ pub trait ColfindQuery<'a>: Queries<'a>{
     fn new_colfind_builder<'c>(&'c mut self) -> QueryBuilder<'c, 'a, Self::A, Self::T> {
         QueryBuilder::new(self.axis(), self.vistr_mut())
     }
-
-
-
 }
-
-
-
 
 ///Queries that can be performed on a tree that is not sorted
 ///These functions are not documented since they match the same
@@ -496,8 +489,7 @@ pub trait NotSortedQueries<'a> {
     }
 
     fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
-        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
-            .query_seq(move |a, b| func(a, b));
+        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
 
     fn find_colliding_pairs_mut_par(
@@ -507,8 +499,6 @@ pub trait NotSortedQueries<'a> {
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
-            .query_par(move |a, b| func(a, b));
+        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut()).query_par(move |a, b| func(a, b));
     }
 }
-

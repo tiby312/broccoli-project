@@ -2,24 +2,31 @@
 //!
 use crate::query::inner_prelude::*;
 
-
-struct DrawClosure<N,Acc,A,B>{
-    _p:PhantomData<N>,
-    acc:Acc,
-    xline:A,
-    yline:B
+struct DrawClosure<N, Acc, A, B> {
+    _p: PhantomData<N>,
+    acc: Acc,
+    xline: A,
+    yline: B,
 }
 
-impl<N:Num,Acc,A,B> DividerDrawer for DrawClosure<N,Acc,A,B>
-    where   A:FnMut(&mut Acc,N,[N;2],[N;2],usize),
-            B:FnMut(&mut Acc,N,[N;2],[N;2],usize)
+impl<N: Num, Acc, A, B> DividerDrawer for DrawClosure<N, Acc, A, B>
+where
+    A: FnMut(&mut Acc, N, [N; 2], [N; 2], usize),
+    B: FnMut(&mut Acc, N, [N; 2], [N; 2], usize),
 {
-    type N=N;
-    fn draw_divider<AA:Axis>(&mut self,axis:AA,div:Self::N,cont:[Self::N;2],length:[Self::N;2],depth:usize){
-        if axis.is_xaxis(){
-            (self.xline)(&mut self.acc,div,cont,length,depth);
-        }else{
-            (self.yline)(&mut self.acc,div,cont,length,depth);
+    type N = N;
+    fn draw_divider<AA: Axis>(
+        &mut self,
+        axis: AA,
+        div: Self::N,
+        cont: [Self::N; 2],
+        length: [Self::N; 2],
+        depth: usize,
+    ) {
+        if axis.is_xaxis() {
+            (self.xline)(&mut self.acc, div, cont, length, depth);
+        } else {
+            (self.yline)(&mut self.acc, div, cont, length, depth);
         }
     }
 }
@@ -78,16 +85,10 @@ fn draw<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
     recc(axis, vistr.with_depth(Depth(0)), dr, rect);
 }
 
-
-
-
 use super::Queries;
 
 ///Draw functions that can be called on a tree.
-pub trait DrawQuery<'a>: Queries<'a>+RectQuery<'a>{
-
-
-
+pub trait DrawQuery<'a>: Queries<'a> + RectQuery<'a> {
     /// # Examples
     ///
     /// ```
@@ -112,16 +113,19 @@ pub trait DrawQuery<'a>: Queries<'a>+RectQuery<'a>{
     ///
     fn draw_divider<A>(
         &self,
-        acc:A,
-        xline: impl FnMut(&mut A,Self::Num,[Self::Num;2],[Self::Num;2],usize),
-        yline: impl FnMut(&mut A,Self::Num,[Self::Num;2],[Self::Num;2],usize),
+        acc: A,
+        xline: impl FnMut(&mut A, Self::Num, [Self::Num; 2], [Self::Num; 2], usize),
+        yline: impl FnMut(&mut A, Self::Num, [Self::Num; 2], [Self::Num; 2], usize),
         //drawer: &mut impl DividerDrawer<N = Self::Num>,
         rect: &Rect<Self::Num>,
     ) {
-        let mut d=DrawClosure{_p:PhantomData,acc,xline,yline};
+        let mut d = DrawClosure {
+            _p: PhantomData,
+            acc,
+            xline,
+            yline,
+        };
 
         draw(self.axis(), self.vistr(), &mut d, rect)
     }
-
-
 }

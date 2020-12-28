@@ -2,11 +2,11 @@ extern crate axgeom;
 extern crate broccoli;
 extern crate compt;
 
-use compt::*;
 use axgeom::*;
 use broccoli::node::*;
 use broccoli::prelude::*;
-use broccoli::{Tree,query::*};
+use broccoli::{query::*, Tree};
+use compt::*;
 
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.
 fn create_bbox_mut<'a, N: Num, T>(
@@ -18,11 +18,9 @@ fn create_bbox_mut<'a, N: Num, T>(
         .collect()
 }
 
-
-pub fn default_raycast_handler_isize<
-    A:axgeom::Axis,
-    T>(tree:&Tree<A,BBox<isize,T>>)->impl raycast::RayCast<T=BBox<isize,T>,N=isize>{
-
+pub fn default_raycast_handler_isize<A: axgeom::Axis, T>(
+    tree: &Tree<A, BBox<isize, T>>,
+) -> impl raycast::RayCast<T = BBox<isize, T>, N = isize> {
     raycast::from_closure(
         &tree,
         (),
@@ -32,22 +30,18 @@ pub fn default_raycast_handler_isize<
         |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
     )
 }
-pub fn default_knearest_handler_isize<
-    A:axgeom::Axis,
-    T>(tree:&Tree<A,BBox<isize,T>>)->impl knearest::Knearest<T=BBox<isize,T>,N=isize>{
+pub fn default_knearest_handler_isize<A: axgeom::Axis, T>(
+    tree: &Tree<A, BBox<isize, T>>,
+) -> impl knearest::Knearest<T = BBox<isize, T>, N = isize> {
     knearest::from_closure(
         tree,
         (),
         |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
         |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
-        |_, point, a| (point.x-a).abs()*(point.x-a).abs(),
-        |_, point, a| (point.y-a).abs()*(point.y-a).abs(),
+        |_, point, a| (point.x - a).abs() * (point.x - a).abs(),
+        |_, point, a| (point.y - a).abs() * (point.y - a).abs(),
     )
-
 }
-
-
-
 
 #[test]
 fn test_tie_knearest() {
@@ -60,12 +54,8 @@ fn test_tie_knearest() {
 
     let mut tree = broccoli::container::TreeRef::new(&mut bots);
 
-    let mut handler=default_knearest_handler_isize(&tree);
-    let mut res = tree.k_nearest_mut(
-        vec2(15, 30),
-        2,
-        &mut handler
-    );
+    let mut handler = default_knearest_handler_isize(&tree);
+    let mut res = tree.k_nearest_mut(vec2(15, 30), 2, &mut handler);
 
     assert_eq!(res.len(), 2);
     assert_eq!(res.total_len(), 2);
@@ -74,13 +64,8 @@ fn test_tie_knearest() {
     let r: &[KnearestResult<_>] = res.iter().next().unwrap();
     assert_eq!(r.len(), 2);
 
-    let handler=&mut default_knearest_handler_isize(&tree);
-    broccoli::query::knearest::assert_k_nearest_mut(
-        &mut tree,
-        vec2(15, 30),
-        2,
-        handler
-    );
+    let handler = &mut default_knearest_handler_isize(&tree);
+    broccoli::query::knearest::assert_k_nearest_mut(&mut tree, vec2(15, 30), 2, handler);
 }
 
 #[test]
@@ -96,11 +81,8 @@ fn test_tie_raycast() {
         dir: vec2(-1, 0),
     };
 
-    let mut handler=default_raycast_handler_isize(&tree);
-    let ans = tree.raycast_mut(
-        ray,
-        &mut handler
-    );
+    let mut handler = default_raycast_handler_isize(&tree);
+    let ans = tree.raycast_mut(ray, &mut handler);
 
     match ans {
         CastResult::Hit((ans, mag)) => {
@@ -112,12 +94,8 @@ fn test_tie_raycast() {
         }
     }
 
-    let mut handler=default_raycast_handler_isize(&tree);
-    broccoli::query::raycast::assert_raycast(
-        &mut tree,
-        ray,
-        &mut handler
-    );
+    let mut handler = default_raycast_handler_isize(&tree);
+    broccoli::query::raycast::assert_raycast(&mut tree, ray, &mut handler);
 }
 
 #[test]

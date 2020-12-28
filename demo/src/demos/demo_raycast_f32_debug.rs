@@ -31,20 +31,22 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             .with_color([0.0, 0.0, 0.0, 0.3])
             .draw();
 
-
         let mut rects = canvas.rects();
 
-        let mut handler=broccoli::query::raycast::from_closure(
+        let mut handler = broccoli::query::raycast::from_closure(
             tree,
             &mut rects,
-            |rects, ray, a| {rects.add(a.rect.into());ray.cast_to_rect(&a.rect)},
+            |rects, ray, a| {
+                rects.add(a.rect.into());
+                ray.cast_to_rect(&a.rect)
+            },
             |_, ray, a| ray.cast_to_rect(&a.rect),
             |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
             |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
         );
 
         if check_naive {
-            broccoli::query::raycast::assert_raycast(tree,ray, &mut handler);          
+            broccoli::query::raycast::assert_raycast(tree, ray, &mut handler);
         }
 
         let test = {

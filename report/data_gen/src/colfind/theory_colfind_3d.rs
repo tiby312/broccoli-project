@@ -31,7 +31,7 @@ fn test2(grow: f64, inner: &mut [isize]) -> Res {
         let mut bb = distribute(grow, inner, |a| a.to_isize_dnum(maker));
 
         let mut num_pairs = 0;
-        broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS,&mut bb, |_a, _b| {
+        broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS, &mut bb, |_a, _b| {
             num_pairs += 1;
         });
 
@@ -48,7 +48,7 @@ fn test3(grow: f64, inner: &mut [isize]) -> Res {
     let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
         let mut bb = distribute(grow, inner, |a| a.to_isize_dnum(maker));
         let mut num_pairs = 0;
-        broccoli::query::colfind::query_naive_mut(PMut::new(&mut bb),|_a, _b| {
+        broccoli::query::colfind::query_naive_mut(PMut::new(&mut bb), |_a, _b| {
             num_pairs += 1;
         });
 

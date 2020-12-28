@@ -27,11 +27,8 @@ fn main() {
         |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
         |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
     );
-    
-    let res = tree.raycast_mut(
-        ray,
-        &mut handler
-    );
+
+    let res = tree.raycast_mut(ray, &mut handler);
 
     let (bots, _) = res.unwrap();
     assert_eq!(*bots[0].inner, 4);

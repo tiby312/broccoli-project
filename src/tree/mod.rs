@@ -6,7 +6,6 @@ mod tests;
 pub mod analyze;
 use analyze::TreeBuilder;
 
-
 pub mod container;
 
 struct TreeInner<A: Axis, N> {
@@ -48,7 +47,6 @@ where
 {
     TreeBuilder::new(bots).build_par()
 }
-
 
 impl<'a, A: Axis, T: Aabb> NbodyQuery<'a> for Tree<'a, A, T> {}
 impl<'a, A: Axis, T: Aabb> DrawQuery<'a> for Tree<'a, A, T> {}

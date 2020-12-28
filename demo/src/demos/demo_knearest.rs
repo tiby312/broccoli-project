@@ -53,7 +53,10 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         let mut knearest_stuff = broccoli::query::knearest::from_closure(
             tree.as_tree(),
             &mut rects,
-            |rects, point, a| {rects.add(a.rect.into());distance_to_rect(&a.rect, point)},
+            |rects, point, a| {
+                rects.add(a.rect.into());
+                distance_to_rect(&a.rect, point)
+            },
             |_, point, a| distance_to_rect(&a.rect, point),
             |_, point, val| distance_to_line(point, axgeom::XAXIS, val),
             |_, point, val| distance_to_line(point, axgeom::YAXIS, val),
@@ -61,7 +64,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
         let tree = tree.as_tree_mut();
         if check_naive {
-            broccoli::query::knearest::assert_k_nearest_mut(tree,cursor, 3, &mut knearest_stuff);
+            broccoli::query::knearest::assert_k_nearest_mut(tree, cursor, 3, &mut knearest_stuff);
         }
 
         let mut vv = {

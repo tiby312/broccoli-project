@@ -21,9 +21,7 @@ pub mod bbox_helper {
 }
 
 mod inner_prelude {
-    
-    pub use broccoli::pmut::PMut;
-    pub use broccoli::query::colfind::NotSortedQueries;
+
     pub use super::bbox_helper;
     pub use crate::black_box;
     pub(crate) use crate::datanum;
@@ -36,7 +34,9 @@ mod inner_prelude {
     pub use axgeom::Vec2;
     pub use broccoli::analyze::*;
     pub use broccoli::node::*;
+    pub use broccoli::pmut::PMut;
     pub use broccoli::prelude::*;
+    pub use broccoli::query::colfind::NotSortedQueries;
     pub use broccoli::query::*;
     pub use broccoli::*;
     //pub(crate) use duckduckgeo::bot;
@@ -163,7 +163,7 @@ fn main() {
                 let c0 = datanum::datanum_test(|maker| {
                     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
                     use broccoli::prelude::*;
-            
+
                     let mut tree = broccoli::new(&mut bots);
                     tree.find_colliding_pairs_mut(|a, b| {
                         **a.unpack_inner() += 1;
