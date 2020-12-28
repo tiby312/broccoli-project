@@ -335,7 +335,7 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> QueryBuilder<'a, 'b, A, T> {
     }
 }
 
-pub(super) struct QueryFnMut<T, F>(F, PhantomData<T>);
+struct QueryFnMut<T, F>(F, PhantomData<T>);
 impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> QueryFnMut<T, F> {
     #[inline(always)]
     pub fn new(func: F) -> QueryFnMut<T, F> {
@@ -351,6 +351,8 @@ impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler for QueryFnMut<T, F> 
     }
 }
 
+struct QueryFn<T, F>(F, PhantomData<T>);
+
 impl<T, F> Splitter for QueryFnMut<T, F> {
     #[inline(always)]
     fn div(&mut self) -> (Self, Self) {
@@ -362,7 +364,6 @@ impl<T, F> Splitter for QueryFnMut<T, F> {
     }
 }
 
-pub(super) struct QueryFn<T, F>(F, PhantomData<T>);
 impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> QueryFn<T, F> {
     #[inline(always)]
     pub fn new(func: F) -> QueryFn<T, F> {
