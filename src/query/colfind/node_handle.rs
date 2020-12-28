@@ -1,5 +1,4 @@
 use crate::query::colfind::oned;
-//use crate::query::colfind::ColMulti;
 use super::super::tools;
 use super::ColMulti;
 use crate::query::inner_prelude::*;

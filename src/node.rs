@@ -248,3 +248,16 @@ pub struct Node<'a, T: Aabb> {
     //  div is none
     pub div: Option<T::Num>,
 }
+
+
+
+///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
+///The main motivation behind this trait was to track the time spent taken at each level of the tree
+///during construction.
+pub trait Splitter: Sized {
+    ///Called to split this into two to be passed to the children.
+    fn div(&mut self) -> (Self, Self);
+
+    ///Called to add the results of the recursive calls on the children.
+    fn add(&mut self, a: Self, b: Self);
+}

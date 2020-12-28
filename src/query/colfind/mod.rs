@@ -19,19 +19,16 @@ pub trait ColMulti {
     fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>);
 }
 
-use super::NaiveComparable;
-
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_query<'a, K: NaiveComparable<'a>>(tree: &mut K)
-where
-    K::Inner: ColfindQuery<'a>,
+use crate::container::TreeRef;
+pub fn assert_query<A:Axis,T:Aabb>(tree: &mut TreeRef<A,T>)
 {
     use core::ops::Deref;
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
     }
     let mut res_dino = Vec::new();
-    tree.get_tree().find_colliding_pairs_mut(|a, b| {
+    tree.find_colliding_pairs_mut(|a, b| {
         let a = into_ptr_usize(a.deref());
         let b = into_ptr_usize(b.deref());
         let k = if a < b { (a, b) } else { (b, a) };
@@ -39,7 +36,7 @@ where
     });
 
     let mut res_naive = Vec::new();
-    query_naive_mut(tree.get_elements_mut(), |a, b| {
+    query_naive_mut(tree.get_bbox_elements_mut(), |a, b| {
         let a = into_ptr_usize(a.deref());
         let b = into_ptr_usize(b.deref());
         let k = if a < b { (a, b) } else { (b, a) };

@@ -1,7 +1,12 @@
 //! Contains query modules for each query algorithm.
 
 mod inner_prelude {
-    pub use crate::inner_prelude::*;
+    pub use crate::node::*;
+    pub(crate) use crate::par;
+    pub use axgeom::*;
+    pub use crate::pmut::*;
+    pub use crate::util::*;
+    //pub use crate::inner_prelude::*;
     pub use alloc::vec::Vec;
     pub use axgeom;
     pub use axgeom::Rect;
@@ -28,14 +33,6 @@ mod tools;
 
 use self::inner_prelude::*;
 
-///Query modules provide assert functions that operate on this trait.
-pub trait NaiveComparable<'a> {
-    type Inner: Queries<'a, T = Self::T, Num = Self::Num> + 'a;
-    type T: Aabb<Num = Self::Num> + 'a;
-    type Num: Num;
-    fn get_tree(&mut self) -> &mut Self::Inner;
-    fn get_elements_mut(&mut self) -> PMut<[Self::T]>;
-}
 
 ///Query modules provide functions based off of this trait.
 pub trait Queries<'a> {
@@ -92,9 +89,9 @@ pub trait Queries<'a> {
 
 ///panics if a broken broccoli tree invariant is detected.
 ///For debugging purposes only.
-pub fn assert_tree_invariants<'a, K: Queries<'a>>(tree: &K)
+pub fn assert_tree_invariants<A:Axis,T:Aabb>(tree: &crate::Tree<A,T>)
 where
-    K::Num: core::fmt::Debug,
+    T::Num: core::fmt::Debug,
 {
     fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>) {
         fn a_bot_has_value<N: Num>(it: impl Iterator<Item = N>, val: N) -> bool {

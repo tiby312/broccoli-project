@@ -163,16 +163,14 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
 /// assert_eq!(bots[0].inner,1);
 ///```
 ///
-/// However it is useful to implement the [`crate::query::NaiveComparable`]
-///
 #[repr(transparent)]
 pub struct TreeRef<'a, A: Axis, T: Aabb> {
     tree: inner::TreeRefInner<A, T>,
-    _p: PhantomData<&'a mut T>,
+    _p: PhantomData<Tree<'a,A,T>>,
 }
-
+/*
 use crate::query::NaiveComparable;
-impl<'a, A: Axis + 'a, T: Aabb> NaiveComparable<'a> for TreeRef<'a, A, T> {
+impl<'a, A: Axis, T: Aabb> NaiveComparable<'a> for TreeRef<'a, A, T> {
     type Inner = Tree<'a, A, T>;
     type T = T;
     type Num = T::Num;
@@ -183,7 +181,7 @@ impl<'a, A: Axis + 'a, T: Aabb> NaiveComparable<'a> for TreeRef<'a, A, T> {
         self.get_bbox_elements_mut()
     }
 }
-
+*/
 impl<'a, A: Axis, T: Aabb> core::ops::Deref for TreeRef<'a, A, T> {
     type Target = Tree<'a, A, T>;
     fn deref(&self) -> &Self::Target {

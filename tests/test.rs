@@ -22,7 +22,7 @@ pub fn default_raycast_handler_isize<A: axgeom::Axis, T>(
     tree: &Tree<A, BBox<isize, T>>,
 ) -> impl raycast::RayCast<T = BBox<isize, T>, N = isize> {
     raycast::from_closure(
-        &tree,
+        tree,
         (),
         |_, ray, a| ray.cast_to_rect(&a.rect),
         |_, ray, a| ray.cast_to_rect(&a.rect),

@@ -38,6 +38,8 @@ pub struct RayCastClosure<T, A, B, C, D, E> {
     pub yline: E,
 }
 
+
+use crate::Tree;
 ///Construct an object that implements [`RayCast`] from closures.
 ///We pass the tree so that we can infer the type of `T`.
 ///
@@ -280,18 +282,16 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     }
 }
 
-use super::NaiveComparable;
 
+use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_raycast<'a, K: NaiveComparable<'a>>(
-    tree: &mut K,
-    ray: axgeom::Ray<K::Num>,
-    rtrait: &mut impl RayCast<T = K::T, N = K::Num>,
-) where
-    K::Inner: RaycastQuery<'a>,
-    K::Num: core::fmt::Debug,
+pub fn assert_raycast<A:Axis,T:Aabb>(
+    tree: &mut TreeRef<A,T>,
+    ray: axgeom::Ray<T::Num>,
+    rtrait: &mut impl RayCast<T = T, N = T::Num>,
+) where T::Num: core::fmt::Debug,
 {
-    let bots = tree.get_elements_mut();
+    let bots = tree.get_bbox_elements_mut();
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
     }
@@ -310,7 +310,7 @@ pub fn assert_raycast<'a, K: NaiveComparable<'a>>(
     }
 
     let mut res_dino = Vec::new();
-    match tree.get_tree().raycast_mut(ray, rtrait) {
+    match tree.raycast_mut(ray, rtrait) {
         axgeom::CastResult::Hit((bots, mag)) => {
             for a in bots.into_iter() {
                 let r = *a.get();

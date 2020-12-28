@@ -88,7 +88,7 @@ fn draw<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
 use super::Queries;
 
 ///Draw functions that can be called on a tree.
-pub trait DrawQuery<'a>: Queries<'a> + RectQuery<'a> {
+pub trait DrawQuery<'a>: Queries<'a>  {
     /// # Examples
     ///
     /// ```

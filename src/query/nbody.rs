@@ -633,7 +633,7 @@ use super::Queries;
 ///Nbody functions that can be called on a tree.
 pub trait NbodyQuery<'a>: Queries<'a> {
     ///Experimental. See broccoli demo
-    fn nbody_mut<X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Send + Sync>(
+    fn nbody_mut<X: NodeMassTrait<Num = Self::Num, Item = Self::T> + Send + Sync>(
         &mut self,
         ncontext: X,
         rect: Rect<Self::Num>,
@@ -642,12 +642,12 @@ pub trait NbodyQuery<'a>: Queries<'a> {
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        query::nbody::nbody(self.axis(), self.vistr_mut(), ncontext, rect)
+        self::nbody(self.axis(), self.vistr_mut(), ncontext, rect)
     }
 
     ///Experimental. See broccoli demo
     fn nbody_mut_par<
-        X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Sync + Send,
+        X: NodeMassTrait<Num = Self::Num, Item = Self::T> + Sync + Send,
     >(
         &mut self,
         ncontext: X,
@@ -657,6 +657,6 @@ pub trait NbodyQuery<'a>: Queries<'a> {
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        query::nbody::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
+        self::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
     }
 }

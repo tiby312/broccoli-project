@@ -46,6 +46,7 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
     }
 }
 
+use crate::Tree;
 ///Construct an object that implements [`Knearest`] from closures.
 ///We pass the tree so that we can infer the type of `T`.
 ///
@@ -357,17 +358,16 @@ impl<'a, T: Aabb> KResult<'a, T> {
     }
 }
 
-use super::NaiveComparable;
+use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_k_nearest_mut<'a, K: NaiveComparable<'a>>(
-    tree: &mut K,
-    point: Vec2<K::Num>,
+pub fn assert_k_nearest_mut<'a, A:Axis,T:Aabb>(
+    tree: &mut TreeRef<A,T>,
+    point: Vec2<T::Num>,
     num: usize,
-    knear: &mut impl Knearest<T = K::T, N = K::Num>,
-) where
-    K::Inner: KnearestQuery<'a>,
+    knear: &mut impl Knearest<T = T, N = T::Num>,
+)
 {
-    let bots = tree.get_elements_mut();
+    let bots = tree.get_bbox_elements_mut();
     use core::ops::Deref;
 
     fn into_ptr_usize<T>(a: &T) -> usize {
@@ -379,7 +379,7 @@ pub fn assert_k_nearest_mut<'a, K: NaiveComparable<'a>>(
         .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
         .collect::<Vec<_>>();
 
-    let r = tree.get_tree().k_nearest_mut(point, num, knear);
+    let r = tree.k_nearest_mut(point, num, knear);
     let mut res_dino: Vec<_> = r
         .into_vec()
         .drain(..)

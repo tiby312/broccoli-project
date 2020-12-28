@@ -15,7 +15,7 @@ struct TreeInner<A: Axis, N> {
 
 ///The data structure this crate revoles around.
 #[repr(transparent)]
-pub struct Tree<'a, A: Axis, T: Aabb> {
+pub struct Tree<'a, A: Axis,T: Aabb> {
     inner: TreeInner<A, Node<'a, T>>,
 }
 

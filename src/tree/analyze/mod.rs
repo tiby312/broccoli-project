@@ -175,17 +175,6 @@ const fn log_2(x: u64) -> u64 {
     num_bits::<u64>() as u64 - x.leading_zeros() as u64 - 1
 }
 
-///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
-///The main motivation behind this trait was to track the time spent taken at each level of the tree
-///during construction.
-pub trait Splitter: Sized {
-    ///Called to split this into two to be passed to the children.
-    fn div(&mut self) -> (Self, Self);
-
-    ///Called to add the results of the recursive calls on the children.
-    fn add(&mut self, a: Self, b: Self);
-}
-
 use crate::query::colfind::NotSortedQueries;
 use crate::tree::Queries;
 ///A version of Tree where the elements are not sorted along each axis, like a KD Tree.

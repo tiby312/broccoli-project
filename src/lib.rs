@@ -72,7 +72,6 @@ pub use rayon;
 mod inner_prelude {
     pub(crate) use crate::par;
     pub(crate) use crate::prelude::*;
-    pub(crate) use crate::query;
     pub(crate) use crate::query::Queries;
 
     pub(crate) use crate::tree::*;

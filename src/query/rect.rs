@@ -275,22 +275,23 @@ use core::ops::Deref;
 fn into_ptr_usize<T>(a: &T) -> usize {
     a as *const T as usize
 }
-use super::NaiveComparable;
 
+
+
+use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_not_in_rect_mut<'a, K: NaiveComparable<'a>>(
-    tree: &mut K,
-    rect: &axgeom::Rect<K::Num>,
-) where
-    K::Inner: RectQuery<'a>,
+pub fn assert_for_all_not_in_rect_mut<A:Axis,T:Aabb>(
+    tree: &mut TreeRef<A,T>,
+    rect: &axgeom::Rect<T::Num>,
+)
 {
     let mut res_dino = Vec::new();
-    tree.get_tree().for_all_not_in_rect_mut(rect, |a| {
+    tree.for_all_not_in_rect_mut(rect, |a| {
         res_dino.push(into_ptr_usize(a.deref()));
     });
 
     let mut res_naive = Vec::new();
-    naive_for_all_not_in_rect_mut(tree.get_elements_mut(), rect, |a| {
+    naive_for_all_not_in_rect_mut(tree.get_bbox_elements_mut(), rect, |a| {
         res_naive.push(into_ptr_usize(a.deref()));
     });
 
@@ -302,19 +303,18 @@ pub fn assert_for_all_not_in_rect_mut<'a, K: NaiveComparable<'a>>(
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_intersect_rect_mut<'a, K: NaiveComparable<'a>>(
-    tree: &mut K,
-    rect: &axgeom::Rect<K::Num>,
-) where
-    K::Inner: RectQuery<'a>,
+pub fn assert_for_all_intersect_rect_mut<A:Axis,T:Aabb>(
+    tree: &mut TreeRef<A,T>,
+    rect: &axgeom::Rect<T::Num>,
+)
 {
     let mut res_dino = Vec::new();
-    tree.get_tree().for_all_intersect_rect_mut(rect, |a| {
+    tree.for_all_intersect_rect_mut(rect, |a| {
         res_dino.push(into_ptr_usize(a.deref()));
     });
 
     let mut res_naive = Vec::new();
-    naive_for_all_intersect_rect_mut(tree.get_elements_mut(), rect, |a| {
+    naive_for_all_intersect_rect_mut(tree.get_bbox_elements_mut(), rect, |a| {
         res_naive.push(into_ptr_usize(a.deref()));
     });
 
@@ -326,19 +326,18 @@ pub fn assert_for_all_intersect_rect_mut<'a, K: NaiveComparable<'a>>(
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_in_rect_mut<'a, K: NaiveComparable<'a>>(
-    tree: &mut K,
-    rect: &axgeom::Rect<K::Num>,
-) where
-    K::Inner: RectQuery<'a>,
+pub fn assert_for_all_in_rect_mut<A:Axis,T:Aabb>(
+    tree: &mut TreeRef<A,T>,
+    rect: &axgeom::Rect<T::Num>,
+) 
 {
     let mut res_dino = Vec::new();
-    tree.get_tree().for_all_in_rect_mut(rect, |a| {
+    tree.for_all_in_rect_mut(rect, |a| {
         res_dino.push(into_ptr_usize(a.deref()));
     });
 
     let mut res_naive = Vec::new();
-    naive_for_all_in_rect_mut(tree.get_elements_mut(), rect, |a| {
+    naive_for_all_in_rect_mut(tree.get_bbox_elements_mut(), rect, |a| {
         res_naive.push(into_ptr_usize(a.deref()));
     });
 
