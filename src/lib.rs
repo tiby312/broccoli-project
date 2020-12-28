@@ -80,7 +80,7 @@ mod inner_prelude {
     pub(crate) use crate::node::*;
     pub(crate) use crate::pmut::*;
 
-    pub(crate) use crate::tree::analyze::*;
+    pub(crate) use crate::tree::build::*;
     pub use alloc::vec::Vec;
     pub use axgeom::*;
     pub(crate) use compt::Visitor;

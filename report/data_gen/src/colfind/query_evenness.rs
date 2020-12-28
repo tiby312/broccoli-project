@@ -1,5 +1,4 @@
 use crate::inner_prelude::*;
-use broccoli::analyze::TreeBuilder;
 
 type LTree = compt::dfs_order::CompleteTreeContainer<usize, compt::dfs_order::PreOrder>;
 

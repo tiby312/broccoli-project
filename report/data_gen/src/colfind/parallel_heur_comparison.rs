@@ -1,5 +1,4 @@
 use crate::inner_prelude::*;
-use broccoli::analyze::TreeBuilder;
 
 fn test1(bots: &mut [BBox<f32, &mut isize>]) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(bots).build_seq());
@@ -48,7 +47,7 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
-    let height = broccoli::analyze::TreePreBuilder::new(num_bots).get_height();
+    let height = TreePreBuilder::new(num_bots).get_height();
 
     let mut rebals = Vec::new();
     for rebal_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {

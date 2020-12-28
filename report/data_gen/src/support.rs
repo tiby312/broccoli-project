@@ -214,7 +214,7 @@ fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
     })
 }
 
-use broccoli::analyze::DefaultA;
+use broccoli::build::DefaultA;
 use broccoli::container::TreeRefInd;
 pub fn make_tree_ref_ind<N: Num, T>(
     bots: &mut [T],

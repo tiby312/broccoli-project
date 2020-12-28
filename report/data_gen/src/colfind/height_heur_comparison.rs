@@ -1,5 +1,4 @@
 use crate::inner_prelude::*;
-use broccoli::analyze::TreeBuilder;
 
 pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> f64 {
     let mut bots = distribute(grow, bot_inner, |a| a.to_f32n());
@@ -78,7 +77,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         let heur = {
             let mut vec = Vec::new();
             for num_bots in its.clone() {
-                let height = broccoli::analyze::TreePreBuilder::new(num_bots).get_height();
+                let height = TreePreBuilder::new(num_bots).get_height();
                 vec.push((num_bots, height));
             }
             vec

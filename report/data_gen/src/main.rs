@@ -32,15 +32,13 @@ mod inner_prelude {
     pub use axgeom::vec2same;
     pub use axgeom::Rect;
     pub use axgeom::Vec2;
-    pub use broccoli::analyze::*;
+    pub use broccoli::build::*;
     pub use broccoli::node::*;
     pub use broccoli::pmut::PMut;
     pub use broccoli::prelude::*;
     pub use broccoli::query::colfind::NotSortedQueries;
     pub use broccoli::query::*;
     pub use broccoli::*;
-    //pub(crate) use duckduckgeo::bot;
-    //pub(crate) use duckduckgeo::dists;
     pub use gnuplot::*;
     pub use std::time::Duration;
     pub use std::time::Instant;

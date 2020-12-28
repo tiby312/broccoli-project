@@ -1,5 +1,5 @@
-//! Contains code to help analyze the [`Tree`] structure.
-//! Only used to measure the performance of the structure.
+//! Contains code to help build the [`Tree`] structure with more options than
+//! just using [`broccoli::new`](crate::new).
 
 use crate::inner_prelude::*;
 

@@ -3,8 +3,8 @@ use crate::inner_prelude::*;
 #[cfg(test)]
 mod tests;
 
-pub mod analyze;
-use analyze::TreeBuilder;
+pub mod build;
+use build::TreeBuilder;
 
 pub mod container;
 
@@ -76,6 +76,7 @@ impl<'a, A: Axis, T: Aabb> Queries<'a> for Tree<'a, A, T> {
         self.inner.inner.vistr()
     }
 }
+
 
 impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     ///Create a [`Tree`] using a specified axis.
