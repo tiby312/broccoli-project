@@ -1,3 +1,5 @@
+//! Find collisions between two groups
+//
 use crate::query::inner_prelude::*;
 use crate::query::rect::*;
 

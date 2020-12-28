@@ -1,3 +1,5 @@
+//! Functions that make it easier to visualize the tree data structure
+//!
 use crate::query::inner_prelude::*;
 
 ///Trait user must implement.

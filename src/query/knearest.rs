@@ -1,23 +1,4 @@
-//!
-//! # User Guide
-//!
-//! There are four flavors of the same fundamental knearest api provided in this module.
-//! There is a naive version, and there is a version that uses the tree, and there are mutable versions of those
-//! that return mutable references.
-//!
-//! Along with a reference to the tree, the user provides the needed geometric functions by passing an implementation of Knearest.
-//! The user provides a point, and the number of nearest objects to return.
-//! Then the equivalent to a Vec<(&mut T,N)> is returned where T is the element, and N is its distance.
-//! Even if you are only looking for one closest element, becaise of ties, it is possible for many many bots to be returned.
-//! If we only returned an arbitrary one, then that would make verification against the naive algorithm harder.
-//! It is possible for the Vec returned to be empty if the tree does not contain any bots.
-//! While ties are possible, the ordering in which the ties are returned is arbitrary and has no meaning.
-//!
-//! If the user looks for multiple nearest, then the Vec will return first, all the 1st closest ties,
-//! then all the 2nd closest ties, etc.
-//!
-//! Slice splitting functions are provided that will split up the Vec into slices over just the ties.
-//!
+//! Knearest query module
 
 use crate::query::inner_prelude::*;
 use core::cmp::Ordering;

@@ -13,28 +13,21 @@ mod inner_prelude {
 
 
 
-///aabb broadphase collision detection
 pub mod colfind;
 
-///Provides functionality to draw the dividers of [`Tree`].
 pub mod graphics;
 
-///Contains all k_nearest code.
 pub mod knearest;
 
-///Contains all raycast code.
 pub mod raycast;
 
-///Allows user to intersect the tree with a seperate group of bots.
 pub mod intersect_with;
 
 pub mod nbody;
 
-///Contains rect code.
 pub mod rect;
 
 
-///Contains misc tools
 mod tools;
 
 use self::inner_prelude::*;
@@ -142,9 +135,7 @@ pub trait NaiveComparable<'a>{
 }
 
 
-
-///Query functions. User defines `vistr()` functions, and the query functions
-///are automatically provided by this trait.
+///Query modules provide functions based off of this trait.
 pub trait Queries<'a> {
     type A: Axis;
     type T: Aabb<Num = Self::Num> + 'a;

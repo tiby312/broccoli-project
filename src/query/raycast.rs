@@ -1,38 +1,5 @@
-//!
-//! # User guide
-//!
-//! There are four flavors of the same fundamental raycast api provided in this module.
-//! There is a naive version, and there is a version that uses the tree, and there are mutable versions of those
-//! that return mutable references.
-//!
-//!
-//! In addition to the tree, the user provides the geometric functions needed by passing an implementation of RayCast.
-//! The user must also provide a rectangle within which all objects that the user is interested in possibly
-//! being hit by the raycast must include.
-//!
-//! What is returned is the distance to where the ray cast stopped, plus a list of all bots at that distance.
-//! In most cases, only one object is returned, but in the cases where they are ties more can be returned.
-//! All possible solutions are returned since it would be hard to define which of the tied objects would be returned.
-//! So the Option returns Some() if and only if the list returned has atleast one element in it.
-//!
-//! # Notes
+//! Raycast query module
 
-//! At first the algorithm worked by splitting the ray into two where the ray intersected the divider.
-//! So one ray would have the same origin point, and the other would have the point at which the ray
-//! intersected the divder as the origin point. The problem with this is that there might not be a clean solution
-//! to the new point of the second ray. The point that you compute may not lie exactly on a point along the ray.
-//!
-//! With real numbers this isnt a problem. There would always be a solution. But real numbers don't exist
-//! in the real world. Floating points will be close, but not perfect. If you are using integers, the corner case problems
-//! are more apparent.
-//!
-//! The solution instead was to never subdivide the ray. Its always the same. Instead, keep subdividing the area into rectangles.
-//!
-//! Why does the user have to provide a finite rectangle up front? The reason is implementation simplicity/performance.
-//! By doing this, we don't have to special case the nodes along the outside of the tree.
-//! We also don't have have to worry about overflow and underflow problems of providing a rectangle that
-//! just barely fits into the number type.
-//!
 
 use crate::query::inner_prelude::*;
 use axgeom::Ray;

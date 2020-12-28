@@ -1,7 +1,7 @@
 //!
-//! # User Guide
+//! A nbody problem approximate solver.
 //!
-//! A nbody problem approximate solver. The user can choose the distance at which to fallback on approximate solutions.
+//! The user can choose the distance at which to fallback on approximate solutions.
 //! The algorithm works similar to a Barnes–Hut simulation, but uses a kdtree instead of a quad tree.
 //!
 //! A sequential and parallel version are supplied, both with a similar api.

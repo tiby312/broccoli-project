@@ -1,10 +1,4 @@
-//! Provides two basic functions: for_all_in_rect, for_all_intersect_rect that both have similar api.
-//!
-//!
-//! for_all_in_rect allows the user to retreive references to all bots whose aabb's are strictly inside of the specified rectangle.
-//! for_all_intersect_rect is similar, but will return all bots who are inside as well as all bots whose aabb's intersect the rect.
-//! The user is allowed to hold on to the mutable references returned for as long as the tree itself is mutably borrowed.
-//!
+//! Rect query module
 
 use crate::query::inner_prelude::*;
 
@@ -132,7 +126,7 @@ fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
 }
 
 use constant::*;
-use mutable::*;
+pub use mutable::*;
 
 mod mutable {
     use super::*;
