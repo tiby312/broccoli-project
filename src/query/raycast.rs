@@ -72,7 +72,7 @@ pub trait RayCast {
 
 
 
-
+///Container of closures that implements [`RayCast`]
 pub struct RayCastClosure<T, A, B, C, D, E> {
     pub _p: PhantomData<T>,
     pub acc: A,

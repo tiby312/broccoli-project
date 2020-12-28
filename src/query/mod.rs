@@ -1,4 +1,4 @@
-//! Module contains query related structs.
+//! Contains query modules for each query algorithm.
 
 mod inner_prelude {
     pub use crate::inner_prelude::*;
@@ -40,6 +40,7 @@ mod tools;
 use self::inner_prelude::*;
 
 
+///Query modules provide assert functions that operate on this trait.
 pub trait NaiveComparable<'a>{
     type K:Queries<'a,T=Self::T,Num=Self::Num>+'a;
     type T:Aabb<Num=Self::Num>+'a;
@@ -47,6 +48,8 @@ pub trait NaiveComparable<'a>{
     fn get_tree(&mut self)->&mut Self::K;
     fn get_elements_mut(&mut self)->PMut<[<Self::K as Queries<'a>>::T]>;
 
+    ///Returns true if all the tree invariants are met.
+    ///For debugging purposes only.
     #[must_use]
     fn assert_tree_invariants(&mut self)->bool{
 

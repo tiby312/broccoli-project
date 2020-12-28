@@ -6,6 +6,7 @@ use crate::query::rect::*;
 use super::Queries;
 impl<'a,K:Queries<'a>> IntersectQuery<'a> for K{}
 
+///Intersect functions that can be called on a tree.
 pub trait IntersectQuery<'a>: Queries<'a>+RectQuery<'a>{
 
     /// Find collisions between elements in this tree,
