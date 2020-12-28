@@ -1,7 +1,7 @@
 //!
-//! # User Guide
+//! A nbody problem approximate solver.
 //!
-//! A nbody problem approximate solver. The user can choose the distance at which to fallback on approximate solutions.
+//! The user can choose the distance at which to fallback on approximate solutions.
 //! The algorithm works similar to a Barnes–Hut simulation, but uses a kdtree instead of a quad tree.
 //!
 //! A sequential and parallel version are supplied, both with a similar api.
@@ -578,7 +578,7 @@ trait Bok2 {
 }
 
 ///Parallel version.
-pub fn nbody_par<
+fn nbody_par<
     A: Axis,
     T: Aabb + Send + Sync,
     NO: NodeMassTrait<Num = T::Num, Item = T> + Sync + Send,
@@ -607,7 +607,7 @@ pub fn nbody_par<
 }
 
 ///Sequential version.
-pub fn nbody<
+fn nbody<
     A: Axis,
     T: Aabb + Send + Sync,
     NO: NodeMassTrait<Num = T::Num, Item = T> + Send + Sync,
@@ -630,4 +630,43 @@ pub fn nbody<
 
     let d = misc_tree.vistr().zip(vistr);
     apply_tree(axis, d, ncontext);
+}
+
+
+
+use super::Queries;
+impl<'a,K:Queries<'a>> NbodyQuery<'a> for K{}
+
+///Nbody functions that can be called on a tree.
+pub trait NbodyQuery<'a>:Queries<'a>{
+
+    ///Experimental. See broccoli demo
+    fn nbody_mut<X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Send + Sync>(
+        &mut self,
+        ncontext: X,
+        rect: Rect<Self::Num>,
+    ) where
+        X::No: Send,
+        Self::T: Send + Sync,
+        Self::Num: Send + Sync,
+    {
+        query::nbody::nbody(self.axis(), self.vistr_mut(), ncontext, rect)
+    }
+
+    ///Experimental. See broccoli demo
+    fn nbody_mut_par<
+        X: query::nbody::NodeMassTrait<Num = Self::Num, Item = Self::T> + Sync + Send,
+    >(
+        &mut self,
+        ncontext: X,
+        rect: Rect<Self::Num>,
+    ) where
+        X::No: Send,
+        Self::T: Send + Sync,
+        Self::Num: Send + Sync,
+    {
+        query::nbody::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
+    }
+
+
 }

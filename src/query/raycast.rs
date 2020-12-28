@@ -1,38 +1,5 @@
-//!
-//! # User guide
-//!
-//! There are four flavors of the same fundamental raycast api provided in this module.
-//! There is a naive version, and there is a version that uses the tree, and there are mutable versions of those
-//! that return mutable references.
-//!
-//!
-//! In addition to the tree, the user provides the geometric functions needed by passing an implementation of RayCast.
-//! The user must also provide a rectangle within which all objects that the user is interested in possibly
-//! being hit by the raycast must include.
-//!
-//! What is returned is the distance to where the ray cast stopped, plus a list of all bots at that distance.
-//! In most cases, only one object is returned, but in the cases where they are ties more can be returned.
-//! All possible solutions are returned since it would be hard to define which of the tied objects would be returned.
-//! So the Option returns Some() if and only if the list returned has atleast one element in it.
-//!
-//! # Notes
+//! Raycast query module
 
-//! At first the algorithm worked by splitting the ray into two where the ray intersected the divider.
-//! So one ray would have the same origin point, and the other would have the point at which the ray
-//! intersected the divder as the origin point. The problem with this is that there might not be a clean solution
-//! to the new point of the second ray. The point that you compute may not lie exactly on a point along the ray.
-//!
-//! With real numbers this isnt a problem. There would always be a solution. But real numbers don't exist
-//! in the real world. Floating points will be close, but not perfect. If you are using integers, the corner case problems
-//! are more apparent.
-//!
-//! The solution instead was to never subdivide the ray. Its always the same. Instead, keep subdividing the area into rectangles.
-//!
-//! Why does the user have to provide a finite rectangle up front? The reason is implementation simplicity/performance.
-//! By doing this, we don't have to special case the nodes along the outside of the tree.
-//! We also don't have have to worry about overflow and underflow problems of providing a rectangle that
-//! just barely fits into the number type.
-//!
 
 use crate::query::inner_prelude::*;
 use axgeom::Ray;
@@ -47,6 +14,7 @@ pub trait RayCast {
     type T: Aabb<Num = Self::N>;
     type N: Num;
 
+    ///Return the cast result to a axis aligned line of infinite length.
     fn cast_to_aaline<A: Axis>(
         &mut self,
         ray: &Ray<Self::N>,
@@ -54,18 +22,14 @@ pub trait RayCast {
         val: Self::N,
     ) -> axgeom::CastResult<Self::N>;
 
-    ///Returns true if the ray intersects with this rectangle.
-    ///This function allows as to prune which nodes to visit.
+    ///Return the cast result that is cheap and overly conservative.
     fn cast_broad(
         &mut self,
         ray: &Ray<Self::N>,
         a: PMut<Self::T>,
     ) -> axgeom::CastResult<Self::N>;
 
-    ///The expensive collision detection
-    ///This is where the user can do expensive collision detection on the shape
-    ///contains within it's bounding box.
-    ///Its default implementation just calls cast_broad()
+    ///Return the exact cast result.
     fn cast_fine(
         &mut self,
         ray: &Ray<Self::N>,
@@ -75,7 +39,7 @@ pub trait RayCast {
 
 
 
-
+///Container of closures that implements [`RayCast`]
 pub struct RayCastClosure<T, A, B, C, D, E> {
     pub _p: PhantomData<T>,
     pub acc: A,
@@ -85,6 +49,26 @@ pub struct RayCastClosure<T, A, B, C, D, E> {
     pub yline: E,
 }
 
+
+///Construct an object that implements [`RayCast`] from closures.
+///We pass the tree so that we can infer the type of `T`.
+///
+/// `fine` is a function that returns the true length of a ray
+/// cast to an object.
+///
+/// `broad` is a function that returns the length of a ray cast to
+/// a axis aligned rectangle. This function
+/// is used as a conservative estimate to prune out elements which minimizes
+/// how often the `fine` function gets called.
+///
+/// `xline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values. 
+///
+/// `yline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values. 
+///
+/// `acc` is a user defined object that is passed to every call to either
+/// the `fine` or `broad` functions.
 pub fn from_closure<
     AA:Axis,
     T: Aabb,
@@ -335,37 +319,144 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     }
 }
 
-pub(crate) use self::mutable::raycast_mut;
-pub(crate) use self::mutable::raycast_naive_mut;
 
-mod mutable {
-    use super::*;
+use super::NaiveComparable;
 
-    pub(crate) fn raycast_naive_mut<'a, T: Aabb>(
-        bots: PMut<'a, [T]>,
-        ray: Ray<T::Num>,
-        rtrait: &mut impl RayCast<N = T::Num, T = T>,
-    ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
-        let mut closest = Closest { closest: None };
-
-        for b in bots.iter_mut() {
-            closest.consider(&ray, b, rtrait);
+///Panics if a disconnect is detected between tree and naive queries.
+pub fn assert_raycast<'a,K:NaiveComparable<'a>>( 
+    tree:&mut K,
+    ray: axgeom::Ray<K::Num>,
+    rtrait: &mut impl RayCast<T = K::T, N = K::Num>) where K::Num:core::fmt::Debug{
+    let bots = tree.get_elements_mut();
+    fn into_ptr_usize<T>(a: &T) -> usize {
+        a as *const T as usize
+    }
+    let mut res_naive = Vec::new();
+    match raycast_naive_mut(bots,ray, rtrait) {
+        axgeom::CastResult::Hit((bots, mag)) => {
+            for a in bots.into_iter() {
+                let r = *a.get();
+                let j = into_ptr_usize(a.into_ref());
+                res_naive.push((j, r, mag))
+            }
         }
-
-        match closest.closest {
-            Some((a, b)) => axgeom::CastResult::Hit((a, b)),
-            None => axgeom::CastResult::NoHit,
+        axgeom::CastResult::NoHit => {
+            //do nothing
         }
     }
 
-    pub(crate) fn raycast_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
-        axis: A,
-        vistr: VistrMut<'a, Node<'b, T>>,
-        ray: Ray<T::Num>,
-        rtrait: &mut impl RayCast<N = T::Num, T = T>,
-    ) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
+    let mut res_dino = Vec::new();
+    match tree.get_tree().raycast_mut(ray, rtrait) {
+        axgeom::CastResult::Hit((bots, mag)) => {
+            for a in bots.into_iter() {
+                let r = *a.get();
+                let j = into_ptr_usize(a.into_ref());
+                res_dino.push((j, r, mag))
+            }
+        }
+        axgeom::CastResult::NoHit => {
+            //do nothing
+        }
+    }
+
+    res_naive.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    res_dino.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+    //dbg!("{:?}  {:?}",res_naive.len(),res_dino.len());
+    assert_eq!(
+        res_naive.len(),
+        res_dino.len(),
+        "len:{:?}",
+        (res_naive, res_dino)
+    );
+    assert!(
+        res_naive.iter().eq(res_dino.iter()),
+        "nop:\n\n naive:{:?} \n\n broc:{:?}",
+        res_naive,
+        res_dino
+    );
+}
+
+///Naive implementation
+pub fn raycast_naive_mut<'a, T: Aabb>(
+    bots: PMut<'a, [T]>,
+    ray: Ray<T::Num>,
+    rtrait: &mut impl RayCast<N = T::Num, T = T>,
+) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
+    let mut closest = Closest { closest: None };
+
+    for b in bots.iter_mut() {
+        closest.consider(&ray, b, rtrait);
+    }
+
+    match closest.closest {
+        Some((a, b)) => axgeom::CastResult::Hit((a, b)),
+        None => axgeom::CastResult::NoHit,
+    }
+}
+
+
+
+
+
+use super::Queries;
+impl<'a,K:Queries<'a>> RaycastQuery<'a> for K{}
+
+
+///Raycast functions that can be called on a tree.
+pub trait RaycastQuery<'a>:Queries<'a>{
+
+
+
+    /// Find the elements that are hit by a ray.
+    ///
+    /// The result is returned as a `Vec`. In the event of a tie, multiple
+    /// elements can be returned.
+    ///
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// use axgeom::{vec2,ray};
+    ///
+    ///
+    /// let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
+    ///                bbox(rect(2,5,2,5),vec2(4,4)),
+    ///                bbox(rect(4,10,4,10),vec2(5,5))];
+    ///
+    /// let mut bots_copy=bots.clone();
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let ray=ray(vec2(5,-5),vec2(1,2));
+    ///
+    /// let mut handler = broccoli::query::raycast::from_closure(
+    ///    &tree,
+    ///    (),
+    ///    |_, ray, a| ray.cast_to_rect(&a.rect),
+    ///    |_, ray, a| ray.cast_to_rect(&a.rect),
+    ///    |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
+    ///    |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
+    /// );
+    /// let res = tree.raycast_mut(
+    ///     ray,
+    ///     &mut handler);
+    ///
+    /// let (bots,dis)=res.unwrap();
+    /// assert_eq!(dis,2);
+    /// assert_eq!(bots.len(),1);
+    /// assert_eq!(bots[0].inner,vec2(5,5));
+    ///```
+    fn raycast_mut<'b, R: RayCast<T = Self::T, N = Self::Num>>(
+        &'b mut self,
+        ray: axgeom::Ray<Self::Num>,
+        rtrait: &mut R,
+    ) -> axgeom::CastResult<(Vec<PMut<'b, Self::T>>, Self::Num)>
+    where
+        'a: 'b,
+    {
+        let axis=self.axis();
         let rtrait = RayCastBorrow(rtrait);
-        let dt = vistr.with_depth(Depth(0));
+        let dt = self.vistr_mut().with_depth(Depth(0));
 
         let closest = Closest { closest: None };
         let mut blap = Blap {

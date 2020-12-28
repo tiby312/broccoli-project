@@ -50,7 +50,7 @@
 //! Raw pointers are used for the container types in the container module
 //! and for caching the results of finding colliding pairs.
 //!
-//! [`query::Queries::multi_rect`] uses unsafety to allow the user to have mutable references to elements
+//! [`multi_rect`](query::rect::RectQuery::multi_rect) uses unsafety to allow the user to have mutable references to elements
 //! that belong to rectangle regions that don't intersect at the same time. This is why
 //! the [`node::Aabb`] trait is unsafe.
 
@@ -70,6 +70,7 @@ pub use compt;
 pub use rayon;
 
 mod inner_prelude {
+    pub(crate) use crate::prelude::*;
     pub(crate) use crate::par;
     pub(crate) use crate::query;
     pub(crate) use crate::tree::*;
@@ -110,6 +111,14 @@ pub mod convert;
 
 ///The broccoli prelude.
 pub mod prelude {
+    pub use crate::query::nbody::NbodyQuery;
+    pub use crate::query::graphics::DrawQuery;
+    
+    pub use crate::query::intersect_with::IntersectQuery;
+    pub use crate::query::rect::RectQuery;
+    pub use crate::query::colfind::ColfindQuery;
+    pub use crate::query::raycast::RaycastQuery;
+    pub use crate::query::knearest::KnearestQuery;
     pub use crate::query::Queries;
 }
 

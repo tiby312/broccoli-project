@@ -57,6 +57,7 @@ pub struct PMut<'a, T: ?Sized> {
     inner: &'a mut T,
 }
 
+
 impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
     type Target = T;
     #[inline(always)]

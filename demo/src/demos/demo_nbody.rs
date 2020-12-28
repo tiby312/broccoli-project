@@ -17,7 +17,7 @@ struct Bla<'a> {
     _num_pairs_checked: usize,
     _p: PhantomData<&'a usize>,
 }
-impl<'b> broccoli::query::NodeMassTrait for &Bla<'b> {
+impl<'b> broccoli::query::nbody::NodeMassTrait for &Bla<'b> {
     type No = NodeMass;
     type Item = BBox<f32, &'b mut Bot>;
     type Num = f32;

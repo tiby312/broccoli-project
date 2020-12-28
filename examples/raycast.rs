@@ -19,9 +19,7 @@ fn main() {
         dir: vec2(1, 0),
     };
 
-
-    
-    let mut raycast_stuff = broccoli::query::raycast::from_closure(
+    let mut handler = broccoli::query::raycast::from_closure(
         &tree,
         (),
         |_, ray, a| ray.cast_to_rect(&a.rect),
@@ -30,11 +28,9 @@ fn main() {
         |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
     );
     
-
-
     let res = tree.raycast_mut(
         ray,
-        &mut raycast_stuff
+        &mut handler
     );
 
     let (bots, _) = res.unwrap();

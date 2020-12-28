@@ -79,6 +79,11 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
         }
     }
 
+    ///Explicitly DerefMut.
+    pub fn as_tree_ref_mut(&mut self)->&mut TreeRef<'a,A,BBox<N, &'a mut T>>{
+        &mut *self
+    }
+
     /// ```rust
     /// use broccoli::{prelude::*,bbox,rect};
     /// let mut k=[4];
@@ -158,7 +163,7 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
 /// assert_eq!(bots[0].inner,1);
 ///```
 ///
-/// However it is useful to implement the [`crate::analyze::NaiveCheck`]
+/// However it is useful to implement the [`crate::query::NaiveComparable`]
 ///
 #[repr(transparent)]
 pub struct TreeRef<'a, A: Axis, T: Aabb> {
@@ -166,12 +171,16 @@ pub struct TreeRef<'a, A: Axis, T: Aabb> {
     _p: PhantomData<&'a mut T>,
 }
 
-use crate::analyze::NaiveCheck;
-impl<'a, A: Axis, T: Aabb> NaiveCheck<'a, Tree<'a, A, T>> for TreeRef<'a, A, T> {
-    type A = A;
+use crate::query::NaiveComparable;
+impl<'a, A: Axis+'a, T: Aabb> NaiveComparable<'a> for TreeRef<'a, A, T> {
+    type K=Tree<'a,A,T>;
     type T = T;
     type Num = T::Num;
-    fn get_underlying_slice_mut(&mut self) -> PMut<[T]> {
+    fn get_tree(&mut self) -> &mut Tree<'a,A,T>{
+        &mut *self
+        
+    }
+    fn get_elements_mut(&mut self)->PMut<[T]>{
         self.get_bbox_elements_mut()
     }
 }

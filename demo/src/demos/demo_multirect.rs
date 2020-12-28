@@ -30,12 +30,14 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         let r2 = axgeom::Rect::new(100, 400, 100, 400);
 
         if check_naive {
-            let tree = tree.as_tree_mut();
-            tree.assert_for_all_in_rect_mut(&r1);
-            tree.assert_for_all_in_rect_mut(&r2);
-            tree.assert_for_all_intersect_rect_mut(&r1);
-            tree.assert_for_all_intersect_rect_mut(&r2);
-            tree.assert_for_all_not_in_rect_mut(&r1);
+            let tree = tree.as_tree_mut().as_tree_ref_mut();
+            use broccoli::query::rect::*;
+
+            assert_for_all_in_rect_mut(tree,&r1);
+            assert_for_all_in_rect_mut(tree,&r2);
+            assert_for_all_intersect_rect_mut(tree,&r1);
+            assert_for_all_intersect_rect_mut(tree,&r2);
+            assert_for_all_not_in_rect_mut(tree,&r1);
         }
 
         //test MultiRect

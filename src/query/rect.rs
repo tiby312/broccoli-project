@@ -1,10 +1,4 @@
-//! Provides two basic functions: for_all_in_rect, for_all_intersect_rect that both have similar api.
-//!
-//!
-//! for_all_in_rect allows the user to retreive references to all bots whose aabb's are strictly inside of the specified rectangle.
-//! for_all_intersect_rect is similar, but will return all bots who are inside as well as all bots whose aabb's intersect the rect.
-//! The user is allowed to hold on to the mutable references returned for as long as the tree itself is mutably borrowed.
-//!
+//! Rect query module
 
 use crate::query::inner_prelude::*;
 
@@ -59,7 +53,9 @@ macro_rules! rect {
     };
 }
 
-pub(crate) fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
+
+///Naive implementation
+pub fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
     bots: PMut<'a, [T]>,
     rect: &Rect<T::Num>,
     mut closure: impl FnMut(PMut<'a, T>),
@@ -71,7 +67,7 @@ pub(crate) fn naive_for_all_not_in_rect_mut<'a, T: Aabb>(
     }
 }
 
-pub(crate) fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
+fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
     axis: A,
     vistr: VistrMut<'a, Node<'b, T>>,
     rect: &Rect<T::Num>,
@@ -129,7 +125,7 @@ pub(crate) fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
     rect_recurse(axis, vistr, rect, closure);
 }
 
-pub use constant::*;
+use constant::*;
 pub use mutable::*;
 
 mod mutable {
@@ -139,7 +135,7 @@ mod mutable {
         node.into_range()
     }
     rect!(VistrMut<'a, Node<T>>, PMut<'a, T>, get_section_mut, foo);
-    pub(crate) fn for_all_intersect_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(super) fn for_all_intersect_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: VistrMut<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
@@ -152,7 +148,9 @@ mod mutable {
         });
     }
 
-    pub(crate) fn naive_for_all_in_rect_mut<'a, T: Aabb>(
+
+    ///Naive implementation
+    pub fn naive_for_all_in_rect_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(PMut<'a, T>),
@@ -164,7 +162,9 @@ mod mutable {
         }
     }
 
-    pub(crate) fn naive_for_all_intersect_rect_mut<'a, T: Aabb>(
+
+    ///Naive implementation
+    pub fn naive_for_all_intersect_rect_mut<'a, T: Aabb>(
         bots: PMut<'a, [T]>,
         rect: &Rect<T::Num>,
         mut closure: impl FnMut(PMut<'a, T>),
@@ -175,7 +175,7 @@ mod mutable {
             }
         }
     }
-    pub(crate) fn for_all_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(super) fn for_all_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: VistrMut<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
@@ -198,7 +198,7 @@ mod constant {
     }
     rect!(Vistr<'a, Node<T>>, &'a T, get_section, foo);
 
-    pub(crate) fn for_all_intersect_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(super) fn for_all_intersect_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: Vistr<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
@@ -211,7 +211,7 @@ mod constant {
         });
     }
 
-    pub(crate) fn for_all_in_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
+    pub(super) fn for_all_in_rect<'a, 'b: 'a, A: Axis, T: Aabb>(
         axis: A,
         vistr: Vistr<'a, Node<'b, T>>,
         rect: &Rect<T::Num>,
@@ -231,7 +231,7 @@ mod constant {
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
 pub struct RectIntersectErr;
 
-///See the [`Queries::multi_rect`](crate::query::Queries::multi_rect) function.
+///See the [`Queries::multi_rect`](crate::query::rect::RectQuery::multi_rect) function.
 pub struct MultiRectMut<'a, 'b: 'a, A: Axis, T: Aabb> {
     axis: A,
     vistr: VistrMut<'a, Node<'b, T>>,
@@ -239,7 +239,7 @@ pub struct MultiRectMut<'a, 'b: 'a, A: Axis, T: Aabb> {
 }
 
 impl<'a, 'b: 'a, A: Axis, T: Aabb> MultiRectMut<'a, 'b, A, T> {
-    pub(crate) fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> Self {
+    fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> Self {
         MultiRectMut {
             axis,
             vistr,
@@ -272,4 +272,227 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> MultiRectMut<'a, 'b, A, T> {
 
         Ok(())
     }
+}
+
+
+
+
+use core::ops::Deref;
+fn into_ptr_usize<T>(a: &T) -> usize {
+    a as *const T as usize
+}
+use super::NaiveComparable;
+
+///Panics if a disconnect is detected between tree and naive queries.
+pub fn assert_for_all_not_in_rect_mut<'a,K:NaiveComparable<'a>>(tree:&mut K, rect: &axgeom::Rect<K::Num>) {
+    let mut res_dino = Vec::new();
+    tree.get_tree().for_all_not_in_rect_mut(rect, |a| {
+        res_dino.push(into_ptr_usize(a.deref()));
+    });
+
+    let mut res_naive = Vec::new();
+    naive_for_all_not_in_rect_mut(tree.get_elements_mut(),rect, |a| {
+        res_naive.push(into_ptr_usize(a.deref()));
+    });
+
+    res_dino.sort();
+    res_naive.sort();
+
+    assert_eq!(res_naive.len(), res_dino.len());
+    assert!(res_naive.iter().eq(res_dino.iter()));
+}
+
+///Panics if a disconnect is detected between tree and naive queries.
+pub fn assert_for_all_intersect_rect_mut<'a,K:NaiveComparable<'a>>(tree:&mut K, rect: &axgeom::Rect<K::Num>) {
+    let mut res_dino = Vec::new();
+    tree.get_tree().for_all_intersect_rect_mut(rect, |a| {
+        res_dino.push(into_ptr_usize(a.deref()));
+    });
+
+    let mut res_naive = Vec::new();
+    naive_for_all_intersect_rect_mut(tree.get_elements_mut(),rect, |a| {
+        res_naive.push(into_ptr_usize(a.deref()));
+    });
+
+    res_dino.sort();
+    res_naive.sort();
+
+    assert_eq!(res_naive.len(), res_dino.len());
+    assert!(res_naive.iter().eq(res_dino.iter()));
+}
+
+///Panics if a disconnect is detected between tree and naive queries.
+pub fn assert_for_all_in_rect_mut<'a,K:NaiveComparable<'a>>(tree:&mut K, rect: &axgeom::Rect<K::Num>) {
+    let mut res_dino = Vec::new();
+    tree.get_tree().for_all_in_rect_mut(rect, |a| {
+        res_dino.push(into_ptr_usize(a.deref()));
+    });
+
+    let mut res_naive = Vec::new();
+    naive_for_all_in_rect_mut(tree.get_elements_mut(),rect, |a| {
+        res_naive.push(into_ptr_usize(a.deref()));
+    });
+
+    res_dino.sort();
+    res_naive.sort();
+
+    assert_eq!(res_naive.len(), res_dino.len());
+    assert!(res_naive.iter().eq(res_dino.iter()));
+}
+
+
+
+
+
+
+use super::Queries;
+impl<'a,K:Queries<'a>> RectQuery<'a> for K{}
+
+
+
+///Rect functions that can be called on a tree.
+pub trait RectQuery<'a>:Queries<'a>{
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let mut test = Vec::new();
+    /// tree.for_all_intersect_rect(&rect(9,20,9,20),|a|{
+    ///    test.push(a);
+    /// });
+    ///
+    /// assert_eq!(test[0],&rect(0,10,0,10));
+    ///
+    ///```
+    fn for_all_intersect_rect<'b>(&'b self, rect: &Rect<Self::Num>, func: impl FnMut(&'b Self::T))
+    where
+        'a: 'b,
+    {
+        self::for_all_intersect_rect(self.axis(), self.vistr(), rect, func);
+    }
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.for_all_intersect_rect_mut(&rect(9,20,9,20),|a|{
+    ///    *a.unpack_inner()+=1;    
+    /// });
+    ///
+    /// assert_eq!(bots[0].inner,1);
+    ///
+    ///```
+    fn for_all_intersect_rect_mut<'b>(
+        &'b mut self,
+        rect: &Rect<Self::Num>,
+        mut func: impl FnMut(PMut<'b, Self::T>),
+    ) where
+        'a: 'b,
+    {
+        self::for_all_intersect_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| (func)(a));
+    }
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let mut test = Vec::new();
+    /// tree.for_all_in_rect(&rect(0,20,0,20),|a|{
+    ///    test.push(a);
+    /// });
+    ///
+    /// assert_eq!(test[0],&rect(0,10,0,10));
+    ///
+    fn for_all_in_rect<'b>(&'b self, rect: &Rect<Self::Num>, func: impl FnMut(&'b Self::T))
+    where
+        'a: 'b,
+    {
+        self::for_all_in_rect(self.axis(), self.vistr(), rect, func);
+    }
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.for_all_in_rect_mut(&rect(0,10,0,10),|a|{
+    ///    *a.unpack_inner()+=1;    
+    /// });
+    ///
+    /// assert_eq!(bots[0].inner,1);
+    ///
+    ///```
+    fn for_all_in_rect_mut<'b>(
+        &'b mut self,
+        rect: &Rect<Self::Num>,
+        mut func: impl FnMut(PMut<'b, Self::T>),
+    ) where
+        'a: 'b,
+    {
+        self::for_all_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| (func)(a));
+    }
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// tree.for_all_not_in_rect_mut(&rect(10,20,10,20),|a|{
+    ///    *a.unpack_inner()+=1;    
+    /// });
+    ///
+    /// assert_eq!(bots[0].inner,1);
+    ///
+    ///```
+    fn for_all_not_in_rect_mut<'b>(
+        &'b mut self,
+        rect: &Rect<Self::Num>,
+        mut func: impl FnMut(PMut<'b, Self::T>),
+    ) where
+        'a: 'b,
+    {
+        self::for_all_not_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| (func)(a));
+    }
+
+    /// If we have two non intersecting rectangles, it is safe to return to the user two sets of mutable references
+    /// of the bots strictly inside each rectangle since it is impossible for a bot to belong to both sets.
+    ///
+    /// # Safety
+    ///
+    /// Unsafe code is used.  We unsafely convert the references returned by the rect query
+    /// closure to have a longer lifetime.
+    /// This allows the user to store mutable references of non intersecting rectangles at the same time.
+    /// If two requested rectangles intersect, an error is returned.
+    ///
+    /// Handles a multi rect mut "sessions" within which
+    /// the user can query multiple non intersecting rectangles.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
+    /// let mut tree = broccoli::new(&mut bots1);
+    /// let mut multi = tree.multi_rect();
+    ///
+    /// multi.for_all_in_rect_mut(rect(0,10,0,10),|a|{}).unwrap();
+    /// let res = multi.for_all_in_rect_mut(rect(5,15,5,15),|a|{});
+    /// assert_eq!(res,Err(broccoli::query::rect::RectIntersectErr));
+    ///```
+    #[must_use]
+    fn multi_rect<'c>(&'c mut self) -> MultiRectMut<'c, 'a, Self::A, Self::T> {
+        MultiRectMut::new(self.axis(), self.vistr_mut())
+    }
+
+    
+
 }

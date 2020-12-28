@@ -1,3 +1,5 @@
+//! misc tools
+
 use super::inner_prelude::*;
 
 //this can have some false positives.

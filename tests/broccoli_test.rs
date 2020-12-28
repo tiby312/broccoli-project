@@ -3,7 +3,8 @@ use axgeom;
 use broccoli::prelude::*;
 use broccoli::*;
 
-use broccoli::analyze::NaiveCheck;
+use broccoli::query::NaiveComparable;
+
 #[test]
 fn test1() {
     for &num_bots in [0, 20, 100, 200].iter() {
@@ -25,7 +26,7 @@ fn test1() {
             .collect();
 
         let mut tree = broccoli::container::TreeRef::new(&mut bots);
-        tree.assert_colliding_pairs_mut();
+        broccoli::query::colfind::assert_query(&mut tree);
         assert!(tree.assert_tree_invariants());
     }
 }
@@ -51,7 +52,7 @@ fn test2() {
             .collect();
 
         let mut tree = broccoli::container::TreeRefInd::new(&mut bots, |a| a.rect);
-        tree.assert_colliding_pairs_mut();
+        broccoli::query::colfind::assert_query(&mut *tree);
         let mut p = tree.collect_colliding_pairs(|_a, _b| Some(()));
         let mut k = tree.collect_all(|_r, _a| Some(()));
         p.for_every_pair_mut(tree.get_elements_mut(), |_a, _b, _c| {});

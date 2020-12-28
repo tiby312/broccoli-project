@@ -1,23 +1,4 @@
-//!
-//! # User Guide
-//!
-//! There are four flavors of the same fundamental knearest api provided in this module.
-//! There is a naive version, and there is a version that uses the tree, and there are mutable versions of those
-//! that return mutable references.
-//!
-//! Along with a reference to the tree, the user provides the needed geometric functions by passing an implementation of Knearest.
-//! The user provides a point, and the number of nearest objects to return.
-//! Then the equivalent to a Vec<(&mut T,N)> is returned where T is the element, and N is its distance.
-//! Even if you are only looking for one closest element, becaise of ties, it is possible for many many bots to be returned.
-//! If we only returned an arbitrary one, then that would make verification against the naive algorithm harder.
-//! It is possible for the Vec returned to be empty if the tree does not contain any bots.
-//! While ties are possible, the ordering in which the ties are returned is arbitrary and has no meaning.
-//!
-//! If the user looks for multiple nearest, then the Vec will return first, all the 1st closest ties,
-//! then all the 2nd closest ties, etc.
-//!
-//! Slice splitting functions are provided that will split up the Vec into slices over just the ties.
-//!
+//! Knearest query module
 
 use crate::query::inner_prelude::*;
 use core::cmp::Ordering;
@@ -27,6 +8,7 @@ pub trait Knearest {
     type T: Aabb<Num = Self::N>;
     type N: Num;
 
+    ///User define distance function from a point to an axis aligned line of infinite length.
     fn distance_to_aaline<A: Axis>(
         &mut self,
         point: Vec2<Self::N>,
@@ -34,11 +16,12 @@ pub trait Knearest {
         val: Self::N,
     ) -> Self::N;
 
-    fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Self::N;
+    ///User defined inexpensive distance function that that can be overly conservative.
+    fn distance_to_broad(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N;
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
-    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N;
+    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N;
 }
 
 struct KnearestBorrow<'a, K>(&'a mut K);
@@ -58,15 +41,32 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
         self.0.distance_to_broad(point, rect)
     }
 
-    ///User defined expensive distance function. Here the user can return fine-grained distance
-    ///of the shape contained in T instead of its bounding box.
     fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
         self.0.didstance_to_fine(point, bot)
     }
 }
 
 
-
+///Construct an object that implements [`Knearest`] from closures.
+///We pass the tree so that we can infer the type of `T`.
+///
+/// `fine` is a function that gives the true distance between the `point`
+/// and the specified tree element.
+///
+/// `broad` is a function that gives the distance between the `point`
+/// and the closest point of a axis aligned rectangle. This function
+/// is used as a conservative estimate to prune out elements which minimizes
+/// how often the `fine` function gets called.
+///
+/// `xline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values. 
+///
+/// `yline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values. 
+///
+/// `acc` is a user defined object that is passed to every call to either
+/// the `fine` or `broad` functions.
+///
 pub fn from_closure<
     AA:Axis,
     T:Aabb,
@@ -83,6 +83,7 @@ pub fn from_closure<
         KnearestClosure{_p:PhantomData,acc,broad,fine,xline,yline}
     }
 
+///Container of closures that implements [`Knearest`]
 pub struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
     pub _p: PhantomData<T>,
     pub acc: Acc,
@@ -358,41 +359,141 @@ impl<'a, T: Aabb> KResult<'a, T> {
     }
 }
 
-pub(crate) use self::mutable::k_nearest_mut;
 
-pub(crate) use self::mutable::k_nearest_naive_mut;
-mod mutable {
-    use super::*;
 
-    pub(crate) fn k_nearest_naive_mut<'a, K: Knearest<T = T, N = T::Num>, T: Aabb>(
-        bots: PMut<'a, [T]>,
-        point: Vec2<K::N>,
-        num: usize,
-        k: &mut K,
-    ) -> KResult<'a, T> {
-        let mut closest = ClosestCand::new(num);
 
-        for b in bots.iter_mut() {
-            closest.consider(&point, k, b);
-        }
 
-        let num_entires = closest.curr_num;
-        KResult {
-            num_entires,
-            inner: closest.into_sorted(),
-        }
+use super::NaiveComparable;
+///Panics if a disconnect is detected between tree and naive queries.
+pub fn assert_k_nearest_mut<'a,K:NaiveComparable<'a>>(
+    tree:&mut K,
+    point: Vec2<K::Num>,
+    num: usize,
+    knear: &mut impl Knearest<T = K::T, N = K::Num>,
+) {
+    let bots = tree.get_elements_mut();
+    use core::ops::Deref;
+    
+    fn into_ptr_usize<T>(a: &T) -> usize {
+        a as *const T as usize
+    }
+    let mut res_naive = 
+        naive_k_nearest_mut(bots,point, num, knear)
+        .into_vec()
+        .drain(..)
+        .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+        .collect::<Vec<_>>();
+
+    let r = tree.get_tree().k_nearest_mut(point, num, knear);
+    let mut res_dino: Vec<_> = r
+        .into_vec()
+        .drain(..)
+        .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+        .collect();
+
+    res_naive.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    res_dino.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+    assert_eq!(res_naive.len(), res_dino.len());
+    assert!(res_naive.iter().eq(res_dino.iter()));
+}
+
+
+///Naive implementation
+pub fn naive_k_nearest_mut<'a,T:Aabb>(
+    elems:PMut<'a,[T]>,
+    point:Vec2<T::Num>,
+    num:usize,
+    k:&mut impl Knearest<T=T,N=T::Num>)->KResult<'a,T>{
+    let mut closest = ClosestCand::new(num);
+
+    for b in elems.iter_mut() {
+        closest.consider(&point, k, b);
     }
 
-    pub(crate) fn k_nearest_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
-        axis: A,
-        vistr: VistrMut<'a, Node<'b, T>>,
-        point: Vec2<T::Num>,
-        num: usize,
-        knear: &mut impl Knearest<N = T::Num, T = T>,
-    ) -> KResult<'a, T> {
-        let dt = vistr.with_depth(Depth(0));
+    let num_entires = closest.curr_num;
+    KResult {
+        num_entires,
+        inner: closest.into_sorted(),
+    }
+}
 
-        let knear = KnearestBorrow(knear);
+
+
+
+use super::Queries;
+impl<'a,K:Queries<'a>> KnearestQuery<'a> for K{}
+
+///Knearest functions that can be called on a tree.
+pub trait KnearestQuery<'a>:Queries<'a>{
+    
+    /// Find the closest `num` elements to the specified `point`.
+    /// The user provides two functions:
+    ///
+    /// The result is returned as one `Vec`. The closest elements will
+    /// appear first. Multiple elements can be returned
+    /// with the same distance in the event of ties. These groups of elements are seperated by
+    /// one entry of `Option::None`. In order to iterate over each group,
+    /// try using the slice function: `arr.split(|a| a.is_none())`
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// use axgeom::vec2;
+    ///
+    /// let mut inner1=vec2(5,5);
+    /// let mut inner2=vec2(3,3);
+    /// let mut inner3=vec2(7,7);
+    ///
+    /// let mut bots = [bbox(rect(0,10,0,10),&mut inner1),
+    ///               bbox(rect(2,4,2,4),&mut inner2),
+    ///               bbox(rect(6,8,6,8),&mut inner3)];
+    ///
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// let mut handler = broccoli::query::knearest::from_closure(
+    ///    &tree,
+    ///    (),
+    ///    |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
+    ///    |_, point, a| a.inner.distance_squared_to_point(point),
+    ///    |_, point, a| distance_squared(point.x,a),
+    ///    |_, point, a| distance_squared(point.y,a),
+    /// );
+    ///
+    /// let mut res = tree.k_nearest_mut(
+    ///       vec2(30, 30),
+    ///       2,
+    ///       &mut handler
+    /// );
+    ///
+    /// assert_eq!(res.len(),2);
+    /// assert_eq!(res.total_len(),2);
+    ///
+    /// let foo:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
+    ///
+    /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)]);
+    ///
+    /// 
+    /// fn distance_squared(a:isize,b:isize)->isize{
+    ///     let a=(a-b).abs();
+    ///     a*a
+    /// }
+    ///```
+    #[must_use]
+    fn k_nearest_mut<'b, K: Knearest<T = Self::T, N = Self::Num>>(
+        &'b mut self,
+        point: Vec2<Self::Num>,
+        num: usize,
+        ktrait: &mut K,
+    ) -> KResult<Self::T>
+    where
+        'a: 'b,
+    {
+        let axis=self.axis();
+        let dt = self.vistr_mut().with_depth(Depth(0));
+
+        let knear = KnearestBorrow(ktrait);
 
         let closest = ClosestCand::new(num);
 
@@ -403,19 +504,7 @@ mod mutable {
         };
 
         recc(axis, dt, &mut blap);
-        /*
-        let mut res: Vec<Option<(PMut<'a,N::T>, N::Num)>> = Vec::new();
-        for a in blap.closest.into_sorted().into_iter() {
-            if let Some(Some(k)) = res.last() {
-                if k.1 != a.mag {
-                    res.push(None);
-                }
-            }
-            res.push(Some((a.bot, a.mag)));
-        }
-        res
-        */
-
+        
         let num_entires = blap.closest.curr_num;
         KResult {
             num_entires,

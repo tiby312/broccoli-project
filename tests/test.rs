@@ -4,7 +4,6 @@ extern crate compt;
 
 use compt::*;
 use axgeom::*;
-use broccoli::analyze::NaiveCheck;
 use broccoli::node::*;
 use broccoli::prelude::*;
 use broccoli::{Tree,query::*};
@@ -75,10 +74,12 @@ fn test_tie_knearest() {
     let r: &[KnearestResult<_>] = res.iter().next().unwrap();
     assert_eq!(r.len(), 2);
 
-    tree.assert_k_nearest_mut(
+    let handler=&mut default_knearest_handler_isize(&tree);
+    broccoli::query::knearest::assert_k_nearest_mut(
+        &mut tree,
         vec2(15, 30),
         2,
-        &mut default_knearest_handler_isize(&tree)
+        handler
     );
 }
 
@@ -112,7 +113,8 @@ fn test_tie_raycast() {
     }
 
     let mut handler=default_raycast_handler_isize(&tree);
-    tree.assert_raycast_mut(
+    broccoli::query::raycast::assert_raycast(
+        &mut tree,
         ray,
         &mut handler
     );
