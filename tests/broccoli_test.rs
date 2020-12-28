@@ -27,7 +27,7 @@ fn test1() {
 
         let mut tree = broccoli::container::TreeRef::new(&mut bots);
         broccoli::query::colfind::assert_query(&mut tree);
-        assert!(tree.assert_tree_invariants());
+        broccoli::query::assert_tree_invariants(&*tree);
     }
 }
 

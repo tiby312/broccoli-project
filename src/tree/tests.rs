@@ -16,7 +16,7 @@ fn test() {
     use crate::query::NaiveComparable;
     let mut tree = crate::container::TreeRef::new(&mut bots);
 
-    assert!(tree.assert_tree_invariants());
+    crate::query::assert_tree_invariants(&*tree);
 
     assert_length(tree.vistr_mut().dfs_preorder_iter());
     assert_length(tree.vistr().dfs_preorder_iter());

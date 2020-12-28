@@ -41,97 +41,6 @@ pub trait NaiveComparable<'a>{
     fn get_tree(&mut self)->&mut Self::K;
     fn get_elements_mut(&mut self)->PMut<[<Self::K as Queries<'a>>::T]>;
 
-    ///Returns true if all the tree invariants are met.
-    ///For debugging purposes only.
-    #[must_use]
-    fn assert_tree_invariants(&mut self)->bool{
-
-        fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>) -> Result<(), ()> {
-            fn a_bot_has_value<N: Num>(it: impl Iterator<Item = N>, val: N) -> bool {
-                for b in it {
-                    if b == val {
-                        return true;
-                    }
-                }
-                false
-            }
-
-            macro_rules! assert2 {
-                ($bla:expr) => {
-                    if !$bla {
-                        return Err(());
-                    }
-                };
-            }
-
-            let ((_depth, nn), rest) = iter.next();
-            //let nn = nn.get();
-            let axis_next = axis.next();
-
-            let f = |a: &&T, b: &&T| -> Option<core::cmp::Ordering> {
-                let j = a
-                    .get()
-                    .get_range(axis_next)
-                    .start
-                    .partial_cmp(&b.get().get_range(axis_next).start)
-                    .unwrap();
-                Some(j)
-            };
-
-            {
-                use is_sorted::IsSorted;
-                assert2!(IsSorted::is_sorted_by(&mut nn.range.iter(), f));
-            }
-
-            if let Some([start, end]) = rest {
-                match nn.div {
-                    Some(div) => {
-                        match nn.cont {
-                            Some(cont) => {
-                                for bot in nn.range.iter() {
-                                    assert2!(bot.get().get_range(axis).contains(div));
-                                }
-
-                                assert2!(a_bot_has_value(
-                                    nn.range.iter().map(|b| b.get().get_range(axis).start),
-                                    div
-                                ));
-
-                                for bot in nn.range.iter() {
-                                    assert2!(cont.contains_range(bot.get().get_range(axis)));
-                                }
-
-                                assert2!(a_bot_has_value(
-                                    nn.range.iter().map(|b| b.get().get_range(axis).start),
-                                    cont.start
-                                ));
-                                assert2!(a_bot_has_value(
-                                    nn.range.iter().map(|b| b.get().get_range(axis).end),
-                                    cont.end
-                                ));
-                            }
-                            None => assert2!(nn.range.is_empty()),
-                        }
-
-                        inner(axis_next, start)?;
-                        inner(axis_next, end)?;
-                    }
-                    None => {
-                        for (_depth, n) in start.dfs_preorder_iter().chain(end.dfs_preorder_iter()) {
-                            assert2!(n.range.is_empty());
-                            assert2!(n.cont.is_none());
-                            assert2!(n.div.is_none());
-                        }
-                    }
-                }
-            }
-            Ok(())
-        }
-
-        let tree=self.get_tree();
-        inner(tree.axis(), tree.vistr().with_depth(compt::Depth(0))).is_ok()
-
-    }
 }
 
 
@@ -186,5 +95,91 @@ pub trait Queries<'a> {
     ///```
     #[must_use]
     fn axis(&self) -> Self::A;
+
+}
+
+
+
+
+
+///panics if a broccoli tree invariant is detected.
+///For debugging purposes only.
+#[must_use]
+pub fn assert_tree_invariants<'a,K:Queries<'a>>(tree:&K) where K::Num:core::fmt::Debug{
+
+    fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>)  {
+        fn a_bot_has_value<N: Num>(it: impl Iterator<Item = N>, val: N) -> bool {
+            for b in it {
+                if b == val {
+                    return true;
+                }
+            }
+            false
+        }
+
+
+        let ((_depth, nn), rest) = iter.next();
+        let axis_next = axis.next();
+
+        let f = |a: &&T, b: &&T| -> Option<core::cmp::Ordering> {
+            let j = a
+                .get()
+                .get_range(axis_next)
+                .start
+                .partial_cmp(&b.get().get_range(axis_next).start)
+                .unwrap();
+            Some(j)
+        };
+
+        {
+            use is_sorted::IsSorted;
+            assert!(IsSorted::is_sorted_by(&mut nn.range.iter(), f));
+        }
+
+        if let Some([start, end]) = rest {
+            match nn.div {
+                Some(div) => {
+                    match nn.cont {
+                        Some(cont) => {
+                            for bot in nn.range.iter() {
+                                assert!(bot.get().get_range(axis).contains(div));
+                            }
+
+                            assert!(a_bot_has_value(
+                                nn.range.iter().map(|b| b.get().get_range(axis).start),
+                                div
+                            ));
+
+                            for bot in nn.range.iter() {
+                                assert!(cont.contains_range(bot.get().get_range(axis)));
+                            }
+
+                            assert!(a_bot_has_value(
+                                nn.range.iter().map(|b| b.get().get_range(axis).start),
+                                cont.start
+                            ));
+                            assert!(a_bot_has_value(
+                                nn.range.iter().map(|b| b.get().get_range(axis).end),
+                                cont.end
+                            ));
+                        }
+                        None => assert!(nn.range.is_empty()),
+                    }
+
+                    inner(axis_next, start);
+                    inner(axis_next, end);
+                }
+                None => {
+                    for (_depth, n) in start.dfs_preorder_iter().chain(end.dfs_preorder_iter()) {
+                        assert!(n.range.is_empty());
+                        assert!(n.cont.is_none());
+                        assert!(n.div.is_none());
+                    }
+                }
+            }
+        }
+    }
+
+    inner(tree.axis(), tree.vistr().with_depth(compt::Depth(0)))
 
 }
