@@ -13,7 +13,7 @@ fn test() {
         .iter_mut()
         .map(|a| crate::bbox(rect(0isize, 0, 0, 0), a))
         .collect();
-    use crate::query::NaiveComparable;
+        
     let mut tree = crate::container::TreeRef::new(&mut bots);
 
     crate::query::assert_tree_invariants(&*tree);

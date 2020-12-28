@@ -3,8 +3,6 @@ use axgeom;
 use broccoli::prelude::*;
 use broccoli::*;
 
-use broccoli::query::NaiveComparable;
-
 #[test]
 fn test1() {
     for &num_bots in [0, 20, 100, 200].iter() {

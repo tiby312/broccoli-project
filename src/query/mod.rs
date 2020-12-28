@@ -102,9 +102,8 @@ pub trait Queries<'a> {
 
 
 
-///panics if a broccoli tree invariant is detected.
+///panics if a broken broccoli tree invariant is detected.
 ///For debugging purposes only.
-#[must_use]
 pub fn assert_tree_invariants<'a,K:Queries<'a>>(tree:&K) where K::Num:core::fmt::Debug{
 
     fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>)  {

@@ -4,14 +4,10 @@ use crate::inner_prelude::*;
 mod tests;
 
 pub mod analyze;
-
 use analyze::TreeBuilder;
 
-//pub mod node;
 
 pub mod container;
-
-use crate::query::*;
 
 struct TreeInner<A: Axis, N> {
     axis: A,
