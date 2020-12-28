@@ -6,7 +6,7 @@ mod inner_prelude {
     pub use axgeom::*;
     pub use crate::pmut::*;
     pub use crate::util::*;
-    //pub use crate::inner_prelude::*;
+    pub use crate::tree::build::Splitter;
     pub use alloc::vec::Vec;
     pub use axgeom;
     pub use axgeom::Rect;

@@ -18,6 +18,21 @@ mod oned;
 pub use builder::TreeBuilder;
 mod builder;
 
+
+
+///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
+///The main motivation behind this trait was to track the time spent taken at each level of the tree
+///during construction.
+pub trait Splitter: Sized {
+    ///Called to split this into two to be passed to the children.
+    fn div(&mut self) -> (Self, Self);
+
+    ///Called to add the results of the recursive calls on the children.
+    fn add(&mut self, a: Self, b: Self);
+}
+
+
+
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one
 ///does nothing when sort() is called.
