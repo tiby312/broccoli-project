@@ -58,7 +58,7 @@
     html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
 )]
-//#![no_std]
+#![no_std]
 
 #[macro_use]
 extern crate alloc;
@@ -99,10 +99,6 @@ pub mod pmut;
 
 ///Contains node-level building block structs and visitors used for a [`Tree`].
 pub mod node;
-
-///A collection of different bounding box containers.
-//pub mod bbox;
-//pub use crate::bbox::*;
 
 ///Generic slice utillity functions.
 mod util;

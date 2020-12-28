@@ -76,12 +76,12 @@ pub trait Queries<'a> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect,analyze,query::Queries};
+    /// use broccoli::{prelude::*,bbox,rect,build,query::Queries};
     /// let mut bots = [rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
     /// use axgeom::Axis;
-    /// assert!(tree.axis().is_equal_to(analyze::default_axis()));
+    /// assert!(tree.axis().is_equal_to(build::default_axis()));
     ///```
     #[must_use]
     fn axis(&self) -> Self::A;

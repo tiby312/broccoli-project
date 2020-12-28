@@ -49,7 +49,7 @@ pub(crate) struct PMutPtr<T: ?Sized> {
 unsafe impl<T: ?Sized> Send for PMutPtr<T> {}
 unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
 
-///A protected mutable reference. A protected mutable reference that derefs to `&T`.
+///A protected mutable reference that derefs to `&T`.
 ///See the pmut module documentation for more explanation.
 #[repr(transparent)]
 #[derive(Debug)]

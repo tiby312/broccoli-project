@@ -112,12 +112,12 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::analyze;
+    /// use broccoli::build;
     /// const NUM_ELEMENT:usize=400;
     /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// assert_eq!(tree.get_height(),analyze::TreePreBuilder::new(NUM_ELEMENT).get_height());
+    /// assert_eq!(tree.get_height(),build::TreePreBuilder::new(NUM_ELEMENT).get_height());
     ///```
     ///
     #[must_use]
@@ -129,11 +129,11 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::analyze;
+    /// use broccoli::build;
     /// let mut bots = [axgeom::rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// assert_eq!(tree.num_nodes(),analyze::TreePreBuilder::new(1).num_nodes());
+    /// assert_eq!(tree.num_nodes(),build::TreePreBuilder::new(1).num_nodes());
     ///
     ///```
     #[must_use]
@@ -146,7 +146,6 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::analyze;
     /// let mut bots = [axgeom::rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
@@ -161,7 +160,6 @@ impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::analyze;
     /// let mut bots = [axgeom::rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
