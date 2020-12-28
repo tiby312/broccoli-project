@@ -34,7 +34,7 @@ unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 ///
 pub struct TreeRefInd<'a, A: Axis, N: Num, T> {
     tree: inner::TreeIndInner<A, N, T>,
-    _p: PhantomData<&'a mut (T, N)>,
+    _p: PhantomData<TreeRef<'a,A,BBox<N,&'a mut T>>>,
 }
 
 impl<'a, N: Num, T> TreeRefInd<'a, DefaultA, N, T> {
