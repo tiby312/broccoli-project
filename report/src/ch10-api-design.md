@@ -22,7 +22,8 @@ broccoli construction and query requires sorting or finding the max and min at v
 * Require `PartialOrd` and silently fail.
     * No performance hit
     * Flexible to user.
-        * User can still opt into static checking by passing their own wrapper types.
+        * User can still opt into using `Ord` types by passing their own wrapper types. They can
+          define their own `from_ord()` tree building function that requires Ord.
     * User could mis-use the tree. They need to be cognizant that they are not passing NaN values
       if they are opting out of using a wrapper type.
 
