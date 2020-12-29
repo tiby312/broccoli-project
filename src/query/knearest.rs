@@ -67,31 +67,6 @@ use crate::Tree;
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
 ///
-/*
-pub fn from_closure<AA: Axis, T: Aabb, Acc, B, C, D, E>(
-    _tree: &Tree<AA, T>,
-    acc: Acc,
-    broad: B,
-    fine: C,
-    xline: D,
-    yline: E,
-) -> KnearestClosure<T, Acc, B, C, D, E>
-where
-    B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-    C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-    D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-{
-    KnearestClosure {
-        _p: PhantomData,
-        acc,
-        broad,
-        fine,
-        xline,
-        yline,
-    }
-}*/
-
 pub fn from_closure<Acc, T: Aabb>(
     _tree: &Tree<impl Axis, T>,
     acc: Acc,

@@ -67,57 +67,40 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
         //Draw the dividers
         let mut rects = canvas.rects();
-        let mut lines: Vec<([f32; 2], [f32; 2])> = Vec::new();
+        let mut lines=canvas.lines(2.0);
         tree.draw_divider(
-            |is_xaxis, node, rect, _| {
+            |axis, node, rect, _| {
                 let mid = if let Some(div) = node.div {
-                    if is_xaxis {
-                        get_nonleaf_mid(axgeom::XAXIS, rect, div)
-                    } else {
-                        get_nonleaf_mid(axgeom::YAXIS, rect, div)
-                    }
+                    axis.map(
+                        |x|get_nonleaf_mid(x,rect,div),
+                        |y|get_nonleaf_mid(y,rect,div)
+                    )
                 } else {
                     get_leaf_mid(rect)
                 };
 
                 if let Some(cont) = node.cont {
                     rects.add(
-                        if is_xaxis {
-                            Rect {
-                                x: cont.into(),
-                                y: rect.y.into(),
-                            }
-                        } else {
-                            Rect {
-                                x: rect.x.into(),
-                                y: cont.into(),
-                            }
-                        }
-                        .into(),
+                        axis.map_val(
+                            Rect {x: cont.into(),y: rect.y.into(),},
+                            Rect {x: rect.x.into(),y: cont.into(),}
+                        ).into()
                     );
                 }
 
                 for b in node.range.iter() {
-                    lines.push((b.inner.pos.into(), mid.into()));
+                    lines.add(b.inner.pos.into(),mid.into());
                 }
             },
             dim,
         );
+        
         rects
             .send_and_uniforms(canvas)
             .with_color([0.0, 1.0, 1.0, 0.3])
             .draw();
 
-        //Draw lines to the bots.
-        let mut lines2 = canvas.lines(2.0);
-
-        //use broccoli::query::Queries;
-        //draw_bot_lines(tree.axis(), tree.vistr(), &dim, &mut lines);
-        for a in lines.into_iter() {
-            lines2.add(a.0, a.1);
-        }
-
-        lines2
+        lines
             .send_and_uniforms(canvas)
             .with_color([1.0, 0.5, 1.0, 0.6])
             .draw();

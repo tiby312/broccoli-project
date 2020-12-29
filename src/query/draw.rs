@@ -1,6 +1,7 @@
 //! Functions that make it easier to visualize the tree data structure
 //!
 use crate::query::inner_prelude::*;
+use axgeom::AxisDyn;
 
 struct DrawClosure<T, A> {
     _p: PhantomData<T>,
@@ -9,7 +10,7 @@ struct DrawClosure<T, A> {
 
 impl<T: Aabb, A> DividerDrawer for DrawClosure<T, A>
 where
-    A: FnMut(bool, &Node<T>, &Rect<T::Num>, usize),
+    A: FnMut(AxisDyn, &Node<T>, &Rect<T::Num>, usize),
 {
     type T = T;
     type N = T::Num;
@@ -22,11 +23,7 @@ where
         rect: &Rect<T::Num>,
         depth: usize,
     ) {
-        if axis.is_xaxis() {
-            (self.line)(true, node, rect, depth);
-        } else {
-            (self.line)(false, node, rect, depth);
-        }
+        (self.line)(axis.to_dyn(), node, rect, depth);
     }
 }
 
@@ -110,7 +107,7 @@ pub trait DrawQuery<'a>: Queries<'a> {
     ///
     fn draw_divider(
         &self,
-        line: impl FnMut(bool, &Node<Self::T>, &Rect<Self::Num>, usize),
+        line: impl FnMut(AxisDyn, &Node<Self::T>, &Rect<Self::Num>, usize),
         rect: Rect<Self::Num>,
     ) {
         let mut d = DrawClosure {
