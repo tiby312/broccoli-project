@@ -3,6 +3,20 @@
 use crate::query::inner_prelude::*;
 use axgeom::Ray;
 
+
+
+pub fn default_rect_cast<T:Aabb>(tree:&Tree<impl Axis,T>)->impl RayCast<T=T,N=T::Num>
+    where T::Num:core::fmt::Debug+num_traits::Signed{
+    from_closure(
+        tree,
+        (),
+        |_, _, _| None,
+        |_, ray, a| ray.cast_to_rect(a.get()),
+        |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
+        |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
+    )
+}
+
 ///A Vec<T> is returned since there coule be ties where the ray hits multiple T at a length N away.
 //pub type RayCastResult<T, N> = axgeom::CastResult<(Vec<T>, N)>;
 
@@ -22,7 +36,9 @@ pub trait RayCast {
     ) -> axgeom::CastResult<Self::N>;
 
     ///Return the cast result that is cheap and overly conservative.
-    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N>;
+    ///It may be that the precise cast is fast enough, in which case you can simply
+    ///return None. 
+    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> Option<axgeom::CastResult<Self::N>>;
 
     ///Return the exact cast result.
     fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N>;
@@ -79,7 +95,7 @@ where
 pub fn from_closure<A, T: Aabb>(
     _tree: &Tree<impl Axis, T>,
     acc: A,
-    broad: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+    broad: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> Option<CastResult<T::Num>>,
     fine: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
     xline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     yline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
@@ -96,7 +112,7 @@ pub fn from_closure<A, T: Aabb>(
 
     impl<T: Aabb, A, B, C, D, E> RayCast for RayCastClosure<T, A, B, C, D, E>
     where
-        B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> Option<CastResult<T::Num>>,
         C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
         D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
@@ -116,7 +132,7 @@ pub fn from_closure<A, T: Aabb>(
                 (self.yline)(&mut self.acc, ray, val)
             }
         }
-        fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> CastResult<Self::N> {
+        fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> Option<CastResult<Self::N>> {
             (self.broad)(&mut self.acc, ray, a)
         }
 
@@ -151,7 +167,7 @@ impl<'a, R: RayCast> RayCast for RayCastBorrow<'a, R> {
 
     ///Returns true if the ray intersects with this rectangle.
     ///This function allows as to prune which nodes to visit.
-    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N> {
+    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> Option<axgeom::CastResult<Self::N>> {
         self.0.cast_broad(ray, a)
     }
 
@@ -175,24 +191,26 @@ impl<'a, T: Aabb> Closest<'a, T> {
         raytrait: &mut R,
     ) {
         //first check if bounding box could possibly be a candidate.
-        let y = match raytrait.cast_broad(ray, b.borrow_mut()) {
-            axgeom::CastResult::Hit(val) => val,
-            axgeom::CastResult::NoHit => {
-                return;
-            }
-        };
-
-        match self.closest.as_mut() {
-            Some(dis) => {
-                if y > dis.1 {
-                    //no way this bot will be a candidate, return.
+        if let Some(broad)=raytrait.cast_broad(ray,b.borrow_mut()){
+            let y = match broad {
+                axgeom::CastResult::Hit(val) => val,
+                axgeom::CastResult::NoHit => {
                     return;
-                } else {
-                    //this aabb could be a candidate, continue.
                 }
-            }
-            None => {
-                //this aabb could be a candidate, continue,
+            };
+
+            match self.closest.as_mut() {
+                Some(dis) => {
+                    if y > dis.1 {
+                        //no way this bot will be a candidate, return.
+                        return;
+                    } else {
+                        //this aabb could be a candidate, continue.
+                    }
+                }
+                None => {
+                    //this aabb could be a candidate, continue,
+                }
             }
         }
 

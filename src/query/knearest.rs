@@ -17,7 +17,9 @@ pub trait Knearest {
     ) -> Self::N;
 
     ///User defined inexpensive distance function that that can be overly conservative.
-    fn distance_to_broad(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N;
+    ///It may be that the precise distance function is fast enough, in which case you can simply
+    ///return None.
+    fn distance_to_broad(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Option<Self::N>;
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
@@ -37,7 +39,7 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
         self.0.distance_to_aaline(point, axis, val)
     }
 
-    fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Self::N {
+    fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Option<Self::N> {
         self.0.distance_to_broad(point, rect)
     }
 
@@ -70,7 +72,7 @@ use crate::Tree;
 pub fn from_closure<Acc, T: Aabb>(
     _tree: &Tree<impl Axis, T>,
     acc: Acc,
-    broad: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+    broad: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
     fine: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
     xline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
     yline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
@@ -87,7 +89,7 @@ pub fn from_closure<Acc, T: Aabb>(
 
     impl<'a, T: Aabb, Acc, B, C, D, E> Knearest for KnearestClosure<T, Acc, B, C, D, E>
     where
-        B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+        B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
         C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
         D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
         E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
@@ -108,7 +110,7 @@ pub fn from_closure<Acc, T: Aabb>(
             }
         }
 
-        fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Self::N {
+        fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Option<Self::N> {
             (self.broad)(&mut self.acc, point, rect)
         }
 
@@ -161,16 +163,17 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         knear: &mut K,
         mut curr_bot: PMut<'a, T>,
     ) -> bool {
-        let long_dis = knear.distance_to_broad(*point, curr_bot.borrow_mut());
 
-        if self.curr_num == self.num {
-            if let Some(l) = self.bots.last() {
-                if long_dis > l.mag {
-                    return false;
+        if let Some(long_dis)=knear.distance_to_broad(*point, curr_bot.borrow_mut()){
+            
+            if self.curr_num == self.num {
+                if let Some(l) = self.bots.last() {
+                    if long_dis > l.mag {
+                        return false;
+                    }
                 }
             }
         }
-
         let curr_dis = knear.distance_to_fine(*point, curr_bot.borrow_mut());
 
         if self.curr_num < self.num {
