@@ -57,7 +57,6 @@ impl<N, T> BBox<N, T> {
 
 use core::convert::TryFrom;
 impl<N: Copy, T> BBox<N, T> {
-
     ///Change the number type of the Rect using
     ///promitive cast.
     #[inline(always)]

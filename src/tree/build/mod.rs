@@ -142,7 +142,7 @@ impl TreePreBuilder {
         self,
         bots: &mut [T],
         axis: A,
-    ) -> TreeBuilder< A, T> {
+    ) -> TreeBuilder<A, T> {
         TreeBuilder::from_prebuilder(axis, bots, self)
     }
 
