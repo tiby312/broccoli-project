@@ -55,30 +55,26 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
     ///Create a new builder with a slice of elements that implement `Aabb`.
     pub fn new(bots: &'a mut [T]) -> TreeBuilder<'a, T> {
         let rebal_strat = BinStrat::Checked;
-        let height=TreePreBuilder::new(bots.len());
-        TreeBuilder{
-            axis:default_axis(),
-            bots,
-            rebal_strat,
-            height
-        }
-    }
-}
-
-impl<'a,  T: Aabb> TreeBuilder<'a, T> {
-    pub fn from_prebuilder(
-        bots: &'a mut [T],
-        height: TreePreBuilder,
-    ) -> TreeBuilder< T> {
-        let rebal_strat = BinStrat::Checked;
+        let height = TreePreBuilder::new(bots.len());
         TreeBuilder {
-            axis:default_axis(),
+            axis: default_axis(),
             bots,
             rebal_strat,
             height,
         }
     }
+}
 
+impl<'a, T: Aabb> TreeBuilder<'a, T> {
+    pub fn from_prebuilder(bots: &'a mut [T], height: TreePreBuilder) -> TreeBuilder<T> {
+        let rebal_strat = BinStrat::Checked;
+        TreeBuilder {
+            axis: default_axis(),
+            bots,
+            rebal_strat,
+            height,
+        }
+    }
 
     ///Build not sorted sequentially
     pub fn build_not_sorted_seq(&mut self) -> NotSorted<'a, T> {
@@ -176,9 +172,7 @@ fn create_tree_seq<'a, T: Aabb, K: Splitter>(
     debug_assert_eq!(k, num_bots);
 
     Tree {
-        inner: TreeInner {
-            inner: tree,
-        },
+        inner: TreeInner { inner: tree },
     }
 }
 
@@ -218,9 +212,7 @@ where
     debug_assert_eq!(k, num_bots);
 
     Tree {
-        inner: TreeInner {
-            inner: tree,
-        },
+        inner: TreeInner { inner: tree },
     }
 }
 

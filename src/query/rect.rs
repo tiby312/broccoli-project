@@ -234,7 +234,7 @@ pub struct MultiRectMut<'a, 'b: 'a, T: Aabb> {
     rects: Vec<Rect<T::Num>>,
 }
 
-impl<'a, 'b: 'a,  T: Aabb> MultiRectMut<'a, 'b, T> {
+impl<'a, 'b: 'a, T: Aabb> MultiRectMut<'a, 'b, T> {
     fn new(vistr: VistrMut<'a, Node<'b, T>>) -> Self {
         MultiRectMut {
             vistr,
@@ -276,10 +276,7 @@ fn into_ptr_usize<T>(a: &T) -> usize {
 
 use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_not_in_rect_mut<T: Aabb>(
-    tree: &mut TreeRef<T>,
-    rect: &axgeom::Rect<T::Num>,
-) {
+pub fn assert_for_all_not_in_rect_mut<T: Aabb>(tree: &mut TreeRef<T>, rect: &axgeom::Rect<T::Num>) {
     let mut res_dino = Vec::new();
     tree.for_all_not_in_rect_mut(rect, |a| {
         res_dino.push(into_ptr_usize(a.deref()));
@@ -299,7 +296,7 @@ pub fn assert_for_all_not_in_rect_mut<T: Aabb>(
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_for_all_intersect_rect_mut<T: Aabb>(
-    tree: &mut TreeRef< T>,
+    tree: &mut TreeRef<T>,
     rect: &axgeom::Rect<T::Num>,
 ) {
     let mut res_dino = Vec::new();
@@ -320,10 +317,7 @@ pub fn assert_for_all_intersect_rect_mut<T: Aabb>(
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_in_rect_mut< T: Aabb>(
-    tree: &mut TreeRef<T>,
-    rect: &axgeom::Rect<T::Num>,
-) {
+pub fn assert_for_all_in_rect_mut<T: Aabb>(tree: &mut TreeRef<T>, rect: &axgeom::Rect<T::Num>) {
     let mut res_dino = Vec::new();
     tree.for_all_in_rect_mut(rect, |a| {
         res_dino.push(into_ptr_usize(a.deref()));
@@ -386,7 +380,9 @@ pub trait RectQuery<'a>: Queries<'a> {
     ) where
         'a: 'b,
     {
-        self::for_all_intersect_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| (func)(a));
+        self::for_all_intersect_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| {
+            (func)(a)
+        });
     }
 
     /// # Examples
@@ -482,6 +478,6 @@ pub trait RectQuery<'a>: Queries<'a> {
     ///```
     #[must_use]
     fn multi_rect<'c>(&'c mut self) -> MultiRectMut<'c, 'a, Self::T> {
-        MultiRectMut::new( self.vistr_mut())
+        MultiRectMut::new(self.vistr_mut())
     }
 }

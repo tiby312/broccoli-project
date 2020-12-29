@@ -16,7 +16,7 @@ use self::builder::QueryBuilder;
 
 ///Panics if a disconnect is detected between tree and naive queries.
 use crate::container::TreeRef;
-pub fn assert_query<T: Aabb>(tree: &mut TreeRef< T>) {
+pub fn assert_query<T: Aabb>(tree: &mut TreeRef<T>) {
     use core::ops::Deref;
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
@@ -157,7 +157,7 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     /// assert_eq!(bots[1].inner,1);
     ///```
     fn new_colfind_builder<'c>(&'c mut self) -> QueryBuilder<'c, 'a, Self::T> {
-        QueryBuilder::new( self.vistr_mut())
+        QueryBuilder::new(self.vistr_mut())
     }
 }
 
@@ -175,11 +175,11 @@ pub trait NotSortedQueries<'a> {
     fn vistr(&self) -> Vistr<Node<'a, Self::T>>;
 
     fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c, 'a, Self::T> {
-        NotSortedQueryBuilder::new( self.vistr_mut())
+        NotSortedQueryBuilder::new(self.vistr_mut())
     }
 
     fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
-        NotSortedQueryBuilder::new( self.vistr_mut()).query_seq(move |a, b| func(a, b));
+        NotSortedQueryBuilder::new(self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
 
     fn find_colliding_pairs_mut_par(
@@ -189,6 +189,6 @@ pub trait NotSortedQueries<'a> {
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        NotSortedQueryBuilder::new( self.vistr_mut()).query_par(move |a, b| func(a, b));
+        NotSortedQueryBuilder::new(self.vistr_mut()).query_par(move |a, b| func(a, b));
     }
 }

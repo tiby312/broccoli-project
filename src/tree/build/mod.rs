@@ -134,7 +134,7 @@ impl TreePreBuilder {
 
     ///Create a `TreeBuilder`
     pub fn into_builder<T: Aabb>(self, bots: &mut [T]) -> TreeBuilder<T> {
-        TreeBuilder::from_prebuilder( bots, self)
+        TreeBuilder::from_prebuilder(bots, self)
     }
 
     ///Return the level at which parallel algorithms will switch to sequential.
@@ -184,22 +184,21 @@ use crate::tree::Queries;
 /// along an axis at each level. Construction of [`NotSorted`] is faster than [`Tree`] since it does not have to
 /// sort bots that belong to each node along an axis. But most query algorithms can usually take advantage of this
 /// extra property to be faster.
-pub struct NotSorted<'a, T: Aabb>(Tree<'a,  T>);
+pub struct NotSorted<'a, T: Aabb>(Tree<'a, T>);
 
 impl<'a, T: Aabb + Send + Sync> NotSorted<'a, T>
 where
     T::Num: Send + Sync,
 {
-    pub fn new_par(bots: &'a mut [T]) -> NotSorted<'a,  T> {
+    pub fn new_par(bots: &'a mut [T]) -> NotSorted<'a, T> {
         TreeBuilder::new(bots).build_not_sorted_par()
     }
 }
-impl<'a, T: Aabb> NotSorted<'a,  T> {
-    pub fn new(bots: &'a mut [T]) -> NotSorted<'a,  T> {
+impl<'a, T: Aabb> NotSorted<'a, T> {
+    pub fn new(bots: &'a mut [T]) -> NotSorted<'a, T> {
         TreeBuilder::new(bots).build_not_sorted_seq()
     }
 }
-
 
 impl<'a, T: Aabb> NotSortedQueries<'a> for NotSorted<'a, T> {
     type T = T;
@@ -216,7 +215,7 @@ impl<'a, T: Aabb> NotSortedQueries<'a> for NotSorted<'a, T> {
     }
 }
 
-impl<'a,  T: Aabb> NotSorted<'a,  T> {
+impl<'a, T: Aabb> NotSorted<'a, T> {
     #[inline(always)]
     pub fn get_height(&self) -> usize {
         self.0.get_height()

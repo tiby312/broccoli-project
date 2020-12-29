@@ -33,15 +33,12 @@ unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 /// quickly.
 ///
 pub struct TreeRefInd<'a, N: Num, T> {
-    tree: inner::TreeIndInner< N, T>,
-    _p: PhantomData<TreeRef<'a,  BBox<N, &'a mut T>>>,
+    tree: inner::TreeIndInner<N, T>,
+    _p: PhantomData<TreeRef<'a, BBox<N, &'a mut T>>>,
 }
 
 impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
-    pub fn new(
-        arr: &'a mut [T],
-        func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeRefInd<'a, N, T> {
+    pub fn new(arr: &'a mut [T], func: impl FnMut(&mut T) -> Rect<N>) -> TreeRefInd<'a, N, T> {
         TreeRefInd {
             tree: inner::TreeIndInner::new(arr, func),
             _p: PhantomData,
@@ -50,10 +47,7 @@ impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
 }
 
 impl<'a, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, N, T> {
-    pub fn new_par(
-        arr: &'a mut [T],
-        func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeRefInd<'a, N, T> {
+    pub fn new_par(arr: &'a mut [T], func: impl FnMut(&mut T) -> Rect<N>) -> TreeRefInd<'a, N, T> {
         TreeRefInd {
             tree: inner::TreeIndInner::new_par(arr, func),
             _p: PhantomData,
@@ -61,8 +55,7 @@ impl<'a, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, N, T> {
     }
 }
 
-impl<'a,  N: Num, T> TreeRefInd<'a, N, T> {
-    
+impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
     ///Explicitly DerefMut.
     pub fn as_tree_ref_mut(&mut self) -> &mut TreeRef<'a, BBox<N, &'a mut T>> {
         &mut *self
@@ -93,13 +86,13 @@ impl<'a,  N: Num, T> TreeRefInd<'a, N, T> {
     }
 }
 
-impl<'a,  N: Num + 'a, T> core::ops::Deref for TreeRefInd<'a, N, T> {
+impl<'a, N: Num + 'a, T> core::ops::Deref for TreeRefInd<'a, N, T> {
     type Target = TreeRef<'a, BBox<N, &'a mut T>>;
     fn deref(&self) -> &Self::Target {
         unsafe { &*(self.tree.inner.as_tree() as *const _ as *const _) }
     }
 }
-impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a,  N, T> {
+impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, N, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *(self.tree.inner.as_tree_mut() as *mut _ as *mut _) }
     }
@@ -148,9 +141,9 @@ impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a,  N, T> {
 ///```
 ///
 #[repr(transparent)]
-pub struct TreeRef<'a,  T: Aabb> {
-    tree: inner::TreeRefInner< T>,
-    _p: PhantomData<Tree<'a,  T>>,
+pub struct TreeRef<'a, T: Aabb> {
+    tree: inner::TreeRefInner<T>,
+    _p: PhantomData<Tree<'a, T>>,
 }
 /*
 use crate::query::NaiveComparable;
@@ -166,20 +159,20 @@ impl<'a, A: Axis, T: Aabb> NaiveComparable<'a> for TreeRef<'a, A, T> {
     }
 }
 */
-impl<'a,  T: Aabb> core::ops::Deref for TreeRef<'a,  T> {
+impl<'a, T: Aabb> core::ops::Deref for TreeRef<'a, T> {
     type Target = Tree<'a, T>;
     fn deref(&self) -> &Self::Target {
         unsafe { &*(&self.tree.inner as *const _ as *const _) }
     }
 }
-impl<'a, T: Aabb> core::ops::DerefMut for TreeRef<'a,  T> {
+impl<'a, T: Aabb> core::ops::DerefMut for TreeRef<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *(&mut self.tree.inner as *mut _ as *mut _) }
     }
 }
 
 impl<'a, T: Aabb> TreeRef<'a, T> {
-    pub fn new(arr: &'a mut [T]) -> TreeRef<'a,  T> {
+    pub fn new(arr: &'a mut [T]) -> TreeRef<'a, T> {
         TreeRef {
             tree: inner::TreeRefInner::new(arr),
             _p: PhantomData,
@@ -187,7 +180,7 @@ impl<'a, T: Aabb> TreeRef<'a, T> {
     }
 }
 
-impl<'a, T: Aabb + Send + Sync> TreeRef<'a,  T>
+impl<'a, T: Aabb + Send + Sync> TreeRef<'a, T>
 where
     T::Num: Send + Sync,
 {
@@ -199,9 +192,7 @@ where
     }
 }
 
-impl<'a,  T: Aabb> TreeRef<'a, T> {
-    
-
+impl<'a, T: Aabb> TreeRef<'a, T> {
     /// ```rust
     /// use broccoli::{prelude::*,bbox,rect};
     /// let mut k=[bbox(rect(0,10,0,10),8)];
@@ -247,43 +238,36 @@ impl<'a,  T: Aabb> TreeRef<'a, T> {
 /// not_lifetimed();
 ///
 /// ```
-pub struct TreeOwnedInd< N: Num, T> {
+pub struct TreeOwnedInd<N: Num, T> {
     tree: inner::TreeIndInner<N, T>,
     _bots: Box<[T]>,
 }
 
-impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd< N, T> {
-    pub fn new_par(
-        mut bots: Box<[T]>,
-        func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeOwnedInd< N, T> {
+impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<N, T> {
+    pub fn new_par(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<N, T> {
         TreeOwnedInd {
             tree: inner::TreeIndInner::new_par(&mut bots, func),
             _bots: bots,
         }
     }
 }
-impl<N: Num, T> TreeOwnedInd< N, T> {
-    pub fn new(
-        mut bots: Box<[T]>,
-        func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeOwnedInd< N, T> {
+impl<N: Num, T> TreeOwnedInd<N, T> {
+    pub fn new(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<N, T> {
         TreeOwnedInd {
-            tree: inner::TreeIndInner::new( &mut bots, func),
+            tree: inner::TreeIndInner::new(&mut bots, func),
             _bots: bots,
         }
     }
 }
 
 impl<N: Num, T> TreeOwnedInd<N, T> {
-    
     ///Cant use Deref because of lifetime
     pub fn as_tree(&self) -> &TreeRefInd<N, T> {
         unsafe { &*(&self.tree as *const _ as *const _) }
     }
 
     ///Cant use Deref because of lifetime
-    pub fn as_tree_mut(&mut self) -> &mut TreeRefInd< N, T> {
+    pub fn as_tree_mut(&mut self) -> &mut TreeRefInd<N, T> {
         unsafe { &mut *(&mut self.tree as *mut _ as *mut _) }
     }
 }
@@ -305,15 +289,15 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
 ///
 /// ```
 pub struct TreeOwned<T: Aabb> {
-    tree: inner::TreeRefInner< T>,
+    tree: inner::TreeRefInner<T>,
     _bots: Box<[T]>,
 }
 
-impl<T: Aabb + Send + Sync> TreeOwned< T>
+impl<T: Aabb + Send + Sync> TreeOwned<T>
 where
     T::Num: Send + Sync,
 {
-    pub fn new_par(mut bots: Box<[T]>) -> TreeOwned< T> {
+    pub fn new_par(mut bots: Box<[T]>) -> TreeOwned<T> {
         TreeOwned {
             tree: inner::TreeRefInner::new_par(&mut bots),
             _bots: bots,
@@ -321,8 +305,8 @@ where
     }
 }
 
-impl<T: Aabb> TreeOwned< T> {
-    pub fn new(mut bots: Box<[T]>) -> TreeOwned< T> {
+impl<T: Aabb> TreeOwned<T> {
+    pub fn new(mut bots: Box<[T]>) -> TreeOwned<T> {
         TreeOwned {
             tree: inner::TreeRefInner::new(&mut bots),
             _bots: bots,
@@ -330,14 +314,13 @@ impl<T: Aabb> TreeOwned< T> {
     }
 }
 impl<T: Aabb> TreeOwned<T> {
-    
     ///Cant use Deref because of lifetime
     pub fn as_tree(&self) -> &TreeRef<T> {
         unsafe { &*(&self.tree as *const _ as *const _) }
     }
 
     ///Cant use Deref because of lifetime
-    pub fn as_tree_mut(&mut self) -> &mut TreeRef< T> {
+    pub fn as_tree_mut(&mut self) -> &mut TreeRef<T> {
         unsafe { &mut *(&mut self.tree as *mut _ as *mut _) }
     }
 }

@@ -13,12 +13,12 @@ pub trait CollisionHandler {
 }
 
 ///Builder for a query on a NotSorted Dinotree.
-pub struct NotSortedQueryBuilder<'a, 'b: 'a,T: Aabb> {
+pub struct NotSortedQueryBuilder<'a, 'b: 'a, T: Aabb> {
     switch_height: usize,
     vistr: VistrMut<'a, Node<'b, T>>,
 }
 
-impl<'a, 'b: 'a,  T: Aabb + Send + Sync> NotSortedQueryBuilder<'a, 'b,  T>
+impl<'a, 'b: 'a, T: Aabb + Send + Sync> NotSortedQueryBuilder<'a, 'b, T>
 where
     T::Num: Send + Sync,
 {
@@ -37,11 +37,9 @@ where
     }
 }
 
-impl<'a, 'b: 'a,  T: Aabb> NotSortedQueryBuilder<'a, 'b,  T> {
+impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
     #[inline(always)]
-    pub(super) fn new(
-        vistr: VistrMut<'a, Node<'b, T>>,
-    ) -> NotSortedQueryBuilder<'a, 'b,  T> {
+    pub(super) fn new(vistr: VistrMut<'a, Node<'b, T>>) -> NotSortedQueryBuilder<'a, 'b, T> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         NotSortedQueryBuilder {
             switch_height,
@@ -64,7 +62,12 @@ impl<'a, 'b: 'a,  T: Aabb> NotSortedQueryBuilder<'a, 'b,  T> {
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
         let b = QueryFnMut::new(func);
         let mut sweeper = HandleNoSorted::new(b);
-        ColFindRecurser::new().recurse_seq(default_axis(), &mut sweeper, self.vistr, &mut SplitterEmpty);
+        ColFindRecurser::new().recurse_seq(
+            default_axis(),
+            &mut sweeper,
+            self.vistr,
+            &mut SplitterEmpty,
+        );
     }
 }
 
@@ -154,7 +157,7 @@ pub fn from_closure<A: Send, T: Aabb + Send>(
     }
 }
 
-impl<'a, 'b: 'a, T: Aabb + Send + Sync> QueryBuilder<'a, 'b,  T>
+impl<'a, 'b: 'a, T: Aabb + Send + Sync> QueryBuilder<'a, 'b, T>
 where
     T::Num: Send + Sync,
 {
@@ -224,11 +227,11 @@ where
     }
 }
 
-impl<'a, 'b: 'a,  T: Aabb> QueryBuilder<'a, 'b, T> {
+impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     ///Create the builder.
     #[inline(always)]
     #[must_use]
-    pub(super) fn new(vistr: VistrMut<'a, Node<'b, T>>) -> QueryBuilder<'a, 'b,  T> {
+    pub(super) fn new(vistr: VistrMut<'a, Node<'b, T>>) -> QueryBuilder<'a, 'b, T> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         QueryBuilder {
             switch_height,

@@ -27,9 +27,7 @@ pub trait Knearest {
 }
 
 ///Create a handler that treats each object as its aabb rectangle shape.
-pub fn default_rect_knearest<T: Aabb>(
-    tree: &Tree<T>,
-) -> impl Knearest<T = T, N = T::Num>
+pub fn default_rect_knearest<T: Aabb>(tree: &Tree<T>) -> impl Knearest<T = T, N = T::Num>
 where
     T::Num: num_traits::Signed + num_traits::Zero,
 {

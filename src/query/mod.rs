@@ -4,8 +4,8 @@ mod inner_prelude {
     pub use crate::node::*;
     pub(crate) use crate::par;
     pub use crate::pmut::*;
-    pub use crate::tree::build::Splitter;
     pub use crate::tree::build::default_axis;
+    pub use crate::tree::build::Splitter;
     pub use crate::util::*;
     pub use alloc::vec::Vec;
     pub use axgeom;
@@ -71,7 +71,6 @@ pub trait Queries<'a> {
     ///```
     #[must_use]
     fn vistr(&self) -> Vistr<Node<'a, Self::T>>;
-
 }
 
 ///panics if a broken broccoli tree invariant is detected.

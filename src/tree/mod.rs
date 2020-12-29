@@ -47,14 +47,12 @@ where
     TreeBuilder::new(bots).build_par()
 }
 
-
-
 impl<'a, T: Aabb> NbodyQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> DrawQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> IntersectQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> RectQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> ColfindQuery<'a> for Tree<'a, T> {}
-impl<'a, T: Aabb> RaycastQuery<'a> for Tree<'a,  T> {}
+impl<'a, T: Aabb> RaycastQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> KnearestQuery<'a> for Tree<'a, T> {}
 
 impl<'a, T: Aabb> Queries<'a> for Tree<'a, T> {
@@ -82,7 +80,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// let tree = broccoli::Tree::new(&mut bots);
     ///
     ///```
-    pub fn new(bots:&'a mut [T])->Tree<'a,T>{
+    pub fn new(bots: &'a mut [T]) -> Tree<'a, T> {
         crate::new(bots)
     }
     ///Create a [`Tree`] in parallel.
@@ -94,7 +92,11 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// let tree = broccoli::Tree::new_par(&mut bots);
     ///
     ///```
-    pub fn new_par(bots:&'a mut [T])->Tree<'a,T> where T:Send+Sync,T::Num:Send+Sync{
+    pub fn new_par(bots: &'a mut [T]) -> Tree<'a, T>
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
         crate::new_par(bots)
     }
 
