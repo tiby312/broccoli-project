@@ -5,6 +5,7 @@ use axgeom::Ray;
 
 
 
+///Create a handler that just casts directly to the axis aligned rectangle
 pub fn default_rect_raycast<T:Aabb>(tree:&Tree<impl Axis,T>)->impl RayCast<T=T,N=T::Num>
     where T::Num:core::fmt::Debug+num_traits::Signed{
     from_closure(
