@@ -33,6 +33,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
         let mut rects = canvas.rects();
 
+        
         let mut handler = broccoli::query::raycast::from_closure(
             tree,
             &mut rects,
@@ -51,6 +52,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
         let test = {
             let test = tree.raycast_mut(ray, &mut handler);
+            drop(handler);
             rects
                 .send_and_uniforms(canvas)
                 .with_color([4.0, 0.0, 0.0, 0.4])

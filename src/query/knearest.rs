@@ -67,6 +67,7 @@ use crate::Tree;
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
 ///
+/*
 pub fn from_closure<AA: Axis, T: Aabb, Acc, B, C, D, E>(
     _tree: &Tree<AA, T>,
     acc: Acc,
@@ -89,48 +90,68 @@ where
         xline,
         yline,
     }
-}
+}*/
 
-///Container of closures that implements [`Knearest`]
-pub struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
-    pub _p: PhantomData<T>,
-    pub acc: Acc,
-    pub broad: B,
-    pub fine: C,
-    pub xline: D,
-    pub yline: E,
-}
-
-impl<'a, T: Aabb, Acc, B, C, D, E> Knearest for KnearestClosure<T, Acc, B, C, D, E>
-where
-    B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-    C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-    D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+pub fn from_closure<Acc,T:Aabb>(
+    _tree:&Tree<impl Axis,T>,
+    acc:Acc,
+    broad:impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+    fine: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+    xline:impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+    yline:impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+    )->impl Knearest<T=T,N=T::Num>
 {
-    type T = T;
-    type N = T::Num;
 
-    fn distance_to_aaline<A: Axis>(
-        &mut self,
-        point: Vec2<Self::N>,
-        axis: A,
-        val: Self::N,
-    ) -> Self::N {
-        if axis.is_xaxis() {
-            (self.xline)(&mut self.acc, point, val)
-        } else {
-            (self.yline)(&mut self.acc, point, val)
+    ///Container of closures that implements [`Knearest`]
+    struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
+        pub _p: PhantomData<T>,
+        pub acc: Acc,
+        pub broad: B,
+        pub fine: C,
+        pub xline: D,
+        pub yline: E,
+    }
+
+    impl<'a, T: Aabb, Acc, B, C, D, E> Knearest for KnearestClosure<T, Acc, B, C, D, E>
+    where
+        B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+        C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+        D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+        E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+    {
+        type T = T;
+        type N = T::Num;
+
+        fn distance_to_aaline<A: Axis>(
+            &mut self,
+            point: Vec2<Self::N>,
+            axis: A,
+            val: Self::N,
+        ) -> Self::N {
+            if axis.is_xaxis() {
+                (self.xline)(&mut self.acc, point, val)
+            } else {
+                (self.yline)(&mut self.acc, point, val)
+            }
+        }
+
+        fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Self::N {
+            (self.broad)(&mut self.acc, point, rect)
+        }
+
+        fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
+            (self.fine)(&mut self.acc, point, bot)
         }
     }
-
-    fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Self::N {
-        (self.broad)(&mut self.acc, point, rect)
+    KnearestClosure {
+        _p: PhantomData,
+        acc,
+        broad,
+        fine,
+        xline,
+        yline,
     }
 
-    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
-        (self.fine)(&mut self.acc, point, bot)
-    }
 }
 
 /// Returned by k_nearest_mut

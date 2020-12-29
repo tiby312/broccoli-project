@@ -50,7 +50,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         ];
 
         let mut rects = canvas.rects();
-        let mut knearest_stuff = broccoli::query::knearest::from_closure(
+        let mut handler = broccoli::query::knearest::from_closure(
             tree.as_tree(),
             &mut rects,
             |rects, point, a| {
@@ -64,11 +64,12 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
         let tree = tree.as_tree_mut();
         if check_naive {
-            broccoli::query::knearest::assert_k_nearest_mut(tree, cursor, 3, &mut knearest_stuff);
+            broccoli::query::knearest::assert_k_nearest_mut(tree, cursor, 3, &mut handler);
         }
 
         let mut vv = {
-            let k = tree.k_nearest_mut(cursor, 3, &mut knearest_stuff);
+            let k = tree.k_nearest_mut(cursor, 3, &mut handler);
+            drop(handler);
             rects
                 .send_and_uniforms(canvas)
                 .with_color([1.0, 1.0, 0.0, 0.3])
