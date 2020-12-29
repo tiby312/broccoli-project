@@ -2,44 +2,42 @@
 //!
 use crate::query::inner_prelude::*;
 
-
-struct DrawClosure<T,  A> {
+struct DrawClosure<T, A> {
     _p: PhantomData<T>,
     line: A,
 }
 
-impl<T: Aabb,  A, > DividerDrawer for DrawClosure<T, A>
+impl<T: Aabb, A> DividerDrawer for DrawClosure<T, A>
 where
     A: FnMut(bool, &Node<T>, &Rect<T::Num>, usize),
 {
-    type T=T;
-    type N=T::Num;
+    type T = T;
+    type N = T::Num;
 
     #[inline(always)]
     fn draw_divider<AA: Axis>(
         &mut self,
         axis: AA,
-        node:&Node<T>,
-        rect:&Rect<T::Num>,
+        node: &Node<T>,
+        rect: &Rect<T::Num>,
         depth: usize,
     ) {
         if axis.is_xaxis() {
-            (self.line)(true,node,rect,depth);
+            (self.line)(true, node, rect, depth);
         } else {
-            (self.line)(false,node,rect,depth);
+            (self.line)(false, node, rect, depth);
         }
     }
 }
 
-
 ///Trait user must implement.
 trait DividerDrawer {
-    type T: Aabb<Num=Self::N>;
-    type N:Num;
+    type T: Aabb<Num = Self::N>;
+    type N: Num;
     fn draw_divider<A: Axis>(
         &mut self,
         axis: A,
-        node:&Node<Self::T>,
+        node: &Node<Self::T>,
         rect: &Rect<Self::N>,
         depth: usize,
     );
@@ -47,25 +45,23 @@ trait DividerDrawer {
 
 ///Calls the user supplied function on each divider.
 ///Since the leaves do not have dividers, it is not called for the leaves.
-fn draw<A: Axis, T: Aabb, D: DividerDrawer<T=T,N = T::Num>>(
+fn draw<A: Axis, T: Aabb, D: DividerDrawer<T = T, N = T::Num>>(
     axis: A,
     vistr: Vistr<Node<T>>,
     dr: &mut D,
     rect: Rect<T::Num>,
 ) {
-    fn recc<A: Axis, T: Aabb, D: DividerDrawer<T=T,N = T::Num>>(
+    fn recc<A: Axis, T: Aabb, D: DividerDrawer<T = T, N = T::Num>>(
         axis: A,
         stuff: LevelIter<Vistr<Node<T>>>,
         dr: &mut D,
         rect: Rect<T::Num>,
-    ){
+    ) {
         let ((depth, nn), rest) = stuff.next();
         dr.draw_divider(axis, nn, &rect, depth.0);
 
         if let Some([left, right]) = rest {
-
-            
-            if let Some(div) = nn.div{
+            if let Some(div) = nn.div {
                 let (a, b) = rect.subdivide(axis, div);
 
                 recc(axis.next(), left, dr, a);
@@ -95,7 +91,7 @@ pub trait DrawQuery<'a>: Queries<'a> {
     /// tree.draw_divider(
     ///     |is_xaxis,node,rect,_| {
     ///             if let Some(cont)=node.cont{    
-    ///                 rects.push( 
+    ///                 rects.push(
     ///                    if is_xaxis{
     ///                        Rect {x: cont.into(),y: rect.y.into()}
     ///                    }else{

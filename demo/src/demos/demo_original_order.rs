@@ -67,32 +67,27 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
         //Draw the dividers
         let mut rects = canvas.rects();
-        let mut lines:Vec<([f32;2],[f32;2])>=Vec::new();
+        let mut lines: Vec<([f32; 2], [f32; 2])> = Vec::new();
         tree.draw_divider(
             |is_xaxis, node, rect, _| {
-
-                let mid=if let Some(div)=node.div{
-                    if is_xaxis{
-                        get_nonleaf_mid(axgeom::XAXIS,rect,div)
-                    }else{
-                        get_nonleaf_mid(axgeom::YAXIS,rect,div)
+                let mid = if let Some(div) = node.div {
+                    if is_xaxis {
+                        get_nonleaf_mid(axgeom::XAXIS, rect, div)
+                    } else {
+                        get_nonleaf_mid(axgeom::YAXIS, rect, div)
                     }
-
-                    
-                }else{
+                } else {
                     get_leaf_mid(rect)
                 };
-                
-                
+
                 if let Some(cont) = node.cont {
                     rects.add(
-                        if is_xaxis{
+                        if is_xaxis {
                             Rect {
                                 x: cont.into(),
                                 y: rect.y.into(),
                             }
-                        }else{
-                            
+                        } else {
                             Rect {
                                 x: rect.x.into(),
                                 y: cont.into(),
@@ -105,8 +100,6 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                 for b in node.range.iter() {
                     lines.push((b.inner.pos.into(), mid.into()));
                 }
-
-                
             },
             dim,
         );
@@ -120,13 +113,14 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
         //use broccoli::query::Queries;
         //draw_bot_lines(tree.axis(), tree.vistr(), &dim, &mut lines);
-        for a in lines.into_iter(){
-            lines2.add(a.0,a.1);
+        for a in lines.into_iter() {
+            lines2.add(a.0, a.1);
         }
 
-        lines2.send_and_uniforms(canvas)
-        .with_color([1.0, 0.5, 1.0, 0.6])
-        .draw();
+        lines2
+            .send_and_uniforms(canvas)
+            .with_color([1.0, 0.5, 1.0, 0.6])
+            .draw();
 
         tree.find_colliding_pairs_mut_par(|a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
@@ -163,17 +157,15 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 use broccoli::node::Node;
 use broccoli::node::Vistr;
 
-fn get_leaf_mid(rect:&Rect<f32>)->Vec2<f32>{
+fn get_leaf_mid(rect: &Rect<f32>) -> Vec2<f32> {
     let ((x1, x2), (y1, y2)) = rect.get();
     let midx = x1 + (x2 - x1) / 2.0;
 
     let midy = y1 + (y2 - y1) / 2.0;
-    vec2(midx,midy)
+    vec2(midx, midy)
 }
 
-
-fn get_nonleaf_mid(axis:impl Axis,rect:&Rect<f32>,div:f32)->Vec2<f32>{
-    
+fn get_nonleaf_mid(axis: impl Axis, rect: &Rect<f32>, div: f32) -> Vec2<f32> {
     let ((x1, x2), (y1, y2)) = rect.get();
     let midx = if !axis.is_xaxis() {
         x1 + (x2 - x1) / 2.0
@@ -186,5 +178,5 @@ fn get_nonleaf_mid(axis:impl Axis,rect:&Rect<f32>,div:f32)->Vec2<f32>{
     } else {
         div
     };
-    vec2(midx,midy)
+    vec2(midx, midy)
 }
