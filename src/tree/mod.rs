@@ -28,7 +28,7 @@ pub struct Tree<'a, A: Axis, T: Aabb> {
 /// let tree = broccoli::new(&mut bots);
 ///
 ///```
-pub fn new<'a, T: Aabb>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> {
+pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<DefaultA, T> {
     TreeBuilder::new(bots).build_seq()
 }
 
@@ -41,7 +41,7 @@ pub fn new<'a, T: Aabb>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T> {
 /// let tree = broccoli::new_par(&mut bots);
 ///
 ///```
-pub fn new_par<'a, T: Aabb + Send + Sync>(bots: &'a mut [T]) -> Tree<'a, DefaultA, T>
+pub fn new_par<T: Aabb + Send + Sync>(bots: &mut [T]) -> Tree<DefaultA, T>
 where
     T::Num: Send + Sync,
 {

@@ -36,7 +36,7 @@ pub fn default_rect_knearest<A: axgeom::Axis, T:Aabb>(
         tree,
         (),
         |_, _, _| None,
-        |_, point, a| a.get().distance_squared_to_point(point).unwrap_or(T::Num::zero()),
+        |_, point, a| a.get().distance_squared_to_point(point).unwrap_or_else(T::Num::zero),
         |_, point, a| (point.x - a).abs() * (point.x - a).abs(),
         |_, point, a| (point.y - a).abs() * (point.y - a).abs(),
     )
@@ -348,6 +348,7 @@ pub struct KResult<'a, T: Aabb> {
 impl<'a, T: Aabb> KResult<'a, T> {
     ///Iterators over each group of ties starting with the closest.
     ///All the elements in one group have the same distance.
+    #[inline(always)]
     pub fn iter(
         &mut self,
     ) -> impl Iterator<Item = &mut [KnearestResult<'a, T>]>
@@ -357,23 +358,30 @@ impl<'a, T: Aabb> KResult<'a, T> {
     }
 
     ///Return the underlying datastructure
+    #[inline(always)]
     pub fn into_vec(self) -> Vec<KnearestResult<'a, T>> {
         self.inner
     }
 
     ///returns the total number of elements counting ties
+    #[inline(always)]
     pub fn total_len(&self) -> usize {
         self.inner.len()
     }
     ///Returns the number of unique distances
+    #[inline(always)]
     pub fn len(&self) -> usize {
         self.num_entires
+    }
+    #[inline(always)]
+    pub fn is_empty(&self)->bool{
+        self.inner.is_empty()
     }
 }
 
 use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_k_nearest_mut<'a, A: Axis, T: Aabb>(
+pub fn assert_k_nearest_mut<A: Axis, T: Aabb>(
     tree: &mut TreeRef<A, T>,
     point: Vec2<T::Num>,
     num: usize,

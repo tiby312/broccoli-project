@@ -199,18 +199,15 @@ impl<'a, T: Aabb> Closest<'a, T> {
                 }
             };
 
-            match self.closest.as_mut() {
-                Some(dis) => {
-                    if y > dis.1 {
-                        //no way this bot will be a candidate, return.
-                        return;
-                    } else {
-                        //this aabb could be a candidate, continue.
-                    }
+            if let Some(dis)=self.closest.as_mut(){
+                if y > dis.1 {
+                    //no way this bot will be a candidate, return.
+                    return;
+                } else {
+                    //this aabb could be a candidate, continue.
                 }
-                None => {
-                    //this aabb could be a candidate, continue,
-                }
+            }else{
+                //this aabb could be a candidate, continue,
             }
         }
 
@@ -255,11 +252,7 @@ impl<'a, R: RayCast> Blap<'a, R> {
         match self.rtrait.cast_to_aaline(&self.ray, line.0, line.1) {
             axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
                 Some(dis) => {
-                    if val <= dis {
-                        true
-                    } else {
-                        false
-                    }
+                    val <= dis
                 }
                 None => true,
             },

@@ -133,8 +133,8 @@ impl TreePreBuilder {
     }
 
     ///Create a `TreeBuilder`
-    pub fn into_builder<'a, T: Aabb>(&self, bots: &'a mut [T]) -> TreeBuilder<'a, DefaultA, T> {
-        TreeBuilder::from_prebuilder(default_axis(), bots, *self)
+    pub fn into_builder<'a, T: Aabb>(self, bots: &'a mut [T]) -> TreeBuilder<'a, DefaultA, T> {
+        TreeBuilder::from_prebuilder(default_axis(), bots, self)
     }
 
     ///Create a `TreeBuilder` with a use specified axis.

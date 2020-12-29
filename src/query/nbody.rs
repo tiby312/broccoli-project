@@ -488,7 +488,7 @@ fn recc<
                 let mut anchor = Anchor {
                     axis,
                     range: nn.into_range(),
-                    div: div,
+                    div,
                 };
 
                 handle_left_with_right(axis.next(), &mut anchor, l1, l2, ncontext);
@@ -499,7 +499,7 @@ fn recc<
 
             match join.next() {
                 par::ParResult::Parallel([dleft, dright]) => {
-                    let n2 = ncontext.clone();
+                    let n2 = ncontext;
                     rayon::join(
                         || recc(dleft, axis.next(), left, ncontext),
                         || recc(dright, axis.next(), right, n2),

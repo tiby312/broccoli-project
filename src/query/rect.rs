@@ -30,10 +30,10 @@ macro_rules! rect {
                     }
                     let rr = rect.get_range(this_axis);
 
-                    if !(div < rr.start) {
+                    if div >= rr.start {
                         self::rect_recurse(this_axis.next(), left, rect, func);
                     }
-                    if !(div > rr.end) {
+                    if div <= rr.end {
                         self::rect_recurse(this_axis.next(), right, rect, func);
                     }
                 }
@@ -292,8 +292,8 @@ pub fn assert_for_all_not_in_rect_mut<A: Axis, T: Aabb>(
         res_naive.push(into_ptr_usize(a.deref()));
     });
 
-    res_dino.sort();
-    res_naive.sort();
+    res_dino.sort_unstable();
+    res_naive.sort_unstable();
 
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));
@@ -314,8 +314,8 @@ pub fn assert_for_all_intersect_rect_mut<A: Axis, T: Aabb>(
         res_naive.push(into_ptr_usize(a.deref()));
     });
 
-    res_dino.sort();
-    res_naive.sort();
+    res_dino.sort_unstable();
+    res_naive.sort_unstable();
 
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));
@@ -336,8 +336,8 @@ pub fn assert_for_all_in_rect_mut<A: Axis, T: Aabb>(
         res_naive.push(into_ptr_usize(a.deref()));
     });
 
-    res_dino.sort();
-    res_naive.sort();
+    res_dino.sort_unstable();
+    res_naive.sort_unstable();
 
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));

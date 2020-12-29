@@ -62,7 +62,7 @@ impl<N: Copy, T> BBox<N, T> {
     #[must_use]
     pub fn into_semi_direct(&mut self) -> BBox<N, &mut T> {
         BBox {
-            rect: self.rect.clone(),
+            rect: self.rect,
             inner: &mut self.inner,
         }
     }
@@ -100,7 +100,6 @@ impl<N: Copy, T> BBox<N, T> {
 
     ///Change the number type using `TryFrom`
     #[inline(always)]
-    #[must_use]
     pub fn inner_try_into<A: TryFrom<N>>(self) -> Result<BBox<A, T>, A::Error> {
         Ok(BBox {
             rect: self.rect.inner_try_into()?,

@@ -275,16 +275,16 @@ impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
                 right,
             } => (
                 NonLeafFinisher {
-                    mid: mid,
+                    mid,
                     div: Some(div),
                     axis,
                 },
                 left,
                 right,
             ),
-            ConstructResult::Empty(empty) => {
+            ConstructResult::Empty(mid) => {
                 let node = NonLeafFinisher {
-                    mid: empty,
+                    mid,
                     div: None,
                     axis,
                 };

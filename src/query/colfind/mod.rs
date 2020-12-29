@@ -37,8 +37,8 @@ pub fn assert_query<A: Axis, T: Aabb>(tree: &mut TreeRef<A, T>) {
         res_naive.push(k);
     });
 
-    res_naive.sort();
-    res_dino.sort();
+    res_naive.sort_unstable();
+    res_dino.sort_unstable();
 
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));
