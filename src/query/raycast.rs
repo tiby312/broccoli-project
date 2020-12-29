@@ -28,38 +28,11 @@ pub trait RayCast {
     fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N>;
 }
 
-///Container of closures that implements [`RayCast`]
-pub struct RayCastClosure<T, A, B, C, D, E> {
-    pub _p: PhantomData<T>,
-    pub acc: A,
-    pub broad: B,
-    pub fine: C,
-    pub xline: D,
-    pub yline: E,
-}
-
 
 use crate::Tree;
-///Construct an object that implements [`RayCast`] from closures.
-///We pass the tree so that we can infer the type of `T`.
-///
-/// `fine` is a function that returns the true length of a ray
-/// cast to an object.
-///
-/// `broad` is a function that returns the length of a ray cast to
-/// a axis aligned rectangle. This function
-/// is used as a conservative estimate to prune out elements which minimizes
-/// how often the `fine` function gets called.
-///
-/// `xline` is a function that gives the distance between the point and a axis aligned line
-///    that was a fixed x value and spans the y values.
-///
-/// `yline` is a function that gives the distance between the point and a axis aligned line
-///    that was a fixed x value and spans the y values.
-///
-/// `acc` is a user defined object that is passed to every call to either
-/// the `fine` or `broad` functions.
-pub fn from_closure<AA: Axis, T: Aabb, A, B, C, D, E>(
+
+/*
+pub fn from_closure2<AA: Axis, T: Aabb, A, B, C, D, E>(
     _tree: &Tree<AA, T>,
     acc: A,
     broad: B,
@@ -82,37 +55,88 @@ where
         yline,
     }
 }
+*/
 
-impl<T: Aabb, A, B, C, D, E> RayCast for RayCastClosure<T, A, B, C, D, E>
-where
-    B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
-    C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
-    D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-    E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-{
-    type T = T;
-    type N = T::Num;
+//TODO somehow indicate that returned object has no destructor.
+///Construct an object that implements [`RayCast`] from closures.
+///We pass the tree so that we can infer the type of `T`.
+///
+/// `fine` is a function that returns the true length of a ray
+/// cast to an object.
+///
+/// `broad` is a function that returns the length of a ray cast to
+/// a axis aligned rectangle. This function
+/// is used as a conservative estimate to prune out elements which minimizes
+/// how often the `fine` function gets called.
+///
+/// `xline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values.
+///
+/// `yline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values.
+///
+/// `acc` is a user defined object that is passed to every call to either
+/// the `fine` or `broad` functions.
+pub fn from_closure<A,T:Aabb>(
+    _tree:&Tree<impl Axis,T>,
+    acc:A,
+    broad: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+    fine: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+    xline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+    yline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>)-> impl RayCast<T=T,N=T::Num>{
+    
+    ///Container of closures that implements [`RayCast`]
+    struct RayCastClosure<T, A, B, C, D, E> {
+        pub _p: PhantomData<T>,
+        pub acc: A,
+        pub broad: B,
+        pub fine: C,
+        pub xline: D,
+        pub yline: E,
+    }
 
-    fn cast_to_aaline<X: Axis>(
-        &mut self,
-        ray: &Ray<Self::N>,
-        line: X,
-        val: Self::N,
-    ) -> axgeom::CastResult<Self::N> {
-        if line.is_xaxis() {
-            (self.xline)(&mut self.acc, ray, val)
-        } else {
-            (self.yline)(&mut self.acc, ray, val)
+    impl<T: Aabb, A, B, C, D, E> RayCast for RayCastClosure<T, A, B, C, D, E>
+    where
+        B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
+        D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+        E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+    {
+        type T = T;
+        type N = T::Num;
+
+        fn cast_to_aaline<X: Axis>(
+            &mut self,
+            ray: &Ray<Self::N>,
+            line: X,
+            val: Self::N,
+        ) -> axgeom::CastResult<Self::N> {
+            if line.is_xaxis() {
+                (self.xline)(&mut self.acc, ray, val)
+            } else {
+                (self.yline)(&mut self.acc, ray, val)
+            }
+        }
+        fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> CastResult<Self::N> {
+            (self.broad)(&mut self.acc, ray, a)
+        }
+
+        fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> CastResult<Self::N> {
+            (self.fine)(&mut self.acc, ray, a)
         }
     }
-    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> CastResult<Self::N> {
-        (self.broad)(&mut self.acc, ray, a)
-    }
 
-    fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> CastResult<Self::N> {
-        (self.fine)(&mut self.acc, ray, a)
+    RayCastClosure {
+        _p: PhantomData,
+        acc,
+        broad,
+        fine,
+        xline,
+        yline,
     }
 }
+
+
 
 struct RayCastBorrow<'a, R>(&'a mut R);
 

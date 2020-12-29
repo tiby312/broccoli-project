@@ -66,6 +66,7 @@ extern crate is_sorted;
 extern crate pdqselect;
 
 pub use axgeom;
+pub use compt;
 
 mod inner_prelude {
     pub(crate) use crate::par;
