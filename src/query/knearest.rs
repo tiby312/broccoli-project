@@ -21,7 +21,7 @@ pub trait Knearest {
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
-    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N;
+    fn distance_to_fine(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N;
 }
 
 struct KnearestBorrow<'a, K>(&'a mut K);
@@ -41,8 +41,8 @@ impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
         self.0.distance_to_broad(point, rect)
     }
 
-    fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
-        self.0.didstance_to_fine(point, bot)
+    fn distance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
+        self.0.distance_to_fine(point, bot)
     }
 }
 
@@ -112,7 +112,7 @@ pub fn from_closure<Acc, T: Aabb>(
             (self.broad)(&mut self.acc, point, rect)
         }
 
-        fn didstance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
+        fn distance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
             (self.fine)(&mut self.acc, point, bot)
         }
     }
@@ -171,7 +171,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
             }
         }
 
-        let curr_dis = knear.didstance_to_fine(*point, curr_bot.borrow_mut());
+        let curr_dis = knear.distance_to_fine(*point, curr_bot.borrow_mut());
 
         if self.curr_num < self.num {
             let arr = &mut self.bots;
