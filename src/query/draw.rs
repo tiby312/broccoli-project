@@ -86,13 +86,16 @@ pub trait DrawQuery<'a>: Queries<'a> {
     ///
     /// let mut rects=Vec::new();
     /// tree.draw_divider(
-    ///     |axis,node,rect,_| {
-    ///             if let Some(cont)=node.cont{    
-    ///                 rects.push(
-    ///                     axis.map_val( Rect {x: cont.into(),y: rect.y.into()},Rect {x: rect.x.into(),y: cont.into()})
-    ///                    
-    ///                 );
-    ///             }
+    ///     |axis,node,rect,_| 
+    ///     {
+    ///         if let Some(cont)=node.cont{    
+    ///             rects.push(
+    ///                 axis.map_val( 
+    ///                     Rect {x: cont.into(),y: rect.y.into()},
+    ///                     Rect {x: rect.x.into(),y: cont.into()}
+    ///                 )   
+    ///             );
+    ///         }
     ///     },
     ///     dim
     /// );
