@@ -340,8 +340,8 @@ pub fn assert_raycast<A: Axis, T: Aabb>(
     }
     let mut res_naive = Vec::new();
     match raycast_naive_mut(bots, ray, rtrait) {
-        axgeom::CastResult::Hit((bots, mag)) => {
-            for a in bots.into_iter() {
+        axgeom::CastResult::Hit(CastAnswer{elems, mag}) => {
+            for a in elems.into_iter() {
                 let r = *a.get();
                 let j = into_ptr_usize(a.into_ref());
                 res_naive.push((j, r, mag))
@@ -354,8 +354,8 @@ pub fn assert_raycast<A: Axis, T: Aabb>(
 
     let mut res_dino = Vec::new();
     match tree.raycast_mut(ray, rtrait) {
-        axgeom::CastResult::Hit((bots, mag)) => {
-            for a in bots.into_iter() {
+        axgeom::CastResult::Hit(CastAnswer{elems, mag}) => {
+            for a in elems.into_iter() {
                 let r = *a.get();
                 let j = into_ptr_usize(a.into_ref());
                 res_dino.push((j, r, mag))
@@ -389,7 +389,7 @@ pub fn raycast_naive_mut<'a, T: Aabb>(
     bots: PMut<'a, [T]>,
     ray: Ray<T::Num>,
     rtrait: &mut impl RayCast<N = T::Num, T = T>,
-) -> axgeom::CastResult<(Vec<PMut<'a, T>>, T::Num)> {
+) -> axgeom::CastResult<CastAnswer<'a,T>> {
     let mut closest = Closest { closest: None };
 
     for b in bots.iter_mut() {
@@ -397,13 +397,20 @@ pub fn raycast_naive_mut<'a, T: Aabb>(
     }
 
     match closest.closest {
-        Some((a, b)) => axgeom::CastResult::Hit((a, b)),
+        Some((a, b)) => axgeom::CastResult::Hit(CastAnswer{elems:a,mag:b}),
         None => axgeom::CastResult::NoHit,
     }
 }
 
 use super::Queries;
 
+///What is returned when the ray hits something.
+///It provides the length of the ray,
+///as well as all solutions in a unspecified order.
+pub struct CastAnswer<'a,T:Aabb>{
+    pub elems:Vec<PMut<'a, T>>,
+    pub mag:T::Num
+}
 ///Raycast functions that can be called on a tree.
 pub trait RaycastQuery<'a>: Queries<'a> {
     /// Find the elements that are hit by a ray.
@@ -439,16 +446,16 @@ pub trait RaycastQuery<'a>: Queries<'a> {
     ///     ray,
     ///     &mut handler);
     ///
-    /// let (bots,dis)=res.unwrap();
-    /// assert_eq!(dis,2);
-    /// assert_eq!(bots.len(),1);
-    /// assert_eq!(bots[0].inner,vec2(5,5));
+    /// let res=res.unwrap();
+    /// assert_eq!(res.mag,2);
+    /// assert_eq!(res.elems.len(),1);
+    /// assert_eq!(res.elems[0].inner,vec2(5,5));
     ///```
     fn raycast_mut<'b, R: RayCast<T = Self::T, N = Self::Num>>(
         &'b mut self,
         ray: axgeom::Ray<Self::Num>,
         rtrait: &mut R,
-    ) -> axgeom::CastResult<(Vec<PMut<'b, Self::T>>, Self::Num)>
+    ) -> axgeom::CastResult<CastAnswer<'b,Self::T>>
     where
         'a: 'b,
     {
@@ -465,7 +472,7 @@ pub trait RaycastQuery<'a>: Queries<'a> {
         recc(axis, dt, &mut blap);
 
         match blap.closest.closest {
-            Some((a, b)) => axgeom::CastResult::Hit((a, b)),
+            Some((a, b)) => axgeom::CastResult::Hit(CastAnswer{elems:a,mag:b}),
             None => axgeom::CastResult::NoHit,
         }
     }

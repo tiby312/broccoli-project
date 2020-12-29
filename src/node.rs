@@ -57,22 +57,6 @@ impl<N, T> BBox<N, T> {
 
 use core::convert::TryFrom;
 impl<N: Copy, T> BBox<N, T> {
-    ///Creates a `(Rect<N>,&mut T)` from a `(Rect<N>,T)`
-    #[inline(always)]
-    #[must_use]
-    pub fn into_semi_direct(&mut self) -> BBox<N, &mut T> {
-        BBox {
-            rect: self.rect,
-            inner: &mut self.inner,
-        }
-    }
-
-    ///Simply returns a mutable reference
-    #[inline(always)]
-    #[must_use]
-    pub fn into_indirect(&mut self) -> &mut BBox<N, T> {
-        self
-    }
 
     ///Change the number type of the Rect using
     ///promitive cast.

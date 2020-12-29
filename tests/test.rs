@@ -60,9 +60,9 @@ fn test_tie_raycast() {
     let ans = tree.raycast_mut(ray, &mut handler);
 
     match ans {
-        CastResult::Hit((ans, mag)) => {
-            assert_eq!(mag, 5);
-            assert_eq!(ans.len(), 2);
+        CastResult::Hit(res) => {
+            assert_eq!(res.mag, 5);
+            assert_eq!(res.elems.len(), 2);
         }
         CastResult::NoHit => {
             panic!("should have hit");

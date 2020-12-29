@@ -133,17 +133,17 @@ impl TreePreBuilder {
     }
 
     ///Create a `TreeBuilder`
-    pub fn into_builder<'a, T: Aabb>(self, bots: &'a mut [T]) -> TreeBuilder<'a, DefaultA, T> {
+    pub fn into_builder<T: Aabb>(self, bots: &mut [T]) -> TreeBuilder<DefaultA, T> {
         TreeBuilder::from_prebuilder(default_axis(), bots, self)
     }
 
     ///Create a `TreeBuilder` with a use specified axis.
-    pub fn into_builder_with_axis<'a, A: Axis, T: Aabb>(
-        &self,
-        bots: &'a mut [T],
+    pub fn into_builder_with_axis<A: Axis, T: Aabb>(
+        self,
+        bots: &mut [T],
         axis: A,
-    ) -> TreeBuilder<'a, A, T> {
-        TreeBuilder::from_prebuilder(axis, bots, *self)
+    ) -> TreeBuilder< A, T> {
+        TreeBuilder::from_prebuilder(axis, bots, self)
     }
 
     ///Return the level at which parallel algorithms will switch to sequential.

@@ -1,5 +1,17 @@
 use super::*;
 
+
+pub struct ColPair<'a,T,D>{
+    pub first:&'a T,
+    pub second:&'a T,
+    pub extra:D
+}
+
+struct ColPairPtr<T,D>{
+    first:Ptr<T>,
+    second:Ptr<T>,
+    extra:D
+}
 ///CollidingPairs created via [`TreeRefInd::collect_colliding_pairs`]
 pub struct CollidingPairs<T, D> {
     ///See collect_intersections_list()
@@ -8,14 +20,14 @@ pub struct CollidingPairs<T, D> {
     ///So pointer aliasing rules are not
     ///being met if we were to just use this
     ///vec according to its type signature.
-    cols: Vec<(Ptr<T>, Ptr<T>, D)>,
+    cols: Vec<ColPairPtr<T,D>>,
     orig: Ptr<[T]>,
 }
 impl<T, D> CollidingPairs<T, D> {
     ///Return a read only list of colliding pairs.
     ///We can't return a list of mutable pairs since some might
     ///alias, but we can return a list if they are not mutable.
-    pub fn get(&self, arr: &[T]) -> &[(&T, &T, D)] {
+    pub fn get(&self, arr: &[T]) -> &[ColPair<T,D>] {
         assert_eq!(self.orig.0 as *const _, arr as *const _);
         unsafe { &*(self.cols.as_slice() as *const _ as *const _) }
     }
@@ -30,8 +42,8 @@ impl<T, D> CollidingPairs<T, D> {
     ) {
         assert_eq!(self.orig.0, arr as *mut _);
 
-        for (a, b, d) in self.cols.iter_mut() {
-            func(unsafe { &mut *(*a).0 }, unsafe { &mut *(*b).0 }, d)
+        for ColPairPtr{first,second,extra} in self.cols.iter_mut() {
+            func(unsafe { &mut *(*first).0 }, unsafe { &mut *(*second).0 }, extra)
         }
     }
 }
@@ -40,7 +52,7 @@ impl<T, D> CollidingPairs<T, D> {
 ///All colliding pairs partitioned into
 ///mutually exclusive sets so that they can be traversed in parallel
 pub struct CollidingPairsPar<T, D> {
-    cols: Vec<Vec<(Ptr<T>, Ptr<T>, D)>>,
+    cols: Vec<Vec<ColPairPtr<T,D>>>,
     original: Ptr<[T]>,
 }
 
@@ -55,7 +67,7 @@ impl<T, D> From<CollidingPairsPar<T, D>> for CollidingPairs<T, D> {
 }
 
 impl<T, D> CollidingPairsPar<T, D> {
-    pub fn get(&self, arr: &[T]) -> &[Vec<(&T, &T, D)>] {
+    pub fn get(&self, arr: &[T]) -> &[Vec<ColPair<T,D>>] {
         assert_eq!(arr as *const _, self.original.0 as *const _);
         unsafe { &*(self.cols.as_slice() as *const _ as *const _) }
     }
@@ -69,10 +81,10 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
         assert_eq!(arr as *mut _, self.original.0);
         use rayon::prelude::*;
         self.cols.par_iter_mut().for_each(|a| {
-            for (a, b, d) in a.iter_mut() {
-                let a = unsafe { &mut *a.0 };
-                let b = unsafe { &mut *b.0 };
-                func(a, b, d)
+            for ColPairPtr{first,second,extra} in a.iter_mut() {
+                let a = unsafe { &mut *first.0 };
+                let b = unsafe { &mut *second.0 };
+                func(a, b, extra)
             }
         });
     }
@@ -115,7 +127,15 @@ impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> 
         func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync + Copy,
     ) -> CollidingPairsPar<T, D> {
         let cols = self.collect_colliding_pairs_par_inner(|a, b| match func(a, b) {
-            Some(d) => Some((Ptr(a as *mut _), Ptr(b as *mut _), d)),
+            Some(extra) => 
+                Some(
+                    ColPairPtr{
+                        first:Ptr(a as *mut _),
+                        second:Ptr(b as *mut _),
+                        extra
+                    }
+                )
+            ,
             None => None,
         });
         CollidingPairsPar {
@@ -256,16 +276,16 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
         self.find_colliding_pairs_mut(|a, b| {
             let a = a.unpack_inner();
             let b = b.unpack_inner();
-            if let Some(d) = func(a, b) {
+            if let Some(extra) = func(a, b) {
                 //We use unsafe to collect mutable references of
                 //all colliding pairs.
                 //This is safe to do because the user is forced
                 //to iterate through all the colliding pairs
                 //one at a time.
-                let a = Ptr(*a as *mut T);
-                let b = Ptr(*b as *mut T);
+                let first = Ptr(*a as *mut T);
+                let second = Ptr(*b as *mut T);
 
-                cols.push((a, b, d));
+                cols.push(ColPairPtr{first,second,extra});
             }
         });
 

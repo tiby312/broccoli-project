@@ -30,6 +30,5 @@ fn main() {
 
     let res = tree.raycast_mut(ray, &mut handler);
 
-    let (bots, _) = res.unwrap();
-    assert_eq!(*bots[0].inner, 4);
+    assert_eq!(*res.unwrap().elems[0].inner, 4);
 }

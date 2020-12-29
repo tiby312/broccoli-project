@@ -101,15 +101,21 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     }
 }
 
+pub struct NodeRef<'a,T:Aabb>{
+    pub div:&'a Option<T::Num>,
+    pub cont:&'a Option<Range<T::Num>>,
+    pub range:PMut<'a,[T]>
+}
+
 impl<'a, 'b: 'a, T: Aabb> PMut<'a, Node<'b, T>> {
     ///Destructure a node into its three parts.
     #[inline(always)]
-    pub fn into_range_full(self) -> (&'a Option<T::Num>, &'a Option<Range<T::Num>>, PMut<'a, [T]>) {
-        (
-            &self.inner.div,
-            &self.inner.cont,
-            self.inner.range.borrow_mut(),
-        )
+    pub fn into_node_ref(self) -> NodeRef<'a,T> {
+        NodeRef{
+            div:&self.inner.div,
+            cont:&self.inner.cont,
+            range:self.inner.range.borrow_mut(),
+        }
     }
 
     ///Return a mutable list of elements in this node.

@@ -80,9 +80,9 @@ fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb>(
     ) -> F {
         let (nn, rest) = it.next();
 
-        let (div, _, bots) = nn.into_range_full();
+        let NodeRef{div,range,..} = nn.into_node_ref();
 
-        for a in bots.iter_mut() {
+        for a in range.iter_mut() {
             if !rect.contains_rect(a.get()) {
                 closure(a);
             }
