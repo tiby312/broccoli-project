@@ -4,7 +4,7 @@ fn test1(bots: &mut [BBox<f32, &mut isize>]) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(bots).build_seq());
 
     let (tree, query_time) = bench_closure_ret(|| {
-        tree.new_colfind_builder().query_seq(|a, b| {
+        tree.find_colliding_pairs_mut(|a, b| {
             **a.unpack_inner() += 2;
             **b.unpack_inner() += 2;
         });

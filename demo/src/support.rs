@@ -9,7 +9,7 @@ pub mod prelude {
     pub use broccoli::compt;
     pub use broccoli::node::*;
     pub use broccoli::prelude::*;
-    pub use broccoli::rayon;
+    //pub use broccoli::rayon;
     pub use dists::uniform_rand::UniformRandGen;
     pub use duckduckgeo::array2_inner_into;
     pub use duckduckgeo::*;

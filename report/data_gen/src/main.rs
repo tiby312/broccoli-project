@@ -1,5 +1,4 @@
 pub use broccoli::axgeom;
-pub use broccoli::rayon;
 
 pub fn black_box<T>(dummy: T) -> T {
     unsafe {

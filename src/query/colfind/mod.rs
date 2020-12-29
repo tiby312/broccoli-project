@@ -155,6 +155,100 @@ pub struct QueryBuilder<'a, 'b: 'a, A: Axis, T: Aabb> {
     vistr: VistrMut<'a, Node<'b, T>>,
 }
 
+pub struct QueryParSplitter<T, A, B, C, D> {
+    pub _p: PhantomData<T>,
+    pub acc: A,
+    pub split: B,
+    pub fold: C,
+    pub collision: D,
+}
+
+impl<T: Aabb, A, B, C, D> CollisionHandler for QueryParSplitter<T, A, B, C, D> 
+    where D:Fn(&mut A, PMut<T>, PMut<T>){
+    type T = T;
+
+    #[inline(always)]
+    fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
+        (self.collision)(&mut self.acc, a, b)
+    }
+}
+
+/// TODO update doc
+/// An extended version of `find_colliding_pairs`. where the user can supply
+/// callbacks to when new worker tasks are spawned and joined by `rayon`.
+/// Allows the user to potentially collect some aspect of every aabb collision in parallel.
+///
+/// # Examples
+///
+///```
+/// use broccoli::{prelude::*,bbox,rect};
+/// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
+/// let mut tree = broccoli::new(&mut bots);
+/// let intersections=tree.new_colfind_builder().query_par_ext(
+///     |_|(Vec::new(),Vec::new()),              //Start a new thread
+///     |a,mut b,mut c|{a.append(&mut b);a.append(&mut c)},  //Combine two threads
+///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())),     //What to do for each intersection for a thread.
+///     Vec::new()                  //Starting thread
+/// );
+///
+/// assert_eq!(intersections.len(),1);
+///```
+pub fn query_par_from_closure<AA:Axis,T:Aabb,A,B,C,D>(
+        _tree:&crate::Tree<AA,T>,
+        acc:A,
+        split:B,
+        fold:C,
+        collision:D
+)->QueryParSplitter<T,A,B,C,D>
+    where 
+    B:Fn(&mut A) -> (A, A) + Copy,
+    C:Fn(&mut A, A, A) + Copy,
+    D:Fn(&mut A, PMut<T>, PMut<T>)+Copy{
+
+        QueryParSplitter{
+            _p:PhantomData,
+            acc,
+            split,
+            fold,
+            collision
+        }
+}
+
+impl<T, A, B , C , D> Splitter
+    for QueryParSplitter<T, A, B, C, D>
+    where 
+        B:Fn(&mut A) -> (A, A) + Copy,
+        C:Fn(&mut A, A, A) + Copy,
+        D:Copy
+{
+    #[inline(always)]
+    fn div(&mut self) -> (Self, Self) {
+        let (acc1, acc2) = (self.split)(&mut self.acc);
+        (
+            QueryParSplitter {
+                _p: PhantomData,
+                acc: acc1,
+                split: self.split,
+                fold: self.fold,
+                collision: self.collision,
+            },
+            QueryParSplitter {
+                _p: PhantomData,
+                acc: acc2,
+                split: self.split,
+                fold: self.fold,
+                collision: self.collision,
+            },
+        )
+    }
+    #[inline(always)]
+    fn add(&mut self, a: Self, b: Self) {
+        (self.fold)(&mut self.acc, a.acc, b.acc)
+    }
+}
+
+
+
 impl<'a, 'b: 'a, A: Axis, T: Aabb + Send + Sync> QueryBuilder<'a, 'b, A, T>
 where
     T::Num: Send + Sync,
@@ -177,92 +271,7 @@ where
         );
     }
 
-    /// An extended version of `find_colliding_pairs`. where the user can supply
-    /// callbacks to when new worker tasks are spawned and joined by `rayon`.
-    /// Allows the user to potentially collect some aspect of every aabb collision in parallel.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// let intersections=tree.new_colfind_builder().query_par_ext(
-    ///     |_|(Vec::new(),Vec::new()),              //Start a new thread
-    ///     |a,mut b,mut c|{a.append(&mut b);a.append(&mut c)},  //Combine two threads
-    ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())),     //What to do for each intersection for a thread.
-    ///     Vec::new()                  //Starting thread
-    /// );
-    ///
-    /// assert_eq!(intersections.len(),1);
-    ///```
-    pub fn query_par_ext<B: Send + Sync>(
-        self,
-        split: impl Fn(&mut B) -> (B, B) + Send + Sync + Copy,
-        fold: impl Fn(&mut B, B, B) + Send + Sync + Copy,
-        collision: impl Fn(&mut B, PMut<T>, PMut<T>) + Send + Sync + Copy,
-        acc: B,
-    ) -> B
-    where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        struct Foo<T, A, B, C, D> {
-            _p: PhantomData<T>,
-            acc: A,
-            split: B,
-            fold: C,
-            collision: D,
-        }
-
-        impl<T: Aabb, A, B, C, D: Fn(&mut A, PMut<T>, PMut<T>)> CollisionHandler for Foo<T, A, B, C, D> {
-            type T = T;
-
-            #[inline(always)]
-            fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
-                (self.collision)(&mut self.acc, a, b)
-            }
-        }
-        impl<T, A, B: Fn(&mut A) -> (A, A) + Copy, C: Fn(&mut A, A, A) + Copy, D: Copy> Splitter
-            for Foo<T, A, B, C, D>
-        {
-            #[inline(always)]
-            fn div(&mut self) -> (Self, Self) {
-                let (acc1, acc2) = (self.split)(&mut self.acc);
-                (
-                    Foo {
-                        _p: PhantomData,
-                        acc: acc1,
-                        split: self.split,
-                        fold: self.fold,
-                        collision: self.collision,
-                    },
-                    Foo {
-                        _p: PhantomData,
-                        acc: acc2,
-                        split: self.split,
-                        fold: self.fold,
-                        collision: self.collision,
-                    },
-                )
-            }
-            #[inline(always)]
-            fn add(&mut self, a: Self, b: Self) {
-                (self.fold)(&mut self.acc, a.acc, b.acc)
-            }
-        }
-
-        let foo = Foo {
-            _p: PhantomData,
-            acc,
-            split,
-            fold,
-            collision,
-        };
-
-        self.query_splitter_par(foo).acc
-    }
-
+    ///TODO update doc
     ///Trait version of [`QueryBuilder::query_par_ext`].
     ///The user has more control using this version of the query.
     ///The splitter will split and add at every level.
@@ -271,7 +280,7 @@ where
     ///The leaf end function will get called when the sequential processing finishes.
     ///This can be useful if the use wants to create a list of colliding pair indicies, but still wants paralleism.
     #[inline(always)]
-    pub fn query_splitter_par<C: CollisionHandler<T = T> + Splitter + Send + Sync>(self, clos: C) -> C {
+    pub fn query_par_ext<C: CollisionHandler<T = T> + Splitter + Send + Sync>(self, clos: C) -> C {
         let height = self.vistr.get_height();
 
         let par = par::compute_level_switch_sequential(self.switch_height, height);
