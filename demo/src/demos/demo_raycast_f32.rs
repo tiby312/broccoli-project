@@ -63,12 +63,12 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
                 let res = tree.raycast_mut(ray, &mut handler);
 
-                let dis = match res {
-                    axgeom::CastResult::Hit((_, dis)) => dis,
+                let mag = match res {
+                    axgeom::CastResult::Hit(res) => res.mag,
                     axgeom::CastResult::NoHit => 800.0,
                 };
 
-                let end = ray.point_at_tval(dis);
+                let end = ray.point_at_tval(mag);
                 ray_cast.add(ray.point.into(), end.into());
             }
             ray_cast
