@@ -154,8 +154,6 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
     })
 }
 
-use broccoli::node::Node;
-use broccoli::node::Vistr;
 
 fn get_leaf_mid(rect: &Rect<f32>) -> Vec2<f32> {
     let ((x1, x2), (y1, y2)) = rect.get();
