@@ -5,7 +5,7 @@ use axgeom::Ray;
 
 
 
-pub fn default_rect_cast<T:Aabb>(tree:&Tree<impl Axis,T>)->impl RayCast<T=T,N=T::Num>
+pub fn default_rect_raycast<T:Aabb>(tree:&Tree<impl Axis,T>)->impl RayCast<T=T,N=T::Num>
     where T::Num:core::fmt::Debug+num_traits::Signed{
     from_closure(
         tree,
@@ -426,7 +426,7 @@ pub trait RaycastQuery<'a>: Queries<'a> {
     /// let mut handler = broccoli::query::raycast::from_closure(
     ///    &tree,
     ///    (),
-    ///    |_, ray, a| ray.cast_to_rect(&a.rect),
+    ///    |_, _, _| None,
     ///    |_, ray, a| ray.cast_to_rect(&a.rect),
     ///    |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
     ///    |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),

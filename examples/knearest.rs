@@ -22,7 +22,7 @@ fn main() {
     let mut handler = broccoli::query::knearest::from_closure(
         &tree,
         (),
-        |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
+        |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),
         |_, point, a| a.inner.distance_squared_to_point(point),
         |_, point, a| distance_squared(point.x, a),
         |_, point, a| distance_squared(point.y, a),

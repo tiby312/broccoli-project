@@ -18,31 +18,6 @@ fn create_bbox_mut<'a, N: Num, T>(
         .collect()
 }
 
-pub fn default_raycast_handler_isize<A: axgeom::Axis, T>(
-    tree: &Tree<A, BBox<isize, T>>,
-) -> impl raycast::RayCast<T = BBox<isize, T>, N = isize> {
-    raycast::from_closure(
-        tree,
-        (),
-        |_, ray, a| ray.cast_to_rect(&a.rect),
-        |_, ray, a| ray.cast_to_rect(&a.rect),
-        |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
-        |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
-    )
-}
-pub fn default_knearest_handler_isize<A: axgeom::Axis, T>(
-    tree: &Tree<A, BBox<isize, T>>,
-) -> impl knearest::Knearest<T = BBox<isize, T>, N = isize> {
-    knearest::from_closure(
-        tree,
-        (),
-        |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
-        |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
-        |_, point, a| (point.x - a).abs() * (point.x - a).abs(),
-        |_, point, a| (point.y - a).abs() * (point.y - a).abs(),
-    )
-}
-
 #[test]
 fn test_tie_knearest() {
     use broccoli::*;
@@ -54,7 +29,7 @@ fn test_tie_knearest() {
 
     let mut tree = broccoli::container::TreeRef::new(&mut bots);
 
-    let mut handler = default_knearest_handler_isize(&tree);
+    let mut handler = broccoli::query::knearest::default_rect_knearest(&tree);
     let mut res = tree.k_nearest_mut(vec2(15, 30), 2, &mut handler);
 
     assert_eq!(res.len(), 2);
@@ -64,7 +39,7 @@ fn test_tie_knearest() {
     let r: &[KnearestResult<_>] = res.iter().next().unwrap();
     assert_eq!(r.len(), 2);
 
-    let handler = &mut default_knearest_handler_isize(&tree);
+    let handler = &mut broccoli::query::knearest::default_rect_knearest(&tree);
     broccoli::query::knearest::assert_k_nearest_mut(&mut tree, vec2(15, 30), 2, handler);
 }
 
@@ -81,7 +56,7 @@ fn test_tie_raycast() {
         dir: vec2(-1, 0),
     };
 
-    let mut handler = default_raycast_handler_isize(&tree);
+    let mut handler = broccoli::query::raycast::default_rect_raycast(&tree);
     let ans = tree.raycast_mut(ray, &mut handler);
 
     match ans {
@@ -94,7 +69,7 @@ fn test_tie_raycast() {
         }
     }
 
-    let mut handler = default_raycast_handler_isize(&tree);
+    let mut handler = broccoli::query::raycast::default_rect_raycast(&tree);
     broccoli::query::raycast::assert_raycast(&mut tree, ray, &mut handler);
 }
 

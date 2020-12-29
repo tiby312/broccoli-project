@@ -26,6 +26,23 @@ pub trait Knearest {
     fn distance_to_fine(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N;
 }
 
+
+pub fn default_rect_knearest<A: axgeom::Axis, T:Aabb>(
+    tree: &Tree<A, T>,
+) -> impl Knearest<T = T, N = T::Num> where T::Num:num_traits::Signed+num_traits::Zero {
+    use num_traits::Signed;
+    use num_traits::Zero;
+    from_closure(
+        tree,
+        (),
+        |_, _, _| None,
+        |_, point, a| a.get().distance_squared_to_point(point).unwrap_or(T::Num::zero()),
+        |_, point, a| (point.x - a).abs() * (point.x - a).abs(),
+        |_, point, a| (point.y - a).abs() * (point.y - a).abs(),
+    )
+}
+
+
 struct KnearestBorrow<'a, K>(&'a mut K);
 impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
     type T = K::T;
@@ -440,7 +457,7 @@ pub trait KnearestQuery<'a>: Queries<'a> {
     /// let mut handler = broccoli::query::knearest::from_closure(
     ///    &tree,
     ///    (),
-    ///    |_, point, a| a.rect.distance_squared_to_point(point).unwrap_or(0),
+    ///    |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),
     ///    |_, point, a| a.inner.distance_squared_to_point(point),
     ///    |_, point, a| distance_squared(point.x,a),
     ///    |_, point, a| distance_squared(point.y,a),
