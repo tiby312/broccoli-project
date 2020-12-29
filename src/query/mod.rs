@@ -3,13 +3,13 @@
 mod inner_prelude {
     pub use crate::node::*;
     pub(crate) use crate::par;
-    pub use axgeom::*;
     pub use crate::pmut::*;
-    pub use crate::util::*;
     pub use crate::tree::build::Splitter;
+    pub use crate::util::*;
     pub use alloc::vec::Vec;
     pub use axgeom;
     pub use axgeom::Rect;
+    pub use axgeom::*;
     pub use compt::*;
     pub use core::marker::PhantomData;
     pub use itertools::Itertools;
@@ -32,7 +32,6 @@ pub mod rect;
 mod tools;
 
 use self::inner_prelude::*;
-
 
 ///Query modules provide functions based off of this trait.
 pub trait Queries<'a> {
@@ -89,7 +88,7 @@ pub trait Queries<'a> {
 
 ///panics if a broken broccoli tree invariant is detected.
 ///For debugging purposes only.
-pub fn assert_tree_invariants<A:Axis,T:Aabb>(tree: &crate::Tree<A,T>)
+pub fn assert_tree_invariants<A: Axis, T: Aabb>(tree: &crate::Tree<A, T>)
 where
     T::Num: core::fmt::Debug,
 {

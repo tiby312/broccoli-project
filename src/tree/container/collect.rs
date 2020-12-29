@@ -128,8 +128,8 @@ impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> 
         &mut self,
         func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync + Copy,
     ) -> Vec<Vec<D>> {
-
-        let handler=crate::query::colfind::builder::from_closure(self,
+        let handler = crate::query::colfind::builder::from_closure(
+            self,
             vec![Vec::new()],
             move |_| (vec![Vec::new()], vec![Vec::new()]),
             move |a, mut b, mut c| {
@@ -141,12 +141,10 @@ impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> 
                     c.first_mut().unwrap().push(d);
                 }
             },
-            
         );
 
         use crate::query::colfind::builder::*;
         self.new_colfind_builder().query_par_ext(handler).consume()
-        
     }
 }
 

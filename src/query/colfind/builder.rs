@@ -6,7 +6,7 @@ use super::*;
 ///Trait that user implements to handling aabb collisions.
 ///The user supplies a struct that implements this trait instead of just a closure
 ///so that the user may also have the struct implement Splitter.
-pub trait CollisionHandler{
+pub trait CollisionHandler {
     type T: Aabb;
 
     fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>);
@@ -40,7 +40,10 @@ where
 
 impl<'a, 'b: 'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a, 'b, A, T> {
     #[inline(always)]
-    pub(super) fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> NotSortedQueryBuilder<'a, 'b, A, T> {
+    pub(super) fn new(
+        axis: A,
+        vistr: VistrMut<'a, Node<'b, T>>,
+    ) -> NotSortedQueryBuilder<'a, 'b, A, T> {
         let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         NotSortedQueryBuilder {
             switch_height,
@@ -68,7 +71,6 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> NotSortedQueryBuilder<'a, 'b, A, T> {
     }
 }
 
-
 ///Builder for a query on a DinoTree.
 pub struct QueryBuilder<'a, 'b: 'a, A: Axis, T: Aabb> {
     switch_height: usize,
@@ -77,20 +79,19 @@ pub struct QueryBuilder<'a, 'b: 'a, A: Axis, T: Aabb> {
 }
 
 ///Simple trait that consumes itself to produce a value.
-pub trait Consumer{
+pub trait Consumer {
     type Item;
-    fn consume(self)->Self::Item;
+    fn consume(self) -> Self::Item;
 }
 
 ///Create an object to satisfy [`QueryBuilder::query_par_ext`].
-pub fn from_closure<A:Send,T:Aabb+Send>(
-    _tree:&crate::Tree<impl Axis,T>,
-    acc:A,
-    split:impl Fn(&mut A) -> (A, A) + Copy+Send,
-    fold:impl Fn(&mut A, A, A) + Copy+Send,
-    collision:impl Fn(&mut A, PMut<T>, PMut<T>)+Copy+Send
-)->impl CollisionHandler<T=T>+Splitter+Send+Consumer<Item=A>{
-
+pub fn from_closure<A: Send, T: Aabb + Send>(
+    _tree: &crate::Tree<impl Axis, T>,
+    acc: A,
+    split: impl Fn(&mut A) -> (A, A) + Copy + Send,
+    fold: impl Fn(&mut A, A, A) + Copy + Send,
+    collision: impl Fn(&mut A, PMut<T>, PMut<T>) + Copy + Send,
+) -> impl CollisionHandler<T = T> + Splitter + Send + Consumer<Item = A> {
     struct QueryParSplitter<T, A, B, C, D> {
         pub _p: PhantomData<T>,
         pub acc: A,
@@ -98,14 +99,16 @@ pub fn from_closure<A:Send,T:Aabb+Send>(
         pub fold: C,
         pub collision: D,
     }
-    impl<T,A,B,C,D> Consumer for QueryParSplitter<T,A,B,C,D>{
-        type Item=A;
-        fn consume(self)->Self::Item{
+    impl<T, A, B, C, D> Consumer for QueryParSplitter<T, A, B, C, D> {
+        type Item = A;
+        fn consume(self) -> Self::Item {
             self.acc
         }
     }
-    impl<T: Aabb, A, B, C, D> CollisionHandler for QueryParSplitter<T, A, B, C, D> 
-        where D:Fn(&mut A, PMut<T>, PMut<T>){
+    impl<T: Aabb, A, B, C, D> CollisionHandler for QueryParSplitter<T, A, B, C, D>
+    where
+        D: Fn(&mut A, PMut<T>, PMut<T>),
+    {
         type T = T;
 
         #[inline(always)]
@@ -114,12 +117,11 @@ pub fn from_closure<A:Send,T:Aabb+Send>(
         }
     }
 
-    impl<T, A, B , C , D> Splitter
-    for QueryParSplitter<T, A, B, C, D>
-    where 
-        B:Fn(&mut A) -> (A, A) + Copy,
-        C:Fn(&mut A, A, A) + Copy,
-        D:Copy
+    impl<T, A, B, C, D> Splitter for QueryParSplitter<T, A, B, C, D>
+    where
+        B: Fn(&mut A) -> (A, A) + Copy,
+        C: Fn(&mut A, A, A) + Copy,
+        D: Copy,
     {
         #[inline(always)]
         fn div(&mut self) -> (Self, Self) {
@@ -147,17 +149,14 @@ pub fn from_closure<A:Send,T:Aabb+Send>(
         }
     }
 
-
-    QueryParSplitter{
-        _p:PhantomData,
+    QueryParSplitter {
+        _p: PhantomData,
         acc,
         split,
         fold,
-        collision
+        collision,
     }
-
 }
-
 
 impl<'a, 'b: 'a, A: Axis, T: Aabb + Send + Sync> QueryBuilder<'a, 'b, A, T>
 where
@@ -211,7 +210,7 @@ where
     /// assert_eq!(intersections.len(),1);
     ///```
     #[inline(always)]
-    pub fn query_par_ext<C: CollisionHandler<T = T> + Splitter + Send + Sync>(self, clos:  C)->C {
+    pub fn query_par_ext<C: CollisionHandler<T = T> + Splitter + Send + Sync>(self, clos: C) -> C {
         let height = self.vistr.get_height();
 
         let par = par::compute_level_switch_sequential(self.switch_height, height);

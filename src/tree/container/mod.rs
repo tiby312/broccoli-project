@@ -34,7 +34,7 @@ unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 ///
 pub struct TreeRefInd<'a, A: Axis, N: Num, T> {
     tree: inner::TreeIndInner<A, N, T>,
-    _p: PhantomData<TreeRef<'a,A,BBox<N,&'a mut T>>>,
+    _p: PhantomData<TreeRef<'a, A, BBox<N, &'a mut T>>>,
 }
 
 impl<'a, N: Num, T> TreeRefInd<'a, DefaultA, N, T> {
@@ -166,7 +166,7 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
 #[repr(transparent)]
 pub struct TreeRef<'a, A: Axis, T: Aabb> {
     tree: inner::TreeRefInner<A, T>,
-    _p: PhantomData<Tree<'a,A,T>>,
+    _p: PhantomData<Tree<'a, A, T>>,
 }
 /*
 use crate::query::NaiveComparable;

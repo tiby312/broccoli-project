@@ -1,6 +1,6 @@
-use crate::query::colfind::oned;
 use super::super::tools;
 use super::CollisionHandler;
+use crate::query::colfind::oned;
 use crate::query::inner_prelude::*;
 use unchecked_unwrap::*;
 

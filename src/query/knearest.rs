@@ -92,16 +92,14 @@ where
     }
 }*/
 
-pub fn from_closure<Acc,T:Aabb>(
-    _tree:&Tree<impl Axis,T>,
-    acc:Acc,
-    broad:impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+pub fn from_closure<Acc, T: Aabb>(
+    _tree: &Tree<impl Axis, T>,
+    acc: Acc,
+    broad: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
     fine: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-    xline:impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    yline:impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    )->impl Knearest<T=T,N=T::Num>
-{
-
+    xline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+    yline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+) -> impl Knearest<T = T, N = T::Num> {
     ///Container of closures that implements [`Knearest`]
     struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
         pub _p: PhantomData<T>,
@@ -151,7 +149,6 @@ pub fn from_closure<Acc,T:Aabb>(
         xline,
         yline,
     }
-
 }
 
 /// Returned by k_nearest_mut
@@ -381,13 +378,12 @@ impl<'a, T: Aabb> KResult<'a, T> {
 
 use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_k_nearest_mut<'a, A:Axis,T:Aabb>(
-    tree: &mut TreeRef<A,T>,
+pub fn assert_k_nearest_mut<'a, A: Axis, T: Aabb>(
+    tree: &mut TreeRef<A, T>,
     point: Vec2<T::Num>,
     num: usize,
     knear: &mut impl Knearest<T = T, N = T::Num>,
-)
-{
+) {
     let bots = tree.get_bbox_elements_mut();
     use core::ops::Deref;
 

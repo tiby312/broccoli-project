@@ -2,10 +2,10 @@ pub mod prelude {
     pub use crate::dists::*;
     pub use crate::Demo;
     pub use crate::*;
-    pub use broccoli::build::*;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
     pub use broccoli::bbox;
+    pub use broccoli::build::*;
     pub use broccoli::compt;
     pub use broccoli::node::*;
     pub use broccoli::prelude::*;

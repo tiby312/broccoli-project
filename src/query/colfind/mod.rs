@@ -10,14 +10,13 @@ use super::tools;
 use crate::query::inner_prelude::*;
 
 pub mod builder;
-use self::builder::QueryBuilder;
-use self::builder::NotSortedQueryBuilder;
 use self::builder::CollisionHandler;
+use self::builder::NotSortedQueryBuilder;
+use self::builder::QueryBuilder;
 
 ///Panics if a disconnect is detected between tree and naive queries.
 use crate::container::TreeRef;
-pub fn assert_query<A:Axis,T:Aabb>(tree: &mut TreeRef<A,T>)
-{
+pub fn assert_query<A: Axis, T: Aabb>(tree: &mut TreeRef<A, T>) {
     use core::ops::Deref;
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
@@ -86,7 +85,6 @@ pub fn query_sweep_mut<T: Aabb>(
         },
     );
 }
-
 
 use super::Queries;
 

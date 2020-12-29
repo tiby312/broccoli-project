@@ -646,9 +646,7 @@ pub trait NbodyQuery<'a>: Queries<'a> {
     }
 
     ///Experimental. See broccoli demo
-    fn nbody_mut_par<
-        X: NodeMassTrait<Num = Self::Num, Item = Self::T> + Sync + Send,
-    >(
+    fn nbody_mut_par<X: NodeMassTrait<Num = Self::Num, Item = Self::T> + Sync + Send>(
         &mut self,
         ncontext: X,
         rect: Rect<Self::Num>,

@@ -139,10 +139,6 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 use broccoli::node::Node;
 use broccoli::node::Vistr;
 
-
-
-
-
 fn draw_bot_lines<A: axgeom::Axis>(
     axis: A,
     stuff: Vistr<Node<BBox<f32, &mut Bot>>>,

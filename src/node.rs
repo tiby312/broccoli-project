@@ -248,4 +248,3 @@ pub struct Node<'a, T: Aabb> {
     //  div is none
     pub div: Option<T::Num>,
 }
-

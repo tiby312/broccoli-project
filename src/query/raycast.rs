@@ -28,7 +28,6 @@ pub trait RayCast {
     fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N>;
 }
 
-
 use crate::Tree;
 
 /*
@@ -77,14 +76,14 @@ where
 ///
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
-pub fn from_closure<A,T:Aabb>(
-    _tree:&Tree<impl Axis,T>,
-    acc:A,
+pub fn from_closure<A, T: Aabb>(
+    _tree: &Tree<impl Axis, T>,
+    acc: A,
     broad: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
     fine: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
     xline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-    yline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>)-> impl RayCast<T=T,N=T::Num>{
-    
+    yline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+) -> impl RayCast<T = T, N = T::Num> {
     ///Container of closures that implements [`RayCast`]
     struct RayCastClosure<T, A, B, C, D, E> {
         pub _p: PhantomData<T>,
@@ -135,8 +134,6 @@ pub fn from_closure<A,T:Aabb>(
         yline,
     }
 }
-
-
 
 struct RayCastBorrow<'a, R>(&'a mut R);
 
@@ -306,14 +303,14 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     }
 }
 
-
 use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_raycast<A:Axis,T:Aabb>(
-    tree: &mut TreeRef<A,T>,
+pub fn assert_raycast<A: Axis, T: Aabb>(
+    tree: &mut TreeRef<A, T>,
     ray: axgeom::Ray<T::Num>,
     rtrait: &mut impl RayCast<T = T, N = T::Num>,
-) where T::Num: core::fmt::Debug,
+) where
+    T::Num: core::fmt::Debug,
 {
     let bots = tree.get_bbox_elements_mut();
     fn into_ptr_usize<T>(a: &T) -> usize {
