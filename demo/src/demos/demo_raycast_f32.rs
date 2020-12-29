@@ -48,6 +48,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                     }
                 };
 
+                
                 let mut handler = broccoli::query::raycast::from_closure(
                     tree,
                     radius,
@@ -56,7 +57,36 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                     |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
                     |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
                 );
+                
+                /* You can use this instead of the closure method above
+                use broccoli::pmut::PMut;
+                struct Foo{
+                    radius:f32
+                }
+                impl broccoli::query::raycast::RayCast for Foo{
+                    type T = BBox<f32,Bot>;
+                    type N = f32;
+                    fn cast_to_aaline<A: Axis>(
+                        &mut self,
+                        ray: &Ray<Self::N>,
+                        line: A,
+                        val: Self::N,
+                    ) -> axgeom::CastResult<Self::N> {
+                        ray.cast_to_aaline(line,val)
+                    }
 
+                    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N> {
+                        ray.cast_to_rect(&a.rect)
+                    }
+
+                    fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N> {
+                        ray.cast_to_circle(a.inner.center, self.radius)
+                    }
+                }
+                let mut handler=Foo{radius};
+                */
+
+                
                 if check_naive {
                     broccoli::query::raycast::assert_raycast(tree, ray, &mut handler);
                 }
