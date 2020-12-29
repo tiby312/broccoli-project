@@ -1,3 +1,5 @@
+//! Contains code to customize the colliding pair finding algorithm.
+
 use super::*;
 
 ///Used for the advanced algorithms.
