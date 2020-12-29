@@ -229,16 +229,14 @@ mod constant {
 pub struct RectIntersectErr;
 
 ///See the [`Queries::multi_rect`](crate::query::rect::RectQuery::multi_rect) function.
-pub struct MultiRectMut<'a, 'b: 'a, A: Axis, T: Aabb> {
-    axis: A,
+pub struct MultiRectMut<'a, 'b: 'a, T: Aabb> {
     vistr: VistrMut<'a, Node<'b, T>>,
     rects: Vec<Rect<T::Num>>,
 }
 
-impl<'a, 'b: 'a, A: Axis, T: Aabb> MultiRectMut<'a, 'b, A, T> {
-    fn new(axis: A, vistr: VistrMut<'a, Node<'b, T>>) -> Self {
+impl<'a, 'b: 'a,  T: Aabb> MultiRectMut<'a, 'b, T> {
+    fn new(vistr: VistrMut<'a, Node<'b, T>>) -> Self {
         MultiRectMut {
-            axis,
             vistr,
             rects: Vec::new(),
         }
@@ -257,7 +255,7 @@ impl<'a, 'b: 'a, A: Axis, T: Aabb> MultiRectMut<'a, 'b, A, T> {
         self.rects.push(rect);
 
         for_all_in_rect_mut(
-            self.axis,
+            default_axis(),
             self.vistr.borrow_mut(),
             &rect,
             |bbox: PMut<T>| {
@@ -278,8 +276,8 @@ fn into_ptr_usize<T>(a: &T) -> usize {
 
 use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_not_in_rect_mut<A: Axis, T: Aabb>(
-    tree: &mut TreeRef<A, T>,
+pub fn assert_for_all_not_in_rect_mut<T: Aabb>(
+    tree: &mut TreeRef<T>,
     rect: &axgeom::Rect<T::Num>,
 ) {
     let mut res_dino = Vec::new();
@@ -300,8 +298,8 @@ pub fn assert_for_all_not_in_rect_mut<A: Axis, T: Aabb>(
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_intersect_rect_mut<A: Axis, T: Aabb>(
-    tree: &mut TreeRef<A, T>,
+pub fn assert_for_all_intersect_rect_mut<T: Aabb>(
+    tree: &mut TreeRef< T>,
     rect: &axgeom::Rect<T::Num>,
 ) {
     let mut res_dino = Vec::new();
@@ -322,8 +320,8 @@ pub fn assert_for_all_intersect_rect_mut<A: Axis, T: Aabb>(
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_in_rect_mut<A: Axis, T: Aabb>(
-    tree: &mut TreeRef<A, T>,
+pub fn assert_for_all_in_rect_mut< T: Aabb>(
+    tree: &mut TreeRef<T>,
     rect: &axgeom::Rect<T::Num>,
 ) {
     let mut res_dino = Vec::new();
@@ -365,7 +363,7 @@ pub trait RectQuery<'a>: Queries<'a> {
     where
         'a: 'b,
     {
-        self::for_all_intersect_rect(self.axis(), self.vistr(), rect, func);
+        self::for_all_intersect_rect(default_axis(), self.vistr(), rect, func);
     }
 
     /// # Examples
@@ -388,7 +386,7 @@ pub trait RectQuery<'a>: Queries<'a> {
     ) where
         'a: 'b,
     {
-        self::for_all_intersect_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| (func)(a));
+        self::for_all_intersect_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| (func)(a));
     }
 
     /// # Examples
@@ -408,7 +406,7 @@ pub trait RectQuery<'a>: Queries<'a> {
     where
         'a: 'b,
     {
-        self::for_all_in_rect(self.axis(), self.vistr(), rect, func);
+        self::for_all_in_rect(default_axis(), self.vistr(), rect, func);
     }
 
     /// # Examples
@@ -431,7 +429,7 @@ pub trait RectQuery<'a>: Queries<'a> {
     ) where
         'a: 'b,
     {
-        self::for_all_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| (func)(a));
+        self::for_all_in_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| (func)(a));
     }
 
     /// # Examples
@@ -454,7 +452,7 @@ pub trait RectQuery<'a>: Queries<'a> {
     ) where
         'a: 'b,
     {
-        self::for_all_not_in_rect_mut(self.axis(), self.vistr_mut(), rect, move |a| (func)(a));
+        self::for_all_not_in_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| (func)(a));
     }
 
     /// If we have two non intersecting rectangles, it is safe to return to the user two sets of mutable references
@@ -483,7 +481,7 @@ pub trait RectQuery<'a>: Queries<'a> {
     /// assert_eq!(res,Err(broccoli::query::rect::RectIntersectErr));
     ///```
     #[must_use]
-    fn multi_rect<'c>(&'c mut self) -> MultiRectMut<'c, 'a, Self::A, Self::T> {
-        MultiRectMut::new(self.axis(), self.vistr_mut())
+    fn multi_rect<'c>(&'c mut self) -> MultiRectMut<'c, 'a, Self::T> {
+        MultiRectMut::new( self.vistr_mut())
     }
 }

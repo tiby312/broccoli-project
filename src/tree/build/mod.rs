@@ -133,17 +133,8 @@ impl TreePreBuilder {
     }
 
     ///Create a `TreeBuilder`
-    pub fn into_builder<T: Aabb>(self, bots: &mut [T]) -> TreeBuilder<DefaultA, T> {
-        TreeBuilder::from_prebuilder(default_axis(), bots, self)
-    }
-
-    ///Create a `TreeBuilder` with a use specified axis.
-    pub fn into_builder_with_axis<A: Axis, T: Aabb>(
-        self,
-        bots: &mut [T],
-        axis: A,
-    ) -> TreeBuilder<A, T> {
-        TreeBuilder::from_prebuilder(axis, bots, self)
+    pub fn into_builder<T: Aabb>(self, bots: &mut [T]) -> TreeBuilder<T> {
+        TreeBuilder::from_prebuilder( bots, self)
     }
 
     ///Return the level at which parallel algorithms will switch to sequential.
@@ -193,45 +184,26 @@ use crate::tree::Queries;
 /// along an axis at each level. Construction of [`NotSorted`] is faster than [`Tree`] since it does not have to
 /// sort bots that belong to each node along an axis. But most query algorithms can usually take advantage of this
 /// extra property to be faster.
-pub struct NotSorted<'a, A: Axis, T: Aabb>(Tree<'a, A, T>);
+pub struct NotSorted<'a, T: Aabb>(Tree<'a,  T>);
 
-impl<'a, T: Aabb + Send + Sync> NotSorted<'a, DefaultA, T>
+impl<'a, T: Aabb + Send + Sync> NotSorted<'a, T>
 where
     T::Num: Send + Sync,
 {
-    pub fn new_par(bots: &'a mut [T]) -> NotSorted<'a, DefaultA, T> {
+    pub fn new_par(bots: &'a mut [T]) -> NotSorted<'a,  T> {
         TreeBuilder::new(bots).build_not_sorted_par()
     }
 }
-impl<'a, T: Aabb> NotSorted<'a, DefaultA, T> {
-    pub fn new(bots: &'a mut [T]) -> NotSorted<'a, DefaultA, T> {
+impl<'a, T: Aabb> NotSorted<'a,  T> {
+    pub fn new(bots: &'a mut [T]) -> NotSorted<'a,  T> {
         TreeBuilder::new(bots).build_not_sorted_seq()
     }
 }
 
-impl<'a, A: Axis, T: Aabb + Send + Sync> NotSorted<'a, A, T>
-where
-    T::Num: Send + Sync,
-{
-    pub fn with_axis_par(axis: A, bots: &'a mut [T]) -> NotSorted<'a, A, T> {
-        TreeBuilder::with_axis(axis, bots).build_not_sorted_par()
-    }
-}
-impl<'a, A: Axis, T: Aabb> NotSorted<'a, A, T> {
-    pub fn with_axis(axis: A, bots: &'a mut [T]) -> NotSorted<'a, A, T> {
-        TreeBuilder::with_axis(axis, bots).build_not_sorted_seq()
-    }
-}
 
-impl<'a, A: Axis, T: Aabb> NotSortedQueries<'a> for NotSorted<'a, A, T> {
-    type A = A;
+impl<'a, T: Aabb> NotSortedQueries<'a> for NotSorted<'a, T> {
     type T = T;
     type Num = T::Num;
-
-    #[inline(always)]
-    fn axis(&self) -> Self::A {
-        self.0.axis()
-    }
 
     #[inline(always)]
     fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
@@ -244,7 +216,7 @@ impl<'a, A: Axis, T: Aabb> NotSortedQueries<'a> for NotSorted<'a, A, T> {
     }
 }
 
-impl<'a, A: Axis, T: Aabb> NotSorted<'a, A, T> {
+impl<'a,  T: Aabb> NotSorted<'a,  T> {
     #[inline(always)]
     pub fn get_height(&self) -> usize {
         self.0.get_height()

@@ -642,7 +642,7 @@ pub trait NbodyQuery<'a>: Queries<'a> {
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        self::nbody(self.axis(), self.vistr_mut(), ncontext, rect)
+        self::nbody(default_axis(), self.vistr_mut(), ncontext, rect)
     }
 
     ///Experimental. See broccoli demo
@@ -655,6 +655,6 @@ pub trait NbodyQuery<'a>: Queries<'a> {
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        self::nbody_par(self.axis(), self.vistr_mut(), ncontext, rect)
+        self::nbody_par(default_axis(), self.vistr_mut(), ncontext, rect)
     }
 }

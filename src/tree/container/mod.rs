@@ -32,55 +32,39 @@ unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 /// storing query results that can then be iterated through multiple times
 /// quickly.
 ///
-pub struct TreeRefInd<'a, A: Axis, N: Num, T> {
-    tree: inner::TreeIndInner<A, N, T>,
-    _p: PhantomData<TreeRef<'a, A, BBox<N, &'a mut T>>>,
+pub struct TreeRefInd<'a, N: Num, T> {
+    tree: inner::TreeIndInner< N, T>,
+    _p: PhantomData<TreeRef<'a,  BBox<N, &'a mut T>>>,
 }
 
-impl<'a, N: Num, T> TreeRefInd<'a, DefaultA, N, T> {
+impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
     pub fn new(
         arr: &'a mut [T],
         func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeRefInd<'a, DefaultA, N, T> {
-        Self::with_axis(default_axis(), arr, func)
+    ) -> TreeRefInd<'a, N, T> {
+        TreeRefInd {
+            tree: inner::TreeIndInner::new(arr, func),
+            _p: PhantomData,
+        }
     }
 }
 
-impl<'a, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, DefaultA, N, T> {
+impl<'a, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, N, T> {
     pub fn new_par(
         arr: &'a mut [T],
         func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeRefInd<'a, DefaultA, N, T> {
-        Self::with_axis_par(default_axis(), arr, func)
-    }
-}
-
-impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> {
-    pub fn with_axis_par(
-        axis: A,
-        arr: &'a mut [T],
-        func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeRefInd<'a, A, N, T> {
+    ) -> TreeRefInd<'a, N, T> {
         TreeRefInd {
-            tree: inner::TreeIndInner::with_axis_par(axis, arr, func),
+            tree: inner::TreeIndInner::new_par(arr, func),
             _p: PhantomData,
         }
     }
 }
-impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
-    pub fn with_axis(
-        axis: A,
-        arr: &'a mut [T],
-        func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeRefInd<'a, A, N, T> {
-        TreeRefInd {
-            tree: inner::TreeIndInner::with_axis(axis, arr, func),
-            _p: PhantomData,
-        }
-    }
 
+impl<'a,  N: Num, T> TreeRefInd<'a, N, T> {
+    
     ///Explicitly DerefMut.
-    pub fn as_tree_ref_mut(&mut self) -> &mut TreeRef<'a, A, BBox<N, &'a mut T>> {
+    pub fn as_tree_ref_mut(&mut self) -> &mut TreeRef<'a, BBox<N, &'a mut T>> {
         &mut *self
     }
 
@@ -109,13 +93,13 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
     }
 }
 
-impl<'a, A: Axis, N: Num + 'a, T> core::ops::Deref for TreeRefInd<'a, A, N, T> {
-    type Target = TreeRef<'a, A, BBox<N, &'a mut T>>;
+impl<'a,  N: Num + 'a, T> core::ops::Deref for TreeRefInd<'a, N, T> {
+    type Target = TreeRef<'a, BBox<N, &'a mut T>>;
     fn deref(&self) -> &Self::Target {
         unsafe { &*(self.tree.inner.as_tree() as *const _ as *const _) }
     }
 }
-impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T> {
+impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a,  N, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *(self.tree.inner.as_tree_mut() as *mut _ as *mut _) }
     }
@@ -164,9 +148,9 @@ impl<'a, A: Axis, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, A, N, T
 ///```
 ///
 #[repr(transparent)]
-pub struct TreeRef<'a, A: Axis, T: Aabb> {
-    tree: inner::TreeRefInner<A, T>,
-    _p: PhantomData<Tree<'a, A, T>>,
+pub struct TreeRef<'a,  T: Aabb> {
+    tree: inner::TreeRefInner< T>,
+    _p: PhantomData<Tree<'a,  T>>,
 }
 /*
 use crate::query::NaiveComparable;
@@ -182,52 +166,41 @@ impl<'a, A: Axis, T: Aabb> NaiveComparable<'a> for TreeRef<'a, A, T> {
     }
 }
 */
-impl<'a, A: Axis, T: Aabb> core::ops::Deref for TreeRef<'a, A, T> {
-    type Target = Tree<'a, A, T>;
+impl<'a,  T: Aabb> core::ops::Deref for TreeRef<'a,  T> {
+    type Target = Tree<'a, T>;
     fn deref(&self) -> &Self::Target {
         unsafe { &*(&self.tree.inner as *const _ as *const _) }
     }
 }
-impl<'a, A: Axis, T: Aabb> core::ops::DerefMut for TreeRef<'a, A, T> {
+impl<'a, T: Aabb> core::ops::DerefMut for TreeRef<'a,  T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *(&mut self.tree.inner as *mut _ as *mut _) }
     }
 }
 
-impl<'a, T: Aabb> TreeRef<'a, DefaultA, T> {
-    pub fn new(arr: &'a mut [T]) -> TreeRef<'a, DefaultA, T> {
-        TreeRef::with_axis(default_axis(), arr)
-    }
-}
-
-impl<'a, T: Aabb + Send + Sync> TreeRef<'a, DefaultA, T>
-where
-    T::Num: Send + Sync,
-{
-    pub fn new_par(arr: &'a mut [T]) -> TreeRef<'a, DefaultA, T> {
-        TreeRef::with_axis_par(default_axis(), arr)
-    }
-}
-
-impl<'a, A: Axis, T: Aabb + Send + Sync> TreeRef<'a, A, T>
-where
-    T::Num: Send + Sync,
-{
-    pub fn with_axis_par(a: A, arr: &'a mut [T]) -> TreeRef<'a, A, T> {
+impl<'a, T: Aabb> TreeRef<'a, T> {
+    pub fn new(arr: &'a mut [T]) -> TreeRef<'a,  T> {
         TreeRef {
-            tree: inner::TreeRefInner::with_axis_par(a, arr),
+            tree: inner::TreeRefInner::new(arr),
             _p: PhantomData,
         }
     }
 }
 
-impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
-    pub fn with_axis(a: A, arr: &'a mut [T]) -> TreeRef<'a, A, T> {
+impl<'a, T: Aabb + Send + Sync> TreeRef<'a,  T>
+where
+    T::Num: Send + Sync,
+{
+    pub fn new_par(arr: &'a mut [T]) -> TreeRef<'a, T> {
         TreeRef {
-            tree: inner::TreeRefInner::with_axis(a, arr),
+            tree: inner::TreeRefInner::new_par(arr),
             _p: PhantomData,
         }
     }
+}
+
+impl<'a,  T: Aabb> TreeRef<'a, T> {
+    
 
     /// ```rust
     /// use broccoli::{prelude::*,bbox,rect};
@@ -260,9 +233,9 @@ impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
 ///
 /// ```rust
 /// use axgeom::*;
-/// use broccoli::{*,container::*,build::DefaultA};
+/// use broccoli::{*,container::*};
 ///
-/// fn not_lifetimed()->TreeOwnedInd<DefaultA,i32,Vec2<i32>>
+/// fn not_lifetimed()->TreeOwnedInd<i32,Vec2<i32>>
 /// {
 ///     let rect=vec![vec2(0,10),vec2(3,30)].into_boxed_slice();
 ///     TreeOwnedInd::new(rect,|&mut p|{
@@ -274,59 +247,43 @@ impl<'a, A: Axis, T: Aabb> TreeRef<'a, A, T> {
 /// not_lifetimed();
 ///
 /// ```
-pub struct TreeOwnedInd<A: Axis, N: Num, T> {
-    tree: inner::TreeIndInner<A, N, T>,
+pub struct TreeOwnedInd< N: Num, T> {
+    tree: inner::TreeIndInner<N, T>,
     _bots: Box<[T]>,
 }
 
-impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<DefaultA, N, T> {
+impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd< N, T> {
     pub fn new_par(
-        bots: Box<[T]>,
-        func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeOwnedInd<DefaultA, N, T> {
-        TreeOwnedInd::with_axis_par(default_axis(), bots, func)
-    }
-}
-impl<A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<A, N, T> {
-    pub fn with_axis_par(
-        axis: A,
         mut bots: Box<[T]>,
         func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeOwnedInd<A, N, T> {
+    ) -> TreeOwnedInd< N, T> {
         TreeOwnedInd {
-            tree: inner::TreeIndInner::with_axis_par(axis, &mut bots, func),
+            tree: inner::TreeIndInner::new_par(&mut bots, func),
+            _bots: bots,
+        }
+    }
+}
+impl<N: Num, T> TreeOwnedInd< N, T> {
+    pub fn new(
+        mut bots: Box<[T]>,
+        func: impl FnMut(&mut T) -> Rect<N>,
+    ) -> TreeOwnedInd< N, T> {
+        TreeOwnedInd {
+            tree: inner::TreeIndInner::new( &mut bots, func),
             _bots: bots,
         }
     }
 }
 
-impl<N: Num, T> TreeOwnedInd<DefaultA, N, T> {
-    pub fn new(
-        bots: Box<[T]>,
-        func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeOwnedInd<DefaultA, N, T> {
-        Self::with_axis(default_axis(), bots, func)
-    }
-}
-impl<A: Axis, N: Num, T> TreeOwnedInd<A, N, T> {
-    ///Create an owned Tree in one thread.
-    pub fn with_axis(
-        axis: A,
-        mut bots: Box<[T]>,
-        func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeOwnedInd<A, N, T> {
-        TreeOwnedInd {
-            tree: inner::TreeIndInner::with_axis(axis, &mut bots, func),
-            _bots: bots,
-        }
-    }
+impl<N: Num, T> TreeOwnedInd<N, T> {
+    
     ///Cant use Deref because of lifetime
-    pub fn as_tree(&self) -> &TreeRefInd<A, N, T> {
+    pub fn as_tree(&self) -> &TreeRefInd<N, T> {
         unsafe { &*(&self.tree as *const _ as *const _) }
     }
 
     ///Cant use Deref because of lifetime
-    pub fn as_tree_mut(&mut self) -> &mut TreeRefInd<A, N, T> {
+    pub fn as_tree_mut(&mut self) -> &mut TreeRefInd< N, T> {
         unsafe { &mut *(&mut self.tree as *mut _ as *mut _) }
     }
 }
@@ -336,9 +293,9 @@ impl<A: Axis, N: Num, T> TreeOwnedInd<A, N, T> {
 /// An owned `(Rect<N>,T)` example
 ///
 /// ```rust
-/// use broccoli::{node::BBox,bbox,rect,prelude::*,container::*,build::DefaultA};
+/// use broccoli::{node::BBox,bbox,rect,prelude::*,container::*};
 ///
-/// fn not_lifetimed()->TreeOwned<DefaultA,BBox<i32,f32>>
+/// fn not_lifetimed()->TreeOwned<BBox<i32,f32>>
 /// {
 ///     let a=vec![bbox(rect(0,10,0,10),0.0)].into_boxed_slice();
 ///     TreeOwned::new(a)
@@ -347,51 +304,40 @@ impl<A: Axis, N: Num, T> TreeOwnedInd<A, N, T> {
 /// not_lifetimed();
 ///
 /// ```
-pub struct TreeOwned<A: Axis, T: Aabb> {
-    tree: inner::TreeRefInner<A, T>,
+pub struct TreeOwned<T: Aabb> {
+    tree: inner::TreeRefInner< T>,
     _bots: Box<[T]>,
 }
 
-impl<T: Aabb + Send + Sync> TreeOwned<DefaultA, T>
+impl<T: Aabb + Send + Sync> TreeOwned< T>
 where
     T::Num: Send + Sync,
 {
-    pub fn new_par(bots: Box<[T]>) -> TreeOwned<DefaultA, T> {
-        TreeOwned::with_axis_par(default_axis(), bots)
-    }
-}
-impl<A: Axis, T: Aabb + Send + Sync> TreeOwned<A, T>
-where
-    T::Num: Send + Sync,
-{
-    pub fn with_axis_par(axis: A, mut bots: Box<[T]>) -> TreeOwned<A, T> {
+    pub fn new_par(mut bots: Box<[T]>) -> TreeOwned< T> {
         TreeOwned {
-            tree: inner::TreeRefInner::with_axis_par(axis, &mut bots),
+            tree: inner::TreeRefInner::new_par(&mut bots),
             _bots: bots,
         }
     }
 }
-impl<T: Aabb> TreeOwned<DefaultA, T> {
-    pub fn new(bots: Box<[T]>) -> TreeOwned<DefaultA, T> {
-        Self::with_axis(default_axis(), bots)
-    }
-}
-impl<A: Axis, T: Aabb> TreeOwned<A, T> {
-    ///Create an owned Tree in one thread.
-    pub fn with_axis(axis: A, mut bots: Box<[T]>) -> TreeOwned<A, T> {
-        TreeOwned {
-            tree: inner::TreeRefInner::with_axis(axis, &mut bots),
-            _bots: bots,
-        }
-    }
 
+impl<T: Aabb> TreeOwned< T> {
+    pub fn new(mut bots: Box<[T]>) -> TreeOwned< T> {
+        TreeOwned {
+            tree: inner::TreeRefInner::new(&mut bots),
+            _bots: bots,
+        }
+    }
+}
+impl<T: Aabb> TreeOwned<T> {
+    
     ///Cant use Deref because of lifetime
-    pub fn as_tree(&self) -> &TreeRef<A, T> {
+    pub fn as_tree(&self) -> &TreeRef<T> {
         unsafe { &*(&self.tree as *const _ as *const _) }
     }
 
     ///Cant use Deref because of lifetime
-    pub fn as_tree_mut(&mut self) -> &mut TreeRef<A, T> {
+    pub fn as_tree_mut(&mut self) -> &mut TreeRef< T> {
         unsafe { &mut *(&mut self.tree as *mut _ as *mut _) }
     }
 }

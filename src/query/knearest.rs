@@ -27,8 +27,8 @@ pub trait Knearest {
 }
 
 ///Create a handler that treats each object as its aabb rectangle shape.
-pub fn default_rect_knearest<A: axgeom::Axis, T: Aabb>(
-    tree: &Tree<A, T>,
+pub fn default_rect_knearest<T: Aabb>(
+    tree: &Tree<T>,
 ) -> impl Knearest<T = T, N = T::Num>
 where
     T::Num: num_traits::Signed + num_traits::Zero,
@@ -93,7 +93,7 @@ use crate::Tree;
 /// the `fine` or `broad` functions.
 ///
 pub fn from_closure<Acc, T: Aabb>(
-    _tree: &Tree<impl Axis, T>,
+    _tree: &Tree<T>,
     acc: Acc,
     broad: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
     fine: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
@@ -389,8 +389,8 @@ impl<'a, T: Aabb> KResult<'a, T> {
 
 use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_k_nearest_mut<A: Axis, T: Aabb>(
-    tree: &mut TreeRef<A, T>,
+pub fn assert_k_nearest_mut<T: Aabb>(
+    tree: &mut TreeRef<T>,
     point: Vec2<T::Num>,
     num: usize,
     knear: &mut impl Knearest<T = T, N = T::Num>,
@@ -508,7 +508,6 @@ pub trait KnearestQuery<'a>: Queries<'a> {
     where
         'a: 'b,
     {
-        let axis = self.axis();
         let dt = self.vistr_mut().with_depth(Depth(0));
 
         let knear = KnearestBorrow(ktrait);
@@ -521,7 +520,7 @@ pub trait KnearestQuery<'a>: Queries<'a> {
             closest,
         };
 
-        recc(axis, dt, &mut blap);
+        recc(default_axis(), dt, &mut blap);
 
         let num_entires = blap.closest.curr_num;
         KResult {

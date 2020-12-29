@@ -1,86 +1,83 @@
 use super::*;
 
-pub(super) struct TreeRefInner<A: Axis, T: Aabb> {
-    pub(super) inner: TreeInner<A, NodePtr<T>>,
+pub(super) struct TreeRefInner< T: Aabb> {
+    pub(super) inner: TreeInner<NodePtr<T>>,
     pub(super) orig: Ptr<[T]>,
 }
 
-impl<A: Axis, T: Aabb + Send + Sync> TreeRefInner<A, T>
+impl< T: Aabb + Send + Sync> TreeRefInner<T>
 where
     T::Num: Send + Sync,
 {
-    pub fn with_axis_par(a: A, arr: &mut [T]) -> TreeRefInner<A, T> {
-        let inner = make_owned_par(a, arr);
+    pub fn new_par(arr: &mut [T]) -> TreeRefInner< T> {
+        let inner = make_owned_par(arr);
         let orig = Ptr(arr as *mut _);
         TreeRefInner { inner, orig }
     }
 }
-impl<A: Axis, T: Aabb> TreeRefInner<A, T> {
-    pub fn with_axis(a: A, arr: &mut [T]) -> TreeRefInner<A, T> {
-        let inner = make_owned(a, arr);
+impl<T: Aabb> TreeRefInner< T> {
+    pub fn new(arr: &mut [T]) -> TreeRefInner<T> {
+        let inner = make_owned( arr);
         let orig = Ptr(arr as *mut _);
         TreeRefInner { inner, orig }
     }
 }
 
-pub(super) struct TreeIndInner<A: Axis, N: Num, T> {
-    pub(super) inner: TreeOwned<A, BBox<N, Ptr<T>>>,
+pub(super) struct TreeIndInner<N: Num, T> {
+    pub(super) inner: TreeOwned< BBox<N, Ptr<T>>>,
     pub(super) orig: Ptr<[T]>,
 }
 
-impl<A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeIndInner<A, N, T> {
-    pub fn with_axis_par(
-        axis: A,
+impl<N: Num + Send + Sync, T: Send + Sync> TreeIndInner< N, T> {
+    pub fn new_par(
         arr: &mut [T],
         mut func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeIndInner<A, N, T> {
+    ) -> TreeIndInner< N, T> {
         let orig = Ptr(arr as *mut _);
         let bbox = arr
             .iter_mut()
             .map(|b| BBox::new(func(b), Ptr(b as *mut _)))
             .collect();
 
-        let inner = TreeOwned::with_axis_par(axis, bbox);
+        let inner = TreeOwned::new_par( bbox);
 
         TreeIndInner { inner, orig }
     }
 }
-impl<A: Axis, N: Num, T> TreeIndInner<A, N, T> {
-    pub fn with_axis(
-        axis: A,
+impl< N: Num, T> TreeIndInner< N, T> {
+    pub fn new(
         arr: &mut [T],
         mut func: impl FnMut(&mut T) -> Rect<N>,
-    ) -> TreeIndInner<A, N, T> {
+    ) -> TreeIndInner< N, T> {
         let orig = Ptr(arr as *mut _);
         let bbox = arr
             .iter_mut()
             .map(|b| BBox::new(func(b), Ptr(b as *mut _)))
             .collect();
 
-        let inner = TreeOwned::with_axis(axis, bbox);
+        let inner = TreeOwned::new(bbox);
 
         TreeIndInner { inner, orig }
     }
 }
 
-pub(super) fn make_owned<A: Axis, T: Aabb>(axis: A, bots: &mut [T]) -> TreeInner<A, NodePtr<T>> {
-    let inner = crate::Tree::with_axis(axis, bots);
+pub(super) fn make_owned<T: Aabb>(bots: &mut [T]) -> TreeInner<NodePtr<T>> {
+    let inner = crate::new(bots);
 
     let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>, _> = inner.inner.inner.convert();
 
-    TreeInner { axis, inner }
+    TreeInner {  inner }
 }
 
-fn make_owned_par<A: Axis, T: Aabb + Send + Sync>(
-    axis: A,
+fn make_owned_par<T: Aabb + Send + Sync>(
     bots: &mut [T],
-) -> TreeInner<A, NodePtr<T>>
+) -> TreeInner< NodePtr<T>>
 where
     T::Num: Send + Sync,
 {
-    let inner = crate::Tree::with_axis_par(axis, bots);
+    let inner = crate::new_par(bots);
 
     let inner: compt::dfs_order::CompleteTreeContainer<NodePtr<T>, _> = inner.inner.inner.convert();
 
-    TreeInner { axis, inner }
+    TreeInner {  inner }
 }

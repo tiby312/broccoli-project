@@ -115,6 +115,6 @@ pub trait DrawQuery<'a>: Queries<'a> {
             line,
         };
 
-        draw(self.axis(), self.vistr(), &mut d, rect)
+        draw(default_axis(), self.vistr(), &mut d, rect)
     }
 }

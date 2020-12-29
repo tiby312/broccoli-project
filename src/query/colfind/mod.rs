@@ -16,7 +16,7 @@ use self::builder::QueryBuilder;
 
 ///Panics if a disconnect is detected between tree and naive queries.
 use crate::container::TreeRef;
-pub fn assert_query<A: Axis, T: Aabb>(tree: &mut TreeRef<A, T>) {
+pub fn assert_query<T: Aabb>(tree: &mut TreeRef< T>) {
     use core::ops::Deref;
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
@@ -108,7 +108,7 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     /// assert_eq!(bots[1].inner,1);
     ///```
     fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
-        QueryBuilder::new(self.axis(), self.vistr_mut()).query_seq(move |a, b| func(a, b));
+        QueryBuilder::new(self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
 
     /// The parallel version of [`ColfindQuery::find_colliding_pairs_mut`].
@@ -134,7 +134,7 @@ pub trait ColfindQuery<'a>: Queries<'a> {
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        QueryBuilder::new(self.axis(), self.vistr_mut()).query_par(move |a, b| func(a, b));
+        QueryBuilder::new(self.vistr_mut()).query_par(move |a, b| func(a, b));
     }
 
     /// For analysis, allows the user to query with custom settings
@@ -156,8 +156,8 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     /// assert_eq!(bots[0].inner,1);
     /// assert_eq!(bots[1].inner,1);
     ///```
-    fn new_colfind_builder<'c>(&'c mut self) -> QueryBuilder<'c, 'a, Self::A, Self::T> {
-        QueryBuilder::new(self.axis(), self.vistr_mut())
+    fn new_colfind_builder<'c>(&'c mut self) -> QueryBuilder<'c, 'a, Self::T> {
+        QueryBuilder::new( self.vistr_mut())
     }
 }
 
@@ -165,7 +165,6 @@ pub trait ColfindQuery<'a>: Queries<'a> {
 ///These functions are not documented since they match the same
 ///behavior as those in the [`Queries`] trait.
 pub trait NotSortedQueries<'a> {
-    type A: Axis;
     type T: Aabb<Num = Self::Num> + 'a;
     type Num: Num;
 
@@ -175,15 +174,12 @@ pub trait NotSortedQueries<'a> {
     #[must_use]
     fn vistr(&self) -> Vistr<Node<'a, Self::T>>;
 
-    #[must_use]
-    fn axis(&self) -> Self::A;
-
-    fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c, 'a, Self::A, Self::T> {
-        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut())
+    fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c, 'a, Self::T> {
+        NotSortedQueryBuilder::new( self.vistr_mut())
     }
 
     fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) {
-        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut()).query_seq(move |a, b| func(a, b));
+        NotSortedQueryBuilder::new( self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
 
     fn find_colliding_pairs_mut_par(
@@ -193,6 +189,6 @@ pub trait NotSortedQueries<'a> {
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        NotSortedQueryBuilder::new(self.axis(), self.vistr_mut()).query_par(move |a, b| func(a, b));
+        NotSortedQueryBuilder::new( self.vistr_mut()).query_par(move |a, b| func(a, b));
     }
 }

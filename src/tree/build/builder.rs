@@ -5,19 +5,19 @@ use super::*;
 ///the built in new() functions to create the tree.
 ///This is provided in cases the user wants more control
 ///on the behavior of the tree for benching and debuging purposes.
-pub struct TreeBuilder<'a, A: Axis, T> {
-    axis: A,
+pub struct TreeBuilder<'a, T> {
+    axis: DefaultA,
     bots: &'a mut [T],
     rebal_strat: BinStrat,
     height: TreePreBuilder,
 }
 
-impl<'a, A: Axis, T: Aabb + Send + Sync> TreeBuilder<'a, A, T>
+impl<'a, T: Aabb + Send + Sync> TreeBuilder<'a, T>
 where
     T::Num: Send + Sync,
 {
     ///Build not sorted in parallel
-    pub fn build_not_sorted_par(&mut self) -> NotSorted<'a, A, T> {
+    pub fn build_not_sorted_par(&mut self) -> NotSorted<'a, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
         let dlevel = self.height.switch_seq_level();
@@ -34,7 +34,7 @@ where
     }
 
     ///Build in parallel
-    pub fn build_par(&mut self) -> Tree<'a, A, T> {
+    pub fn build_par(&mut self) -> Tree<'a, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
         let dlevel = self.height.switch_seq_level();
@@ -51,35 +51,37 @@ where
     }
 }
 
-impl<'a, T: Aabb> TreeBuilder<'a, DefaultA, T> {
+impl<'a, T: Aabb> TreeBuilder<'a, T> {
     ///Create a new builder with a slice of elements that implement `Aabb`.
-    pub fn new(bots: &'a mut [T]) -> TreeBuilder<'a, DefaultA, T> {
-        Self::with_axis(default_axis(), bots)
+    pub fn new(bots: &'a mut [T]) -> TreeBuilder<'a, T> {
+        let rebal_strat = BinStrat::Checked;
+        let height=TreePreBuilder::new(bots.len());
+        TreeBuilder{
+            axis:default_axis(),
+            bots,
+            rebal_strat,
+            height
+        }
     }
 }
 
-impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
+impl<'a,  T: Aabb> TreeBuilder<'a, T> {
     pub fn from_prebuilder(
-        axis: A,
         bots: &'a mut [T],
         height: TreePreBuilder,
-    ) -> TreeBuilder<A, T> {
+    ) -> TreeBuilder< T> {
         let rebal_strat = BinStrat::Checked;
         TreeBuilder {
-            axis,
+            axis:default_axis(),
             bots,
             rebal_strat,
             height,
         }
     }
-    ///Create a new builder with a slice of elements that implement `Aabb`.
-    pub fn with_axis(axis: A, bots: &'a mut [T]) -> TreeBuilder<'a, A, T> {
-        let height = TreePreBuilder::new(bots.len());
-        Self::from_prebuilder(axis, bots, height)
-    }
+
 
     ///Build not sorted sequentially
-    pub fn build_not_sorted_seq(&mut self) -> NotSorted<'a, A, T> {
+    pub fn build_not_sorted_seq(&mut self) -> NotSorted<'a, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
         let inner = create_tree_seq(
@@ -94,7 +96,7 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     }
 
     ///Build sequentially
-    pub fn build_seq(&mut self) -> Tree<'a, A, T> {
+    pub fn build_seq(&mut self) -> Tree<'a, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
         create_tree_seq(
@@ -128,7 +130,7 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     }
 
     ///Build with a Splitter.
-    pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: &mut S) -> Tree<'a, A, T> {
+    pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: &mut S) -> Tree<'a, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
         create_tree_seq(
@@ -142,14 +144,14 @@ impl<'a, A: Axis, T: Aabb> TreeBuilder<'a, A, T> {
     }
 }
 
-fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
-    div_axis: A,
+fn create_tree_seq<'a, T: Aabb, K: Splitter>(
+    div_axis: DefaultA,
     rest: &'a mut [T],
     sorter: impl Sorter,
     splitter: &mut K,
     height: TreePreBuilder,
     binstrat: BinStrat,
-) -> Tree<'a, A, T> {
+) -> Tree<'a, T> {
     let num_bots = rest.len();
 
     let cc = height.num_nodes();
@@ -175,21 +177,20 @@ fn create_tree_seq<'a, A: Axis, T: Aabb, K: Splitter>(
 
     Tree {
         inner: TreeInner {
-            axis: div_axis,
             inner: tree,
         },
     }
 }
 
-fn create_tree_par<'a, A: Axis, JJ: par::Joiner, T: Aabb + Send + Sync, K: Splitter + Send + Sync>(
-    div_axis: A,
+fn create_tree_par<'a, JJ: par::Joiner, T: Aabb + Send + Sync, K: Splitter + Send + Sync>(
+    div_axis: DefaultA,
     dlevel: JJ,
     rest: &'a mut [T],
     sorter: impl Sorter,
     splitter: &mut K,
     height: TreePreBuilder,
     binstrat: BinStrat,
-) -> Tree<'a, A, T>
+) -> Tree<'a, T>
 where
     T::Num: Send + Sync,
 {
@@ -218,7 +219,6 @@ where
 
     Tree {
         inner: TreeInner {
-            axis: div_axis,
             inner: tree,
         },
     }

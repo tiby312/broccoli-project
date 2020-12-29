@@ -103,7 +103,7 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
     }
 }
 
-impl<'a, A: Axis, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, A, N, T> {
+impl<'a,  N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a,  N, T> {
     /// The parallel version of [`TreeRefInd::collect_colliding_pairs`] that instead
     /// returns a [`CollidingPairsPar`].
     ///
@@ -193,7 +193,7 @@ impl<T, D> FilteredElements<T, D> {
     }
 }
 
-impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
+impl<'a,  N: Num, T> TreeRefInd<'a, N, T> {
     /// Collect all elements based off of a predicate and return a [`FilteredElements`].
     ///
     /// # Examples
@@ -245,7 +245,7 @@ impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
     }
 }
 
-impl<'a, A: Axis, N: Num, T> TreeRefInd<'a, A, N, T> {
+impl<'a, N: Num, T> TreeRefInd<'a,  N, T> {
     /// Find all colliding pairs based on a predicate and return a [`CollidingPairs`].
     ///
     /// # Examples

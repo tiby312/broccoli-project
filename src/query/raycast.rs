@@ -4,7 +4,7 @@ use crate::query::inner_prelude::*;
 use axgeom::Ray;
 
 ///Create a handler that just casts directly to the axis aligned rectangle
-pub fn default_rect_raycast<T: Aabb>(tree: &Tree<impl Axis, T>) -> impl RayCast<T = T, N = T::Num>
+pub fn default_rect_raycast<T: Aabb>(tree: &Tree<T>) -> impl RayCast<T = T, N = T::Num>
 where
     T::Num: core::fmt::Debug + num_traits::Signed,
 {
@@ -98,7 +98,7 @@ where
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
 pub fn from_closure<A, T: Aabb>(
-    _tree: &Tree<impl Axis, T>,
+    _tree: &Tree<T>,
     acc: A,
     broad: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> Option<CastResult<T::Num>>,
     fine: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
@@ -327,8 +327,8 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
 
 use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_raycast<A: Axis, T: Aabb>(
-    tree: &mut TreeRef<A, T>,
+pub fn assert_raycast<T: Aabb>(
+    tree: &mut TreeRef< T>,
     ray: axgeom::Ray<T::Num>,
     rtrait: &mut impl RayCast<T = T, N = T::Num>,
 ) where
@@ -459,7 +459,6 @@ pub trait RaycastQuery<'a>: Queries<'a> {
     where
         'a: 'b,
     {
-        let axis = self.axis();
         let rtrait = RayCastBorrow(rtrait);
         let dt = self.vistr_mut().with_depth(Depth(0));
 
@@ -469,7 +468,7 @@ pub trait RaycastQuery<'a>: Queries<'a> {
             ray,
             closest,
         };
-        recc(axis, dt, &mut blap);
+        recc(default_axis(), dt, &mut blap);
 
         match blap.closest.closest {
             Some((a, b)) => axgeom::CastResult::Hit(CastAnswer { elems: a, mag: b }),

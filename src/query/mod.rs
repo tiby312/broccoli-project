@@ -5,6 +5,7 @@ mod inner_prelude {
     pub(crate) use crate::par;
     pub use crate::pmut::*;
     pub use crate::tree::build::Splitter;
+    pub use crate::tree::build::default_axis;
     pub use crate::util::*;
     pub use alloc::vec::Vec;
     pub use axgeom;
@@ -35,7 +36,6 @@ use self::inner_prelude::*;
 
 ///Query modules provide functions based off of this trait.
 pub trait Queries<'a> {
-    type A: Axis;
     type T: Aabb<Num = Self::Num> + 'a;
     type Num: Num;
 
@@ -72,23 +72,11 @@ pub trait Queries<'a> {
     #[must_use]
     fn vistr(&self) -> Vistr<Node<'a, Self::T>>;
 
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect,build,query::Queries};
-    /// let mut bots = [rect(0,10,0,10)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// use axgeom::Axis;
-    /// assert!(tree.axis().is_equal_to(build::default_axis()));
-    ///```
-    #[must_use]
-    fn axis(&self) -> Self::A;
 }
 
 ///panics if a broken broccoli tree invariant is detected.
 ///For debugging purposes only.
-pub fn assert_tree_invariants<A: Axis, T: Aabb>(tree: &crate::Tree<A, T>)
+pub fn assert_tree_invariants<T: Aabb>(tree: &crate::Tree<T>)
 where
     T::Num: core::fmt::Debug,
 {
@@ -164,5 +152,5 @@ where
         }
     }
 
-    inner(tree.axis(), tree.vistr().with_depth(compt::Depth(0)))
+    inner(default_axis(), tree.vistr().with_depth(compt::Depth(0)))
 }

@@ -8,18 +8,17 @@ use build::TreeBuilder;
 
 pub mod container;
 
-struct TreeInner<A: Axis, N> {
-    axis: A,
+struct TreeInner<N> {
     inner: compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>,
 }
 
 ///The data structure this crate revoles around.
 #[repr(transparent)]
-pub struct Tree<'a, A: Axis, T: Aabb> {
-    inner: TreeInner<A, Node<'a, T>>,
+pub struct Tree<'a, T: Aabb> {
+    inner: TreeInner<Node<'a, T>>,
 }
 
-///Create a [`Tree`] using the default axis.
+///Create a [`Tree`].
 ///
 /// # Examples
 ///
@@ -28,11 +27,11 @@ pub struct Tree<'a, A: Axis, T: Aabb> {
 /// let tree = broccoli::new(&mut bots);
 ///
 ///```
-pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<DefaultA, T> {
+pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
     TreeBuilder::new(bots).build_seq()
 }
 
-///Create a [`Tree`] using the default axis in parallel.
+///Create a [`Tree`] in parallel.
 ///
 /// # Examples
 ///
@@ -41,30 +40,26 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<DefaultA, T> {
 /// let tree = broccoli::new_par(&mut bots);
 ///
 ///```
-pub fn new_par<T: Aabb + Send + Sync>(bots: &mut [T]) -> Tree<DefaultA, T>
+pub fn new_par<T: Aabb + Send + Sync>(bots: &mut [T]) -> Tree<T>
 where
     T::Num: Send + Sync,
 {
     TreeBuilder::new(bots).build_par()
 }
 
-impl<'a, A: Axis, T: Aabb> NbodyQuery<'a> for Tree<'a, A, T> {}
-impl<'a, A: Axis, T: Aabb> DrawQuery<'a> for Tree<'a, A, T> {}
-impl<'a, A: Axis, T: Aabb> IntersectQuery<'a> for Tree<'a, A, T> {}
-impl<'a, A: Axis, T: Aabb> RectQuery<'a> for Tree<'a, A, T> {}
-impl<'a, A: Axis, T: Aabb> ColfindQuery<'a> for Tree<'a, A, T> {}
-impl<'a, A: Axis, T: Aabb> RaycastQuery<'a> for Tree<'a, A, T> {}
-impl<'a, A: Axis, T: Aabb> KnearestQuery<'a> for Tree<'a, A, T> {}
 
-impl<'a, A: Axis, T: Aabb> Queries<'a> for Tree<'a, A, T> {
-    type A = A;
+
+impl<'a, T: Aabb> NbodyQuery<'a> for Tree<'a, T> {}
+impl<'a, T: Aabb> DrawQuery<'a> for Tree<'a, T> {}
+impl<'a, T: Aabb> IntersectQuery<'a> for Tree<'a, T> {}
+impl<'a, T: Aabb> RectQuery<'a> for Tree<'a, T> {}
+impl<'a, T: Aabb> ColfindQuery<'a> for Tree<'a, T> {}
+impl<'a, T: Aabb> RaycastQuery<'a> for Tree<'a,  T> {}
+impl<'a, T: Aabb> KnearestQuery<'a> for Tree<'a, T> {}
+
+impl<'a, T: Aabb> Queries<'a> for Tree<'a, T> {
     type T = T;
     type Num = T::Num;
-
-    #[inline(always)]
-    fn axis(&self) -> Self::A {
-        self.inner.axis
-    }
 
     #[inline(always)]
     fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
@@ -77,35 +72,30 @@ impl<'a, A: Axis, T: Aabb> Queries<'a> for Tree<'a, A, T> {
     }
 }
 
-impl<'a, A: Axis, T: Aabb> Tree<'a, A, T> {
-    ///Create a [`Tree`] using a specified axis.
+impl<'a, T: Aabb> Tree<'a, T> {
+    ///Create a [`Tree`].
     ///
     /// # Examples
     ///
     ///```
     /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let tree = broccoli::Tree::with_axis(axgeom::XAXIS,&mut bots);
+    /// let tree = broccoli::Tree::new(&mut bots);
     ///
     ///```
-    pub fn with_axis(axis: A, bots: &'a mut [T]) -> Tree<'a, A, T> {
-        TreeBuilder::with_axis(axis, bots).build_seq()
+    pub fn new(bots:&'a mut [T])->Tree<'a,T>{
+        crate::new(bots)
     }
-
-    ///Create a [`Tree`] using a specified axis in parallel.
+    ///Create a [`Tree`] in parallel.
     ///
     /// # Examples
     ///
     ///```
     /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let tree = broccoli::Tree::with_axis_par(axgeom::XAXIS,&mut bots);
+    /// let tree = broccoli::Tree::new_par(&mut bots);
     ///
     ///```
-    pub fn with_axis_par(axis: A, bots: &'a mut [T]) -> Tree<'a, A, T>
-    where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        TreeBuilder::with_axis(axis, bots).build_par()
+    pub fn new_par(bots:&'a mut [T])->Tree<'a,T> where T:Send+Sync,T::Num:Send+Sync{
+        crate::new_par(bots)
     }
 
     /// # Examples
