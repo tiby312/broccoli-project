@@ -67,13 +67,13 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
         //Draw the dividers
         let mut rects = canvas.rects();
-        let mut lines=canvas.lines(2.0);
+        let mut lines = canvas.lines(2.0);
         tree.draw_divider(
             |axis, node, rect, _| {
                 let mid = if let Some(div) = node.div {
                     axis.map(
-                        |x|get_nonleaf_mid(x,rect,div),
-                        |y|get_nonleaf_mid(y,rect,div)
+                        |x| get_nonleaf_mid(x, rect, div),
+                        |y| get_nonleaf_mid(y, rect, div),
                     )
                 } else {
                     get_leaf_mid(rect)
@@ -82,19 +82,26 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                 if let Some(cont) = node.cont {
                     rects.add(
                         axis.map_val(
-                            Rect {x: cont.into(),y: rect.y.into(),},
-                            Rect {x: rect.x.into(),y: cont.into(),}
-                        ).into()
+                            Rect {
+                                x: cont.into(),
+                                y: rect.y.into(),
+                            },
+                            Rect {
+                                x: rect.x.into(),
+                                y: cont.into(),
+                            },
+                        )
+                        .into(),
                     );
                 }
 
                 for b in node.range.iter() {
-                    lines.add(b.inner.pos.into(),mid.into());
+                    lines.add(b.inner.pos.into(), mid.into());
                 }
             },
             dim,
         );
-        
+
         rects
             .send_and_uniforms(canvas)
             .with_color([0.0, 1.0, 1.0, 0.3])
@@ -136,7 +143,6 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             .draw();
     })
 }
-
 
 fn get_leaf_mid(rect: &Rect<f32>) -> Vec2<f32> {
     let ((x1, x2), (y1, y2)) = rect.get();

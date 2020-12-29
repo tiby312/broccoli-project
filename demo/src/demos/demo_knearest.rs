@@ -54,7 +54,10 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             tree.as_tree(),
             &mut rects,
             |_, _, _| None,
-            |rects, point, a| {rects.add(a.rect.into());distance_to_rect(&a.rect, point)},
+            |rects, point, a| {
+                rects.add(a.rect.into());
+                distance_to_rect(&a.rect, point)
+            },
             |_, point, val| distance_to_line(point, axgeom::XAXIS, val),
             |_, point, val| distance_to_line(point, axgeom::YAXIS, val),
         );

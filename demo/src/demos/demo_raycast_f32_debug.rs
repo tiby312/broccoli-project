@@ -37,7 +37,10 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             tree,
             &mut rects,
             |_, _, _| None,
-            |rects, ray, a| {rects.add(a.rect.into());ray.cast_to_rect(&a.rect)},
+            |rects, ray, a| {
+                rects.add(a.rect.into());
+                ray.cast_to_rect(&a.rect)
+            },
             |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
             |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
         );

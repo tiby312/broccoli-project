@@ -26,23 +26,28 @@ pub trait Knearest {
     fn distance_to_fine(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N;
 }
 
-
 ///Create a handler that treats each object as its aabb rectangle shape.
-pub fn default_rect_knearest<A: axgeom::Axis, T:Aabb>(
+pub fn default_rect_knearest<A: axgeom::Axis, T: Aabb>(
     tree: &Tree<A, T>,
-) -> impl Knearest<T = T, N = T::Num> where T::Num:num_traits::Signed+num_traits::Zero {
+) -> impl Knearest<T = T, N = T::Num>
+where
+    T::Num: num_traits::Signed + num_traits::Zero,
+{
     use num_traits::Signed;
     use num_traits::Zero;
     from_closure(
         tree,
         (),
         |_, _, _| None,
-        |_, point, a| a.get().distance_squared_to_point(point).unwrap_or_else(T::Num::zero),
+        |_, point, a| {
+            a.get()
+                .distance_squared_to_point(point)
+                .unwrap_or_else(T::Num::zero)
+        },
         |_, point, a| (point.x - a).abs() * (point.x - a).abs(),
         |_, point, a| (point.y - a).abs() * (point.y - a).abs(),
     )
 }
-
 
 struct KnearestBorrow<'a, K>(&'a mut K);
 impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
@@ -128,7 +133,11 @@ pub fn from_closure<Acc, T: Aabb>(
             }
         }
 
-        fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Option<Self::N> {
+        fn distance_to_broad(
+            &mut self,
+            point: Vec2<Self::N>,
+            rect: PMut<Self::T>,
+        ) -> Option<Self::N> {
             (self.broad)(&mut self.acc, point, rect)
         }
 
@@ -181,9 +190,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         knear: &mut K,
         mut curr_bot: PMut<'a, T>,
     ) -> bool {
-
-        if let Some(long_dis)=knear.distance_to_broad(*point, curr_bot.borrow_mut()){
-            
+        if let Some(long_dis) = knear.distance_to_broad(*point, curr_bot.borrow_mut()) {
             if self.curr_num == self.num {
                 if let Some(l) = self.bots.last() {
                     if long_dis > l.mag {
@@ -375,7 +382,7 @@ impl<'a, T: Aabb> KResult<'a, T> {
         self.num_entires
     }
     #[inline(always)]
-    pub fn is_empty(&self)->bool{
+    pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
     }
 }

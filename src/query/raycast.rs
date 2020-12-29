@@ -3,11 +3,11 @@
 use crate::query::inner_prelude::*;
 use axgeom::Ray;
 
-
-
 ///Create a handler that just casts directly to the axis aligned rectangle
-pub fn default_rect_raycast<T:Aabb>(tree:&Tree<impl Axis,T>)->impl RayCast<T=T,N=T::Num>
-    where T::Num:core::fmt::Debug+num_traits::Signed{
+pub fn default_rect_raycast<T: Aabb>(tree: &Tree<impl Axis, T>) -> impl RayCast<T = T, N = T::Num>
+where
+    T::Num: core::fmt::Debug + num_traits::Signed,
+{
     from_closure(
         tree,
         (),
@@ -38,8 +38,12 @@ pub trait RayCast {
 
     ///Return the cast result that is cheap and overly conservative.
     ///It may be that the precise cast is fast enough, in which case you can simply
-    ///return None. 
-    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> Option<axgeom::CastResult<Self::N>>;
+    ///return None.
+    fn cast_broad(
+        &mut self,
+        ray: &Ray<Self::N>,
+        a: PMut<Self::T>,
+    ) -> Option<axgeom::CastResult<Self::N>>;
 
     ///Return the exact cast result.
     fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N>;
@@ -133,7 +137,11 @@ pub fn from_closure<A, T: Aabb>(
                 (self.yline)(&mut self.acc, ray, val)
             }
         }
-        fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> Option<CastResult<Self::N>> {
+        fn cast_broad(
+            &mut self,
+            ray: &Ray<Self::N>,
+            a: PMut<Self::T>,
+        ) -> Option<CastResult<Self::N>> {
             (self.broad)(&mut self.acc, ray, a)
         }
 
@@ -168,7 +176,11 @@ impl<'a, R: RayCast> RayCast for RayCastBorrow<'a, R> {
 
     ///Returns true if the ray intersects with this rectangle.
     ///This function allows as to prune which nodes to visit.
-    fn cast_broad(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> Option<axgeom::CastResult<Self::N>> {
+    fn cast_broad(
+        &mut self,
+        ray: &Ray<Self::N>,
+        a: PMut<Self::T>,
+    ) -> Option<axgeom::CastResult<Self::N>> {
         self.0.cast_broad(ray, a)
     }
 
@@ -192,7 +204,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
         raytrait: &mut R,
     ) {
         //first check if bounding box could possibly be a candidate.
-        if let Some(broad)=raytrait.cast_broad(ray,b.borrow_mut()){
+        if let Some(broad) = raytrait.cast_broad(ray, b.borrow_mut()) {
             let y = match broad {
                 axgeom::CastResult::Hit(val) => val,
                 axgeom::CastResult::NoHit => {
@@ -200,14 +212,14 @@ impl<'a, T: Aabb> Closest<'a, T> {
                 }
             };
 
-            if let Some(dis)=self.closest.as_mut(){
+            if let Some(dis) = self.closest.as_mut() {
                 if y > dis.1 {
                     //no way this bot will be a candidate, return.
                     return;
                 } else {
                     //this aabb could be a candidate, continue.
                 }
-            }else{
+            } else {
                 //this aabb could be a candidate, continue,
             }
         }
@@ -252,9 +264,7 @@ impl<'a, R: RayCast> Blap<'a, R> {
     fn should_recurse<A: Axis>(&mut self, line: (A, R::N)) -> bool {
         match self.rtrait.cast_to_aaline(&self.ray, line.0, line.1) {
             axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
-                Some(dis) => {
-                    val <= dis
-                }
+                Some(dis) => val <= dis,
                 None => true,
             },
             axgeom::CastResult::NoHit => false,
