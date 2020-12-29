@@ -2,83 +2,75 @@
 //!
 use crate::query::inner_prelude::*;
 
-struct DrawClosure<N, Acc, A, B> {
-    _p: PhantomData<N>,
-    acc: Acc,
-    xline: A,
-    yline: B,
+
+struct DrawClosure<T,  A> {
+    _p: PhantomData<T>,
+    line: A,
 }
 
-impl<N: Num, Acc, A, B> DividerDrawer for DrawClosure<N, Acc, A, B>
+impl<T: Aabb,  A, > DividerDrawer for DrawClosure<T, A>
 where
-    A: FnMut(&mut Acc, N, [N; 2], [N; 2], usize),
-    B: FnMut(&mut Acc, N, [N; 2], [N; 2], usize),
+    A: FnMut(bool, &Node<T>, &Rect<T::Num>, usize),
 {
-    type N = N;
+    type T=T;
+    type N=T::Num;
+
+    #[inline(always)]
     fn draw_divider<AA: Axis>(
         &mut self,
         axis: AA,
-        div: Self::N,
-        cont: [Self::N; 2],
-        length: [Self::N; 2],
+        node:&Node<T>,
+        rect:&Rect<T::Num>,
         depth: usize,
     ) {
         if axis.is_xaxis() {
-            (self.xline)(&mut self.acc, div, cont, length, depth);
+            (self.line)(true,node,rect,depth);
         } else {
-            (self.yline)(&mut self.acc, div, cont, length, depth);
+            (self.line)(false,node,rect,depth);
         }
     }
 }
 
+
 ///Trait user must implement.
 trait DividerDrawer {
-    type N: Num;
+    type T: Aabb<Num=Self::N>;
+    type N:Num;
     fn draw_divider<A: Axis>(
         &mut self,
         axis: A,
-        div: Self::N,
-        cont: [Self::N; 2],
-        length: [Self::N; 2],
+        node:&Node<Self::T>,
+        rect: &Rect<Self::N>,
         depth: usize,
     );
 }
 
 ///Calls the user supplied function on each divider.
 ///Since the leaves do not have dividers, it is not called for the leaves.
-fn draw<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
+fn draw<A: Axis, T: Aabb, D: DividerDrawer<T=T,N = T::Num>>(
     axis: A,
     vistr: Vistr<Node<T>>,
     dr: &mut D,
-    rect: &Rect<T::Num>,
+    rect: Rect<T::Num>,
 ) {
-    fn recc<A: Axis, T: Aabb, D: DividerDrawer<N = T::Num>>(
+    fn recc<A: Axis, T: Aabb, D: DividerDrawer<T=T,N = T::Num>>(
         axis: A,
         stuff: LevelIter<Vistr<Node<T>>>,
         dr: &mut D,
-        rect: &Rect<T::Num>,
-    ) {
+        rect: Rect<T::Num>,
+    ){
         let ((depth, nn), rest) = stuff.next();
+        dr.draw_divider(axis, nn, &rect, depth.0);
 
         if let Some([left, right]) = rest {
-            let div = match nn.div {
-                Some(d) => d,
-                None => return,
-            };
 
-            let cont = match nn.cont {
-                Some(d) => d,
-                None => return,
-            };
+            
+            if let Some(div) = nn.div{
+                let (a, b) = rect.subdivide(axis, div);
 
-            let cont = [cont.start, cont.end];
-            let rr = rect.get_range(axis.next());
-            dr.draw_divider::<A>(axis, div, cont, [rr.start, rr.end], depth.0);
-
-            let (a, b) = rect.subdivide(axis, div);
-
-            recc(axis.next(), left, dr, &a);
-            recc(axis.next(), right, dr, &b);
+                recc(axis.next(), left, dr, a);
+                recc(axis.next(), right, dr, b);
+            }
         }
     }
 
@@ -100,10 +92,19 @@ pub trait DrawQuery<'a>: Queries<'a> {
     /// let tree=broccoli::new(&mut bots);
     ///
     /// let mut rects=Vec::new();
-    /// tree.draw_divider(&mut rects,
-    ///     |rects,_,cont,length,_| rects.push(Rect {x: cont.into(),y: length.into()}),
-    ///     |rects,_,cont,length,_| rects.push(Rect {x: length.into(),y:cont.into()}),
-    ///     &dim
+    /// tree.draw_divider(
+    ///     |is_xaxis,node,rect,_| {
+    ///             if let Some(cont)=node.cont{    
+    ///                 rects.push( 
+    ///                    if is_xaxis{
+    ///                        Rect {x: cont.into(),y: rect.y.into()}
+    ///                    }else{
+    ///                        Rect {x: rect.x.into(),y: cont.into()}
+    ///                    }
+    ///                 );
+    ///             }
+    ///     },
+    ///     dim
     /// );
     ///
     /// //rects now contains a bunch of rectangles that can be drawn to visualize
@@ -111,19 +112,14 @@ pub trait DrawQuery<'a>: Queries<'a> {
     ///
     /// ```
     ///
-    fn draw_divider<A>(
+    fn draw_divider(
         &self,
-        acc: A,
-        xline: impl FnMut(&mut A, Self::Num, [Self::Num; 2], [Self::Num; 2], usize),
-        yline: impl FnMut(&mut A, Self::Num, [Self::Num; 2], [Self::Num; 2], usize),
-        //drawer: &mut impl DividerDrawer<N = Self::Num>,
-        rect: &Rect<Self::Num>,
+        line: impl FnMut(bool, &Node<Self::T>, &Rect<Self::Num>, usize),
+        rect: Rect<Self::Num>,
     ) {
         let mut d = DrawClosure {
             _p: PhantomData,
-            acc,
-            xline,
-            yline,
+            line,
         };
 
         draw(self.axis(), self.vistr(), &mut d, rect)
