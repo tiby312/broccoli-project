@@ -18,7 +18,8 @@ pub trait Knearest {
 
     ///User defined inexpensive distance function that that can be overly conservative.
     ///It may be that the precise distance function is fast enough, in which case you can simply
-    ///return None.
+    ///return None. If None is desired, every call to this function for a particular element must
+    ///always return None.
     fn distance_to_broad(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Option<Self::N>;
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
@@ -207,7 +208,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
                     let unit = KnearestResult {
                         bot: curr_bot,
                         mag: curr_dis,
-                    }; //$unit_create!(curr_bot,curr_dis);
+                    }; 
                     arr.insert(i, unit);
                     self.curr_num += 1;
                     return true;
@@ -255,7 +256,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
                     let unit = KnearestResult {
                         bot: curr_bot,
                         mag: curr_dis,
-                    }; //$unit_create!(curr_bot,curr_dis);
+                    };
                     arr.insert(i, unit);
                     return true;
                 }
@@ -286,8 +287,7 @@ impl<'a, K: Knearest> Blap<'a, K> {
     fn should_recurse<A: Axis>(&mut self, line: (A, K::N)) -> bool {
         if let Some(m) = self.closest.full_and_max_distance() {
             let dis = self.knear.distance_to_aaline(self.point, line.0, line.1);
-
-            dis < m //TODO double check
+            dis < m
         } else {
             true
         }

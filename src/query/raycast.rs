@@ -38,7 +38,8 @@ pub trait RayCast {
 
     ///Return the cast result that is cheap and overly conservative.
     ///It may be that the precise cast is fast enough, in which case you can simply
-    ///return None.
+    ///return None. If None is desired, every call to this function for a particular element must
+    ///always return None.
     fn cast_broad(
         &mut self,
         ray: &Ray<Self::N>,
@@ -51,33 +52,7 @@ pub trait RayCast {
 
 use crate::Tree;
 
-/*
-pub fn from_closure2<AA: Axis, T: Aabb, A, B, C, D, E>(
-    _tree: &Tree<AA, T>,
-    acc: A,
-    broad: B,
-    fine: C,
-    xline: D,
-    yline: E,
-) -> RayCastClosure<T, A, B, C, D, E>
-where
-    B: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
-    C: FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
-    D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-    E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-{
-    RayCastClosure {
-        _p: PhantomData,
-        acc,
-        broad,
-        fine,
-        xline,
-        yline,
-    }
-}
-*/
 
-//TODO somehow indicate that returned object has no destructor.
 ///Construct an object that implements [`RayCast`] from closures.
 ///We pass the tree so that we can infer the type of `T`.
 ///
@@ -105,14 +80,13 @@ pub fn from_closure<A, T: Aabb>(
     xline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     yline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
 ) -> impl RayCast<T = T, N = T::Num> {
-    ///Container of closures that implements [`RayCast`]
     struct RayCastClosure<T, A, B, C, D, E> {
-        pub _p: PhantomData<T>,
-        pub acc: A,
-        pub broad: B,
-        pub fine: C,
-        pub xline: D,
-        pub yline: E,
+        _p: PhantomData<T>,
+        acc: A,
+        broad: B,
+        fine: C,
+        xline: D,
+        yline: E,
     }
 
     impl<T: Aabb, A, B, C, D, E> RayCast for RayCastClosure<T, A, B, C, D, E>
@@ -174,8 +148,6 @@ impl<'a, R: RayCast> RayCast for RayCastBorrow<'a, R> {
         self.0.cast_to_aaline(ray, line, val)
     }
 
-    ///Returns true if the ray intersects with this rectangle.
-    ///This function allows as to prune which nodes to visit.
     fn cast_broad(
         &mut self,
         ray: &Ray<Self::N>,
@@ -184,10 +156,6 @@ impl<'a, R: RayCast> RayCast for RayCastBorrow<'a, R> {
         self.0.cast_broad(ray, a)
     }
 
-    ///The expensive collision detection
-    ///This is where the user can do expensive collision detection on the shape
-    ///contains within it's bounding box.
-    ///Its default implementation just calls cast_broad()
     fn cast_fine(&mut self, ray: &Ray<Self::N>, a: PMut<Self::T>) -> axgeom::CastResult<Self::N> {
         self.0.cast_fine(ray, a)
     }
@@ -369,7 +337,6 @@ pub fn assert_raycast<T: Aabb>(
     res_naive.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
     res_dino.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
-    //dbg!("{:?}  {:?}",res_naive.len(),res_dino.len());
     assert_eq!(
         res_naive.len(),
         res_dino.len(),

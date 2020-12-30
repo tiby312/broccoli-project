@@ -28,7 +28,7 @@ pub struct Tree<'a, T: Aabb> {
 ///
 ///```
 pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
-    TreeBuilder::new(bots).build_seq()
+   Tree::new(bots)
 }
 
 ///Create a [`Tree`] in parallel.
@@ -44,7 +44,7 @@ pub fn new_par<T: Aabb + Send + Sync>(bots: &mut [T]) -> Tree<T>
 where
     T::Num: Send + Sync,
 {
-    TreeBuilder::new(bots).build_par()
+    Tree::new_par(bots)
 }
 
 impl<'a, T: Aabb> NbodyQuery<'a> for Tree<'a, T> {}
@@ -81,7 +81,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     ///```
     pub fn new(bots: &'a mut [T]) -> Tree<'a, T> {
-        crate::new(bots)
+        TreeBuilder::new(bots).build_seq()
     }
     ///Create a [`Tree`] in parallel.
     ///
@@ -97,14 +97,14 @@ impl<'a, T: Aabb> Tree<'a, T> {
         T: Send + Sync,
         T::Num: Send + Sync,
     {
-        crate::new_par(bots)
+        TreeBuilder::new(bots).build_par()
     }
 
     /// # Examples
     ///
     ///```
     /// use broccoli::build;
-    /// const NUM_ELEMENT:usize=400;
+    /// const NUM_ELEMENT:usize=40;
     /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
     /// let mut tree = broccoli::new(&mut bots);
     ///
