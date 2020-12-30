@@ -81,7 +81,8 @@ The main downside is loss of flexibility in cases where you want to store the ac
 Ideally, there would be both a `find_all_colliding_pairs` and a `find_all_colliding_pairs_mut`. 
 
 A lot of the query algorithms don't actually care what kind of reference is in the tree.
-They don't actually mutate the elements, they just retrieve them.
+They don't actually mutate the elements, they just retrieve them, and forward them on to the user
+who may want to mutate them or not.
 
 In this way, it would be nice if the query algorithms were generic of the type of reference they held. This way you could have a raycast(&mut Tree) function that allows you to mutate the elements it finds, or you could have a rayacst(&Tree) function that allows you to call it multiple times in parallel.
 
