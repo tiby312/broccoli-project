@@ -196,13 +196,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
 
-    //let active_x=prevec1.get_empty_vec_mut();
-    //let active_y=prevec2.get_empty_vec_mut();
-    //let mut active_x:Vec<PMut<F::T>>=Vec::new();
-    //let mut active_y:Vec<PMut<F::T>>=Vec::new();
-
     let active_lists = prevec1.get_empty_vec_mut();
-    //let mut active_lists:TwoUnorderedVecs<PMut<F::T>>=TwoUnorderedVecs::new();
 
     loop {
         enum NextP {
@@ -240,7 +234,6 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
                 });
                 */
 
-                //active_x.push(x);
                 active_lists.first().push(x);
             }
             NextP::Y => {
@@ -259,7 +252,6 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
                 });
                 */
 
-                //active_y.push(y);
                 active_lists.second().push(y);
             }
         }
@@ -311,7 +303,6 @@ fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
         });
     }
 
-    //dbg!(active_x.capacity());
 }
 
 #[test]
@@ -352,8 +343,6 @@ fn test_parallel() {
 
     let mut b = Counter { counter: 0 };
 
-    //let mut left=[b.make(0,10)];
-    //let mut right=[b.make(-5,5),b.make(5,15),b.make(-5,15),b.make(2,8),b.make(-5,-6),b.make(12,13)];
 
     let mut left = [b.make(0, 10), b.make(5, 20), b.make(10, 40)];
     let mut right = [
@@ -373,11 +362,7 @@ fn test_parallel() {
     crate::util::sweeper_update(axgeom::XAXIS, &mut left);
     crate::util::sweeper_update(axgeom::XAXIS, &mut right);
 
-    //let mut left=[b.make(0,10),b.make(5,20)];
-    //let mut right=[b.make(16,20)];
-
     let mut p1 = PreVecMut::new();
-    //let mut p2=PreVecMut::new();
     let mut test1 = Test {
         set: BTreeSet::new(),
     };
@@ -398,6 +383,5 @@ fn test_parallel() {
     let diff = test1.set.symmetric_difference(&test2.set);
     let num = diff.clone().count();
     let diff2: Vec<_> = diff.collect();
-    //TODO this fails???
     assert_eq!(num, 0, "{:?}", &diff2);
 }
