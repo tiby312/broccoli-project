@@ -55,21 +55,15 @@ broccoli does not support inserting elements after construction. If you want to 
 you have to rebuild the tree. However, broccoli provides a `intersect_with()` function that lets you
 find collisions between two groups. This way you can have one group of static objects and another group of dynamic objects, and update the static objects less frequently. In a dynamic
 particle system for example, most of the time, enough particles move about in one step to justify
-recreating the whole tree. Trying to avoid this using loose bounding boxes can make querying take
-longer as there are more intersections to detect than necessary. 
-
+recreating the whole tree. 
 
 ### Exploiting Temporal Locality (with loose bounding boxes)
-
-The main reason against exploiting temporal locality is that adding any kind of "memory" to the tree where you save the positions of the dividers to use as good heuristic positions for next iterations will come at a cost of a less optimal tree layout which will hurt the query algorithm. Our goal is to make the query algorithm as fast as possible since that is what can dominate.
 
 One strategy to exploit temporal locality is by inserting looser bounding boxes into the tree and caching the results of a query for longer than one step. The upside to this is that you only have to build and query the tree every couple of iterations. There are a number of downsides, though:
 
 * Your system performance now depends on the speed of the aabbs. The faster your aabbs move, the bigger their loose bounding boxes, the slower the querying becomes. This isnt a big deal considering the ammount that a bot moves between two frames is expected to be extremely small. But still, there are some corner cases where performance would deteriorate. For example, if every bot was going so fast it would just from one end of you screen to the other between world steps. So you may also need to bound the velocity of your aabbs to a small value.
 
 * You have to implement all the useful geometry tree functions all over again, or you can only use the useful geometry functions at the key world steps where the tree actually is constructed. For example, if you want to query a rectangle area, the tree provides a nice function to do this, but you only have the tree every couple of iterations. The result is that you have to somehow implement a way to query all the aabbs in the rectangle area using your cached lists of colliding aabbs, or simply only query on the world steps in which you do have the built tree. Those queries will also be slower since you are working on a tree with loose boxes.
-
-* Every bot needs to have a member variable that is its index. This isnt ideal to have since its redundant information. You can figure out a aabbs index from its position within the list fed into the tree. So it is just wasted space. For a very intestive algorithms like collision querying, having the memory footprint being operated being small is crucial. We can't rely on pointer offsets to determine the indicies of which aabbs are colliding when using the tree since we reordered the aabbs directly to make the tree to avoid a level of indirection. This increases the separation between the other fields.
 
 * The maximum load on a world step is greater. Sure amortised, this caching system may save computation, but the times you do construct and query the tree, you are doing so with loose bounding boxes. On top of that, while querying, you also have to build up a seperate data structure that caches the colliding pairs you find. 
 
@@ -79,8 +73,9 @@ So in short, this system doesnt take advantage of temporal locality, but the use
 
 ### Expoiting Temporal Locality (caching medians)
 
-I would love to try the following: Instead of finding the median at every level, find an approximate median. Additionally, keep a weighted average of the medians from previous tree builds and let it degrade with time. Get an approximate median using median of medians. This would ensure worst case linear time when building one level of the tree. This would allow the rest of the algorithm to be parallelized sooner. This would mean that query would be slower since we are not using heuristics and not using the true median, but this might be a small slowdown and it might speed of construction significatly.
+I would be interesting to try the following: Instead of finding the median at every level, find an approximate median. Additionally, keep a weighted average of the medians from previous tree builds and let it degrade with time. Get an approximate median using median of medians. This would ensure worst case linear time when building one level of the tree. This would allow the rest of the algorithm to be parallelized sooner. This would mean that query would be slower since we are not using heuristics and not using the true median, but this might be a small slowdown and it might speed of construction significatly.
+However in looking at data of the load taken by each level, finding the medians is pretty fast, and an approximate median would only hurt the query side of the algorithm.
 
 ### Exploting Temporal Location (moving dividers with mass)
 
-For a while I had the design where the dividers would move as thoought they had mass. They would gently be pushed to which ever side had more aabbs. Dividers near the root had more mass and were harder to sway than those below. The problem with this approach is that the divider locations will mostly of the time be sub optimial. And the cost saved in rebalancing just isnt enough for the cost added to querying with a suboptimal partitioning. By always partitioning optimally, we get guarentees of the maximum number of aabbs in a node. Remember querying is the bottleneck, not rebalancing.
+For a while I had the design where the dividers would move as though they had mass. They would gently be pushed to which ever side had more aabbs. Dividers near the root had more mass and were harder to sway than those below. The problem with this approach is that the divider locations will mostly of the time be sub optimial. And the cost saved in rebalancing just isnt enough for the cost added to querying with a suboptimal partitioning. By always partitioning optimally, we get guarentees of the maximum number of aabbs in a node. Remember querying is the bottleneck, not rebalancing.
