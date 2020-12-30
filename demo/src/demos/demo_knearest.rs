@@ -52,9 +52,9 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         let mut rects = canvas.rects();
         let mut handler = broccoli::query::knearest::from_closure(
             tree.as_tree(),
-            &mut rects,
+            (),
             |_, _, _| None,
-            |rects, point, a| {
+            |_, point, a| {
                 rects.add(a.rect.into());
                 distance_to_rect(&a.rect, point)
             },
