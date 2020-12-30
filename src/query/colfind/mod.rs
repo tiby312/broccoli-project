@@ -14,8 +14,8 @@ use self::builder::CollisionHandler;
 use self::builder::NotSortedQueryBuilder;
 use self::builder::QueryBuilder;
 
-///Panics if a disconnect is detected between tree and naive queries.
 use crate::container::TreeRef;
+///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_query<T: Aabb>(tree: &mut TreeRef<T>) {
     use core::ops::Deref;
     fn into_ptr_usize<T>(a: &T) -> usize {

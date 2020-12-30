@@ -139,26 +139,15 @@ impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, N, T> {
 /// }
 /// assert_eq!(bots[0].inner,1);
 ///```
+/// It is useful to implement functions like [`knearest::assert_k_nearest_mut`](crate::query::knearest::assert_k_nearest_mut)
+/// That let you cross check a tree against the naive implementation without destroying the tree.
 ///
 #[repr(transparent)]
 pub struct TreeRef<'a, T: Aabb> {
     tree: inner::TreeRefInner<T>,
     _p: PhantomData<Tree<'a, T>>,
 }
-/*
-use crate::query::NaiveComparable;
-impl<'a, A: Axis, T: Aabb> NaiveComparable<'a> for TreeRef<'a, A, T> {
-    type Inner = Tree<'a, A, T>;
-    type T = T;
-    type Num = T::Num;
-    fn get_tree(&mut self) -> &mut Tree<'a, A, T> {
-        &mut *self
-    }
-    fn get_elements_mut(&mut self) -> PMut<[T]> {
-        self.get_bbox_elements_mut()
-    }
-}
-*/
+
 impl<'a, T: Aabb> core::ops::Deref for TreeRef<'a, T> {
     type Target = Tree<'a, T>;
     fn deref(&self) -> &Self::Target {
