@@ -1,5 +1,6 @@
 use super::*;
 
+///A read only colliding pair reference
 pub struct ColPair<'a, T, D> {
     pub first: &'a T,
     pub second: &'a T,
