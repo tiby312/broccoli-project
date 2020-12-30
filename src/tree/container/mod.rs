@@ -98,6 +98,8 @@ impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, N, T> {
     }
 }
 
+
+
 /// Provides a function to allow the user to ger the original slice of
 /// elements (sorted by the tree). Derefs to [`Tree`].
 ///
