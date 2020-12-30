@@ -208,7 +208,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
                     let unit = KnearestResult {
                         bot: curr_bot,
                         mag: curr_dis,
-                    }; 
+                    };
                     arr.insert(i, unit);
                     self.curr_num += 1;
                     return true;

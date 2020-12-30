@@ -52,7 +52,6 @@ pub trait RayCast {
 
 use crate::Tree;
 
-
 ///Construct an object that implements [`RayCast`] from closures.
 ///We pass the tree so that we can infer the type of `T`.
 ///

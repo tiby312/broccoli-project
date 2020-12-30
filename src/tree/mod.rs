@@ -28,7 +28,7 @@ pub struct Tree<'a, T: Aabb> {
 ///
 ///```
 pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
-   Tree::new(bots)
+    Tree::new(bots)
 }
 
 ///Create a [`Tree`] in parallel.

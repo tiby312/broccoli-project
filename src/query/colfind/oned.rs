@@ -302,7 +302,6 @@ fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
             }
         });
     }
-
 }
 
 #[test]
@@ -342,7 +341,6 @@ fn test_parallel() {
     }
 
     let mut b = Counter { counter: 0 };
-
 
     let mut left = [b.make(0, 10), b.make(5, 20), b.make(10, 40)];
     let mut right = [
