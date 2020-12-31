@@ -144,42 +144,53 @@ impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, N, T> {
 /// It is useful to implement functions like [`knearest::assert_k_nearest_mut`](crate::query::knearest::assert_k_nearest_mut)
 /// That let you cross check a tree against the naive implementation without destroying the tree.
 ///
-#[repr(transparent)]
+#[repr(C)]
 pub struct TreeRef<'a, T: Aabb> {
-    tree: inner::TreeRefInner<T>,
-    _p: PhantomData<Tree<'a, T>>,
+    tree: crate::Tree<'a,T>,
+    orig: Ptr<[T]>
 }
 
 impl<'a, T: Aabb> core::ops::Deref for TreeRef<'a, T> {
     type Target = Tree<'a, T>;
     fn deref(&self) -> &Self::Target {
-        unsafe { &*(&self.tree.inner as *const _ as *const _) }
+        &self.tree
     }
 }
 impl<'a, T: Aabb> core::ops::DerefMut for TreeRef<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *(&mut self.tree.inner as *mut _ as *mut _) }
+        &mut self.tree
     }
 }
 
 impl<'a, T: Aabb> TreeRef<'a, T> {
     pub fn new(arr: &'a mut [T]) -> TreeRef<'a, T> {
+        let orig = Ptr(arr as *mut _);
+        
         TreeRef {
-            tree: inner::TreeRefInner::new(arr),
-            _p: PhantomData,
+            tree: crate::new(arr),
+            orig,
         }
     }
 }
+
 
 impl<'a, T: Aabb + Send + Sync> TreeRef<'a, T>
 where
     T::Num: Send + Sync,
 {
     pub fn new_par(arr: &'a mut [T]) -> TreeRef<'a, T> {
+        let orig = Ptr(arr as *mut _);
+        
         TreeRef {
-            tree: inner::TreeRefInner::new_par(arr),
-            _p: PhantomData,
+            tree: crate::new_par(arr),
+            orig,
         }
+    }
+}
+
+impl<'a,T:Aabb> From<TreeRef<'a,T>> for Tree<'a,T>{
+    fn from(a:TreeRef<'a,T>)->Self{
+        Tree{inner:a.tree.inner}
     }
 }
 
@@ -194,7 +205,7 @@ impl<'a, T: Aabb> TreeRef<'a, T> {
     /// ```
     ///
     pub fn get_bbox_elements(&self) -> &[T] {
-        unsafe { &*self.tree.orig.0 }
+        unsafe { &*self.orig.0 }
     }
 
     /// ```rust
@@ -207,7 +218,7 @@ impl<'a, T: Aabb> TreeRef<'a, T> {
     /// ```
     ///
     pub fn get_bbox_elements_mut(&mut self) -> PMut<'a, [T]> {
-        PMut::new(unsafe { &mut *self.tree.orig.0 })
+        PMut::new(unsafe { &mut *self.orig.0 })
     }
 }
 
@@ -279,8 +290,12 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
 /// not_lifetimed();
 ///
 /// ```
+#[repr(C)]
 pub struct TreeOwned<T: Aabb> {
-    tree: inner::TreeRefInner<T>,
+    inner: TreeInner<NodePtr<T>>,
+    //this is included so that we can cast a reference of this to TreeRef.
+    //It is obviously redundant with the Boxed slice right after it.
+    orig: Ptr<[T]>, 
     _bots: Box<[T]>,
 }
 
@@ -289,8 +304,12 @@ where
     T::Num: Send + Sync,
 {
     pub fn new_par(mut bots: Box<[T]>) -> TreeOwned<T> {
+        let orig = Ptr(&mut bots as &mut [_] as *mut [_]);
+        let inner = inner::make_owned_par(&mut bots);
+        
         TreeOwned {
-            tree: inner::TreeRefInner::new_par(&mut bots),
+            inner,
+            orig,
             _bots: bots,
         }
     }
@@ -298,8 +317,11 @@ where
 
 impl<T: Aabb> TreeOwned<T> {
     pub fn new(mut bots: Box<[T]>) -> TreeOwned<T> {
+        let orig = Ptr(&mut bots as &mut [_] as *mut [_]);
+        let inner = inner::make_owned(&mut bots);
         TreeOwned {
-            tree: inner::TreeRefInner::new(&mut bots),
+            inner,
+            orig,
             _bots: bots,
         }
     }
@@ -307,11 +329,11 @@ impl<T: Aabb> TreeOwned<T> {
 impl<T: Aabb> TreeOwned<T> {
     ///Cant use Deref because of lifetime
     pub fn as_tree(&self) -> &TreeRef<T> {
-        unsafe { &*(&self.tree as *const _ as *const _) }
+        unsafe { &*(&self.inner as *const _ as *const _) }
     }
 
     ///Cant use Deref because of lifetime
     pub fn as_tree_mut(&mut self) -> &mut TreeRef<T> {
-        unsafe { &mut *(&mut self.tree as *mut _ as *mut _) }
+        unsafe { &mut *(&mut self.inner as *mut _ as *mut _) }
     }
 }

@@ -1,27 +1,5 @@
 use super::*;
 
-pub(super) struct TreeRefInner<T: Aabb> {
-    pub(super) inner: TreeInner<NodePtr<T>>,
-    pub(super) orig: Ptr<[T]>,
-}
-
-impl<T: Aabb + Send + Sync> TreeRefInner<T>
-where
-    T::Num: Send + Sync,
-{
-    pub fn new_par(arr: &mut [T]) -> TreeRefInner<T> {
-        let inner = make_owned_par(arr);
-        let orig = Ptr(arr as *mut _);
-        TreeRefInner { inner, orig }
-    }
-}
-impl<T: Aabb> TreeRefInner<T> {
-    pub fn new(arr: &mut [T]) -> TreeRefInner<T> {
-        let inner = make_owned(arr);
-        let orig = Ptr(arr as *mut _);
-        TreeRefInner { inner, orig }
-    }
-}
 
 pub(super) struct TreeIndInner<N: Num, T> {
     pub(super) inner: TreeOwned<BBox<N, Ptr<T>>>,
@@ -63,7 +41,7 @@ pub(super) fn make_owned<T: Aabb>(bots: &mut [T]) -> TreeInner<NodePtr<T>> {
     TreeInner { inner }
 }
 
-fn make_owned_par<T: Aabb + Send + Sync>(bots: &mut [T]) -> TreeInner<NodePtr<T>>
+pub(super) fn make_owned_par<T: Aabb + Send + Sync>(bots: &mut [T]) -> TreeInner<NodePtr<T>>
 where
     T::Num: Send + Sync,
 {
