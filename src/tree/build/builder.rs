@@ -1,4 +1,3 @@
-use super::super::TreeInner;
 use super::*;
 ///Builder pattern for Tree.
 ///For most usecases, the user is suggested to use
@@ -163,16 +162,16 @@ fn create_tree_seq<'a, T: Aabb, K: Splitter>(
     r.recurse_preorder_seq(div_axis, rest, &mut nodes, splitter, 0);
     assert_eq!(cc, nodes.len());
 
-    let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
+    let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
-    let k = tree
+    let k = inner
         .get_nodes()
         .iter()
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_bots);
 
     Tree {
-        inner: TreeInner { inner: tree },
+        inner
     }
 }
 
@@ -203,16 +202,16 @@ where
     r.recurse_preorder(div_axis, dlevel, rest, &mut nodes, splitter, 0);
 
     assert_eq!(cc, nodes.len());
-    let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
+    let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
-    let k = tree
+    let k = inner
         .get_nodes()
         .iter()
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_bots);
 
     Tree {
-        inner: TreeInner { inner: tree },
+        inner
     }
 }
 

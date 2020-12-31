@@ -8,9 +8,8 @@ use build::TreeBuilder;
 
 pub mod container;
 
-struct TreeInner<N> {
-    inner: compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>,
-}
+type TreeInner<N>=compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
+
 
 ///The data structure this crate revoles around.
 #[repr(transparent)]
@@ -61,12 +60,12 @@ impl<'a, T: Aabb> Queries<'a> for Tree<'a, T> {
 
     #[inline(always)]
     fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
-        VistrMut::new(self.inner.inner.vistr_mut())
+        VistrMut::new(self.inner.vistr_mut())
     }
 
     #[inline(always)]
     fn vistr(&self) -> Vistr<Node<'a, T>> {
-        self.inner.inner.vistr()
+        self.inner.vistr()
     }
 }
 
@@ -114,7 +113,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     #[must_use]
     #[inline(always)]
     pub fn get_height(&self) -> usize {
-        self.inner.inner.get_height()
+        self.inner.get_height()
     }
 
     /// # Examples
@@ -131,7 +130,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     #[warn(deprecated)]
     #[inline(always)]
     pub fn num_nodes(&self) -> usize {
-        self.inner.inner.get_nodes().len()
+        self.inner.get_nodes().len()
     }
 
     /// # Examples
@@ -145,7 +144,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///```
     #[must_use]
     pub fn get_nodes(&self) -> &[Node<'a, T>] {
-        self.inner.inner.get_nodes()
+        self.inner.get_nodes()
     }
 
     /// # Examples
@@ -159,6 +158,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///```
     #[must_use]
     pub fn get_nodes_mut(&mut self) -> PMut<[Node<'a, T>]> {
-        PMut::new(self.inner.inner.get_nodes_mut())
+        PMut::new(self.inner.get_nodes_mut())
     }
 }
