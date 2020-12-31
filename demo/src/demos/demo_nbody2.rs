@@ -88,7 +88,7 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
     fn are_close(&mut self,a:&Self::Mass,b:&Self::Mass)->bool{
         let mag=(b.center - a.center).magnitude2();
         
-        let dis=200.0;
+        let dis=300.0;
         mag<dis*dis
     }
 

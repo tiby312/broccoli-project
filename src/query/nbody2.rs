@@ -38,13 +38,27 @@ struct NodeWrapper<'a,T:Aabb,M>{
 
 
 
+fn build_masses<N:NNN>(mut vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N){
+    let rest=get_bots_from_vistr(vistr.borrow_mut());
 
-fn build_masses<N:NNN>(vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N)->N::Mass{
+    let mass=no.compute_center_of_mass(&rest);
+
+    let (nn,rest)=vistr.next();
+
+    nn.mass=mass;
+
+    if let Some([left,right])=rest{
+        build_masses(left,no);
+        build_masses(right,no);
+    }   
+
+}
+fn build_masses2<N:NNN>(vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N)->N::Mass{
     let (nn,rest)=vistr.next();
     let mass=no.compute_center_of_mass(&nn.node.range);
     let mass=if let Some([left,right])=rest{
-        let a=build_masses(left,no);
-        let b=build_masses(right,no);
+        let a=build_masses2(left,no);
+        let b=build_masses2(right,no);
         let m=no.combine_two_masses(&a,&b);
         no.combine_two_masses(&m,&mass)
     }else{
@@ -63,10 +77,12 @@ fn collect_masses<'a,'b,N:NNN>(
 
     let (nn,rest)=vistr.next();
     
+    
     if !no.are_close(root,&nn.mass){
         finished_mass.push(nn);
         return;
     }
+    
     
 
     finished_bots.push(&mut nn.node.range);
@@ -80,13 +96,16 @@ fn collect_masses<'a,'b,N:NNN>(
 fn pre_recc<N:NNN>(root:&mut NodeWrapper<N::T,N::Mass>,vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N){
     let (nn,rest)=vistr.next();
     
+    
     if !no.are_close(&root.mass,&nn.mass){
         no.gravitate(
-            GravEnum::Mass(&mut root.mass),
+            GravEnum::Bot(root.node.range.borrow_mut()),
+            //GravEnum::Mass(&mut root.mass),
             GravEnum::Mass(&mut nn.mass)
         );
         return
     }
+    
 
     no.gravitate(
         GravEnum::Bot(root.node.range.borrow_mut()),
@@ -201,7 +220,7 @@ pub fn nbody_mut<'a,N:NNN>(tree:crate::Tree<'a,N::T>,mut no:&mut N)->crate::Tree
     let mut newtree=CompleteTreeContainer::from_preorder(k).unwrap();
 
     //calculate node masses of each node.
-    build_masses(newtree.vistr_mut(),no);
+    build_masses2(newtree.vistr_mut(),no);
 
     
     recc(newtree.vistr_mut(),no);
