@@ -1,6 +1,7 @@
 use super::*;
 
 
+/*
 #[derive(Copy,Clone)]
 struct Mass<N:Num>{
     pos:Vec2<N>,
@@ -16,28 +17,31 @@ impl<N:Num+Default> Mass<N>{
         }
     }
 }
+*/
 
-enum GravEnum<'a,T:Aabb>{
-    Mass(&'a Mass<T::Num>),
+pub enum GravEnum<'a,T:Aabb,M>{
+    Mass(&'a mut M),
     Bot(PMut<'a,[T]>)
 }
-trait NNN{
+
+pub trait NNN{
     type T:Aabb;
     type N:Num;
+    type Mass:Default+Copy;
 
     //return the position of the center of mass
-    fn compute_center_of_mass(&mut self,a:&[Self::T])->Mass<Self::N>;
+    fn compute_center_of_mass(&mut self,a:&[Self::T])->Self::Mass;
 
-    fn are_close(&mut self,a:&Mass<Self::N>,b:&Mass<Self::N>)->bool;
+    fn are_close(&mut self,a:&Self::Mass,b:&Self::Mass)->bool;
 
 
-    fn gravitate(&mut self,a:GravEnum<Self::T>,b:GravEnum<Self::T>);
+    fn gravitate(&mut self,a:GravEnum<Self::T,Self::Mass>,b:GravEnum<Self::T,Self::Mass>);
 
     fn gravitate_self(&mut self,a:PMut<[Self::T]>);
 
-    fn apply_a_mass(&mut self,mass:Mass<Self::N>,b:PMut<[Self::T]>);
+    fn apply_a_mass(&mut self,mass:Self::Mass,b:PMut<[Self::T]>);
 
-    fn combine_two_masses(&mut self,a:&Mass<Self::N>,b:&Mass<Self::N>)->Mass<Self::N>;
+    fn combine_two_masses(&mut self,a:&Self::Mass,b:&Self::Mass)->Self::Mass;
 }
 
 use compt::dfs_order::CompleteTreeContainer;
@@ -45,13 +49,13 @@ use compt::dfs_order::PreOrder;
 use compt::dfs_order::VistrMut;
 
 
-struct NodeWrapper<'a,T:Aabb>{
+struct NodeWrapper<'a,T:Aabb,M>{
     node:Node<'a,T>,
-    mass:Mass<T::Num>
+    mass:M
 }
 
 
-fn build_masses<T:Aabb>(vistr:VistrMut<NodeWrapper<T>,PreOrder>,no:&mut impl NNN<T=T,N=T::Num>)->Mass<T::Num>{
+fn build_masses<N:NNN>(vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N)->N::Mass{
     let (nn,rest)=vistr.next();
     let mass=no.compute_center_of_mass(&nn.node.range);
     let mass=if let Some([left,right])=rest{
@@ -66,7 +70,7 @@ fn build_masses<T:Aabb>(vistr:VistrMut<NodeWrapper<T>,PreOrder>,no:&mut impl NNN
     mass
 }
 
-fn pre_recc<T:Aabb>(root:&mut NodeWrapper<T>,vistr:VistrMut<NodeWrapper<T>,PreOrder>,no:&mut impl NNN<T=T,N=T::Num>){
+fn pre_recc<N:NNN>(root:&mut NodeWrapper<N::T,N::Mass>,vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N){
     let (nn,rest)=vistr.next();
 
     if !no.are_close(&root.mass,&nn.mass){
@@ -88,12 +92,12 @@ fn pre_recc<T:Aabb>(root:&mut NodeWrapper<T>,vistr:VistrMut<NodeWrapper<T>,PreOr
     }
 }
 
-fn collect_masses<'a,'b,T:Aabb>(
-    root:&Mass<T::Num>,
-    vistr:VistrMut<'b,NodeWrapper<'a,T>,PreOrder>,
-    no:&mut impl NNN<T=T,N=T::Num>,
-    finished_mass:&mut Vec<&'b mut NodeWrapper<'a,T>>,
-    finished_bots:&mut Vec<&'b mut PMut<'a,[T]>>){
+fn collect_masses<'a,'b,N:NNN>(
+    root:&N::Mass,
+    vistr:VistrMut<'b,NodeWrapper<'a,N::T,N::Mass>,PreOrder>,
+    no:&mut N,
+    finished_mass:&mut Vec<&'b mut NodeWrapper<'a,N::T,N::Mass>>,
+    finished_bots:&mut Vec<&'b mut PMut<'a,[N::T]>>){
 
     let (nn,rest)=vistr.next();
 
@@ -109,7 +113,7 @@ fn collect_masses<'a,'b,T:Aabb>(
         collect_masses(root,right,no,finished_mass,finished_bots);
     }
 }
-fn recc<T:Aabb>(vistr:VistrMut<NodeWrapper<T>,PreOrder>,no:&mut impl NNN<T=T,N=T::Num>){
+fn recc<N:NNN>(vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N){
 
     let (nn,rest)=vistr.next();
 
@@ -162,14 +166,13 @@ fn recc<T:Aabb>(vistr:VistrMut<NodeWrapper<T>,PreOrder>,no:&mut impl NNN<T=T,N=T
 
 
 //TODO work on this!!!
-fn nbody2<T:Aabb,NO>(tree:crate::Tree<T>,mut no:NO)->crate::Tree<T>
-    where NO:NNN<T=T,N=T::Num>, T::Num:Default
+fn nbody2<N:NNN>(tree:crate::Tree<N::T>,mut no:N)->crate::Tree<N::T>
 {
    
-    let t:CompleteTreeContainer<Node<T>, PreOrder>=tree.inner;
+    let t:CompleteTreeContainer<Node<N::T>, PreOrder>=tree.inner;
 
 
-    let k=t.into_nodes().into_vec().into_iter().map(|node|NodeWrapper{node,mass:Mass::new()}).collect();
+    let k=t.into_nodes().into_vec().into_iter().map(|node|NodeWrapper{node,mass:Default::default()}).collect();
 
     let mut newtree=CompleteTreeContainer::from_preorder(k).unwrap();
 
