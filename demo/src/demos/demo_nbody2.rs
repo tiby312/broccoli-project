@@ -152,12 +152,20 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
 
         if a.mass > 0.000_000_1 {
            
-            let total_forcex = a.force.x;
-            let total_forcey = a.force.y;
+            let indforce=a.force;
+            /*
+            let indforce=vec2(
+                a.force.x/b.len() as f32,
+                a.force.y/b.len() as f32
+            );
+            */
+            
+
+            
             for i in b.iter_mut() {
                 let i = i.unpack_inner();
-                let forcex = total_forcex * (i.mass / a.mass);
-                let forcey = total_forcey * (i.mass / a.mass);
+                let forcex = indforce.x * (i.mass / a.mass);
+                let forcey = indforce.y * (i.mass / a.mass);
 
                 i.force += vec2(forcex, forcey);
             }
