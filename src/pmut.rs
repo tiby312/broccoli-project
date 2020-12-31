@@ -57,6 +57,21 @@ pub struct PMut<'a, T: ?Sized> {
     inner: &'a mut T,
 }
 
+
+
+pub fn combine_slice<'a,T>(a:PMut<'a,[T]>,b:PMut<'a,[T]>)->PMut<'a,[T]>{
+    let alen=a.len();
+    let blen=b.len();
+    unsafe{
+        assert_eq!(a.inner.as_ptr().offset(a.len() as isize),b.inner.as_ptr(),"Slices are not continuous");
+
+        PMut{inner:core::slice::from_raw_parts_mut(a.inner.as_mut_ptr(),alen+blen)}
+
+    }
+}
+
+
+
 impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
     type Target = T;
     #[inline(always)]

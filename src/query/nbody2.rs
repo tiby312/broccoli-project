@@ -21,8 +21,7 @@ pub trait NNN{
 
     fn gravitate_self(&mut self,a:PMut<[Self::T]>);
 
-    fn apply_a_mass<'a>(&mut self,mass:Self::Mass,i:impl Iterator<Item=PMut<'a,Self::T>>,length:usize)
-        where Self::T:'a;
+    fn apply_a_mass(&mut self,mass:Self::Mass,i:PMut<[Self::T]>);
 
     fn combine_two_masses(&mut self,a:&Self::Mass,b:&Self::Mass)->Self::Mass;
 }
@@ -156,16 +155,24 @@ fn apply_tree<N:NNN>(mut vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&
     
     
     {
-        let k=vistr.borrow_mut();
+        let mass=vistr.borrow_mut().next().0.mass;
 
+        
         //combine slice into one somehow.
-        let mut new_slice=PMut::new();
+        let mut new_slice=None;
 
-        let length=k.dfs_inorder(|a|)
-        let length=k.dfs_inorder_iter().map(|a| a.node.range.).fold(0,|acc,a|acc+a);
-        let i=k.dfs_preorder_iter().flat_map(|a| a.node.range.iter_mut());
-        no.apply_a_mass(k.next().0.mass,i,length);
+        vistr.borrow_mut().dfs_preorder(|a|{
+            if let Some(s)=new_slice.take(){
+                new_slice=Some(crate::pmut::combine_slice(s,a.node.range.borrow_mut()));
+            }else{
+                new_slice=Some(a.node.range.borrow_mut());
+            }
+        });
 
+        let new_slice=new_slice.unwrap();
+        
+        
+        no.apply_a_mass(mass,new_slice);
     }
 
     

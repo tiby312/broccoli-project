@@ -148,8 +148,8 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
         })
     }
 
-    fn apply_a_mass<'a>(&mut self,a:Self::Mass,it:impl Iterator<Item=PMut<'a,Self::T>>,length:usize){
-            //TODO use length
+    fn apply_a_mass<'a>(&mut self,a:Self::Mass,b:PMut<[Self::T]>){
+
         if a.mass > 0.000_000_1 {
            
             let total_forcex = a.force.x;
