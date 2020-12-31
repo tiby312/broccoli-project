@@ -37,6 +37,8 @@ struct NodeWrapper<'a,T:Aabb,M>{
 }
 
 
+
+
 fn build_masses<N:NNN>(vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N)->N::Mass{
     let (nn,rest)=vistr.next();
     let mass=no.compute_center_of_mass(&nn.node.range);
@@ -151,26 +153,28 @@ fn recc<N:NNN>(vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N){
     }   
 }
 
+
+
+fn get_bots_from_vistr<'a,T:Aabb,N>(mut vistr:VistrMut<'a,NodeWrapper<T,N>,PreOrder>)->PMut<'a,[T]>{
+    let mut new_slice=None;
+
+    vistr.dfs_preorder(|a|{
+        if let Some(s)=new_slice.take(){
+            new_slice=Some(crate::pmut::combine_slice(s,a.node.range.borrow_mut()));
+        }else{
+            new_slice=Some(a.node.range.borrow_mut());
+        }
+    });
+    new_slice.unwrap()
+}
 fn apply_tree<N:NNN>(mut vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N){
     
     
     {
         let mass=vistr.borrow_mut().next().0.mass;
 
-        
-        //combine slice into one somehow.
-        let mut new_slice=None;
+        let new_slice=get_bots_from_vistr(vistr.borrow_mut());
 
-        vistr.borrow_mut().dfs_preorder(|a|{
-            if let Some(s)=new_slice.take(){
-                new_slice=Some(crate::pmut::combine_slice(s,a.node.range.borrow_mut()));
-            }else{
-                new_slice=Some(a.node.range.borrow_mut());
-            }
-        });
-
-        let new_slice=new_slice.unwrap();
-        
         
         no.apply_a_mass(mass,new_slice);
     }
