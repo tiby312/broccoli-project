@@ -14,7 +14,7 @@ type TreeInner<N>=compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::P
 ///The data structure this crate revoles around.
 #[repr(transparent)]
 pub struct Tree<'a, T: Aabb> {
-    inner: TreeInner<Node<'a, T>>,
+    pub(crate) inner: TreeInner<Node<'a, T>>,
 }
 
 ///Create a [`Tree`].
