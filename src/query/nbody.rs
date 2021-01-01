@@ -50,15 +50,6 @@ struct NodeWrapper<'a, T: Aabb, M> {
 pub fn naive_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
     tools::for_every_pair(bots, func);
 }
-/*
-struct NbodyHandler<'a,N:Nbody>{
-    n:&'a mut N
-}
-
-impl NbodyHandler{
-
-}
-*/
 
 fn build_masses2<N: Nbody>(
     vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
@@ -94,12 +85,6 @@ fn collect_masses<'a, 'b, N: Nbody>(
         func1(nn,no);
         return;
     }
-    /*
-    if !no.are_close(root, &nn.mass) {
-        func1(nn, no);
-        return;
-    }
-    */
 
     func2(&mut nn.node.range, no);
     
@@ -126,17 +111,6 @@ fn pre_recc<N: Nbody>(
         return;
     }
     
-    /*
-    if !no.are_close(&root.mass, &nn.mass) {
-        no.gravitate(
-            GravEnum::Bot(root.node.range.borrow_mut()),
-            GravEnum::Mass(&mut nn.mass),
-        );
-        return;
-    }
-    */
-    
-
     no.gravitate(
         GravEnum::Bot(root.node.range.borrow_mut()),
         GravEnum::Bot(nn.node.range.borrow_mut()),
@@ -249,7 +223,7 @@ fn apply_tree<N: Nbody>(mut vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder
     }
 }
 
-//TODO work on this!!!
+//TODO add parallel
 
 pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
     let t: CompleteTreeContainer<Node<N::T>, PreOrder> = tree.inner;
