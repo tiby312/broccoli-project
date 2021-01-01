@@ -606,10 +606,6 @@ fn nbody_par<
     apply_tree(axis, misc_tree.vistr().zip(vistr), ncontext);
 }
 
-
-
-
-
 ///Sequential version.
 fn nbody<A: Axis, T: Aabb + Send + Sync, NO: NodeMassTrait<Num = T::Num, Item = T> + Send + Sync>(
     axis: A,

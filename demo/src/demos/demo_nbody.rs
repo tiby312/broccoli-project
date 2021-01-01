@@ -3,7 +3,6 @@ use crate::support::prelude::*;
 use broccoli::pmut::PMut;
 use duckduckgeo;
 
-
 #[derive(Copy, Clone)]
 struct NodeMass {
     rect: axgeom::Rect<f32>,
@@ -13,14 +12,6 @@ struct NodeMass {
 }
 
 use core::marker::PhantomData;
-
-
-
-
-
-
-
-
 
 #[derive(Clone, Copy)]
 struct Bla<'a> {
@@ -175,10 +166,9 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         });
 
         {
-
             use std::time::{Duration, Instant};
             let now = Instant::now();
-            
+
             let mut tree = broccoli::new_par(&mut k);
 
             let border = dim;
@@ -192,7 +182,6 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             );
             println!("{}", now.elapsed().as_millis());
             panic!();
-            
 
             if check_naive {
 

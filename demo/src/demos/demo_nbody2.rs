@@ -24,8 +24,7 @@ impl Bot {
     }
 }
 
-
-#[derive(Copy, Clone,Debug)]
+#[derive(Copy, Clone, Debug)]
 struct NodeMass {
     center: Vec2<f32>,
     mass: f32,
@@ -33,21 +32,19 @@ struct NodeMass {
 }
 
 use core::default::Default;
-impl Default for NodeMass{
-    fn default()->NodeMass{
-        NodeMass{
-            center:vec2(Default::default(),Default::default()),
-            mass:Default::default(),
-            force:vec2(Default::default(),Default::default())
+impl Default for NodeMass {
+    fn default() -> NodeMass {
+        NodeMass {
+            center: vec2(Default::default(), Default::default()),
+            mass: Default::default(),
+            force: vec2(Default::default(), Default::default()),
         }
     }
 }
 
-
-use core::marker::PhantomData;
 use broccoli::pmut::*;
 use broccoli::query::nbody2::*;
-
+use core::marker::PhantomData;
 
 #[derive(Clone, Copy)]
 struct Bla<'a> {
@@ -59,9 +56,8 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
     type T = BBox<f32, &'b mut Bot>;
     type N = f32;
 
-
     //return the position of the center of mass
-    fn compute_center_of_mass(&mut self,a:&[Self::T])->Self::Mass{
+    fn compute_center_of_mass(&mut self, a: &[Self::T]) -> Self::Mass {
         let mut total_x = 0.0;
         let mut total_y = 0.0;
         let mut total_mass = 0.0;
@@ -81,21 +77,21 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
         NodeMass {
             center,
             mass: total_mass,
-            force: vec2same(0.0)
+            force: vec2same(0.0),
         }
     }
 
-    fn are_close(&mut self,a:&Self::Mass,b:&Self::Mass)->bool{
-        let mag=(b.center - a.center).magnitude2();
-        
-        let dis=300.0;
-        mag<dis*dis
+    fn are_close(&mut self, a: &Self::Mass, b: &Self::Mass) -> bool {
+        let mag = (b.center - a.center).magnitude2();
+
+        let dis = 300.0;
+        mag < dis * dis
     }
 
     #[inline(always)]
-    fn gravitate(&mut self,a:GravEnum<Self::T,Self::Mass>,b:GravEnum<Self::T,Self::Mass>){
-        match (a,b){
-            (GravEnum::Mass(a),GravEnum::Mass(b))=>{
+    fn gravitate(&mut self, a: GravEnum<Self::T, Self::Mass>, b: GravEnum<Self::T, Self::Mass>) {
+        match (a, b) {
+            (GravEnum::Mass(a), GravEnum::Mass(b)) => {
                 let _ = duckduckgeo::gravitate(
                     [
                         (a.center, a.mass, &mut a.force),
@@ -104,9 +100,9 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
                     0.0001,
                     0.004,
                 );
-            },
-            (GravEnum::Mass(a),GravEnum::Bot(b)) | (GravEnum::Bot(b),GravEnum::Mass(a))=>{
-                for b in b.iter_mut(){
+            }
+            (GravEnum::Mass(a), GravEnum::Bot(b)) | (GravEnum::Bot(b), GravEnum::Mass(a)) => {
+                for b in b.iter_mut() {
                     let b = b.unpack_inner();
 
                     let _ = duckduckgeo::gravitate(
@@ -118,10 +114,10 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
                         0.004,
                     );
                 }
-            },
-            (GravEnum::Bot(b1),GravEnum::Bot(mut b2))=>{
-                for mut a in  b1.iter_mut(){
-                    for b in b2.borrow_mut().iter_mut(){
+            }
+            (GravEnum::Bot(b1), GravEnum::Bot(mut b2)) => {
+                for mut a in b1.iter_mut() {
+                    for b in b2.borrow_mut().iter_mut() {
                         let (a, b) = (a.borrow_mut().unpack_inner(), b.unpack_inner());
 
                         let _ = duckduckgeo::gravitate(
@@ -131,13 +127,12 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
                         );
                     }
                 }
-            },
-            
+            }
         }
     }
 
-    fn gravitate_self(&mut self,a:PMut<[Self::T]>){
-        broccoli::query::nbody::naive_mut(a,|a,b|{
+    fn gravitate_self(&mut self, a: PMut<[Self::T]>) {
+        broccoli::query::nbody::naive_mut(a, |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
 
             let _ = duckduckgeo::gravitate(
@@ -148,22 +143,17 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
         })
     }
 
-    fn apply_a_mass<'a>(&mut self,a:Self::Mass,b:PMut<[Self::T]>){
-
+    fn apply_a_mass<'a>(&mut self, a: Self::Mass, b: PMut<[Self::T]>) {
         if a.mass > 0.000_000_1 {
-           
-            let indforce=a.force;
-            
+            let indforce = a.force;
+
             /*
             let indforce=vec2(
                 a.force.x/b.len() as f32,
                 a.force.y/b.len() as f32
             );
             */
-            
-            
 
-            
             for i in b.iter_mut() {
                 let i = i.unpack_inner();
                 let forcex = indforce.x * (i.mass / a.mass);
@@ -172,22 +162,16 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
                 i.force += vec2(forcex, forcey);
             }
         }
-        
     }
 
-    fn combine_two_masses(&mut self,a:&Self::Mass,b:&Self::Mass)->Self::Mass{
-        NodeMass{
-            center:(a.center+b.center)/2.0,
-            mass:a.mass+b.mass,
-            force:vec2same(0.0)
+    fn combine_two_masses(&mut self, a: &Self::Mass, b: &Self::Mass) -> Self::Mass {
+        NodeMass {
+            center: (a.center + b.center) / 2.0,
+            mass: a.mass + b.mass,
+            force: vec2same(0.0),
         }
     }
 }
-
-
-
-
-
 
 pub fn make_demo(dim: Rect<f32>) -> Demo {
     let mut bots = support::make_rand(4000, dim, |pos| Bot {
@@ -214,7 +198,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             /*
             broccoli::query::nbody::naive_mut(PMut::new(&mut k),|a,b|{
                 let (a, b) = (a.unpack_inner(), b.unpack_inner());
-    
+
                 let _ = duckduckgeo::gravitate(
                     [(a.pos, a.mass, &mut a.force), (b.pos, b.mass, &mut b.force)],
                     0.0001,
@@ -222,19 +206,21 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                 );
             });
             */
-            
+
             use std::time::{Duration, Instant};
             let now = Instant::now();
             let mut tree = broccoli::new_par(&mut k);
-            
-            
+
             let border = dim;
-            
-            let mut tree=broccoli::query::nbody2::nbody_mut(tree,&mut Bla {
-                _num_pairs_checked: 0,
-                _p: PhantomData,
-            });
-            
+
+            let mut tree = broccoli::query::nbody2::nbody_mut(
+                tree,
+                &mut Bla {
+                    _num_pairs_checked: 0,
+                    _p: PhantomData,
+                },
+            );
+
             println!("{}", now.elapsed().as_millis());
             //panic!();
             if check_naive {

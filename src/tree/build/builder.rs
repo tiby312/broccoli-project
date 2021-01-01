@@ -170,9 +170,7 @@ fn create_tree_seq<'a, T: Aabb, K: Splitter>(
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_bots);
 
-    Tree {
-        inner
-    }
+    Tree { inner }
 }
 
 fn create_tree_par<'a, JJ: par::Joiner, T: Aabb + Send + Sync, K: Splitter + Send + Sync>(
@@ -210,9 +208,7 @@ where
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_bots);
 
-    Tree {
-        inner
-    }
+    Tree { inner }
 }
 
 struct Recurser<'a, T: Aabb, K: Splitter, S: Sorter> {

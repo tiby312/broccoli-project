@@ -1,6 +1,5 @@
 use super::*;
 
-
 pub(super) struct TreeIndInner<N: Num, T> {
     pub(super) inner: TreeOwned<BBox<N, Ptr<T>>>,
     pub(super) orig: Ptr<[T]>,
