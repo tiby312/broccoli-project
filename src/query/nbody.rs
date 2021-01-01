@@ -125,17 +125,22 @@ fn pre_recc<N: Nbody>(
     }
 }
 
-fn recc<N: Nbody>(
+
+
+
+
+fn recc_common<'a,'b,N:Nbody>(
     axis: impl Axis,
-    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
-    no: &mut N,
-) {
+    vistr:VistrMut<'a,NodeWrapper<'b,N::T, N::Mass>,PreOrder>,
+    no: &mut N)->Option<[VistrMut<'a,NodeWrapper<'b,N::T,N::Mass>,PreOrder>;2]>{
+    
     let (nn, rest) = vistr.next();
 
     no.gravitate_self(nn.node.range.borrow_mut());
 
+
     if let Some([mut left, mut right]) = rest {
-        
+    
         if let Some(div) = nn.node.div {
             pre_recc(div,axis,nn, left.borrow_mut(), no);
             pre_recc(div,axis,nn, right.borrow_mut(), no);
@@ -189,9 +194,50 @@ fn recc<N: Nbody>(
             }
 
             //parallelize this
-            recc(axis.next(), left, no);
-            recc(axis.next(), right, no);
+            Some([left,right])
+        }else{
+            None
         }
+
+
+    }else{
+        None
+    }
+}
+
+
+/*
+fn recc_par<N: Nbody>(
+    axis: impl Axis,
+    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
+    no: &N,
+) where N::T:Send,N::N:Send,N::Mass:Send{
+    
+    let keep_going=recc_common(axis,vistr,no);
+
+    if let Some([left,right])=keep_going{
+
+        rayon::join(
+            ||recc_par(axis.next(), left, no),
+            ||recc_par(axis.next(), right, no)
+        );
+        
+    }
+}
+*/
+
+fn recc<N: Nbody>(
+    axis: impl Axis,
+    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
+    no: &mut N,
+) {
+    
+    let keep_going=recc_common(axis,vistr,no);
+
+    if let Some([left,right])=keep_going{
+
+        recc(axis.next(), left, no);
+        recc(axis.next(), right, no);
     }
 }
 
