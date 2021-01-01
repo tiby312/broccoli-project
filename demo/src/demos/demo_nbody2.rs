@@ -92,7 +92,7 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
         mag<dis*dis
     }
 
-
+    #[inline(always)]
     fn gravitate(&mut self,a:GravEnum<Self::T,Self::Mass>,b:GravEnum<Self::T,Self::Mass>){
         match (a,b){
             (GravEnum::Mass(a),GravEnum::Mass(b))=>{
@@ -153,12 +153,14 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
         if a.mass > 0.000_000_1 {
            
             let indforce=a.force;
+            
             /*
             let indforce=vec2(
                 a.force.x/b.len() as f32,
                 a.force.y/b.len() as f32
             );
             */
+            
             
 
             
@@ -220,9 +222,12 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                 );
             });
             */
-
+            
+            use std::time::{Duration, Instant};
+            let now = Instant::now();
             let mut tree = broccoli::new_par(&mut k);
-
+            
+            
             let border = dim;
             
             let mut tree=broccoli::query::nbody2::nbody_mut(tree,&mut Bla {
@@ -230,7 +235,8 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                 _p: PhantomData,
             });
             
-
+            println!("{}", now.elapsed().as_millis());
+            //panic!();
             if check_naive {
 
                 /* TODO update

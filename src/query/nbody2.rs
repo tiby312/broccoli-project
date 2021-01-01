@@ -37,7 +37,7 @@ struct NodeWrapper<'a,T:Aabb,M>{
 }
 
 
-
+/*
 fn build_masses<N:NNN>(mut vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N){
     let rest=get_bots_from_vistr(vistr.borrow_mut());
 
@@ -51,8 +51,8 @@ fn build_masses<N:NNN>(mut vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no
         build_masses(left,no);
         build_masses(right,no);
     }   
-
 }
+*/
 fn build_masses2<N:NNN>(vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N)->N::Mass{
     let (nn,rest)=vistr.next();
     let mass=no.compute_center_of_mass(&nn.node.range);
@@ -68,28 +68,28 @@ fn build_masses2<N:NNN>(vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&m
     mass
 }
 
-fn collect_masses<'a,'b,N:NNN>(
+fn collect_masses<'a,'b,N:NNN,A>(
     root:&N::Mass,
     vistr:VistrMut<'b,NodeWrapper<'a,N::T,N::Mass>,PreOrder>,
     no:&mut N,
-    finished_mass:&mut Vec<&'b mut NodeWrapper<'a,N::T,N::Mass>>,
-    finished_bots:&mut Vec<&'b mut PMut<'a,[N::T]>>){
+    acc:&mut A,
+    mut func1:&mut impl FnMut(&mut A,&'b mut NodeWrapper<'a,N::T,N::Mass>,&mut N),
+    mut func2:&mut impl FnMut(&mut A,&'b mut PMut<'a,[N::T]>,&mut N)){
 
     let (nn,rest)=vistr.next();
     
     
     if !no.are_close(root,&nn.mass){
-        finished_mass.push(nn);
+        func1(acc,nn,no);
         return;
     }
     
     
-
-    finished_bots.push(&mut nn.node.range);
+    func2(acc,&mut nn.node.range,no);
 
     if let Some([mut left,mut right])=rest{
-        collect_masses(root,left,no,finished_mass,finished_bots);
-        collect_masses(root,right,no,finished_mass,finished_bots);
+        collect_masses(root,left,no,acc,func1,func2);
+        collect_masses(root,right,no,acc,func1,func2);
     }
 }
 
@@ -100,7 +100,6 @@ fn pre_recc<N:NNN>(root:&mut NodeWrapper<N::T,N::Mass>,vistr:VistrMut<NodeWrappe
     if !no.are_close(&root.mass,&nn.mass){
         no.gravitate(
             GravEnum::Bot(root.node.range.borrow_mut()),
-            //GravEnum::Mass(&mut root.mass),
             GravEnum::Mass(&mut nn.mass)
         );
         return
@@ -135,37 +134,39 @@ fn recc<N:NNN>(vistr:VistrMut<NodeWrapper<N::T,N::Mass>,PreOrder>,no:&mut N){
             let mut finished_masses=Vec::new();
             let mut finished_bots=Vec::new();
             
-            collect_masses(&nn.mass,left.borrow_mut(),no,&mut finished_masses,&mut finished_bots);
+            collect_masses(&nn.mass,left.borrow_mut(),no,&mut (),&mut |_,a,_|finished_masses.push(a),&mut |_,a,_|finished_bots.push(a));
 
-            let mut finished_masses2=Vec::new();
-            let mut finished_bots2=Vec::new();
             
-            //dbg!(finished_masses.len(),finished_masses2.len());
-            collect_masses(&nn.mass,right.borrow_mut(),no,&mut finished_masses2,&mut finished_bots2);
-            //panic!();
-            //We have collected masses on both sides.
-            //now gravitate all the ones on the left side with all the ones on the right side.
+            let mut foo=(finished_masses,finished_bots);
 
-            for a in finished_masses.into_iter(){
-                for b in finished_masses2.iter_mut(){
-                    no.gravitate(GravEnum::Mass(&mut a.mass),GravEnum::Mass(&mut b.mass));
+            collect_masses(
+                &nn.mass,
+                right.borrow_mut(),
+                no,
+                &mut foo,
+                &mut |(masses,bots),a,no|{
+                    for b in masses.iter_mut(){
+                        no.gravitate(GravEnum::Mass(&mut a.mass),GravEnum::Mass(&mut b.mass));
+                    }
+                    
+                    for b in bots.iter_mut(){
+                        no.gravitate(GravEnum::Mass(&mut a.mass),GravEnum::Bot(b.borrow_mut()));
+                    }
+                    //finished_masses2.push(a)
+                },
+                &mut |(masses,bots),a,no|{
+                    for b in masses.iter_mut(){
+                        no.gravitate(GravEnum::Bot(a.borrow_mut()),GravEnum::Mass(&mut b.mass));
+                      
+                    }
+                    for b in bots.iter_mut(){
+                        no.gravitate(GravEnum::Bot(a.borrow_mut()),GravEnum::Bot(b.borrow_mut()));
+                    }
                 }
-                
-                for b in finished_bots2.iter_mut(){
-                    no.gravitate(GravEnum::Mass(&mut a.mass),GravEnum::Bot(b.borrow_mut()));
-                }
-                
-            }
-            //dbg!(finished_bots.len(),finished_bots2.len());
-            for a in finished_bots.into_iter(){
-                for b in finished_masses2.iter_mut(){
-                    no.gravitate(GravEnum::Bot(a.borrow_mut()),GravEnum::Mass(&mut b.mass));
-                  
-                }
-                for b in finished_bots2.iter_mut(){
-                    no.gravitate(GravEnum::Bot(a.borrow_mut()),GravEnum::Bot(b.borrow_mut()));
-                }
-            }
+            );
+            
+
+            //parallelize this
             recc(left,no);
             recc(right,no);
         }
