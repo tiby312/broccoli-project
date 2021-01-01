@@ -1,3 +1,11 @@
+//!
+//! Experimental nbody approximate solver
+//!
+//! The user can choose the distance at which to fallback on approximate solutions.
+//! The algorithm works similar to a Barnes–Hut simulation, but uses a kdtree instead of a quad tree.
+//!
+//! The user defines some geometric functions and their ideal accuracy. 
+//!
 use super::*;
 
 pub enum GravEnum<'a, T: Aabb, M> {
@@ -5,7 +13,7 @@ pub enum GravEnum<'a, T: Aabb, M> {
     Bot(PMut<'a, [T]>),
 }
 
-pub trait NNN {
+pub trait Nbody {
     type T: Aabb<Num=Self::N>;
     type N: Num;
     type Mass: Default + Copy + core::fmt::Debug;
@@ -13,8 +21,8 @@ pub trait NNN {
     //return the position of the center of mass
     fn compute_center_of_mass(&mut self, a: &[Self::T]) -> Self::Mass;
 
-
     fn is_close(&mut self,a:&Self::Mass,line:Self::N,a:impl Axis)->bool;
+
     fn is_close_half(&mut self,a:&Self::Mass,line:Self::N,a:impl Axis)->bool;
 
 
@@ -43,7 +51,7 @@ pub fn naive_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
     tools::for_every_pair(bots, func);
 }
 /*
-struct NbodyHandler<'a,N:NNN>{
+struct NbodyHandler<'a,N:Nbody>{
     n:&'a mut N
 }
 
@@ -52,7 +60,7 @@ impl NbodyHandler{
 }
 */
 
-fn build_masses2<N: NNN>(
+fn build_masses2<N: Nbody>(
     vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
     no: &mut N,
 ) -> N::Mass {
@@ -70,14 +78,14 @@ fn build_masses2<N: NNN>(
     mass
 }
 
-fn collect_masses<'a, 'b, N: NNN>(
+fn collect_masses<'a, 'b, N: Nbody>(
     root_div:N::N,
     root_axis:impl Axis,
     root: &N::Mass,
     vistr: VistrMut<'b, NodeWrapper<'a, N::T, N::Mass>, PreOrder>,
     no: &mut N,
-    mut func1: &mut impl FnMut(&'b mut NodeWrapper<'a, N::T, N::Mass>, &mut N),
-    mut func2: &mut impl FnMut(&'b mut PMut<'a, [N::T]>, &mut N),
+    func1: &mut impl FnMut(&'b mut NodeWrapper<'a, N::T, N::Mass>, &mut N),
+    func2: &mut impl FnMut(&'b mut PMut<'a, [N::T]>, &mut N),
 ) {
     let (nn, rest) = vistr.next();
 
@@ -95,13 +103,13 @@ fn collect_masses<'a, 'b, N: NNN>(
 
     func2(&mut nn.node.range, no);
     
-    if let Some([mut left, mut right]) = rest {
+    if let Some([left, right]) = rest {
         collect_masses(root_div,root_axis,root, left, no, func1, func2);
         collect_masses(root_div,root_axis,root, right, no, func1, func2);
     }
 }
 
-fn pre_recc<N: NNN>(
+fn pre_recc<N: Nbody>(
     root_div:N::N,
     root_axis:impl Axis,
     root: &mut NodeWrapper<N::T, N::Mass>,
@@ -134,13 +142,13 @@ fn pre_recc<N: NNN>(
         GravEnum::Bot(nn.node.range.borrow_mut()),
     );
 
-    if let Some([mut left, mut right]) = rest {
+    if let Some([left,right]) = rest {
         pre_recc(root_div,root_axis,root, left, no);
         pre_recc(root_div,root_axis,root, right, no);
     }
 }
 
-fn recc<N: NNN>(
+fn recc<N: Nbody>(
     axis: impl Axis,
     vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
     no: &mut N,
@@ -211,7 +219,7 @@ fn recc<N: NNN>(
 }
 
 fn get_bots_from_vistr<'a, T: Aabb, N>(
-    mut vistr: VistrMut<'a, NodeWrapper<T, N>, PreOrder>,
+    vistr: VistrMut<'a, NodeWrapper<T, N>, PreOrder>,
 ) -> PMut<'a, [T]> {
     let mut new_slice = None;
 
@@ -224,7 +232,7 @@ fn get_bots_from_vistr<'a, T: Aabb, N>(
     });
     new_slice.unwrap()
 }
-fn apply_tree<N: NNN>(mut vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>, no: &mut N) {
+fn apply_tree<N: Nbody>(mut vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>, no: &mut N) {
     {
         let mass = vistr.borrow_mut().next().0.mass;
 
@@ -233,9 +241,9 @@ fn apply_tree<N: NNN>(mut vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
         no.apply_a_mass(mass, new_slice);
     }
 
-    let (nn, rest) = vistr.next();
+    let (_, rest) = vistr.next();
 
-    if let Some([mut left, mut right]) = rest {
+    if let Some([left,right]) = rest {
         apply_tree(left, no);
         apply_tree(right, no);
     }
@@ -243,7 +251,7 @@ fn apply_tree<N: NNN>(mut vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
 
 //TODO work on this!!!
 
-pub fn nbody_mut<'a, N: NNN>(tree: crate::Tree<'a, N::T>, mut no: &mut N) -> crate::Tree<'a, N::T> {
+pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
     let t: CompleteTreeContainer<Node<N::T>, PreOrder> = tree.inner;
 
     let k = t
@@ -269,10 +277,10 @@ pub fn nbody_mut<'a, N: NNN>(tree: crate::Tree<'a, N::T>, mut no: &mut N) -> cra
         .into_nodes()
         .into_vec()
         .into_iter()
-        .map(|mut node| node.node)
+        .map(|node| node.node)
         .collect();
 
-    let mut inner = CompleteTreeContainer::from_preorder(nt).unwrap();
+    let inner = CompleteTreeContainer::from_preorder(nt).unwrap();
 
     crate::Tree { inner }
 }

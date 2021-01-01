@@ -51,7 +51,7 @@ struct Bla<'a> {
     _num_pairs_checked: usize,
     _p: PhantomData<&'a usize>,
 }
-impl<'b> broccoli::query::nbody::NNN for Bla<'b> {
+impl<'b> broccoli::query::nbody::Nbody for Bla<'b> {
     type Mass = NodeMass;
     type T = BBox<f32, &'b mut Bot>;
     type N = f32;
@@ -156,8 +156,7 @@ impl<'b> broccoli::query::nbody::NNN for Bla<'b> {
 
     fn apply_a_mass<'a>(&mut self, a: Self::Mass, b: PMut<[Self::T]>) {
         if a.mass > 0.000_000_1 {
-            let indforce = a.force;
-
+            
             
             let indforce=vec2(
                 a.force.x/b.len() as f32,
@@ -207,7 +206,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         });
 
         {
-            /*
+            /* naive
             broccoli::query::nbody::naive_mut(PMut::new(&mut k),|a,b|{
                 let (a, b) = (a.unpack_inner(), b.unpack_inner());
 
@@ -219,11 +218,9 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             });
             */
 
-            use std::time::{Duration, Instant};
-            let now = Instant::now();
-            let mut tree = broccoli::new_par(&mut k);
-
-            let border = dim;
+            //use std::time::{Duration, Instant};
+            //let now = Instant::now();
+            let tree = broccoli::new_par(&mut k);
 
             let mut tree = broccoli::query::nbody::nbody_mut(
                 tree,
@@ -233,7 +230,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                 },
             );
 
-            println!("{}", now.elapsed().as_millis());
+            //println!("{}", now.elapsed().as_millis());
             //panic!();
             if check_naive {
 
