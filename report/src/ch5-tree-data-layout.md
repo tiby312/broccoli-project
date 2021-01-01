@@ -15,4 +15,4 @@ So how can we layout the nodes in memory to achieve this? Well, putting them in 
 
 Dfs in order uses more memory during construction from during recursion, but it gives you the nice property of the following: If a node is to the left of another node in space, then that node is to the left of that node in memmory. 
 
-Dfs pre-order and post-order might be more cache friendly. The these layouts, there is just one memory segment that shrinks in size as you recurse. 
+Dfs pre-order and post-order might be more cache friendly. With these layouts, there is just one memory segment that shrinks in size as you recurse. This gives you a property you dont have with inorder. Given a node, you can represent all the aabbs underneath it as one continguous slice. This peroprty is relied on in the nbody impl.

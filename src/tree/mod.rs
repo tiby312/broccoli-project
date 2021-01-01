@@ -8,13 +8,12 @@ use build::TreeBuilder;
 
 pub mod container;
 
-type TreeInner<N>=compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
-
+type TreeInner<N> = compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
 
 ///The data structure this crate revoles around.
 #[repr(transparent)]
 pub struct Tree<'a, T: Aabb> {
-    inner: TreeInner<Node<'a, T>>,
+    pub(crate) inner: TreeInner<Node<'a, T>>,
 }
 
 ///Create a [`Tree`].
@@ -46,7 +45,6 @@ where
     Tree::new_par(bots)
 }
 
-impl<'a, T: Aabb> NbodyQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> DrawQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> IntersectQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> RectQuery<'a> for Tree<'a, T> {}

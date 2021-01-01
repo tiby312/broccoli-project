@@ -1,660 +1,263 @@
 //!
-//! A nbody problem approximate solver.
+//! Experimental nbody approximate solver
 //!
 //! The user can choose the distance at which to fallback on approximate solutions.
 //! The algorithm works similar to a Barnes–Hut simulation, but uses a kdtree instead of a quad tree.
 //!
-//! A sequential and parallel version are supplied, both with a similar api.
+//! The user defines some geometric functions and their ideal accuracy. 
 //!
-//! The user defines some geometric functions and their ideal accuracy. The user also supplies
-//! a rectangle within which the nbody simulation will take place. So the simulation is only designed to work
-//! in a finite area.
-//!
-use super::tools;
-use crate::query::inner_prelude::*;
+use super::*;
 
-///User trait to fill out which is then passed to the `nbody` query function.
-pub trait NodeMassTrait: Clone + Copy {
-    type No: Copy + Send;
-    type Num: Num;
-    type Item: Aabb<Num = Self::Num>;
-
-    //Returns the bounding rectangle for this node.
-    fn get_rect(no: &Self::No) -> &Rect<Self::Num>;
-
-    //gravitate this node mass with another node mass
-    fn handle_node_with_node(&self, a: &mut Self::No, b: &mut Self::No);
-
-    //gravitate a bot with a bot
-    fn handle_bot_with_bot(&self, a: PMut<Self::Item>, b: PMut<Self::Item>);
-
-    //gravitate a nodemass with a bot
-    fn handle_node_with_bot(&self, a: &mut Self::No, b: PMut<Self::Item>);
-
-    fn is_far_enough(&self, b: [Self::Num; 2]) -> bool;
-
-    fn is_far_enough_half(&self, b: [Self::Num; 2]) -> bool;
-
-    //This unloads the force accumulated by this node to the bots.
-    fn apply_to_bots<'a, I: Iterator<Item = PMut<'a, Self::Item>>>(
-        &'a self,
-        a: &'a Self::No,
-        it: I,
-    );
-
-    fn new<'a, I: Iterator<Item = &'a Self::Item>>(
-        &'a self,
-        it: I,
-        rect: Rect<Self::Num>,
-    ) -> Self::No;
+///Helper enum indicating whether or not to gravitate a node as a whole, or as its individual parts. 
+pub enum GravEnum<'a, T: Aabb, M> {
+    Mass(&'a mut M),
+    Bot(PMut<'a, [T]>),
 }
+
+
+///User defined functions for nbody
+pub trait Nbody {
+    type T: Aabb<Num=Self::N>;
+    type N: Num;
+    type Mass: Default + Copy + core::fmt::Debug;
+
+    //return the position of the center of mass
+    fn compute_center_of_mass(&mut self, a: &[Self::T]) -> Self::Mass;
+
+    fn is_close(&mut self,a:&Self::Mass,line:Self::N,a:impl Axis)->bool;
+
+    fn is_close_half(&mut self,a:&Self::Mass,line:Self::N,a:impl Axis)->bool;
+
+
+    
+    fn gravitate(&mut self, a: GravEnum<Self::T, Self::Mass>, b: GravEnum<Self::T, Self::Mass>);
+
+    fn gravitate_self(&mut self, a: PMut<[Self::T]>);
+
+    fn apply_a_mass(&mut self, mass: Self::Mass, i: PMut<[Self::T]>);
+
+    fn combine_two_masses(&mut self, a: &Self::Mass, b: &Self::Mass) -> Self::Mass;
+}
+
+use compt::dfs_order::CompleteTreeContainer;
+use compt::dfs_order::PreOrder;
+use compt::dfs_order::VistrMut;
+
+struct NodeWrapper<'a, T: Aabb, M> {
+    node: Node<'a, T>,
+    mass: M,
+}
+
 
 ///Naive version simply visits every pair.
 pub fn naive_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
     tools::for_every_pair(bots, func);
 }
 
-use compt::dfs_order;
-type CombinedVistr<'a, 'b, N, J> =
-    compt::Zip<dfs_order::Vistr<'a, N, dfs_order::PreOrder>, VistrMut<'a, Node<'b, J>>>;
-type CombinedVistrMut<'a, 'b, N, J> =
-    compt::Zip<dfs_order::VistrMut<'a, N, dfs_order::PreOrder>, VistrMut<'a, Node<'b, J>>>;
-
-fn wrap_mut<'a: 'b, 'b, 'c: 'a + 'b, N, J: Aabb>(
-    bla: &'b mut CombinedVistrMut<'a, 'c, N, J>,
-) -> CombinedVistrMut<'b, 'c, N, J> {
-    //let depth=bla.depth();
-
-    let (a, b) = bla.as_inner_mut();
-
-    let a = a.borrow_mut();
-    let b = b.borrow_mut();
-
-    a.zip(b) //.with_depth(Depth(depth))
-}
-
-//pseudo code
-//build up a tree where every nodemass has the mass of all the bots in that node and all the bots under it.
-fn buildtree<J: Aabb, N: NodeMassTrait<Num = J::Num, Item = J>>(
-    axis: impl Axis,
-    node: VistrMut<Node<J>>,
-    misc_nodes: &mut Vec<N::No>,
-    ncontext: N,
-    rect: Rect<J::Num>,
-) {
-    fn recc<J: Aabb, N: NodeMassTrait<Num = J::Num, Item = J>>(
-        axis: impl Axis,
-        stuff: VistrMut<Node<J>>,
-        misc_nodes: &mut Vec<N::No>,
-        ncontext: N,
-        rect: Rect<J::Num>,
-    ) {
-        let (nn, rest) = stuff.next();
-        //let nn = nn.get_mut();
-        match rest {
-            Some([left, right]) => {
-                match nn.div {
-                    None => {
-                        //let empty=&[];
-                        //misc_nodes.push(ncontext.new(empty.iter(),rect));
-
-                        //recurse anyway even though there is no divider.
-                        //we want to populate this tree entirely.
-                        recc(axis.next(), left, misc_nodes, ncontext, rect);
-                        recc(axis.next(), right, misc_nodes, ncontext, rect);
-                    }
-                    Some(div) => {
-                        let (l, r) = rect.subdivide(axis, div);
-
-                        let nodeb = {
-                            let i1 = left
-                                .borrow()
-                                .dfs_preorder_iter()
-                                .flat_map(|a| a.range.iter());
-                            let i2 = right
-                                .borrow()
-                                .dfs_preorder_iter()
-                                .flat_map(|a| a.range.iter());
-                            let i3 = nn.range.iter().chain(i1.chain(i2));
-                            ncontext.new(i3, rect)
-                        };
-
-                        misc_nodes.push(nodeb);
-
-                        recc(axis.next(), left, misc_nodes, ncontext, l);
-                        recc(axis.next(), right, misc_nodes, ncontext, r);
-                    }
-                }
-            }
-            None => {
-                misc_nodes.push(ncontext.new(nn.range.iter(), rect));
-            }
-        }
-    }
-    recc(axis, node, misc_nodes, ncontext, rect);
-}
-
-fn apply_tree<N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb>(
-    _axis: impl Axis,
-    node: CombinedVistr<N::No, J>,
-    ncontext: N,
-) {
-    fn recc<N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb>(
-        stuff: CombinedVistr<N::No, J>,
-        ncontext: N,
-    ) {
-        let ((misc, nn), rest) = stuff.next();
-        //let nn = nn.get_mut();
-        match rest {
-            Some([mut left, mut right]) => {
-                let i1 = left
-                    .as_inner_mut()
-                    .1
-                    .borrow_mut()
-                    .dfs_preorder_iter()
-                    .flat_map(|a| a.into_range().iter_mut());
-                let i2 = right
-                    .as_inner_mut()
-                    .1
-                    .borrow_mut()
-                    .dfs_preorder_iter()
-                    .flat_map(|a| a.into_range().iter_mut());
-                let i3 = nn.into_range().iter_mut().chain(i1.chain(i2));
-
-                ncontext.apply_to_bots(misc, i3);
-
-                recc(left, ncontext);
-                recc(right, ncontext);
-            }
-            None => {
-                ncontext.apply_to_bots(misc, nn.into_range().iter_mut());
-            }
-        }
-    }
-
-    recc(node, ncontext);
-}
-
-//Construct anchor from cont!!!
-struct Anchor<'a, A: Axis, T: Aabb> {
-    axis: A,
-    range: PMut<'a, [T]>,
-    div: T::Num,
-}
-
-fn handle_anchor_with_children<
-    A: Axis,
-    B: Axis,
-    N: NodeMassTrait<Num = J::Num, Item = J>,
-    J: Aabb,
->(
-    thisa: A,
-    anchor: &mut Anchor<B, J>,
-    left: CombinedVistrMut<N::No, J>,
-    right: CombinedVistrMut<N::No, J>,
-    ncontext: N,
-) {
-    struct BoLeft<B: Axis, N: NodeMassTrait, J: Aabb> {
-        _anchor_axis: B,
-        _p: PhantomData<(N::No, J)>,
-        ncontext: N,
-    }
-
-    impl<B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2 for BoLeft<B, N, J> {
-        type No = N::No;
-        type T = J;
-        type AnchorAxis = B;
-
-        fn handle_node<A: Axis>(&mut self, _axis: A, mut b: PMut<J>, anchor: &mut Anchor<B, J>) {
-            for i in anchor.range.borrow_mut().iter_mut() {
-                self.ncontext.handle_bot_with_bot(i, b.borrow_mut());
-            }
-        }
-        fn handle_node_far_enough<A: Axis>(
-            &mut self,
-            _axis: A,
-            a: &mut N::No,
-            anchor: &mut Anchor<B, J>,
-        ) {
-            for i in anchor.range.borrow_mut().iter_mut() {
-                self.ncontext.handle_node_with_bot(a, i);
-            }
-        }
-
-        fn is_far_enough<A: Axis>(
-            &mut self,
-            axis: A,
-            anchor: &mut Anchor<B, J>,
-            misc: &Self::No,
-        ) -> bool {
-            let rect = N::get_rect(misc);
-            let range = rect.get_range(axis);
-            self.ncontext.is_far_enough([anchor.div, range.end])
-        }
-    }
-
-    struct BoRight<B: Axis, N: NodeMassTrait, J: Aabb> {
-        _anchor_axis: B,
-        _p: PhantomData<(N::No, J)>,
-        ncontext: N,
-    }
-
-    impl<B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2 for BoRight<B, N, J> {
-        type No = N::No;
-        type T = J;
-        type AnchorAxis = B;
-
-        fn handle_node<A: Axis>(&mut self, _axis: A, mut b: PMut<J>, anchor: &mut Anchor<B, J>) {
-            for i in anchor.range.borrow_mut().iter_mut() {
-                self.ncontext.handle_bot_with_bot(i, b.borrow_mut());
-            }
-        }
-        fn handle_node_far_enough<A: Axis>(
-            &mut self,
-            _axis: A,
-            a: &mut N::No,
-            anchor: &mut Anchor<B, J>,
-        ) {
-            for i in anchor.range.borrow_mut().iter_mut() {
-                self.ncontext.handle_node_with_bot(a, i);
-            }
-        }
-
-        fn is_far_enough<A: Axis>(
-            &mut self,
-            axis: A,
-            anchor: &mut Anchor<B, J>,
-            misc: &Self::No,
-        ) -> bool {
-            let rect = N::get_rect(misc);
-            let range = rect.get_range(axis);
-            self.ncontext.is_far_enough([anchor.div, range.start])
-        }
-    }
-    {
-        let mut bo = BoLeft {
-            _anchor_axis: anchor.axis,
-            _p: PhantomData,
-            ncontext,
-        };
-        bo.generic_rec2(thisa, anchor, left);
-    }
-    {
-        let mut bo = BoRight {
-            _anchor_axis: anchor.axis,
-            _p: PhantomData,
-            ncontext,
-        };
-        bo.generic_rec2(thisa, anchor, right);
-    }
-}
-
-fn handle_left_with_right<
-    'a,
-    'b: 'a,
-    A: Axis,
-    B: Axis,
-    N: NodeMassTrait<Num = J::Num, Item = J>,
-    J: Aabb,
->(
-    axis: A,
-    anchor: &mut Anchor<B, J>,
-    left: CombinedVistrMut<'a, 'b, N::No, J>,
-    mut right: CombinedVistrMut<'a, 'b, N::No, J>,
-    ncontext: N,
-) {
-    struct Bo4<'a, B: Axis, N: NodeMassTrait, J: Aabb> {
-        _anchor_axis: B,
-        bot: PMut<'a, J>,
-        ncontext: N,
-        div: N::Num,
-        _p: PhantomData<J>,
-    }
-
-    impl<'a, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2 for Bo4<'a, B, N, J> {
-        type No = N::No;
-        type T = J;
-        type AnchorAxis = B;
-        fn handle_node<A: Axis>(&mut self, _axis: A, b: PMut<J>, _anchor: &mut Anchor<B, J>) {
-            self.ncontext.handle_bot_with_bot(self.bot.borrow_mut(), b);
-        }
-        fn handle_node_far_enough<A: Axis>(
-            &mut self,
-            _axis: A,
-            a: &mut N::No,
-            _anchor: &mut Anchor<B, J>,
-        ) {
-            self.ncontext.handle_node_with_bot(a, self.bot.borrow_mut());
-        }
-        fn is_far_enough<A: Axis>(
-            &mut self,
-            axis: A,
-            _anchor: &mut Anchor<B, J>,
-            misc: &Self::No,
-        ) -> bool {
-            let rect = N::get_rect(misc);
-            let range = rect.get_range(axis);
-            self.ncontext.is_far_enough_half([self.div, range.start])
-        }
-    }
-    struct Bo2<'a, B: Axis, N: NodeMassTrait, J: Aabb> {
-        _anchor_axis: B,
-        node: &'a mut N::No,
-        ncontext: N,
-        div: N::Num,
-        _p: PhantomData<J>,
-    }
-
-    impl<'a, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2 for Bo2<'a, B, N, J> {
-        type No = N::No;
-        type T = J;
-        type AnchorAxis = B;
-
-        fn handle_node<A: Axis>(&mut self, _axis: A, b: PMut<J>, _anchor: &mut Anchor<B, J>) {
-            self.ncontext.handle_node_with_bot(self.node, b);
-        }
-        fn handle_node_far_enough<A: Axis>(
-            &mut self,
-            _axis: A,
-            a: &mut N::No,
-            _anchor: &mut Anchor<B, J>,
-        ) {
-            self.ncontext.handle_node_with_node(self.node, a);
-        }
-        fn is_far_enough<A: Axis>(
-            &mut self,
-            axis: A,
-            _anchor: &mut Anchor<B, J>,
-            misc: &Self::No,
-        ) -> bool {
-            let rect = N::get_rect(misc);
-            let range = rect.get_range(axis);
-            self.ncontext.is_far_enough_half([self.div, range.start])
-        }
-    }
-
-    struct Bo<'a: 'b, 'b, 'c, B: Axis, N: NodeMassTrait, J: Aabb> {
-        _anchor_axis: B,
-        right: &'c mut CombinedVistrMut<'b, 'a, N::No, J>,
-        ncontext: N,
-    }
-
-    impl<'a: 'b, 'b, 'c, B: Axis, N: NodeMassTrait<Num = J::Num, Item = J>, J: Aabb> Bok2
-        for Bo<'a, 'b, 'c, B, N, J>
-    {
-        type No = N::No;
-        type T = J;
-        type AnchorAxis = B;
-        fn handle_node<A: Axis>(&mut self, axis: A, b: PMut<J>, anchor: &mut Anchor<B, J>) {
-            let r = wrap_mut(&mut self.right);
-            let anchor_axis = anchor.axis;
-
-            let mut bok = Bo4 {
-                _anchor_axis: anchor_axis,
-                bot: b,
-                ncontext: self.ncontext,
-                div: anchor.div,
-                _p: PhantomData,
-            };
-            bok.generic_rec2(axis, anchor, r);
-        }
-        fn handle_node_far_enough<A: Axis>(
-            &mut self,
-            axis: A,
-            a: &mut N::No,
-            anchor: &mut Anchor<B, J>,
-        ) {
-            let r = wrap_mut(&mut self.right);
-            let anchor_axis = anchor.axis;
-
-            let mut bok = Bo2 {
-                _anchor_axis: anchor_axis,
-                node: a,
-                ncontext: self.ncontext,
-                div: anchor.div,
-                _p: PhantomData,
-            };
-            bok.generic_rec2(axis, anchor, r);
-        }
-        fn is_far_enough<A: Axis>(
-            &mut self,
-            axis: A,
-            anchor: &mut Anchor<B, J>,
-            misc: &Self::No,
-        ) -> bool {
-            let rect = N::get_rect(misc);
-            let range = rect.get_range(axis);
-            self.ncontext.is_far_enough_half([range.end, anchor.div])
-        }
-    }
-    let mut bo = Bo {
-        _anchor_axis: anchor.axis,
-        right: &mut right,
-        ncontext,
+fn build_masses2<N: Nbody>(
+    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
+    no: &mut N,
+) -> N::Mass {
+    let (nn, rest) = vistr.next();
+    let mass = no.compute_center_of_mass(&nn.node.range);
+    let mass = if let Some([left, right]) = rest {
+        let a = build_masses2(left, no);
+        let b = build_masses2(right, no);
+        let m = no.combine_two_masses(&a, &b);
+        no.combine_two_masses(&m, &mass)
+    } else {
+        mass
     };
-    bo.generic_rec2(axis, anchor, left);
+    nn.mass = mass;
+    mass
 }
 
-fn recc<
-    J: par::Joiner,
-    A: Axis,
-    N: NodeMassTrait<Num = F::Num, Item = F> + Sync + Send,
-    F: Aabb + Send + Sync,
->(
-    join: J,
-    axis: A,
-    it: CombinedVistrMut<N::No, F>,
-    ncontext: N,
-) where
-    F::Num: Send + Sync,
-    N::No: Send,
-{
-    let ((_, mut nn), rest) = it.next();
-    //let mut nn = nn.get_mut();
-    match rest {
-        Some([mut left, mut right]) => {
-            let div = match nn.div {
-                Some(b) => b,
-                None => return,
-            };
+fn collect_masses<'a, 'b, N: Nbody>(
+    root_div:N::N,
+    root_axis:impl Axis,
+    root: &N::Mass,
+    vistr: VistrMut<'b, NodeWrapper<'a, N::T, N::Mass>, PreOrder>,
+    no: &mut N,
+    func1: &mut impl FnMut(&'b mut NodeWrapper<'a, N::T, N::Mass>, &mut N),
+    func2: &mut impl FnMut(&'b mut PMut<'a, [N::T]>, &mut N),
+) {
+    let (nn, rest) = vistr.next();
 
-            //handle bots in itself
-            tools::for_every_pair(nn.borrow_mut().into_range(), |a, b| {
-                ncontext.handle_bot_with_bot(a, b)
-            });
-            {
-                let l1 = wrap_mut(&mut left);
-                let l2 = wrap_mut(&mut right);
-                let mut anchor = Anchor {
-                    axis,
-                    range: nn.borrow_mut().into_range(),
-                    div,
-                };
+    
+    if !no.is_close_half(&nn.mass,root_div,root_axis){
+        func1(nn,no);
+        return;
+    }
 
-                handle_anchor_with_children(axis.next(), &mut anchor, l1, l2, ncontext);
-            }
-            //At this point, everything has been handled with the root.
-            //before we can fully remove the root, and reduce this problem to two smaller trees,
-            //we have to do one more thing.
-            //we have to handle all the bots on the left of the root with all the bots on the right of the root.
-
-            //from the left side,get a list of nodemases.
-            //from the right side,get a list of nodemases.
-            //collide the two.
-
-            {
-                let l1 = wrap_mut(&mut left);
-                let l2 = wrap_mut(&mut right);
-                let mut anchor = Anchor {
-                    axis,
-                    range: nn.into_range(),
-                    div,
-                };
-
-                handle_left_with_right(axis.next(), &mut anchor, l1, l2, ncontext);
-            }
-            //at this point we have successfully broken up this problem
-            //into two independant ones, and we can do this all over again for the two children.
-            //potentially in parlalel.
-
-            match join.next() {
-                par::ParResult::Parallel([dleft, dright]) => {
-                    let n2 = ncontext;
-                    rayon::join(
-                        || recc(dleft, axis.next(), left, ncontext),
-                        || recc(dright, axis.next(), right, n2),
-                    );
-                }
-                par::ParResult::Sequential([dleft, dright]) => {
-                    recc(dleft, axis.next(), left, ncontext);
-                    recc(dright, axis.next(), right, ncontext);
-                }
-            }
-        }
-        None => {
-            //handle bots in itself
-            tools::for_every_pair(nn.into_range(), |a, b| ncontext.handle_bot_with_bot(a, b));
-        }
+    func2(&mut nn.node.range, no);
+    
+    if let Some([left, right]) = rest {
+        collect_masses(root_div,root_axis,root, left, no, func1, func2);
+        collect_masses(root_div,root_axis,root, right, no, func1, func2);
     }
 }
 
-trait Bok2 {
-    type No: Copy;
-    type T: Aabb;
-    type AnchorAxis: Axis;
-    fn is_far_enough<A: Axis>(
-        &mut self,
-        axis: A,
-        anchor: &mut Anchor<Self::AnchorAxis, Self::T>,
-        misc: &Self::No,
-    ) -> bool;
-    fn handle_node<A: Axis>(
-        &mut self,
-        axis: A,
-        n: PMut<Self::T>,
-        anchor: &mut Anchor<Self::AnchorAxis, Self::T>,
-    );
-    fn handle_node_far_enough<A: Axis>(
-        &mut self,
-        axis: A,
-        a: &mut Self::No,
-        anchor: &mut Anchor<Self::AnchorAxis, Self::T>,
+fn pre_recc<N: Nbody>(
+    root_div:N::N,
+    root_axis:impl Axis,
+    root: &mut NodeWrapper<N::T, N::Mass>,
+    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
+    no: &mut N,
+) {
+    let (nn, rest) = vistr.next();
+    
+    if !no.is_close(&nn.mass,root_div,root_axis){
+        no.gravitate(
+            GravEnum::Bot(root.node.range.borrow_mut()),
+            GravEnum::Mass(&mut nn.mass),
+        );
+        return;
+    }
+    
+    no.gravitate(
+        GravEnum::Bot(root.node.range.borrow_mut()),
+        GravEnum::Bot(nn.node.range.borrow_mut()),
     );
 
-    fn generic_rec2<A: Axis>(
-        &mut self,
-        this_axis: A,
-        anchor: &mut Anchor<Self::AnchorAxis, Self::T>,
-        stuff: CombinedVistrMut<Self::No, Self::T>,
-    ) {
-        let ((misc, nn), rest) = stuff.next();
-        //let nn = nn.get_mut();
-        if this_axis.is_equal_to(anchor.axis) && self.is_far_enough(this_axis, anchor, misc) {
-            self.handle_node_far_enough(this_axis, misc, anchor);
-            return;
-        }
+    if let Some([left,right]) = rest {
+        pre_recc(root_div,root_axis,root, left, no);
+        pre_recc(root_div,root_axis,root, right, no);
+    }
+}
 
-        match rest {
-            Some([left, right]) => {
-                match nn.div {
-                    Some(_) => (),
-                    None => return,
-                };
+fn recc<N: Nbody>(
+    axis: impl Axis,
+    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
+    no: &mut N,
+) {
+    let (nn, rest) = vistr.next();
 
-                for i in nn.into_range().iter_mut() {
-                    self.handle_node(this_axis, i, anchor);
+    no.gravitate_self(nn.node.range.borrow_mut());
+
+    if let Some([mut left, mut right]) = rest {
+        
+        if let Some(div) = nn.node.div {
+            pre_recc(div,axis,nn, left.borrow_mut(), no);
+            pre_recc(div,axis,nn, right.borrow_mut(), no);
+
+            
+            let mut finished_masses = Vec::new();
+            let mut finished_bots = Vec::new();
+
+            collect_masses(
+                div,
+                axis,
+                &nn.mass,
+                left.borrow_mut(),
+                no,
+                &mut |a, _| finished_masses.push(a),
+                &mut |a, _| finished_bots.push(a),
+            );
+
+            let mut finished_masses2 = Vec::new();
+            let mut finished_bots2 = Vec::new();
+
+            collect_masses(
+                div,
+                axis,
+                &nn.mass,
+                right.borrow_mut(),
+                no,
+                &mut |a, _| finished_masses2.push(a),
+                &mut |a, _| finished_bots2.push(a),
+            );
+
+            //We have collected masses on both sides.
+            //now gravitate all the ones on the left side with all the ones on the right side.
+
+            for a in finished_masses.into_iter() {
+                for b in finished_masses2.iter_mut() {
+                    no.gravitate(GravEnum::Mass(&mut a.mass), GravEnum::Mass(&mut b.mass));
                 }
 
-                self.generic_rec2(this_axis.next(), anchor, left);
-                self.generic_rec2(this_axis.next(), anchor, right);
-            }
-            None => {
-                for i in nn.into_range().iter_mut() {
-                    self.handle_node(this_axis, i, anchor);
+                for b in finished_bots2.iter_mut() {
+                    no.gravitate(GravEnum::Mass(&mut a.mass), GravEnum::Bot(b.borrow_mut()));
                 }
             }
+            for a in finished_bots.into_iter() {
+                for b in finished_masses2.iter_mut() {
+                    no.gravitate(GravEnum::Bot(a.borrow_mut()), GravEnum::Mass(&mut b.mass));
+                }
+                for b in finished_bots2.iter_mut() {
+                    no.gravitate(GravEnum::Bot(a.borrow_mut()), GravEnum::Bot(b.borrow_mut()));
+                }
+            }
+
+            //parallelize this
+            recc(axis.next(), left, no);
+            recc(axis.next(), right, no);
         }
     }
 }
 
-///Parallel version.
-fn nbody_par<
-    A: Axis,
-    T: Aabb + Send + Sync,
-    NO: NodeMassTrait<Num = T::Num, Item = T> + Sync + Send,
->(
-    axis: A,
-    mut vistr: VistrMut<Node<T>>,
-    ncontext: NO,
-    rect: Rect<T::Num>,
-) where
-    T::Num: Send + Sync,
-{
-    let mut misc_nodes = Vec::new();
-    buildtree(axis, vistr.borrow_mut(), &mut misc_nodes, ncontext, rect);
+fn get_bots_from_vistr<'a, T: Aabb, N>(
+    vistr: VistrMut<'a, NodeWrapper<T, N>, PreOrder>,
+) -> PMut<'a, [T]> {
+    let mut new_slice = None;
 
-    let mut misc_tree = compt::dfs_order::CompleteTreeContainer::from_preorder(misc_nodes).unwrap();
-
+    vistr.dfs_preorder(|a| {
+        if let Some(s) = new_slice.take() {
+            new_slice = Some(crate::pmut::combine_slice(s, a.node.range.borrow_mut()));
+        } else {
+            new_slice = Some(a.node.range.borrow_mut());
+        }
+    });
+    new_slice.unwrap()
+}
+fn apply_tree<N: Nbody>(mut vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>, no: &mut N) {
     {
-        let k = par::SWITCH_SEQUENTIAL_DEFAULT;
-        let par = par::compute_level_switch_sequential(k, vistr.get_height());
+        let mass = vistr.borrow_mut().next().0.mass;
 
-        let d = misc_tree.vistr_mut().zip(vistr.borrow_mut());
-        recc(par, axis, d, ncontext);
+        let new_slice = get_bots_from_vistr(vistr.borrow_mut());
+
+        no.apply_a_mass(mass, new_slice);
     }
 
-    apply_tree(axis, misc_tree.vistr().zip(vistr), ncontext);
+    let (_, rest) = vistr.next();
+
+    if let Some([left,right]) = rest {
+        apply_tree(left, no);
+        apply_tree(right, no);
+    }
 }
 
-///Sequential version.
-fn nbody<A: Axis, T: Aabb + Send + Sync, NO: NodeMassTrait<Num = T::Num, Item = T> + Send + Sync>(
-    axis: A,
-    mut vistr: VistrMut<Node<T>>,
-    ncontext: NO,
-    rect: Rect<T::Num>,
-) where
-    T::Num: Send + Sync,
-{
-    let mut misc_nodes = Vec::new();
+///Perform nbody
+///The tree is taken by value so that its nodes can be expended to include more data.
+pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
+    let t: CompleteTreeContainer<Node<N::T>, PreOrder> = tree.inner;
 
-    buildtree(axis, vistr.borrow_mut(), &mut misc_nodes, ncontext, rect);
+    let k = t
+        .into_nodes()
+        .into_vec()
+        .into_iter()
+        .map(|node| NodeWrapper {
+            node,
+            mass: Default::default(),
+        })
+        .collect();
 
-    let mut misc_tree = compt::dfs_order::CompleteTreeContainer::from_preorder(misc_nodes).unwrap();
+    let mut newtree = CompleteTreeContainer::from_preorder(k).unwrap();
 
-    let d = misc_tree.vistr_mut().zip(vistr.borrow_mut());
-    recc(par::Sequential, axis, d, ncontext);
+    //calculate node masses of each node.
+    build_masses2(newtree.vistr_mut(), no);
 
-    let d = misc_tree.vistr().zip(vistr);
-    apply_tree(axis, d, ncontext);
-}
+    recc(default_axis(), newtree.vistr_mut(), no);
 
-use super::Queries;
+    apply_tree(newtree.vistr_mut(), no);
 
-///Nbody functions that can be called on a tree.
-pub trait NbodyQuery<'a>: Queries<'a> {
-    ///Experimental. See broccoli demo
-    fn nbody_mut<X: NodeMassTrait<Num = Self::Num, Item = Self::T> + Send + Sync>(
-        &mut self,
-        ncontext: X,
-        rect: Rect<Self::Num>,
-    ) where
-        X::No: Send,
-        Self::T: Send + Sync,
-        Self::Num: Send + Sync,
-    {
-        self::nbody(default_axis(), self.vistr_mut(), ncontext, rect)
-    }
+    let nt: Vec<_> = newtree
+        .into_nodes()
+        .into_vec()
+        .into_iter()
+        .map(|node| node.node)
+        .collect();
 
-    ///Experimental. See broccoli demo
-    fn nbody_mut_par<X: NodeMassTrait<Num = Self::Num, Item = Self::T> + Sync + Send>(
-        &mut self,
-        ncontext: X,
-        rect: Rect<Self::Num>,
-    ) where
-        X::No: Send,
-        Self::T: Send + Sync,
-        Self::Num: Send + Sync,
-    {
-        self::nbody_par(default_axis(), self.vistr_mut(), ncontext, rect)
-    }
+    let inner = CompleteTreeContainer::from_preorder(nt).unwrap();
+
+    crate::Tree { inner }
 }

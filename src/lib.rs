@@ -58,7 +58,7 @@
     html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
 )]
-#![no_std]
+//#![no_std]
 
 #[macro_use]
 extern crate alloc;
@@ -108,7 +108,6 @@ pub mod convert;
 ///The broccoli prelude.
 pub mod prelude {
     pub use crate::query::draw::DrawQuery;
-    pub use crate::query::nbody::NbodyQuery;
 
     pub use crate::query::colfind::ColfindQuery;
     pub use crate::query::intersect_with::IntersectQuery;

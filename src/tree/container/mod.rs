@@ -98,8 +98,6 @@ impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, N, T> {
     }
 }
 
-
-
 /// Provides a function to allow the user to ger the original slice of
 /// elements (sorted by the tree). Derefs to [`Tree`].
 ///
@@ -146,8 +144,8 @@ impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, N, T> {
 ///
 #[repr(C)]
 pub struct TreeRef<'a, T: Aabb> {
-    tree: crate::Tree<'a,T>,
-    orig: Ptr<[T]>
+    tree: crate::Tree<'a, T>,
+    orig: Ptr<[T]>,
 }
 
 impl<'a, T: Aabb> core::ops::Deref for TreeRef<'a, T> {
@@ -165,7 +163,7 @@ impl<'a, T: Aabb> core::ops::DerefMut for TreeRef<'a, T> {
 impl<'a, T: Aabb> TreeRef<'a, T> {
     pub fn new(arr: &'a mut [T]) -> TreeRef<'a, T> {
         let orig = Ptr(arr as *mut _);
-        
+
         TreeRef {
             tree: crate::new(arr),
             orig,
@@ -173,14 +171,13 @@ impl<'a, T: Aabb> TreeRef<'a, T> {
     }
 }
 
-
 impl<'a, T: Aabb + Send + Sync> TreeRef<'a, T>
 where
     T::Num: Send + Sync,
 {
     pub fn new_par(arr: &'a mut [T]) -> TreeRef<'a, T> {
         let orig = Ptr(arr as *mut _);
-        
+
         TreeRef {
             tree: crate::new_par(arr),
             orig,
@@ -188,9 +185,11 @@ where
     }
 }
 
-impl<'a,T:Aabb> From<TreeRef<'a,T>> for Tree<'a,T>{
-    fn from(a:TreeRef<'a,T>)->Self{
-        Tree{inner:a.tree.inner}
+impl<'a, T: Aabb> From<TreeRef<'a, T>> for Tree<'a, T> {
+    fn from(a: TreeRef<'a, T>) -> Self {
+        Tree {
+            inner: a.tree.inner,
+        }
     }
 }
 
@@ -295,7 +294,7 @@ pub struct TreeOwned<T: Aabb> {
     inner: TreeInner<NodePtr<T>>,
     //this is included so that we can cast a reference of this to TreeRef.
     //It is obviously redundant with the Boxed slice right after it.
-    orig: Ptr<[T]>, 
+    orig: Ptr<[T]>,
     _bots: Box<[T]>,
 }
 
@@ -306,7 +305,7 @@ where
     pub fn new_par(mut bots: Box<[T]>) -> TreeOwned<T> {
         let orig = Ptr(&mut bots as &mut [_] as *mut [_]);
         let inner = inner::make_owned_par(&mut bots);
-        
+
         TreeOwned {
             inner,
             orig,
