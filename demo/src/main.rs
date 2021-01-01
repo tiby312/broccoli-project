@@ -38,7 +38,7 @@ mod demo_iter {
             let area = Rect::new(0.0, area.x as f32, 0.0, area.y as f32);
 
             let k: Demo = match curr {
-                0 => demo_nbody2::make_demo(area),
+                0 => demo_nbody::make_demo(area),
                 /*
                 0 => demo_original_order::make_demo(area),
                 1 => demo_liquid::make_demo(area),

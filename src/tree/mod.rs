@@ -45,7 +45,6 @@ where
     Tree::new_par(bots)
 }
 
-impl<'a, T: Aabb> NbodyQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> DrawQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> IntersectQuery<'a> for Tree<'a, T> {}
 impl<'a, T: Aabb> RectQuery<'a> for Tree<'a, T> {}
