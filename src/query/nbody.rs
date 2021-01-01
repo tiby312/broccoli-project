@@ -8,11 +8,14 @@
 //!
 use super::*;
 
+///Helper enum indicating whether or not to gravitate a node as a whole, or as its individual parts. 
 pub enum GravEnum<'a, T: Aabb, M> {
     Mass(&'a mut M),
     Bot(PMut<'a, [T]>),
 }
 
+
+///User defined functions for nbody
 pub trait Nbody {
     type T: Aabb<Num=Self::N>;
     type N: Num;
@@ -223,8 +226,8 @@ fn apply_tree<N: Nbody>(mut vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder
     }
 }
 
-//TODO add parallel
-
+///Perform nbody
+///The tree is taken by value so that its nodes can be expended to include more data.
 pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
     let t: CompleteTreeContainer<Node<N::T>, PreOrder> = tree.inner;
 
