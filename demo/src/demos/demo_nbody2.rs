@@ -81,12 +81,23 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
         }
     }
 
-    fn are_close(&mut self, a: &Self::Mass, b: &Self::Mass) -> bool {
-        let mag = (b.center - a.center).magnitude2();
 
-        let dis = 300.0;
-        mag < dis * dis
+    fn is_close_half(&mut self,m:&Self::Mass,line:Self::N,a:impl Axis)->bool{
+        if a.is_xaxis(){
+            (m.center.x-line).abs()<200.0
+        }else{
+            (m.center.y-line).abs()<200.0
+        }
     }
+
+    fn is_close(&mut self,m:&Self::Mass,line:Self::N,a:impl Axis)->bool{
+        if a.is_xaxis(){
+            (m.center.x-line).abs()<400.0
+        }else{
+            (m.center.y-line).abs()<400.0
+        }
+    }
+
 
     #[inline(always)]
     fn gravitate(&mut self, a: GravEnum<Self::T, Self::Mass>, b: GravEnum<Self::T, Self::Mass>) {
@@ -147,17 +158,18 @@ impl<'b> broccoli::query::nbody2::NNN for Bla<'b> {
         if a.mass > 0.000_000_1 {
             let indforce = a.force;
 
-            /*
+            
             let indforce=vec2(
                 a.force.x/b.len() as f32,
                 a.force.y/b.len() as f32
             );
-            */
-
+            
+            //TODO counteract the added fudge here, but dividing by 3 on bot on bot cases
+            let fudge=3.0;
             for i in b.iter_mut() {
                 let i = i.unpack_inner();
-                let forcex = indforce.x * (i.mass / a.mass);
-                let forcey = indforce.y * (i.mass / a.mass);
+                let forcex = indforce.x*fudge;
+                let forcey = indforce.y*fudge;
 
                 i.force += vec2(forcex, forcey);
             }
