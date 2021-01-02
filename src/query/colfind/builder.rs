@@ -171,8 +171,7 @@ where
     #[inline(always)]
     pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
         let mut sweeper = QueryFn::new(func);
-        //let mut sweeper = HandleSorted::new(b);
-
+       
         let height = self.vistr.get_height();
         let switch_height = self.switch_height;
         let par = par::compute_level_switch_sequential(switch_height, height);
@@ -191,8 +190,8 @@ where
     /// callbacks to when new worker tasks are spawned and joined by `rayon`.
     /// Allows the user to potentially collect some aspect of every aabb collision in parallel.
     ///
-    ///Query in parallel, calling splitter functions every time a new parallel recurse is started.
-    ///The splitter functions wont be called by sequential recursions.
+    /// `sweeper` : The splitter div/add functions will be called every time a new parallel recurse is started.
+    /// `splitter`: The splitter div/add will be called at every level of recursion.
     ///
     /// # Examples
     ///
@@ -219,12 +218,11 @@ where
     /// assert_eq!(intersections.len(),1);
     ///```
     #[inline(always)]
-    pub fn query_par_ext<C: CollisionHandler<T = T> + Splitter + Send + Sync>(
+    pub fn query_par_ext(
         self,
-        sweeper: &mut C,
+        sweeper: &mut (impl CollisionHandler<T = T> + Splitter + Send + Sync),
         splitter: &mut (impl Splitter + Send + Sync),
     ) {
-        //TODO document new spliiter argument
         let height = self.vistr.get_height();
 
         let par = par::compute_level_switch_sequential(self.switch_height, height);
