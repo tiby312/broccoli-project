@@ -271,8 +271,10 @@ fn apply_tree<N: Nbody>(mut vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder
 }
 
 
+type TreeInner<T>=CompleteTreeContainer<T, PreOrder>;
+
 fn convert_tree_into_wrapper<T:Aabb,M:Default>(
-    tree:CompleteTreeContainer<Node<T>, PreOrder>)->CompleteTreeContainer<NodeWrapper<T,M>, PreOrder>{
+    tree:TreeInner<Node<T>>)->TreeInner<NodeWrapper<T,M>>{
 
     let k = tree
         .into_nodes()
@@ -287,7 +289,7 @@ fn convert_tree_into_wrapper<T:Aabb,M:Default>(
     CompleteTreeContainer::from_preorder(k).unwrap()
 }
 fn convert_wrapper_into_tree<T:Aabb,M:Default>(
-    tree:CompleteTreeContainer<NodeWrapper<T,M>, PreOrder>)->CompleteTreeContainer<Node<T>, PreOrder>
+    tree:TreeInner<NodeWrapper<T,M>>)->TreeInner<Node<T>>
 {
     let nt: Vec<_> = tree
         .into_nodes()
