@@ -18,6 +18,19 @@ mod oned;
 pub use builder::TreeBuilder;
 mod builder;
 
+
+///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
+pub struct SplitterEmpty;
+
+impl Splitter for SplitterEmpty {
+    #[inline(always)]
+    fn div(&mut self) -> (Self, Self) {
+        (SplitterEmpty, SplitterEmpty)
+    }
+    #[inline(always)]
+    fn add(&mut self, _: Self, _: Self) {}
+}
+
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
 ///during construction.

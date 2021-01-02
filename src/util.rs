@@ -18,17 +18,6 @@ pub fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {
     collision_botids.sort_unstable_by(sclosure);
 }
 
-///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
-pub struct SplitterEmpty;
-
-impl Splitter for SplitterEmpty {
-    #[inline(always)]
-    fn div(&mut self) -> (Self, Self) {
-        (SplitterEmpty, SplitterEmpty)
-    }
-    #[inline(always)]
-    fn add(&mut self, _: Self, _: Self) {}
-}
 
 pub use self::prevec::PreVecMut;
 mod prevec {

@@ -175,7 +175,7 @@ impl<'a, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, N, T> {
 
         use crate::query::colfind::builder::*;
         self.new_colfind_builder()
-            .query_par_ext(&mut handler, &mut crate::util::SplitterEmpty);
+            .query_par_ext(&mut handler, &mut SplitterEmpty);
         handler.consume()
     }
 }

@@ -213,7 +213,7 @@ where
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// let handler=query::colfind::builder::from_closure(
+    /// let mut handler=query::colfind::builder::from_closure(
     ///     &tree,
     ///     Vec::new(),
     ///     |_|(Vec::new(),Vec::new()),        //Start a new thread
@@ -221,9 +221,12 @@ where
     ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())), //Handle a collision
     /// );
     ///
-    /// let intersections=tree.new_colfind_builder().query_par_ext(
-    ///     handler
-    /// ).consume();
+    /// tree.new_colfind_builder().query_par_ext(
+    ///     &mut handler,
+    ///     &mut broccoli::build::SplitterEmpty
+    /// );
+    ///
+    /// let intersections=handler.consume();
     ///
     /// assert_eq!(intersections.len(),1);
     ///```

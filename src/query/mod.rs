@@ -7,6 +7,7 @@ mod inner_prelude {
     pub use crate::tree::build::default_axis;
     pub use crate::tree::build::Splitter;
     pub use crate::util::*;
+    pub use crate::tree::build::SplitterEmpty;
     pub use alloc::vec::Vec;
     pub use axgeom;
     pub use axgeom::Rect;
