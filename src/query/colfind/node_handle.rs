@@ -8,54 +8,11 @@ pub struct DestructuredNode<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
     pub axis: AnchorAxis,
 }
-/*
-impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNode<'a, 'b, T, AnchorAxis> {
-    #[inline(always)]
-    pub fn new(
-        axis: AnchorAxis,
-        node: PMut<'a, Node<'b, T>>,
-    ) -> Option<DestructuredNode<'a, 'b, T, AnchorAxis>> {
-        debug_assert!(node.div.is_some());
-        if node.cont.is_some() {
-            Some(DestructuredNode { node, axis })
-        } else {
-            None
-        }
-    }
-
-    #[inline(always)]
-    pub fn cont(&self) -> &axgeom::Range<T::Num> {
-        unsafe { self.node.cont.as_ref().unchecked_unwrap() }
-    }
-}
-*/
-
 
 pub struct DestructuredNodeLeaf<'a, 'b: 'a, T: Aabb, A: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
     pub axis: A,
 }
-/*
-impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNodeLeaf<'a, 'b, T, AnchorAxis> {
-    #[inline(always)]
-    pub fn new(
-        axis: AnchorAxis,
-        node: PMut<'a, Node<'b, T>>,
-    ) -> Option<DestructuredNodeLeaf<'a, 'b, T, AnchorAxis>> {
-        if node.cont.is_some() {
-            Some(DestructuredNodeLeaf { node, axis })
-        } else {
-            None
-        }
-    }
-
-    #[inline(always)]
-    pub fn cont(&self) -> &axgeom::Range<T::Num> {
-        unsafe { self.node.cont.as_ref().unchecked_unwrap() }
-    }
-}
-*/
-
 
 pub trait NodeHandler {
     type T: Aabb;
