@@ -39,23 +39,19 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,
                         match self.anchor.cont().contains_ext(div) {
                             Less => {
                                 self.recurse(this_axis.next(), right);
+                                return;
                             }
                             Greater => {
                                 self.recurse(this_axis.next(), left);
+                                return;
                             }
-                            Equal => {
-                                self.recurse(this_axis.next(), left);
-                                self.recurse(this_axis.next(), right);
-                            }
+                            Equal => {}
                         }
-                    } else {
-                        self.recurse(this_axis.next(), left);
-                        self.recurse(this_axis.next(), right);
                     }
-                } else {
-                    self.recurse(this_axis.next(), left);
-                    self.recurse(this_axis.next(), right);
                 }
+                
+                self.recurse(this_axis.next(), left);
+                self.recurse(this_axis.next(), right);
             }
             None => {
                 if let Some(current) = DestructuredNodeLeaf::new(this_axis, nn) {
