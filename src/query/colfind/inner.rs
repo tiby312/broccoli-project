@@ -2,14 +2,14 @@ use super::node_handle::*;
 use crate::inner_prelude::*;
 
 use crate::query::colfind::CollisionHandler;
-struct InnerRecurser<'a, 'b: 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis> {
+struct InnerRecurser<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis> {
     anchor: DestructuredNode<'a, 'b, T, B>,
     handler: NN,
     sweeper: &'a mut KK,
     prevec: &'a mut PreVecMut<T>,
 }
 
-impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
+impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
     InnerRecurser<'a, 'b, T, NN, KK, B>
 {
     #[inline(always)]

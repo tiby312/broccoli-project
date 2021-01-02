@@ -3,12 +3,12 @@ use super::CollisionHandler;
 use crate::query::colfind::oned;
 use crate::query::inner_prelude::*;
 
-pub struct DestructuredNode<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> {
+pub struct DestructuredNode<'a, 'b, T: Aabb, AnchorAxis: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
     pub axis: AnchorAxis,
 }
 
-pub struct DestructuredNodeLeaf<'a, 'b: 'a, T: Aabb, A: Axis> {
+pub struct DestructuredNodeLeaf<'a, 'b, T: Aabb, A: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
     pub axis: A,
 }
