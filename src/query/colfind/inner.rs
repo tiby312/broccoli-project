@@ -73,139 +73,149 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
     }
 }
 
-pub fn recurse_par<T: Aabb + Send + Sync>(
-    this_axis: impl Axis,
-    par: impl par::Joiner,
-    sweeper: &mut (impl CollisionHandler<T = T> + Splitter + Send + Sync),
-    handler: impl NodeHandler,
-    prevec: &mut PreVecMut<T>,
-    m: VistrMut<Node<T>>,
-    splitter: &mut (impl Splitter + Send + Sync),
-) where
-    T::Num: Send + Sync,
-{
-    if let Some([left, right]) = recurse_common(this_axis, prevec, sweeper, handler, m) {
-        let (mut splitter11, mut splitter22) = splitter.div();
-        match par.next() {
-            par::ParResult::Parallel([dleft, dright]) => {
-                let (mut sweeper1, mut sweeper2) = sweeper.div();
-                let mut prevec2 = PreVecMut::new();
-                rayon::join(
-                    || {
-                        recurse_par(
-                            this_axis.next(),
-                            dleft,
-                            &mut sweeper1,
-                            handler,
-                            prevec,
-                            left,
-                            &mut splitter11,
-                        )
-                    },
-                    || {
-                        recurse_par(
-                            this_axis.next(),
-                            dright,
-                            &mut sweeper2,
-                            handler,
-                            &mut prevec2,
-                            right,
-                            &mut splitter22,
-                        )
-                    },
-                );
 
-                sweeper.add(sweeper1, sweeper2);
-            }
-            par::ParResult::Sequential(_) => {
-                recurse_seq(
-                    this_axis.next(),
-                    sweeper,
-                    handler,
-                    prevec,
-                    left,
-                    &mut splitter11,
-                );
-                recurse_seq(
-                    this_axis.next(),
-                    sweeper,
-                    handler,
-                    prevec,
-                    right,
-                    &mut splitter22,
-                );
-            }
+
+pub struct ColfindRecurser<T:Aabb,NO:NodeHandler>{
+    prevec:PreVecMut<T>,
+    handler:NO
+}
+
+
+impl<T:Aabb,NO:NodeHandler> ColfindRecurser<T,NO>{
+    pub fn new(handler:NO)->ColfindRecurser<T,NO>{
+        ColfindRecurser{
+            handler,
+            prevec:PreVecMut::new()
         }
-
-        splitter.add(splitter11, splitter22);
     }
-}
 
-pub fn recurse_seq<T: Aabb>(
-    this_axis: impl Axis,
-    sweeper: &mut impl CollisionHandler<T = T>,
-    handler: impl NodeHandler,
-    prevec: &mut PreVecMut<T>,
-    m: VistrMut<Node<T>>,
-    splitter: &mut impl Splitter,
-) {
-    if let Some([left, right]) = recurse_common(this_axis, prevec, sweeper, handler, m) {
-        let (mut splitter11, mut splitter22) = splitter.div();
-        recurse_seq(
-            this_axis.next(),
-            sweeper,
-            handler,
-            prevec,
-            left,
-            &mut splitter11,
-        );
-        recurse_seq(
-            this_axis.next(),
-            sweeper,
-            handler,
-            prevec,
-            right,
-            &mut splitter22,
-        );
+    pub fn recurse_common<'a, 'b>(
+        &mut self,
+        this_axis: impl Axis,
+        sweeper: &mut impl CollisionHandler<T = T>,
+        m: VistrMut<'b, Node<'a, T>>,
+    ) -> Option<[VistrMut<'b, Node<'a, T>>; 2]> {
+        let (mut nn, rest) = m.next();
 
-        splitter.add(splitter11, splitter22);
+        self.handler.handle_node(sweeper, &mut self.prevec, this_axis.next(), nn.borrow_mut().into_range());
+                
+        if let Some([mut left,mut right])=rest{
+            //Continue to recurse even if we know there are no more bots
+            //This simplifies query algorithms that might be building up
+            //a tree.
+            //if nn.div.is_some() {
+                
+                //TODO get rid of this check???
+                //if !nn.range.is_empty() {
+                {
+                    let nn = DestructuredNode {
+                        node: nn,
+                        axis: this_axis,
+                    };
+                    let left = left.borrow_mut();
+                    let right = right.borrow_mut();
+                    let mut g = InnerRecurser::new(nn, sweeper, self.handler, &mut self.prevec);
+                    g.recurse(this_axis.next(), left);
+                    g.recurse(this_axis.next(), right);
+                }
+            //}
+
+            Some([left, right])
+        }else{
+            None
+        }
     }
-}
 
-pub fn recurse_common<'a, 'b, T: Aabb>(
-    this_axis: impl Axis,
-    prevec: &mut PreVecMut<T>,
-    sweeper: &mut impl CollisionHandler<T = T>,
-    handler: impl NodeHandler,
-    m: VistrMut<'b, Node<'a, T>>,
-) -> Option<[VistrMut<'b, Node<'a, T>>; 2]> {
-    let (mut nn, rest) = m.next();
 
-    handler.handle_node(sweeper, prevec, this_axis.next(), nn.borrow_mut().into_range());
-            
-    if let Some([mut left,mut right])=rest{
-        //Continue to recurse even if we know there are no more bots
-        //This simplifies query algorithms that might be building up
-        //a tree.
-        //if nn.div.is_some() {
-            
-            //TODO get rid of this check???
-            //if !nn.range.is_empty() {
-            {
-                let nn = DestructuredNode {
-                    node: nn,
-                    axis: this_axis,
-                };
-                let left = left.borrow_mut();
-                let right = right.borrow_mut();
-                let mut g = InnerRecurser::new(nn, sweeper, handler, prevec);
-                g.recurse(this_axis.next(), left);
-                g.recurse(this_axis.next(), right);
+    pub fn recurse_seq(
+        &mut self,
+        this_axis: impl Axis,
+        sweeper: &mut impl CollisionHandler<T = T>,
+        m: VistrMut<Node<T>>,
+        splitter: &mut impl Splitter,
+    ) {
+        if let Some([left, right]) = self.recurse_common(this_axis,  sweeper, m) {
+            let (mut splitter11, mut splitter22) = splitter.div();
+            self.recurse_seq(
+                this_axis.next(),
+                sweeper,
+                left,
+                &mut splitter11,
+            );
+            self.recurse_seq(
+                this_axis.next(),
+                sweeper,
+                right,
+                &mut splitter22,
+            );
+
+            splitter.add(splitter11, splitter22);
+        }
+    }
+
+
+    pub fn recurse_par(
+        &mut self,
+        this_axis: impl Axis,
+        par: impl par::Joiner,
+        sweeper: &mut (impl CollisionHandler<T = T> + Splitter + Send + Sync),
+        m: VistrMut<Node<T>>,
+        splitter: &mut (impl Splitter + Send + Sync),
+    ) where
+        T:Send+Sync,
+        T::Num: Send + Sync,
+    {
+        if let Some([left, right]) = self.recurse_common(this_axis, sweeper, m) {
+            let (mut splitter11, mut splitter22) = splitter.div();
+            match par.next() {
+                par::ParResult::Parallel([dleft, dright]) => {
+                    let (mut sweeper1, mut sweeper2) = sweeper.div();
+                    let mut c=ColfindRecurser::new(self.handler);
+
+                    rayon::join(
+                        || {
+                            self.recurse_par(
+                                this_axis.next(),
+                                dleft,
+                                &mut sweeper1,
+                                left,
+                                &mut splitter11,
+                            )
+                        },
+                        || {
+                            c.recurse_par(
+                                this_axis.next(),
+                                dright,
+                                &mut sweeper2,
+                                right,
+                                &mut splitter22,
+                            )
+                        },
+                    );
+
+                    sweeper.add(sweeper1, sweeper2);
+                }
+                par::ParResult::Sequential(_) => {
+                    self.recurse_seq(
+                        this_axis.next(),
+                        sweeper,
+                        left,
+                        &mut splitter11,
+                    );
+                    self.recurse_seq(
+                        this_axis.next(),
+                        sweeper,
+                        right,
+                        &mut splitter22,
+                    );
+                }
             }
-        //}
 
-        Some([left, right])
-    }else{
-        None
+            splitter.add(splitter11, splitter22);
+        }
     }
+
+
 }
+
+

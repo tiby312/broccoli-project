@@ -1,7 +1,6 @@
 //! Contains code to customize the colliding pair finding algorithm.
 
 use super::*;
-
 ///Used for the advanced algorithms.
 ///Trait that user implements to handling aabb collisions.
 ///The user supplies a struct that implements this trait instead of just a closure
@@ -26,14 +25,12 @@ where
     pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
         let mut sweeper = QueryFn::new(func);
         let par = par::compute_level_switch_sequential(self.switch_height, self.vistr.get_height());
-        let mut prevec = PreVecMut::new();
-
-        recurse_par(
+        
+        
+        ColfindRecurser::new(HandleNoSorted).recurse_par(
             default_axis(),
             par,
             &mut sweeper,
-            HandleNoSorted,
-            &mut prevec,
             self.vistr,
             &mut SplitterEmpty,
         );
@@ -57,13 +54,10 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
         splitter: &mut impl Splitter,
     ) {
         let mut sweeper = QueryFnMut::new(func);
-        let mut prevec = PreVecMut::new();
-
-        recurse_seq(
+        
+        ColfindRecurser::new(HandleNoSorted).recurse_seq(
             default_axis(),
             &mut sweeper,
-            HandleNoSorted,
-            &mut prevec,
             self.vistr,
             splitter,
         );
@@ -72,14 +66,10 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
         let mut sweeper = QueryFnMut::new(func);
-        //let mut sweeper = HandleNoSorted::new(b);
-        let mut prevec = PreVecMut::new();
-
-        recurse_seq(
+        
+        ColfindRecurser::new(HandleNoSorted).recurse_seq(
             default_axis(),
             &mut sweeper,
-            HandleNoSorted,
-            &mut prevec,
             self.vistr,
             &mut SplitterEmpty,
         );
@@ -186,14 +176,12 @@ where
         let height = self.vistr.get_height();
         let switch_height = self.switch_height;
         let par = par::compute_level_switch_sequential(switch_height, height);
-        let mut prevec = PreVecMut::new();
-
-        recurse_par(
+        
+        
+        ColfindRecurser::new(HandleSorted).recurse_par(
             default_axis(),
             par,
             &mut sweeper,
-            HandleSorted,
-            &mut prevec,
             self.vistr,
             &mut SplitterEmpty,
         );
@@ -241,13 +229,10 @@ where
 
         let par = par::compute_level_switch_sequential(self.switch_height, height);
 
-        let mut prevec = PreVecMut::new();
-        recurse_par(
+        ColfindRecurser::new(HandleSorted).recurse_par(
             default_axis(),
             par,
             sweeper,
-            HandleSorted,
-            &mut prevec,
             self.vistr,
             splitter,
         );
@@ -281,13 +266,10 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
         let mut sweeper = QueryFnMut::new(func);
         //let mut sweeper = HandleSorted::new(b);
         let mut splitter = SplitterEmpty;
-        let mut prevec = PreVecMut::new();
-
-        recurse_seq(
+        
+        ColfindRecurser::new(HandleSorted).recurse_seq(
             default_axis(),
             &mut sweeper,
-            HandleSorted,
-            &mut prevec,
             self.vistr,
             &mut splitter,
         );
@@ -303,14 +285,9 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     ) {
         let mut sweeper = QueryFnMut::new(func);
 
-        //let mut sweeper = HandleSorted::new(b);
-        let mut prevec = PreVecMut::new();
-
-        recurse_seq(
+        ColfindRecurser::new(HandleSorted).recurse_seq(
             default_axis(),
             &mut sweeper,
-            HandleSorted,
-            &mut prevec,
             self.vistr,
             splitter,
         );
