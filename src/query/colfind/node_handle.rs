@@ -16,10 +16,11 @@ pub struct DestructuredNodeLeaf<'a, 'b: 'a, T: Aabb, A: Axis> {
 pub trait NodeHandler {
     type T: Aabb;
 
-    fn handle_node(&mut self, axis: impl Axis, bots: PMut<[Self::T]>);
+    fn handle_node(&mut self, prevec:&mut PreVecMut<Self::T>,axis: impl Axis, bots: PMut<[Self::T]>);
 
     fn handle_children<A: Axis, B: Axis>(
         &mut self,
+        prevec:&mut PreVecMut<Self::T>,
         anchor: &mut DestructuredNode<Self::T, A>,
         current: DestructuredNodeLeaf<Self::T, B>,
     );
@@ -49,7 +50,8 @@ impl<K: CollisionHandler + Splitter> Splitter for HandleNoSorted<K> {
 
 impl<K: CollisionHandler + Splitter> NodeHandler for HandleNoSorted<K> {
     type T = K::T;
-    fn handle_node(&mut self, _axis: impl Axis, bots: PMut<[Self::T]>) {
+    
+    fn handle_node(&mut self,_:&mut PreVecMut<K::T>, _axis: impl Axis, bots: PMut<[Self::T]>) {
         let func = &mut self.func;
 
         tools::for_every_pair(bots, move |a, b| {
@@ -61,6 +63,7 @@ impl<K: CollisionHandler + Splitter> NodeHandler for HandleNoSorted<K> {
 
     fn handle_children<A: Axis, B: Axis>(
         &mut self,
+        _:&mut PreVecMut<K::T>,
         anchor: &mut DestructuredNode<Self::T, A>,
         current: DestructuredNodeLeaf<Self::T, B>,
     ) {
@@ -86,8 +89,7 @@ impl<K: CollisionHandler + Splitter> NodeHandler for HandleNoSorted<K> {
 
 use crate::util::PreVecMut;
 pub struct HandleSorted<K: CollisionHandler + Splitter> {
-    pub func: K,
-    prevec1: PreVecMut<K::T>,
+    pub func: K
 }
 
 impl<K: CollisionHandler + Splitter> HandleSorted<K> {
@@ -95,7 +97,6 @@ impl<K: CollisionHandler + Splitter> HandleSorted<K> {
     pub fn new(a: K) -> HandleSorted<K> {
         HandleSorted {
             func: a,
-            prevec1: PreVecMut::with_capacity(64),
         }
     }
 }
@@ -113,14 +114,18 @@ impl<K: CollisionHandler + Splitter> Splitter for HandleSorted<K> {
 
 impl<K: CollisionHandler + Splitter> NodeHandler for HandleSorted<K> {
     type T = K::T;
+
+    
     #[inline(always)]
-    fn handle_node(&mut self, axis: impl Axis, bots: PMut<[Self::T]>) {
+    fn handle_node(&mut self, prevec:&mut PreVecMut<K::T>,axis: impl Axis, bots: PMut<[Self::T]>) {
+        
         let func = &mut self.func;
-        oned::find_2d(&mut self.prevec1, axis, bots, func);
+        oned::find_2d(prevec, axis, bots, func);
     }
     #[inline(always)]
     fn handle_children<A: Axis, B: Axis>(
         &mut self,
+        prevec:&mut PreVecMut<K::T>,
         anchor: &mut DestructuredNode<Self::T, A>,
         current: DestructuredNodeLeaf<Self::T, B>,
     ) {
@@ -151,7 +156,7 @@ impl<K: CollisionHandler + Splitter> NodeHandler for HandleSorted<K> {
             */
 
             oned::find_parallel_2d(
-                &mut self.prevec1,
+                prevec,
                 current.axis.next(),
                 anchor.node.borrow_mut().into_range(),
                 current.node.into_range(),
