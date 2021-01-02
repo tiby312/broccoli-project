@@ -23,51 +23,41 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,
         m: VistrMut<Node<T>>,
     ) {
         let anchor_axis = self.anchor.axis;
-        let (nn, rest) = m.next();
-        match rest {
-            Some([left, right]) => {
-                //Continue to recurse even if we know there are no more bots
-                //This simplifies query algorithms that might be building up
-                //a tree.
-                if let Some(div) = nn.div {
-                    if !nn.range.is_empty(){
-                        let current=DestructuredNodeLeaf{
-                            node:nn,
-                            axis:this_axis
-                        };
+        let (mut nn, rest) = m.next();
+        if !nn.range.is_empty(){
+            let current=DestructuredNodeLeaf{
+                node:nn.borrow_mut(),
+                axis:this_axis
+            };
 
-                        self.sweeper.handle_children(&mut self.anchor, current);
-                    }
+            self.sweeper.handle_children(&mut self.anchor, current);
+        }
 
-                    if anchor_axis.is_equal_to(this_axis) {
-                        use core::cmp::Ordering::*;
-                        match self.anchor.node.cont.contains_ext(div) {
-                            Less => {
-                                self.recurse(this_axis.next(), right);
-                                return;
-                            }
-                            Greater => {
-                                self.recurse(this_axis.next(), left);
-                                return;
-                            }
-                            Equal => {}
+        if let Some([left,right])=rest{
+            //Continue to recurse even if we know there are no more bots
+            //This simplifies query algorithms that might be building up
+            //a tree.
+            if let Some(div) = nn.div {
+                
+
+                if anchor_axis.is_equal_to(this_axis) {
+                    use core::cmp::Ordering::*;
+                    match self.anchor.node.cont.contains_ext(div) {
+                        Less => {
+                            self.recurse(this_axis.next(), right);
+                            return;
                         }
+                        Greater => {
+                            self.recurse(this_axis.next(), left);
+                            return;
+                        }
+                        Equal => {}
                     }
                 }
-
-                self.recurse(this_axis.next(), left);
-                self.recurse(this_axis.next(), right);
             }
-            None => {
-                if !nn.range.is_empty(){
-                    let current=DestructuredNodeLeaf{
-                        node:nn,
-                        axis:this_axis
-                    };
 
-                    self.sweeper.handle_children(&mut self.anchor, current);
-                }
-            }
+            self.recurse(this_axis.next(), left);
+            self.recurse(this_axis.next(), right);
         }
     }
 }
