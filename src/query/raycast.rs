@@ -272,14 +272,14 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
             }
         }
 
-        if let Some(range) = nn.cont {
+        if !nn.range.is_empty(){
             //Determine if we should handle this node or not.
-            match range.contains_ext(*blap.ray.point.get_axis(axis)) {
-                core::cmp::Ordering::Less => blap.should_recurse((axis, range.start)),
-                core::cmp::Ordering::Greater => blap.should_recurse((axis, range.end)),
+            match nn.cont.contains_ext(*blap.ray.point.get_axis(axis)) {
+                core::cmp::Ordering::Less => blap.should_recurse((axis, nn.cont.start)),
+                core::cmp::Ordering::Greater => blap.should_recurse((axis, nn.cont.end)),
                 core::cmp::Ordering::Equal => true,
             }
-        } else {
+        }else{
             false
         }
     } else {

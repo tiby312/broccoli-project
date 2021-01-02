@@ -446,7 +446,7 @@ fn bench_cont2(b: &mut test::Bencher) {
     });
 }
 
-fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> Option<axgeom::Range<T::Num>> {
+fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
     match middle.split_first() {
         Some((first, rest)) => {
             let mut min = first.get().get_range(axis).start;
@@ -465,12 +465,12 @@ fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> Option<axgeom::Range<
                 }
             }
 
-            Some(axgeom::Range {
+            axgeom::Range {
                 start: min,
                 end: max,
-            })
+            }
         }
-        None => None,
+        None => axgeom::Range{start:Default::default(),end:Default::default()},
     }
 }
 

@@ -79,16 +79,16 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                     get_leaf_mid(rect)
                 };
 
-                if let Some(cont) = node.cont {
+                if !node.range.is_empty(){
                     rects.add(
                         axis.map_val(
                             Rect {
-                                x: cont.into(),
+                                x: node.cont.into(),
                                 y: rect.y.into(),
                             },
                             Rect {
                                 x: rect.x.into(),
-                                y: cont.into(),
+                                y: node.cont.into(),
                             },
                         )
                         .into(),

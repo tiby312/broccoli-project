@@ -120,7 +120,7 @@ impl<'a, T: ?Sized> PMut<'a, T> {
 ///A destructured [`Node`]
 pub struct NodeRef<'a, T: Aabb> {
     pub div: &'a Option<T::Num>,
-    pub cont: &'a Option<Range<T::Num>>,
+    pub cont: &'a Range<T::Num>,
     pub range: PMut<'a, [T]>,
 }
 

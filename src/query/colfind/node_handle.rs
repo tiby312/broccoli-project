@@ -8,7 +8,7 @@ pub struct DestructuredNode<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
     pub axis: AnchorAxis,
 }
-
+/*
 impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNode<'a, 'b, T, AnchorAxis> {
     #[inline(always)]
     pub fn new(
@@ -28,13 +28,14 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNode<'a, 'b, T, AnchorAx
         unsafe { self.node.cont.as_ref().unchecked_unwrap() }
     }
 }
+*/
 
 
 pub struct DestructuredNodeLeaf<'a, 'b: 'a, T: Aabb, A: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
     pub axis: A,
 }
-
+/*
 impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNodeLeaf<'a, 'b, T, AnchorAxis> {
     #[inline(always)]
     pub fn new(
@@ -53,6 +54,7 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNodeLeaf<'a, 'b, T, Anch
         unsafe { self.node.cont.as_ref().unchecked_unwrap() }
     }
 }
+*/
 
 
 pub trait NodeHandler {
@@ -111,7 +113,7 @@ impl<K: CollisionHandler + Splitter> NodeHandler for HandleNoSorted<K> {
         let res = if !current.axis.is_equal_to(anchor.axis) {
             true
         } else {
-            current.cont().intersects(anchor.cont())
+            current.node.cont.intersects(&anchor.node.cont)
         };
 
         if res {
@@ -169,8 +171,8 @@ impl<K: CollisionHandler + Splitter> NodeHandler for HandleSorted<K> {
         let func = &mut self.func;
 
         if !current.axis.is_equal_to(anchor.axis) {
-            let cc1 = *anchor.cont();
-            let cc2 = *current.cont();
+            let cc1 = anchor.node.cont;
+            let cc2 = current.node.cont;
 
             let r1 = super::tools::get_section_mut(anchor.axis, current.node.into_range(), cc1);
 
@@ -181,7 +183,7 @@ impl<K: CollisionHandler + Splitter> NodeHandler for HandleSorted<K> {
             );
 
             oned::find_perp_2d1(current.axis, r1, r2, func);
-        } else if current.cont().intersects(anchor.cont()) {
+        } else if current.node.cont.intersects(&anchor.node.cont) {
             /*
             oned::find_parallel_2d(
                 &mut self.prevec1,

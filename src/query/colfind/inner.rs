@@ -30,13 +30,18 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,
                 //This simplifies query algorithms that might be building up
                 //a tree.
                 if let Some(div) = nn.div {
-                    if let Some(current) = DestructuredNodeLeaf::new(this_axis, nn) {
+                    if !nn.range.is_empty(){
+                        let current=DestructuredNodeLeaf{
+                            node:nn,
+                            axis:this_axis
+                        };
+
                         self.sweeper.handle_children(&mut self.anchor, current);
                     }
 
                     if anchor_axis.is_equal_to(this_axis) {
                         use core::cmp::Ordering::*;
-                        match self.anchor.cont().contains_ext(div) {
+                        match self.anchor.node.cont.contains_ext(div) {
                             Less => {
                                 self.recurse(this_axis.next(), right);
                                 return;
@@ -54,7 +59,12 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,
                 self.recurse(this_axis.next(), right);
             }
             None => {
-                if let Some(current) = DestructuredNodeLeaf::new(this_axis, nn) {
+                if !nn.range.is_empty(){
+                    let current=DestructuredNodeLeaf{
+                        node:nn,
+                        axis:this_axis
+                    };
+
                     self.sweeper.handle_children(&mut self.anchor, current);
                 }
             }
@@ -139,7 +149,12 @@ pub fn recurse_common<'a, 'b,T:Aabb>(
             if nn.div.is_some() {
                 sweeper.handle_node(this_axis.next(), nn.borrow_mut().into_range());
 
-                if let Some(nn) = DestructuredNode::new(this_axis, nn) {
+                //TODO get rid of this check???
+                if !nn.range.is_empty(){
+                    let nn=DestructuredNode{
+                        node:nn,
+                        axis:this_axis
+                    };
                     let left = left.borrow_mut();
                     let right = right.borrow_mut();
                     let mut g = InnerRecurser::new(nn, sweeper);

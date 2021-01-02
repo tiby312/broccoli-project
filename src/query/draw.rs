@@ -88,11 +88,11 @@ pub trait DrawQuery<'a>: Queries<'a> {
     /// tree.draw_divider(
     ///     |axis,node,rect,_|
     ///     {
-    ///         if let Some(cont)=node.cont{    
+    ///         if !node.range.is_empty(){    
     ///             rects.push(
     ///                 axis.map_val(
-    ///                     Rect {x: cont.into(),y: rect.y.into()},
-    ///                     Rect {x: rect.x.into(),y: cont.into()}
+    ///                     Rect {x: node.cont.into(),y: rect.y.into()},
+    ///                     Rect {x: rect.x.into(),y: node.cont.into()}
     ///                 )   
     ///             );
     ///         }

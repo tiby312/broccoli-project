@@ -84,7 +84,6 @@ fn test_zero_sized() {
     let (n, _) = tree.vistr().next();
     assert_eq!(n.div.is_none(), true);
     assert_eq!(n.range.len(), 1);
-    assert!(n.cont.is_some());
 }
 
 #[test]
@@ -98,7 +97,6 @@ fn test_zero_sized2() {
     let (n, _) = tree.vistr().next();
     assert_eq!(n.div.is_none(), true);
     assert_eq!(n.range.len(), 1);
-    assert!(n.cont.is_some());
 }
 #[test]
 fn test_one() {
@@ -111,7 +109,6 @@ fn test_one() {
     let (n, _) = tree.vistr().next();
     assert!(n.div.is_none());
     assert_eq!(n.range.len(), 1);
-    assert!(n.cont.is_some())
 }
 
 #[test]
@@ -125,7 +122,6 @@ fn test_empty() {
     let (n, _) = tree.vistr().next();
     assert_eq!(n.range.len(), 0);
     assert!(n.div.is_none());
-    assert!(n.cont.is_none());
 }
 
 #[test]
@@ -147,8 +143,8 @@ fn test_many() {
     let mut num_div = 0;
     for b in tree.vistr().dfs_inorder_iter() {
         if let Some(_) = b.div {
-            if let Some(_) = b.cont {
-                num_div += 1;
+            if !b.range.is_empty(){
+                num_div+=1;
             }
         }
     }

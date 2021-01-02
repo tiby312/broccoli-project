@@ -7,8 +7,8 @@ pub use axgeom::Rect;
 ///It is auto implemented by all types that satisfy the type constraints.
 ///Notice that no arithmatic is possible. The tree is constructed
 ///using only comparisons and copying.
-pub trait Num: PartialOrd + Copy {}
-impl<T> Num for T where T: PartialOrd + Copy {}
+pub trait Num: PartialOrd + Copy + Default {}
+impl<T> Num for T where T: PartialOrd + Copy + Default {}
 
 ///Trait to signify that this object has an axis aligned bounding box.
 ///[`Aabb::get()`] must return a aabb with the same value in it while the element
@@ -203,13 +203,7 @@ pub use vistr_mut::VistrMut;
 pub(crate) struct NodePtr<T: Aabb> {
     _range: PMutPtr<[T]>,
 
-    //range is empty iff cont is none.
-    _cont: Option<axgeom::Range<T::Num>>,
-    //for non leafs:
-    //  div is some iff mid is nonempty.
-    //  div is none iff mid is empty.
-    //for leafs:
-    //  div is none
+    _cont: axgeom::Range<T::Num>,
     _div: Option<T::Num>,
 }
 
@@ -224,11 +218,15 @@ impl<'a, T: Aabb> AsRef<NodePtr<T>> for Node<'a, T> {
 #[repr(C)]
 pub struct Node<'a, T: Aabb> {
     pub range: PMut<'a, [T]>,
-    //range is empty iff cont is none.
-    pub cont: Option<axgeom::Range<T::Num>>,
+   
+    //if range is empty, then value is unspecified.
+    //if range is not empty, then cont can be read.
+    pub cont: axgeom::Range<T::Num>,
+
     //for non leafs:
-    //  div is some if either this node as bots or a child does
+    //  if there is a bot either in this node or in a child node, then div is some.
+    //  
     //for leafs:
-    //  div is none
+    //  value is none
     pub div: Option<T::Num>,
 }
