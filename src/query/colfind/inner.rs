@@ -6,6 +6,7 @@ struct InnerRecurser<'a, 'b: 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<
     anchor: DestructuredNode<'a, 'b, T, B>,
     handler: NN,
     sweeper: &'a mut KK,
+    prevec: &'a mut PreVecMut<T>,
 }
 
 impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
@@ -16,11 +17,13 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
         anchor: DestructuredNode<'a, 'b, T, B>,
         sweeper: &'a mut KK,
         handler: NN,
+        prevec: &'a mut PreVecMut<T>,
     ) -> InnerRecurser<'a, 'b, T, NN, KK, B> {
         InnerRecurser {
             anchor,
             sweeper,
             handler,
+            prevec,
         }
     }
 
@@ -29,20 +32,19 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
     >(
         &mut self,
         this_axis: A,
-        prevec: &mut PreVecMut<T>, //TODO put this in the struct?
         m: VistrMut<Node<T>>,
     ) {
         let anchor_axis = self.anchor.axis;
         let (mut nn, rest) = m.next();
-        if !nn.range.is_empty() {
+        //if !nn.range.is_empty() {
             let current = DestructuredNodeLeaf {
                 node: nn.borrow_mut(),
                 axis: this_axis,
             };
 
             self.handler
-                .handle_children(self.sweeper, prevec, &mut self.anchor, current);
-        }
+                .handle_children(self.sweeper, self.prevec, &mut self.anchor, current);
+        //}
 
         if let Some([left, right]) = rest {
             //Continue to recurse even if we know there are no more bots
@@ -53,11 +55,11 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
                     use core::cmp::Ordering::*;
                     match self.anchor.node.cont.contains_ext(div) {
                         Less => {
-                            self.recurse(this_axis.next(), prevec, right);
+                            self.recurse(this_axis.next(), right);
                             return;
                         }
                         Greater => {
-                            self.recurse(this_axis.next(), prevec, left);
+                            self.recurse(this_axis.next(), left);
                             return;
                         }
                         Equal => {}
@@ -65,8 +67,8 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
                 }
             }
 
-            self.recurse(this_axis.next(), prevec, left);
-            self.recurse(this_axis.next(), prevec, right);
+            self.recurse(this_axis.next(), left);
+            self.recurse(this_axis.next(), right);
         }
     }
 }
@@ -179,39 +181,31 @@ pub fn recurse_common<'a, 'b, T: Aabb>(
 ) -> Option<[VistrMut<'b, Node<'a, T>>; 2]> {
     let (mut nn, rest) = m.next();
 
-    match rest {
-        Some([mut left, mut right]) => {
-            //Continue to recurse even if we know there are no more bots
-            //This simplifies query algorithms that might be building up
-            //a tree.
-            if nn.div.is_some() {
-                handler.handle_node(
-                    sweeper,
-                    prevec,
-                    this_axis.next(),
-                    nn.borrow_mut().into_range(),
-                );
-
-                //TODO get rid of this check???
-                if !nn.range.is_empty() {
-                    let nn = DestructuredNode {
-                        node: nn,
-                        axis: this_axis,
-                    };
-                    let left = left.borrow_mut();
-                    let right = right.borrow_mut();
-                    let mut g = InnerRecurser::new(nn, sweeper, handler);
-                    g.recurse(this_axis.next(), prevec, left);
-                    g.recurse(this_axis.next(), prevec, right);
-                }
+    handler.handle_node(sweeper, prevec, this_axis.next(), nn.borrow_mut().into_range());
+            
+    if let Some([mut left,mut right])=rest{
+        //Continue to recurse even if we know there are no more bots
+        //This simplifies query algorithms that might be building up
+        //a tree.
+        //if nn.div.is_some() {
+            
+            //TODO get rid of this check???
+            //if !nn.range.is_empty() {
+            {
+                let nn = DestructuredNode {
+                    node: nn,
+                    axis: this_axis,
+                };
+                let left = left.borrow_mut();
+                let right = right.borrow_mut();
+                let mut g = InnerRecurser::new(nn, sweeper, handler, prevec);
+                g.recurse(this_axis.next(), left);
+                g.recurse(this_axis.next(), right);
             }
+        //}
 
-            Some([left, right])
-        }
-        None => {
-            //TODO combine this with above
-            handler.handle_node(sweeper, prevec, this_axis.next(), nn.into_range());
-            None
-        }
+        Some([left, right])
+    }else{
+        None
     }
 }
