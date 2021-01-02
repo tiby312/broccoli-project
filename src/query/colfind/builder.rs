@@ -24,8 +24,7 @@ where
 {
     #[inline(always)]
     pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
-        let b = QueryFn::new(func);
-        let mut sweeper = HandleNoSorted::new(b);
+        let mut sweeper = QueryFn::new(func);
         let par = par::compute_level_switch_sequential(self.switch_height, self.vistr.get_height());
         let mut prevec=PreVecMut::new();
         
@@ -33,6 +32,7 @@ where
             default_axis(),
             par,
             &mut sweeper,
+            HandleNoSorted,
             &mut prevec,
             self.vistr,
             &mut SplitterEmpty,
@@ -56,22 +56,22 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
         func: impl FnMut(PMut<T>, PMut<T>),
         splitter: &mut impl Splitter,
     ) {
-        let b = QueryFnMut::new(func);
-        let mut sweeper = HandleNoSorted::new(b);
+        let mut sweeper = QueryFnMut::new(func);
         let mut prevec=PreVecMut::new();
         
-        recurse_seq(default_axis(), &mut sweeper,&mut prevec, self.vistr, splitter);
+        recurse_seq(default_axis(), &mut sweeper,HandleNoSorted,&mut prevec, self.vistr, splitter);
     }
 
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        let b = QueryFnMut::new(func);
-        let mut sweeper = HandleNoSorted::new(b);
+        let mut sweeper = QueryFnMut::new(func);
+        //let mut sweeper = HandleNoSorted::new(b);
         let mut prevec=PreVecMut::new();
         
         recurse_seq(
             default_axis(),
             &mut sweeper,
+            HandleNoSorted,
             &mut prevec,
             self.vistr,
             &mut SplitterEmpty,
@@ -173,8 +173,8 @@ where
     ///by the [`QueryBuilder::with_switch_height()`]
     #[inline(always)]
     pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
-        let b = QueryFn::new(func);
-        let mut sweeper = HandleSorted::new(b);
+        let mut sweeper = QueryFn::new(func);
+        //let mut sweeper = HandleSorted::new(b);
 
         let height = self.vistr.get_height();
         let switch_height = self.switch_height;
@@ -185,6 +185,7 @@ where
             default_axis(),
             par,
             &mut sweeper,
+            HandleSorted,
             &mut prevec,
             self.vistr,
             &mut SplitterEmpty,
@@ -220,24 +221,23 @@ where
     /// assert_eq!(intersections.len(),1);
     ///```
     #[inline(always)]
-    pub fn query_par_ext<C: CollisionHandler<T = T> + Splitter + Send + Sync>(self, clos: C,splitter:&mut (impl Splitter+Send+Sync)) -> C {
+    pub fn query_par_ext<C: CollisionHandler<T = T> + Splitter + Send + Sync>(self, sweeper: &mut C,splitter:&mut (impl Splitter+Send+Sync)) {
         //TODO document new spliiter argument
         let height = self.vistr.get_height();
 
         let par = par::compute_level_switch_sequential(self.switch_height, height);
 
-        let mut sweeper = HandleSorted::new(clos);
         let mut prevec=PreVecMut::new();
         recurse_par(
             default_axis(),
             par,
-            &mut sweeper,
+            sweeper,
+            HandleSorted,
             &mut prevec,
             self.vistr,
             splitter,
         );
 
-        sweeper.func
     }
 }
 
@@ -265,12 +265,12 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     ///Perform the query sequentially.
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        let b = QueryFnMut::new(func);
-        let mut sweeper = HandleSorted::new(b);
+        let mut sweeper = QueryFnMut::new(func);
+        //let mut sweeper = HandleSorted::new(b);
         let mut splitter = SplitterEmpty;
         let mut prevec=PreVecMut::new();
         
-        recurse_seq(default_axis(), &mut sweeper, &mut prevec,self.vistr,&mut splitter);
+        recurse_seq(default_axis(), &mut sweeper, HandleSorted,&mut prevec,self.vistr,&mut splitter);
     }
 
     ///Perform the query sequentially with splitter functions getting called at every level of
@@ -281,12 +281,12 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
         func: impl FnMut(PMut<T>, PMut<T>),
         splitter: &mut impl Splitter,
     ) {
-        let b = QueryFnMut::new(func);
+        let mut sweeper = QueryFnMut::new(func);
 
-        let mut sweeper = HandleSorted::new(b);
+        //let mut sweeper = HandleSorted::new(b);
         let mut prevec=PreVecMut::new();
         
-        recurse_seq(default_axis(), &mut sweeper,&mut prevec, self.vistr, splitter);
+        recurse_seq(default_axis(), &mut sweeper,HandleSorted,&mut prevec, self.vistr, splitter);
     }
 }
 

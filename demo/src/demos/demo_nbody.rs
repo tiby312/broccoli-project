@@ -230,9 +230,9 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             //let now = Instant::now();
             let tree = broccoli::new_par(&mut k);
 
-            let (mut tree,_) = broccoli::query::nbody::nbody_mut_par(
+            let mut tree = broccoli::query::nbody::nbody_mut_par(
                 tree,
-                Bla {
+                &mut Bla {
                     _num_pairs_checked: 0,
                     _p: PhantomData,
                 },

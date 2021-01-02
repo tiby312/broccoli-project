@@ -1,18 +1,21 @@
 use super::node_handle::*;
 use crate::inner_prelude::*;
 
-struct InnerRecurser<'a, 'b: 'b, T: Aabb, NN: NodeHandler<T = T>, B: Axis> {
+use crate::query::colfind::CollisionHandler;
+struct InnerRecurser<'a, 'b: 'b, T: Aabb, NN: NodeHandler, KK:CollisionHandler<T=T>,B: Axis> {
     anchor: DestructuredNode<'a, 'b, T, B>,
-    sweeper: &'a mut NN,
+    handler: NN,
+    sweeper:&'a mut KK
 }
 
-impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b, T, NN, B> {
+impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler,KK:CollisionHandler<T=T>, B: Axis> InnerRecurser<'a, 'b, T, NN,KK, B> {
     #[inline(always)]
     fn new(
         anchor: DestructuredNode<'a, 'b, T, B>,
-        sweeper: &'a mut NN,
-    ) -> InnerRecurser<'a, 'b, T, NN, B> {
-        InnerRecurser { anchor, sweeper }
+        sweeper: &'a mut KK,
+        handler:NN,
+    ) -> InnerRecurser<'a, 'b, T, NN,KK, B> {
+        InnerRecurser { anchor, sweeper,handler }
     }
 
     fn recurse<
@@ -20,7 +23,7 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,
     >(
         &mut self,
         this_axis: A,
-        prevec:&mut PreVecMut<T>,
+        prevec:&mut PreVecMut<T>, //TODO put this in the struct?
         m: VistrMut<Node<T>>,
     ) {
         let anchor_axis = self.anchor.axis;
@@ -31,7 +34,7 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,
                 axis:this_axis
             };
 
-            self.sweeper.handle_children(prevec,&mut self.anchor, current);
+            self.handler.handle_children(self.sweeper,prevec,&mut self.anchor, current);
         }
 
         if let Some([left,right])=rest{
@@ -66,12 +69,13 @@ impl<'a, 'b: 'a, T: Aabb, NN: NodeHandler<T = T>, B: Axis> InnerRecurser<'a, 'b,
 pub fn recurse_par<T:Aabb+Send+Sync>(
     this_axis: impl Axis,
     par: impl par::Joiner,
-    sweeper: &mut (impl NodeHandler<T = T> + Splitter+Send+Sync),
+    sweeper: &mut (impl CollisionHandler<T=T> + Splitter+Send+Sync),
+    handler: impl NodeHandler,
     prevec:&mut PreVecMut<T>,
     m: VistrMut<Node<T>>,
     splitter: &mut (impl Splitter+Send+Sync),
 ) where T::Num:Send+Sync{
-    if let Some([left, right]) = recurse_common(this_axis,prevec, sweeper, m) {
+    if let Some([left, right]) = recurse_common(this_axis,prevec, sweeper,handler, m) {
         let (mut splitter11, mut splitter22) = splitter.div();
         match par.next() {
             par::ParResult::Parallel([dleft, dright]) => {
@@ -83,6 +87,7 @@ pub fn recurse_par<T:Aabb+Send+Sync>(
                             this_axis.next(),
                             dleft,
                             &mut sweeper1,
+                            handler,
                             prevec,
                             left,
                             &mut splitter11,
@@ -93,6 +98,7 @@ pub fn recurse_par<T:Aabb+Send+Sync>(
                             this_axis.next(),
                             dright,
                             &mut sweeper2,
+                            handler,
                             &mut prevec2,
                             right,
                             &mut splitter22,
@@ -103,8 +109,8 @@ pub fn recurse_par<T:Aabb+Send+Sync>(
                 sweeper.add(sweeper1, sweeper2);
             }
             par::ParResult::Sequential(_) => {
-                recurse_seq(this_axis.next(), sweeper, prevec,left, &mut splitter11);
-                recurse_seq(this_axis.next(), sweeper, prevec,right, &mut splitter22);
+                recurse_seq(this_axis.next(), sweeper,handler, prevec,left, &mut splitter11);
+                recurse_seq(this_axis.next(), sweeper,handler, prevec,right, &mut splitter22);
             }
         }
 
@@ -115,15 +121,16 @@ pub fn recurse_par<T:Aabb+Send+Sync>(
 
 pub fn recurse_seq<T:Aabb>(
     this_axis: impl Axis,
-    sweeper: &mut (impl NodeHandler<T=T> + Splitter),
+    sweeper: &mut impl CollisionHandler<T=T>,
+    handler: impl NodeHandler,
     prevec:&mut PreVecMut<T>,
     m: VistrMut<Node<T>>,
     splitter: &mut impl Splitter,
 ) {
-    if let Some([left, right]) = recurse_common(this_axis,prevec, sweeper, m) {
+    if let Some([left, right]) = recurse_common(this_axis,prevec, sweeper,handler, m) {
         let (mut splitter11, mut splitter22) = splitter.div();
-        recurse_seq(this_axis.next(), sweeper, prevec,left, &mut splitter11);
-        recurse_seq(this_axis.next(), sweeper, prevec,right, &mut splitter22);
+        recurse_seq(this_axis.next(), sweeper, handler,prevec,left, &mut splitter11);
+        recurse_seq(this_axis.next(), sweeper, handler,prevec,right, &mut splitter22);
 
         splitter.add(splitter11, splitter22);
     }
@@ -132,7 +139,8 @@ pub fn recurse_seq<T:Aabb>(
 pub fn recurse_common<'a, 'b,T:Aabb>(
     this_axis: impl Axis,
     prevec:&mut PreVecMut<T>,
-    sweeper: &mut (impl NodeHandler<T=T> + Splitter),
+    sweeper: &mut impl CollisionHandler<T=T>,
+    handler: impl NodeHandler,
     m: VistrMut<'b, Node<'a, T>>
 ) -> Option<[VistrMut<'b, Node<'a, T>>; 2]> {
     let (mut nn, rest) = m.next();
@@ -143,7 +151,7 @@ pub fn recurse_common<'a, 'b,T:Aabb>(
             //This simplifies query algorithms that might be building up
             //a tree.
             if nn.div.is_some() {
-                sweeper.handle_node(prevec,this_axis.next(), nn.borrow_mut().into_range());
+                handler.handle_node(sweeper,prevec,this_axis.next(), nn.borrow_mut().into_range());
 
                 //TODO get rid of this check???
                 if !nn.range.is_empty(){
@@ -153,7 +161,7 @@ pub fn recurse_common<'a, 'b,T:Aabb>(
                     };
                     let left = left.borrow_mut();
                     let right = right.borrow_mut();
-                    let mut g = InnerRecurser::new(nn, sweeper);
+                    let mut g = InnerRecurser::new(nn, sweeper,handler);
                     g.recurse(this_axis.next(),prevec, left);
                     g.recurse(this_axis.next(),prevec, right);
                 }
@@ -163,7 +171,7 @@ pub fn recurse_common<'a, 'b,T:Aabb>(
         }
         None => {
             //TODO combine this with above
-            sweeper.handle_node(prevec,this_axis.next(), nn.into_range());
+            handler.handle_node(sweeper,prevec,this_axis.next(), nn.into_range());
             None
         }
     }
