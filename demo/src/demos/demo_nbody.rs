@@ -51,6 +51,21 @@ struct Bla<'a> {
     _num_pairs_checked: usize,
     _p: PhantomData<&'a usize>,
 }
+impl<'a> broccoli::build::Splitter for Bla<'a>{
+    fn div(&mut self)->(Self,Self){
+        (Bla{
+            _p:PhantomData,
+            _num_pairs_checked:0
+        },
+        Bla{
+            _p:PhantomData,
+            _num_pairs_checked:0
+        }) 
+    }
+    fn add(&mut self,_:Self,_:Self){
+        //do nothing
+    }
+}
 impl<'b> broccoli::query::nbody::Nbody for Bla<'b> {
     type Mass = NodeMass;
     type T = BBox<f32, &'b mut Bot>;
@@ -81,23 +96,21 @@ impl<'b> broccoli::query::nbody::Nbody for Bla<'b> {
         }
     }
 
-
-    fn is_close_half(&mut self,m:&Self::Mass,line:Self::N,a:impl Axis)->bool{
-        if a.is_xaxis(){
-            (m.center.x-line).abs()<200.0
-        }else{
-            (m.center.y-line).abs()<200.0
+    fn is_close_half(&mut self, m: &Self::Mass, line: Self::N, a: impl Axis) -> bool {
+        if a.is_xaxis() {
+            (m.center.x - line).abs() < 200.0
+        } else {
+            (m.center.y - line).abs() < 200.0
         }
     }
 
-    fn is_close(&mut self,m:&Self::Mass,line:Self::N,a:impl Axis)->bool{
-        if a.is_xaxis(){
-            (m.center.x-line).abs()<400.0
-        }else{
-            (m.center.y-line).abs()<400.0
+    fn is_close(&mut self, m: &Self::Mass, line: Self::N, a: impl Axis) -> bool {
+        if a.is_xaxis() {
+            (m.center.x - line).abs() < 400.0
+        } else {
+            (m.center.y - line).abs() < 400.0
         }
     }
-
 
     #[inline(always)]
     fn gravitate(&mut self, a: GravEnum<Self::T, Self::Mass>, b: GravEnum<Self::T, Self::Mass>) {
@@ -156,19 +169,14 @@ impl<'b> broccoli::query::nbody::Nbody for Bla<'b> {
 
     fn apply_a_mass<'a>(&mut self, a: Self::Mass, b: PMut<[Self::T]>) {
         if a.mass > 0.000_000_1 {
-            
-            
-            let indforce=vec2(
-                a.force.x/b.len() as f32,
-                a.force.y/b.len() as f32
-            );
-            
+            let indforce = vec2(a.force.x / b.len() as f32, a.force.y / b.len() as f32);
+
             //TODO counteract the added fudge here, but dividing by 3 on bot on bot cases
-            let fudge=3.0;
+            let fudge = 3.0;
             for i in b.iter_mut() {
                 let i = i.unpack_inner();
-                let forcex = indforce.x*fudge;
-                let forcey = indforce.y*fudge;
+                let forcex = indforce.x * fudge;
+                let forcey = indforce.y * fudge;
 
                 i.force += vec2(forcex, forcey);
             }
@@ -222,9 +230,9 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             //let now = Instant::now();
             let tree = broccoli::new_par(&mut k);
 
-            let mut tree = broccoli::query::nbody::nbody_mut(
+            let (mut tree,_) = broccoli::query::nbody::nbody_mut_par(
                 tree,
-                &mut Bla {
+                Bla {
                     _num_pairs_checked: 0,
                     _p: PhantomData,
                 },

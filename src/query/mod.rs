@@ -28,7 +28,6 @@ pub mod intersect_with;
 
 pub mod nbody;
 
-
 pub mod rect;
 
 mod tools;

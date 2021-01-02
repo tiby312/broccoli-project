@@ -85,27 +85,32 @@ where
         m: VistrMut<Node<T>>,
         splitter: &mut K,
     ) {
-        if let Some([left,right])=Self::recurse_common(this_axis,sweeper,m){
+        if let Some([left, right]) = Self::recurse_common(this_axis, sweeper, m) {
             let (mut splitter11, mut splitter22) = splitter.div();
             match par.next() {
                 par::ParResult::Parallel([dleft, dright]) => {
                     let (mut sweeper1, mut sweeper2) = sweeper.div();
-                    
-                    rayon::join(|| 
-                        self.recurse_par(
-                            this_axis.next(),
-                            dleft,
-                            &mut sweeper1,
-                            left,
-                            &mut splitter11,
-                        )
-                    , ||self.recurse_par(
-                        this_axis.next(),
-                        dright,
-                        &mut sweeper2,
-                        right,
-                        &mut splitter22,
-                    ));
+
+                    rayon::join(
+                        || {
+                            self.recurse_par(
+                                this_axis.next(),
+                                dleft,
+                                &mut sweeper1,
+                                left,
+                                &mut splitter11,
+                            )
+                        },
+                        || {
+                            self.recurse_par(
+                                this_axis.next(),
+                                dright,
+                                &mut sweeper2,
+                                right,
+                                &mut splitter22,
+                            )
+                        },
+                    );
 
                     sweeper.add(sweeper1, sweeper2);
                 }
@@ -117,7 +122,6 @@ where
 
             splitter.add(splitter11, splitter22);
         }
-        
     }
 }
 
@@ -127,14 +131,15 @@ impl<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> ColFindRecurser<T, 
         ColFindRecurser { _p: PhantomData }
     }
 
-    pub fn recurse_common<'a,'b,A:Axis>(this_axis:A,sweeper:&mut S,m:VistrMut<'b,Node<'a,T>>)
-        ->Option<[VistrMut<'b,Node<'a,T>>;2]>{
-        
+    pub fn recurse_common<'a, 'b, A: Axis>(
+        this_axis: A,
+        sweeper: &mut S,
+        m: VistrMut<'b, Node<'a, T>>,
+    ) -> Option<[VistrMut<'b, Node<'a, T>>; 2]> {
         let (mut nn, rest) = m.next();
-    
+
         match rest {
             Some([mut left, mut right]) => {
-
                 //Continue to recurse even if we know there are no more bots
                 //This simplifies query algorithms that might be building up
                 //a tree.
@@ -150,7 +155,7 @@ impl<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> ColFindRecurser<T, 
                     }
                 }
 
-                Some([left,right])
+                Some([left, right])
             }
             None => {
                 sweeper.handle_node(this_axis.next(), nn.into_range());
@@ -166,14 +171,12 @@ impl<T: Aabb, K: Splitter, S: NodeHandler<T = T> + Splitter> ColFindRecurser<T, 
         m: VistrMut<Node<T>>,
         splitter: &mut K,
     ) {
-
-        if let Some([left,right])=Self::recurse_common(this_axis,sweeper,m){
+        if let Some([left, right]) = Self::recurse_common(this_axis, sweeper, m) {
             let (mut splitter11, mut splitter22) = splitter.div();
             self.recurse_seq(this_axis.next(), sweeper, left, &mut splitter11);
             self.recurse_seq(this_axis.next(), sweeper, right, &mut splitter22);
 
             splitter.add(splitter11, splitter22);
-
         }
     }
 }
