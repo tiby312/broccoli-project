@@ -7,6 +7,11 @@ use core::marker::PhantomData;
 #[derive(Copy, Clone, Debug)]
 pub struct Dnum<'a, I: Num>(pub I, PhantomData<&'a usize>);
 
+impl<'a,T:Num+Default> Default for Dnum<'a,T>{
+    fn default()->Self{
+        Dnum(Default::default(),PhantomData)
+    }
+}
 impl<'a, I: Num> PartialOrd for Dnum<'a, I> {
     fn partial_cmp(&self, other: &Dnum<I>) -> Option<Ordering> {
         unsafe {
