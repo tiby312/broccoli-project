@@ -13,28 +13,35 @@ pub struct DestructuredNodeLeaf<'a, 'b: 'a, T: Aabb, A: Axis> {
     pub axis: A,
 }
 
-pub trait NodeHandler:Copy+Clone +Send+Sync{
-    
-    fn handle_node<T:Aabb>(self,func:&mut impl CollisionHandler<T=T>,prevec:&mut PreVecMut<T>,axis: impl Axis, bots: PMut<[T]>);
-
-    fn handle_children<A: Axis, B: Axis,T:Aabb>(
+pub trait NodeHandler: Copy + Clone + Send + Sync {
+    fn handle_node<T: Aabb>(
         self,
-        func:&mut impl CollisionHandler<T=T>,
-        prevec:&mut PreVecMut<T>,
+        func: &mut impl CollisionHandler<T = T>,
+        prevec: &mut PreVecMut<T>,
+        axis: impl Axis,
+        bots: PMut<[T]>,
+    );
+
+    fn handle_children<A: Axis, B: Axis, T: Aabb>(
+        self,
+        func: &mut impl CollisionHandler<T = T>,
+        prevec: &mut PreVecMut<T>,
         anchor: &mut DestructuredNode<T, A>,
         current: DestructuredNodeLeaf<T, B>,
     );
 }
 
-
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct HandleNoSorted;
 
 impl NodeHandler for HandleNoSorted {
-    
-    
-    fn handle_node<T:Aabb>(self,func:&mut impl CollisionHandler<T=T>,_:&mut PreVecMut<T>, _axis: impl Axis, bots: PMut<[T]>) {
-        
+    fn handle_node<T: Aabb>(
+        self,
+        func: &mut impl CollisionHandler<T = T>,
+        _: &mut PreVecMut<T>,
+        _axis: impl Axis,
+        bots: PMut<[T]>,
+    ) {
         tools::for_every_pair(bots, move |a, b| {
             if a.get().intersects_rect(b.get()) {
                 func.collide(a, b);
@@ -42,14 +49,13 @@ impl NodeHandler for HandleNoSorted {
         });
     }
 
-    fn handle_children<A: Axis, B: Axis,T:Aabb>(
+    fn handle_children<A: Axis, B: Axis, T: Aabb>(
         self,
-        func:&mut impl CollisionHandler<T=T>,
-        _:&mut PreVecMut<T>,
+        func: &mut impl CollisionHandler<T = T>,
+        _: &mut PreVecMut<T>,
         anchor: &mut DestructuredNode<T, A>,
         current: DestructuredNodeLeaf<T, B>,
     ) {
-
         let res = if !current.axis.is_equal_to(anchor.axis) {
             true
         } else {
@@ -69,26 +75,28 @@ impl NodeHandler for HandleNoSorted {
 }
 
 use crate::util::PreVecMut;
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct HandleSorted;
 
-
-
 impl NodeHandler for HandleSorted {
-    
     #[inline(always)]
-    fn handle_node<T:Aabb>(self, func:&mut impl CollisionHandler<T=T>,prevec:&mut PreVecMut<T>,axis: impl Axis, bots: PMut<[T]>) {
+    fn handle_node<T: Aabb>(
+        self,
+        func: &mut impl CollisionHandler<T = T>,
+        prevec: &mut PreVecMut<T>,
+        axis: impl Axis,
+        bots: PMut<[T]>,
+    ) {
         oned::find_2d(prevec, axis, bots, func);
     }
     #[inline(always)]
-    fn handle_children<A: Axis, B: Axis,T:Aabb>(
+    fn handle_children<A: Axis, B: Axis, T: Aabb>(
         self,
-        func:&mut impl CollisionHandler<T=T>,
-        prevec:&mut PreVecMut<T>,
+        func: &mut impl CollisionHandler<T = T>,
+        prevec: &mut PreVecMut<T>,
         anchor: &mut DestructuredNode<T, A>,
         current: DestructuredNodeLeaf<T, B>,
     ) {
-        
         if !current.axis.is_equal_to(anchor.axis) {
             let cc1 = anchor.node.cont;
             let cc2 = current.node.cont;

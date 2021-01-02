@@ -323,14 +323,14 @@ fn recc<'a, 'b: 'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
                 }
             }
 
-            if !nn.range.is_empty(){
+            if !nn.range.is_empty() {
                 //Determine if we should handle this node or not.
                 match nn.cont.contains_ext(*blap.point.get_axis(axis)) {
                     core::cmp::Ordering::Less => blap.should_recurse((axis, nn.cont.start)),
                     core::cmp::Ordering::Greater => blap.should_recurse((axis, nn.cont.end)),
                     core::cmp::Ordering::Equal => true,
                 }
-            }else{
+            } else {
                 false
             }
         }

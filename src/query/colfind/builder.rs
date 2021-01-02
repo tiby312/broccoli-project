@@ -26,8 +26,8 @@ where
     pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
         let mut sweeper = QueryFn::new(func);
         let par = par::compute_level_switch_sequential(self.switch_height, self.vistr.get_height());
-        let mut prevec=PreVecMut::new();
-        
+        let mut prevec = PreVecMut::new();
+
         recurse_par(
             default_axis(),
             par,
@@ -57,17 +57,24 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
         splitter: &mut impl Splitter,
     ) {
         let mut sweeper = QueryFnMut::new(func);
-        let mut prevec=PreVecMut::new();
-        
-        recurse_seq(default_axis(), &mut sweeper,HandleNoSorted,&mut prevec, self.vistr, splitter);
+        let mut prevec = PreVecMut::new();
+
+        recurse_seq(
+            default_axis(),
+            &mut sweeper,
+            HandleNoSorted,
+            &mut prevec,
+            self.vistr,
+            splitter,
+        );
     }
 
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
         let mut sweeper = QueryFnMut::new(func);
         //let mut sweeper = HandleNoSorted::new(b);
-        let mut prevec=PreVecMut::new();
-        
+        let mut prevec = PreVecMut::new();
+
         recurse_seq(
             default_axis(),
             &mut sweeper,
@@ -179,8 +186,8 @@ where
         let height = self.vistr.get_height();
         let switch_height = self.switch_height;
         let par = par::compute_level_switch_sequential(switch_height, height);
-        let mut prevec=PreVecMut::new();
-        
+        let mut prevec = PreVecMut::new();
+
         recurse_par(
             default_axis(),
             par,
@@ -221,13 +228,17 @@ where
     /// assert_eq!(intersections.len(),1);
     ///```
     #[inline(always)]
-    pub fn query_par_ext<C: CollisionHandler<T = T> + Splitter + Send + Sync>(self, sweeper: &mut C,splitter:&mut (impl Splitter+Send+Sync)) {
+    pub fn query_par_ext<C: CollisionHandler<T = T> + Splitter + Send + Sync>(
+        self,
+        sweeper: &mut C,
+        splitter: &mut (impl Splitter + Send + Sync),
+    ) {
         //TODO document new spliiter argument
         let height = self.vistr.get_height();
 
         let par = par::compute_level_switch_sequential(self.switch_height, height);
 
-        let mut prevec=PreVecMut::new();
+        let mut prevec = PreVecMut::new();
         recurse_par(
             default_axis(),
             par,
@@ -237,7 +248,6 @@ where
             self.vistr,
             splitter,
         );
-
     }
 }
 
@@ -268,9 +278,16 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
         let mut sweeper = QueryFnMut::new(func);
         //let mut sweeper = HandleSorted::new(b);
         let mut splitter = SplitterEmpty;
-        let mut prevec=PreVecMut::new();
-        
-        recurse_seq(default_axis(), &mut sweeper, HandleSorted,&mut prevec,self.vistr,&mut splitter);
+        let mut prevec = PreVecMut::new();
+
+        recurse_seq(
+            default_axis(),
+            &mut sweeper,
+            HandleSorted,
+            &mut prevec,
+            self.vistr,
+            &mut splitter,
+        );
     }
 
     ///Perform the query sequentially with splitter functions getting called at every level of
@@ -284,9 +301,16 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
         let mut sweeper = QueryFnMut::new(func);
 
         //let mut sweeper = HandleSorted::new(b);
-        let mut prevec=PreVecMut::new();
-        
-        recurse_seq(default_axis(), &mut sweeper,HandleSorted,&mut prevec, self.vistr, splitter);
+        let mut prevec = PreVecMut::new();
+
+        recurse_seq(
+            default_axis(),
+            &mut sweeper,
+            HandleSorted,
+            &mut prevec,
+            self.vistr,
+            splitter,
+        );
     }
 }
 

@@ -79,7 +79,10 @@ pub fn assert_tree_invariants<T: Aabb>(tree: &crate::Tree<T>)
 where
     T::Num: core::fmt::Debug,
 {
-    fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>) where T::Num:core::fmt::Debug{
+    fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>)
+    where
+        T::Num: core::fmt::Debug,
+    {
         fn a_bot_has_value<N: Num>(it: impl Iterator<Item = N>, val: N) -> bool {
             for b in it {
                 if b == val {
@@ -110,12 +113,12 @@ where
         if let Some([start, end]) = rest {
             match nn.div {
                 Some(div) => {
-                    if nn.range.is_empty(){
-                        assert_eq!(nn.cont.start,nn.cont.end);
-                        let v:T::Num=Default::default();
-                        assert_eq!(nn.cont.start,v);
-                    }else{
-                        let cont=nn.cont;
+                    if nn.range.is_empty() {
+                        assert_eq!(nn.cont.start, nn.cont.end);
+                        let v: T::Num = Default::default();
+                        assert_eq!(nn.cont.start, v);
+                    } else {
+                        let cont = nn.cont;
                         for bot in nn.range.iter() {
                             assert!(bot.get().get_range(axis).contains(div));
                         }
@@ -146,9 +149,9 @@ where
                     for (_depth, n) in start.dfs_preorder_iter().chain(end.dfs_preorder_iter()) {
                         assert!(n.range.is_empty());
                         //assert!(n.cont.is_none());
-                        assert_eq!(n.cont.start,nn.cont.end);
-                        let v:T::Num=Default::default();
-                        assert_eq!(n.cont.start,v);
+                        assert_eq!(n.cont.start, nn.cont.end);
+                        let v: T::Num = Default::default();
+                        assert_eq!(n.cont.start, v);
 
                         assert!(n.div.is_none());
                     }

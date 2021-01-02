@@ -200,24 +200,23 @@ fn recc_par<N: Nbody, JJ: par::Joiner>(
     N::T: Send,
     N::N: Send,
     N::Mass: Send,
-    N: Splitter+Send+Sync,
+    N: Splitter + Send + Sync,
 {
     let keep_going = recc_common(axis, vistr, no);
 
     if let Some([left, right]) = keep_going {
         match par.next() {
             par::ParResult::Parallel([dleft, dright]) => {
-                let (mut no1,mut no2) = no.div();
+                let (mut no1, mut no2) = no.div();
                 rayon::join(
-                    || recc_par(axis.next(), dleft,left, &mut no1),
-                    || recc_par(axis.next(), dright,right, &mut no2),
+                    || recc_par(axis.next(), dleft, left, &mut no1),
+                    || recc_par(axis.next(), dright, right, &mut no2),
                 );
-                no.add(no1,no2);
+                no.add(no1, no2);
             }
             par::ParResult::Sequential(_) => {
-                recc(axis.next(), left,  no);
+                recc(axis.next(), left, no);
                 recc(axis.next(), right, no);
-                
             }
         }
     }
@@ -267,12 +266,11 @@ fn apply_tree<N: Nbody>(mut vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder
     }
 }
 
+type TreeInner<T> = CompleteTreeContainer<T, PreOrder>;
 
-type TreeInner<T>=CompleteTreeContainer<T, PreOrder>;
-
-fn convert_tree_into_wrapper<T:Aabb,M:Default>(
-    tree:TreeInner<Node<T>>)->TreeInner<NodeWrapper<T,M>>{
-
+fn convert_tree_into_wrapper<T: Aabb, M: Default>(
+    tree: TreeInner<Node<T>>,
+) -> TreeInner<NodeWrapper<T, M>> {
     let k = tree
         .into_nodes()
         .into_vec()
@@ -285,9 +283,9 @@ fn convert_tree_into_wrapper<T:Aabb,M:Default>(
 
     CompleteTreeContainer::from_preorder(k).unwrap()
 }
-fn convert_wrapper_into_tree<T:Aabb,M:Default>(
-    tree:TreeInner<NodeWrapper<T,M>>)->TreeInner<Node<T>>
-{
+fn convert_wrapper_into_tree<T: Aabb, M: Default>(
+    tree: TreeInner<NodeWrapper<T, M>>,
+) -> TreeInner<Node<T>> {
     let nt: Vec<_> = tree
         .into_nodes()
         .into_vec()
@@ -300,32 +298,35 @@ fn convert_wrapper_into_tree<T:Aabb,M:Default>(
 
 ///Perform nbody
 ///The tree is taken by value so that its nodes can be expended to include more data.
-pub fn nbody_mut_par<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no:&mut N) -> crate::Tree<'a, N::T> 
-where N:Send+Sync+Splitter,N::T:Send+Sync,<N::T as Aabb>::Num:Send+Sync,N::Mass:Send+Sync{
-    
-    let mut newtree =convert_tree_into_wrapper(tree.inner);
+pub fn nbody_mut_par<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T>
+where
+    N: Send + Sync + Splitter,
+    N::T: Send + Sync,
+    <N::T as Aabb>::Num: Send + Sync,
+    N::Mass: Send + Sync,
+{
+    let mut newtree = convert_tree_into_wrapper(tree.inner);
 
     //calculate node masses of each node.
-    build_masses2(newtree.vistr_mut(),no);
+    build_masses2(newtree.vistr_mut(), no);
 
-    
     let height = newtree.get_height();
     let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
     let par = par::compute_level_switch_sequential(switch_height, height);
-        
-    recc_par(default_axis(), par,newtree.vistr_mut(), no);
+
+    recc_par(default_axis(), par, newtree.vistr_mut(), no);
 
     apply_tree(newtree.vistr_mut(), no);
 
-    crate::Tree{inner:convert_wrapper_into_tree(newtree)}
+    crate::Tree {
+        inner: convert_wrapper_into_tree(newtree),
+    }
 }
-
 
 ///Perform nbody
 ///The tree is taken by value so that its nodes can be expended to include more data.
 pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
-    
-    let mut newtree =convert_tree_into_wrapper(tree.inner);
+    let mut newtree = convert_tree_into_wrapper(tree.inner);
 
     //calculate node masses of each node.
     build_masses2(newtree.vistr_mut(), no);
@@ -334,5 +335,7 @@ pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate
 
     apply_tree(newtree.vistr_mut(), no);
 
-    crate::Tree{inner:convert_wrapper_into_tree(newtree)}
+    crate::Tree {
+        inner: convert_wrapper_into_tree(newtree),
+    }
 }

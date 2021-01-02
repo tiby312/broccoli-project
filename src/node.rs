@@ -218,14 +218,14 @@ impl<'a, T: Aabb> AsRef<NodePtr<T>> for Node<'a, T> {
 #[repr(C)]
 pub struct Node<'a, T: Aabb> {
     pub range: PMut<'a, [T]>,
-   
+
     //if range is empty, then value is unspecified.
     //if range is not empty, then cont can be read.
     pub cont: axgeom::Range<T::Num>,
 
     //for non leafs:
     //  if there is a bot either in this node or in a child node, then div is some.
-    //  
+    //
     //for leafs:
     //  value is none
     pub div: Option<T::Num>,

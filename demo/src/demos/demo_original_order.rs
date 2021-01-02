@@ -79,7 +79,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                     get_leaf_mid(rect)
                 };
 
-                if !node.range.is_empty(){
+                if !node.range.is_empty() {
                     rects.add(
                         axis.map_val(
                             Rect {

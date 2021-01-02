@@ -143,8 +143,8 @@ fn test_many() {
     let mut num_div = 0;
     for b in tree.vistr().dfs_inorder_iter() {
         if let Some(_) = b.div {
-            if !b.range.is_empty(){
-                num_div+=1;
+            if !b.range.is_empty() {
+                num_div += 1;
             }
         }
     }

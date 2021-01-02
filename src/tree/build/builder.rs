@@ -470,7 +470,10 @@ fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num>
                 end: max,
             }
         }
-        None => axgeom::Range{start:Default::default(),end:Default::default()},
+        None => axgeom::Range {
+            start: Default::default(),
+            end: Default::default(),
+        },
     }
 }
 

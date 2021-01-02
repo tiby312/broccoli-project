@@ -51,18 +51,20 @@ struct Bla<'a> {
     _num_pairs_checked: usize,
     _p: PhantomData<&'a usize>,
 }
-impl<'a> broccoli::build::Splitter for Bla<'a>{
-    fn div(&mut self)->(Self,Self){
-        (Bla{
-            _p:PhantomData,
-            _num_pairs_checked:0
-        },
-        Bla{
-            _p:PhantomData,
-            _num_pairs_checked:0
-        }) 
+impl<'a> broccoli::build::Splitter for Bla<'a> {
+    fn div(&mut self) -> (Self, Self) {
+        (
+            Bla {
+                _p: PhantomData,
+                _num_pairs_checked: 0,
+            },
+            Bla {
+                _p: PhantomData,
+                _num_pairs_checked: 0,
+            },
+        )
     }
-    fn add(&mut self,_:Self,_:Self){
+    fn add(&mut self, _: Self, _: Self) {
         //do nothing
     }
 }
