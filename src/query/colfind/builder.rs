@@ -209,7 +209,8 @@ where
     /// assert_eq!(intersections.len(),1);
     ///```
     #[inline(always)]
-    pub fn query_par_ext<C: CollisionHandler<T = T> + Splitter + Send + Sync>(self, clos: C) -> C {
+    pub fn query_par_ext<C: CollisionHandler<T = T> + Splitter + Send + Sync>(self, clos: C,splitter:&mut (impl Splitter+Send+Sync)) -> C {
+        //TODO document new spliiter argument
         let height = self.vistr.get_height();
 
         let par = par::compute_level_switch_sequential(self.switch_height, height);
@@ -220,7 +221,7 @@ where
             par,
             &mut sweeper,
             self.vistr,
-            &mut SplitterEmpty,
+            splitter,
         );
 
         sweeper.func

@@ -112,7 +112,6 @@ where
                 Some(div) => {
                     if nn.range.is_empty(){
                         assert_eq!(nn.cont.start,nn.cont.end);
-                        use core::default::Default;
                         let v:T::Num=Default::default();
                         assert_eq!(nn.cont.start,v);
                     }else{

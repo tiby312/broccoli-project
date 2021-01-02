@@ -2,7 +2,6 @@ use super::super::tools;
 use super::CollisionHandler;
 use crate::query::colfind::oned;
 use crate::query::inner_prelude::*;
-use unchecked_unwrap::*;
 
 pub struct DestructuredNode<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
