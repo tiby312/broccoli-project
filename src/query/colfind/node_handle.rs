@@ -29,6 +29,7 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNode<'a, 'b, T, AnchorAx
     }
 }
 
+
 pub struct DestructuredNodeLeaf<'a, 'b: 'a, T: Aabb, A: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
     pub axis: A,
@@ -52,6 +53,7 @@ impl<'a, 'b: 'a, T: Aabb, AnchorAxis: Axis> DestructuredNodeLeaf<'a, 'b, T, Anch
         unsafe { self.node.cont.as_ref().unchecked_unwrap() }
     }
 }
+
 
 pub trait NodeHandler {
     type T: Aabb;
