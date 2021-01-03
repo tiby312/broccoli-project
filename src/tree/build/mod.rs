@@ -95,14 +95,12 @@ pub enum BinStrat {
 ///on two different machines.
 pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 32;
 
-use crate::par::Parallel;
 
 ///Using this struct the user can determine the height of a tree or the number of nodes
 ///that would exist if the tree were constructed with the specified number of elements.
 #[derive(Copy, Clone)]
 pub struct TreePreBuilder {
     height: usize,
-    height_switch_seq: usize,
 }
 
 impl TreePreBuilder {
@@ -111,7 +109,6 @@ impl TreePreBuilder {
         let height = compute_tree_height_heuristic(num_elements, DEFAULT_NUMBER_ELEM_PER_NODE);
         TreePreBuilder {
             height,
-            height_switch_seq: par::SWITCH_SEQUENTIAL_DEFAULT,
         }
     }
     ///Specify a custom default nuber of elements per leaf.
@@ -122,26 +119,13 @@ impl TreePreBuilder {
         let height = compute_tree_height_heuristic(num_elements, num_elem_leaf);
         TreePreBuilder {
             height,
-            height_switch_seq: par::SWITCH_SEQUENTIAL_DEFAULT,
         }
-    }
-
-    ///Specify at which level to switch from parallel to sequential when
-    ///parallel functions are used.
-    pub fn with_height_seq(&mut self, height: usize) {
-        self.height_switch_seq = height;
-    }
-
-    ///Create a [`par::Joiner`] that will switch to sequential at the approriate level
-    const fn switch_seq_level(&self) -> Parallel {
-        crate::par::compute_level_switch_sequential(self.height_switch_seq, self.height)
     }
 
     ///Specify a custom height of the tree, ignoring the number of elements per node variable.
     pub const fn with_height(height: usize) -> TreePreBuilder {
         TreePreBuilder {
             height,
-            height_switch_seq: par::SWITCH_SEQUENTIAL_DEFAULT,
         }
     }
 
@@ -150,10 +134,6 @@ impl TreePreBuilder {
         TreeBuilder::from_prebuilder(bots, self)
     }
 
-    ///Return the level at which parallel algorithms will switch to sequential.
-    pub const fn get_height_seq(&self) -> usize {
-        self.height_switch_seq
-    }
 
     ///Compute the number of nodes in the tree based off of the height.
     pub const fn num_nodes(&self) -> usize {

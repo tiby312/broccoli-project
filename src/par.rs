@@ -7,15 +7,27 @@
 ///on each sub problem.
 pub const SWITCH_SEQUENTIAL_DEFAULT: usize = 6;
 
-///Returns the height at which the recursive construction algorithm turns to sequential from parallel.
-#[inline]
-pub const fn compute_level_switch_sequential(depth: usize, height: usize) -> Parallel {
-    let dd = depth;
-
-    let gg = if height <= dd { 0 } else { height - dd };
-
-    Parallel::new(gg)
+pub struct ParallelBuilder{
+    height_switch:usize
 }
+impl ParallelBuilder{
+    pub fn new()->Self{
+        ParallelBuilder{height_switch:SWITCH_SEQUENTIAL_DEFAULT}
+    }
+    pub fn with_switch_height(&mut self,height:usize){
+        self.height_switch=height;
+    }
+
+    pub fn build_for_tree_of_height(&self,tree_height:usize)->Parallel{
+        Parallel::new(if tree_height<self.height_switch{
+            0
+        }else{
+            tree_height-self.height_switch
+        })
+    }
+    
+}
+
 
 ///Returns either two Parallels or two Sequentials.
 pub enum ParResult<X, Y> {
@@ -37,7 +49,7 @@ pub struct Parallel {
 }
 impl Parallel {
     ///The depth at which to switch to sequential.
-    pub const fn new(depth_to_switch_at: usize) -> Self {
+    const fn new(depth_to_switch_at: usize) -> Self {
         Parallel {
             depth_to_switch_at,
             current_depth: 0,
@@ -66,19 +78,3 @@ impl Joiner for Sequential {
     }
 }
 
-#[test]
-fn test_parallel() {
-    let k = Parallel::new(0);
-    match k.next() {
-        ParResult::Parallel(_) => {
-            panic!("fail");
-        }
-        ParResult::Sequential(_) => {}
-    }
-}
-
-#[test]
-fn test_par_heur() {
-    let p = compute_level_switch_sequential(6, 6);
-    assert_eq!(p.depth_to_switch_at, 0);
-}

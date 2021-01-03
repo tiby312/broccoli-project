@@ -1,6 +1,8 @@
 //! Contains code to customize the colliding pair finding algorithm.
 
 use super::*;
+use par::ParallelBuilder;
+
 ///Used for the advanced algorithms.
 ///Trait that user implements to handling aabb collisions.
 ///The user supplies a struct that implements this trait instead of just a closure
@@ -13,7 +15,7 @@ pub trait CollisionHandler {
 
 ///Builder for a query on a NotSorted Dinotree.
 pub struct NotSortedQueryBuilder<'a, 'b: 'a, T: Aabb> {
-    switch_height: usize,
+    par_builder: ParallelBuilder,
     vistr: VistrMut<'a, Node<'b, T>>,
 }
 
@@ -24,9 +26,9 @@ where
     #[inline(always)]
     pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
         let mut sweeper = QueryFn::new(func);
-        let par = par::compute_level_switch_sequential(self.switch_height, self.vistr.get_height());
-        
-        
+
+        let par=self.par_builder.build_for_tree_of_height(self.vistr.get_height());
+
         ColfindRecurser::new(HandleNoSorted).recurse_par(
             default_axis(),
             par,
@@ -40,9 +42,8 @@ where
 impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
     #[inline(always)]
     pub(super) fn new(vistr: VistrMut<'a, Node<'b, T>>) -> NotSortedQueryBuilder<'a, 'b, T> {
-        let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         NotSortedQueryBuilder {
-            switch_height,
+            par_builder:ParallelBuilder::new(),
             vistr,
         }
     }
@@ -78,7 +79,7 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
 
 ///Builder for a query on a DinoTree.
 pub struct QueryBuilder<'a, 'b: 'a, T: Aabb> {
-    switch_height: usize,
+    par_builder:ParallelBuilder,
     vistr: VistrMut<'a, Node<'b, T>>,
 }
 
@@ -172,11 +173,8 @@ where
     pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
         let mut sweeper = QueryFn::new(func);
        
-        let height = self.vistr.get_height();
-        let switch_height = self.switch_height;
-        let par = par::compute_level_switch_sequential(switch_height, height);
-        
-        
+        let par=self.par_builder.build_for_tree_of_height(self.vistr.get_height());
+                
         ColfindRecurser::new(HandleSorted).recurse_par(
             default_axis(),
             par,
@@ -223,9 +221,7 @@ where
         sweeper: &mut (impl CollisionHandler<T = T> + Splitter + Send + Sync),
         splitter: &mut (impl Splitter + Send + Sync),
     ) {
-        let height = self.vistr.get_height();
-
-        let par = par::compute_level_switch_sequential(self.switch_height, height);
+        let par=self.par_builder.build_for_tree_of_height(self.vistr.get_height());
 
         ColfindRecurser::new(HandleSorted).recurse_par(
             default_axis(),
@@ -242,9 +238,8 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     #[inline(always)]
     #[must_use]
     pub(super) fn new(vistr: VistrMut<'a, Node<'b, T>>) -> QueryBuilder<'a, 'b, T> {
-        let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
         QueryBuilder {
-            switch_height,
+            par_builder:ParallelBuilder::new(),
             vistr,
         }
     }
@@ -254,7 +249,7 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     #[inline(always)]
     #[must_use]
     pub fn with_switch_height(mut self, height: usize) -> Self {
-        self.switch_height = height;
+        self.par_builder.with_switch_height(height);
         self
     }
 
@@ -262,7 +257,6 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
         let mut sweeper = QueryFnMut::new(func);
-        //let mut sweeper = HandleSorted::new(b);
         let mut splitter = SplitterEmpty;
         
         ColfindRecurser::new(HandleSorted).recurse_seq(

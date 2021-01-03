@@ -1,4 +1,5 @@
 use super::*;
+use par::ParallelBuilder;
 ///Builder pattern for Tree.
 ///For most usecases, the user is suggested to use
 ///the built in new() functions to create the tree.
@@ -8,7 +9,8 @@ pub struct TreeBuilder<'a, T> {
     axis: DefaultA,
     bots: &'a mut [T],
     rebal_strat: BinStrat,
-    height: TreePreBuilder,
+    prebuilder: TreePreBuilder,
+    par_builder: ParallelBuilder,
 }
 
 impl<'a, T: Aabb + Send + Sync> TreeBuilder<'a, T>
@@ -19,14 +21,14 @@ where
     pub fn build_not_sorted_par(&mut self) -> NotSorted<'a, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
-        let dlevel = self.height.switch_seq_level();
+        let pswitch = self.par_builder.build_for_tree_of_height(self.prebuilder.get_height());
         let inner = create_tree_par(
             self.axis,
-            dlevel,
+            pswitch,
             bots,
             NoSorter,
             &mut SplitterEmpty,
-            self.height,
+            self.prebuilder,
             self.rebal_strat,
         );
         NotSorted(inner)
@@ -36,15 +38,15 @@ where
     pub fn build_par(&mut self) -> Tree<'a, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
-        let dlevel = self.height.switch_seq_level();
-
+        let pswitch = self.par_builder.build_for_tree_of_height(self.prebuilder.get_height());
+        
         create_tree_par(
             self.axis,
-            dlevel,
+            pswitch,
             bots,
             DefaultSorter,
             &mut SplitterEmpty,
-            self.height,
+            self.prebuilder,
             self.rebal_strat,
         )
     }
@@ -54,24 +56,26 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
     ///Create a new builder with a slice of elements that implement `Aabb`.
     pub fn new(bots: &'a mut [T]) -> TreeBuilder<'a, T> {
         let rebal_strat = BinStrat::Checked;
-        let height = TreePreBuilder::new(bots.len());
+        let prebuilder = TreePreBuilder::new(bots.len());
         TreeBuilder {
             axis: default_axis(),
             bots,
             rebal_strat,
-            height,
+            prebuilder,
+            par_builder:ParallelBuilder::new()
         }
     }
 }
 
 impl<'a, T: Aabb> TreeBuilder<'a, T> {
-    pub fn from_prebuilder(bots: &'a mut [T], height: TreePreBuilder) -> TreeBuilder<T> {
+    pub fn from_prebuilder(bots: &'a mut [T], prebuilder: TreePreBuilder) -> TreeBuilder<T> {
         let rebal_strat = BinStrat::Checked;
         TreeBuilder {
             axis: default_axis(),
             bots,
             rebal_strat,
-            height,
+            prebuilder,
+            par_builder:ParallelBuilder::new()
         }
     }
 
@@ -84,7 +88,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
             bots,
             NoSorter,
             &mut SplitterEmpty,
-            self.height,
+            self.prebuilder,
             self.rebal_strat,
         );
         NotSorted(inner)
@@ -99,7 +103,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
             bots,
             DefaultSorter,
             &mut SplitterEmpty,
-            self.height,
+            self.prebuilder,
             self.rebal_strat,
         )
     }
@@ -112,7 +116,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
 
     #[inline(always)]
     pub fn with_height(&mut self, height: usize) -> &mut Self {
-        self.height = TreePreBuilder::with_height(height);
+        self.prebuilder = TreePreBuilder::with_height(height);
         self
     }
 
@@ -120,7 +124,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
     ///If you end up building sequentially, this argument is ignored.
     #[inline(always)]
     pub fn with_height_switch_seq(&mut self, height: usize) -> &mut Self {
-        self.height.with_height_seq(height);
+        self.par_builder.with_switch_height(height);
         self
     }
 
@@ -133,7 +137,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
             bots,
             DefaultSorter,
             splitter,
-            self.height,
+            self.prebuilder,
             self.rebal_strat,
         )
     }

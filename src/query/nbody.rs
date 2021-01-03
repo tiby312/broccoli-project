@@ -310,9 +310,8 @@ where
     //calculate node masses of each node.
     build_masses2(newtree.vistr_mut(), no);
 
-    let height = newtree.get_height();
-    let switch_height = par::SWITCH_SEQUENTIAL_DEFAULT;
-    let par = par::compute_level_switch_sequential(switch_height, height);
+
+    let par=par::ParallelBuilder::new().build_for_tree_of_height(newtree.get_height());
 
     recc_par(default_axis(), par, newtree.vistr_mut(), no);
 

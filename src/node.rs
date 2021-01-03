@@ -155,6 +155,11 @@ mod vistr_mut {
         }
 
         #[inline(always)]
+        pub fn get_height(&self)->usize{
+            compt::FixedDepthVisitor::get_height(self)
+        }
+
+        #[inline(always)]
         pub fn into_slice(self) -> PMut<'a, [N]> {
             PMut::new(self.inner.into_slice())
         }
