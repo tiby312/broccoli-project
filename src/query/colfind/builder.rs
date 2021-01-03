@@ -53,8 +53,7 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
         func: impl FnMut(PMut<T>, PMut<T>),
         splitter: &mut impl Splitter,
     ) {
-        let mut sweeper = QueryFnMut::new(func);
-        
+        let mut sweeper=create_collision_handler_mut(func);
         ColfindRecurser::new(HandleNoSorted).recurse_seq(
             default_axis(),
             &mut sweeper,
@@ -65,8 +64,7 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
 
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        let mut sweeper = QueryFnMut::new(func);
-        
+        let mut sweeper=create_collision_handler_mut(func);
         ColfindRecurser::new(HandleNoSorted).recurse_seq(
             default_axis(),
             &mut sweeper,
@@ -261,8 +259,7 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     ///Perform the query sequentially.
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        let mut sweeper = QueryFnMut::new(func);
-        //let mut sweeper = HandleSorted::new(b);
+        let mut sweeper=create_collision_handler_mut(func);
         let mut splitter = SplitterEmpty;
         
         ColfindRecurser::new(HandleSorted).recurse_seq(
@@ -281,7 +278,7 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
         func: impl FnMut(PMut<T>, PMut<T>),
         splitter: &mut impl Splitter,
     ) {
-        let mut sweeper = QueryFnMut::new(func);
+        let mut sweeper=create_collision_handler_mut(func);
 
         ColfindRecurser::new(HandleSorted).recurse_seq(
             default_axis(),
@@ -292,34 +289,23 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     }
 }
 
-struct QueryFnMut<T, F>(F, PhantomData<T>);
-impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> QueryFnMut<T, F> {
-    #[inline(always)]
-    pub fn new(func: F) -> QueryFnMut<T, F> {
-        QueryFnMut(func, PhantomData)
+
+fn create_collision_handler_mut<T:Aabb>(a:impl FnMut(PMut<T>,PMut<T>))->impl CollisionHandler<T=T>{
+    struct QueryFnMut<T, F>(F, PhantomData<T>);
+    impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler for QueryFnMut<T, F> {
+        type T = T;
+        #[inline(always)]
+        fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
+            self.0(a, b);
+        }
     }
+    QueryFnMut(a,PhantomData)    
 }
 
-impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler for QueryFnMut<T, F> {
-    type T = T;
-    #[inline(always)]
-    fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
-        self.0(a, b);
-    }
-}
+
+
 
 struct QueryFn<T, F>(F, PhantomData<T>);
-
-impl<T, F> Splitter for QueryFnMut<T, F> {
-    #[inline(always)]
-    fn div(&mut self) -> (Self, Self) {
-        unreachable!()
-    }
-    #[inline(always)]
-    fn add(&mut self, _: Self, _: Self) {
-        unreachable!()
-    }
-}
 
 impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> QueryFn<T, F> {
     #[inline(always)]
