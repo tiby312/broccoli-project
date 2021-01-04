@@ -27,6 +27,7 @@ impl<T, D> CollidingPairs<T, D> {
     ///Return a read only list of colliding pairs.
     ///We can't return a list of mutable pairs since some might
     ///alias, but we can return a list if they are not mutable.
+    #[inline(always)]
     pub fn get(&self, arr: &[T]) -> &[ColPair<T, D>] {
         assert_eq!(self.orig.0 as *const _, arr as *const _);
         unsafe { &*(self.cols.as_slice() as *const _ as *const _) }
@@ -110,10 +111,12 @@ pub struct FilteredElements<T, D> {
     orig: Ptr<[T]>,
 }
 impl<T, D> FilteredElements<T, D> {
+    #[inline(always)]
     pub fn get(&self, arr: &[T]) -> &[(&T, D)] {
         assert_eq!(self.orig.0 as *const _, arr as *const _);
         unsafe { &*(self.elems.as_slice() as *const _ as *const _) }
     }
+    #[inline(always)]
     pub fn get_mut(&mut self, arr: &mut [T]) -> &mut [(&mut T, D)] {
         assert_eq!(self.orig.0, arr as *mut _);
         unsafe { &mut *(self.elems.as_mut_slice() as *mut _ as *mut _) }
@@ -135,7 +138,7 @@ impl<T, D> FilteredElements<T, D> {
 
 
 
-
+/// Used to build a [`TreeRefInd`]
 pub struct TreeRefIndBuilder<'a,N,T>{
     aabbs:Vec<BBox<N,&'a mut T>>,
     orig:Ptr<[T]>
@@ -175,9 +178,13 @@ pub struct TreeRefInd<'a,'b,N:Num,T>{
 
 impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
     pub(super) fn into_ptr(self)->TreeRefIndPtr<N,T>{
-        unsafe{
-            //TODO use something else?
-            core::mem::transmute(self)
+        
+        TreeRefIndPtr{
+            tree:TreePtr{
+                _inner:unsafe{self.tree.inner.convert()},
+                _num_aabbs:self.tree.num_aabbs
+            },
+            orig:self.orig
         }
     }
 }
@@ -188,22 +195,44 @@ pub(super) struct TreeRefIndPtr<N:Num,T>{
     pub(super) orig:Ptr<[T]>
 }
 
+
+impl<'a,'b, N:Num,T> From<TreeRefInd<'a,'b,N,T>> for Tree<'b, BBox<N,&'a mut T>> {
+    #[inline(always)]
+    fn from(a: TreeRefInd<'a,'b,N,T>) -> Self {
+        a.tree
+    }
+}
+
+
 impl<'a,'b, N: Num , T> core::ops::Deref for TreeRefInd<'a,'b, N, T> {
     type Target = Tree<'b, BBox<N, &'a mut T>>;
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         &self.tree
     }
 }
 impl<'a, 'b,N: Num, T> core::ops::DerefMut for TreeRefInd<'a, 'b,N, T> {
+    #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.tree
     }
 }
 
 impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
+    /// Retrieve the underlying list of elements.
+    /// Unlike [`Tree::get_elements_mut()`] which
+    /// returns the aabbs of the tree, this returns the
+    /// list of T that each aabb points to.
+    #[inline(always)]
     pub fn get_inner_elements_mut(&mut self)->&mut [T]{
         unsafe{&mut *self.orig.0}
     }
+
+    /// Retrieve the underlying list of elements.
+    /// Unlike [`Tree::get_elements_mut()`] which
+    /// returns the aabbs of the tree, this returns the
+    /// list of T that each aabb points to.
+    #[inline(always)]
     pub fn get_inner_elements(&self)->&[T]{
         unsafe{&*self.orig.0}
     }

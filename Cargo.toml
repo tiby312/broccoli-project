@@ -30,3 +30,6 @@ twounordered = "0.1.0"
 # and only builds that target
 targets = ["x86_64-unknown-linux-gnu"]
 
+
+[patch.crates-io]
+compt={path="../compt"}
