@@ -168,6 +168,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
     }
 
 
+    /// Return the underlying slice of the tree in the order sorted during tree construction.
+    ///
     /// # Examples
     ///
     ///```
@@ -199,6 +201,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
         ret
     }
 
+    /// Return the underlying slice of the tree in the order sorted during tree construction.
+    ///
     /// # Examples
     ///
     ///```
