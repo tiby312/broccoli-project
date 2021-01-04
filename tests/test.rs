@@ -27,7 +27,7 @@ fn test_tie_knearest() {
         bbox(rect(6, 10, 0, 10), ()),
     ];
 
-    let mut tree = broccoli::container::TreeRef::new(&mut bots);
+    let mut tree = broccoli::new(&mut bots);
 
     let mut handler = broccoli::query::knearest::default_rect_knearest(&tree);
     let mut res = tree.k_nearest_mut(vec2(15, 30), 2, &mut handler);
@@ -49,7 +49,7 @@ fn test_tie_raycast() {
     let mut bots: &mut [BBox<isize, ()>] =
         &mut [bbox(rect(0, 10, 0, 20), ()), bbox(rect(5, 10, 0, 20), ())];
 
-    let mut tree = broccoli::container::TreeRef::new(&mut bots);
+    let mut tree = broccoli::new(&mut bots);
 
     let ray = axgeom::Ray {
         point: vec2(15, 4),

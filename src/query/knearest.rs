@@ -385,15 +385,14 @@ impl<'a, T: Aabb> KResult<'a, T> {
     }
 }
 
-use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_k_nearest_mut<T: Aabb>(
-    tree: &mut TreeRef<T>,
+    tree: &mut Tree<T>,
     point: Vec2<T::Num>,
     num: usize,
     knear: &mut impl Knearest<T = T, N = T::Num>,
 ) {
-    let bots = tree.get_bbox_elements_mut();
+    let bots = tree.get_elements_mut();
     use core::ops::Deref;
 
     fn into_ptr_usize<T>(a: &T) -> usize {

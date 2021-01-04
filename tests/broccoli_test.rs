@@ -23,7 +23,7 @@ fn test1() {
             })
             .collect();
 
-        let mut tree = broccoli::container::TreeRef::new(&mut bots);
+        let mut tree = broccoli::new(&mut bots);
         broccoli::query::colfind::assert_query(&mut tree);
         broccoli::query::assert_tree_invariants(&tree);
     }

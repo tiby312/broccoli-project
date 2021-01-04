@@ -14,7 +14,7 @@ fn test() {
         .map(|a| crate::bbox(rect(0isize, 0, 0, 0), a))
         .collect();
 
-    let mut tree = crate::container::TreeRef::new(&mut bots);
+    let mut tree = crate::new(&mut bots);
 
     crate::query::assert_tree_invariants(&tree);
 

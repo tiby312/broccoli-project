@@ -292,16 +292,15 @@ fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
     }
 }
 
-use crate::container::TreeRef;
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_raycast<T: Aabb>(
-    tree: &mut TreeRef<T>,
+    tree: &mut Tree<T>,
     ray: axgeom::Ray<T::Num>,
     rtrait: &mut impl RayCast<T = T, N = T::Num>,
 ) where
     T::Num: core::fmt::Debug,
 {
-    let bots = tree.get_bbox_elements_mut();
+    let bots = tree.get_elements_mut();
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
     }

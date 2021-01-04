@@ -32,17 +32,24 @@ impl<N: Num, T> TreeIndInner<N, T> {
     }
 }
 
-pub(super) fn make_owned<T: Aabb>(bots: &mut [T]) -> TreeInner<NodePtr<T>> {
+pub(super) fn make_owned<T: Aabb>(bots: &mut [T]) -> TreePtr<T> {
     let tree = crate::new(bots);
 
-    tree.inner.convert()
+    TreePtr{
+        _inner:tree.inner.convert(),
+        _num_aabbs:tree.num_aabbs
+    }
+    
 }
 
-pub(super) fn make_owned_par<T: Aabb + Send + Sync>(bots: &mut [T]) -> TreeInner<NodePtr<T>>
+pub(super) fn make_owned_par<T: Aabb + Send + Sync>(bots: &mut [T]) -> TreePtr<T>
 where
     T::Num: Send + Sync,
 {
     let tree = crate::new_par(bots);
 
-    tree.inner.convert()
+    TreePtr{
+        _inner:tree.inner.convert(),
+        _num_aabbs:tree.num_aabbs
+    }
 }

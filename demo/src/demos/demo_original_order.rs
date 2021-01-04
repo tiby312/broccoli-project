@@ -50,14 +50,14 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             })
             .collect();
 
-        let mut tree = broccoli::container::TreeRef::new_par(&mut k);
+        let mut tree = broccoli::new_par(&mut k);
 
-        {
-            tree.for_all_not_in_rect_mut(&dim, |a| {
-                let a = a.unpack_inner();
-                duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
-            });
-        }
+        
+        tree.for_all_not_in_rect_mut(&dim, |a| {
+            let a = a.unpack_inner();
+            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
+        });
+    
 
         let vv = vec2same(100.0);
         tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), |b| {

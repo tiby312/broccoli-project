@@ -151,7 +151,7 @@ fn create_tree_seq<'a, T: Aabb, K: Splitter>(
     height: TreePreBuilder,
     binstrat: BinStrat,
 ) -> Tree<'a, T> {
-    let num_bots = rest.len();
+    let num_aabbs = rest.len();
 
     let cc = height.num_nodes();
     //let cc = tree::nodes_left(0, height);
@@ -172,9 +172,9 @@ fn create_tree_seq<'a, T: Aabb, K: Splitter>(
         .get_nodes()
         .iter()
         .fold(0, move |acc, a| acc + a.range.len());
-    debug_assert_eq!(k, num_bots);
+    debug_assert_eq!(k, num_aabbs);
 
-    Tree { inner }
+    Tree { inner,num_aabbs }
 }
 
 fn create_tree_par<'a, JJ: par::Joiner, T: Aabb + Send + Sync, K: Splitter + Send + Sync>(
@@ -189,8 +189,7 @@ fn create_tree_par<'a, JJ: par::Joiner, T: Aabb + Send + Sync, K: Splitter + Sen
 where
     T::Num: Send + Sync,
 {
-    let num_bots = rest.len();
-
+    let num_aabbs = rest.len();
     let cc = height.num_nodes();
     //let cc = tree::nodes_left(0, height);
     let mut nodes = Vec::with_capacity(cc);
@@ -210,9 +209,9 @@ where
         .get_nodes()
         .iter()
         .fold(0, move |acc, a| acc + a.range.len());
-    debug_assert_eq!(k, num_bots);
+    debug_assert_eq!(k, num_aabbs);
 
-    Tree { inner }
+    Tree { inner ,num_aabbs}
 }
 
 struct Recurser<'a, T: Aabb, K: Splitter, S: Sorter> {

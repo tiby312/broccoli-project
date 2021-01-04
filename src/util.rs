@@ -1,5 +1,21 @@
 use crate::inner_prelude::*;
 
+
+pub fn combine_slice<'a, T>(a: &'a [T], b: &'a [T]) -> &'a [T] {
+    let alen = a.len();
+    let blen = b.len();
+    unsafe {
+        assert_eq!(
+            a.as_ptr().offset(a.len() as isize),
+            b.as_ptr(),
+            "Slices are not continuous"
+        );
+
+        
+        core::slice::from_raw_parts(a.as_ptr(), alen + blen)
+    }
+}
+
 #[inline(always)]
 pub fn compare_bots<T: Aabb>(axis: impl Axis, a: &T, b: &T) -> core::cmp::Ordering {
     let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);

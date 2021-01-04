@@ -1,8 +1,8 @@
 //! Container trees that deref to [`Tree`]
 //!
 //! Most of the time using [`Tree`] is enough. But in certain cases
-//! we want more control. This module provides [`TreeRef`] and [`TreeRefInd`]
-//!
+//! we want more control. 
+
 use super::*;
 
 mod collect;
@@ -34,7 +34,7 @@ unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 ///
 pub struct TreeRefInd<'a, N: Num, T> {
     tree: inner::TreeIndInner<N, T>,
-    _p: PhantomData<TreeRef<'a, BBox<N, &'a mut T>>>,
+    _p: PhantomData<Tree<'a, BBox<N, &'a mut T>>>,
 }
 
 impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
@@ -57,7 +57,7 @@ impl<'a, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, N, T> {
 
 impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
     ///Explicitly DerefMut.
-    pub fn as_tree_ref_mut(&mut self) -> &mut TreeRef<'a, BBox<N, &'a mut T>> {
+    pub fn as_tree_ref_mut(&mut self) -> &mut Tree<'a, BBox<N, &'a mut T>> {
         &mut *self
     }
 
@@ -87,7 +87,7 @@ impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
 }
 
 impl<'a, N: Num + 'a, T> core::ops::Deref for TreeRefInd<'a, N, T> {
-    type Target = TreeRef<'a, BBox<N, &'a mut T>>;
+    type Target = Tree<'a, BBox<N, &'a mut T>>;
     fn deref(&self) -> &Self::Target {
         unsafe { &*(self.tree.inner.as_tree() as *const _ as *const _) }
     }
@@ -98,6 +98,8 @@ impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, N, T> {
     }
 }
 
+
+/*
 /// Provides a function to allow the user to ger the original slice of
 /// elements (sorted by the tree). Derefs to [`Tree`].
 ///
@@ -185,13 +187,16 @@ where
     }
 }
 
+/*
 impl<'a, T: Aabb> From<TreeRef<'a, T>> for Tree<'a, T> {
     fn from(a: TreeRef<'a, T>) -> Self {
         Tree {
             inner: a.tree.inner,
+            num_aabbs:a.orig.len()
         }
     }
 }
+*/
 
 impl<'a, T: Aabb> TreeRef<'a, T> {
     /// ```rust
@@ -220,6 +225,7 @@ impl<'a, T: Aabb> TreeRef<'a, T> {
         PMut::new(unsafe { &mut *self.orig.0 })
     }
 }
+*/
 
 /// An owned version of [`TreeRefInd`]
 ///
@@ -273,7 +279,8 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
     }
 }
 
-/// An owned version of [`TreeRef`]
+
+/// An owned version of [`crate::Tree`]
 ///
 /// An owned `(Rect<N>,T)` example
 ///
@@ -291,10 +298,7 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
 /// ```
 #[repr(C)]
 pub struct TreeOwned<T: Aabb> {
-    inner: TreeInner<NodePtr<T>>,
-    //this is included so that we can cast a reference of this to TreeRef.
-    //It is obviously redundant with the Boxed slice right after it.
-    orig: Ptr<[T]>,
+    inner: TreePtr<T>,
     _bots: Box<[T]>,
 }
 
@@ -303,12 +307,10 @@ where
     T::Num: Send + Sync,
 {
     pub fn new_par(mut bots: Box<[T]>) -> TreeOwned<T> {
-        let orig = Ptr(&mut bots as &mut [_] as *mut [_]);
         let inner = inner::make_owned_par(&mut bots);
 
         TreeOwned {
             inner,
-            orig,
             _bots: bots,
         }
     }
@@ -316,23 +318,21 @@ where
 
 impl<T: Aabb> TreeOwned<T> {
     pub fn new(mut bots: Box<[T]>) -> TreeOwned<T> {
-        let orig = Ptr(&mut bots as &mut [_] as *mut [_]);
         let inner = inner::make_owned(&mut bots);
         TreeOwned {
             inner,
-            orig,
             _bots: bots,
         }
     }
 }
 impl<T: Aabb> TreeOwned<T> {
     ///Cant use Deref because of lifetime
-    pub fn as_tree(&self) -> &TreeRef<T> {
+    pub fn as_tree(&self) -> &Tree<T> {
         unsafe { &*(&self.inner as *const _ as *const _) }
     }
 
     ///Cant use Deref because of lifetime
-    pub fn as_tree_mut(&mut self) -> &mut TreeRef<T> {
+    pub fn as_tree_mut(&mut self) -> &mut Tree<T> {
         unsafe { &mut *(&mut self.inner as *mut _ as *mut _) }
     }
 }

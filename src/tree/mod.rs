@@ -10,10 +10,18 @@ pub mod container;
 
 type TreeInner<N> = compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
 
+#[repr(C)]
+struct TreePtr<T:Aabb>{
+    _inner:TreeInner<NodePtr<T>>,
+    _num_aabbs:usize
+}
+
 ///The data structure this crate revoles around.
-#[repr(transparent)]
+#[repr(C)]
 pub struct Tree<'a, T: Aabb> {
+    //TODO make not private
     pub(crate) inner: TreeInner<Node<'a, T>>,
+    pub(crate) num_aabbs:usize
 }
 
 ///Create a [`Tree`].
@@ -158,4 +166,69 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn get_nodes_mut(&mut self) -> PMut<[Node<'a, T>]> {
         PMut::new(self.inner.get_nodes_mut())
     }
+
+
+    /// # Examples
+    ///
+    ///```
+    /// let mut bots = [axgeom::rect(0,10,0,10)];
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// assert_eq!(*tree.get_elements_mut().get_index_mut(0), axgeom::rect(0,10,0,10));
+    ///
+    ///```
+    #[must_use]
+    pub fn get_elements_mut(&mut self)->PMut<[T]>{
+
+        fn foo<'a,T:Aabb>(v:VistrMut<'a,Node<T>>)->PMut<'a,[T]>{
+            let mut new_slice = None;
+
+            v.dfs_preorder(|a| {
+                if let Some(s) = new_slice.take() {
+                    new_slice = Some(crate::pmut::combine_slice(s, a.into_range()));
+                } else {
+                    new_slice = Some(a.into_range());
+                }
+            });
+            new_slice.unwrap()
+        }
+
+        let num_aabbs=self.num_aabbs;
+        let ret=foo(self.vistr_mut());
+        assert_eq!(ret.len(),num_aabbs);
+        ret
+    }
+
+    /// # Examples
+    ///
+    ///```
+    /// let mut bots = [axgeom::rect(0,10,0,10)];
+    /// let tree = broccoli::new(&mut bots);
+    ///
+    /// assert_eq!(tree.get_elements()[0], axgeom::rect(0,10,0,10));
+    ///
+    ///```
+    #[must_use]
+    pub fn get_elements(&self)->&[T]{
+
+        fn foo<'a,T:Aabb>(v:Vistr<'a,Node<T>>)->&'a [T]{
+            let mut new_slice = None;
+
+            v.dfs_preorder(|a| {
+                if let Some(s) = new_slice.take() {
+                    new_slice = Some(crate::util::combine_slice(s, &a.range));
+                } else {
+                    new_slice = Some(&a.range);
+                }
+            });
+            new_slice.unwrap()
+        }
+
+        let num_aabbs=self.num_aabbs;
+        let ret=foo(self.vistr());
+        assert_eq!(ret.len(),num_aabbs);
+        ret
+    }
+
+    //TODO add get_elements()
 }
