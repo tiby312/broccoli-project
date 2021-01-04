@@ -11,7 +11,7 @@ use alloc::boxed::Box;
 mod inner;
 
 #[repr(transparent)]
-struct Ptr<T: ?Sized>(*mut T);
+pub(crate) struct Ptr<T: ?Sized>(*mut T);
 impl<T: ?Sized> Copy for Ptr<T> {}
 
 impl<T: ?Sized> Clone for Ptr<T> {
@@ -22,6 +22,14 @@ impl<T: ?Sized> Clone for Ptr<T> {
 }
 unsafe impl<T: ?Sized> Send for Ptr<T> {}
 unsafe impl<T: ?Sized> Sync for Ptr<T> {}
+
+
+
+
+
+
+
+
 
 /// A less general tree that providess `collect` functions
 /// and also derefs to a [`Tree`].

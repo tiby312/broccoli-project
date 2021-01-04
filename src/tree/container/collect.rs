@@ -311,3 +311,76 @@ impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pub struct TreeRefIndBuilder<'a,N,T>{
+    aabbs:Vec<BBox<N,&'a mut T>>,
+    orig:Ptr<[T]>
+}
+
+pub struct TreeRefInd2<'a,'b,N:Num,T:Aabb>{
+    tree:Tree<'b,BBox<N,&'a mut T>>,
+    orig:Ptr<[T]>
+}
+impl<'a,'b,N:Num,T:Aabb> TreeRefInd2<'a,'b,N,T>{
+
+    pub fn collect_colliding_pairs<D: Send + Sync>(
+        &mut self,
+        mut func: impl FnMut(&mut T, &mut T) -> Option<D> + Send + Sync,
+    ) -> CollidingPairs<T, D> {
+        let mut cols: Vec<_> = Vec::new();
+        self.tree.find_colliding_pairs_mut(|a, b| {
+            let a = a.unpack_inner();
+            let b = b.unpack_inner();
+            if let Some(extra) = func(a, b) {
+                //We use unsafe to collect mutable references of
+                //all colliding pairs.
+                //This is safe to do because the user is forced
+                //to iterate through all the colliding pairs
+                //one at a time.
+                let first = Ptr(*a as *mut T);
+                let second = Ptr(*b as *mut T);
+
+                cols.push(ColPairPtr {
+                    first,
+                    second,
+                    extra,
+                });
+            }
+        });
+
+        CollidingPairs {
+            cols,
+            orig: self.orig,
+        }
+    }
+
+}
+        
+impl<'a,N:Num,T:Aabb> TreeRefIndBuilder<'a,N,T>{
+    pub fn new(bots:&'a mut [T],mut func:impl FnMut(&mut T)->axgeom::Rect<N>)->TreeRefIndBuilder<N,T>{
+        let orig = Ptr(bots as *mut _);
+        let aabbs:Vec<_>=bots.iter_mut().map(|a|crate::bbox(func(a),a)).collect();
+        TreeRefIndBuilder{aabbs,orig}
+    }
+
+    pub fn build<'b>(&'b mut self)->TreeRefInd2<'b,'a,N,T>{
+        TreeRefInd2{tree:crate::new(&mut self.aabbs),orig:self.orig}
+    }
+}
