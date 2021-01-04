@@ -30,83 +30,6 @@ unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 
 
 
-
-/// A less general tree that providess `collect` functions
-/// and also derefs to a [`Tree`].
-///
-/// [`TreeRefInd`] assumes there is a layer of indirection where
-/// all the pointers point to the same slice.
-/// It uses this assumption to provide `collect` functions that allow
-/// storing query results that can then be iterated through multiple times
-/// quickly.
-///
-pub struct TreeRefInd<'a, N: Num, T> {
-    tree: inner::TreeIndInner<N, T>,
-    _p: PhantomData<Tree<'a, BBox<N, &'a mut T>>>,
-}
-
-impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
-    pub fn new(arr: &'a mut [T], func: impl FnMut(&mut T) -> Rect<N>) -> TreeRefInd<'a, N, T> {
-        TreeRefInd {
-            tree: inner::TreeIndInner::new(arr, func),
-            _p: PhantomData,
-        }
-    }
-}
-
-impl<'a, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, N, T> {
-    pub fn new_par(arr: &'a mut [T], func: impl FnMut(&mut T) -> Rect<N>) -> TreeRefInd<'a, N, T> {
-        TreeRefInd {
-            tree: inner::TreeIndInner::new_par(arr, func),
-            _p: PhantomData,
-        }
-    }
-}
-
-impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
-    ///Explicitly DerefMut.
-    pub fn as_tree_ref_mut(&mut self) -> &mut Tree<'a, BBox<N, &'a mut T>> {
-        &mut *self
-    }
-
-    /// ```rust
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut k=[4];
-    /// let mut b=broccoli::container::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
-    /// b.find_colliding_pairs_mut(|a,b|{});
-    /// assert_eq!(b.get_elements()[0],4);
-    /// b.find_colliding_pairs_mut(|a,b|{});
-    /// ```
-    pub fn get_elements(&self) -> &[T] {
-        unsafe { &*self.tree.orig.0 }
-    }
-
-    /// ```rust
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut k=[0];
-    /// let mut b=broccoli::container::TreeRefInd::new(&mut k,|&mut d|rect(d,d,d,d));
-    /// b.find_colliding_pairs_mut(|a,b|{});
-    /// b.get_elements_mut()[0]=5;
-    /// b.find_colliding_pairs_mut(|a,b|{});
-    /// ```
-    pub fn get_elements_mut(&mut self) -> &'a mut [T] {
-        unsafe { &mut *self.tree.orig.0 }
-    }
-}
-
-impl<'a, N: Num + 'a, T> core::ops::Deref for TreeRefInd<'a, N, T> {
-    type Target = Tree<'a, BBox<N, &'a mut T>>;
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*(self.tree.inner.as_tree() as *const _ as *const _) }
-    }
-}
-impl<'a, N: Num + 'a, T> core::ops::DerefMut for TreeRefInd<'a, N, T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *(self.tree.inner.as_tree_mut() as *mut _ as *mut _) }
-    }
-}
-
-
 /*
 /// Provides a function to allow the user to ger the original slice of
 /// elements (sorted by the tree). Derefs to [`Tree`].
@@ -254,22 +177,27 @@ impl<'a, T: Aabb> TreeRef<'a, T> {
 ///
 /// ```
 pub struct TreeOwnedInd<N: Num, T> {
-    tree: inner::TreeIndInner<N, T>,
+    tree: TreeRefIndPtr<N,T>,
     _bots: Box<[T]>,
 }
 
 impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<N, T> {
     pub fn new_par(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<N, T> {
+        let mut builder=TreeRefIndBuilder::new(&mut bots,func);
+        let tree=builder.build_par();
         TreeOwnedInd {
-            tree: inner::TreeIndInner::new_par(&mut bots, func),
+            tree: tree.into_ptr(),
             _bots: bots,
         }
     }
 }
 impl<N: Num, T> TreeOwnedInd<N, T> {
     pub fn new(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<N, T> {
+        let mut builder=TreeRefIndBuilder::new(&mut bots,func);
+        let tree=builder.build();
+        
         TreeOwnedInd {
-            tree: inner::TreeIndInner::new(&mut bots, func),
+            tree: tree.into_ptr(),
             _bots: bots,
         }
     }

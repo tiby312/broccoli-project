@@ -1,17 +1,19 @@
 use crate::support::prelude::*;
 
+/*
 #[derive(Copy, Clone, Debug)]
 struct Bot {
     rect: Rect<i32>,
 }
+*/
 
 pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
-    let bots = support::make_rand_rect(200, dim, [5.0, 20.0], |rect| Bot {
-        rect: rect.inner_as(),
-    })
+    let bots = support::make_rand_rect(200, dim, [5.0, 20.0], |rect| bbox(rect.inner_as(),()))
     .into_boxed_slice();
 
+
     let mut tree = broccoli::container::TreeOwnedInd::new_par(bots, |b| b.rect);
+    //let mut tree = broccoli::container::TreeOwned::new_par(bots);
 
     let mut rects = canvas.rects();
     for bot in tree.as_tree().get_elements().iter() {
@@ -30,7 +32,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         let r2 = axgeom::Rect::new(100, 400, 100, 400);
 
         if check_naive {
-            let tree = tree.as_tree_mut().as_tree_ref_mut();
+            let tree = tree.as_tree_mut();
             use broccoli::query::rect::*;
 
             assert_for_all_in_rect_mut(tree, &r1);
