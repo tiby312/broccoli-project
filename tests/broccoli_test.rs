@@ -49,13 +49,14 @@ fn test2() {
             })
             .collect();
 
-        let mut tree = broccoli::container::TreeRefInd::new(&mut bots, |a| a.rect);
+        let mut tree = broccoli::container::TreeRefIndBuilder::new(&mut bots, |a| a.rect);
+        let mut tree=tree.build();
         broccoli::query::colfind::assert_query(&mut *tree);
         let mut p = tree.collect_colliding_pairs(|_a, _b| Some(()));
         let mut k = tree.collect_all(|_r, _a| Some(()));
-        p.for_every_pair_mut(tree.get_elements_mut(), |_a, _b, _c| {});
-        let _j: Vec<_> = k.get_mut(tree.get_elements_mut()).iter().collect();
-        p.for_every_pair_mut(tree.get_elements_mut(), |_a, _b, _c| {});
+        p.for_every_pair_mut(tree.get_inner_elements_mut(), |_a, _b, _c| {});
+        let _j: Vec<_> = k.get_mut(tree.get_inner_elements_mut()).iter().collect();
+        p.for_every_pair_mut(tree.get_inner_elements_mut(), |_a, _b, _c| {});
     }
 }
 
@@ -78,8 +79,8 @@ fn test3() {
             })
             .collect();
 
-        let mut tree = broccoli::container::TreeRefInd::new(&mut bots, |a| a.rect);
-
+        let mut builder = broccoli::container::TreeRefIndBuilder::new(&mut bots, |a| a.rect);
+        let mut tree=builder.build();
         let mut rects1 = Vec::new();
         tree.find_colliding_pairs_mut(|a, b| rects1.push((a.rect, b.rect)));
 
@@ -87,10 +88,10 @@ fn test3() {
             use std::sync::Mutex;
             let rects = Mutex::new(Vec::new());
             let mut v = tree.collect_colliding_pairs_par(|_, _| Some(()));
-            dbg!(v.get(tree.get_elements_mut()).len());
+            dbg!(v.get(tree.get_inner_elements_mut()).len());
 
             let mutex = &rects;
-            v.for_every_pair_mut_par(tree.get_elements_mut(), |a, b, ()| {
+            v.for_every_pair_mut_par(tree.get_inner_elements_mut(), |a, b, ()| {
                 let mut rects = mutex.lock().unwrap();
                 rects.push((a.rect, b.rect))
             });
@@ -99,7 +100,7 @@ fn test3() {
         let rects3 = {
             let mut rects = Vec::new();
             let mut v = tree.collect_colliding_pairs(|_, _| Some(()));
-            v.for_every_pair_mut(tree.get_elements_mut(), |a, b, ()| {
+            v.for_every_pair_mut(tree.get_inner_elements_mut(), |a, b, ()| {
                 rects.push((a.rect, b.rect))
             });
             rects

@@ -27,6 +27,7 @@ impl<T, D> CollidingPairs<T, D> {
     ///Return a read only list of colliding pairs.
     ///We can't return a list of mutable pairs since some might
     ///alias, but we can return a list if they are not mutable.
+    #[inline(always)]
     pub fn get(&self, arr: &[T]) -> &[ColPair<T, D>] {
         assert_eq!(self.orig.0 as *const _, arr as *const _);
         unsafe { &*(self.cols.as_slice() as *const _ as *const _) }
@@ -104,99 +105,137 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
     }
 }
 
-impl<'a, N: Num + Send + Sync, T: Send + Sync> TreeRefInd<'a, N, T> {
-    /// The parallel version of [`TreeRefInd::collect_colliding_pairs`] that instead
-    /// returns a [`CollidingPairsPar`].
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// let mut aabbs = [
-    ///     broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
-    ///     broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
-    ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
-    /// ];
-    ///
-    /// let mut tree = broccoli::container::TreeRefInd::new_par(&mut aabbs,|a|{
-    ///    a.rect
-    /// });
-    ///
-    /// //Find all colliding aabbs only once.
-    /// let mut pairs=tree.collect_colliding_pairs_par(|a, b| {
-    ///    a.inner += 1;
-    ///    b.inner += 1;
-    ///    Some(())
-    /// });
-    ///
-    /// //Iterate over the pairs multiple times
-    /// for _ in 0..3{
-    ///     //mutate every colliding pair.
-    ///     pairs.for_every_pair_mut_par(&mut aabbs,|a,b,()|{
-    ///         a.inner+=1;
-    ///         b.inner+=1;
-    ///     })
-    /// }
-    pub fn collect_colliding_pairs_par<D: Send + Sync>(
-        &mut self,
-        func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync + Copy,
-    ) -> CollidingPairsPar<T, D> {
-        let cols = self.collect_colliding_pairs_par_inner(|a, b| match func(a, b) {
-            Some(extra) => Some(ColPairPtr {
-                first: Ptr(a as *mut _),
-                second: Ptr(b as *mut _),
-                extra,
-            }),
-            None => None,
-        });
-        CollidingPairsPar {
-            cols,
-            original: self.tree.orig,
-        }
-    }
-
-    fn collect_colliding_pairs_par_inner<D: Send + Sync>(
-        &mut self,
-        func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync + Copy,
-    ) -> Vec<Vec<D>> {
-        let mut handler = crate::query::colfind::builder::from_closure(
-            self,
-            vec![Vec::new()],
-            move |_| (vec![Vec::new()], vec![Vec::new()]),
-            move |a, mut b, mut c| {
-                a.first_mut().unwrap().append(&mut b.pop().unwrap());
-                a.append(&mut c);
-            },
-            move |c, a, b| {
-                if let Some(d) = func(a.unpack_inner(), b.unpack_inner()) {
-                    c.first_mut().unwrap().push(d);
-                }
-            },
-        );
-
-        use crate::query::colfind::builder::*;
-        self.new_colfind_builder()
-            .query_par_ext(&mut handler, &mut SplitterEmpty);
-        handler.consume()
-    }
-}
-
 ///Contains a filtered list of all elements in the tree from calling [`TreeRefInd::collect_all`].
 pub struct FilteredElements<T, D> {
     elems: Vec<(Ptr<T>, D)>,
     orig: Ptr<[T]>,
 }
 impl<T, D> FilteredElements<T, D> {
+    #[inline(always)]
     pub fn get(&self, arr: &[T]) -> &[(&T, D)] {
         assert_eq!(self.orig.0 as *const _, arr as *const _);
         unsafe { &*(self.elems.as_slice() as *const _ as *const _) }
     }
+    #[inline(always)]
     pub fn get_mut(&mut self, arr: &mut [T]) -> &mut [(&mut T, D)] {
         assert_eq!(self.orig.0, arr as *mut _);
         unsafe { &mut *(self.elems.as_mut_slice() as *mut _ as *mut _) }
     }
 }
 
-impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/// Used to build a [`TreeRefInd`]
+pub struct TreeRefIndBuilder<'a,N,T>{
+    aabbs:Vec<BBox<N,&'a mut T>>,
+    orig:Ptr<[T]>
+}
+
+impl<'a,N:Num,T> TreeRefIndBuilder<'a,N,T>{
+    pub fn new(bots:&'a mut [T],mut func:impl FnMut(&mut T)->axgeom::Rect<N>)->TreeRefIndBuilder<N,T>{
+        let orig = Ptr(bots as *mut _);
+        let aabbs:Vec<_>=bots.iter_mut().map(|a|crate::bbox(func(a),a)).collect();
+        TreeRefIndBuilder{aabbs,orig}
+    }
+
+    pub fn build<'b>(&'b mut self)->TreeRefInd<'b,'a,N,T>{
+        TreeRefInd{tree:crate::new(&mut self.aabbs),orig:self.orig}
+    }
+    pub fn build_par<'b>(&'b mut self)->TreeRefInd<'b,'a,N,T> where N:Num+Send+Sync,T:Send+Sync{
+        TreeRefInd{tree:crate::new_par(&mut self.aabbs),orig:self.orig}
+    }
+}
+
+
+
+/// A less general tree that providess `collect` functions
+/// and also derefs to a [`Tree`].
+///
+/// [`TreeRefInd`] assumes there is a layer of indirection where
+/// all the pointers point to the same slice.
+/// It uses this assumption to provide `collect` functions that allow
+/// storing query results that can then be iterated through multiple times
+/// quickly.
+///
+#[repr(C)]
+pub struct TreeRefInd<'a,'b,N:Num,T>{
+    tree:Tree<'b,BBox<N,&'a mut T>>,
+    orig:Ptr<[T]>
+}
+
+impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
+    pub(super) fn into_ptr(self)->TreeRefIndPtr<N,T>{
+        
+        TreeRefIndPtr{
+            tree:TreePtr{
+                _inner:unsafe{self.tree.inner.convert()},
+                _num_aabbs:self.tree.num_aabbs
+            },
+            orig:self.orig
+        }
+    }
+}
+
+#[repr(C)]
+pub(super) struct TreeRefIndPtr<N:Num,T>{
+    pub(super) tree:TreePtr<BBox<N,Ptr<T>>>,
+    pub(super) orig:Ptr<[T]>
+}
+
+
+impl<'a,'b, N:Num,T> From<TreeRefInd<'a,'b,N,T>> for Tree<'b, BBox<N,&'a mut T>> {
+    #[inline(always)]
+    fn from(a: TreeRefInd<'a,'b,N,T>) -> Self {
+        a.tree
+    }
+}
+
+
+impl<'a,'b, N: Num , T> core::ops::Deref for TreeRefInd<'a,'b, N, T> {
+    type Target = Tree<'b, BBox<N, &'a mut T>>;
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        &self.tree
+    }
+}
+impl<'a, 'b,N: Num, T> core::ops::DerefMut for TreeRefInd<'a, 'b,N, T> {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.tree
+    }
+}
+
+impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
+    /// Retrieve the underlying list of elements.
+    /// Unlike [`Tree::get_elements_mut()`] which
+    /// returns the aabbs of the tree, this returns the
+    /// list of T that each aabb points to.
+    #[inline(always)]
+    pub fn get_inner_elements_mut(&mut self)->&mut [T]{
+        unsafe{&mut *self.orig.0}
+    }
+
+    /// Retrieve the underlying list of elements.
+    /// Unlike [`Tree::get_elements_mut()`] which
+    /// returns the aabbs of the tree, this returns the
+    /// list of T that each aabb points to.
+    #[inline(always)]
+    pub fn get_inner_elements(&self)->&[T]{
+        unsafe{&*self.orig.0}
+    }
     /// Collect all elements based off of a predicate and return a [`FilteredElements`].
     ///
     /// # Examples
@@ -208,9 +247,11 @@ impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
     ///    broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,|a|{
+    /// let mut tree_builder = broccoli::container::TreeRefIndBuilder::new(&mut aabbs,|a|{
     ///     a.rect
     /// });
+    ///
+    /// let mut tree=tree_builder.build();
     ///
     /// //Find a group of elements only once.
     /// let mut pairs=tree.collect_all(|_,b| {
@@ -242,13 +283,11 @@ impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
             }
         }
         FilteredElements {
-            orig: self.tree.orig,
+            orig: self.orig,
             elems,
         }
     }
-}
 
-impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
     /// Find all colliding pairs based on a predicate and return a [`CollidingPairs`].
     ///
     /// # Examples
@@ -260,9 +299,11 @@ impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
     ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,|a|{
+    /// let mut builder = broccoli::container::TreeRefIndBuilder::new(&mut aabbs,|a|{
     ///    a.rect
     /// });
+    ///
+    /// let mut tree=builder.build();
     ///
     /// //Find all colliding aabbs only once.
     /// let mut pairs=tree.collect_colliding_pairs(|a, b| {
@@ -284,8 +325,7 @@ impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
         mut func: impl FnMut(&mut T, &mut T) -> Option<D> + Send + Sync,
     ) -> CollidingPairs<T, D> {
         let mut cols: Vec<_> = Vec::new();
-
-        self.find_colliding_pairs_mut(|a, b| {
+        self.tree.find_colliding_pairs_mut(|a, b| {
             let a = a.unpack_inner();
             let b = b.unpack_inner();
             if let Some(extra) = func(a, b) {
@@ -307,7 +347,84 @@ impl<'a, N: Num, T> TreeRefInd<'a, N, T> {
 
         CollidingPairs {
             cols,
-            orig: self.tree.orig,
+            orig: self.orig,
         }
     }
+
+    /// The parallel version of [`TreeRefInd::collect_colliding_pairs`] that instead
+    /// returns a [`CollidingPairsPar`].
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///     broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    ///     broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
+    ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
+    /// ];
+    ///
+    /// let mut builder = broccoli::container::TreeRefIndBuilder::new(&mut aabbs,|a|{
+    ///    a.rect
+    /// });
+    ///
+    /// let mut tree=builder.build_par();
+    ///
+    /// //Find all colliding aabbs only once.
+    /// let mut pairs=tree.collect_colliding_pairs_par(|a, b| {
+    ///    a.inner += 1;
+    ///    b.inner += 1;
+    ///    Some(())
+    /// });
+    ///
+    /// //Iterate over the pairs multiple times
+    /// for _ in 0..3{
+    ///     //mutate every colliding pair.
+    ///     pairs.for_every_pair_mut_par(&mut aabbs,|a,b,()|{
+    ///         a.inner+=1;
+    ///         b.inner+=1;
+    ///     })
+    /// }
+    pub fn collect_colliding_pairs_par<D: Send + Sync>(
+        &mut self,
+        func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync + Copy,
+    ) -> CollidingPairsPar<T, D> where N:Send+Sync,T:Send+Sync{
+        let cols = self.collect_colliding_pairs_par_inner(|a, b| match func(a, b) {
+            Some(extra) => Some(ColPairPtr {
+                first: Ptr(a as *mut _),
+                second: Ptr(b as *mut _),
+                extra,
+            }),
+            None => None,
+        });
+        CollidingPairsPar {
+            cols,
+            original: self.orig,
+        }
+    }
+
+    fn collect_colliding_pairs_par_inner<D: Send + Sync>(
+        &mut self,
+        func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync + Copy,
+    ) -> Vec<Vec<D>> where N:Send+Sync,T:Send+Sync {
+        let mut handler = crate::query::colfind::builder::from_closure(
+            self,
+            vec![Vec::new()],
+            move |_| (vec![Vec::new()], vec![Vec::new()]),
+            move |a, mut b, mut c| {
+                a.first_mut().unwrap().append(&mut b.pop().unwrap());
+                a.append(&mut c);
+            },
+            move |c, a, b| {
+                if let Some(d) = func(a.unpack_inner(), b.unpack_inner()) {
+                    c.first_mut().unwrap().push(d);
+                }
+            },
+        );
+
+        use crate::query::colfind::builder::*;
+        self.new_colfind_builder()
+            .query_par_ext(&mut handler, &mut SplitterEmpty);
+        handler.consume()
+    }
 }
+        
