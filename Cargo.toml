@@ -20,7 +20,7 @@ dists = {git="https://github.com/tiby312/dists.git"}
 is_sorted = "0.1"
 itertools = "0.9"
 rayon = "1.5"
-compt = "1.9"
+compt = "1.10"
 axgeom = {version="1.9",default-features = false}
 pdqselect = "0.1"
 twounordered = "0.1.0"
@@ -30,6 +30,3 @@ twounordered = "0.1.0"
 # and only builds that target
 targets = ["x86_64-unknown-linux-gnu"]
 
-
-[patch.crates-io]
-compt={path="../compt"}
