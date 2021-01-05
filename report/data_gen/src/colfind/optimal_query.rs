@@ -20,10 +20,9 @@ pub fn handle_broccoli(grow: f64, fb: &mut FigureBuilder) {
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
             let bench = {
-                let mut builder =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
-                let mut tree=builder.build_par();
-
+                let mut base=Vec::new();
+                let mut tree=crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n(),&mut base);
+                
                 bench_closure(|| {
                     tree.find_colliding_pairs_mut(|a, b| {
                         **a.unpack_inner() += 1;
@@ -33,9 +32,8 @@ pub fn handle_broccoli(grow: f64, fb: &mut FigureBuilder) {
             };
 
             let bench_par = {
-                let mut builder =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
-                let mut tree=builder.build_par();
+                let mut base=Vec::new();
+                let mut tree=crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n(),&mut base);
                 
                 bench_closure(|| {
                     tree.find_colliding_pairs_mut_par(|a, b| {
@@ -46,9 +44,8 @@ pub fn handle_broccoli(grow: f64, fb: &mut FigureBuilder) {
             };
 
             let collect = {
-                let mut builder =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
-                let mut tree=builder.build_par();
+                let mut base=Vec::new();
+                let mut tree=crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n(),&mut base);
                 
                 bench_closure(|| {
                     let c = tree.collect_colliding_pairs(|a, b| {
@@ -61,9 +58,8 @@ pub fn handle_broccoli(grow: f64, fb: &mut FigureBuilder) {
             };
 
             let collect_par = {
-                let mut builder =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
-                let mut tree=builder.build_par();
+                let mut base=Vec::new();
+                let mut tree=crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n(),&mut base);
                 
                 bench_closure(|| {
                     let c = tree.collect_colliding_pairs_par(|a, b| {
@@ -138,9 +134,8 @@ pub fn handle_optimal(grow: f64, fb: &mut FigureBuilder) {
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
             let optimal = {
-                let mut builder =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
-                let mut tree=builder.build_par();
+                let mut base=Vec::new();
+                let mut tree=crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n(),&mut base);
                 
                 let mut pairs = tree.collect_colliding_pairs(|_, _| Some(()));
 
@@ -153,9 +148,8 @@ pub fn handle_optimal(grow: f64, fb: &mut FigureBuilder) {
             };
 
             let optimal_par = {
-                let mut builder =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
-                let mut tree=builder.build_par();
+                let mut base=Vec::new();
+                let mut tree=crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n(),&mut base);
                 
                 let mut pairs = tree.collect_colliding_pairs_par(|_, _| Some(()));
 

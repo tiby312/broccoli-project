@@ -132,35 +132,6 @@ impl<T, D> FilteredElements<T, D> {
 
 
 
-
-
-
-
-
-
-/// Used to build a [`TreeRefInd`]
-pub struct TreeRefIndBuilder<'a,N,T>{
-    aabbs:Vec<BBox<N,&'a mut T>>,
-    orig:Ptr<[T]>
-}
-
-impl<'a,N:Num,T> TreeRefIndBuilder<'a,N,T>{
-    pub fn new(bots:&'a mut [T],mut func:impl FnMut(&mut T)->axgeom::Rect<N>)->TreeRefIndBuilder<N,T>{
-        let orig = Ptr(bots as *mut _);
-        let aabbs:Vec<_>=bots.iter_mut().map(|a|crate::bbox(func(a),a)).collect();
-        TreeRefIndBuilder{aabbs,orig}
-    }
-
-    pub fn build<'b>(&'b mut self)->TreeRefInd<'b,'a,N,T>{
-        TreeRefInd{tree:crate::new(&mut self.aabbs),orig:self.orig}
-    }
-    pub fn build_par<'b>(&'b mut self)->TreeRefInd<'b,'a,N,T> where N:Num+Send+Sync,T:Send+Sync{
-        TreeRefInd{tree:crate::new_par(&mut self.aabbs),orig:self.orig}
-    }
-}
-
-
-
 /// A less general tree that providess `collect` functions
 /// and also derefs to a [`Tree`].
 ///
@@ -177,6 +148,45 @@ pub struct TreeRefInd<'a,'b,N:Num,T>{
 }
 
 impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
+
+    ///Create a [`TreeRefInd`]. The user provides an empty vec to use to house the
+    ///The aabbs created.
+    pub fn new(
+        bots:&'a mut [T],
+        mut func:impl FnMut(&mut T)->axgeom::Rect<N>,
+        aabbs:&'b mut Vec<BBox<N,&'a mut T>>)->TreeRefInd<'a,'b,N,T>{
+        let orig = Ptr(bots as *mut _);
+
+        aabbs.extend(bots.iter_mut().map(|a|crate::bbox(func(a),a)));
+
+        let tree=crate::new(aabbs);
+
+        TreeRefInd{
+            tree,
+            orig
+        }
+    }
+
+
+    ///Create a [`TreeRefInd`] in parallel. The user provides an empty vec to use to house the
+    ///The aabbs created.
+    pub fn new_par(
+        bots:&'a mut [T],
+        mut func:impl FnMut(&mut T)->axgeom::Rect<N>,
+        aabbs:&'b mut Vec<BBox<N,&'a mut T>>)->TreeRefInd<'a,'b,N,T> where N:Send+Sync,T:Send+Sync{
+        let orig = Ptr(bots as *mut _);
+
+        aabbs.extend(bots.iter_mut().map(|a|crate::bbox(func(a),a)));
+
+        let tree=crate::new_par(aabbs);
+
+        TreeRefInd{
+            tree,
+            orig
+        }
+    }
+
+
     pub(super) fn into_ptr(self)->TreeRefIndPtr<N,T>{
         
         TreeRefIndPtr{
