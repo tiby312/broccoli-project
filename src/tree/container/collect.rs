@@ -239,20 +239,6 @@ pub struct TreeRefInd<'a,'b,N:Num,T>{
     orig:Ptr<[T]>
 }
 
-impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
-
-    pub(super) fn into_ptr(self)->TreeRefIndPtr<N,T>{
-        
-        TreeRefIndPtr{
-            tree:TreePtr{
-                _inner:unsafe{self.tree.inner.convert()},
-                _num_aabbs:self.tree.num_aabbs
-            },
-            orig:self.orig
-        }
-    }
-}
-
 #[repr(C)]
 pub(super) struct TreeRefIndPtr<N:Num,T>{
     pub(super) tree:TreePtr<BBox<N,Ptr<T>>>,
@@ -283,6 +269,24 @@ impl<'a, 'b,N: Num, T> core::ops::DerefMut for TreeRefInd<'a, 'b,N, T> {
 }
 
 impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
+
+
+    pub(super) fn into_ptr(self)->TreeRefIndPtr<N,T>{
+        
+        TreeRefIndPtr{
+            tree:TreePtr{
+                _inner:unsafe{self.tree.inner.convert()},
+                _num_aabbs:self.tree.num_aabbs
+            },
+            orig:self.orig
+        }
+    }
+
+    //TODO implement
+    pub fn flatten(self)->Tree<'a,BBox<N,T>> where T:Clone{
+        unimplemented!()
+    }
+
     /// Retrieve the underlying list of elements.
     /// Unlike [`Tree::get_elements_mut()`] which
     /// returns the aabbs of the tree, this returns the

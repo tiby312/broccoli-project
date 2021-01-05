@@ -23,19 +23,6 @@ unsafe impl<T: ?Sized> Send for Ptr<T> {}
 unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 
 
-//TODO implement
-/*
-impl<N:Num,T:Copy> From<TreeOwnedInd<N,T>> for TreeOwned<BBox<N,T>>{
-    fn from(a:TreeOwnedInd<N,T>)->Self{
-        let tree=a.tree.inner.into_nodes().into_iter().map(|a|a)
-        TreeOwned{
-            _bots:a._base,
-            inner
-        }
-        unimplemented!()
-    }
-}*/
-
 /// An owned version of [`TreeRefInd`]
 ///
 /// ```rust
