@@ -38,12 +38,26 @@ unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 ///     })
 /// }
 ///
-/// not_lifetimed();
+/// let mut tree=not_lifetimed();
+/// 
+/// let mut pairs = tree.as_tree_mut().collect_colliding_pairs(|a,b|Some(()));
 ///
 /// ```
 pub struct TreeOwnedInd<N: Num, T> {
     tree: TreeRefIndPtr<N,T>,
+    _base: Vec<BBox<N,Ptr<T>>>,
     _bots: Box<[T]>,
+}
+fn convert_vec<T,X>(v_orig:Vec<T>)->Vec<X>{
+    assert_eq!(core::mem::size_of::<X>(),core::mem::size_of::<T>());
+    assert_eq!(core::mem::align_of::<X>(),core::mem::align_of::<T>());
+    unsafe{
+        // Ensure the original vector is not dropped.
+        let mut v_clone = std::mem::ManuallyDrop::new(v_orig);
+        Vec::from_raw_parts(v_clone.as_mut_ptr() as *mut X,
+                            v_clone.len(),
+                            v_clone.capacity())
+    }
 }
 
 impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<N, T> {
@@ -51,9 +65,13 @@ impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<N, T> {
         
         let mut base=TreeRefBase::new(&mut bots,func);
         let tree=base.build_par();
+        let tree=tree.into_ptr();
+        let _base=convert_vec(base.into_vec());
+        
         TreeOwnedInd {
-            tree: tree.into_ptr(),
+            tree,
             _bots: bots,
+            _base
         }
     }
 }
@@ -62,10 +80,13 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
         
         let mut base=TreeRefBase::new(&mut bots,func);
         let tree=base.build();
-
+        let tree=tree.into_ptr();
+        let _base=convert_vec(base.into_vec());
+        
         TreeOwnedInd {
-            tree: tree.into_ptr(),
+            tree,
             _bots: bots,
+            _base
         }
     }
 }
@@ -98,7 +119,10 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
 ///     TreeOwned::new(a)
 /// }
 ///
-/// not_lifetimed();
+/// let mut tree =not_lifetimed();
+/// 
+/// let mut pairs = tree.as_tree_mut().find_colliding_pairs_mut(|a,b|{});
+///
 ///
 /// ```
 #[repr(C)]
