@@ -49,8 +49,8 @@ fn test2() {
             })
             .collect();
 
-        let mut tree = broccoli::container::TreeRefIndBuilder::new(&mut bots, |a| a.rect);
-        let mut tree=tree.build();
+        let mut base=Vec::new();
+        let mut tree = broccoli::container::TreeRefInd::new(&mut bots, |a| a.rect,&mut base);
         broccoli::query::colfind::assert_query(&mut *tree);
         let mut p = tree.collect_colliding_pairs(|_a, _b| Some(()));
         let mut k = tree.collect_all(|_r, _a| Some(()));
@@ -79,8 +79,9 @@ fn test3() {
             })
             .collect();
 
-        let mut builder = broccoli::container::TreeRefIndBuilder::new(&mut bots, |a| a.rect);
-        let mut tree=builder.build();
+        let mut base=Vec::new();
+        let mut tree = broccoli::container::TreeRefInd::new(&mut bots, |a| a.rect,&mut base);
+        
         let mut rects1 = Vec::new();
         tree.find_colliding_pairs_mut(|a, b| rects1.push((a.rect, b.rect)));
 

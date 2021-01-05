@@ -257,11 +257,10 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
     ///    broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut tree_builder = broccoli::container::TreeRefIndBuilder::new(&mut aabbs,|a|{
+    /// let mut base=Vec::new();
+    /// let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,|a|{
     ///     a.rect
-    /// });
-    ///
-    /// let mut tree=tree_builder.build();
+    /// },&mut base);
     ///
     /// //Find a group of elements only once.
     /// let mut pairs=tree.collect_all(|_,b| {
@@ -309,11 +308,10 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
     ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut builder = broccoli::container::TreeRefIndBuilder::new(&mut aabbs,|a|{
+    /// let mut base=Vec::new();
+    /// let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,|a|{
     ///    a.rect
-    /// });
-    ///
-    /// let mut tree=builder.build();
+    /// },&mut base);
     ///
     /// //Find all colliding aabbs only once.
     /// let mut pairs=tree.collect_colliding_pairs(|a, b| {
@@ -373,11 +371,11 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
     ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut builder = broccoli::container::TreeRefIndBuilder::new(&mut aabbs,|a|{
-    ///    a.rect
-    /// });
+    /// let mut base=Vec::new();
     ///
-    /// let mut tree=builder.build_par();
+    /// let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,|a|{
+    ///    a.rect
+    /// },&mut base);
     ///
     /// //Find all colliding aabbs only once.
     /// let mut pairs=tree.collect_colliding_pairs_par(|a, b| {
