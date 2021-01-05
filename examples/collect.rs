@@ -5,9 +5,9 @@ fn main() {
         broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     ];
 
-    let mut base=Vec::new();
-    let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,&mut base, |a| a.rect);
-    
+    let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect);
+    let mut tree=base.build();
+
     //Find all colliding aabbs.
     let mut pairs = tree.collect_colliding_pairs(|a, b| {
         a.inner += 1;

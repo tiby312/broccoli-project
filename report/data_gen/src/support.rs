@@ -219,10 +219,9 @@ pub fn make_tree_ref_ind<'a,'b,N: Num, T>(
     bots: &'a mut [T],
     grow: f64,
     mut func: impl FnMut(RectConv) -> Rect<N>,
-    base:&'b mut Vec<BBox<N,&'a mut T>>
-) -> TreeRefInd<'a,'b,N, T> {
+) -> TreeRefBase<'a,N, T> {
     let mut k = abspiral_f64(grow);
-    TreeRefInd::new(bots, |_| func(RectConv(k.next().unwrap())),base)
+    TreeRefBase::new(bots, |_| func(RectConv(k.next().unwrap())))
 }
 
 pub struct RectConv(pub Rect<f64>);

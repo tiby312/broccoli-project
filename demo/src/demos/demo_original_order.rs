@@ -49,9 +49,8 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         let mut tree=builder.build();
         */
         
-        let mut base=vec!();
-        let mut tree=broccoli::container::TreeRefInd::new(&mut bots,|a|Rect::from_point(a.pos,vec2same(radius)),&mut base);
-        
+        let mut base=broccoli::container::TreeRefBase::new(&mut bots,|a|Rect::from_point(a.pos,vec2same(radius)));
+        let mut tree=base.build();
         /*
         let mut k: Vec<_> = bots
             .iter_mut()

@@ -125,10 +125,66 @@ impl<T, D> FilteredElements<T, D> {
 
 
 
+/*
+
+#[macro_use]
+mod foo{
+    #[macro_export]
+    macro_rules! make_bar {
+        ($bots:expr,$func:expr) => {{
+            let mut base = Vec::new();
+            TreeRefInd::new($bots,&mut base,$func)
+        }};
+    }
+}
 
 
+#[test]
+fn test(){
+    let mut a=[4;2];
 
+    let mut tree=crate::make_bar!(&mut a,|a|Rect::new(0,0,0,0));
 
+}
+*/
+
+pub struct TreeRefBase<'a,N:Num,T>{
+    aabbs:Vec<BBox<N,&'a mut T>>,
+    orig:Ptr<[T]>
+}
+impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
+    pub fn new(bots:&'a mut [T],mut func:impl FnMut(&mut T)->Rect<N>)->TreeRefBase<'a,N,T>{
+        let orig = Ptr(bots as *mut _);
+
+        TreeRefBase{
+            orig,
+            aabbs:bots.iter_mut().map(|a|crate::bbox(func(a),a)).collect()
+        }
+    }
+
+    pub fn into_vec(self)->Vec<BBox<N,&'a mut T>>{
+        self.aabbs
+    }
+
+    pub fn build<'b>(&'b mut self)->TreeRefInd<'a,'b,N,T>{
+        let tree=crate::new(&mut self.aabbs);
+
+        TreeRefInd{
+            tree,
+            orig:self.orig
+        }
+    }
+
+    pub fn build_par<'b>(&'b mut self)->TreeRefInd<'a,'b,N,T> where N:Send+Sync,T:Send+Sync{
+        let tree=crate::new_par(&mut self.aabbs);
+
+        TreeRefInd{
+            tree,
+            orig:self.orig
+        }
+    }
+
+}
 
 
 
@@ -148,7 +204,7 @@ pub struct TreeRefInd<'a,'b,N:Num,T>{
 }
 
 impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
-
+/*
     ///Create a [`TreeRefInd`]. The user provides an empty vec to use to house the
     ///The aabbs created.
     pub fn new(
@@ -187,7 +243,7 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
             orig
         }
     }
-
+*/
 
     pub(super) fn into_ptr(self)->TreeRefIndPtr<N,T>{
         
@@ -259,10 +315,8 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
     ///    broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut base=Vec::new();
-    /// let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,&mut base,|a|{
-    ///     a.rect
-    /// });
+    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut tree = base.build();
     ///
     /// //Find a group of elements only once.
     /// let mut pairs=tree.collect_all(|_,b| {
@@ -310,10 +364,8 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
     ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut base=Vec::new();
-    /// let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,&mut base,|a|{
-    ///    a.rect
-    /// });
+    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut tree = base.build();
     ///
     /// //Find all colliding aabbs only once.
     /// let mut pairs=tree.collect_colliding_pairs(|a, b| {
@@ -373,11 +425,8 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
     ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut base=Vec::new();
-    ///
-    /// let mut tree = broccoli::container::TreeRefInd::new(&mut aabbs,&mut base,|a|{
-    ///    a.rect
-    /// });
+    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut tree = base.build();
     ///
     /// //Find all colliding aabbs only once.
     /// let mut pairs=tree.collect_colliding_pairs_par(|a, b| {
