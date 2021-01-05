@@ -133,7 +133,7 @@ impl<T, D> FilteredElements<T, D> {
 ///
 ///From this struct a user can create a [`TreeRefInd`].
 pub struct TreeRefBase<'a,N:Num,T>{
-    aabbs:Vec<BBox<N,&'a mut T>>,
+    aabbs:Box<[BBox<N,&'a mut T>]>,
     orig:Ptr<[T]>
 }
 impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
@@ -155,7 +155,7 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
 
         TreeRefBase{
             orig,
-            aabbs:bots.iter_mut().map(|a|crate::bbox(func(a),a)).collect()
+            aabbs:bots.iter_mut().map(|a|crate::bbox(func(a),a)).collect::<Vec<_>>().into_boxed_slice()
         }
     }
 
@@ -169,12 +169,12 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
     /// ];
     ///
     /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
-    /// let mut inner=base.into_vec();
+    /// let mut inner=base.into_inner();
     /// let mut tree = broccoli::new(&mut inner);
     /// //We can make a tree using the internals, but we lost the guarentee
     /// //that all the `&'a mut T` belong to the same slice.
     /// ```
-    pub fn into_vec(self)->Vec<BBox<N,&'a mut T>>{
+    pub fn into_inner(self)->Box<[BBox<N,&'a mut T>]>{
         self.aabbs
     }
 

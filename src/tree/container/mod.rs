@@ -23,6 +23,19 @@ unsafe impl<T: ?Sized> Send for Ptr<T> {}
 unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 
 
+//TODO implement
+/*
+impl<N:Num,T:Copy> From<TreeOwnedInd<N,T>> for TreeOwned<BBox<N,T>>{
+    fn from(a:TreeOwnedInd<N,T>)->Self{
+        let tree=a.tree.inner.into_nodes().into_iter().map(|a|a)
+        TreeOwned{
+            _bots:a._base,
+            inner
+        }
+        unimplemented!()
+    }
+}*/
+
 /// An owned version of [`TreeRefInd`]
 ///
 /// ```rust
@@ -45,18 +58,18 @@ unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 /// ```
 pub struct TreeOwnedInd<N: Num, T> {
     tree: TreeRefIndPtr<N,T>,
-    _base: Vec<BBox<N,Ptr<T>>>,
+    _base: Box<[BBox<N,Ptr<T>>]>,
     _bots: Box<[T]>,
 }
-fn convert_vec<T,X>(v_orig:Vec<T>)->Vec<X>{
+fn convert_box<T,X>(mut v_orig:Box<[T]>)->Box<[X]>{
     assert_eq!(core::mem::size_of::<X>(),core::mem::size_of::<T>());
     assert_eq!(core::mem::align_of::<X>(),core::mem::align_of::<T>());
     unsafe{
         // Ensure the original vector is not dropped.
-        let mut v_clone = std::mem::ManuallyDrop::new(v_orig);
-        Vec::from_raw_parts(v_clone.as_mut_ptr() as *mut X,
-                            v_clone.len(),
-                            v_clone.capacity())
+        let ptr=v_orig.as_mut_ptr();
+        let length=v_orig.len();
+        core::mem::forget(v_orig);
+        Box::from_raw(core::slice::from_raw_parts_mut(ptr as *mut _, length))
     }
 }
 
@@ -66,7 +79,7 @@ impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<N, T> {
         let mut base=TreeRefBase::new(&mut bots,func);
         let tree=base.build_par();
         let tree=tree.into_ptr();
-        let _base=convert_vec(base.into_vec());
+        let _base=convert_box(base.into_inner());
         
         TreeOwnedInd {
             tree,
@@ -81,7 +94,7 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
         let mut base=TreeRefBase::new(&mut bots,func);
         let tree=base.build();
         let tree=tree.into_ptr();
-        let _base=convert_vec(base.into_vec());
+        let _base=convert_box(base.into_inner());
         
         TreeOwnedInd {
             tree,
