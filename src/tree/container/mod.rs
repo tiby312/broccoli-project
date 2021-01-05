@@ -49,7 +49,7 @@ pub struct TreeOwnedInd<N: Num, T> {
 impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<N, T> {
     pub fn new_par(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<N, T> {
         let mut base=Vec::new();
-        let tree=TreeRefInd::new(&mut bots,func,&mut base);
+        let tree=TreeRefInd::new(&mut bots,&mut base,func);
         TreeOwnedInd {
             tree: tree.into_ptr(),
             _bots: bots,
@@ -59,7 +59,7 @@ impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<N, T> {
 impl<N: Num, T> TreeOwnedInd<N, T> {
     pub fn new(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<N, T> {
         let mut base=Vec::new();
-        let tree=TreeRefInd::new(&mut bots,func,&mut base);
+        let tree=TreeRefInd::new(&mut bots,&mut base,func);
         
         TreeOwnedInd {
             tree: tree.into_ptr(),
