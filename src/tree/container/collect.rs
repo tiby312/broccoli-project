@@ -125,34 +125,31 @@ impl<T, D> FilteredElements<T, D> {
 
 
 
-/*
-
-#[macro_use]
-mod foo{
-    #[macro_export]
-    macro_rules! make_bar {
-        ($bots:expr,$func:expr) => {{
-            let mut base = Vec::new();
-            TreeRefInd::new($bots,&mut base,$func)
-        }};
-    }
-}
 
 
-#[test]
-fn test(){
-    let mut a=[4;2];
-
-    let mut tree=crate::make_bar!(&mut a,|a|Rect::new(0,0,0,0));
-
-}
-*/
-
+///This is a `Vec<BBox<N,&'a mut T>>` under the hood
+///with the added guarentee that all the `&'a mut T`
+///point to the same slice.
+///
+///From this struct a user can create a [`TreeRefInd`].
 pub struct TreeRefBase<'a,N:Num,T>{
     aabbs:Vec<BBox<N,&'a mut T>>,
     orig:Ptr<[T]>
 }
 impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
+
+    /// Create a [`TreeRefBase`].
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    /// ];
+    ///
+    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut tree = base.build();
+    /// ```
     pub fn new(bots:&'a mut [T],mut func:impl FnMut(&mut T)->Rect<N>)->TreeRefBase<'a,N,T>{
         let orig = Ptr(bots as *mut _);
 
@@ -162,10 +159,37 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
         }
     }
 
+    /// Extra the internals of a [`TreeRefBase`].
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    /// ];
+    ///
+    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut inner=base.into_vec();
+    /// let mut tree = broccoli::new(&mut inner);
+    /// //We can make a tree using the internals, but we lost the guarentee
+    /// //that all the `&'a mut T` belong to the same slice.
+    /// ```
     pub fn into_vec(self)->Vec<BBox<N,&'a mut T>>{
         self.aabbs
     }
 
+    /// Build a [`TreeRefInd`].
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    /// ];
+    ///
+    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut tree = base.build();
+    /// ```
     pub fn build<'b>(&'b mut self)->TreeRefInd<'a,'b,N,T>{
         let tree=crate::new(&mut self.aabbs);
 
@@ -175,6 +199,18 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
         }
     }
 
+    /// Build a [`TreeRefInd`].
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    /// ];
+    ///
+    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut tree = base.build_par();
+    /// ```
     pub fn build_par<'b>(&'b mut self)->TreeRefInd<'a,'b,N,T> where N:Send+Sync,T:Send+Sync{
         let tree=crate::new_par(&mut self.aabbs);
 
@@ -204,46 +240,6 @@ pub struct TreeRefInd<'a,'b,N:Num,T>{
 }
 
 impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
-/*
-    ///Create a [`TreeRefInd`]. The user provides an empty vec to use to house the
-    ///The aabbs created.
-    pub fn new(
-        bots:&'a mut [T],
-        aabbs:&'b mut Vec<BBox<N,&'a mut T>>,
-        mut func:impl FnMut(&mut T)->axgeom::Rect<N>,
-        )->TreeRefInd<'a,'b,N,T>{
-        let orig = Ptr(bots as *mut _);
-
-        aabbs.extend(bots.iter_mut().map(|a|crate::bbox(func(a),a)));
-
-        let tree=crate::new(aabbs);
-
-        TreeRefInd{
-            tree,
-            orig
-        }
-    }
-
-
-    ///Create a [`TreeRefInd`] in parallel. The user provides an empty vec to use to house the
-    ///The aabbs created.
-    pub fn new_par(
-        bots:&'a mut [T],
-        aabbs:&'b mut Vec<BBox<N,&'a mut T>>,
-        mut func:impl FnMut(&mut T)->axgeom::Rect<N>,
-        )->TreeRefInd<'a,'b,N,T> where N:Send+Sync,T:Send+Sync{
-        let orig = Ptr(bots as *mut _);
-
-        aabbs.extend(bots.iter_mut().map(|a|crate::bbox(func(a),a)));
-
-        let tree=crate::new_par(aabbs);
-
-        TreeRefInd{
-            tree,
-            orig
-        }
-    }
-*/
 
     pub(super) fn into_ptr(self)->TreeRefIndPtr<N,T>{
         
@@ -291,6 +287,19 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
     /// Unlike [`Tree::get_elements_mut()`] which
     /// returns the aabbs of the tree, this returns the
     /// list of T that each aabb points to.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    /// ];
+    ///
+    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut tree = base.build();
+    /// let bots=tree.get_inner_elements_mut();
+    ///
+    /// ```
     #[inline(always)]
     pub fn get_inner_elements_mut(&mut self)->&mut [T]{
         unsafe{&mut *self.orig.0}
@@ -300,6 +309,19 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
     /// Unlike [`Tree::get_elements_mut()`] which
     /// returns the aabbs of the tree, this returns the
     /// list of T that each aabb points to.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    /// ];
+    ///
+    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut tree = base.build();
+    /// let bots=tree.get_inner_elements();
+    ///
+    /// ```
     #[inline(always)]
     pub fn get_inner_elements(&self)->&[T]{
         unsafe{&*self.orig.0}
