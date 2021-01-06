@@ -23,7 +23,6 @@ struct TreePtr<T:Aabb>{
 ///The data structure this crate revoles around.
 #[repr(C)]
 pub struct Tree<'a, T: Aabb> {
-    //TODO make not private
     inner: TreeInner<Node<'a, T>>,
     num_aabbs:usize
 }

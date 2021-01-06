@@ -100,26 +100,17 @@ impl<T:Aabb,NO:NodeHandler> ColfindRecurser<T,NO>{
         self.handler.handle_node(sweeper, &mut self.prevec, this_axis.next(), nn.borrow_mut().into_range());
                 
         if let Some([mut left,mut right])=rest{
-            //Continue to recurse even if we know there are no more bots
-            //This simplifies query algorithms that might be building up
-            //a tree.
-            //if nn.div.is_some() {
+            {
+                let nn = DestructuredNode {
+                    node: nn,
+                    axis: this_axis,
+                };
                 
-                //TODO get rid of this check???
-                //if !nn.range.is_empty() {
-                {
-                    let nn = DestructuredNode {
-                        node: nn,
-                        axis: this_axis,
-                    };
-                    let left = left.borrow_mut();
-                    let right = right.borrow_mut();
-                    let mut g = InnerRecurser::new(nn, sweeper, self.handler, &mut self.prevec);
-                    g.recurse(this_axis.next(), left);
-                    g.recurse(this_axis.next(), right);
-                }
-            //}
-
+                let mut g = InnerRecurser::new(nn, sweeper, self.handler, &mut self.prevec);
+                g.recurse(this_axis.next(), left.borrow_mut());
+                g.recurse(this_axis.next(), right.borrow_mut());
+            }
+        
             Some([left, right])
         }else{
             None
