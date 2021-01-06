@@ -62,14 +62,11 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
     let mut bots = support::make_rand(2000, dim, |a| Liquid::new(a));
 
     Demo::new(move |cursor, canvas, _check_naive| {
-        let dim2 = &dim.grow(20.0);
-
+        
         let mut k = support::distribute(&mut bots, |bot| {
             let p = bot.pos;
             let r = radius;
-            let rect = Rect::new(p.x - r, p.x + r, p.y - r, p.y + r);
-
-            broccoli::convert::rect_f32_to_u16(rect, dim2)
+            Rect::new(p.x - r, p.x + r, p.y - r, p.y + r)
         });
 
         let mut tree = broccoli::new_par(&mut k);
@@ -82,15 +79,15 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         let vv = vec2same(100.0);
 
         let k = axgeom::Rect::from_point(cursor, vv);
-        let j = broccoli::convert::rect_f32_to_u16(k, dim2);
-        tree.for_all_in_rect_mut(&j, move |b| {
+        //let j = broccoli::convert::rect_f32_to_u16(k, dim2);
+        tree.for_all_in_rect_mut(&k, move |b| {
             let b = b.unpack_inner();
             let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cursor, 0.001, 100.0);
         });
 
         {
-            let jj = broccoli::convert::rect_f32_to_u16(dim, dim2);
-            tree.for_all_not_in_rect_mut(&jj, move |a| {
+            //let jj = broccoli::convert::rect_f32_to_u16(dim, dim2);
+            tree.for_all_not_in_rect_mut(&dim, move |a| {
                 let a = a.unpack_inner();
                 duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
             });

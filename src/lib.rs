@@ -102,8 +102,6 @@ pub mod node;
 ///Generic slice utillity functions.
 mod util;
 
-///Helper functions to convert aabbs in floats to integers
-pub mod convert;
 
 ///The broccoli prelude.
 pub mod prelude {
