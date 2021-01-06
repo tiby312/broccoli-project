@@ -24,8 +24,8 @@ struct TreePtr<T:Aabb>{
 #[repr(C)]
 pub struct Tree<'a, T: Aabb> {
     //TODO make not private
-    pub(crate) inner: TreeInner<Node<'a, T>>,
-    pub(crate) num_aabbs:usize
+    inner: TreeInner<Node<'a, T>>,
+    num_aabbs:usize
 }
 
 ///Create a [`Tree`].
@@ -124,6 +124,25 @@ impl<'a, T: Aabb> Tree<'a, T> {
     #[inline(always)]
     pub fn get_height(&self) -> usize {
         self.inner.get_height()
+    }
+
+    //TODO doc
+    #[must_use]
+    pub fn into_inner(self)->compt::dfs_order::CompleteTreeContainer<Node<'a,T>, compt::dfs_order::PreOrder>{
+        self.inner
+    }
+    //TODO doc
+    #[must_use]
+    pub fn num_aabbs(&self)->usize{
+        self.num_aabbs
+    }
+
+    //TODO doc
+    pub unsafe fn from_raw_parts(inner:compt::dfs_order::CompleteTreeContainer<Node<'a,T>, compt::dfs_order::PreOrder>,num_aabbs:usize)->Self{
+        Tree{
+            inner,
+            num_aabbs
+        }
     }
 
     /// # Examples
@@ -238,5 +257,4 @@ impl<'a, T: Aabb> Tree<'a, T> {
         ret
     }
 
-    //TODO add get_elements()
 }

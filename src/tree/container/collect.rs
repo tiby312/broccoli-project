@@ -282,10 +282,6 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
         }
     }
 
-    //TODO implement
-    pub fn flatten(self)->Tree<'a,BBox<N,T>> where T:Clone{
-        unimplemented!()
-    }
 
     /// Retrieve the underlying list of elements.
     /// Unlike [`Tree::get_elements_mut()`] which
