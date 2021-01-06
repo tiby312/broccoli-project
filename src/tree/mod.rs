@@ -126,18 +126,50 @@ impl<'a, T: Aabb> Tree<'a, T> {
         self.inner.get_height()
     }
 
-    //TODO doc
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::build;
+    /// const NUM_ELEMENT:usize=7;
+    /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let inner =tree.into_inner();
+    /// assert_eq!(inner.into_nodes().len(),1);
+    ///```
     #[must_use]
     pub fn into_inner(self)->compt::dfs_order::CompleteTreeContainer<Node<'a,T>, compt::dfs_order::PreOrder>{
         self.inner
     }
-    //TODO doc
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::build;
+    /// const NUM_ELEMENT:usize=7;
+    /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// assert_eq!(tree.num_aabbs(),7);
+    ///```
+    ///
     #[must_use]
     pub fn num_aabbs(&self)->usize{
         self.num_aabbs
     }
 
-    //TODO doc
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::build;
+    /// const NUM_ELEMENT:usize=7;
+    /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
+    /// let mut tree = broccoli::new(&mut bots);
+    /// let num_aabbs=tree.num_aabbs();
+    /// let inner =tree.into_inner();
+    /// let tree=unsafe{broccoli::Tree::from_raw_parts(inner,num_aabbs)};
+    /// assert_eq!(tree.num_aabbs(),7);
+    ///```
     pub unsafe fn from_raw_parts(inner:compt::dfs_order::CompleteTreeContainer<Node<'a,T>, compt::dfs_order::PreOrder>,num_aabbs:usize)->Self{
         Tree{
             inner,
