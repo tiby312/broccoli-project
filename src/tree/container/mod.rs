@@ -27,14 +27,13 @@ unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 ///
 /// ```rust
 /// use axgeom::*;
-/// use broccoli::{*,container::*};
+/// use broccoli::{*,container::*,node::*};
 ///
-/// fn not_lifetimed()->TreeOwnedInd<i32,Vec2<i32>>
+/// fn not_lifetimed()->TreeOwnedInd<i32,BBox<i32,f32>>
 /// {
-///     let rect=vec![vec2(0,10),vec2(3,30)].into_boxed_slice();
-///     TreeOwnedInd::new(rect,|&mut p|{
-///         let radius=vec2(10,10);
-///         Rect::from_point(p,radius)
+///     let rect=vec![bbox(rect(0,10,0,10),0.0)].into_boxed_slice();
+///     TreeOwnedInd::new(rect,|b|{
+///         b.rect
 ///     })
 /// }
 ///
@@ -119,7 +118,7 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
 ///     TreeOwned::new(a)
 /// }
 ///
-/// let mut tree =not_lifetimed();
+/// let mut tree = not_lifetimed();
 /// 
 /// let mut pairs = tree.as_tree_mut().find_colliding_pairs_mut(|a,b|{});
 ///
