@@ -156,27 +156,28 @@ fn find<'a, A: Axis, F: CollisionHandler>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let active = prevec1.get_empty_vec_mut().clear();
+    prevec1.get_empty_vec_mut().clear_and_as_vec(move |active|{
+        for mut curr_bot in collision_botids.iter_mut() {
+            let crr = *curr_bot.get().get_range(axis);
 
-    for mut curr_bot in collision_botids.iter_mut() {
-        let crr = *curr_bot.get().get_range(axis);
+            active.retain_mut_unordered(|that_bot| {
+                if that_bot.get().get_range(axis).end > crr.start {
+                    debug_assert!(curr_bot
+                        .get()
+                        .get_range(axis)
+                        .intersects(that_bot.get().get_range(axis)));
 
-        active.retain_mut_unordered(|that_bot| {
-            if that_bot.get().get_range(axis).end > crr.start {
-                debug_assert!(curr_bot
-                    .get()
-                    .get_range(axis)
-                    .intersects(that_bot.get().get_range(axis)));
+                    func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
+                    true
+                } else {
+                    false
+                }
+            });
 
-                func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
-                true
-            } else {
-                false
-            }
-        });
+            active.push(curr_bot);
+        }
+    });
 
-        active.push(curr_bot);
-    }
 }
 
 #[inline(always)]
