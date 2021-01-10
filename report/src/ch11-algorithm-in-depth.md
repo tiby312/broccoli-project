@@ -27,11 +27,13 @@ Done via divide and conquer. For every node we do the following:
 
 #### Allocations
 
-Before we go over different design options, I want to talk about allocators. There are some very fast allocators out
+There are some very fast allocators out
 there, but not all allocators are created equal. If you want your code to be as platform independant as possible,
 you should try to minimize allocations even if in benches on your local machine, there is no performance hit. For example, currently the rust webassembly target using a very simple allocator that is pretty slow. The colliding pair
 finding algorithm requires a stack at each level of recursion. Each level of recursion, we could allocate a new stack,
 but reusing the preallocated stack is better. It just turns out that this requires some unsafe{} since we are poulating the stack with lifetimed mutable references. 
+
+
 
 #### How to handle parallel cases
 

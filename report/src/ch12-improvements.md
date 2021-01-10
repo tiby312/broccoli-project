@@ -1,4 +1,12 @@
 
+#### Temporal Coherence between tree constructions
+
+It would be interesting to use last tree constructions dividers as pivots 
+for the next tree construction. This would require touching the pdqselect 
+crate to accept custom pivots. Not sure what the gains here would be, though
+considering the level balance charts indicate that even in the best case,
+rebalancing does get that much faster (in cases where good pivots are chosen).
+
 
 #### Don't sort the leafs
 
