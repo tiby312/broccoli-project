@@ -1,11 +1,16 @@
 
 #### Temporal Coherence between tree constructions
 
+A good thing about sweep and prune is that it can take advantage of small
+changes to the list of aabbs over time by using sorting algorithms that are good
+at handling mostly sorted elements.
+
 It would be interesting to use last tree constructions dividers as pivots 
 for the next tree construction. This would require touching the pdqselect 
 crate to accept custom pivots. Not sure what the gains here would be, though
 considering the level balance charts indicate that even in the best case,
 rebalancing does get that much faster (in cases where good pivots are chosen).
+Those charts indicate barely any variation even though they are using randomish pivots.
 
 
 #### Don't sort the leafs
