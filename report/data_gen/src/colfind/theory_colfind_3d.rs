@@ -13,7 +13,7 @@ fn test1(grow: f64, inner: &mut [isize]) -> Res {
 
         let mut num_pairs = 0;
 
-        tree.new_colfind_builder().query_seq(|_a, _b| {
+        tree.new_builder().query_seq(|_a, _b| {
             num_pairs += 1;
         });
         num_pairs

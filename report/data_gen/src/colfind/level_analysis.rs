@@ -19,7 +19,7 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) ->
 
             maker.reset();
             let mut levelc2 = LevelCounter::new();
-            tree.new_colfind_builder().query_with_splitter_seq(
+            tree.new_builder().query_with_splitter_seq(
                 |a, b| {
                     a.unpack_inner().x += 1.0;
                     b.unpack_inner().y += 1.0;
@@ -56,7 +56,7 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> 
 
         let mut times2 = LevelTimer::new();
 
-        tree.new_colfind_builder().query_with_splitter_seq(
+        tree.new_builder().query_with_splitter_seq(
             |a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1
