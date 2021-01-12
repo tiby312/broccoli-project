@@ -42,26 +42,9 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             b.update();
         }
 
-        //let mut tree=broccoli::create_tree_ref!(foo,&mut bots,|a:&Bot|Rect::from_point(a.pos,vec2same(radius)));
         
-        /*
-        let mut builder=broccoli::container::TreeRefIndBuilder::new(&mut bots,|a|Rect::from_point(a.pos,vec2same(radius)));
-        let mut tree=builder.build();
-        */
-        
-        let mut base=broccoli::container::TreeRefBase::new(&mut bots,|a|Rect::from_point(a.pos,vec2same(radius)));
+        let mut base=broccoli::container::TreeIndBase::new(&mut bots,|a|Rect::from_point(a.pos,vec2same(radius)));
         let mut tree=base.build();
-        /*
-        let mut k: Vec<_> = bots
-            .iter_mut()
-            .map(|b| {
-                let r = Rect::from_point(b.pos, vec2same(radius));
-                bbox(r, b)
-            })
-            .collect();
-
-        let mut tree = broccoli::new_par(&mut k);
-        */
         
         tree.for_all_not_in_rect_mut(&dim, |a| {
             let a = a.unpack_inner();

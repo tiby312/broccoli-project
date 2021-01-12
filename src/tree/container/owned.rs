@@ -6,10 +6,10 @@ use super::*;
 /// use axgeom::*;
 /// use broccoli::{*,container::*,node::*};
 ///
-/// fn not_lifetimed()->TreeOwnedInd<i32,BBox<i32,f32>>
+/// fn not_lifetimed()->TreeIndOwned<i32,BBox<i32,f32>>
 /// {
 ///     let rect=vec![bbox(rect(0,10,0,10),0.0)].into_boxed_slice();
-///     TreeOwnedInd::new(rect,|b|{
+///     TreeIndOwned::new(rect,|b|{
 ///         b.rect
 ///     })
 /// }
@@ -19,7 +19,7 @@ use super::*;
 /// let mut pairs = tree.as_tree_mut().collect_colliding_pairs(|a,b|Some(()));
 ///
 /// ```
-pub struct TreeOwnedInd<N: Num, T> {
+pub struct TreeIndOwned<N: Num, T> {
     tree: TreeIndPtr<N,T>,
     _base: Box<[BBox<N,Ptr<T>>]>,
     _bots: Box<[T]>,
@@ -36,30 +36,30 @@ fn convert_box<T,X>(mut v_orig:Box<[T]>)->Box<[X]>{
     }
 }
 
-impl<N: Num + Send + Sync, T: Send + Sync> TreeOwnedInd<N, T> {
-    pub fn new_par(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<N, T> {
+impl<N: Num + Send + Sync, T: Send + Sync> TreeIndOwned<N, T> {
+    pub fn new_par(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeIndOwned<N, T> {
         
         let mut base=TreeIndBase::new(&mut bots,func);
         let tree=base.build_par();
         let tree=tree.into_ptr();
         let _base=convert_box(base.into_inner());
         
-        TreeOwnedInd {
+        TreeIndOwned {
             tree,
             _bots: bots,
             _base
         }
     }
 }
-impl<N: Num, T> TreeOwnedInd<N, T> {
-    pub fn new(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeOwnedInd<N, T> {
+impl<N: Num, T> TreeIndOwned<N, T> {
+    pub fn new(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeIndOwned<N, T> {
         
         let mut base=TreeIndBase::new(&mut bots,func);
         let tree=base.build();
         let tree=tree.into_ptr();
         let _base=convert_box(base.into_inner());
         
-        TreeOwnedInd {
+        TreeIndOwned {
             tree,
             _bots: bots,
             _base
@@ -67,7 +67,7 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
     }
 }
 
-impl<N: Num, T> TreeOwnedInd<N, T> {
+impl<N: Num, T> TreeIndOwned<N, T> {
     ///Cant use Deref because of lifetime
     #[inline(always)]
     pub fn as_tree<'a,'b,'c>(&'c self) -> &'c TreeInd<'a,'b,N, T> {
@@ -82,7 +82,7 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
 }
 
 
-/// An owned version of [`crate::Tree`]
+/// An owned version of [`Tree`](crate::Tree)
 ///
 /// An owned `(Rect<N>,T)` example
 ///

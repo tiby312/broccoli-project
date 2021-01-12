@@ -229,14 +229,14 @@ mod constant {
 pub struct RectIntersectErr;
 
 ///See the [`Queries::multi_rect`](crate::query::rect::RectQuery::multi_rect) function.
-pub struct MultiRectMut<'a, 'b: 'a, T: Aabb> {
+pub struct MultiRect<'a, 'b: 'a, T: Aabb> {
     vistr: VistrMut<'a, Node<'b, T>>,
     rects: Vec<Rect<T::Num>>,
 }
 
-impl<'a, 'b: 'a, T: Aabb> MultiRectMut<'a, 'b, T> {
+impl<'a, 'b: 'a, T: Aabb> MultiRect<'a, 'b, T> {
     fn new(vistr: VistrMut<'a, Node<'b, T>>) -> Self {
-        MultiRectMut {
+        MultiRect {
             vistr,
             rects: Vec::new(),
         }
@@ -477,7 +477,7 @@ pub trait RectQuery<'a>: Queries<'a> {
     /// assert_eq!(res,Err(broccoli::query::rect::RectIntersectErr));
     ///```
     #[must_use]
-    fn multi_rect<'c>(&'c mut self) -> MultiRectMut<'c, 'a, Self::T> {
-        MultiRectMut::new(self.vistr_mut())
+    fn multi_rect<'c>(&'c mut self) -> MultiRect<'c, 'a, Self::T> {
+        MultiRect::new(self.vistr_mut())
     }
 }
