@@ -13,7 +13,7 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
         bench_nosort_seq: Option<f64>,
     }
 
-    let stop_naive_at = 5000;
+    let stop_naive_at = 10000;
     let stop_sweep_at = 40000;
 
     let rects = (0..50_000)
