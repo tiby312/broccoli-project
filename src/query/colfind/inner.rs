@@ -6,7 +6,7 @@ struct InnerRecurser<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = 
     anchor: DestructuredNode<'a, 'b, T, B>,
     handler: NN,
     sweeper: &'a mut KK,
-    prevec: &'a mut PreVecMut<T>,
+    prevec: &'a mut PreVec<T>,
 }
 
 impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
@@ -17,7 +17,7 @@ impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
         anchor: DestructuredNode<'a, 'b, T, B>,
         sweeper: &'a mut KK,
         handler: NN,
-        prevec: &'a mut PreVecMut<T>,
+        prevec: &'a mut PreVec<T>,
     ) -> InnerRecurser<'a, 'b, T, NN, KK, B> {
         InnerRecurser {
             anchor,
@@ -76,7 +76,7 @@ impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
 
 
 pub struct ColfindRecurser<T:Aabb,NO:NodeHandler>{
-    prevec:PreVecMut<T>,
+    prevec:PreVec<T>,
     handler:NO
 }
 
@@ -85,7 +85,7 @@ impl<T:Aabb,NO:NodeHandler> ColfindRecurser<T,NO>{
     pub fn new(handler:NO)->ColfindRecurser<T,NO>{
         ColfindRecurser{
             handler,
-            prevec:PreVecMut::new()
+            prevec:PreVec::with_capacity(64)
         }
     }
 

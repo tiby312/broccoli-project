@@ -132,13 +132,13 @@ impl<T, D> FilteredElements<T, D> {
 ///point to the same slice.
 ///
 ///From this struct a user can create a [`TreeInd`].
-pub struct TreeRefBase<'a,N:Num,T>{
+pub struct TreeIndBase<'a,N:Num,T>{
     aabbs:Box<[BBox<N,&'a mut T>]>,
     orig:Ptr<[T]>
 }
-impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
+impl<'a,N:Num,T> TreeIndBase<'a,N,T>{
 
-    /// Create a [`TreeRefBase`].
+    /// Create a [`TreeIndBase`].
     ///
     /// # Examples
     ///
@@ -147,19 +147,19 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
     ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     /// ];
     ///
-    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
     /// let mut tree = base.build();
     /// ```
-    pub fn new(bots:&'a mut [T],mut func:impl FnMut(&mut T)->Rect<N>)->TreeRefBase<'a,N,T>{
+    pub fn new(bots:&'a mut [T],mut func:impl FnMut(&mut T)->Rect<N>)->TreeIndBase<'a,N,T>{
         let orig = Ptr(bots as *mut _);
 
-        TreeRefBase{
+        TreeIndBase{
             orig,
             aabbs:bots.iter_mut().map(|a|crate::bbox(func(a),a)).collect::<Vec<_>>().into_boxed_slice()
         }
     }
 
-    /// Extra the internals of a [`TreeRefBase`].
+    /// Extra the internals of a [`TreeIndBase`].
     ///
     /// # Examples
     ///
@@ -168,7 +168,7 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
     ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     /// ];
     ///
-    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
     /// let mut inner=base.into_inner();
     /// let mut tree = broccoli::new(&mut inner);
     /// //We can make a tree using the internals, but we lost the guarentee
@@ -187,7 +187,7 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
     ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     /// ];
     ///
-    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
     /// let mut tree = base.build();
     /// ```
     pub fn build<'b>(&'b mut self)->TreeInd<'a,'b,N,T>{
@@ -208,7 +208,7 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
     ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     /// ];
     ///
-    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
     /// let mut tree = base.build_par();
     /// ```
     pub fn build_par<'b>(&'b mut self)->TreeInd<'a,'b,N,T> where N:Send+Sync,T:Send+Sync{
@@ -295,7 +295,7 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
     ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     /// ];
     ///
-    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
     /// let mut tree = base.build();
     /// let bots=tree.get_inner_elements_mut();
     ///
@@ -317,7 +317,7 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
     ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     /// ];
     ///
-    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
     /// let mut tree = base.build();
     /// let bots=tree.get_inner_elements();
     ///
@@ -337,7 +337,7 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
     ///    broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
     /// let mut tree = base.build();
     ///
     /// //Find a group of elements only once.
@@ -386,7 +386,7 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
     ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
     /// let mut tree = base.build();
     ///
     /// //Find all colliding aabbs only once.
@@ -447,7 +447,7 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
     ///     broccoli::bbox(broccoli::rect(5, 15, 5, 15), 2),
     /// ];
     ///
-    /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
     /// let mut tree = base.build();
     ///
     /// //Find all colliding aabbs only once.

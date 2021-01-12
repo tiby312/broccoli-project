@@ -17,7 +17,7 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
     fn handle_node<T: Aabb>(
         self,
         func: &mut impl CollisionHandler<T = T>,
-        prevec: &mut PreVecMut<T>,
+        prevec: &mut PreVec<T>,
         axis: impl Axis,
         bots: PMut<[T]>,
     );
@@ -25,7 +25,7 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
     fn handle_children<A: Axis, B: Axis, T: Aabb>(
         self,
         func: &mut impl CollisionHandler<T = T>,
-        prevec: &mut PreVecMut<T>,
+        prevec: &mut PreVec<T>,
         anchor: &mut DestructuredNode<T, A>,
         current: DestructuredNodeLeaf<T, B>,
     );
@@ -38,7 +38,7 @@ impl NodeHandler for HandleNoSorted {
     fn handle_node<T: Aabb>(
         self,
         func: &mut impl CollisionHandler<T = T>,
-        _: &mut PreVecMut<T>,
+        _: &mut PreVec<T>,
         _axis: impl Axis,
         bots: PMut<[T]>,
     ) {
@@ -52,7 +52,7 @@ impl NodeHandler for HandleNoSorted {
     fn handle_children<A: Axis, B: Axis, T: Aabb>(
         self,
         func: &mut impl CollisionHandler<T = T>,
-        _: &mut PreVecMut<T>,
+        _: &mut PreVec<T>,
         anchor: &mut DestructuredNode<T, A>,
         current: DestructuredNodeLeaf<T, B>,
     ) {
@@ -74,7 +74,7 @@ impl NodeHandler for HandleNoSorted {
     }
 }
 
-use crate::util::PreVecMut;
+use crate::util::PreVec;
 #[derive(Copy, Clone)]
 pub struct HandleSorted;
 
@@ -83,7 +83,7 @@ impl NodeHandler for HandleSorted {
     fn handle_node<T: Aabb>(
         self,
         func: &mut impl CollisionHandler<T = T>,
-        prevec: &mut PreVecMut<T>,
+        prevec: &mut PreVec<T>,
         axis: impl Axis,
         bots: PMut<[T]>,
     ) {
@@ -93,7 +93,7 @@ impl NodeHandler for HandleSorted {
     fn handle_children<A: Axis, B: Axis, T: Aabb>(
         self,
         func: &mut impl CollisionHandler<T = T>,
-        prevec: &mut PreVecMut<T>,
+        prevec: &mut PreVec<T>,
         anchor: &mut DestructuredNode<T, A>,
         current: DestructuredNodeLeaf<T, B>,
     ) {

@@ -35,32 +35,31 @@ pub fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {
 }
 
 
-pub use self::prevec::PreVecMut;
+pub use self::prevec::PreVec;
 mod prevec {
     use crate::pmut::PMut;
     use twounordered::TwoUnorderedVecs;
-    //They are always send and sync because the only time the vec is used
-    //is when it is borrowed for the lifetime.
-    unsafe impl<T> core::marker::Send for PreVecMut<T> {}
-    unsafe impl<T> core::marker::Sync for PreVecMut<T> {}
+
+    //The data in prevec is cleared before a vec is returned to the user
+    unsafe impl<T:Send> core::marker::Send for PreVec<T> {}
+    unsafe impl<T:Sync> core::marker::Sync for PreVec<T> {}
 
     ///An vec api to avoid excessive dynamic allocation by reusing a Vec
-    pub struct PreVecMut<T> {
-        vec: TwoUnorderedVecs<core::ptr::NonNull<T>>,
+    pub struct PreVec<T> {
+        vec: TwoUnorderedVecs<*mut T>,
     }
 
-    impl<T> PreVecMut<T> {
-        #[inline(always)]
+    impl<T> PreVec<T> {
         #[allow(dead_code)]
-        pub fn new() -> PreVecMut<T> {
-            PreVecMut {
-                vec: TwoUnorderedVecs::new(),
+        #[inline(always)]
+        pub fn new()->PreVec<T>{
+            PreVec{
+                vec:TwoUnorderedVecs::new()
             }
         }
-
         #[inline(always)]
-        pub fn with_capacity(num: usize) -> PreVecMut<T> {
-            PreVecMut {
+        pub fn with_capacity(num: usize) -> PreVec<T> {
+            PreVec {
                 vec: TwoUnorderedVecs::with_capacity(num),
             }
         }
@@ -73,12 +72,6 @@ mod prevec {
             self.vec.clear();
             let v: &mut TwoUnorderedVecs<_> = &mut self.vec;
             unsafe { &mut *(v as *mut _ as *mut TwoUnorderedVecs<_>) }
-        }
-
-        #[inline(always)]
-        #[allow(dead_code)]
-        pub fn capacity(&self) -> usize {
-            self.vec.as_vec().capacity()
         }
     }
 }

@@ -50,7 +50,7 @@ fn test2() {
             .collect();
 
 
-        let mut base=broccoli::container::TreeRefBase::new(&mut bots,|a|a.rect); 
+        let mut base=broccoli::container::TreeIndBase::new(&mut bots,|a|a.rect); 
         let mut tree = base.build();
         broccoli::query::colfind::assert_query(&mut *tree);
         let mut p = tree.collect_colliding_pairs(|_a, _b| Some(()));
@@ -80,7 +80,7 @@ fn test3() {
             })
             .collect();
 
-        let mut base=broccoli::container::TreeRefBase::new(&mut bots,|a|a.rect); 
+        let mut base=broccoli::container::TreeIndBase::new(&mut bots,|a|a.rect); 
         let mut tree = base.build();
 
         let mut rects1 = Vec::new();

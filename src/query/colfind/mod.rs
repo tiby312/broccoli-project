@@ -72,7 +72,7 @@ pub fn query_sweep_mut<T: Aabb>(
             (self.func)(a, b);
         }
     }
-    let mut prevec = crate::util::PreVecMut::with_capacity(2048);
+    let mut prevec = crate::util::PreVec::with_capacity(2048);
     let bots = PMut::new(bots);
     oned::find_2d(
         &mut prevec,

@@ -1,6 +1,6 @@
 use super::CollisionHandler;
 use crate::query::inner_prelude::*;
-use crate::util::PreVecMut;
+use crate::util::PreVec;
 
 //For sweep and prune type algorithms, we can narrow down which bots
 //intersection in one dimension. We also need to check the other direction
@@ -28,7 +28,7 @@ impl<'a, A: Axis + 'a, F: CollisionHandler + 'a> CollisionHandler for OtherAxisC
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
 pub fn find_2d<A: Axis, F: CollisionHandler>(
-    prevec1: &mut PreVecMut<F::T>,
+    prevec1: &mut PreVec<F::T>,
     axis: A,
     bots: PMut<[F::T]>,
     clos2: &mut F,
@@ -40,7 +40,7 @@ pub fn find_2d<A: Axis, F: CollisionHandler>(
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
 pub fn find_parallel_2d<A: Axis, F: CollisionHandler>(
-    prevec1: &mut PreVecMut<F::T>,
+    prevec1: &mut PreVec<F::T>,
     axis: A,
     bots1: PMut<[F::T]>,
     bots2: PMut<[F::T]>,
@@ -136,7 +136,7 @@ pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
 #[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.
 fn find<'a, A: Axis, F: CollisionHandler>(
-    prevec1: &mut PreVecMut<F::T>,
+    prevec1: &mut PreVec<F::T>,
     axis: A,
     collision_botids: PMut<'a, [F::T]>,
     func: &mut F,
@@ -183,7 +183,7 @@ fn find<'a, A: Axis, F: CollisionHandler>(
 #[inline(always)]
 //does less comparisons than option 2.
 fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
-    prevec1: &mut PreVecMut<F::T>,
+    prevec1: &mut PreVec<F::T>,
     axis: A,
     cols: (
         impl IntoIterator<Item = PMut<'a, F::T>>,
@@ -198,7 +198,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
     let mut f2 = cols.1.into_iter().peekable();
 
     let active_lists = prevec1.get_empty_vec_mut();
-
+    
     loop {
         enum NextP {
             X,
@@ -258,7 +258,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
         }
     }
 }
-
+/*
 //This only uses one stack, but it ends up being more comparisons.
 #[allow(dead_code)]
 #[inline(always)]
@@ -304,7 +304,7 @@ fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
         });
     }
 }
-
+*/
 #[test]
 #[cfg_attr(miri, ignore)]
 fn test_parallel() {
@@ -361,7 +361,7 @@ fn test_parallel() {
     crate::util::sweeper_update(axgeom::XAXIS, &mut left);
     crate::util::sweeper_update(axgeom::XAXIS, &mut right);
 
-    let mut p1 = PreVecMut::new();
+    let mut p1 = PreVec::new();
     let mut test1 = Test {
         set: BTreeSet::new(),
     };
