@@ -4,8 +4,7 @@
 //! ### Data Structure
 //!
 //! Using this crate, the user can create three flavors of the same fundamental data structure.
-//! The different characteristics are exlored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
-//!
+//! The different characteristics are explored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
 //!
 //! - `(Rect<N>,&mut T)` Semi-direct
 //! - `(Rect<N>,T)` Direct
@@ -13,8 +12,8 @@
 //!
 //! ### There are so many Tree types which one do I use?
 //!
-//! The [`container`] module lists the tree types and they are all described there, but the
-//! TL;DR is use [`Tree`] and fill it with `BBox<N,&mut T>` unless you want
+//! The [`container`] module lists the tree types and they are all described there, but in general
+//! use [`Tree`] unless you want
 //! to use functions like [`collect_colliding_pairs`](crate::container::TreeInd::collect_colliding_pairs).
 //! In which case use [`TreeInd`](crate::container::TreeInd).
 //!

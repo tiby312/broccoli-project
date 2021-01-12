@@ -57,6 +57,7 @@ pub struct PMut<'a, T: ?Sized> {
     inner: &'a mut T,
 }
 
+///Combine two adjacent `PMut` slices into one slice.
 pub fn combine_slice<'a, T>(a: PMut<'a, [T]>, b: PMut<'a, [T]>) -> PMut<'a, [T]> {
     let alen = a.len();
     let blen = b.len();

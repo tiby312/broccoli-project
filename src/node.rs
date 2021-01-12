@@ -12,7 +12,7 @@ impl<T> Num for T where T: PartialOrd + Copy + Default {}
 
 ///Trait to signify that this object has an axis aligned bounding box.
 ///[`Aabb::get()`] must return a aabb with the same value in it while the element
-///is in the tree. This is hard for the user not to do, this the user
+///is in the tree. This is hard for the user not to do since the user
 ///does not have `&mut self`,
 ///but it is still possible through the use of static objects or `RefCell` / `Mutex`, etc.
 ///Using these type of methods the user could make different calls to get()
