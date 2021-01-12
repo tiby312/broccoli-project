@@ -503,7 +503,7 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
         );
 
         use crate::query::colfind::builder::*;
-        self.new_colfind_builder()
+        self.new_builder()
             .query_par_ext(&mut handler, &mut SplitterEmpty);
         handler.consume()
     }

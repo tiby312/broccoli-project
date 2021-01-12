@@ -145,7 +145,7 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// let builder=tree.new_colfind_builder();
+    /// let builder=tree.new_builder();
     /// let builder=builder.with_switch_height(4);
     /// builder.query_seq(|a,b|{
     ///    *a.unpack_inner()+=1;
@@ -155,7 +155,7 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     /// assert_eq!(bots[0].inner,1);
     /// assert_eq!(bots[1].inner,1);
     ///```
-    fn new_colfind_builder<'c>(&'c mut self) -> QueryBuilder<'c, 'a, Self::T> {
+    fn new_builder<'c>(&'c mut self) -> QueryBuilder<'c, 'a, Self::T> {
         QueryBuilder::new(self.vistr_mut())
     }
 }

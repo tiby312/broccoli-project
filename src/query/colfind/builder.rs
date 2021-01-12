@@ -206,7 +206,7 @@ where
     ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())), //Handle a collision
     /// );
     ///
-    /// tree.new_colfind_builder().query_par_ext(
+    /// tree.new_builder().query_par_ext(
     ///     &mut handler,
     ///     &mut broccoli::build::SplitterEmpty
     /// );
