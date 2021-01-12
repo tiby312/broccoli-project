@@ -170,7 +170,7 @@ mod vistr_mut {
 
         #[inline(always)]
         fn deref(&self) -> &Vistr<'a, N> {
-            unsafe { &*(self as *const VistrMut<_> as *const Vistr<_>) }
+            &self.inner
         }
     }
 
@@ -212,12 +212,6 @@ pub(crate) struct NodePtr<T: Aabb> {
     _div: Option<T::Num>,
 }
 
-impl<'a, T: Aabb> AsRef<NodePtr<T>> for Node<'a, T> {
-    #[inline(always)]
-    fn as_ref(&self) -> &NodePtr<T> {
-        unsafe { &*(self as *const _ as *const _) }
-    }
-}
 
 ///A node in [`Tree`].
 #[repr(C)]

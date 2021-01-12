@@ -259,8 +259,9 @@ impl<'a, 'b: 'a, T: Aabb> MultiRectMut<'a, 'b, T> {
             self.vistr.borrow_mut(),
             &rect,
             |bbox: PMut<T>| {
-                //This is only safe to do because the user is unable to mutate the bounding box.
-                let bbox: PMut<'a, T> = unsafe { core::mem::transmute(bbox) };
+                //This is only safe to do because the user is unable to mutate the bounding box,
+                //and we have checked that the query rectangles don't intersect.
+                let bbox:PMut<'a,T>=PMut::new(unsafe{&mut *(bbox.into_inner() as *mut _)});
                 func(bbox);
             },
         );

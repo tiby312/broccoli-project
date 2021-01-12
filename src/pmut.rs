@@ -115,6 +115,14 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     pub fn into_ref(self) -> &'a T {
         self.inner
     }
+
+    ///If this function were safe, it would
+    ///defeat the purpose of this type.
+    #[inline(always)]
+    pub unsafe fn into_inner(self) -> &'a mut T {
+        self.inner
+    }
+
 }
 
 ///A destructured [`Node`]
