@@ -23,7 +23,7 @@ unsafe impl<T: ?Sized> Send for Ptr<T> {}
 unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 
 
-/// An owned version of [`TreeRefInd`]
+/// An owned version of [`TreeInd`]
 ///
 /// ```rust
 /// use axgeom::*;
@@ -43,7 +43,7 @@ unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 ///
 /// ```
 pub struct TreeOwnedInd<N: Num, T> {
-    tree: TreeRefIndPtr<N,T>,
+    tree: TreeIndPtr<N,T>,
     _base: Box<[BBox<N,Ptr<T>>]>,
     _bots: Box<[T]>,
 }
@@ -93,14 +93,14 @@ impl<N: Num, T> TreeOwnedInd<N, T> {
 impl<N: Num, T> TreeOwnedInd<N, T> {
     ///Cant use Deref because of lifetime
     #[inline(always)]
-    pub fn as_tree<'a,'b,'c>(&'c self) -> &'c TreeRefInd<'a,'b,N, T> {
-        unsafe { &*(&self.tree as *const TreeRefIndPtr<_,_> as *const TreeRefInd<_,_>) }
+    pub fn as_tree<'a,'b,'c>(&'c self) -> &'c TreeInd<'a,'b,N, T> {
+        unsafe { &*(&self.tree as *const TreeIndPtr<_,_> as *const TreeInd<_,_>) }
     }
 
     ///Cant use Deref because of lifetime
     #[inline(always)]
-    pub fn as_tree_mut<'a,'b,'c>(&'c mut self) -> &'c mut TreeRefInd<'a,'b,N, T> {
-        unsafe { &mut *(&mut self.tree as *mut TreeRefIndPtr<_,_> as *mut TreeRefInd<_,_>) }
+    pub fn as_tree_mut<'a,'b,'c>(&'c mut self) -> &'c mut TreeInd<'a,'b,N, T> {
+        unsafe { &mut *(&mut self.tree as *mut TreeIndPtr<_,_> as *mut TreeInd<_,_>) }
     }
 }
 

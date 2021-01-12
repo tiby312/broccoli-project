@@ -15,8 +15,8 @@
 //!
 //! The [`container`] module lists the tree types and they are all described there, but the
 //! TL;DR is use [`Tree`] and fill it with `BBox<N,&mut T>` unless you want
-//! to use functions like [`collect_colliding_pairs`](crate::container::TreeRefInd::collect_colliding_pairs).
-//! In which case use [`TreeRefInd`](crate::container::TreeRefInd).
+//! to use functions like [`collect_colliding_pairs`](crate::container::TreeInd::collect_colliding_pairs).
+//! In which case use [`TreeInd`](crate::container::TreeInd).
 //!
 //! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
 //!

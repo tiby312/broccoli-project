@@ -12,7 +12,7 @@ struct ColPairPtr<T, D> {
     second: Ptr<T>,
     extra: D,
 }
-///CollidingPairs created via [`TreeRefInd::collect_colliding_pairs`]
+///CollidingPairs created via [`TreeInd::collect_colliding_pairs`]
 pub struct CollidingPairs<T, D> {
     ///See collect_intersections_list()
     ///The same elements can be part of
@@ -58,7 +58,7 @@ impl<T, D> CollidingPairs<T, D> {
     }
 }
 
-///CollidingPairsPar created via [`TreeRefInd::collect_colliding_pairs_par`]
+///CollidingPairsPar created via [`TreeInd::collect_colliding_pairs_par`]
 ///All colliding pairs partitioned into
 ///mutually exclusive sets so that they can be traversed in parallel
 pub struct CollidingPairsPar<T, D> {
@@ -105,7 +105,7 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
     }
 }
 
-///Contains a filtered list of all elements in the tree from calling [`TreeRefInd::collect_all`].
+///Contains a filtered list of all elements in the tree from calling [`TreeInd::collect_all`].
 pub struct FilteredElements<T, D> {
     elems: Vec<(Ptr<T>, D)>,
     orig: Ptr<[T]>,
@@ -131,7 +131,7 @@ impl<T, D> FilteredElements<T, D> {
 ///with the added guarentee that all the `&'a mut T`
 ///point to the same slice.
 ///
-///From this struct a user can create a [`TreeRefInd`].
+///From this struct a user can create a [`TreeInd`].
 pub struct TreeRefBase<'a,N:Num,T>{
     aabbs:Box<[BBox<N,&'a mut T>]>,
     orig:Ptr<[T]>
@@ -178,7 +178,7 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
         self.aabbs
     }
 
-    /// Build a [`TreeRefInd`].
+    /// Build a [`TreeInd`].
     ///
     /// # Examples
     ///
@@ -190,16 +190,16 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
     /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
     /// let mut tree = base.build();
     /// ```
-    pub fn build<'b>(&'b mut self)->TreeRefInd<'a,'b,N,T>{
+    pub fn build<'b>(&'b mut self)->TreeInd<'a,'b,N,T>{
         let tree=crate::new(&mut self.aabbs);
 
-        TreeRefInd{
+        TreeInd{
             tree,
             orig:self.orig
         }
     }
 
-    /// Build a [`TreeRefInd`].
+    /// Build a [`TreeInd`].
     ///
     /// # Examples
     ///
@@ -211,10 +211,10 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
     /// let mut base=broccoli::container::TreeRefBase::new(&mut aabbs,|a|a.rect); 
     /// let mut tree = base.build_par();
     /// ```
-    pub fn build_par<'b>(&'b mut self)->TreeRefInd<'a,'b,N,T> where N:Send+Sync,T:Send+Sync{
+    pub fn build_par<'b>(&'b mut self)->TreeInd<'a,'b,N,T> where N:Send+Sync,T:Send+Sync{
         let tree=crate::new_par(&mut self.aabbs);
 
-        TreeRefInd{
+        TreeInd{
             tree,
             orig:self.orig
         }
@@ -227,53 +227,53 @@ impl<'a,N:Num,T> TreeRefBase<'a,N,T>{
 /// A less general tree that providess `collect` functions
 /// and also derefs to a [`Tree`].
 ///
-/// [`TreeRefInd`] assumes there is a layer of indirection where
+/// [`TreeInd`] assumes there is a layer of indirection where
 /// all the pointers point to the same slice.
 /// It uses this assumption to provide `collect` functions that allow
 /// storing query results that can then be iterated through multiple times
 /// quickly.
 ///
 #[repr(C)]
-pub struct TreeRefInd<'a,'b,N:Num,T>{
+pub struct TreeInd<'a,'b,N:Num,T>{
     tree:Tree<'b,BBox<N,&'a mut T>>,
     orig:Ptr<[T]>
 }
 
 #[repr(C)]
-pub(super) struct TreeRefIndPtr<N:Num,T>{
+pub(super) struct TreeIndPtr<N:Num,T>{
     pub(super) tree:TreePtr<BBox<N,Ptr<T>>>,
     pub(super) orig:Ptr<[T]>
 }
 
 
-impl<'a,'b, N:Num,T> From<TreeRefInd<'a,'b,N,T>> for Tree<'b, BBox<N,&'a mut T>> {
+impl<'a,'b, N:Num,T> From<TreeInd<'a,'b,N,T>> for Tree<'b, BBox<N,&'a mut T>> {
     #[inline(always)]
-    fn from(a: TreeRefInd<'a,'b,N,T>) -> Self {
+    fn from(a: TreeInd<'a,'b,N,T>) -> Self {
         a.tree
     }
 }
 
 
-impl<'a,'b, N: Num , T> core::ops::Deref for TreeRefInd<'a,'b, N, T> {
+impl<'a,'b, N: Num , T> core::ops::Deref for TreeInd<'a,'b, N, T> {
     type Target = Tree<'b, BBox<N, &'a mut T>>;
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
         &self.tree
     }
 }
-impl<'a, 'b,N: Num, T> core::ops::DerefMut for TreeRefInd<'a, 'b,N, T> {
+impl<'a, 'b,N: Num, T> core::ops::DerefMut for TreeInd<'a, 'b,N, T> {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.tree
     }
 }
 
-impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
+impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
 
 
-    pub(super) fn into_ptr(self)->TreeRefIndPtr<N,T>{
+    pub(super) fn into_ptr(self)->TreeIndPtr<N,T>{
         
-        TreeRefIndPtr{
+        TreeIndPtr{
             tree:TreePtr{
                 _inner:unsafe{self.tree.inner.convert()},
                 _num_aabbs:self.tree.num_aabbs
@@ -435,7 +435,7 @@ impl<'a,'b,N:Num,T> TreeRefInd<'a,'b,N,T>{
         }
     }
 
-    /// The parallel version of [`TreeRefInd::collect_colliding_pairs`] that instead
+    /// The parallel version of [`TreeInd::collect_colliding_pairs`] that instead
     /// returns a [`CollidingPairsPar`].
     ///
     /// # Examples
