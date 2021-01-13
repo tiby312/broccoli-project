@@ -78,20 +78,15 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
         let vv = vec2same(100.0);
 
-        let k = axgeom::Rect::from_point(cursor, vv);
-        //let j = broccoli::convert::rect_f32_to_u16(k, dim2);
-        tree.for_all_in_rect_mut(&k, move |b| {
+        tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), move |b| {
             let b = b.unpack_inner();
             let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cursor, 0.001, 100.0);
         });
 
-        {
-            //let jj = broccoli::convert::rect_f32_to_u16(dim, dim2);
-            tree.for_all_not_in_rect_mut(&dim, move |a| {
-                let a = a.unpack_inner();
-                duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
-            });
-        }
+        tree.for_all_not_in_rect_mut(&dim, move |a| {
+            let a = a.unpack_inner();
+            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
+        });
 
         for b in bots.iter_mut() {
             b.pos += b.vel;
