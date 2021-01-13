@@ -5,6 +5,17 @@ The below charts show the load balance between the construction and querying thr
 `find_colliding_pairs` on the broccoli.
 It's important to note that the comparison isnt really 'fair'. The cost of querying depends a lot on
 what you plan on doing with every colliding pair (it could be an expensive user calculation). Here we just use a 'reasonably' expensive calculation that repels the colliding pairs.
+```
+//Called on each colliding pair.
+fn repel(p1: Vec2<f32>, p2: Vec2<f32>, res1: &mut Vec2<f32>, res2: &mut Vec2<f32>) {
+    let offset = p2 - p1;
+    let dis = (offset).magnitude2();
+    if dis < RADIUS * RADIUS {
+        *res1 += offset * 0.0001;
+        *res2 -= offset * 0.0001;
+    }
+}
+````
 
 Some observations:
 * The cost of rebalancing does not change with the density of the objects
@@ -24,7 +35,7 @@ It makes sense that querying in more 'parallelizable' than rebalancing since the
 
 Sometimes you need to iterate over all colliding pairs multiple times even though the elements havent moved.
 You could call `find_colliding_pairs()` multiple times, but it is slow.
-Broccoli provides functions to save off query results so that they can be iterated on though `TreeRefInd`.
+Broccoli provides functions to save off query results so that they can be iterated on though `TreeInd`.
 
 <img alt="Construction vs Query" src="graphs/broccoli_query.svg" class="center" style="width: 100%;" />
 
@@ -43,9 +54,8 @@ over them over and over again faster.
 
 If you are simulating moving elements, it might seem slow to rebuild the tree every iteration. But from benching, most of the time querying is the cause of the slowdown. Rebuilding is always a constant load, but the load of the query can vary wildly depending on how many elements are overlapping.
 
-Any kind of heuristics or caching strategy to speed up construction will result in a less optimal partitioning of the space which the querying side will pay for. Therefore it is not worth it. Instead we can focus on speeding up the construction of an optimal partitioning. This can be done via parallelism. Sorting the aabbs that sit on dividing lines may seem slow, but we can get this for 'free' essentially because it can be done after we have already split up the children nodes. So we can finish sorting a node while the children are being worked on. Rebuilding the first level of the tree does take some time, but it is still just a fraction of the entire building algorithm in some crucial cases, provided that it was able to partition almost all the aabbs into two planes. 
 
-For example, in a bench where inside of the collision call-back function I do a reasonable collision response with 80_000 aabbs, if there are 0.8 times (or 65_000 ) collisions or more, querying takes longer than rebuilding. For your system, it might be impossible for there to even be 0.8 * n collisions, in which case building the tree will always be the slower part. For many systems, 0.8 * n collisions can happen. For example if you were to simulate a 2d ball-pit, every ball could be touching 6 other balls [Circle Packing](https://en.wikipedia.org/wiki/Circle_packing). So in that system, there are around 3 * n collisions. So in that case, querying is the bottle neck. With liquid or soft-body physics, the number can be every higher. up to n * n.
+We don't want to speed up construction but produce a worse partitioning as a result because that would slow down querying and that is what can dominate easily. Instead we can focus on speeding up the construction of an optimal partitioning. This can be done via parallelism. Sorting the aabbs that sit on dividing lines may seem slow, but we can get this for 'free' essentially because it can be done after we have already split up the children nodes. So we can finish sorting a node while the children are being worked on. Rebuilding the first level of the tree does take some time, but it is still just a fraction of the entire building algorithm in some crucial cases, provided that it was able to partition almost all the aabbs into two planes. 
 
 Additionally, we have been assuming that once we build the tree, we are just finding all the colliding pairs of the elements. In reality, there might be many different queries we want to do on the same tree. So this is another reason we want the tree to be built to make querying as fast as possible, because we don't know how many queries the user might want to do on it. In addition to finding all colliding pairs, its quite reasonable the user might want to do some k_nearest querying, some rectangle area querying, or some raycasting.
 
@@ -71,11 +81,3 @@ One strategy to exploit temporal locality is by inserting looser bounding boxes 
 
 So in short, this system doesnt take advantage of temporal locality, but the user can still take advantage of it by inserting loose bounding boxes and then querying less frequently to amortize the cost. 
 
-### Expoiting Temporal Locality (caching medians)
-
-I would be interesting to try the following: Instead of finding the median at every level, find an approximate median. Additionally, keep a weighted average of the medians from previous tree builds and let it degrade with time. Get an approximate median using median of medians. This would ensure worst case linear time when building one level of the tree. This would allow the rest of the algorithm to be parallelized sooner. This would mean that query would be slower since we are not using heuristics and not using the true median, but this might be a small slowdown and it might speed of construction significatly.
-However in looking at data of the load taken by each level, finding the medians is pretty fast, and an approximate median would only hurt the query side of the algorithm.
-
-### Exploting Temporal Location (moving dividers with mass)
-
-For a while I had the design where the dividers would move as though they had mass. They would gently be pushed to which ever side had more aabbs. Dividers near the root had more mass and were harder to sway than those below. The problem with this approach is that the divider locations will mostly of the time be sub optimial. And the cost saved in rebalancing just isnt enough for the cost added to querying with a suboptimal partitioning. By always partitioning optimally, we get guarentees of the maximum number of aabbs in a node. Remember querying is the bottleneck, not rebalancing.

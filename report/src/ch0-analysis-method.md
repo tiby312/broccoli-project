@@ -43,3 +43,16 @@ trends in how the algorithms stack up against each other.
 
 <img alt="Spiral Data" src="graphs/spiral_data.svg" class="center" style="width: 100%;" />
 
+Throughout this writeup, we use a grow of 0.2 a lot as a "typical" amount of colliding pairs.
+So for 10,000 aabbs, you might expect around 80,000 aabbs to intersect. This is still no where
+near the worst case of 10,000*10,000 aabbs, which is 100,000,000. But this worst case, doesnt really 
+happen in a lot of use cases.
+
+So a `abspiral(n,grow=0.2)` produces around 8*n collisions. Even this is probably a conservative number of collisions
+for most usecases. If you were to simulate a 2d ball-pit, every ball could be touching 6 other balls ([Circle Packing](https://en.wikipedia.org/wiki/Circle_packing)). So in that system, there are around (6 * n)/2 collisions. That said with liquid or soft-body physics, the number can be even higher.
+
+The below graph shows that as we increase the number of elements, so does the number of collisions in a nice
+linear way.
+
+<img alt="Spiral Data" src="graphs/spiral_data_num.svg" class="center" style="width: 100%;" />
+

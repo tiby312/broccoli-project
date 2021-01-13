@@ -1,31 +1,30 @@
 
-#### Temporal Coherence between tree constructions
+## Extension ideas
 
-A good thing about sweep and prune is that it can take advantage of small
-changes to the list of aabbs over time by using sorting algorithms that are good
-at handling mostly sorted elements.
+#### API for excluding elements.
 
-It would be interesting to use last tree constructions dividers as pivots 
-for the next tree construction. This would require touching the pdqselect 
-crate to accept custom pivots. Not sure what the gains here would be, though
-considering the level balance charts indicate that even in the best case,
-rebalancing does get that much faster (in cases where good pivots are chosen).
-Those charts indicate barely any variation even though they are using randomish pivots.
+One thing a user might want to do is iterate over every element,
+and then for each element, raycast outward from that element (that is not itself).
 
+Another thing the user might want to do is perform raycast but skip over a set
+of aabbs.
 
-#### Don't sort the leafs
-
-If you don't sort the leafs, there could be some potential speed up. By the time you get to the leafs, there are so few aabbs in a leaf that it may not be worth it. The aabbs also would not be strewn along a dividing line so sweep and prune would not be as fast.  However, this can only hurt the query algorithm so I didn't do it. However, if you want to make one (construct+query) sequence as fast as possible it might be better. But again, my goal was to make querying as fast as possible.
-
-#### Sort away from the divider.
-
-Currently, all elements are sorted using the left or top side of the aabb. It would be interesting if depending on the direction you recurse, you sorted along the left or right side of the aabb. This might help pruning elements from nodes on perpendicular axis. It also make the algorithm have a nice symmetry of behaving exactly the same in each half of a partition. The downside is more code generated and complexity.
+These usecases aren't directly supported by broccoli, but I think can be done by adding
+a wrapper layer ontop of broccoli and that uses unsafe. For example, in order to skip over elements
+the user can just maintain a list of pointers. Then in the raycast callback functions, the user
+can just check if the current pointer is in that blacklist of pointers, and if it is, say there was no hit.
 
 #### Pointer Compression
 
 The broccoli tree data structure can be very pointer heavy. There may be some gains from using pointer compression if only during construction. During the query phase, i'm certain that using pointer compression would be slow given the extra overhead of having to unpack each pointer. However, if the tree was constructed with `BBox<N,u16>` which was then converted to `BBox<N,&mut T>` then maybe construction would be faster provided the conversion isnt too slow.
 A cleaner solution would just be to target a 32bit arch instead of 64bit. (Sidenode: The webassembly arch is 
 32bit)
+
+
+#### 3D
+
+What about 3D? Making this library multi dimensional would have added to the complexity, so I only targeted 2D. That said, you could certainly use broccoli to partition 2 dimensions, and then use another method to partition the last dimension (perhaps a 1D version of sweep and prune). Infact, in situations where things are more likely to intersect on the x and y plane and less so on the z plane, it might be faster to use a system where you have a broccoli Tree for the x and y dimensions, ad then store the z dimension in a level of indirection. This way you could prune out two
+dimensions faster maybe?
 
 #### Continuous Collision detection
 
@@ -53,6 +52,37 @@ Ironically, even though to have a rigid body system you would need to have loose
 
 However, you should ignore everything I just said. A much better solution is to not move the aabbs at all. You can still have rigid body physics by just doing many passes on the velocities. Check out Erin Catto's Box2D library, as well as some of his [talks](https://www.youtube.com/watch?v=SHinxAhv1ZE&t=2042s).
 
-#### 3D
 
-What about 3D? Making this library multi dimensional would have added to the complexity, so I only targeted 2D. That said, you could certainly use broccoli to partition 2 dimensions, and then use another method to partition the last dimension (perhaps a 1D version of sweep and prune). Infact, in situations where things are more likely to intersect on the x and y plane and less so on the z plane, it might be faster to use a system where you have a broccoli Tree for the x and y dimensions, ad then store the z dimension in a level of indirection. This way each element is smaller.
+## Improvements to the algorithm itself
+
+#### Temporal Coherence between tree constructions
+
+A good thing about sweep and prune is that it can take advantage of small
+changes to the list of aabbs over time by using sorting algorithms that are good
+at handling mostly sorted elements.
+
+It would be interesting to use last tree construction's dividers as pivots 
+for the next tree construction. This would require touching the `pdqselect` 
+crate to accept custom pivots. Not sure what the gains here would be, though
+considering the level balance charts indicate that even in the best case,
+rebalancing does get that much faster (in cases where good pivots are chosen).
+Those charts indicate barely any variation even though they are using randomish pivots.
+
+
+#### Don't sort the leafs
+
+If you don't sort the leafs, there could be some potential speed up. By the time you get to the leafs, there are so few aabbs in a leaf that it may not be worth it. The aabbs also would not be strewn along a dividing line so sweep and prune would not be as fast.  However, this can only hurt the query algorithm so I didn't do it. However, if you want to make one (construct+query) sequence as fast as possible it might be better. But this would also mean more code paths and branching. Not sure if it would help.
+
+#### Sort away from the divider.
+
+Currently, all elements are sorted using the left or top side of the aabb. It would be interesting if depending on the direction you recurse, you sorted along the left or right side of the aabb. This might help pruning elements from nodes on perpendicular axis. It also make the algorithm have a nice symmetry of behaving exactly the same in each half of a partition. The downside is more code generated and complexity. Also in the evenness graphs in the tree level load section, you can see that the workload os mostly balanced, and only becomes very unbalanced for extremely clumped up distributions.
+
+
+### Expoiting Temporal Locality (caching medians)
+
+I would be interesting to try the following: Instead of finding the median at every level, find an approximate median. Additionally, keep a weighted average of the medians from previous tree builds and let it degrade with time. Get an approximate median using median of medians. This would ensure worst case linear time when building one level of the tree. This would allow the rest of the algorithm to be parallelized sooner. This would mean that query would be slower since we are not using heuristics and not using the true median, but this might be a small slowdown and it might speed of construction significatly.
+However in looking at data of the load taken by each level, finding the medians is pretty fast, and an approximate median would only hurt the query side of the algorithm.
+
+### Exploting Temporal Location (moving dividers with mass)
+
+For a while I had the design where the dividers would move as though they had mass. They would gently be pushed to which ever side had more aabbs. Dividers near the root had more mass and were harder to sway than those below. The problem with this approach is that the divider locations will mostly of the time be sub optimial. And the cost saved in rebalancing just isnt enough for the cost added to querying with a suboptimal partitioning. By always partitioning optimally, we get guarentees of the maximum number of aabbs in a node. Remember querying is the bottleneck, not rebalancing.

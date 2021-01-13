@@ -9,8 +9,8 @@ You can see that the theory is a downward curve, but the benching is more of a b
 
 ### ODD vs Even height trees.
 
-In the above graph, the even heights are barely better than the odds. This is because with odd trees, the direction that the root nodes aabbs are sorted is the same as the leaves. If its even the are different. When the direction's match, we can use sweep and prune to speed things up. When the directions don't match, its hopefuly. The sorted property can't be exploited since they are in different dimensions.
-
+You can see that the even heights are barely better than the odds for sub optimal heights. With odd trees, the direction that the root nodes aabbs are sorted is the same as the leaves. If its even the are different. When the direction's match, we can use sweep and prune to speed things up. When the directions don't match, the sorted property can't be exploited since they are in different dimensions even though some pruning can still be done
+based off of the bounding rectnalges of the dividers. However, around the optimal heights, the difference between odd and even is less jarring. And in the below graph, you can see the optimal height for a lot of n is still an odd height.
 
 The below chart compares the empirically best height against the height that our heuristic tree height function produces. 
 

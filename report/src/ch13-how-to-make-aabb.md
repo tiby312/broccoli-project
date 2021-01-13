@@ -7,7 +7,7 @@ But we havent talked about how you would generate such a struct.
 In some dynamic systems, every particle has a position and maybe a radius, and then from the position and radius
 an aabb can be generated. So what you store in your tree might look something like this:
 
-`BBox<OrderedFloat<f32>,&mut Particle>`
+`BBox<f32,&mut Particle>`
 
 where `Particle` might look like this:
 ```
