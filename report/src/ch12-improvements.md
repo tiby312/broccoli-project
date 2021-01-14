@@ -10,14 +10,14 @@ Another thing the user might want to do is perform raycast but skip over a set
 of aabbs.
 
 These usecases aren't directly supported by broccoli, but I think can be done by adding
-a wrapper layer on top of broccoli and that uses unsafe. For example, in order to skip over elements
+a wrapper layer on top of broccoli. For example, in order to skip over elements
 the user can just maintain a list of pointers. Then in the raycast callback functions, the user
 can just check if the current pointer is in that blacklist of pointers, and if it is, say there was no hit.
 
 #### Pointer Compression
 
-The broccoli tree data structure can be very pointer heavy. There may be some gains from using pointer compression if only during construction. During the query phase, i'm certain that using pointer compression would be slow given the extra overhead of having to unpack each pointer. However, if the tree was constructed with `BBox<N,u16>` which was then converted to `BBox<N,&mut T>` then maybe construction would be faster provided the conversion isnt too slow.
-A cleaner solution would just be to target a 32bit arch instead of 64bit. (Sidenode: The webassembly arch is 
+The broccoli tree data structure can be very pointer heavy. There may be some gains from using pointer compression if only during construction. During the query phase, i'm certain that using pointer compression would be slow given the extra overhead of having to unpack each pointer. However, if the tree was constructed with `BBox<N,u16>` which was then converted to `BBox<N,&mut T>` then maybe construction would be faster provided the conversion isn't too slow.
+A cleaner solution would just be to target a 32bit arch instead of 64bit. (Side-note: The webassembly arch is 
 32bit)
 
 
@@ -38,7 +38,7 @@ a bot could end up in one iteration, you could save finding the colliding pairs 
 #### Pipelining
 
 It might be possible to pipeline the process so that rebalancing and querying happen at the same time with the only downside being that aabbs react to their collisions one step later. To account for that the aabb's could be made slightly bigger and predict what they will hit the next step. 
-However, the construction and querying phase are already parallelized. Making those happen in parallel will probably confuse the rayon's work stealer. However maybe if there are somehow two independent threadpools this could get you the speed up. However, its unclear to me if it would be faster because you'd have to insert slightly bigger aabbs which would slow down querying. 
+However, the construction and querying phase are already parallelized. Making those happen in parallel will probably confuse the rayon's work stealer. However maybe if there are somehow two independent thread-pools this could get you the speed up. However, its unclear to me if it would be faster because you'd have to insert slightly bigger aabbs which would slow down querying. 
 
 #### Liquid.
 
@@ -66,7 +66,7 @@ for the next tree construction. This would require touching the `pdqselect`
 crate to accept custom pivots. Not sure what the gains here would be, though
 considering the level balance charts indicate that even in the best case,
 rebalancing does get that much faster (in cases where good pivots are chosen).
-Those charts indicate barely any variation even though they are using randomish pivots.
+Those charts indicate barely any variation even though they are using random-ish pivots.
 
 
 #### Don't sort the leafs
@@ -78,11 +78,11 @@ If you don't sort the leafs, there could be some potential speed up. By the time
 Currently, all elements are sorted using the left or top side of the aabb. It would be interesting if depending on the direction you recurse, you sorted along the left or right side of the aabb. This might help pruning elements from nodes on perpendicular axis. It also make the algorithm have a nice symmetry of behaving exactly the same in each half of a partition. The downside is more code generated and complexity. Also in the evenness graphs in the tree level load section, you can see that the workload os mostly balanced, and only becomes very unbalanced for extremely clumped up distributions.
 
 
-### Expoiting Temporal Locality (caching medians)
+### Exploiting Temporal Locality (caching medians)
 
 I would be interesting to try the following: Instead of finding the median at every level, find an approximate median. Additionally, keep a weighted average of the medians from previous tree builds and let it degrade with time. Get an approximate median using median of medians. This would ensure worst case linear time when building one level of the tree. This would allow the rest of the algorithm to be parallelized sooner. This would mean that query would be slower since we are not using heuristics and not using the true median, but this might be a small slowdown and it might speed of construction significantly.
 However in looking at data of the load taken by each level, finding the medians is pretty fast, and an approximate median would only hurt the query side of the algorithm.
 
-### Exploting Temporal Location (moving dividers with mass)
+### Exploiting Temporal Location (moving dividers with mass)
 
 For a while I had the design where the dividers would move as though they had mass. They would gently be pushed to which ever side had more aabbs. Dividers near the root had more mass and were harder to sway than those below. The problem with this approach is that the divider locations will mostly of the time be sub optimal. And the cost saved in rebalancing just isn't enough for the cost added to querying with a suboptimal partitioning. By always partitioning optimally, we get guarantees of the maximum number of aabbs in a node. Remember querying is the bottleneck, not rebalancing.
