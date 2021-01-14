@@ -107,12 +107,36 @@ macro_rules! run_test {
     };
 }
 
+fn profile_test(){
+    let grow = 0.2;
+    let num_bots = 50_000;
+    use crate::support::*;
+    use broccoli::prelude::*;
+    let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
+
+    let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+
+    for _ in 0..30 {
+        let c0 = bench_closure(|| {
+            let mut tree = broccoli::new(&mut bots);
+            tree.find_colliding_pairs_mut(|a, b| {
+                **a.unpack_inner() += 1;
+                **b.unpack_inner() += 1;
+            });
+        });
+
+        dbg!(c0);
+    }
+}
 fn main() {
     rayon::ThreadPoolBuilder::new()
         .num_threads(num_cpus::get_physical())
         .build_global()
         .unwrap();
 
+    //profile_test();
+    //return;
+    
     //to run program to generate android bench data.
     //build armv7-linux-androideabi
     //adb -d push broccoli_data /data/local/tmp/broccoli_data
@@ -130,25 +154,7 @@ fn main() {
     dbg!(&args);
     match args[1].as_ref() {
         "profile" => {
-            let grow = 0.2;
-            let num_bots = 50_000;
-            use crate::support::*;
-            use broccoli::prelude::*;
-            let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
-
-            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
-
-            for _ in 0..30 {
-                let c0 = bench_closure(|| {
-                    let mut tree = broccoli::new(&mut bots);
-                    tree.find_colliding_pairs_mut(|a, b| {
-                        **a.unpack_inner() += 1;
-                        **b.unpack_inner() += 1;
-                    });
-                });
-
-                dbg!(c0);
-            }
+            profile_test();
         }
         "profile_cmp" => {
             let grow = 0.2;
