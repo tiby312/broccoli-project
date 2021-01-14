@@ -2,7 +2,7 @@
 
 So far we've talked about how aabbs can be stored in a Tree. For example we recommended
 populating it with `BBox<N,&mut T>`.
-But we havent talked about how you would generate such a struct.
+But we haven't talked about how you would generate such a struct.
 
 In some dynamic systems, every particle has a position and maybe a radius, and then from the position and radius
 an aabb can be generated. So what you store in your tree might look something like this:
@@ -45,7 +45,7 @@ And you could instead use one of the corners of the aabb:
 ```
 
 This works because for the repel() function we just need the relative offset position
-to determine the direction and magnitude of the repel force. So it doesnt matter that
+to determine the direction and magnitude of the repel force. So it doesn't matter that
 we used the top left corner instead of the center.
 
 This optimization might still work if your aabb was converted from floats to u32 provided 

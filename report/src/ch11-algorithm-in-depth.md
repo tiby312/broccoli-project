@@ -18,20 +18,20 @@ For every node we do the following:
 Done via divide and conquer. For every node we do the following:
 1) First we find all intersections with aabbs in that node using sweep and prune..
 2) We recurse left and right finding all aabbs that intersect with aabbs in the node.
-	Here we can quickly rule out entire nodes and their decendants if a node's aabb does not intersect
+	Here we can quickly rule out entire nodes and their descendants if a node's aabb does not intersect
 	with this nodes aabb.
 3) At this point the aabbs in this node have been completely handled. We can safely move on to the children nodes 
-   and treat them as two entirely seperate trees. Since these are two completely disjoint trees, they can be handling in
+   and treat them as two entirely separate trees. Since these are two completely disjoint trees, they can be handling in
    parallel.
 
 
 #### Allocations
 
 There are some very fast allocators out
-there, but not all allocators are created equal. If you want your code to be as platform independant as possible,
+there, but not all allocators are created equal. If you want your code to be as platform independent as possible,
 you should try to minimize allocations even if in benches on your local machine, there is no performance hit. For example, currently the rust webassembly target using a very simple allocator that is pretty slow. The colliding pair
 finding algorithm requires a stack at each level of recursion. Each level of recursion, we could allocate a new stack,
-but reusing the preallocated stack is better. It just turns out that this requires some unsafe{} since we are poulating the stack with lifetimed mutable references. 
+but reusing the preallocated stack is better. It just turns out that this requires some unsafe{} since we are populating the stack with lifetimed mutable references. 
 
 
 
@@ -118,7 +118,7 @@ So once the extra data is setup, for every node we do the following:
 	At this point it might appear we are done handling this node and the problem has been reduced to two smaller ones, but we are not done yet. We additionally have to gravitate all the aabbs on the left of this node with all the aabbs on the right of this node.
     For all nodes encountered while recursing the left side,
     	Recurse the right side, and handle all aabbs with all the aabbs on the left node.
-    	If a node is suffeciently far away, treat it as a node mass instead and we can stop recursing.
+    	If a node is sufficiently far away, treat it as a node mass instead and we can stop recursing.
     At this point we can safely exclude this node and handle the children and completely independent problems.
 
 
@@ -133,7 +133,7 @@ right now the raycast algorithm naively checks all the elements that belong to a
 it decides to look at a node. In reality, we could do better. We could figure out where the ray
 hits the divider line, and then only check AABBs that intersect that divider line. The problem
 with this improvement is that we can't just rely on the `Num` trait since we need to do some math.
-You lose the nice property of the algorithm not doing any number arithmatic. Therefore I didnt implement
+You lose the nice property of the algorithm not doing any number arithmetic. Therefore I didn't implement
 it. However it might be a good idea. That said, before any element is checked using the expensive raycast function, it will first check the abb
 raycast function to determine if it is even worth going further. This is probably a good enough speed up.
 

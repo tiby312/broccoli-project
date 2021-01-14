@@ -14,13 +14,13 @@ documentation go. Clearly duplicating the documentation is not good. The user wo
 attached to the Tree object which makes adding the documentation to that function seem like a good idea,
 but our goal is to contain all the raycast code and documentation into the raycast module.
 
-The soltuion I went with was making each query module define a trait. Then the Tree would implement all of them.
-This way all the code and documentaiton for a query algorith is all contained inside of one module and there are no wrapper functions.  This adds up to a lot of traits, but they can all be included using the broccoli::prelude.
+The solution I went with was making each query module define a trait. Then the Tree would implement all of them.
+This way all the code and documentation for a query algorithm is all contained inside of one module and there are no wrapper functions.  This adds up to a lot of traits, but they can all be included using the broccoli::prelude.
 
-For the naive and assert functions, egronomics is not a concern since they are only used for debugging/testing the tree,
-which a regular user of the crate shouldnt care about. So for those, we dont need to to the raycast function to
+For the naive and assert functions, ergonomics is not a concern since they are only used for debugging/testing the tree,
+which a regular user of the crate shouldn't care about. So for those, we don't need to to the raycast function to
 the tree itself. Instead the user has to call the function directly and pass the tree in as an argument. 
 
-A downside to the current approach is that there is a kind of circular dpenendency with the current setup. The knearest module depends on Tree and Tree depends on the knearest module. While this is true, the dependency is mostly in one direction. Its mosltly "knearest module depends on tree module" and not the other way around. The only dependany the Tree module has on kearest is the one line it has to implment the KnearestQuery trait.
+A downside to the current approach is that there is a kind of circular dependency with the current setup. The knearest module depends on Tree and Tree depends on the knearest module. While this is true, the dependency is mostly in one direction. Its mostly "knearest module depends on tree module" and not the other way around. The only dependency the Tree module has on kearest is the one line it has to implement the KnearestQuery trait.
 
-This can be fixed by introducing another type TreeCore. Then you could have Tree depending on knearest module depending on TreeCore. Tree could deref to TreeCore. So TreeCore would provide the data structure and visitor functions, and then Tree would just be a wrapper around TreeCore providing high level query functions like raycast(). However, this didnt seem worth introducing a new type.
+This can be fixed by introducing another type TreeCore. Then you could have Tree depending on knearest module depending on TreeCore. Tree could deref to TreeCore. So TreeCore would provide the data structure and visitor functions, and then Tree would just be a wrapper around TreeCore providing high level query functions like raycast(). However, this didn't seem worth introducing a new type.

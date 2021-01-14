@@ -10,7 +10,7 @@ Another thing the user might want to do is perform raycast but skip over a set
 of aabbs.
 
 These usecases aren't directly supported by broccoli, but I think can be done by adding
-a wrapper layer ontop of broccoli and that uses unsafe. For example, in order to skip over elements
+a wrapper layer on top of broccoli and that uses unsafe. For example, in order to skip over elements
 the user can just maintain a list of pointers. Then in the raycast callback functions, the user
 can just check if the current pointer is in that blacklist of pointers, and if it is, say there was no hit.
 
@@ -23,12 +23,12 @@ A cleaner solution would just be to target a 32bit arch instead of 64bit. (Siden
 
 #### 3D
 
-What about 3D? Making this library multi dimensional would have added to the complexity, so I only targeted 2D. That said, you could certainly use broccoli to partition 2 dimensions, and then use another method to partition the last dimension (perhaps a 1D version of sweep and prune). Infact, in situations where things are more likely to intersect on the x and y plane and less so on the z plane, it might be faster to use a system where you have a broccoli Tree for the x and y dimensions, ad then store the z dimension in a level of indirection. This way you could prune out two
+What about 3D? Making this library multi dimensional would have added to the complexity, so I only targeted 2D. That said, you could certainly use broccoli to partition 2 dimensions, and then use another method to partition the last dimension (perhaps a 1D version of sweep and prune). In fact, in situations where things are more likely to intersect on the x and y plane and less so on the z plane, it might be faster to use a system where you have a broccoli Tree for the x and y dimensions, ad then store the z dimension in a level of indirection. This way you could prune out two
 dimensions faster maybe?
 
 #### Continuous Collision detection
 
-In order to use broccoli for continuous collision detection (suitable for very fast objects, for example), the aabbs that you insert into it must be big enough to contain the position of a bot before and after the time step. This way, upon aabb collisions, you can do fine grained contiuous collision detection and resolution. broccoli is well suited for this use-case because it makes no assumptions about the sizes of the aabbs. There is no rule that they must all be the same size or have a maximum size.
+In order to use broccoli for continuous collision detection (suitable for very fast objects, for example), the aabbs that you insert into it must be big enough to contain the position of a bot before and after the time step. This way, upon aabb collisions, you can do fine grained continuous collision detection and resolution. broccoli is well suited for this use-case because it makes no assumptions about the sizes of the aabbs. There is no rule that they must all be the same size or have a maximum size.
 
 #### Colliding every other frame
 
@@ -38,7 +38,7 @@ a bot could end up in one iteration, you could save finding the colliding pairs 
 #### Pipelining
 
 It might be possible to pipeline the process so that rebalancing and querying happen at the same time with the only downside being that aabbs react to their collisions one step later. To account for that the aabb's could be made slightly bigger and predict what they will hit the next step. 
-However, the construction and querying phase are already parallelized. Making those happen in parallel will probably confuse the rayon's work stealer. However maybe if there are somehow two independant threadpools this could get you the speed up. However, its unclear to me if it would be faster because you'd have to insert slightly bigger aabbs which would slow down querying. 
+However, the construction and querying phase are already parallelized. Making those happen in parallel will probably confuse the rayon's work stealer. However maybe if there are somehow two independent threadpools this could get you the speed up. However, its unclear to me if it would be faster because you'd have to insert slightly bigger aabbs which would slow down querying. 
 
 #### Liquid.
 
@@ -80,9 +80,9 @@ Currently, all elements are sorted using the left or top side of the aabb. It wo
 
 ### Expoiting Temporal Locality (caching medians)
 
-I would be interesting to try the following: Instead of finding the median at every level, find an approximate median. Additionally, keep a weighted average of the medians from previous tree builds and let it degrade with time. Get an approximate median using median of medians. This would ensure worst case linear time when building one level of the tree. This would allow the rest of the algorithm to be parallelized sooner. This would mean that query would be slower since we are not using heuristics and not using the true median, but this might be a small slowdown and it might speed of construction significatly.
+I would be interesting to try the following: Instead of finding the median at every level, find an approximate median. Additionally, keep a weighted average of the medians from previous tree builds and let it degrade with time. Get an approximate median using median of medians. This would ensure worst case linear time when building one level of the tree. This would allow the rest of the algorithm to be parallelized sooner. This would mean that query would be slower since we are not using heuristics and not using the true median, but this might be a small slowdown and it might speed of construction significantly.
 However in looking at data of the load taken by each level, finding the medians is pretty fast, and an approximate median would only hurt the query side of the algorithm.
 
 ### Exploting Temporal Location (moving dividers with mass)
 
-For a while I had the design where the dividers would move as though they had mass. They would gently be pushed to which ever side had more aabbs. Dividers near the root had more mass and were harder to sway than those below. The problem with this approach is that the divider locations will mostly of the time be sub optimial. And the cost saved in rebalancing just isnt enough for the cost added to querying with a suboptimal partitioning. By always partitioning optimally, we get guarentees of the maximum number of aabbs in a node. Remember querying is the bottleneck, not rebalancing.
+For a while I had the design where the dividers would move as though they had mass. They would gently be pushed to which ever side had more aabbs. Dividers near the root had more mass and were harder to sway than those below. The problem with this approach is that the divider locations will mostly of the time be sub optimal. And the cost saved in rebalancing just isn't enough for the cost added to querying with a suboptimal partitioning. By always partitioning optimally, we get guarantees of the maximum number of aabbs in a node. Remember querying is the bottleneck, not rebalancing.

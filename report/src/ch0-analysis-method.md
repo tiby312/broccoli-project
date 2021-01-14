@@ -4,11 +4,11 @@ Before we can measure and compare performance of this algorithm, we have to come
 
 For our tests lets use an archimedean spiral distribution. It gives us a lot of variation in how the aabbs intersects, and allows us to grow the size of the problem without affecting density too much. 
 
-If all the aabbs were dstributed along only one dimension then that would also skew our results. For example, sweep and prune will perform very well if all the aabbs are spaced out along the axis we are sweeping.
+If all the aabbs were distributed along only one dimension then that would also skew our results. For example, sweep and prune will perform very well if all the aabbs are spaced out along the axis we are sweeping.
 
-Lets make a archemdian spiral function that takes 3 inputs and produces an archimedean spiral.: 
+Lets make a archimedean spiral function that takes 3 inputs and produces an archimedean spiral.: 
 * n: the number of aabbs
-* separation: the seperation between the aabbs as they are laid out along the spiral.
+* separation: the separation between the aabbs as they are laid out along the spiral.
 * grow rate: the rate at which the spiral grow outward from the center.
 
 We increase n to increase the size of the problem.
@@ -45,11 +45,11 @@ trends in how the algorithms stack up against each other.
 
 Throughout this writeup, we use a grow of 0.2 a lot as a "typical" amount of colliding pairs.
 So for 10,000 aabbs, you might expect around 80,000 aabbs to intersect. This is still no where
-near the worst case of 10,000*10,000 aabbs, which is 100,000,000. But this worst case, doesnt really 
+near the worst case of 10,000*10,000 aabbs, which is 100,000,000. But this worst case, doesn't really 
 happen in a lot of use cases.
 
-So a `abspiral(n,grow=0.2)` produces around 8*n collisions. Even this is probably a conservative number of collisions
-for most usecases. If you were to simulate a 2d ball-pit, every ball could be touching 6 other balls ([Circle Packing](https://en.wikipedia.org/wiki/Circle_packing)). So in that system, there are around (6 * n)/2 collisions. That said with liquid or soft-body physics, the number can be even higher.
+So a `abspiral(n,grow=0.2)` produces around `8*n` collisions. Even this is probably a conservative number of collisions
+for most use-cases. If you were to simulate a 2d ball-pit, every ball could be touching 6 other balls ([Circle Packing](https://en.wikipedia.org/wiki/Circle_packing)). So in that system, there are only `(6 * n)/2 = 3*n` collisions. That said with liquid or soft-body physics, the number can be much higher.
 
 The below graph shows that as we increase the number of elements, so does the number of collisions in a nice
 linear way.
