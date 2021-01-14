@@ -21,7 +21,7 @@ struct Particle{
 and then in your main loop you might have something like this:
 ```
     tree.for_every_colliding_pair(|a,b|{
-        a.repel(b)
+        a.unpack_inner().repel(b.unpack_inner());
     })
 ```
 
@@ -37,19 +37,13 @@ struct Particle{
 And you could instead use one of the corners of the aabb:
 
 ```
-    tree.for_every_colliding_pair_pmut(|a,b|{
-        let apos=[a.get().x.start,a.get().y.start];
-        let bpos=[b.get().x.start,b.get().y.start];
-        repel(apos,a.inner_mut(),bpos,b.inner_mut())
+    tree.for_every_colliding_pair(|a,b|{
+        let apos=[a.rect.x.start,a.rect.y.start];
+        let bpos=[b.rect.x.start,b.rect.y.start];
+        repel(apos,a.unpack_inner(),bpos,b.unpack_inner())
     })
 ```
-
+Where repel is modified to take the center of the particle as an argument.
 This works because for the repel() function we just need the relative offset position
 to determine the direction and magnitude of the repel force. So it doesn't matter that
 we used the top left corner instead of the center.
-
-This optimization might still work if your aabb was converted from floats to u32 provided 
-that you convert them back right before repelling. However if the aabbs are u16 converted from float,
-then the offset vectors might be too inaccurate.
-
-

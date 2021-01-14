@@ -40,9 +40,3 @@ Often times, its not the dynamic allocation that is slow, but some other residua
 
 Writing apis that don't do dynamic allocation is tough and can be cumbersome, since you probably have to have the user give you a slice of a certain size, but typically you need to first get the problem size from the user to figure out the amount of memory you want to request.
 On one hand the level of explicitness is great and users don't have to put any faith in allocation system. But on the other hand it adds a lot of logic to your api that makes it harder to see what your library actually does. 
-
-
-### Design space big
-
-One thing ive learned that the design space is so big. There are so many design decisions to make and a lot of
-them are just made based off of hunches or educated guesses since there simply isn't enough time to back up each decision with real world data and benches. 

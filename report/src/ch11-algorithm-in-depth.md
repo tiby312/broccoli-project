@@ -4,7 +4,7 @@
 
 #### Construction
 
-Construction works as follows, Given: a list of elements.
+Construction works like this. Given: a list of aabbs.
 
 For every node we do the following:
 1. First we find the median of the remaining elements (using pattern defeating quick select) and use its position as this nodes divider.
