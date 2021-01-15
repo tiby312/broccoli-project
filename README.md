@@ -1,6 +1,6 @@
 ### Overview
 
-Broccoli is a broadphase collision detection library. 
+Broccoli is a broad-phase collision detection library. 
 
 The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 
@@ -8,19 +8,19 @@ Checkout it out on [github](https://github.com/tiby312/broccoli) and on [crates.
 
 ### Inner projects
 
-The `broccoli_demo` inner project is meant to show case the use of these algorithms. 
+The `demo` inner project is meant to show case the use of these algorithms. 
 The report inner project generates benches used in the [broccoli book](https://tiby312.github.io/broccoli_report).
 
 ### Screenshot
 
-Screen capture from the inner `broccoli_demo` project.
+Screen capture from the inner `demo` project.
 
 <img src="./assets/screenshot.gif" alt="screenshot">
 
 
 ### Name
 
-If you shorten "broadphase collision" to "broad colli" and say it fast, it sounds like broccoli.
+If you shorten "broad-phase collision" to "broad colli" and say it fast, it sounds like broccoli.
 Broccoli also have tree like properties and broccoli uses a tree data structure.
 
 
