@@ -1,4 +1,10 @@
 
+
+### Dependencies
+
+<img alt="dependencies" src="graphs/graph.png" class="center" style="width: 100%;" />
+
+
 ### Code Layout
 
 At a high level, I wanted all the code related to a specific query algorithm to be contained in one module.
@@ -24,3 +30,5 @@ the tree itself. Instead the user has to call the function directly and pass the
 A downside to the current approach is that there is a kind of circular dependency with the current setup. The knearest module depends on Tree and Tree depends on the knearest module. While this is true, the dependency is mostly in one direction. Its mostly "knearest module depends on tree module" and not the other way around. The only dependency the Tree module has on kearest is the one line it has to implement the KnearestQuery trait.
 
 This can be fixed by introducing another type TreeCore. Then you could have Tree depending on knearest module depending on TreeCore. Tree could deref to TreeCore. So TreeCore would provide the data structure and visitor functions, and then Tree would just be a wrapper around TreeCore providing high level query functions like raycast(). However, this didn't seem worth introducing a new type.
+
+
