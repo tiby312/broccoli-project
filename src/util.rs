@@ -45,7 +45,7 @@ mod prevec {
     use twounordered::TwoUnorderedVecs;
 
     
-    //The data in prevec is cleared before a vec is returned to the user
+    //The vec is guarenteed to be empty unless get_empty_vec_mut() is called.
     unsafe impl<T:Send> core::marker::Send for PreVec<T> {}
     unsafe impl<T:Sync> core::marker::Sync for PreVec<T> {}
 
