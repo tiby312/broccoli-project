@@ -54,14 +54,6 @@ mod prevec {
         vec: TwoUnorderedVecs<*mut T>,
     }
 
-    pub struct BorrowedVec<'a,'b,T>{
-        pub inner:&'a mut TwoUnorderedVecs<PMut<'b,T>>
-    }
-    impl<'a,'b,T> Drop for BorrowedVec<'a,'b,T>{
-        fn drop(&mut self){
-            assert!(self.inner.as_vec().is_empty());
-        }
-    }
     impl<T> PreVec<T> {
         #[allow(dead_code)]
         #[inline(always)]
@@ -76,19 +68,31 @@ mod prevec {
                 vec: TwoUnorderedVecs::with_capacity(num),
             }
         }
-        
-        ///Clears the vec and returns a mutable reference to a vec.
-        #[inline(always)]
-        pub fn get_empty_vec_mut<'a, 'b: 'a>(
-            &'a mut self,
-        ) -> BorrowedVec<'a,'b,T> {
+
+        pub fn as_vec_mut<'b>(
+            &mut self,
+            func:impl FnOnce(&mut Vec<PMut<'b,T>>)
+        )where T:'b{
+            let v: &mut TwoUnorderedVecs<_> = &mut self.vec;
+            let inner:&mut TwoUnorderedVecs<PMut<'b,T>>=unsafe { &mut *(v as *mut _ as *mut TwoUnorderedVecs<_>) };
+            
+            inner.as_vec_mut(func);
+        }
+
+        pub fn as_two_vec_mut<'b>(
+            &mut self,
+            func:impl FnOnce(&mut TwoUnorderedVecs<PMut<'b,T>>)
+        )where T:'b{
             assert!(self.vec.as_vec().is_empty());
+            
             let v: &mut TwoUnorderedVecs<_> = &mut self.vec;
             let inner=unsafe { &mut *(v as *mut _ as *mut TwoUnorderedVecs<_>) };
-            BorrowedVec{
-                inner
-            }
+            
+            func(inner);
+
+            assert!(self.vec.as_vec().is_empty());
         }
+
         
     }
 }
