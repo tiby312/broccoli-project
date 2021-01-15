@@ -69,30 +69,35 @@ mod prevec {
             }
         }
 
-        pub fn as_vec_mut<'b>(
-            &mut self,
-            func:impl FnOnce(&mut Vec<PMut<'b,T>>)
-        )where T:'b{
-            let v: &mut TwoUnorderedVecs<_> = &mut self.vec;
-            let inner:&mut TwoUnorderedVecs<PMut<'b,T>>=unsafe { &mut *(v as *mut _ as *mut TwoUnorderedVecs<_>) };
-            
-            inner.as_vec_mut(func);
+        ///Take advantage of the big capacity of the original vec.
+        pub fn extract_two_vec<'b>(&mut self)->TwoUnorderedVecs<PMut<'b,T>>{
+            assert!(self.vec.as_vec().is_empty());
+            let mut v=TwoUnorderedVecs::new();
+            core::mem::swap(&mut v,&mut self.vec);
+            unsafe{v.convert()}
         }
 
-        pub fn as_two_vec_mut<'b>(
-            &mut self,
-            func:impl FnOnce(&mut TwoUnorderedVecs<PMut<'b,T>>)
-        )where T:'b{
-            assert!(self.vec.as_vec().is_empty());
-            
-            let v: &mut TwoUnorderedVecs<_> = &mut self.vec;
-            let inner=unsafe { &mut *(v as *mut _ as *mut TwoUnorderedVecs<_>) };
-            
-            func(inner);
 
+        ///Take advantage of the big capacity of the original vec.
+        pub fn extract_vec<'b>(&mut self)->Vec<PMut<'b,T>>{
             assert!(self.vec.as_vec().is_empty());
+            self.extract_two_vec().extract_vec()
         }
 
+        ///Return the big capacity vec
+        pub fn insert_vec<'b>(&mut self,vec:Vec<PMut<'b,T>>){
+            assert!(self.vec.as_vec().is_empty());
+            let v=TwoUnorderedVecs::from_vec(vec);
+            let mut v=unsafe{v.convert()};
+            core::mem::swap(&mut self.vec,&mut v)
+        }
+
+        ///Return the big capacity vec
+        pub fn insert_two_vec<'b>(&mut self,v:TwoUnorderedVecs<PMut<'b,T>>){
+            assert!(self.vec.as_vec().is_empty());
+            let mut v=unsafe{v.convert()};
+            core::mem::swap(&mut v,&mut self.vec);
+        }
         
     }
 }

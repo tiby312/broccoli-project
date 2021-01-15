@@ -156,31 +156,32 @@ fn find<'a, A: Axis, F: CollisionHandler>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    prevec1.as_vec_mut(|active|{
-    
-        for mut curr_bot in collision_botids.iter_mut() {
-            let crr = *curr_bot.get().get_range(axis);
-    
-            active.retain_mut_unordered(|that_bot| {
-                if that_bot.get().get_range(axis).end > crr.start {
-                    debug_assert!(curr_bot
-                        .get()
-                        .get_range(axis)
-                        .intersects(that_bot.get().get_range(axis)));
-    
-                    func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
-                    true
-                } else {
-                    false
-                }
-            });
-    
-            active.push(curr_bot);
-        }
-        
-        active.clear();
-    });
+    let mut active=prevec1.extract_vec();
 
+
+    for mut curr_bot in collision_botids.iter_mut() {
+        let crr = *curr_bot.get().get_range(axis);
+
+        active.retain_mut_unordered(|that_bot| {
+            if that_bot.get().get_range(axis).end > crr.start {
+                debug_assert!(curr_bot
+                    .get()
+                    .get_range(axis)
+                    .intersects(that_bot.get().get_range(axis)));
+
+                func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
+                true
+            } else {
+                false
+            }
+        });
+
+        active.push(curr_bot);
+    }
+    
+    active.clear();
+
+    prevec1.insert_vec(active);
 }
 
 #[inline(always)]
@@ -200,68 +201,69 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
 
-    prevec1.as_two_vec_mut(|active_lists|{    
-        loop {
-            enum NextP {
-                X,
-                Y,
+    let mut active_lists=prevec1.extract_two_vec();
+    loop {
+        enum NextP {
+            X,
+            Y,
+        }
+        let j = match (f1.peek(), f2.peek()) {
+            (Some(_), None) => NextP::X,
+            (None, Some(_)) => NextP::Y,
+            (None, None) => {
+                break;
             }
-            let j = match (f1.peek(), f2.peek()) {
-                (Some(_), None) => NextP::X,
-                (None, Some(_)) => NextP::Y,
-                (None, None) => {
-                    break;
+            (Some(x), Some(y)) => {
+                if x.get().get_range(axis).start < y.get().get_range(axis).start {
+                    NextP::X
+                } else {
+                    NextP::Y
                 }
-                (Some(x), Some(y)) => {
-                    if x.get().get_range(axis).start < y.get().get_range(axis).start {
-                        NextP::X
+            }
+        };
+        match j {
+            NextP::X => {
+                let mut x = f1.next().unwrap();
+                active_lists.second().retain_mut_unordered(|y| {
+                    if y.get().get_range(axis).end > x.get().get_range(axis).start {
+                        func.collide(x.borrow_mut(), y.borrow_mut());
+                        true
                     } else {
-                        NextP::Y
+                        false
                     }
-                }
-            };
-            match j {
-                NextP::X => {
-                    let mut x = f1.next().unwrap();
-                    active_lists.second().retain_mut_unordered(|y| {
-                        if y.get().get_range(axis).end > x.get().get_range(axis).start {
-                            func.collide(x.borrow_mut(), y.borrow_mut());
-                            true
-                        } else {
-                            false
-                        }
-                    });
-                    /*
-                    active_lists.retain_first_mut_unordered(|x2|{
-                        x2.get().get_range(axis).end > x.get().get_range(axis).start
-                    });
-                    */
+                });
+                /*
+                active_lists.retain_first_mut_unordered(|x2|{
+                    x2.get().get_range(axis).end > x.get().get_range(axis).start
+                });
+                */
 
-                    active_lists.first().push(x);
-                }
-                NextP::Y => {
-                    let mut y = f2.next().unwrap();
-                    active_lists.first().retain_mut_unordered(|x| {
-                        if x.get().get_range(axis).end > y.get().get_range(axis).start {
-                            func.collide(x.borrow_mut(), y.borrow_mut());
-                            true
-                        } else {
-                            false
-                        }
-                    });
-                    /*
-                    active_lists.retain_second_mut_unordered(|y2|{
-                        y2.get().get_range(axis).end > y.get().get_range(axis).start
-                    });
-                    */
+                active_lists.first().push(x);
+            }
+            NextP::Y => {
+                let mut y = f2.next().unwrap();
+                active_lists.first().retain_mut_unordered(|x| {
+                    if x.get().get_range(axis).end > y.get().get_range(axis).start {
+                        func.collide(x.borrow_mut(), y.borrow_mut());
+                        true
+                    } else {
+                        false
+                    }
+                });
+                /*
+                active_lists.retain_second_mut_unordered(|y2|{
+                    y2.get().get_range(axis).end > y.get().get_range(axis).start
+                });
+                */
 
-                    active_lists.second().push(y);
-                }
+                active_lists.second().push(y);
             }
         }
+    }
 
-        active_lists.clear();
-    });
+    active_lists.clear();
+
+    prevec1.insert_two_vec(active_lists);
 }
 /*
 //This only uses one stack, but it ends up being more comparisons.
