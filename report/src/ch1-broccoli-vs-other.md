@@ -12,7 +12,7 @@ The jumps that you see in the theoretical `broccoli` line are the points at whic
 
 It's also worth noting that the difference between `sweep and prune`/`kdtree` and `naive` is much bigger than the difference between `sweep and prune`/`kdtree` and `broccoli`. So using these simpler algorithms gets you big gains as it is. The gains you get from using `broccoli` are not as pronounced, but are noticeable with more elements.
 
-In the same vein, you can see that there aren't many gains to use `broccoli_par` over `broccoli`. It can double/quadruple your performance, but as you can see those gains pale in comparison to the gains from simply using the `broccoli` algorithm. Thats not to say multiplying your performance by the number of cores you have isnt great, its just that it isnt a big factor. This to me means that typically, allocating effort on
+In the same vein, you can see that there aren't many gains to use `broccoli_par` over `broccoli`. It can double/quadruple your performance, but as you can see those gains pale in comparison to the gains from simply using the a better sequential algorithm. Thats not to say multiplying your performance by the number of cores you have isn't great, it's just that it isn't a big factor. This to me means that typically, allocating effort on
 investigating if your algorithm is optimal sequentially may be better than spending effort in parallelizing what you have.
 
 
