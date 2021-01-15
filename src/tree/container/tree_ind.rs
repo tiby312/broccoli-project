@@ -224,7 +224,7 @@ impl<'a,N:Num,T> TreeIndBase<'a,N,T>{
 
 
 
-/// A less general tree that providess `collect` functions
+/// A less general tree that provides `collect` functions
 /// and also derefs to a [`Tree`].
 ///
 /// [`TreeInd`] assumes there is a layer of indirection where

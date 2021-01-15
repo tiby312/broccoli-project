@@ -1,4 +1,4 @@
-//! Broccoli is a broadphase collision detection library.
+//! Broccoli is a broad-phase collision detection library.
 //! The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 //!
 //! ### Data Structure
@@ -28,7 +28,7 @@
 //! ### Floating Point
 //!
 //! Broccoli only requires `PartialOrd` for its number type. Instead of panicking on comparisons
-//! it doesnt understand, it will just arbitrary pick a result. So if you use regular float primitive types
+//! it doesn't understand, it will just arbitrary pick a result. So if you use regular float primitive types
 //! and there is even just one `NaN`, tree construction and querying will not panic,
 //! but would have unspecified results.
 //! If using floats, it's the users responsibility to not pass `NaN` values into the tree.
@@ -98,7 +98,7 @@ pub mod pmut;
 ///Contains node-level building block structs and visitors used for a [`Tree`].
 pub mod node;
 
-///Generic slice utillity functions.
+///Generic slice utility functions.
 mod util;
 
 
