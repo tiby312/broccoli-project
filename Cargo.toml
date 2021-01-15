@@ -8,6 +8,7 @@ repository = "https://github.com/tiby312/broccoli"
 keywords = ["tree", "kdtree","broadphase","space-partitioning","no_std"]
 readme = "README.md"
 edition = "2018"
+include = ["src/**/*", "LICENSE-MIT", "README.md", "!**/build/**/*"]
 
 
 [workspace]
