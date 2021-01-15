@@ -156,27 +156,30 @@ fn find<'a, A: Axis, F: CollisionHandler>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    prevec1.get_empty_vec_mut().clear_and_as_vec(move |active|{
-        for mut curr_bot in collision_botids.iter_mut() {
-            let crr = *curr_bot.get().get_range(axis);
+    let prevec1=prevec1.get_empty_vec_mut();
+    let active=&mut prevec1.inner.as_vec_mut().inner;
+    for mut curr_bot in collision_botids.iter_mut() {
+        let crr = *curr_bot.get().get_range(axis);
 
-            active.retain_mut_unordered(|that_bot| {
-                if that_bot.get().get_range(axis).end > crr.start {
-                    debug_assert!(curr_bot
-                        .get()
-                        .get_range(axis)
-                        .intersects(that_bot.get().get_range(axis)));
+        active.retain_mut_unordered(|that_bot| {
+            if that_bot.get().get_range(axis).end > crr.start {
+                debug_assert!(curr_bot
+                    .get()
+                    .get_range(axis)
+                    .intersects(that_bot.get().get_range(axis)));
 
-                    func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
-                    true
-                } else {
-                    false
-                }
-            });
+                func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
+                true
+            } else {
+                false
+            }
+        });
 
-            active.push(curr_bot);
-        }
-    });
+        active.push(curr_bot);
+    }
+    
+    active.clear();
+
 
 }
 
@@ -197,7 +200,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
 
-    let active_lists = prevec1.get_empty_vec_mut();
+    let active_lists=&mut prevec1.get_empty_vec_mut().inner;
     
     loop {
         enum NextP {
@@ -257,6 +260,8 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
             }
         }
     }
+
+    active_lists.clear();
 }
 /*
 //This only uses one stack, but it ends up being more comparisons.

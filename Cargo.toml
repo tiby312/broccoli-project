@@ -23,9 +23,10 @@ rayon = "1.5"
 compt = "1.10"
 axgeom = {version="1.9",default-features = false}
 pdqselect = "0.1"
-twounordered = "0.2.0"
+twounordered = "0.3.0"
 
 [package.metadata.docs.rs]
 # This sets the default target to `x86_64-unknown-linux-gnu`
 # and only builds that target
 targets = ["x86_64-unknown-linux-gnu"]
+

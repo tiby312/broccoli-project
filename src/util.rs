@@ -35,11 +35,16 @@ pub fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {
 }
 
 
+
+
+
 pub use self::prevec::PreVec;
+
 mod prevec {
     use crate::pmut::PMut;
     use twounordered::TwoUnorderedVecs;
 
+    
     //The data in prevec is cleared before a vec is returned to the user
     unsafe impl<T:Send> core::marker::Send for PreVec<T> {}
     unsafe impl<T:Sync> core::marker::Sync for PreVec<T> {}
@@ -49,6 +54,14 @@ mod prevec {
         vec: TwoUnorderedVecs<*mut T>,
     }
 
+    pub struct BorrowedVec<'a,'b,T>{
+        pub inner:&'a mut TwoUnorderedVecs<PMut<'b,T>>
+    }
+    impl<'a,'b,T> Drop for BorrowedVec<'a,'b,T>{
+        fn drop(&mut self){
+            assert!(self.inner.as_vec().is_empty());
+        }
+    }
     impl<T> PreVec<T> {
         #[allow(dead_code)]
         #[inline(always)]
@@ -63,16 +76,20 @@ mod prevec {
                 vec: TwoUnorderedVecs::with_capacity(num),
             }
         }
-
+        
         ///Clears the vec and returns a mutable reference to a vec.
         #[inline(always)]
         pub fn get_empty_vec_mut<'a, 'b: 'a>(
             &'a mut self,
-        ) -> &'a mut TwoUnorderedVecs<PMut<'b, T>> {
-            self.vec.clear();
+        ) -> BorrowedVec<'a,'b,T> {
+            assert!(self.vec.as_vec().is_empty());
             let v: &mut TwoUnorderedVecs<_> = &mut self.vec;
-            unsafe { &mut *(v as *mut _ as *mut TwoUnorderedVecs<_>) }
+            let inner=unsafe { &mut *(v as *mut _ as *mut TwoUnorderedVecs<_>) };
+            BorrowedVec{
+                inner
+            }
         }
+        
     }
 }
 
