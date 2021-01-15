@@ -81,7 +81,7 @@ mod prevec {
         ///Take advantage of the big capacity of the original vec.
         pub fn extract_vec<'b>(&mut self)->Vec<PMut<'b,T>>{
             assert!(self.vec.as_vec().is_empty());
-            self.extract_two_vec().extract_vec()
+            self.extract_two_vec().replace_inner(Vec::new()).0
         }
 
         ///Return the big capacity vec
