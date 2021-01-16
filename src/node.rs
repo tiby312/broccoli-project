@@ -141,6 +141,7 @@ mod vistr_mut {
     }
 
     impl<'a, N> VistrMut<'a, N> {
+        #[inline(always)]
         pub(crate) fn new(
             inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
         ) -> Self {

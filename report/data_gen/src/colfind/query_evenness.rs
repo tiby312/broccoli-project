@@ -138,13 +138,13 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
 
     let mut fg = fb.build("query_evenness_theory");
     draw_graph(
-        &format!("Query Evenness with abspiral({},{})", grow1, num_bots),
+        &format!("Query Evenness with abspiral({},{})", num_bots,grow1),
         &mut fg,
         res1,
         0,
     );
     draw_graph(
-        &format!("Query Evenness with abspiral({},{})", grow2, num_bots),
+        &format!("Query Evenness with abspiral({},{})", num_bots,grow2),
         &mut fg,
         res2,
         1,
