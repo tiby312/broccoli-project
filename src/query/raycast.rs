@@ -133,6 +133,9 @@ pub fn from_closure<A, T: Aabb>(
     }
 }
 
+
+///Hide the lifetime behind the RayCast trait 
+///to make things simpler
 struct RayCastBorrow<'a, R>(&'a mut R);
 
 impl<'a, R: RayCast> RayCast for RayCastBorrow<'a, R> {
@@ -222,12 +225,13 @@ impl<'a, T: Aabb> Closest<'a, T> {
     }
 }
 
-struct Blap<'a, R: RayCast> {
+struct Recurser<'a, R: RayCast> {
     rtrait: R,
     ray: Ray<R::N>,
     closest: Closest<'a, R::T>,
 }
-impl<'a, R: RayCast> Blap<'a, R> {
+
+impl<'a, R: RayCast> Recurser<'a, R> {
     fn should_recurse<A: Axis>(&mut self, line: (A, R::N)) -> bool {
         match self.rtrait.cast_to_aaline(&self.ray, line.0, line.1) {
             axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
@@ -237,59 +241,60 @@ impl<'a, R: RayCast> Blap<'a, R> {
             axgeom::CastResult::NoHit => false,
         }
     }
-}
 
-//Returns the first object that touches the ray.
-fn recc<'a, 'b: 'a, A: Axis, T: Aabb, R: RayCast<N = T::Num, T = T>>(
-    axis: A,
-    stuff: LevelIter<VistrMut<'a, Node<'b, T>>>,
-    blap: &mut Blap<'a, R>,
-) {
-    let ((_depth, nn), rest) = stuff.next();
-    let handle_curr = if let Some([left, right]) = rest {
-        let axis_next = axis.next();
+    //Returns the first object that touches the ray.
+    fn recc<'b: 'a, A: Axis>(
+        &mut self,
+        axis: A,
+        stuff: LevelIter<VistrMut<'a, Node<'b, R::T>>>,
+    ) {
+        let ((_depth, nn), rest) = stuff.next();
+        let handle_curr = if let Some([left, right]) = rest {
+            let axis_next = axis.next();
 
-        let div = match nn.div {
-            Some(b) => b,
-            None => return,
+            let div = match nn.div {
+                Some(b) => b,
+                None => return,
+            };
+
+            let line = (axis, div);
+
+            //more likely to find closest in child than curent node.
+            //so recurse first before handling this node.
+            if *self.ray.point.get_axis(axis) < div {
+                self.recc(axis_next, left);
+
+                if self.should_recurse(line) {
+                    self.recc(axis_next, right);
+                }
+            } else {
+                self.recc(axis_next, right);
+
+                if self.should_recurse(line) {
+                    self.recc(axis_next, left);
+                }
+            }
+
+            if !nn.range.is_empty() {
+                //Determine if we should handle this node or not.
+                match nn.cont.contains_ext(*self.ray.point.get_axis(axis)) {
+                    core::cmp::Ordering::Less => self.should_recurse((axis, nn.cont.start)),
+                    core::cmp::Ordering::Greater => self.should_recurse((axis, nn.cont.end)),
+                    core::cmp::Ordering::Equal => true,
+                }
+            } else {
+                false
+            }
+        } else {
+            true
         };
-
-        let line = (axis, div);
-
-        //more likely to find closest in child than curent node.
-        //so recurse first before handling this node.
-        if *blap.ray.point.get_axis(axis) < div {
-            recc(axis_next, left, blap);
-
-            if blap.should_recurse(line) {
-                recc(axis_next, right, blap);
+        if handle_curr {
+            for b in nn.into_range().iter_mut() {
+                self.closest.consider(&self.ray, b, &mut self.rtrait);
             }
-        } else {
-            recc(axis_next, right, blap);
-
-            if blap.should_recurse(line) {
-                recc(axis_next, left, blap);
-            }
-        }
-
-        if !nn.range.is_empty() {
-            //Determine if we should handle this node or not.
-            match nn.cont.contains_ext(*blap.ray.point.get_axis(axis)) {
-                core::cmp::Ordering::Less => blap.should_recurse((axis, nn.cont.start)),
-                core::cmp::Ordering::Greater => blap.should_recurse((axis, nn.cont.end)),
-                core::cmp::Ordering::Equal => true,
-            }
-        } else {
-            false
-        }
-    } else {
-        true
-    };
-    if handle_curr {
-        for b in nn.into_range().iter_mut() {
-            blap.closest.consider(&blap.ray, b, &mut blap.rtrait);
         }
     }
+
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.
@@ -428,14 +433,14 @@ pub trait RaycastQuery<'a>: Queries<'a> {
         let dt = self.vistr_mut().with_depth(Depth(0));
 
         let closest = Closest { closest: None };
-        let mut blap = Blap {
+        let mut rec = Recurser {
             rtrait,
             ray,
             closest,
         };
-        recc(default_axis(), dt, &mut blap);
+        rec.recc(default_axis(), dt);
 
-        match blap.closest.closest {
+        match rec.closest.closest {
             Some((a, b)) => axgeom::CastResult::Hit(CastAnswer { elems: a, mag: b }),
             None => axgeom::CastResult::NoHit,
         }

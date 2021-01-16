@@ -48,6 +48,9 @@ where
     )
 }
 
+
+///Hide the lifetime behind the RayCast trait 
+///to make things simpler
 struct KnearestBorrow<'a, K>(&'a mut K);
 impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
     type T = K::T;
@@ -277,13 +280,13 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
     }
 }
 
-struct Blap<'a, K: Knearest> {
+struct Recurser<'a, K: Knearest> {
     knear: K,
     point: Vec2<K::N>,
     closest: ClosestCand<'a, K::T>,
 }
 
-impl<'a, K: Knearest> Blap<'a, K> {
+impl<'a, K: Knearest> Recurser<'a, K> {
     fn should_recurse<A: Axis>(&mut self, line: (A, K::N)) -> bool {
         if let Some(m) = self.closest.full_and_max_distance() {
             let dis = self.knear.distance_to_aaline(self.point, line.0, line.1);
@@ -292,57 +295,57 @@ impl<'a, K: Knearest> Blap<'a, K> {
             true
         }
     }
-}
 
-fn recc<'a, 'b: 'a, T: Aabb, A: Axis, K: Knearest<N = T::Num, T = T>>(
-    axis: A,
-    stuff: LevelIter<VistrMut<'a, Node<'b, T>>>,
-    blap: &mut Blap<'a, K>,
-) {
-    let ((_depth, nn), rest) = stuff.next();
-    //let nn = nn.get_mut();
-    let handle_node = match rest {
-        Some([left, right]) => {
-            let div = match nn.div {
-                Some(b) => b,
-                None => return,
-            };
+    fn recc<'b: 'a, A: Axis>(
+        &mut self,
+        axis: A,
+        stuff: LevelIter<VistrMut<'a, Node<'b, K::T>>>
+    ) {
+        let ((_depth, nn), rest) = stuff.next();
+        //let nn = nn.get_mut();
+        let handle_node = match rest {
+            Some([left, right]) => {
+                let div = match nn.div {
+                    Some(b) => b,
+                    None => return,
+                };
 
-            let line = (axis, div);
+                let line = (axis, div);
 
-            //recurse first. more likely closest is in a child.
-            if *blap.point.get_axis(axis) < div {
-                recc(axis.next(), left, blap);
-                if blap.should_recurse(line) {
-                    recc(axis.next(), right, blap);
+                //recurse first. more likely closest is in a child.
+                if *self.point.get_axis(axis) < div {
+                    self.recc(axis.next(), left);
+                    if self.should_recurse(line) {
+                        self.recc(axis.next(), right);
+                    }
+                } else {
+                    self.recc(axis.next(), right);
+                    if self.should_recurse(line) {
+                        self.recc(axis.next(), left);
+                    }
                 }
-            } else {
-                recc(axis.next(), right, blap);
-                if blap.should_recurse(line) {
-                    recc(axis.next(), left, blap);
+
+                if !nn.range.is_empty() {
+                    //Determine if we should handle this node or not.
+                    match nn.cont.contains_ext(*self.point.get_axis(axis)) {
+                        core::cmp::Ordering::Less => self.should_recurse((axis, nn.cont.start)),
+                        core::cmp::Ordering::Greater => self.should_recurse((axis, nn.cont.end)),
+                        core::cmp::Ordering::Equal => true,
+                    }
+                } else {
+                    false
                 }
             }
+            None => true,
+        };
 
-            if !nn.range.is_empty() {
-                //Determine if we should handle this node or not.
-                match nn.cont.contains_ext(*blap.point.get_axis(axis)) {
-                    core::cmp::Ordering::Less => blap.should_recurse((axis, nn.cont.start)),
-                    core::cmp::Ordering::Greater => blap.should_recurse((axis, nn.cont.end)),
-                    core::cmp::Ordering::Equal => true,
-                }
-            } else {
-                false
+        if handle_node {
+            for bot in nn.into_range().iter_mut() {
+                self.closest.consider(&self.point, &mut self.knear, bot);
             }
-        }
-        None => true,
-    };
-
-    if handle_node {
-        for bot in nn.into_range().iter_mut() {
-            //let dis_sqr = blap.knear.didstance_to_fine(blap.point, bot.as_ref());
-            blap.closest.consider(&blap.point, &mut blap.knear, bot);
         }
     }
+
 }
 
 ///Returned by knearest.
@@ -511,18 +514,18 @@ pub trait KnearestQuery<'a>: Queries<'a> {
 
         let closest = ClosestCand::new(num);
 
-        let mut blap = Blap {
+        let mut rec = Recurser {
             knear,
             point,
             closest,
         };
 
-        recc(default_axis(), dt, &mut blap);
+        rec.recc(default_axis(), dt);
 
-        let num_entires = blap.closest.curr_num;
+        let num_entires = rec.closest.curr_num;
         KResult {
             num_entires,
-            inner: blap.closest.into_sorted(),
+            inner: rec.closest.into_sorted(),
         }
     }
 }
