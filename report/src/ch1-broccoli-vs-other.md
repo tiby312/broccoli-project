@@ -38,7 +38,7 @@ The basic idea is that you use a tree up until a specific tree height, and then 
 
 ### KD tree vs Quad Tree
 
-The main benefit of a quad tree is that tree construction is fast since we don't need to find the median at each level. They also have a interesting relationship with [z order curves](https://en.wikipedia.org/wiki/Z-order_curve).
+I think the main benefit of a quad tree is that tree construction is fast since we don't need to find the median at each level. They also have a interesting relationship with [z order curves](https://en.wikipedia.org/wiki/Z-order_curve).
 
 But that comes at a cost of a potentially not great partitioning of the physical elements. Our goal is to make the querying as fast as possible as this is the part that can vary and dominate very easily in dense/clumped up situations. The slow construction time of the kdtree is not ideal, but it is a very consistent load (doesn't vary from how clumped the elements are). 
 
