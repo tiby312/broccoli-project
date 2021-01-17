@@ -44,13 +44,6 @@ There are a couple of observations to make.
 
 ### Different Data Layouts
 
-
-There are three main data layouts for each of the elements in a broccoli that are interesting:
-`(Rect<isize>,&mut T)`
-`(Rect<isize>,T)`
-`&mut (Rect<isize>,T)`
-
-
 Because the tree construction code is generic over the elements that are inserted (as long as they implement Aabb),
 The user can easily try all three data layouts.
 
