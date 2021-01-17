@@ -34,7 +34,7 @@ So more work has to be done upfront on a node before we can recurse.
 
 ### Collect Performance
 
-Sometimes you need to iterate over all colliding pairs multiple times even though the elements havent moved.
+Sometimes you need to iterate over all colliding pairs multiple times even though the elements haven't moved.
 You could call `find_colliding_pairs()` multiple times, but it is slow.
 Broccoli provides functions to save off query results so that they can be iterated on though `TreeInd`.
 
