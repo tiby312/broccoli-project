@@ -17,6 +17,8 @@ mod inner_prelude {
     pub use itertools::Itertools;
 }
 
+pub mod same_slice;
+
 pub mod colfind;
 
 pub mod draw;
@@ -163,3 +165,6 @@ where
 
     inner(default_axis(), tree.vistr().with_depth(compt::Depth(0)))
 }
+
+
+

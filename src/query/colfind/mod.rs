@@ -110,6 +110,16 @@ pub trait ColfindQuery<'a>: Queries<'a> {
         QueryBuilder::new(self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
 
+    
+    fn find_colliding_pairs_3d_mut(&mut self, mut func: impl FnMut(PMut<Self::T>, PMut<Self::T>)) 
+        where Self::T:Aabb3d    {
+        self.find_colliding_pairs_mut(|a,b|{
+            if a.get_z().intersects(b.get_z()){
+                func(a,b);
+            }
+        })
+    }
+
     /// The parallel version of [`ColfindQuery::find_colliding_pairs_mut`].
     ///
     /// # Examples
@@ -158,6 +168,8 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     fn new_builder<'c>(&'c mut self) -> QueryBuilder<'c, 'a, Self::T> {
         QueryBuilder::new(self.vistr_mut())
     }
+
+    
 }
 
 ///Queries that can be performed on a tree that is not sorted

@@ -11,18 +11,45 @@ pub use self::tree_ind::*;
 pub use self::owned::*;
 
 
-use alloc::boxed::Box;
-
-#[repr(transparent)]
-struct Ptr<T: ?Sized>(*mut T);
-impl<T: ?Sized> Copy for Ptr<T> {}
-
-impl<T: ?Sized> Clone for Ptr<T> {
-    #[inline(always)]
-    fn clone(&self) -> Ptr<T> {
-        *self
+mod dim3{
+    use axgeom::*;
+    use crate::node::*;
+    
+    pub struct BBox3D<'a,N,T>{
+        pub rect:Rect<N>,
+        pub inner: &'a mut (Range<N>,T)
     }
-}
-unsafe impl<T: ?Sized> Send for Ptr<T> {}
-unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 
+    unsafe impl<'a,N:Num,T> crate::node::Aabb for BBox3D<'a,N,T>{
+        type Num=N;
+        fn get(&self)->&Rect<N>{
+            &self.rect
+        }
+    }
+
+
+    
+    use super::*;
+    pub struct Tree3D<'a,'b,N:Num,T>{
+        pub inner:Tree<'b,BBox3D<'a,N,T>>
+    }
+
+
+    impl<'a,'b,N:Num,T> Tree3D<'a,'b,N,T>{
+        pub fn new(arr:&'a mut [BBox3D<'b,N,T>])->Tree3D<'a,'b,N,T>{
+            
+            let inner=Tree::new(arr);
+            Tree3D{
+                inner
+            }
+        }
+
+
+        
+    }
+    
+    
+
+}
+
+use alloc::boxed::Box;

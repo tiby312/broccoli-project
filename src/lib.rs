@@ -14,7 +14,7 @@
 //!
 //! The [`container`] module lists the tree types and they are all described there, but in general
 //! use [`Tree`] unless you want
-//! to use functions like [`collect_colliding_pairs`](crate::container::TreeInd::collect_colliding_pairs).
+//! to use functions like [`collect_colliding_pairs`](crate::query::same_slice::SameSliceTrait::collect_colliding_pairs).
 //! In which case use [`TreeInd`](crate::container::TreeInd).
 //!
 //! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
@@ -71,7 +71,7 @@ mod inner_prelude {
     pub(crate) use crate::par;
     pub(crate) use crate::prelude::*;
     pub(crate) use crate::query::Queries;
-
+    pub(crate) use crate::Ptr;
     pub(crate) use crate::tree::*;
     pub(crate) use crate::util::*;
 
@@ -111,6 +111,7 @@ pub mod prelude {
     pub use crate::query::knearest::KnearestQuery;
     pub use crate::query::raycast::RaycastQuery;
     pub use crate::query::rect::RectQuery;
+    pub use crate::query::same_slice::SameSliceTrait;
     //pub use crate::query::Queries;
 }
 
@@ -122,3 +123,19 @@ pub use axgeom::rect;
 pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
+
+
+
+
+#[repr(transparent)]
+struct Ptr<T: ?Sized>(*mut T);
+impl<T: ?Sized> Copy for Ptr<T> {}
+
+impl<T: ?Sized> Clone for Ptr<T> {
+    #[inline(always)]
+    fn clone(&self) -> Ptr<T> {
+        *self
+    }
+}
+unsafe impl<T: ?Sized> Send for Ptr<T> {}
+unsafe impl<T: ?Sized> Sync for Ptr<T> {}
