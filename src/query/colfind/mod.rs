@@ -158,6 +158,8 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     fn new_builder<'c>(&'c mut self) -> QueryBuilder<'c, 'a, Self::T> {
         QueryBuilder::new(self.vistr_mut())
     }
+
+    
 }
 
 ///Queries that can be performed on a tree that is not sorted
