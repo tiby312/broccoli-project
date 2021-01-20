@@ -17,7 +17,7 @@ mod inner_prelude {
     pub use itertools::Itertools;
 }
 
-pub mod same_slice;
+pub mod from_slice;
 
 pub mod colfind;
 

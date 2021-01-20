@@ -1,11 +1,29 @@
+
+//! Provides `collect()` functions through the [`FromSlice`] trait.
+//!
+
 use super::*;
 use crate::Tree;
 use crate::Ptr;
 use crate::prelude::*;
-pub trait SameSliceTrait<'a,'b> where Self::T:HasInner<Inner=&'a mut Self::Inner>  {
+
+
+///
+/// A trait indicating that this is a tree that is composed of pointers
+/// to the same underlying slice. Unsafe because the user must guarantee
+/// that all the pointers in the tree originate from the same slice.
+///
+pub unsafe trait FromSlice<'a,'b> where Self::T:HasInner<Inner=&'a mut Self::Inner>  {
+    ///The tree must be filled with T, which must have a pointer to `Self::Inner`.
     type T:Aabb<Num=Self::Num>+HasInner<Inner=&'a mut Self::Inner>+'b;
+    ///The number type of the aabb.
     type Num:Num;
+    ///The type that the pointers are pointing to.
+    ///The original slice is composed of this.
     type Inner:'a;
+
+
+    ///Return a reference to the underlying tree.
     fn get_tree_mut(&mut self)->&mut Tree<'b,Self::T>;
 
 
@@ -168,7 +186,7 @@ pub trait SameSliceTrait<'a,'b> where Self::T:HasInner<Inner=&'a mut Self::Inner
     }
 
 
-    /// The parallel version of [`SameSliceTrait::collect_colliding_pairs`] that instead
+    /// The parallel version of [`FromSlice::collect_colliding_pairs`] that instead
     /// returns a [`CollidingPairsPar`].
     ///
     /// # Examples
@@ -248,7 +266,7 @@ fn collect_colliding_pairs_par_inner<'a,T:Aabb+HasInner<Inner=&'a mut Inner>,Inn
 }
 
 
-///Contains a filtered list of all elements in the tree from calling [`SameSliceTrait::collect_all`].
+///Contains a filtered list of all elements in the tree from calling [`FromSlice::collect_all`].
 pub struct FilteredElements<T, D> {
     elems: Vec<(Ptr<T>, D)>,
     orig: Ptr<[T]>,
@@ -267,8 +285,6 @@ impl<T, D> FilteredElements<T, D> {
 }
 
 
-
-
 ///A read only colliding pair reference
 pub struct ColPair<'a, T, D> {
     pub first: &'a T,
@@ -281,7 +297,7 @@ struct ColPairPtr<T, D> {
     second: Ptr<T>,
     extra: D,
 }
-///CollidingPairs created via [`SameSliceTrait::collect_colliding_pairs`]
+///CollidingPairs created via [`FromSlice::collect_colliding_pairs`]
 pub struct CollidingPairs<T, D> {
     ///See collect_intersections_list()
     ///The same elements can be part of
@@ -327,7 +343,7 @@ impl<T, D> CollidingPairs<T, D> {
     }
 }
 
-///CollidingPairsPar created via [`SameSliceTrait::collect_colliding_pairs_par`]
+///CollidingPairsPar created via [`FromSlice::collect_colliding_pairs_par`]
 ///All colliding pairs partitioned into
 ///mutually exclusive sets so that they can be traversed in parallel
 pub struct CollidingPairsPar<T, D> {

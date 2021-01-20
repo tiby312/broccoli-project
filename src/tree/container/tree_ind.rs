@@ -143,7 +143,7 @@ impl<'a, 'b,N: Num, T> core::ops::DerefMut for TreeInd<'a, 'b,N, T> {
     }
 }
 
-impl<'a,'b,N:Num,T> SameSliceTrait<'a,'b> for TreeInd<'a,'b,N,T>{
+unsafe impl<'a,'b,N:Num,T> FromSlice<'a,'b> for TreeInd<'a,'b,N,T>{
     type T=BBox<N,&'a mut T>;
     type Inner=T;
     type Num=N;

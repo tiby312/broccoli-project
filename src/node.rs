@@ -33,10 +33,6 @@ unsafe impl<N: Num> Aabb for Rect<N> {
 }
 
 
-pub unsafe trait Aabb3d:Aabb{
-    fn get_z(&self)->&Range<Self::Num>;
-}
-
 
 ///A bounding box container object that implements [`Aabb`] and [`HasInner`].
 ///Note that `&mut BBox<N,T>` also implements [`Aabb`] and [`HasInner`].

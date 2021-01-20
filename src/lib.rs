@@ -14,7 +14,7 @@
 //!
 //! The [`container`] module lists the tree types and they are all described there, but in general
 //! use [`Tree`] unless you want
-//! to use functions like [`collect_colliding_pairs`](crate::query::same_slice::SameSliceTrait::collect_colliding_pairs).
+//! to use functions like [`collect_colliding_pairs`](crate::query::from_slice::FromSlice::collect_colliding_pairs).
 //! In which case use [`TreeInd`](crate::container::TreeInd).
 //!
 //! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
@@ -111,7 +111,7 @@ pub mod prelude {
     pub use crate::query::knearest::KnearestQuery;
     pub use crate::query::raycast::RaycastQuery;
     pub use crate::query::rect::RectQuery;
-    pub use crate::query::same_slice::SameSliceTrait;
+    pub use crate::query::from_slice::FromSlice;
     //pub use crate::query::Queries;
 }
 
