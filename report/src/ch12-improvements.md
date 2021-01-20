@@ -23,9 +23,9 @@ A cleaner solution would just be to target a 32bit arch instead of 64bit. (Side-
 
 #### 3D
 
-What about 3D? Making this library multi dimensional would have added to the complexity, so I only targeted 2D. That said, you could certainly use broccoli to partition 2 dimensions, and then use naive for the third. In fact, in situations where things are more likely to intersect on the x and y plane and less so on the z plane, maybe it is faster to use a system that is optimized to prune out just x and y before pruning z. I imagine this must be true in distributions that are "mostly" 2D, which I think is true for a lot of usecases. i.e. we mosstly live on a 2d plane.
+What about 3D? Making this library multi dimensional would have added to the complexity, so I only targeted 2D. That said, you could certainly use broccoli to partition 2 dimensions, and then use naive for the third. In fact, in situations where things are more likely to intersect on the x and y plane and less so on the z plane, maybe it is faster to use a system that is optimized to prune out just x and y before pruning z. I imagine this must be true in distributions that are "mostly" 2D, which I think is true for a lot of usecases. i.e. we mostly live on a 2d plane.
 
-With "true" 3d, some aspects of the algorithm might not work as well. For example, we picked sweep and prune because we had knowledge that there would be very few false positives given that they must be stren across the divider. In 3d, we would be doing sweep and prune over a plane, so the positives might not be as much.
+With "true" 3d, some aspects of the algorithm might not work as well. For example, we picked sweep and prune because we had knowledge that there would be very few false positives given that they must be stren across the divider. In 3d, we would be doing sweep and prune over a plane, so the gains might not be as much.
 
 
 #### Continuous Collision detection
