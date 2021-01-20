@@ -4,7 +4,7 @@ use super::*;
 ///
 /// ```rust
 /// use axgeom::*;
-/// use broccoli::{*,container::*,node::*};
+/// use broccoli::{*,container::*,node::*,prelude::*};
 ///
 /// fn not_lifetimed()->TreeIndOwned<i32,BBox<i32,f32>>
 /// {
