@@ -24,6 +24,19 @@ pub unsafe trait FromSlice<'a,'b> where Self::T:HasInner<Inner=&'a mut Self::Inn
 
 
     ///Return a reference to the underlying tree.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::prelude::*;
+    /// let mut aabbs = [
+    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    /// ];
+    ///
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
+    /// let mut tree_cont = base.build();
+    /// tree_cont.get_tree_mut().find_colliding_pairs_mut(|a,b|{});
+    /// ```
     fn get_tree_mut(&mut self)->&mut Tree<'b,Self::T>;
 
 
