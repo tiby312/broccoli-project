@@ -1,7 +1,7 @@
-![Crates.io](https://img.shields.io/crates/v/broccoli)
-![Crates.io](https://img.shields.io/crates/l/broccoli)
-![Crates.io](https://img.shields.io/crates/d/broccoli)
-![Discord](https://img.shields.io/discord/802222889046638653)
+[![Crates.io](https://img.shields.io/crates/v/broccoli)](https://crates.io/crates/broccoli)
+[![Crates.io](https://img.shields.io/crates/l/broccoli)](https://crates.io/crates/broccoli)
+[![Crates.io](https://img.shields.io/crates/d/broccoli)](https://crates.io/crates/broccoli)
+[![Discord](https://img.shields.io/discord/802222889046638653)](https://discord.com/channels/802222889046638653)
 
 
 ### Overview
