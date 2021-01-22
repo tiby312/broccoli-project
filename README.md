@@ -1,5 +1,5 @@
 [![Crates.io](https://img.shields.io/crates/v/broccoli)](https://crates.io/crates/broccoli)
-[![Crates.io](https://docs.rs/broccoli/badge.svg)](https://docs.rs/broccoli)
+[![docs.rs](https://docs.rs/broccoli/badge.svg)](https://docs.rs/broccoli)
 [![Crates.io](https://img.shields.io/crates/d/broccoli)](https://crates.io/crates/broccoli)
 [![Discord](https://img.shields.io/discord/802222889046638653)](https://discord.com/channels/802222889046638653)
 
@@ -11,12 +11,12 @@ Broccoli is a broad-phase collision detection library.
 
 The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 
-Checkout it out on [github](https://github.com/tiby312/broccoli) and on [crates.io](https://crates.io/crates/broccoli).
+Checkout it out on [github](https://github.com/tiby312/broccoli) and on [crates.io](https://crates.io/crates/broccoli). Documentation at [docs.rs](https://docs.rs/broccoli).
 
 ### Inner projects
 
-The `demo` inner project is meant to show case the use of these algorithms. 
-The report inner project generates benches used in the [broccoli book](https://tiby312.github.io/broccoli_report).
+The `demo` inner project show cases the use of these algorithms. 
+The `report` inner project generates benches used in the [broccoli book](https://tiby312.github.io/broccoli_report).
 
 ### Screenshot
 
@@ -28,8 +28,7 @@ Screen capture from the inner `demo` project.
 ### Name
 
 If you shorten "broad-phase collision" to "broad colli" and say it fast, it sounds like broccoli.
-Broccoli also have tree like properties and broccoli uses a tree data structure.
-
+Broccoli are also basically small trees and broccoli uses a tree data structure.
 
 ### Example
 
