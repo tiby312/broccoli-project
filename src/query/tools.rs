@@ -5,7 +5,7 @@ use super::inner_prelude::*;
 //this can have some false positives.
 //but it will still prune a lot of bots.
 #[inline(always)]
-pub fn get_section<'a, I: Aabb, A: Axis>(axis: A, arr: &'a [I], range: Range<I::Num>) -> &'a [I] {
+pub fn get_section<I: Aabb, A: Axis>(axis: A, arr: &[I], range: Range<I::Num>) -> &[I] {
     let mut start = None;
     let mut ii = arr.iter().enumerate();
     for (e, i) in &mut ii {
@@ -61,11 +61,11 @@ fn test_section() {
 //this can have some false positives.
 //but it will still prune a lot of bots.
 #[inline(always)]
-pub fn get_section_mut<'a, I: Aabb, A: Axis>(
+pub fn get_section_mut<I: Aabb, A: Axis>(
     axis: A,
-    arr: PMut<'a, [I]>,
+    arr: PMut<[I]>,
     range: Range<I::Num>,
-) -> PMut<'a, [I]> {
+) -> PMut<[I]> {
     let mut start = None;
     let mut ii = arr.iter().enumerate();
     for (e, i) in &mut ii {

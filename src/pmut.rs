@@ -63,7 +63,7 @@ pub fn combine_slice<'a, T>(a: PMut<'a, [T]>, b: PMut<'a, [T]>) -> PMut<'a, [T]>
     let blen = b.len();
     unsafe {
         assert_eq!(
-            a.inner.as_ptr().offset(a.len() as isize),
+            a.inner.as_ptr().add(a.len()),
             b.inner.as_ptr(),
             "Slices are not continuous"
         );
@@ -119,6 +119,12 @@ impl<'a, T: ?Sized> PMut<'a, T> {
 
     ///If this function were safe, it would
     ///defeat the purpose of this type.
+    ///
+    /// # Safety
+    /// 
+    /// This is unsafe, since the user may mutate the inner AABB
+    /// while T is inserted in a tree thus undoing the whole
+    /// point of this struct.
     #[inline(always)]
     pub unsafe fn into_inner(self) -> &'a mut T {
         self.inner

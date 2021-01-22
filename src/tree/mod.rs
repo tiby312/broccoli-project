@@ -169,6 +169,13 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// let tree=unsafe{broccoli::Tree::from_raw_parts(inner,num_aabbs)};
     /// assert_eq!(tree.num_aabbs(),7);
     ///```
+    ///
+    /// # Safety
+    ///
+    /// Unsafe, since the user may pass a number of aabbs
+    /// that does not reflect the true number of aabbs in
+    /// every node.
+    ///
     pub unsafe fn from_raw_parts(inner:compt::dfs_order::CompleteTreeContainer<Node<'a,T>, compt::dfs_order::PreOrder>,num_aabbs:usize)->Self{
         Tree{
             inner,

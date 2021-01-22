@@ -6,7 +6,7 @@ pub fn combine_slice<'a, T>(a: &'a [T], b: &'a [T]) -> &'a [T] {
     let blen = b.len();
     unsafe {
         assert_eq!(
-            a.as_ptr().offset(a.len() as isize),
+            a.as_ptr().add(a.len()),
             b.as_ptr(),
             "Slices are not continuous"
         );

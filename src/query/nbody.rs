@@ -8,6 +8,8 @@
 //!
 use super::*;
 
+type NodeWrapperVistr<'a,'b,T,M>=VistrMut<'a,NodeWrapper<'b,T,M>,PreOrder>;
+
 ///Helper enum indicating whether or not to gravitate a node as a whole, or as its individual parts.
 pub enum GravEnum<'a, T: Aabb, M> {
     Mass(&'a mut M),
@@ -51,7 +53,7 @@ pub fn naive_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
 }
 
 fn build_masses2<N: Nbody>(
-    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
+    vistr: NodeWrapperVistr<N::T,N::Mass>,
     no: &mut N,
 ) -> N::Mass {
     let (nn, rest) = vistr.next();
@@ -72,7 +74,7 @@ fn collect_masses<'a, 'b, N: Nbody>(
     root_div: N::N,
     root_axis: impl Axis,
     root: &N::Mass,
-    vistr: VistrMut<'b, NodeWrapper<'a, N::T, N::Mass>, PreOrder>,
+    vistr: NodeWrapperVistr<'b,'a,N::T,N::Mass>,
     no: &mut N,
     func1: &mut impl FnMut(&'b mut NodeWrapper<'a, N::T, N::Mass>, &mut N),
     func2: &mut impl FnMut(&'b mut PMut<'a, [N::T]>, &mut N),
@@ -96,7 +98,7 @@ fn pre_recc<N: Nbody>(
     root_div: N::N,
     root_axis: impl Axis,
     root: &mut NodeWrapper<N::T, N::Mass>,
-    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
+    vistr: NodeWrapperVistr<N::T,N::Mass>,
     no: &mut N,
 ) {
     let (nn, rest) = vistr.next();
@@ -120,11 +122,13 @@ fn pre_recc<N: Nbody>(
     }
 }
 
+
+
 fn recc_common<'a, 'b, N: Nbody>(
     axis: impl Axis,
-    vistr: VistrMut<'a, NodeWrapper<'b, N::T, N::Mass>, PreOrder>,
+    vistr: NodeWrapperVistr<'a,'b,N::T,N::Mass>,
     no: &mut N,
-) -> Option<[VistrMut<'a, NodeWrapper<'b, N::T, N::Mass>, PreOrder>; 2]> {
+) -> Option<[NodeWrapperVistr<'a,'b,N::T,N::Mass>; 2]> {
     let (nn, rest) = vistr.next();
 
     no.gravitate_self(nn.node.range.borrow_mut());
@@ -194,7 +198,7 @@ fn recc_common<'a, 'b, N: Nbody>(
 fn recc_par<N: Nbody, JJ: par::Joiner>(
     axis: impl Axis,
     par: JJ,
-    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
+    vistr: NodeWrapperVistr<N::T,N::Mass>,
     no: &mut N,
 ) where
     N::T: Send,
@@ -236,7 +240,7 @@ fn recc<N: Nbody>(
 }
 
 fn get_bots_from_vistr<'a, T: Aabb, N>(
-    vistr: VistrMut<'a, NodeWrapper<T, N>, PreOrder>,
+    vistr: NodeWrapperVistr<'a,'_,T,N>,
 ) -> PMut<'a, [T]> {
     let mut new_slice = None;
 
@@ -249,7 +253,7 @@ fn get_bots_from_vistr<'a, T: Aabb, N>(
     });
     new_slice.unwrap()
 }
-fn apply_tree<N: Nbody>(mut vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>, no: &mut N) {
+fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T,N::Mass>, no: &mut N) {
     {
         let mass = vistr.borrow_mut().next().0.mass;
 
