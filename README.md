@@ -1,3 +1,5 @@
+![Discord](https://img.shields.io/discord/802222889046638653)
+
 ### Overview
 
 Broccoli is a broad-phase collision detection library. 
