@@ -1,11 +1,9 @@
+### Broccoli
+
 [![Crates.io](https://img.shields.io/crates/v/broccoli)](https://crates.io/crates/broccoli)
 [![docs.rs](https://docs.rs/broccoli/badge.svg)](https://docs.rs/broccoli)
 [![Crates.io](https://img.shields.io/crates/d/broccoli)](https://crates.io/crates/broccoli)
 [![Discord](https://img.shields.io/discord/802222889046638653)](https://discord.com/channels/802222889046638653)
-
-
-
-### Overview
 
 Broccoli is a broad-phase collision detection library. 
 
