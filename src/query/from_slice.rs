@@ -232,11 +232,12 @@ pub unsafe trait FromSlice<'a,'b> where Self::T:HasInner<Inner=&'a mut Self::Inn
     /// }
     fn collect_colliding_pairs_par<D: Send + Sync>(
         &mut self,
+        joiner:impl crate::Joinable,
         func: impl Fn(&mut Self::Inner, &mut Self::Inner) -> Option<D> + Send + Sync + Copy,
     ) -> CollidingPairsPar<Self::Inner, D> where Self::T:Send+Sync,Self::Num:Send+Sync{
         let orig = Ptr(self.get_inner_elements_mut() as *mut _);
 
-        let cols = collect_colliding_pairs_par_inner(self.get_tree_mut(),|a, b| match func(a, b) {
+        let cols = collect_colliding_pairs_par_inner(self.get_tree_mut(),joiner,|a, b| match func(a, b) {
             Some(extra) => Some(ColPairPtr {
                 first: Ptr(a as *mut _),
                 second: Ptr(b as *mut _),
@@ -255,6 +256,7 @@ pub unsafe trait FromSlice<'a,'b> where Self::T:HasInner<Inner=&'a mut Self::Inn
 
 fn collect_colliding_pairs_par_inner<'a,T:Aabb+HasInner<Inner=&'a mut Inner>,Inner:'a,D: Send + Sync>(
     tree:&mut Tree<T>,
+    joiner:impl crate::Joinable,
     func: impl Fn(&mut Inner, &mut Inner) -> Option<D> + Send + Sync + Copy,
 ) -> Vec<Vec<D>> where T::Num:Send+Sync,T:Send+Sync {
     let mut handler = crate::query::colfind::builder::from_closure(
@@ -274,7 +276,7 @@ fn collect_colliding_pairs_par_inner<'a,T:Aabb+HasInner<Inner=&'a mut Inner>,Inn
 
     use crate::query::colfind::builder::*;
     tree.new_builder()
-        .query_par_ext(&mut handler, &mut SplitterEmpty);
+        .query_par_ext(joiner,&mut handler, &mut SplitterEmpty);
     handler.consume()
 }
 

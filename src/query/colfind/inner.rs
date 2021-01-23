@@ -1,5 +1,6 @@
 use super::node_handle::*;
 use crate::inner_prelude::*;
+use super::*;
 
 use crate::query::colfind::CollisionHandler;
 struct InnerRecurser<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis> {
@@ -152,6 +153,7 @@ impl<T:Aabb,NO:NodeHandler> ColfindRecurser<T,NO>{
         sweeper: &mut (impl CollisionHandler<T = T> + Splitter + Send + Sync),
         m: VistrMut<Node<T>>,
         splitter: &mut (impl Splitter + Send + Sync),
+        joiner:impl crate::Joinable
     ) where
         T:Send+Sync,
         T::Num: Send + Sync,
@@ -163,23 +165,25 @@ impl<T:Aabb,NO:NodeHandler> ColfindRecurser<T,NO>{
                     let (mut sweeper1, mut sweeper2) = sweeper.div();
                     let mut c=ColfindRecurser::new(self.handler);
 
-                    rayon::join(
-                        || {
+                    joiner.join(
+                        |joiner| {
                             self.recurse_par(
                                 this_axis.next(),
                                 dleft,
                                 &mut sweeper1,
                                 left,
                                 &mut splitter11,
+                                joiner.clone()
                             )
                         },
-                        || {
+                        |joiner| {
                             c.recurse_par(
                                 this_axis.next(),
                                 dright,
                                 &mut sweeper2,
                                 right,
                                 &mut splitter22,
+                                joiner.clone()
                             )
                         },
                     );

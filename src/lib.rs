@@ -124,6 +124,30 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
 
+#[derive(Copy,Clone)]
+pub struct RayonJoin;
+impl Joinable for RayonJoin {
+    fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
+    where
+        A: FnOnce(&Self) -> RA + Send,
+        B: FnOnce(&Self) -> RB + Send,
+        RA: Send,
+        RB: Send
+    {
+        rayon::join(||oper_a(self),||oper_b(self))
+    }
+}
+
+
+pub trait Joinable:Clone+Send+Sync{
+    fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
+    where
+        A: FnOnce(&Self) -> RA + Send,
+        B: FnOnce(&Self) -> RB + Send,
+        RA: Send,
+        RB: Send;
+        
+}
 
 
 

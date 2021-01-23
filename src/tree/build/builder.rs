@@ -18,7 +18,7 @@ where
     T::Num: Send + Sync,
 {
     ///Build not sorted in parallel
-    pub fn build_not_sorted_par(&mut self) -> NotSorted<'a, T> {
+    pub fn build_not_sorted_par(&mut self,joiner:impl crate::Joinable) -> NotSorted<'a, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
         let pswitch = self.par_builder.build_for_tree_of_height(self.prebuilder.get_height());
@@ -30,12 +30,13 @@ where
             &mut SplitterEmpty,
             self.prebuilder,
             self.rebal_strat,
+            joiner
         );
         NotSorted(inner)
     }
 
     ///Build in parallel
-    pub fn build_par(&mut self) -> Tree<'a, T> {
+    pub fn build_par(&mut self,joiner:impl crate::Joinable) -> Tree<'a, T> {
         let bots = core::mem::replace(&mut self.bots, &mut []);
 
         let pswitch = self.par_builder.build_for_tree_of_height(self.prebuilder.get_height());
@@ -48,6 +49,7 @@ where
             &mut SplitterEmpty,
             self.prebuilder,
             self.rebal_strat,
+            joiner
         )
     }
 }
@@ -185,6 +187,7 @@ fn create_tree_par<'a, JJ: par::Joiner, T: Aabb + Send + Sync, K: Splitter + Sen
     splitter: &mut K,
     height: TreePreBuilder,
     binstrat: BinStrat,
+    joiner:impl crate::Joinable
 ) -> Tree<'a, T>
 where
     T::Num: Send + Sync,
@@ -200,7 +203,7 @@ where
         sorter,
         _p: PhantomData,
     };
-    r.recurse_preorder(div_axis, dlevel, rest, &mut nodes, splitter, 0);
+    r.recurse_preorder(div_axis, dlevel, rest, &mut nodes, splitter, 0,joiner);
 
     assert_eq!(cc, nodes.len());
     let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
@@ -320,6 +323,7 @@ where
         nodes: &mut Vec<Node<'a, T>>,
         splitter: &mut K,
         depth: usize,
+        joiner:impl crate::Joinable
     ) {
         if depth < self.height - 1 {
             let (mut splitter11, mut splitter22) = splitter.div();
@@ -330,8 +334,8 @@ where
                 par::ParResult::Parallel([dleft, dright]) => {
                     let (splitter11ref, splitter22ref) = (&mut splitter11, &mut splitter22);
 
-                    let (nodes, mut nodes2) = rayon::join(
-                        move || {
+                    let (nodes, mut nodes2) = joiner.join(
+                        move |joiner| {
                             nodes.push(node.finish(self.sorter));
 
                             self.recurse_preorder(
@@ -341,10 +345,11 @@ where
                                 nodes,
                                 splitter11ref,
                                 depth + 1,
+                                joiner.clone()
                             );
                             nodes
                         },
-                        move || {
+                        move |joiner| {
                             let mut nodes2: Vec<_> =
                                 Vec::with_capacity(nodes_left(depth, self.height));
                             self.recurse_preorder(
@@ -354,6 +359,7 @@ where
                                 &mut nodes2,
                                 splitter22ref,
                                 depth + 1,
+                                joiner.clone()
                             );
                             nodes2
                         },

@@ -50,11 +50,11 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
 /// let tree = broccoli::new_par(&mut bots);
 ///
 ///```
-pub fn new_par<T: Aabb + Send + Sync>(bots: &mut [T]) -> Tree<T>
+pub fn new_par<T: Aabb + Send + Sync>(bots: &mut [T],joiner:impl crate::Joinable) -> Tree<T>
 where
     T::Num: Send + Sync,
 {
-    Tree::new_par(bots)
+    Tree::new_par(bots,joiner)
 }
 
 impl<'a, T: Aabb> DrawQuery<'a> for Tree<'a, T> {}
@@ -101,12 +101,12 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// let tree = broccoli::Tree::new_par(&mut bots);
     ///
     ///```
-    pub fn new_par(bots: &'a mut [T]) -> Tree<'a, T>
+    pub fn new_par(bots: &'a mut [T],joiner:impl crate::Joinable) -> Tree<'a, T>
     where
         T: Send + Sync,
         T::Num: Send + Sync,
     {
-        TreeBuilder::new(bots).build_par()
+        TreeBuilder::new(bots).build_par(joiner)
     }
 
     /// # Examples

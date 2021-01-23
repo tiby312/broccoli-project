@@ -24,7 +24,7 @@ where
     T::Num: Send + Sync,
 {
     #[inline(always)]
-    pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
+    pub fn query_par(self,joiner:impl crate::Joinable, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
         let mut sweeper = QueryFn::new(func);
 
         let par=self.par_builder.build_for_tree_of_height(self.vistr.get_height());
@@ -35,6 +35,7 @@ where
             &mut sweeper,
             self.vistr,
             &mut SplitterEmpty,
+            joiner
         );
     }
 }
@@ -170,7 +171,7 @@ where
     ///Perform the query in parallel, switching to sequential as specified
     ///by the [`QueryBuilder::with_switch_height()`]
     #[inline(always)]
-    pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
+    pub fn query_par(self, joiner:impl Joinable,func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
         let mut sweeper = QueryFn::new(func);
        
         let par=self.par_builder.build_for_tree_of_height(self.vistr.get_height());
@@ -181,6 +182,7 @@ where
             &mut sweeper,
             self.vistr,
             &mut SplitterEmpty,
+            joiner
         );
     }
 
@@ -218,6 +220,7 @@ where
     #[inline(always)]
     pub fn query_par_ext(
         self,
+        joiner:impl Joinable,
         sweeper: &mut (impl CollisionHandler<T = T> + Splitter + Send + Sync),
         splitter: &mut (impl Splitter + Send + Sync),
     ) {
@@ -229,6 +232,7 @@ where
             sweeper,
             self.vistr,
             splitter,
+            joiner
         );
     }
 }
