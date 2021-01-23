@@ -124,18 +124,25 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
 
-#[derive(Copy,Clone)]
-pub struct RayonJoin;
-impl Joinable for RayonJoin {
-    #[inline(always)]
-    fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
-    where
-        A: FnOnce(&Self) -> RA + Send,
-        B: FnOnce(&Self) -> RB + Send,
-        RA: Send,
-        RB: Send
-    {
-        rayon::join(||oper_a(self),||oper_b(self))
+
+#[cfg(feature = "rayon")]
+pub use self::rayonjoin::*;
+#[cfg(feature = "rayon")]
+mod rayonjoin{
+    use super::*;
+    #[derive(Copy,Clone)]
+    pub struct RayonJoin;
+    impl Joinable for RayonJoin {
+        #[inline(always)]
+        fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
+        where
+            A: FnOnce(&Self) -> RA + Send,
+            B: FnOnce(&Self) -> RB + Send,
+            RA: Send,
+            RB: Send
+        {
+            rayon::join(||oper_a(self),||oper_b(self))
+        }
     }
 }
 
@@ -147,6 +154,16 @@ pub trait Joinable:Clone+Send+Sync{
         B: FnOnce(&Self) -> RB + Send,
         RA: Send,
         RB: Send;
+
+    fn for_every<T,F>(&self,arr:&mut [T],func:F)
+    where 
+    T:Send,
+    F:Fn(&mut T)+Send+Copy{
+        if let Some((front,rest))=arr.split_first_mut(){
+            self.join(move |_|func(front),move |_|self.for_every(rest,func));
+        }
+
+    }
         
 }
 

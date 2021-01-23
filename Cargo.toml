@@ -10,6 +10,10 @@ readme = "README.md"
 edition = "2018"
 include = ["src/**/*", "LICENSE-MIT", "README.md"]
 
+[features]
+default = ["use_rayon"]
+use_rayon = ["rayon"]
+
 
 [workspace]
 members = [ "demo","report/data_gen"]
@@ -20,7 +24,7 @@ dists = {git="https://github.com/tiby312/dists.git"}
 [dependencies]
 is_sorted = "0.1"
 itertools = "0.9"
-rayon = "1.5"
+rayon = {version="1.5",optional=true}
 compt = "1.10"
 axgeom = {version="1.9",default-features = false}
 pdqselect = "0.1"

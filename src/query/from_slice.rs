@@ -385,11 +385,24 @@ impl<T, D> CollidingPairsPar<T, D> {
 impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
     pub fn for_every_pair_mut_par(
         &mut self,
+        joiner:impl crate::Joinable,
         arr: &mut [T],
         func: impl Fn(&mut T, &mut T, &mut D) + Send + Sync + Copy,
     ) {
         assert_eq!(arr as *mut _, self.original.0);
-        use rayon::prelude::*;
+        joiner.for_every(&mut self.cols,|a|{
+            for ColPairPtr {
+                first,
+                second,
+                extra,
+            } in a.iter_mut()
+            {
+                let a = unsafe { &mut *first.0 };
+                let b = unsafe { &mut *second.0 };
+                func(a, b, extra)
+            }
+        })
+        /*
         self.cols.par_iter_mut().for_each(|a| {
             for ColPairPtr {
                 first,
@@ -402,6 +415,7 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
                 func(a, b, extra)
             }
         });
+        */
     }
 }
 

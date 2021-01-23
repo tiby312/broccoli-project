@@ -234,6 +234,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
             let mut tree = broccoli::query::nbody::nbody_mut_par(
                 tree,
+                RayonJoin,
                 &mut Bla {
                     _num_pairs_checked: 0,
                     _p: PhantomData,
