@@ -130,6 +130,8 @@ pub use self::rayonjoin::*;
 #[cfg(feature = "use_rayon")]
 mod rayonjoin{
     use super::*;
+    ///
+    /// An implementation of [`Joinable`] that uses rayon's `join`.
     #[derive(Copy,Clone)]
     pub struct RayonJoin;
     impl Joinable for RayonJoin {
@@ -147,6 +149,10 @@ mod rayonjoin{
 }
 
 
+///
+/// Trait defining the main primitive with which the `_par` functions
+/// will be parallelized. The trait is based off of rayon's `join` function.
+///
 pub trait Joinable:Clone+Send+Sync{
     fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
     where
