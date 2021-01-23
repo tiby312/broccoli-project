@@ -154,6 +154,8 @@ mod rayonjoin{
 /// will be parallelized. The trait is based off of rayon's `join` function.
 ///
 pub trait Joinable:Clone+Send+Sync{
+
+    ///Execute both closures potentially in parallel.
     fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
     where
         A: FnOnce(&Self) -> RA + Send,
@@ -161,6 +163,8 @@ pub trait Joinable:Clone+Send+Sync{
         RA: Send,
         RB: Send;
 
+    ///Execute function F on each element in parallel
+    ///using `Self::join`.
     fn for_every<T,F>(&self,arr:&mut [T],func:F)
     where 
     T:Send,
