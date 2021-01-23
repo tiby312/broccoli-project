@@ -20,7 +20,8 @@ struct TreePtr<T:Aabb>{
     _num_aabbs:usize
 }
 
-///The data structure this crate revoles around.
+
+/// A space partitioning tree.
 #[repr(C)]
 pub struct Tree<'a, T: Aabb> {
     inner: TreeInner<Node<'a, T>>,
