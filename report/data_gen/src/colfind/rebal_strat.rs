@@ -54,7 +54,7 @@ fn handle_num_bots(fb: &mut FigureBuilder, grow: f64) {
                 bench_closure(|| {
                     let tree = TreeBuilder::new(&mut scene)
                         .with_bin_strat(BinStrat::Checked)
-                        .build_par();
+                        .build_par(RayonJoin);
 
                     black_box(tree);
                 })
@@ -65,7 +65,7 @@ fn handle_num_bots(fb: &mut FigureBuilder, grow: f64) {
                 bench_closure(|| {
                     let tree = TreeBuilder::new(&mut scene)
                         .with_bin_strat(BinStrat::NotChecked)
-                        .build_par();
+                        .build_par(RayonJoin);
 
                     black_box(tree);
                 })

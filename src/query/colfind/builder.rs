@@ -196,7 +196,7 @@ where
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect,query,query::colfind::builder::Consumer};
+    /// use broccoli::{prelude::*,RayonJoin,rect,bbox,query,query::colfind::builder::Consumer};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
@@ -209,6 +209,7 @@ where
     /// );
     ///
     /// tree.new_builder().query_par_ext(
+    ///     RayonJoin,
     ///     &mut handler,
     ///     &mut broccoli::build::SplitterEmpty
     /// );

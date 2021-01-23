@@ -125,9 +125,9 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
 }
 
 
-#[cfg(feature = "rayon")]
+#[cfg(feature = "use_rayon")]
 pub use self::rayonjoin::*;
-#[cfg(feature = "rayon")]
+#[cfg(feature = "use_rayon")]
 mod rayonjoin{
     use super::*;
     #[derive(Copy,Clone)]
@@ -141,7 +141,7 @@ mod rayonjoin{
             RA: Send,
             RB: Send
         {
-            rayon::join(||oper_a(self),||oper_b(self))
+            rayon_core::join(||oper_a(self),||oper_b(self))
         }
     }
 }

@@ -84,7 +84,7 @@ impl<'a,N:Num,T> TreeIndBase<'a,N,T>{
     /// ];
     ///
     /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
-    /// let mut tree = base.build_par();
+    /// let mut tree = base.build_par(broccoli::RayonJoin);
     /// ```
     pub fn build_par<'b>(&'b mut self,joiner:impl crate::Joinable)->TreeInd<'a,'b,N,T> where N:Send+Sync,T:Send+Sync{
         let tree=crate::new_par(joiner,&mut self.aabbs);

@@ -24,13 +24,13 @@ fn test3(
     let (mut tree, construction_time) = bench_closure_ret(|| {
         TreeBuilder::new(bots)
             .with_height_switch_seq(rebal_height)
-            .build_par()
+            .build_par(RayonJoin)
     });
 
     let (tree, query_time) = bench_closure_ret(|| {
         tree.new_builder()
             .with_switch_height(query_height)
-            .query_par(|a, b| {
+            .query_par(RayonJoin,|a, b| {
                 **a.unpack_inner() += 2;
                 **b.unpack_inner() += 2;
             });

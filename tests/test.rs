@@ -161,9 +161,9 @@ fn test_send_sync_tree() {
     let mut bots2 = create_bbox_mut(&mut bots2, |_| rect(0, 0, 0, 0));
 
     //Check that its send
-    let (t1, t2) = rayon::join(|| broccoli::new(&mut bots1), || broccoli::new(&mut bots2));
+    let (t1, t2) = rayon_core::join(|| broccoli::new(&mut bots1), || broccoli::new(&mut bots2));
 
     //Check that its sync
     let (p1, p2) = (&t1, &t2);
-    rayon::join(|| p1, || p2);
+    rayon_core::join(|| p1, || p2);
 }

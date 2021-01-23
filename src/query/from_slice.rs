@@ -205,7 +205,7 @@ pub unsafe trait FromSlice<'a,'b> where Self::T:HasInner<Inner=&'a mut Self::Inn
     /// # Examples
     ///
     ///```
-    /// use broccoli::prelude::*;
+    /// use broccoli::{RayonJoin,prelude::*};
     /// let mut aabbs = [
     ///     broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     ///     broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
@@ -213,10 +213,10 @@ pub unsafe trait FromSlice<'a,'b> where Self::T:HasInner<Inner=&'a mut Self::Inn
     /// ];
     ///
     /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect); 
-    /// let mut tree = base.build();
+    /// let mut tree = base.build_par(RayonJoin);
     ///
     /// //Find all colliding aabbs only once.
-    /// let mut pairs=tree.collect_colliding_pairs_par(|a, b| {
+    /// let mut pairs=tree.collect_colliding_pairs_par(RayonJoin,|a, b| {
     ///    a.inner += 1;
     ///    b.inner += 1;
     ///    Some(())
@@ -225,7 +225,7 @@ pub unsafe trait FromSlice<'a,'b> where Self::T:HasInner<Inner=&'a mut Self::Inn
     /// //Iterate over the pairs multiple times
     /// for _ in 0..3{
     ///     //mutate every colliding pair.
-    ///     pairs.for_every_pair_mut_par(&mut aabbs,|a,b,()|{
+    ///     pairs.for_every_pair_mut_par(RayonJoin,&mut aabbs,|a,b,()|{
     ///         a.inner+=1;
     ///         b.inner+=1;
     ///     })

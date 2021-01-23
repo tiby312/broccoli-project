@@ -41,10 +41,10 @@ fn test_par<T: Aabb + Send + Sync>(
 where
     T::Num: Send + Sync,
 {
-    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::new_par(bots));
+    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::new_par(RayonJoin,bots));
 
     let (tree, query_time) = bench_closure_ret(|| {
-        tree.find_colliding_pairs_mut_par(|a, b| {
+        tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
             func(a, b);
         });
         tree

@@ -116,10 +116,10 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{prelude::*,bbox,rect,RayonJoin};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
-    /// tree.find_colliding_pairs_mut_par(|a,b|{
+    /// tree.find_colliding_pairs_mut_par(RayonJoin,|a,b|{
     ///    *a.unpack_inner()+=1;
     ///    *b.unpack_inner()+=1;
     /// });

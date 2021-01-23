@@ -15,7 +15,7 @@ fn handle_num(fb: &mut FigureBuilder) {
 
         let mut bots = distribute(0.2, &mut bot_inner, |a| a.to_f32n());
 
-        let mut tree = broccoli::new_par(&mut bots);
+        let mut tree = broccoli::new_par(RayonJoin,&mut bots);
         let mut num_intersection = 0;
         tree.find_colliding_pairs_mut(|_a, _b| {
             num_intersection += 1;
@@ -47,7 +47,7 @@ fn handle_grow(fb: &mut FigureBuilder) {
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-        let mut tree = broccoli::new_par(&mut bots);
+        let mut tree = broccoli::new_par(RayonJoin,&mut bots);
 
         let mut num_intersection = 0;
         tree.find_colliding_pairs_mut(|_a, _b| {

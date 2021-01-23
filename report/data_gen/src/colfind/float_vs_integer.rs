@@ -83,9 +83,9 @@ fn handle_bench(fg: &mut Figure) {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
             bench_closure(|| {
-                let mut tree = broccoli::new_par(&mut bb);
+                let mut tree = broccoli::new_par(RayonJoin,&mut bb);
 
-                tree.find_colliding_pairs_mut_par(|a, b| {
+                tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
@@ -96,9 +96,9 @@ fn handle_bench(fg: &mut Figure) {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
             bench_closure(|| {
-                let mut tree = broccoli::new_par(&mut bb);
+                let mut tree = broccoli::new_par(RayonJoin,&mut bb);
 
-                tree.find_colliding_pairs_mut_par(|a, b| {
+                tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
@@ -109,9 +109,9 @@ fn handle_bench(fg: &mut Figure) {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_i64());
 
             bench_closure(|| {
-                let mut tree = broccoli::new_par(&mut bb);
+                let mut tree = broccoli::new_par(RayonJoin,&mut bb);
 
-                tree.find_colliding_pairs_mut_par(|a, b| {
+                tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
@@ -135,9 +135,9 @@ fn handle_bench(fg: &mut Figure) {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
             bench_closure(|| {
-                let mut tree = broccoli::new_par(&mut bb);
+                let mut tree = broccoli::new_par(RayonJoin,&mut bb);
 
-                tree.find_colliding_pairs_mut_par(|a, b| {
+                tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
@@ -152,9 +152,9 @@ fn handle_bench(fg: &mut Figure) {
             bench_closure(|| {
                 let mut bb = convert_dist(bb, |a| convert::rect_f32_to_u16(a, &border));
 
-                let mut tree = broccoli::new_par(&mut bb);
+                let mut tree = broccoli::new_par(RayonJoin,&mut bb);
 
-                tree.find_colliding_pairs_mut_par(|a, b| {
+                tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });

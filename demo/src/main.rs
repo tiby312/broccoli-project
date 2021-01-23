@@ -61,7 +61,7 @@ mod demo_iter {
 }
 
 fn main() {
-    rayon::ThreadPoolBuilder::new()
+    rayon_core::ThreadPoolBuilder::new()
         .num_threads(num_cpus::get_physical())
         .build_global()
         .unwrap();

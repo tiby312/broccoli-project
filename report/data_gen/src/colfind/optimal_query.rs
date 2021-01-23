@@ -36,7 +36,7 @@ pub fn handle_broccoli(grow: f64, fb: &mut FigureBuilder) {
                 let mut tree=base.build();
 
                 bench_closure(|| {
-                    tree.find_colliding_pairs_mut_par(|a, b| {
+                    tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
                         **a.unpack_inner() += 1;
                         **b.unpack_inner() += 1;
                     });
@@ -62,7 +62,7 @@ pub fn handle_broccoli(grow: f64, fb: &mut FigureBuilder) {
                 let mut tree=base.build();
 
                 bench_closure(|| {
-                    let c = tree.collect_colliding_pairs_par(|a, b| {
+                    let c = tree.collect_colliding_pairs_par(RayonJoin,|a, b| {
                         *a += 1;
                         *b += 1;
                         Some(())
@@ -152,10 +152,10 @@ pub fn handle_optimal(grow: f64, fb: &mut FigureBuilder) {
                 let mut base=crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
                 let mut tree=base.build();
 
-                let mut pairs = tree.collect_colliding_pairs_par(|_, _| Some(()));
+                let mut pairs = tree.collect_colliding_pairs_par(RayonJoin,|_, _| Some(()));
 
                 bench_closure(|| {
-                    pairs.for_every_pair_mut_par(&mut bot_inner, |a, b, ()| {
+                    pairs.for_every_pair_mut_par(RayonJoin,&mut bot_inner, |a, b, ()| {
                         *a += 1;
                         *b += 1;
                     });
