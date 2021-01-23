@@ -196,6 +196,7 @@ fn recc_common<'a, 'b, N: Nbody>(
 }
 
 fn recc_par<N: Nbody, JJ: par::Joiner>(
+    joiner:impl crate::Joinable,
     axis: impl Axis,
     par: JJ,
     vistr: NodeWrapperVistr<N::T,N::Mass>,
@@ -212,9 +213,10 @@ fn recc_par<N: Nbody, JJ: par::Joiner>(
         match par.next() {
             par::ParResult::Parallel([dleft, dright]) => {
                 let (mut no1, mut no2) = no.div();
-                rayon::join(
-                    || recc_par(axis.next(), dleft, left, &mut no1),
-                    || recc_par(axis.next(), dright, right, &mut no2),
+
+                joiner.join(
+                    |joiner| recc_par(joiner.clone(),axis.next(), dleft, left, &mut no1),
+                    |joiner| recc_par(joiner.clone(),axis.next(), dright, right, &mut no2),
                 );
                 no.add(no1, no2);
             }
@@ -302,7 +304,7 @@ fn convert_wrapper_into_tree<T: Aabb, M: Default>(
 
 ///Perform nbody
 ///The tree is taken by value so that its nodes can be expended to include more data.
-pub fn nbody_mut_par<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T>
+pub fn nbody_mut_par<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, joiner:impl crate::Joinable,no: &mut N) -> crate::Tree<'a, N::T>
 where
     N: Send + Sync + Splitter,
     N::T: Send + Sync,
@@ -319,7 +321,7 @@ where
 
     let par=par::ParallelBuilder::new().build_for_tree_of_height(newtree.get_height());
 
-    recc_par(default_axis(), par, newtree.vistr_mut(), no);
+    recc_par(joiner,default_axis(), par, newtree.vistr_mut(), no);
 
     apply_tree(newtree.vistr_mut(), no);
 

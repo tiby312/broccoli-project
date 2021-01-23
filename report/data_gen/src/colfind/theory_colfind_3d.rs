@@ -63,7 +63,7 @@ fn test3(grow: f64, inner: &mut [isize]) -> Res {
 fn test4(grow: f64, inner: &mut [isize]) -> Res {
     let (num_pairs, num_comparison) = datanum::datanum_test_ret(|maker| {
         let mut bots = distribute(grow, inner, |a| a.to_isize_dnum(maker));
-        let mut tree = NotSorted::new_par(&mut bots);
+        let mut tree = NotSorted::new_par(RayonJoin,&mut bots);
 
         let mut num_pairs = 0;
 

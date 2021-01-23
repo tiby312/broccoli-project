@@ -105,7 +105,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             .with_color([1.0, 0.5, 1.0, 0.6])
             .draw();
 
-        tree.find_colliding_pairs_mut_par(|a, b| {
+        tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = duckduckgeo::repel([(a.pos, &mut a.force), (b.pos, &mut b.force)], 0.001, 2.0);
         });

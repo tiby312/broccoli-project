@@ -20,7 +20,7 @@ pub mod bbox_helper {
 }
 
 mod inner_prelude {
-
+    pub use broccoli::RayonJoin;
     pub use super::bbox_helper;
     pub use crate::black_box;
     pub(crate) use crate::datanum;
@@ -129,7 +129,7 @@ fn profile_test(){
     }
 }
 fn main() {
-    rayon::ThreadPoolBuilder::new()
+    rayon_core::ThreadPoolBuilder::new()
         .num_threads(num_cpus::get_physical())
         .build_global()
         .unwrap();

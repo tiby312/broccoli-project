@@ -4,6 +4,7 @@ mod inner;
 mod node_handle;
 mod oned;
 
+use crate::Joinable;
 use self::inner::*;
 use self::node_handle::*;
 use super::tools;
@@ -115,10 +116,10 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{prelude::*,bbox,rect,RayonJoin};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
-    /// tree.find_colliding_pairs_mut_par(|a,b|{
+    /// tree.find_colliding_pairs_mut_par(RayonJoin,|a,b|{
     ///    *a.unpack_inner()+=1;
     ///    *b.unpack_inner()+=1;
     /// });
@@ -128,12 +129,13 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     ///```
     fn find_colliding_pairs_mut_par(
         &mut self,
+        joiner:impl crate::Joinable,
         func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Send + Sync + Clone,
     ) where
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        QueryBuilder::new(self.vistr_mut()).query_par(move |a, b| func(a, b));
+        QueryBuilder::new(self.vistr_mut()).query_par(joiner,move |a, b| func(a, b));
     }
 
     /// For analysis, allows the user to query with custom settings
@@ -185,11 +187,12 @@ pub trait NotSortedQueries<'a> {
 
     fn find_colliding_pairs_mut_par(
         &mut self,
+        joiner:impl crate::Joinable,
         func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Clone + Send + Sync,
     ) where
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        NotSortedQueryBuilder::new(self.vistr_mut()).query_par(move |a, b| func(a, b));
+        NotSortedQueryBuilder::new(self.vistr_mut()).query_par(joiner,move |a, b| func(a, b));
     }
 }

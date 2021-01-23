@@ -69,9 +69,9 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             Rect::new(p.x - r, p.x + r, p.y - r, p.y + r)
         });
 
-        let mut tree = broccoli::new_par(&mut k);
+        let mut tree = broccoli::new_par(RayonJoin,&mut k);
 
-        tree.find_colliding_pairs_mut_par(move |a, b| {
+        tree.find_colliding_pairs_mut_par(RayonJoin,move |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = a.solve(b, radius);
         });

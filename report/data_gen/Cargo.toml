@@ -8,7 +8,7 @@ publish = false
 [dependencies]
 gnuplot = "0.0.32"
 num_cpus = "1.*"
-rayon = "1.5"
+rayon-core = "1.9"
 dists={git="https://github.com/tiby312/dists.git"}
 
 

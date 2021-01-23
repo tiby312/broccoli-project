@@ -57,7 +57,8 @@
     html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
 )]
-//#![no_std]
+
+#![no_std]
 
 #[macro_use]
 extern crate alloc;
@@ -124,6 +125,58 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
 
+
+#[cfg(feature = "use_rayon")]
+pub use self::rayonjoin::*;
+#[cfg(feature = "use_rayon")]
+mod rayonjoin{
+    use super::*;
+    ///
+    /// An implementation of [`Joinable`] that uses rayon's `join`.
+    #[derive(Copy,Clone)]
+    pub struct RayonJoin;
+    impl Joinable for RayonJoin {
+        #[inline(always)]
+        fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
+        where
+            A: FnOnce(&Self) -> RA + Send,
+            B: FnOnce(&Self) -> RB + Send,
+            RA: Send,
+            RB: Send
+        {
+            rayon_core::join(||oper_a(self),||oper_b(self))
+        }
+    }
+}
+
+
+///
+/// Trait defining the main primitive with which the `_par` functions
+/// will be parallelized. The trait is based off of rayon's `join` function.
+///
+pub trait Joinable:Clone+Send+Sync{
+
+    ///Execute both closures potentially in parallel.
+    fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
+    where
+        A: FnOnce(&Self) -> RA + Send,
+        B: FnOnce(&Self) -> RB + Send,
+        RA: Send,
+        RB: Send;
+
+    ///Execute function F on each element in parallel
+    ///using `Self::join`.
+    fn for_every<T,F>(&self,arr:&mut [T],func:F)
+    where 
+    T:Send,
+    F:Fn(&mut T)+Send+Copy{
+        if let Some((front,rest))=arr.split_first_mut(){
+            self.join(move |_|func(front),move |_|self.for_every(rest,func));
+        }
+
+    }
+        
+}
 
 
 

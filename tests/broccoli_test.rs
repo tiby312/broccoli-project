@@ -89,11 +89,11 @@ fn test3() {
         let rects2 = {
             use std::sync::Mutex;
             let rects = Mutex::new(Vec::new());
-            let mut v = tree.collect_colliding_pairs_par(|_, _| Some(()));
+            let mut v = tree.collect_colliding_pairs_par(RayonJoin,|_, _| Some(()));
             dbg!(v.get(tree.get_inner_elements_mut()).len());
 
             let mutex = &rects;
-            v.for_every_pair_mut_par(tree.get_inner_elements_mut(), |a, b, ()| {
+            v.for_every_pair_mut_par(RayonJoin,tree.get_inner_elements_mut(), |a, b, ()| {
                 let mut rects = mutex.lock().unwrap();
                 rects.push((a.rect, b.rect))
             });

@@ -37,10 +37,10 @@ fn convert_box<T,X>(mut v_orig:Box<[T]>)->Box<[X]>{
 }
 
 impl<N: Num + Send + Sync, T: Send + Sync> TreeIndOwned<N, T> {
-    pub fn new_par(mut bots: Box<[T]>, func: impl FnMut(&mut T) -> Rect<N>) -> TreeIndOwned<N, T> {
+    pub fn new_par(mut bots: Box<[T]>,joiner:impl crate::Joinable, func: impl FnMut(&mut T) -> Rect<N>) -> TreeIndOwned<N, T> {
         
         let mut base=TreeIndBase::new(&mut bots,func);
-        let tree=base.build_par();
+        let tree=base.build_par(joiner);
         let tree=tree.into_ptr();
         let _base=convert_box(base.into_inner());
         
@@ -111,8 +111,8 @@ impl<T: Aabb + Send + Sync> TreeOwned<T>
 where
     T::Num: Send + Sync,
 {
-    pub fn new_par(mut bots: Box<[T]>) -> TreeOwned<T> {
-        let tree = crate::new_par(&mut bots);
+    pub fn new_par(joiner:impl crate::Joinable,mut bots: Box<[T]>) -> TreeOwned<T> {
+        let tree = crate::new_par(joiner,&mut bots);
 
         let inner=TreePtr{
             _inner:unsafe{tree.inner.convert()},

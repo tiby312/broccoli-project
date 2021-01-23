@@ -230,10 +230,11 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
             //use std::time::{Duration, Instant};
             //let now = Instant::now();
-            let tree = broccoli::new_par(&mut k);
+            let tree = broccoli::new_par(RayonJoin,&mut k);
 
             let mut tree = broccoli::query::nbody::nbody_mut_par(
                 tree,
+                RayonJoin,
                 &mut Bla {
                     _num_pairs_checked: 0,
                     _p: PhantomData,
@@ -302,7 +303,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                 */
             }
 
-            tree.find_colliding_pairs_mut_par(|a, b| {
+            tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
                 let (a, b) = (a.unpack_inner(), b.unpack_inner());
                 let (a, b) = if a.mass > b.mass { (a, b) } else { (b, a) };
 

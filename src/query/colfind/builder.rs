@@ -24,7 +24,7 @@ where
     T::Num: Send + Sync,
 {
     #[inline(always)]
-    pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
+    pub fn query_par(self,joiner:impl crate::Joinable, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
         let mut sweeper = QueryFn::new(func);
 
         let par=self.par_builder.build_for_tree_of_height(self.vistr.get_height());
@@ -35,6 +35,7 @@ where
             &mut sweeper,
             self.vistr,
             &mut SplitterEmpty,
+            joiner
         );
     }
 }
@@ -170,7 +171,7 @@ where
     ///Perform the query in parallel, switching to sequential as specified
     ///by the [`QueryBuilder::with_switch_height()`]
     #[inline(always)]
-    pub fn query_par(self, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
+    pub fn query_par(self, joiner:impl Joinable,func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
         let mut sweeper = QueryFn::new(func);
        
         let par=self.par_builder.build_for_tree_of_height(self.vistr.get_height());
@@ -181,6 +182,7 @@ where
             &mut sweeper,
             self.vistr,
             &mut SplitterEmpty,
+            joiner
         );
     }
 
@@ -194,7 +196,7 @@ where
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect,query,query::colfind::builder::Consumer};
+    /// use broccoli::{prelude::*,RayonJoin,rect,bbox,query,query::colfind::builder::Consumer};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
@@ -207,6 +209,7 @@ where
     /// );
     ///
     /// tree.new_builder().query_par_ext(
+    ///     RayonJoin,
     ///     &mut handler,
     ///     &mut broccoli::build::SplitterEmpty
     /// );
@@ -218,6 +221,7 @@ where
     #[inline(always)]
     pub fn query_par_ext(
         self,
+        joiner:impl Joinable,
         sweeper: &mut (impl CollisionHandler<T = T> + Splitter + Send + Sync),
         splitter: &mut (impl Splitter + Send + Sync),
     ) {
@@ -229,6 +233,7 @@ where
             sweeper,
             self.vistr,
             splitter,
+            joiner
         );
     }
 }

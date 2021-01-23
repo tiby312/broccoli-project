@@ -41,6 +41,7 @@ pub fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {
 pub use self::prevec::PreVec;
 
 mod prevec {
+    use alloc::vec::Vec;
     use crate::pmut::PMut;
     use twounordered::TwoUnorderedVecs;
 

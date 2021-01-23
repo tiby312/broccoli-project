@@ -10,7 +10,7 @@ duckduckgeo ={git="https://github.com/tiby312/duckduckgeo"}
 bit-vec = "0.6"
 num_cpus = "1.10"
 egaku2d = "0.5"
-rayon = "1.5"
+rayon-core = "1.9"
 
 [dependencies.broccoli]
 path = ".."
