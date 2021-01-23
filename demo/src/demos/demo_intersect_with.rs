@@ -63,7 +63,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         let mut k = support::distribute(&mut bots, |b| support::point_to_rect_f32(b.pos, radius));
 
         {
-            let mut tree = broccoli::new_par(&mut k);
+            let mut tree = broccoli::new_par(RayonJoin,&mut k);
 
             tree.intersect_with_mut(&mut walls, |bot2, wall| {
                 let (rect, bot) = bot2.unpack();
@@ -97,7 +97,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                 let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
             });
 
-            tree.find_colliding_pairs_mut_par(|a, b| {
+            tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
                 let a = a.unpack_inner();
                 let b = b.unpack_inner();
                 let _ =

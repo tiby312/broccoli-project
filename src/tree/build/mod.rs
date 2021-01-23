@@ -183,7 +183,7 @@ impl<'a, T: Aabb + Send + Sync> NotSorted<'a, T>
 where
     T::Num: Send + Sync,
 {
-    pub fn new_par(bots: &'a mut [T],joiner:impl crate::Joinable) -> NotSorted<'a, T> {
+    pub fn new_par(joiner:impl crate::Joinable,bots: &'a mut [T]) -> NotSorted<'a, T> {
         TreeBuilder::new(bots).build_not_sorted_par(joiner)
     }
 }

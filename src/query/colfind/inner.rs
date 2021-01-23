@@ -1,6 +1,5 @@
 use super::node_handle::*;
 use crate::inner_prelude::*;
-use super::*;
 
 use crate::query::colfind::CollisionHandler;
 struct InnerRecurser<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis> {

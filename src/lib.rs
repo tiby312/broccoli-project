@@ -127,6 +127,7 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
 #[derive(Copy,Clone)]
 pub struct RayonJoin;
 impl Joinable for RayonJoin {
+    #[inline(always)]
     fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
     where
         A: FnOnce(&Self) -> RA + Send,

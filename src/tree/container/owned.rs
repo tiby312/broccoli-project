@@ -111,8 +111,8 @@ impl<T: Aabb + Send + Sync> TreeOwned<T>
 where
     T::Num: Send + Sync,
 {
-    pub fn new_par(mut bots: Box<[T]>,joiner:impl crate::Joinable) -> TreeOwned<T> {
-        let tree = crate::new_par(&mut bots,joiner);
+    pub fn new_par(joiner:impl crate::Joinable,mut bots: Box<[T]>) -> TreeOwned<T> {
+        let tree = crate::new_par(joiner,&mut bots);
 
         let inner=TreePtr{
             _inner:unsafe{tree.inner.convert()},

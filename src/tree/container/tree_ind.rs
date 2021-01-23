@@ -87,7 +87,7 @@ impl<'a,N:Num,T> TreeIndBase<'a,N,T>{
     /// let mut tree = base.build_par();
     /// ```
     pub fn build_par<'b>(&'b mut self,joiner:impl crate::Joinable)->TreeInd<'a,'b,N,T> where N:Send+Sync,T:Send+Sync{
-        let tree=crate::new_par(&mut self.aabbs,joiner);
+        let tree=crate::new_par(joiner,&mut self.aabbs);
 
         TreeInd{
             tree,

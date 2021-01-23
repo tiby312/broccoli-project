@@ -5,7 +5,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
     .into_boxed_slice();
 
 
-    let mut tree = broccoli::container::TreeOwned::new_par(bots);
+    let mut tree = broccoli::container::TreeOwned::new_par(RayonJoin,bots);
     
     let mut rects = canvas.rects();
     for bot in tree.as_tree().get_elements().iter(){

@@ -1,4 +1,5 @@
 pub mod prelude {
+    pub use broccoli::RayonJoin;
     pub use crate::dists::*;
     pub use crate::Demo;
     pub use crate::*;
