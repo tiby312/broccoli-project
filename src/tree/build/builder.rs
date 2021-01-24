@@ -383,11 +383,11 @@ impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable>
                             nodes
                         },
                         move |_joiner| {
-                            let n = nodes_left(depth, height);
+                            let n = nodes_left(depth, height-1);
                             let mut nodes2: Vec<_> = Vec::with_capacity(n);
                             right.recurse_preorder(axis.next(), &mut nodes2, splitter22ref);
-                            assert_eq!(nodes2.len(), n);
                             assert_eq!(nodes2.capacity(), n);
+                            assert_eq!(nodes2.len(), n);
                             nodes2
                         },
                     );
