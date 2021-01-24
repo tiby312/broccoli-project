@@ -174,7 +174,9 @@ mod mover{
                 let target=self.inner as *mut K;
                 let source=&k as *const K;
                 core::ptr::copy_nonoverlapping(source,target,1);
-            }    
+            }
+            core::mem::forget(k);
+                
         }
     }
 }
