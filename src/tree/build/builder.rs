@@ -13,7 +13,6 @@ pub struct TreeBuilder<'a, T> {
     par_builder: ParallelBuilder,
 }
 
-
 impl<'a, T: Aabb> TreeBuilder<'a, T> {
     ///Create a new builder with a slice of elements that implement `Aabb`.
     pub fn new(bots: &'a mut [T]) -> TreeBuilder<'a, T> {
@@ -39,28 +38,29 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
         }
     }
     ///Build not sorted in parallel
-    pub fn build_not_sorted_par(&mut self, joiner: impl crate::Joinable) -> NotSorted<'a, T>where T:Send+Sync,T::Num:Send+Sync {
+    pub fn build_not_sorted_par(&mut self, joiner: impl crate::Joinable) -> NotSorted<'a, T>
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
         let pswitch = self
             .par_builder
             .build_for_tree_of_height(self.prebuilder.get_height());
 
-        NotSorted(create_tree_par(
-            self,
-            NoSorter,
-            SplitterEmpty,
-            pswitch,
-            joiner,
-        ).0)
+        NotSorted(create_tree_par(self, NoSorter, SplitterEmpty, pswitch, joiner).0)
     }
 
     ///Build in parallel
-    pub fn build_par(&mut self, joiner: impl crate::Joinable) -> Tree<'a, T> 
-        where T:Send+Sync,T::Num:Send+Sync{
+    pub fn build_par(&mut self, joiner: impl crate::Joinable) -> Tree<'a, T>
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
         let pswitch = self
             .par_builder
             .build_for_tree_of_height(self.prebuilder.get_height());
 
-        create_tree_par(self, DefaultSorter,SplitterEmpty, pswitch, joiner).0
+        create_tree_par(self, DefaultSorter, SplitterEmpty, pswitch, joiner).0
     }
     ///Build not sorted sequentially
     pub fn build_not_sorted_seq(&mut self) -> NotSorted<'a, T> {
@@ -93,16 +93,16 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
     }
 
     ///Build with a Splitter.
-    pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: S) -> (Tree<'a, T>,S) {
+    pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: S) -> (Tree<'a, T>, S) {
         create_tree_seq(self, DefaultSorter, splitter)
     }
 }
 
-fn create_tree_seq<'a, T: Aabb,K:Splitter>(
+fn create_tree_seq<'a, T: Aabb, K: Splitter>(
     builder: &mut TreeBuilder<'a, T>,
     sorter: impl Sorter,
     splitter: K,
-) -> (Tree<'a, T>,K) {
+) -> (Tree<'a, T>, K) {
     let bots = core::mem::replace(&mut builder.bots, &mut []);
 
     let num_aabbs = bots.len();
@@ -116,18 +116,16 @@ fn create_tree_seq<'a, T: Aabb,K:Splitter>(
         sorter,
     };
 
-    
     let r = Recurser {
         constants,
         arr: bots,
         depth: 0,
-        splitter
+        splitter,
     };
 
-    
-    let splitter=r.recurse_seq(builder.axis, &mut nodes);
+    let splitter = r.recurse_seq(builder.axis, &mut nodes);
     assert_eq!(cc, nodes.len());
-    
+
     let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
     let k = inner
@@ -136,20 +134,16 @@ fn create_tree_seq<'a, T: Aabb,K:Splitter>(
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_aabbs);
 
-    (Tree { inner, num_aabbs },splitter)
+    (Tree { inner, num_aabbs }, splitter)
 }
 
-
-
-
-
-fn create_tree_par<'a, T: Aabb,K:Splitter+Send+Sync>(
+fn create_tree_par<'a, T: Aabb, K: Splitter + Send + Sync>(
     builder: &mut TreeBuilder<'a, T>,
     sorter: impl Sorter,
     splitter: K,
     par: impl par::Joiner,
     joiner: impl crate::Joinable,
-) -> (Tree<'a, T>,K)
+) -> (Tree<'a, T>, K)
 where
     T: Send + Sync,
     T::Num: Send + Sync,
@@ -171,7 +165,7 @@ where
         constants,
         arr: bots,
         depth: 0,
-        splitter
+        splitter,
     };
 
     let r = ParallelRecurser {
@@ -180,10 +174,10 @@ where
         joiner,
     };
 
-    let splitter=r.recurse(builder.axis, &mut nodes);
+    let splitter = r.recurse(builder.axis, &mut nodes);
 
     assert_eq!(cc, nodes.len());
-    
+
     let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
     let k = inner
@@ -192,7 +186,7 @@ where
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_aabbs);
 
-    (Tree { inner, num_aabbs },splitter)
+    (Tree { inner, num_aabbs }, splitter)
 }
 
 struct NonLeafFinisher<'a, A, T: Aabb, S> {
@@ -221,28 +215,31 @@ struct Constants<S: Sorter> {
     sorter: S,
 }
 
-struct Recurser<'a, 'b, T: Aabb, S: Sorter,K:Splitter> {
+struct Recurser<'a, 'b, T: Aabb, S: Sorter, K: Splitter> {
     constants: &'b Constants<S>,
     depth: usize,
     arr: &'a mut [T],
-    splitter:K
+    splitter: K,
 }
 
-impl<'a, 'b, T: Aabb, S: Sorter,K:Splitter> Recurser<'a, 'b, T, S,K> {
+impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
     #[inline(always)]
-    fn create_leaf<A: Axis>(self, axis: A) -> (Node<'a, T>,K) {
+    fn create_leaf<A: Axis>(self, axis: A) -> (Node<'a, T>, K) {
         self.constants.sorter.sort(axis.next(), self.arr);
 
         let cont = create_cont(axis, self.arr);
 
-        (Node {
-            range: PMut::new(self.arr),
-            cont,
-            div: None,
-        },self.splitter)
+        (
+            Node {
+                range: PMut::new(self.arr),
+                cont,
+                div: None,
+            },
+            self.splitter,
+        )
     }
 
-    fn split<A: Axis>(mut self, axis: A) -> (K,NonLeafFinisher<'a, A, T, S>, Self, Self) {
+    fn split<A: Axis>(mut self, axis: A) -> (K, NonLeafFinisher<'a, A, T, S>, Self, Self) {
         let (f, left, right) = match construct_non_leaf(self.constants.binstrat, axis, self.arr) {
             ConstructResult::NonEmpty {
                 div,
@@ -270,7 +267,7 @@ impl<'a, 'b, T: Aabb, S: Sorter,K:Splitter> Recurser<'a, 'b, T, S,K> {
                 (node, &mut [] as &mut [_], &mut [] as &mut [_])
             }
         };
-        let (splitter11,splitter22) = self.splitter.div();
+        let (splitter11, splitter22) = self.splitter.div();
 
         (
             self.splitter,
@@ -279,121 +276,134 @@ impl<'a, 'b, T: Aabb, S: Sorter,K:Splitter> Recurser<'a, 'b, T, S,K> {
                 constants: self.constants,
                 depth: self.depth + 1,
                 arr: left,
-                splitter:splitter11
+                splitter: splitter11,
             },
             Recurser {
                 constants: self.constants,
                 depth: self.depth + 1,
                 arr: right,
-                splitter:splitter22
+                splitter: splitter22,
             },
         )
     }
 
-    fn recurse_seq<A: Axis>(
-        self,
-        axis: A,
-        nodes: &mut Vec<Node<'a, T>>
-    ) ->K{
+    fn recurse_seq<A: Axis>(self, axis: A, nodes: &mut Vec<Node<'a, T>>) -> K {
         if self.depth < self.constants.height - 1 {
-            
-            let (mut splitter,node, left, right) = self.split(axis);
+            let (mut splitter, node, left, right) = self.split(axis);
 
             nodes.push(node.finish());
 
-            let ls=left.recurse_seq(axis.next(), nodes);
-            let rs=right.recurse_seq(axis.next(), nodes);
+            let ls = left.recurse_seq(axis.next(), nodes);
+            let rs = right.recurse_seq(axis.next(), nodes);
 
             splitter.add(ls, rs);
             splitter
         } else {
-            let (node,splitter) = self.create_leaf(axis);
+            let (node, splitter) = self.create_leaf(axis);
             nodes.push(node);
             splitter
         }
     }
 }
 
-
-enum Either<'a, 'b, A:Axis,T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable,K:Splitter> {
-    Par(K,NonLeafFinisher<'a, A, T, S>,[ParallelRecurser<'a, 'b, T, S, JJ, Joiner,K>; 2]),
-    Seq(K,NonLeafFinisher<'a, A, T, S>,[Recurser<'a, 'b, T, S,K>; 2]),
+enum Either<
+    'a,
+    'b,
+    A: Axis,
+    T: Aabb,
+    S: Sorter,
+    JJ: par::Joiner,
+    Joiner: crate::Joinable,
+    K: Splitter,
+> {
+    Par(
+        K,
+        NonLeafFinisher<'a, A, T, S>,
+        [ParallelRecurser<'a, 'b, T, S, JJ, Joiner, K>; 2],
+    ),
+    Seq(
+        K,
+        NonLeafFinisher<'a, A, T, S>,
+        [Recurser<'a, 'b, T, S, K>; 2],
+    ),
 }
 
-struct ParallelRecurser<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable,K:Splitter> {
-    inner: Recurser<'a, 'b, T, S,K>,
+struct ParallelRecurser<
+    'a,
+    'b,
+    T: Aabb,
+    S: Sorter,
+    JJ: par::Joiner,
+    Joiner: crate::Joinable,
+    K: Splitter,
+> {
+    inner: Recurser<'a, 'b, T, S, K>,
     dlevel: JJ,
     joiner: Joiner,
 }
 
-impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable,K:Splitter>
-    ParallelRecurser<'a, 'b, T, S, JJ, Joiner,K>
+impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable, K: Splitter>
+    ParallelRecurser<'a, 'b, T, S, JJ, Joiner, K>
+where
+    T: Send + Sync,
+    T::Num: Send + Sync,
+    K: Send + Sync,
 {
-    fn split<A: Axis>(
-        self,
-        axis: A,
-    ) -> Either<'a, 'b, A,T, S, JJ, Joiner,K>
-     {
+    fn split<A: Axis>(self, axis: A) -> Either<'a, 'b, A, T, S, JJ, Joiner, K> {
         match self.dlevel.next() {
             par::ParResult::Parallel([dleft, dright]) => {
                 let joiner = self.joiner;
                 let joiner2 = joiner.clone();
 
-                let (splitter,n, left, right) = self.inner.split(axis);
-    
-                Either::Par(splitter,n,[
-                    ParallelRecurser {
-                        inner: left,
-                        dlevel: dleft,
-                        joiner,
-                    },
-                    ParallelRecurser {
-                        inner: right,
-                        dlevel: dright,
-                        joiner: joiner2,
-                    },
-                ]) 
+                let (splitter, n, left, right) = self.inner.split(axis);
+
+                Either::Par(
+                    splitter,
+                    n,
+                    [
+                        ParallelRecurser {
+                            inner: left,
+                            dlevel: dleft,
+                            joiner,
+                        },
+                        ParallelRecurser {
+                            inner: right,
+                            dlevel: dright,
+                            joiner: joiner2,
+                        },
+                    ],
+                )
             }
             par::ParResult::Sequential(_) => {
-                let (splitter,n, left, right) = self.inner.split(axis);
+                let (splitter, n, left, right) = self.inner.split(axis);
 
-                Either::Seq(splitter,n,[left, right])
+                Either::Seq(splitter, n, [left, right])
             }
         }
     }
-    fn recurse<A: Axis>(
-        self,
-        axis: A,
-        nodes: &mut Vec<Node<'a, T>>,
-    ) ->K where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-        K: Send + Sync,
-    {
+    fn recurse<A: Axis>(self, axis: A, nodes: &mut Vec<Node<'a, T>>) -> K {
         if self.inner.depth < self.inner.constants.height - 1 {
-            
             let depth = self.inner.depth;
             let height = self.inner.constants.height;
 
             //TODO get rid of this clone somehow
             let joiner = self.joiner.clone();
             match self.split(axis) {
-                Either::Par(mut splitter,node,[left, right]) => {
-                    
-                    let ((ls,nodes), (rs,mut nodes2)) = joiner.join(
+                Either::Par(mut splitter, node, [left, right]) => {
+                    let ((ls, nodes), (rs, mut nodes2)) = joiner.join(
                         move |_joiner| {
                             nodes.push(node.finish());
 
                             let ls = left.recurse(axis.next(), nodes);
-                            (ls,nodes)
+                            (ls, nodes)
                         },
                         move |_joiner| {
-                            let n = nodes_left(depth, height-1);
+                            let n = nodes_left(depth, height - 1);
                             let mut nodes2: Vec<_> = Vec::with_capacity(n);
-                            let rs=right.recurse(axis.next(), &mut nodes2);
+                            let rs = right.recurse(axis.next(), &mut nodes2);
                             assert_eq!(nodes2.capacity(), n);
                             assert_eq!(nodes2.len(), n);
-                            (rs,nodes2)
+                            (rs, nodes2)
                         },
                     );
 
@@ -401,19 +411,17 @@ impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable,K:Spli
                     splitter.add(ls, rs);
                     splitter
                 }
-                Either::Seq(mut splitter,node,[left, right]) => {
+                Either::Seq(mut splitter, node, [left, right]) => {
                     nodes.push(node.finish());
 
-                    let ls=left.recurse_seq(axis.next(), nodes);
-                    let rs=right.recurse_seq(axis.next(), nodes);
+                    let ls = left.recurse_seq(axis.next(), nodes);
+                    let rs = right.recurse_seq(axis.next(), nodes);
                     splitter.add(ls, rs);
                     splitter
                 }
             }
-
-            
         } else {
-            let (node,splitter) = self.inner.create_leaf(axis);
+            let (node, splitter) = self.inner.create_leaf(axis);
             nodes.push(node);
             splitter
         }

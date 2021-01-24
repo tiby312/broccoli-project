@@ -73,6 +73,8 @@ impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
     }
 }
 
+//TODO give this the same treatment as build did.
+
 pub struct ColfindRecurser<T: Aabb, NO: NodeHandler> {
     prevec: PreVec<T>,
     handler: NO,
