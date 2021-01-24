@@ -317,6 +317,7 @@ enum Either<
     K: Splitter,
 > {
     Par(
+        Joiner,
         K,
         NonLeafFinisher<'a, A, T, S>,
         [ParallelRecurser<'a, 'b, T, S, JJ, Joiner, K>; 2],
@@ -352,19 +353,20 @@ where
     fn split<A: Axis>(self, axis: A) -> Either<'a, 'b, A, T, S, JJ, Joiner, K> {
         match self.dlevel.next() {
             par::ParResult::Parallel([dleft, dright]) => {
-                let joiner = self.joiner;
-                let joiner2 = joiner.clone();
+                let joiner1 = self.joiner.clone();
+                let joiner2 = self.joiner.clone();
 
                 let (splitter, n, left, right) = self.inner.split(axis);
 
                 Either::Par(
+                    self.joiner,
                     splitter,
                     n,
                     [
                         ParallelRecurser {
                             inner: left,
                             dlevel: dleft,
-                            joiner,
+                            joiner:joiner1,
                         },
                         ParallelRecurser {
                             inner: right,
@@ -386,10 +388,8 @@ where
             let depth = self.inner.depth;
             let height = self.inner.constants.height;
 
-            //TODO get rid of this clone somehow
-            let joiner = self.joiner.clone();
             match self.split(axis) {
-                Either::Par(mut splitter, node, [left, right]) => {
+                Either::Par(joiner,mut splitter, node, [left, right]) => {
                     let ((ls, nodes), (rs, mut nodes2)) = joiner.join(
                         move |_joiner| {
                             nodes.push(node.finish());
