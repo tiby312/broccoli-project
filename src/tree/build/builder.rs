@@ -125,7 +125,7 @@ fn create_tree_seq<'a, T: Aabb,K:Splitter>(
     };
 
     
-    let splitter=r.recurse_preorder_seq(builder.axis, &mut nodes);
+    let splitter=r.recurse_seq(builder.axis, &mut nodes);
     assert_eq!(cc, nodes.len());
     
     let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
@@ -180,7 +180,7 @@ where
         joiner,
     };
 
-    let splitter=r.recurse_preorder(builder.axis, &mut nodes);
+    let splitter=r.recurse(builder.axis, &mut nodes);
 
     assert_eq!(cc, nodes.len());
     
@@ -290,7 +290,7 @@ impl<'a, 'b, T: Aabb, S: Sorter,K:Splitter> Recurser<'a, 'b, T, S,K> {
         )
     }
 
-    fn recurse_preorder_seq<A: Axis>(
+    fn recurse_seq<A: Axis>(
         self,
         axis: A,
         nodes: &mut Vec<Node<'a, T>>
@@ -301,8 +301,8 @@ impl<'a, 'b, T: Aabb, S: Sorter,K:Splitter> Recurser<'a, 'b, T, S,K> {
 
             nodes.push(node.finish());
 
-            let ls=left.recurse_preorder_seq(axis.next(), nodes);
-            let rs=right.recurse_preorder_seq(axis.next(), nodes);
+            let ls=left.recurse_seq(axis.next(), nodes);
+            let rs=right.recurse_seq(axis.next(), nodes);
 
             splitter.add(ls, rs);
             splitter
@@ -361,7 +361,7 @@ impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable,K:Spli
             }
         }
     }
-    fn recurse_preorder<A: Axis>(
+    fn recurse<A: Axis>(
         self,
         axis: A,
         nodes: &mut Vec<Node<'a, T>>,
@@ -384,13 +384,13 @@ impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable,K:Spli
                         move |_joiner| {
                             nodes.push(node.finish());
 
-                            let ls = left.recurse_preorder(axis.next(), nodes);
+                            let ls = left.recurse(axis.next(), nodes);
                             (ls,nodes)
                         },
                         move |_joiner| {
                             let n = nodes_left(depth, height-1);
                             let mut nodes2: Vec<_> = Vec::with_capacity(n);
-                            let rs=right.recurse_preorder(axis.next(), &mut nodes2);
+                            let rs=right.recurse(axis.next(), &mut nodes2);
                             assert_eq!(nodes2.capacity(), n);
                             assert_eq!(nodes2.len(), n);
                             (rs,nodes2)
@@ -404,8 +404,8 @@ impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable,K:Spli
                 Either::Seq(mut splitter,node,[left, right]) => {
                     nodes.push(node.finish());
 
-                    let ls=left.recurse_preorder_seq(axis.next(), nodes);
-                    let rs=right.recurse_preorder_seq(axis.next(), nodes);
+                    let ls=left.recurse_seq(axis.next(), nodes);
+                    let rs=right.recurse_seq(axis.next(), nodes);
                     splitter.add(ls, rs);
                     splitter
                 }
