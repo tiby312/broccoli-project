@@ -18,41 +18,33 @@ where
     T::Num: Send + Sync,
 {
     ///Build not sorted in parallel
-    pub fn build_not_sorted_par(&mut self, joiner: impl crate::Joinable) -> NotSorted<'a, T> {
-        let bots = core::mem::replace(&mut self.bots, &mut []);
-
+    pub fn build_not_sorted_par(self, joiner: impl crate::Joinable) -> NotSorted<'a, T> {
+        
         let pswitch = self
             .par_builder
             .build_for_tree_of_height(self.prebuilder.get_height());
-        let inner = create_tree_par(
-            self.axis,
-            pswitch,
-            bots,
+
+        NotSorted(create_tree_par(
+            self,
             NoSorter,
             &mut SplitterEmpty,
-            self.prebuilder,
-            self.rebal_strat,
+            pswitch,
             joiner,
-        );
-        NotSorted(inner)
+        ))
     }
 
     ///Build in parallel
-    pub fn build_par(&mut self, joiner: impl crate::Joinable) -> Tree<'a, T> {
-        let bots = core::mem::replace(&mut self.bots, &mut []);
-
+    pub fn build_par(self, joiner: impl crate::Joinable) -> Tree<'a, T> {
+        
         let pswitch = self
             .par_builder
             .build_for_tree_of_height(self.prebuilder.get_height());
 
         create_tree_par(
-            self.axis,
-            pswitch,
-            bots,
+            self,
             DefaultSorter,
             &mut SplitterEmpty,
-            self.prebuilder,
-            self.rebal_strat,
+            pswitch,
             joiner,
         )
     }
@@ -61,12 +53,11 @@ where
 impl<'a, T: Aabb> TreeBuilder<'a, T> {
     ///Create a new builder with a slice of elements that implement `Aabb`.
     pub fn new(bots: &'a mut [T]) -> TreeBuilder<'a, T> {
-        let rebal_strat = BinStrat::Checked;
         let prebuilder = TreePreBuilder::new(bots.len());
         TreeBuilder {
             axis: default_axis(),
             bots,
-            rebal_strat,
+            rebal_strat:BinStrat::Checked,
             prebuilder,
             par_builder: ParallelBuilder::new(),
         }
@@ -75,42 +66,32 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
 
 impl<'a, T: Aabb> TreeBuilder<'a, T> {
     pub fn from_prebuilder(bots: &'a mut [T], prebuilder: TreePreBuilder) -> TreeBuilder<T> {
-        let rebal_strat = BinStrat::Checked;
         TreeBuilder {
             axis: default_axis(),
             bots,
-            rebal_strat,
+            rebal_strat:BinStrat::Checked,
             prebuilder,
             par_builder: ParallelBuilder::new(),
         }
     }
 
     ///Build not sorted sequentially
-    pub fn build_not_sorted_seq(&mut self) -> NotSorted<'a, T> {
-        let bots = core::mem::replace(&mut self.bots, &mut []);
-
-        let inner = create_tree_seq(
-            self.axis,
-            bots,
+    pub fn build_not_sorted_seq(self) -> NotSorted<'a, T> {
+        
+        NotSorted(create_tree_seq(
+            self,
             NoSorter,
-            &mut SplitterEmpty,
-            self.prebuilder,
-            self.rebal_strat,
-        );
-        NotSorted(inner)
+            &mut SplitterEmpty
+        ))
     }
 
     ///Build sequentially
-    pub fn build_seq(&mut self) -> Tree<'a, T> {
-        let bots = core::mem::replace(&mut self.bots, &mut []);
-
+    pub fn build_seq(self) -> Tree<'a, T> {
+        
         create_tree_seq(
-            self.axis,
-            bots,
+            self,
             DefaultSorter,
-            &mut SplitterEmpty,
-            self.prebuilder,
-            self.rebal_strat,
+            &mut SplitterEmpty
         )
     }
 
@@ -135,41 +116,28 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
     }
 
     ///Build with a Splitter.
-    pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: &mut S) -> Tree<'a, T> {
-        let bots = core::mem::replace(&mut self.bots, &mut []);
-
+    pub fn build_with_splitter_seq<S: Splitter>(self, splitter: &mut S) -> Tree<'a, T> {
         create_tree_seq(
-            self.axis,
-            bots,
+            self,
             DefaultSorter,
-            splitter,
-            self.prebuilder,
-            self.rebal_strat,
+            splitter
         )
     }
 }
 
-fn create_tree_seq<'a, T: Aabb, K: Splitter>(
-    div_axis: DefaultA,
-    rest: &'a mut [T],
-    sorter: impl Sorter,
-    splitter: &mut K,
-    height: TreePreBuilder,
-    binstrat: BinStrat,
-) -> Tree<'a, T> {
-    let num_aabbs = rest.len();
+fn create_tree_seq<'a,T:Aabb>(builder:TreeBuilder<'a,T>,sorter:impl Sorter,splitter:&mut impl Splitter)->Tree<'a,T>{
+    let num_aabbs = builder.bots.len();
 
-    let cc = height.num_nodes();
-    //let cc = tree::nodes_left(0, height);
+    let cc = builder.prebuilder.num_nodes();
     let mut nodes = Vec::with_capacity(cc);
 
     let r = Recurser {
-        height: height.get_height(),
-        binstrat,
+        height: builder.prebuilder.get_height(),
+        binstrat:builder.rebal_strat,
         sorter,
         _p: PhantomData,
     };
-    r.recurse_preorder_seq(div_axis, rest, &mut nodes, splitter, 0);
+    r.recurse_preorder_seq(builder.axis, builder.bots, &mut nodes, splitter, 0);
     assert_eq!(cc, nodes.len());
 
     let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
@@ -183,31 +151,26 @@ fn create_tree_seq<'a, T: Aabb, K: Splitter>(
     Tree { inner, num_aabbs }
 }
 
-fn create_tree_par<'a, JJ: par::Joiner, T: Aabb + Send + Sync, K: Splitter + Send + Sync>(
-    div_axis: DefaultA,
-    dlevel: JJ,
-    rest: &'a mut [T],
-    sorter: impl Sorter,
-    splitter: &mut K,
-    height: TreePreBuilder,
-    binstrat: BinStrat,
-    joiner: impl crate::Joinable,
-) -> Tree<'a, T>
-where
-    T::Num: Send + Sync,
-{
-    let num_aabbs = rest.len();
-    let cc = height.num_nodes();
-    //let cc = tree::nodes_left(0, height);
+
+fn create_tree_par<'a,T:Aabb>(
+    builder:TreeBuilder<'a,T>,
+    sorter:impl Sorter,
+    splitter:&mut (impl Splitter+Send+Sync),
+    par:impl par::Joiner,
+    joiner: impl crate::Joinable)->Tree<'a,T>
+    where T:Send+Sync,T::Num:Send+Sync{
+    let num_aabbs = builder.bots.len();
+    let cc = builder.prebuilder.num_nodes();
+    
     let mut nodes = Vec::with_capacity(cc);
 
     let r = Recurser {
-        height: height.get_height(),
-        binstrat,
+        height: builder.prebuilder.get_height(),
+        binstrat:builder.rebal_strat,
         sorter,
         _p: PhantomData,
     };
-    r.recurse_preorder(div_axis, dlevel, rest, &mut nodes, splitter, 0, joiner);
+    r.recurse_preorder(builder.axis, par, builder.bots, &mut nodes, splitter, 0, joiner);
 
     assert_eq!(cc, nodes.len());
     let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
@@ -221,12 +184,6 @@ where
     Tree { inner, num_aabbs }
 }
 
-struct Recurser<'a, T: Aabb, K: Splitter, S: Sorter> {
-    height: usize,
-    binstrat: BinStrat,
-    sorter: S,
-    _p: PhantomData<(K, &'a T)>,
-}
 
 struct NonLeafFinisher<'a, A, T: Aabb> {
     axis: A,
@@ -245,6 +202,14 @@ impl<'a, A: Axis, T: Aabb> NonLeafFinisher<'a, A, T> {
         }
     }
 }
+
+struct Recurser<'a, T: Aabb, K: Splitter, S: Sorter> {
+    height: usize,
+    binstrat: BinStrat,
+    sorter: S,
+    _p: PhantomData<(K, &'a T)>,
+}
+
 
 impl<'a, T: Aabb, K: Splitter, S: Sorter> Recurser<'a, T, K, S> {
     fn create_leaf<A: Axis>(&self, axis: A, rest: &'a mut [T]) -> Node<'a, T> {
