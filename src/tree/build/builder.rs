@@ -307,9 +307,9 @@ struct ParallelRecurser<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: cra
     joiner: Joiner,
 }
 
-enum Either<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable> {
-    Par([ParallelRecurser<'a, 'b, T, S, JJ, Joiner>; 2]),
-    Seq([Recurser<'a, 'b, T, S>; 2]),
+enum Either<'a, 'b, A:Axis,T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable> {
+    Par(NonLeafFinisher<'a, A, T, S>,[ParallelRecurser<'a, 'b, T, S, JJ, Joiner>; 2]),
+    Seq(NonLeafFinisher<'a, A, T, S>,[Recurser<'a, 'b, T, S>; 2]),
 }
 
 impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable>
@@ -318,37 +318,32 @@ impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable>
     fn split<A: Axis>(
         self,
         axis: A,
-    ) -> (
-        NonLeafFinisher<'a, A, T, S>,
-        Either<'a, 'b, T, S, JJ, Joiner>,
-    ) {
+    ) -> Either<'a, 'b, A,T, S, JJ, Joiner>
+     {
         match self.dlevel.next() {
             par::ParResult::Parallel([dleft, dright]) => {
                 let joiner = self.joiner;
                 let joiner2 = joiner.clone();
 
                 let (n, left, right) = self.inner.split(axis);
-
-                (
-                    n,
-                    Either::Par([
-                        ParallelRecurser {
-                            inner: left,
-                            dlevel: dleft,
-                            joiner,
-                        },
-                        ParallelRecurser {
-                            inner: right,
-                            dlevel: dright,
-                            joiner: joiner2,
-                        },
-                    ]),
-                )
+    
+                Either::Par(n,[
+                    ParallelRecurser {
+                        inner: left,
+                        dlevel: dleft,
+                        joiner,
+                    },
+                    ParallelRecurser {
+                        inner: right,
+                        dlevel: dright,
+                        joiner: joiner2,
+                    },
+                ]) 
             }
             par::ParResult::Sequential(_) => {
                 let (n, left, right) = self.inner.split(axis);
 
-                (n, Either::Seq([left, right]))
+                Either::Seq(n,[left, right])
             }
         }
     }
@@ -370,9 +365,8 @@ impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable>
 
             //TODO get rid of this clone somehow
             let joiner = self.joiner.clone();
-            let (node, rest_par) = self.split(axis);
-            match rest_par {
-                Either::Par([left, right]) => {
+            match self.split(axis) {
+                Either::Par(node,[left, right]) => {
                     let (splitter11ref, splitter22ref) = (&mut splitter11, &mut splitter22);
 
                     let (nodes, mut nodes2) = joiner.join(
@@ -394,7 +388,7 @@ impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable>
 
                     nodes.append(&mut nodes2);
                 }
-                Either::Seq([left, right]) => {
+                Either::Seq(node,[left, right]) => {
                     nodes.push(node.finish());
 
                     left.recurse_preorder_seq(axis.next(), nodes, &mut splitter11);
