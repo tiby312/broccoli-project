@@ -115,10 +115,13 @@ fn create_tree_seq<'a, T: Aabb>(
     let cc = builder.prebuilder.num_nodes();
     let mut nodes = Vec::with_capacity(cc);
 
-    let r = Recurser {
+    let constants=&Constants{
         height: builder.prebuilder.get_height(),
         binstrat: builder.rebal_strat,
-        sorter,
+        sorter
+    };
+    let r = Recurser {
+        constants,
         arr:bots,
         depth:0
     };
@@ -154,10 +157,13 @@ where
 
     let mut nodes = Vec::with_capacity(cc);
 
-    let r = Recurser {
+    let constants=&Constants{
         height: builder.prebuilder.get_height(),
         binstrat: builder.rebal_strat,
-        sorter,
+        sorter
+    };
+    let r = Recurser {
+        constants,
         arr:bots,
         depth:0
     };
@@ -204,20 +210,23 @@ impl<'a, A: Axis, T: Aabb,S:Sorter> NonLeafFinisher<'a, A, T,S> {
     }
 }
 
+struct Constants<S:Sorter>{
+    height:usize,
+    binstrat:BinStrat,
+    sorter:S,
+}
 
 //TODO split into a dynamic, and a static part
 //with the static part being passed around as a read only reference.
-struct Recurser<'a, T: Aabb, S: Sorter> {
+struct Recurser<'a,'b, T: Aabb, S: Sorter> {
+    constants:&'b Constants<S>,
     depth:usize,
-    height: usize,
-    binstrat: BinStrat,
-    sorter: S,
     arr:&'a mut [T]
 }
 
-impl<'a, T: Aabb, S: Sorter> Recurser<'a, T, S> {
+impl<'a,'b, T: Aabb, S: Sorter> Recurser<'a, 'b,T, S> {
     fn create_leaf<A: Axis>(self, axis: A) -> Node<'a, T> {
-        self.sorter.sort(axis.next(), self.arr);
+        self.constants.sorter.sort(axis.next(), self.arr);
 
         let cont = create_cont(axis, self.arr);
 
@@ -232,7 +241,7 @@ impl<'a, T: Aabb, S: Sorter> Recurser<'a, T, S> {
         self,
         axis: A,
     ) -> (NonLeafFinisher<'a, A, T,S>, Self,Self) {
-        let (f,left,right)=match construct_non_leaf(self.binstrat, axis, self.arr) {
+        let (f,left,right)=match construct_non_leaf(self.constants.binstrat, axis, self.arr) {
             ConstructResult::NonEmpty {
                 div,
                 mid,
@@ -243,7 +252,7 @@ impl<'a, T: Aabb, S: Sorter> Recurser<'a, T, S> {
                     mid,
                     div: Some(div),
                     axis,
-                    sorter:self.sorter
+                    sorter:self.constants.sorter
                 },
                 left,
                 right,
@@ -253,7 +262,7 @@ impl<'a, T: Aabb, S: Sorter> Recurser<'a, T, S> {
                     mid,
                     div: None,
                     axis,
-                    sorter:self.sorter
+                    sorter:self.constants.sorter
                 };
 
                 (node, &mut [] as &mut [_], &mut [] as &mut [_])
@@ -262,17 +271,13 @@ impl<'a, T: Aabb, S: Sorter> Recurser<'a, T, S> {
         (
             f,
             Recurser{
+                constants:self.constants,
                 depth:self.depth+1,
-                height:self.height,
-                binstrat:self.binstrat,
-                sorter:self.sorter,
                 arr:left
             },
             Recurser{
+                constants:self.constants,
                 depth:self.depth+1,
-                height:self.height,
-                binstrat:self.binstrat,
-                sorter:self.sorter,
                 arr:right
             }
         )
@@ -284,7 +289,7 @@ impl<'a, T: Aabb, S: Sorter> Recurser<'a, T, S> {
         nodes: &mut Vec<Node<'a, T>>,
         splitter: &mut K
     ) {
-        if self.depth < self.height - 1 {
+        if self.depth < self.constants.height - 1 {
             let (mut splitter11, mut splitter22) = splitter.div();
 
             let (node,left,right)=self.split(axis);
@@ -309,11 +314,11 @@ impl<'a, T: Aabb, S: Sorter> Recurser<'a, T, S> {
         splitter: &mut K,
         joiner: impl crate::Joinable,
     ) where T:Send+Sync,T::Num:Send+Sync,K:Send+Sync{
-        if self.depth < self.height - 1 {
+        if self.depth < self.constants.height - 1 {
             let (mut splitter11, mut splitter22) = splitter.div();
 
             let depth=self.depth;
-            let height=self.height;
+            let height=self.constants.height;
             
             let (node, left, right) = self.split(axis);
             match dlevel.next() {
