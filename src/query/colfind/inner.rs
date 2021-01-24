@@ -3,7 +3,7 @@ use crate::inner_prelude::*;
 
 use crate::query::colfind::CollisionHandler;
 struct InnerRecurser<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis> {
-    anchor: DestructuredNode<'a, 'b, T, B>,
+    anchor: NodeAxis<'a, 'b, T, B>,
     handler: NN,
     sweeper: &'a mut KK,
     prevec: &'a mut PreVec<T>,
@@ -14,7 +14,7 @@ impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
 {
     #[inline(always)]
     fn new(
-        anchor: DestructuredNode<'a, 'b, T, B>,
+        anchor: NodeAxis<'a, 'b, T, B>,
         sweeper: &'a mut KK,
         handler: NN,
         prevec: &'a mut PreVec<T>,
@@ -37,13 +37,13 @@ impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
         let anchor_axis = self.anchor.axis;
         let (mut nn, rest) = m.next();
         //if !nn.range.is_empty() {
-        let current = DestructuredNodeLeaf {
+        let current = NodeAxis {
             node: nn.borrow_mut(),
             axis: this_axis,
         };
 
         self.handler
-            .handle_children(self.sweeper, self.prevec, &mut self.anchor, current);
+            .handle_children(self.sweeper, self.prevec, self.anchor.borrow_mut(), current);
         //}
 
         if let Some([left, right]) = rest {
@@ -105,7 +105,7 @@ impl<T: Aabb, NO: NodeHandler> ColfindRecurser<T, NO> {
 
         if let Some([mut left, mut right]) = rest {
             {
-                let nn = DestructuredNode {
+                let nn = NodeAxis {
                     node: nn,
                     axis: this_axis,
                 };

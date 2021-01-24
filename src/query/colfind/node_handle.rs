@@ -3,15 +3,24 @@ use super::CollisionHandler;
 use crate::query::colfind::oned;
 use crate::query::inner_prelude::*;
 
-pub struct DestructuredNode<'a, 'b, T: Aabb, AnchorAxis: Axis> {
-    pub node: PMut<'a, Node<'b, T>>,
-    pub axis: AnchorAxis,
-}
 
-pub struct DestructuredNodeLeaf<'a, 'b, T: Aabb, A: Axis> {
+
+
+pub struct NodeAxis<'a, 'b, T: Aabb, A: Axis> {
     pub node: PMut<'a, Node<'b, T>>,
     pub axis: A,
 }
+
+impl<'a,'b,T:Aabb,A:Axis> NodeAxis<'a,'b,T,A>{
+    pub fn borrow_mut<'c>(&'c mut self)->NodeAxis<'c,'b,T,A> where 'a:'c{
+        NodeAxis{
+            node:self.node.borrow_mut(),
+            axis:self.axis
+        }
+    }
+}
+
+
 
 pub trait NodeHandler: Copy + Clone + Send + Sync {
     fn handle_node<T: Aabb>(
@@ -26,8 +35,8 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
         self,
         func: &mut impl CollisionHandler<T = T>,
         prevec: &mut PreVec<T>,
-        anchor: &mut DestructuredNode<T, A>,
-        current: DestructuredNodeLeaf<T, B>,
+        anchor: NodeAxis<T, A>,
+        current: NodeAxis<T, B>,
     );
 }
 
@@ -53,8 +62,8 @@ impl NodeHandler for HandleNoSorted {
         self,
         func: &mut impl CollisionHandler<T = T>,
         _: &mut PreVec<T>,
-        anchor: &mut DestructuredNode<T, A>,
-        current: DestructuredNodeLeaf<T, B>,
+        mut anchor: NodeAxis<T, A>,
+        current: NodeAxis<T, B>,
     ) {
         let res = if !current.axis.is_equal_to(anchor.axis) {
             true
@@ -94,8 +103,8 @@ impl NodeHandler for HandleSorted {
         self,
         func: &mut impl CollisionHandler<T = T>,
         prevec: &mut PreVec<T>,
-        anchor: &mut DestructuredNode<T, A>,
-        current: DestructuredNodeLeaf<T, B>,
+        mut anchor: NodeAxis<T, A>,
+        current: NodeAxis<T, B>,
     ) {
         if !current.axis.is_equal_to(anchor.axis) {
             let cc1 = anchor.node.cont;
