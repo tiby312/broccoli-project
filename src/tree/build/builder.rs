@@ -284,7 +284,6 @@ impl<'a, 'b, T: Aabb, S: Sorter> Recurser<'a, 'b, T, S> {
         splitter: &mut K,
     ) {
         if self.depth < self.constants.height - 1 {
-            //TODO I think we can make splitter part of the struct. just make it a mutable ref.
             let (mut splitter11, mut splitter22) = splitter.div();
 
             let (node, left, right) = self.split(axis);
