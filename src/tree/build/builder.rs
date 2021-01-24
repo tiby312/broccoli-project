@@ -13,34 +13,6 @@ pub struct TreeBuilder<'a, T> {
     par_builder: ParallelBuilder,
 }
 
-impl<'a, T: Aabb + Send + Sync> TreeBuilder<'a, T>
-where
-    T::Num: Send + Sync,
-{
-    ///Build not sorted in parallel
-    pub fn build_not_sorted_par(&mut self, joiner: impl crate::Joinable) -> NotSorted<'a, T> {
-        let pswitch = self
-            .par_builder
-            .build_for_tree_of_height(self.prebuilder.get_height());
-
-        NotSorted(create_tree_par(
-            self,
-            NoSorter,
-            &mut SplitterEmpty,
-            pswitch,
-            joiner,
-        ))
-    }
-
-    ///Build in parallel
-    pub fn build_par(&mut self, joiner: impl crate::Joinable) -> Tree<'a, T> {
-        let pswitch = self
-            .par_builder
-            .build_for_tree_of_height(self.prebuilder.get_height());
-
-        create_tree_par(self, DefaultSorter, &mut SplitterEmpty, pswitch, joiner)
-    }
-}
 
 impl<'a, T: Aabb> TreeBuilder<'a, T> {
     ///Create a new builder with a slice of elements that implement `Aabb`.
@@ -66,15 +38,38 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
             par_builder: ParallelBuilder::new(),
         }
     }
+    ///Build not sorted in parallel
+    pub fn build_not_sorted_par(&mut self, joiner: impl crate::Joinable) -> NotSorted<'a, T>where T:Send+Sync,T::Num:Send+Sync {
+        let pswitch = self
+            .par_builder
+            .build_for_tree_of_height(self.prebuilder.get_height());
 
+        NotSorted(create_tree_par(
+            self,
+            NoSorter,
+            SplitterEmpty,
+            pswitch,
+            joiner,
+        ).0)
+    }
+
+    ///Build in parallel
+    pub fn build_par(&mut self, joiner: impl crate::Joinable) -> Tree<'a, T> 
+        where T:Send+Sync,T::Num:Send+Sync{
+        let pswitch = self
+            .par_builder
+            .build_for_tree_of_height(self.prebuilder.get_height());
+
+        create_tree_par(self, DefaultSorter,SplitterEmpty, pswitch, joiner).0
+    }
     ///Build not sorted sequentially
     pub fn build_not_sorted_seq(&mut self) -> NotSorted<'a, T> {
-        NotSorted(create_tree_seq(self, NoSorter, &mut SplitterEmpty))
+        NotSorted(create_tree_seq(self, NoSorter, SplitterEmpty).0)
     }
 
     ///Build sequentially
     pub fn build_seq(&mut self) -> Tree<'a, T> {
-        create_tree_seq(self, DefaultSorter, &mut SplitterEmpty)
+        create_tree_seq(self, DefaultSorter, SplitterEmpty).0
     }
 
     #[inline(always)]
@@ -98,16 +93,16 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
     }
 
     ///Build with a Splitter.
-    pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: &mut S) -> Tree<'a, T> {
+    pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: S) -> (Tree<'a, T>,S) {
         create_tree_seq(self, DefaultSorter, splitter)
     }
 }
 
-fn create_tree_seq<'a, T: Aabb>(
+fn create_tree_seq<'a, T: Aabb,K:Splitter>(
     builder: &mut TreeBuilder<'a, T>,
     sorter: impl Sorter,
-    splitter: &mut impl Splitter,
-) -> Tree<'a, T> {
+    splitter: K,
+) -> (Tree<'a, T>,K) {
     let bots = core::mem::replace(&mut builder.bots, &mut []);
 
     let num_aabbs = bots.len();
@@ -121,8 +116,7 @@ fn create_tree_seq<'a, T: Aabb>(
         sorter,
     };
 
-    let (m,splitter)=mover::Mover::new(splitter);
-
+    
     let r = Recurser {
         constants,
         arr: bots,
@@ -133,8 +127,7 @@ fn create_tree_seq<'a, T: Aabb>(
     
     let splitter=r.recurse_preorder_seq(builder.axis, &mut nodes);
     assert_eq!(cc, nodes.len());
-    m.insert(splitter);
-
+    
     let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
     let k = inner
@@ -143,52 +136,20 @@ fn create_tree_seq<'a, T: Aabb>(
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_aabbs);
 
-    Tree { inner, num_aabbs }
+    (Tree { inner, num_aabbs },splitter)
 }
 
 
 
-//TODO put in own crate
-mod mover{
-    pub struct Mover<'a,K>{
-        inner:&'a mut K
-    }
-
-    impl<'a,K> Mover<'a,K>{
-        pub fn new(inner:&'a mut K)->(Mover<'a,K>,K){
-            let m=Mover{
-                inner
-            };
-            let source=m.inner as *const K;
-                
-            (m,unsafe{
-                let mut k=core::mem::MaybeUninit::uninit();
-                let target=&mut k as *mut core::mem::MaybeUninit<K> as *mut K;
-                core::ptr::copy_nonoverlapping(source,target,1);
-                k.assume_init()
-            })
-        }
-
-        pub fn insert(self,k:K){
-            unsafe{
-                let target=self.inner as *mut K;
-                let source=&k as *const K;
-                core::ptr::copy_nonoverlapping(source,target,1);
-            }
-            core::mem::forget(k);
-                
-        }
-    }
-}
 
 
-fn create_tree_par<'a, T: Aabb>(
+fn create_tree_par<'a, T: Aabb,K:Splitter+Send+Sync>(
     builder: &mut TreeBuilder<'a, T>,
     sorter: impl Sorter,
-    splitter: &mut (impl Splitter + Send + Sync),
+    splitter: K,
     par: impl par::Joiner,
     joiner: impl crate::Joinable,
-) -> Tree<'a, T>
+) -> (Tree<'a, T>,K)
 where
     T: Send + Sync,
     T::Num: Send + Sync,
@@ -206,7 +167,6 @@ where
         sorter,
     };
 
-    let (m,splitter)=mover::Mover::new(splitter);
     let r = Recurser {
         constants,
         arr: bots,
@@ -223,7 +183,7 @@ where
     let splitter=r.recurse_preorder(builder.axis, &mut nodes);
 
     assert_eq!(cc, nodes.len());
-    m.insert(splitter);
+    
     let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
     let k = inner
@@ -232,7 +192,7 @@ where
         .fold(0, move |acc, a| acc + a.range.len());
     debug_assert_eq!(k, num_aabbs);
 
-    Tree { inner, num_aabbs }
+    (Tree { inner, num_aabbs },splitter)
 }
 
 struct NonLeafFinisher<'a, A, T: Aabb, S> {
