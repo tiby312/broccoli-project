@@ -98,7 +98,6 @@ impl<'a, T> PMut<'a, T> {
             inner: core::slice::from_mut(self.inner),
         }
     }
-
 }
 impl<'a, T: ?Sized> PMut<'a, T> {
     ///Create a protected pointer.
@@ -107,8 +106,11 @@ impl<'a, T: ?Sized> PMut<'a, T> {
         PMut { inner }
     }
 
-    pub fn shorten<'c>(self)->PMut<'c,T> where 'a:'c{
-        PMut{inner:self.inner}
+    pub fn shorten<'c>(self) -> PMut<'c, T>
+    where
+        'a: 'c,
+    {
+        PMut { inner: self.inner }
     }
     ///Start a new borrow lifetime
     #[inline(always)]

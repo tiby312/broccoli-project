@@ -14,8 +14,8 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) ->
         let (rebal, query) = datanum::datanum_test2(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
-            
-            let (mut tree,levelc) = TreeBuilder::new(&mut bots).build_with_splitter_seq(LevelCounter::new());
+            let (mut tree, levelc) =
+                TreeBuilder::new(&mut bots).build_with_splitter_seq(LevelCounter::new());
 
             maker.reset();
             let mut levelc2 = LevelCounter::new();
@@ -50,7 +50,8 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> 
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-        let (mut tree,times1) = TreeBuilder::new(&mut bots).build_with_splitter_seq(LevelTimer::new());
+        let (mut tree, times1) =
+            TreeBuilder::new(&mut bots).build_with_splitter_seq(LevelTimer::new());
 
         let mut times2 = LevelTimer::new();
 

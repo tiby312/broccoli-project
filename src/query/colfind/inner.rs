@@ -4,9 +4,8 @@ use crate::inner_prelude::*;
 use crate::query::colfind::CollisionHandler;
 struct InnerRecurser<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis> {
     anchor: NodeAxis<'a, 'b, T, B>,
-    handler: NN,
     sweeper: &'a mut KK,
-    prevec: &'a mut PreVec<T>,
+    recc: &'a mut ColfindRecurser<T, NN>,
 }
 
 impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
@@ -16,14 +15,12 @@ impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
     fn new(
         anchor: NodeAxis<'a, 'b, T, B>,
         sweeper: &'a mut KK,
-        handler: NN,
-        prevec: &'a mut PreVec<T>,
+        recc: &'a mut ColfindRecurser<T, NN>,
     ) -> InnerRecurser<'a, 'b, T, NN, KK, B> {
         InnerRecurser {
             anchor,
             sweeper,
-            handler,
-            prevec,
+            recc,
         }
     }
 
@@ -36,15 +33,18 @@ impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
     ) {
         let anchor_axis = self.anchor.axis;
         let (mut nn, rest) = m.next();
-        //if !nn.range.is_empty() {
+
         let current = NodeAxis {
             node: nn.borrow_mut(),
             axis: this_axis,
         };
 
-        self.handler
-            .handle_children(self.sweeper, self.prevec, self.anchor.borrow_mut(), current);
-        //}
+        self.recc.handler.handle_children(
+            self.sweeper,
+            &mut self.recc.prevec,
+            self.anchor.borrow_mut(),
+            current,
+        );
 
         if let Some([left, right]) = rest {
             //Continue to recurse even if we know there are no more bots
@@ -110,7 +110,7 @@ impl<T: Aabb, NO: NodeHandler> ColfindRecurser<T, NO> {
                     axis: this_axis,
                 };
 
-                let mut g = InnerRecurser::new(nn, sweeper, self.handler, &mut self.prevec);
+                let mut g = InnerRecurser::new(nn, sweeper, self);
                 g.recurse(this_axis.next(), left.borrow_mut());
                 g.recurse(this_axis.next(), right.borrow_mut());
             }
