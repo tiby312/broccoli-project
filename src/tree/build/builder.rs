@@ -205,7 +205,8 @@ impl<'a, A: Axis, T: Aabb,S:Sorter> NonLeafFinisher<'a, A, T,S> {
 }
 
 
-
+//TODO split into a dynamic, and a static part
+//with the static part being passed around as a read only reference.
 struct Recurser<'a, T: Aabb, S: Sorter> {
     depth:usize,
     height: usize,
