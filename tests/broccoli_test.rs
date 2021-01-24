@@ -49,8 +49,7 @@ fn test2() {
             })
             .collect();
 
-
-        let mut base=broccoli::container::TreeIndBase::new(&mut bots,|a|a.rect); 
+        let mut base = broccoli::container::TreeIndBase::new(&mut bots, |a| a.rect);
         let mut tree = base.build();
         broccoli::query::colfind::assert_query(&mut *tree);
         let mut p = tree.collect_colliding_pairs(|_a, _b| Some(()));
@@ -80,7 +79,7 @@ fn test3() {
             })
             .collect();
 
-        let mut base=broccoli::container::TreeIndBase::new(&mut bots,|a|a.rect); 
+        let mut base = broccoli::container::TreeIndBase::new(&mut bots, |a| a.rect);
         let mut tree = base.build();
 
         let mut rects1 = Vec::new();
@@ -89,11 +88,11 @@ fn test3() {
         let rects2 = {
             use std::sync::Mutex;
             let rects = Mutex::new(Vec::new());
-            let mut v = tree.collect_colliding_pairs_par(RayonJoin,|_, _| Some(()));
+            let mut v = tree.collect_colliding_pairs_par(RayonJoin, |_, _| Some(()));
             dbg!(v.get(tree.get_inner_elements_mut()).len());
 
             let mutex = &rects;
-            v.for_every_pair_mut_par(RayonJoin,tree.get_inner_elements_mut(), |a, b, ()| {
+            v.for_every_pair_mut_par(RayonJoin, tree.get_inner_elements_mut(), |a, b, ()| {
                 let mut rects = mutex.lock().unwrap();
                 rects.push((a.rect, b.rect))
             });

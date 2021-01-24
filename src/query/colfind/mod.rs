@@ -4,11 +4,11 @@ mod inner;
 mod node_handle;
 mod oned;
 
-use crate::Joinable;
 use self::inner::*;
 use self::node_handle::*;
 use super::tools;
 use crate::query::inner_prelude::*;
+use crate::Joinable;
 
 pub mod builder;
 use self::builder::CollisionHandler;
@@ -129,13 +129,13 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     ///```
     fn find_colliding_pairs_mut_par(
         &mut self,
-        joiner:impl crate::Joinable,
+        joiner: impl crate::Joinable,
         func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Send + Sync + Clone,
     ) where
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        QueryBuilder::new(self.vistr_mut()).query_par(joiner,move |a, b| func(a, b));
+        QueryBuilder::new(self.vistr_mut()).query_par(joiner, move |a, b| func(a, b));
     }
 
     /// For analysis, allows the user to query with custom settings
@@ -160,8 +160,6 @@ pub trait ColfindQuery<'a>: Queries<'a> {
     fn new_builder<'c>(&'c mut self) -> QueryBuilder<'c, 'a, Self::T> {
         QueryBuilder::new(self.vistr_mut())
     }
-
-    
 }
 
 ///Queries that can be performed on a tree that is not sorted
@@ -187,12 +185,12 @@ pub trait NotSortedQueries<'a> {
 
     fn find_colliding_pairs_mut_par(
         &mut self,
-        joiner:impl crate::Joinable,
+        joiner: impl crate::Joinable,
         func: impl Fn(PMut<Self::T>, PMut<Self::T>) + Clone + Send + Sync,
     ) where
         Self::T: Send + Sync,
         Self::Num: Send + Sync,
     {
-        NotSortedQueryBuilder::new(self.vistr_mut()).query_par(joiner,move |a, b| func(a, b));
+        NotSortedQueryBuilder::new(self.vistr_mut()).query_par(joiner, move |a, b| func(a, b));
     }
 }

@@ -1,31 +1,29 @@
 use crate::support::prelude::*;
 
 pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
-    let bots = support::make_rand_rect(200, dim, [5.0, 20.0], |rect| bbox(rect.inner_as(),()))
-    .into_boxed_slice();
+    let bots = support::make_rand_rect(200, dim, [5.0, 20.0], |rect| bbox(rect.inner_as(), ()))
+        .into_boxed_slice();
 
+    let mut tree = broccoli::container::TreeOwned::new_par(RayonJoin, bots);
 
-    let mut tree = broccoli::container::TreeOwned::new_par(RayonJoin,bots);
-    
     let mut rects = canvas.rects();
-    for bot in tree.as_tree().get_elements().iter(){
+    for bot in tree.as_tree().get_elements().iter() {
         rects.add(bot.rect.inner_as().into());
     }
     let rect_save = rects.save(canvas);
-    
-    
+
     Demo::new(move |cursor, canvas, check_naive| {
         rect_save
             .uniforms(canvas)
             .with_color([0.0, 1.0, 0.0, 0.2])
             .draw();
-        
-        let tree=tree.as_tree_mut();
+
+        let tree = tree.as_tree_mut();
 
         let cc: Vec2<i32> = cursor.inner_as();
         let r1 = axgeom::Rect::new(cc.x - 100, cc.x + 100, cc.y - 100, cc.y + 100);
         let r2 = axgeom::Rect::new(100, 400, 100, 400);
-        
+
         if check_naive {
             use broccoli::query::rect::*;
 
@@ -35,7 +33,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             assert_for_all_intersect_rect_mut(tree, &r2);
             assert_for_all_not_in_rect_mut(tree, &r1);
         }
-        
+
         //test MultiRect
         {
             let mut rects = tree.multi_rect();
@@ -77,8 +75,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
                 }
             }
         }
-        
-        
+
         //test for_all_intersect_rect
         let mut rects = canvas.rects();
         tree.for_all_intersect_rect(&r1, |a| {
@@ -105,6 +102,5 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             .send_and_uniforms(canvas)
             .with_color([1.0, 0.0, 0.0, 0.5])
             .draw();
-        
     })
 }

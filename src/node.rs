@@ -32,8 +32,6 @@ unsafe impl<N: Num> Aabb for Rect<N> {
     }
 }
 
-
-
 ///A bounding box container object that implements [`Aabb`] and [`HasInner`].
 ///Note that `&mut BBox<N,T>` also implements [`Aabb`] and [`HasInner`].
 ///
@@ -159,7 +157,7 @@ mod vistr_mut {
         }
 
         #[inline(always)]
-        pub fn get_height(&self)->usize{
+        pub fn get_height(&self) -> usize {
             compt::FixedDepthVisitor::get_height(self)
         }
 
@@ -215,7 +213,6 @@ pub(crate) struct NodePtr<T: Aabb> {
     _cont: axgeom::Range<T::Num>,
     _div: Option<T::Num>,
 }
-
 
 ///A node in [`Tree`].
 #[repr(C)]

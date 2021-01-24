@@ -18,7 +18,6 @@ mod oned;
 pub use builder::TreeBuilder;
 mod builder;
 
-
 ///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
 pub struct SplitterEmpty;
 
@@ -95,7 +94,6 @@ pub enum BinStrat {
 ///on two different machines.
 pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 32;
 
-
 ///Using this struct the user can determine the height of a tree or the number of nodes
 ///that would exist if the tree were constructed with the specified number of elements.
 #[derive(Copy, Clone)]
@@ -107,9 +105,7 @@ impl TreePreBuilder {
     ///Create the builder object with default values.
     pub const fn new(num_elements: usize) -> TreePreBuilder {
         let height = compute_tree_height_heuristic(num_elements, DEFAULT_NUMBER_ELEM_PER_NODE);
-        TreePreBuilder {
-            height,
-        }
+        TreePreBuilder { height }
     }
     ///Specify a custom default nuber of elements per leaf.
     pub const fn with_num_elem_in_leaf(
@@ -117,23 +113,18 @@ impl TreePreBuilder {
         num_elem_leaf: usize,
     ) -> TreePreBuilder {
         let height = compute_tree_height_heuristic(num_elements, num_elem_leaf);
-        TreePreBuilder {
-            height,
-        }
+        TreePreBuilder { height }
     }
 
     ///Specify a custom height of the tree, ignoring the number of elements per node variable.
     pub const fn with_height(height: usize) -> TreePreBuilder {
-        TreePreBuilder {
-            height,
-        }
+        TreePreBuilder { height }
     }
 
     ///Create a `TreeBuilder`
     pub fn into_builder<T: Aabb>(self, bots: &mut [T]) -> TreeBuilder<T> {
         TreeBuilder::from_prebuilder(bots, self)
     }
-
 
     ///Compute the number of nodes in the tree based off of the height.
     pub const fn num_nodes(&self) -> usize {
@@ -179,17 +170,17 @@ use crate::tree::Queries;
 /// extra property to be faster.
 pub struct NotSorted<'a, T: Aabb>(Tree<'a, T>);
 
-impl<'a, T: Aabb + Send + Sync> NotSorted<'a, T>
-where
-    T::Num: Send + Sync,
-{
-    pub fn new_par(joiner:impl crate::Joinable,bots: &'a mut [T]) -> NotSorted<'a, T> {
-        TreeBuilder::new(bots).build_not_sorted_par(joiner)
-    }
-}
 impl<'a, T: Aabb> NotSorted<'a, T> {
     pub fn new(bots: &'a mut [T]) -> NotSorted<'a, T> {
         TreeBuilder::new(bots).build_not_sorted_seq()
+    }
+
+    pub fn new_par(joiner: impl crate::Joinable, bots: &'a mut [T]) -> NotSorted<'a, T>
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        TreeBuilder::new(bots).build_not_sorted_par(joiner)
     }
 }
 
