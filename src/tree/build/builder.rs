@@ -333,6 +333,7 @@ impl<'a, T: Aabb, S: Sorter> Recurser<'a, T, S> {
                             nodes
                         },
                         move |joiner| {
+                            //TODO maybe what causing slighht regression from master.
                             //TODO vericy no realloc occured
                             let mut nodes2: Vec<_> =
                                 Vec::with_capacity(nodes_left(depth, height));
