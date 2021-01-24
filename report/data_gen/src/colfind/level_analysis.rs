@@ -18,13 +18,12 @@ fn handle_inner_theory(num_bots: usize, grow_iter: impl Iterator<Item = f64>) ->
                 TreeBuilder::new(&mut bots).build_with_splitter_seq(LevelCounter::new());
 
             maker.reset();
-            let mut levelc2 = LevelCounter::new();
-            tree.new_builder().query_with_splitter_seq(
+            let levelc2=tree.new_builder().query_with_splitter_seq(
                 |a, b| {
                     a.unpack_inner().x += 1.0;
                     b.unpack_inner().y += 1.0;
                 },
-                &mut levelc2,
+                LevelCounter::new()
             );
 
             (levelc.into_levels(), levelc2.into_levels())
@@ -53,14 +52,13 @@ fn handle_inner_bench(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> 
         let (mut tree, times1) =
             TreeBuilder::new(&mut bots).build_with_splitter_seq(LevelTimer::new());
 
-        let mut times2 = LevelTimer::new();
-
-        tree.new_builder().query_with_splitter_seq(
+        
+        let times2=tree.new_builder().query_with_splitter_seq(
             |a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1
             },
-            &mut times2,
+            LevelTimer::new(),
         );
 
         let t = BenchRes {

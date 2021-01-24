@@ -262,7 +262,7 @@ where
     T::Num: Send + Sync,
     T: Send + Sync,
 {
-    let mut handler = crate::query::colfind::builder::from_closure(
+    let handler = crate::query::colfind::builder::from_closure(
         tree,
         vec![Vec::new()],
         move |_| (vec![Vec::new()], vec![Vec::new()]),
@@ -279,8 +279,7 @@ where
 
     use crate::query::colfind::builder::*;
     tree.new_builder()
-        .query_par_ext(joiner, &mut handler, &mut SplitterEmpty);
-    handler.consume()
+        .query_par_ext(joiner, handler, SplitterEmpty).0.consume()
 }
 
 ///Contains a filtered list of all elements in the tree from calling [`FromSlice::collect_all`].
