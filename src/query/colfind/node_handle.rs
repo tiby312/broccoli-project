@@ -3,13 +3,13 @@ use super::CollisionHandler;
 use crate::query::colfind::oned;
 use crate::query::inner_prelude::*;
 
-pub struct NodeAxis<'a, 'b, T: Aabb, A: Axis> {
-    pub node: PMut<'a, Node<'b, T>>,
+pub struct NodeAxis<'a, 'node, T: Aabb, A: Axis> {
+    pub node: PMut<'a, Node<'node, T>>,
     pub axis: A,
 }
 
-impl<'a, 'b, T: Aabb, A: Axis> NodeAxis<'a, 'b, T, A> {
-    pub fn borrow_mut<'c>(&'c mut self) -> NodeAxis<'c, 'b, T, A>
+impl<'a, 'node, T: Aabb, A: Axis> NodeAxis<'a, 'node, T, A> {
+    pub fn borrow_mut<'c>(&'c mut self) -> NodeAxis<'c, 'node, T, A>
     where
         'a: 'c,
     {

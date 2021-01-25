@@ -14,12 +14,12 @@ pub trait CollisionHandler {
 }
 
 ///Builder for a query on a NotSorted Dinotree.
-pub struct NotSortedQueryBuilder<'a, 'b: 'a, T: Aabb> {
+pub struct NotSortedQueryBuilder<'a, 'node: 'a, T: Aabb> {
     par_builder: ParallelBuilder,
-    vistr: VistrMut<'a, Node<'b, T>>,
+    vistr: VistrMut<'a, Node<'node, T>>,
 }
 
-impl<'a, 'b: 'a, T: Aabb + Send + Sync> NotSortedQueryBuilder<'a, 'b, T>
+impl<'a, 'node: 'a, T: Aabb + Send + Sync> NotSortedQueryBuilder<'a, 'node, T>
 where
     T::Num: Send + Sync,
 {
@@ -44,9 +44,9 @@ where
     }
 }
 
-impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
+impl<'a, 'node: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'node, T> {
     #[inline(always)]
-    pub(super) fn new(vistr: VistrMut<'a, Node<'b, T>>) -> NotSortedQueryBuilder<'a, 'b, T> {
+    pub(super) fn new(vistr: VistrMut<'a, Node<'node, T>>) -> NotSortedQueryBuilder<'a, 'node, T> {
         NotSortedQueryBuilder {
             par_builder: ParallelBuilder::new(),
             vistr,
@@ -76,9 +76,9 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
 }
 
 ///Builder for a query on a DinoTree.
-pub struct QueryBuilder<'a, 'b: 'a, T: Aabb> {
+pub struct QueryBuilder<'a, 'node: 'a, T: Aabb> {
     par_builder: ParallelBuilder,
-    vistr: VistrMut<'a, Node<'b, T>>,
+    vistr: VistrMut<'a, Node<'node, T>>,
 }
 
 ///Simple trait that consumes itself to produce a value.
@@ -161,7 +161,7 @@ pub fn from_closure<A: Send, T: Aabb + Send>(
     }
 }
 
-impl<'a, 'b: 'a, T: Aabb + Send + Sync> QueryBuilder<'a, 'b, T>
+impl<'a, 'node: 'a, T: Aabb + Send + Sync> QueryBuilder<'a, 'node, T>
 where
     T::Num: Send + Sync,
 {
@@ -242,11 +242,11 @@ where
     }
 }
 
-impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
+impl<'a, 'node: 'a, T: Aabb> QueryBuilder<'a, 'node, T> {
     ///Create the builder.
     #[inline(always)]
     #[must_use]
-    pub(super) fn new(vistr: VistrMut<'a, Node<'b, T>>) -> QueryBuilder<'a, 'b, T> {
+    pub(super) fn new(vistr: VistrMut<'a, Node<'node, T>>) -> QueryBuilder<'a, 'node, T> {
         QueryBuilder {
             par_builder: ParallelBuilder::new(),
             vistr,

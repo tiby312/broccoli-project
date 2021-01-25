@@ -4,25 +4,25 @@ use crate::inner_prelude::*;
 use crate::query::colfind::CollisionHandler;
 struct InnerRecurser<
     'a,
-    'b,
+    'node,
     T: Aabb,
     NN: NodeHandler,
     KK: CollisionHandler<T = T>,
     S: Splitter,
     B: Axis,
 > {
-    anchor: NodeAxis<'a, 'b, T, B>,
+    anchor: NodeAxis<'a, 'node, T, B>,
     recc: &'a mut ColfindRecurser<T, NN, KK, S>,
 }
 
-impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, S: Splitter, B: Axis>
-    InnerRecurser<'a, 'b, T, NN, KK, S, B>
+impl<'a, 'node, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, S: Splitter, B: Axis>
+    InnerRecurser<'a, 'node, T, NN, KK, S, B>
 {
     #[inline(always)]
     fn new(
-        anchor: NodeAxis<'a, 'b, T, B>,
+        anchor: NodeAxis<'a, 'node, T, B>,
         recc: &'a mut ColfindRecurser<T, NN, KK, S>,
-    ) -> InnerRecurser<'a, 'b, T, NN, KK, S, B> {
+    ) -> InnerRecurser<'a, 'node, T, NN, KK, S, B> {
         InnerRecurser { anchor, recc }
     }
 
