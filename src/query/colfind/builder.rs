@@ -35,12 +35,14 @@ where
             .par_builder
             .build_for_tree_of_height(self.vistr.get_height());
 
-        ColfindRecurser::new(HandleNoSorted, sweeper).recurse_par(
-            default_axis(),
+        ParRecurser{
+            inner:ColfindRecurser::new(HandleNoSorted, sweeper),
             par,
+            joiner
+        }.recurse_par(
+            default_axis(),
             self.vistr,
             SplitterEmpty,
-            joiner,
         );
     }
 }
@@ -185,12 +187,14 @@ where
             .par_builder
             .build_for_tree_of_height(self.vistr.get_height());
 
-        ColfindRecurser::new(HandleSorted, sweeper).recurse_par(
-            default_axis(),
+        ParRecurser{
+            inner:ColfindRecurser::new(HandleSorted, sweeper),
             par,
+            joiner
+        }.recurse_par(
+            default_axis(),
             self.vistr,
-            SplitterEmpty,
-            joiner,
+            SplitterEmpty
         );
     }
 
@@ -240,12 +244,14 @@ where
             .par_builder
             .build_for_tree_of_height(self.vistr.get_height());
 
-        ColfindRecurser::new(HandleSorted, sweeper).recurse_par(
-            default_axis(),
+        ParRecurser{
+            inner:ColfindRecurser::new(HandleSorted, sweeper),
             par,
+            joiner
+        }.recurse_par(
+            default_axis(),
             self.vistr,
-            splitter,
-            joiner,
+            splitter
         )
     }
 }
