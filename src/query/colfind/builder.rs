@@ -36,13 +36,12 @@ where
             .build_for_tree_of_height(self.vistr.get_height());
 
         ParRecurser{
-            inner:ColfindRecurser::new(HandleNoSorted, sweeper),
+            inner:ColfindRecurser::new(HandleNoSorted, sweeper,SplitterEmpty),
             par,
             joiner
         }.recurse_par(
             default_axis(),
-            self.vistr,
-            SplitterEmpty,
+            self.vistr
         );
     }
 }
@@ -64,21 +63,21 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
     ) -> S {
         let sweeper = QueryFnMut::new(func);
 
-        ColfindRecurser::new(HandleNoSorted, sweeper).recurse_seq(
+        let mut c=ColfindRecurser::new(HandleNoSorted, sweeper,splitter);
+        c.recurse_seq(
             default_axis(),
-            self.vistr,
-            splitter,
-        )
+            self.vistr
+        );
+        c.finish()
     }
 
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
         let sweeper = QueryFnMut::new(func);
 
-        ColfindRecurser::new(HandleNoSorted, sweeper).recurse_seq(
+        ColfindRecurser::new(HandleNoSorted, sweeper,SplitterEmpty).recurse_seq(
             default_axis(),
             self.vistr,
-            SplitterEmpty,
         );
     }
 }
@@ -188,13 +187,12 @@ where
             .build_for_tree_of_height(self.vistr.get_height());
 
         ParRecurser{
-            inner:ColfindRecurser::new(HandleSorted, sweeper),
+            inner:ColfindRecurser::new(HandleSorted, sweeper,SplitterEmpty),
             par,
             joiner
         }.recurse_par(
             default_axis(),
-            self.vistr,
-            SplitterEmpty
+            self.vistr
         );
     }
 
@@ -245,13 +243,12 @@ where
             .build_for_tree_of_height(self.vistr.get_height());
 
         ParRecurser{
-            inner:ColfindRecurser::new(HandleSorted, sweeper),
+            inner:ColfindRecurser::new(HandleSorted, sweeper,splitter),
             par,
             joiner
         }.recurse_par(
             default_axis(),
-            self.vistr,
-            splitter
+            self.vistr
         )
     }
 }
@@ -281,10 +278,9 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
         let sweeper = QueryFnMut::new(func);
 
-        ColfindRecurser::new(HandleSorted, sweeper).recurse_seq(
+        ColfindRecurser::new(HandleSorted, sweeper,SplitterEmpty).recurse_seq(
             default_axis(),
             self.vistr,
-            SplitterEmpty,
         );
     }
 
@@ -298,11 +294,12 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     ) -> S {
         let sweeper = QueryFnMut::new(func);
 
-        ColfindRecurser::new(HandleSorted, sweeper).recurse_seq(
+        let mut c=ColfindRecurser::new(HandleSorted, sweeper,splitter);
+        c.recurse_seq(
             default_axis(),
             self.vistr,
-            splitter,
-        )
+        );
+        c.finish()
     }
 }
 

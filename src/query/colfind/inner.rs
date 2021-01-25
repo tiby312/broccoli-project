@@ -2,19 +2,19 @@ use super::node_handle::*;
 use crate::inner_prelude::*;
 
 use crate::query::colfind::CollisionHandler;
-struct InnerRecurser<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis> {
+struct InnerRecurser<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, S:Splitter,B: Axis> {
     anchor: NodeAxis<'a, 'b, T, B>,
-    recc: &'a mut ColfindRecurser<T, NN, KK>,
+    recc: &'a mut ColfindRecurser<T, NN, KK,S>,
 }
 
-impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
-    InnerRecurser<'a, 'b, T, NN, KK, B>
+impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>,S:Splitter, B: Axis>
+    InnerRecurser<'a, 'b, T, NN, KK, S,B>
 {
     #[inline(always)]
     fn new(
         anchor: NodeAxis<'a, 'b, T, B>,
-        recc: &'a mut ColfindRecurser<T, NN, KK>,
-    ) -> InnerRecurser<'a, 'b, T, NN, KK, B> {
+        recc: &'a mut ColfindRecurser<T, NN, KK,S>,
+    ) -> InnerRecurser<'a, 'b, T, NN, KK,S, B> {
         InnerRecurser { anchor, recc }
     }
 
@@ -67,19 +67,21 @@ impl<'a, 'b, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, B: Axis>
     }
 }
 
-pub struct ColfindRecurser<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>> {
+pub struct ColfindRecurser<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>,S:Splitter> {
     prevec: PreVec<T>,
     handler: NO,
     sweeper: C,
+    splitter:S
 }
 
-impl<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>> ColfindRecurser<T, NO, C> {
+impl<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>,S:Splitter> ColfindRecurser<T, NO, C,S> {
     #[inline(always)]
-    pub fn new(handler: NO, sweeper: C) -> ColfindRecurser<T, NO, C> {
+    pub fn new(handler: NO, sweeper: C,splitter:S) -> ColfindRecurser<T, NO, C,S> {
         ColfindRecurser {
             handler,
             prevec: PreVec::with_capacity(64),
             sweeper,
+            splitter
         }
     }
 
@@ -115,56 +117,65 @@ impl<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>> ColfindRecurser<T, NO
         }
     }
 
-    pub fn recurse_seq<A:Axis,S: Splitter>(
+    pub fn finish(self)->S{
+        self.splitter
+    }
+    pub fn recurse_seq<A:Axis>(
         &mut self,
         this_axis: A,
-        m: VistrMut<Node<T>>,
-        mut splitter: S,
-    ) -> S {
+        m: VistrMut<Node<T>>
+    )->&mut Self{
         if let Some([left, right]) = self.recurse_common(this_axis, m) {
-            let (splitter11, splitter22) = splitter.div();
-            let ls = self.recurse_seq(this_axis.next(), left, splitter11);
-            let rs = self.recurse_seq(this_axis.next(), right, splitter22);
-            splitter.add(ls, rs);
+            let (mut splitter11, mut splitter22) = self.splitter.div();
+
+            core::mem::swap(&mut splitter11,&mut self.splitter);
+            self.recurse_seq(this_axis.next(), left);
+            core::mem::swap(&mut splitter11,&mut self.splitter);
+            
+
+            core::mem::swap(&mut splitter22,&mut self.splitter);
+            self.recurse_seq(this_axis.next(), right);
+            core::mem::swap(&mut splitter22,&mut self.splitter);
+            self.splitter.add(splitter11, splitter22);
         }
-        splitter
+        self
     }
 
 }
 
 
-pub struct ParRecurser<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>,P:par::Joiner,J:crate::Joinable>{
-    pub inner:ColfindRecurser<T,NO,C>,
+pub struct ParRecurser<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>,S:Splitter,P:par::Joiner,J:crate::Joinable>{
+    pub inner:ColfindRecurser<T,NO,C,S>,
     pub par:P,
     pub joiner:J,
 }
 
-impl<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>,P:par::Joiner,J:crate::Joinable> ParRecurser<T,NO,C,P,J>
+impl<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>,S:Splitter,P:par::Joiner,J:crate::Joinable> ParRecurser<T,NO,C,S,P,J>
     where
     T: Send + Sync,
     T::Num: Send + Sync,
-    C: Splitter + Send + Sync
+    C: Splitter + Send + Sync,
+    S:Send+Sync
 {
 
-    pub fn recurse_par<A:Axis,S: Splitter + Send + Sync>(
+    pub fn recurse_par<A:Axis>(
         mut self,
         this_axis: A,
-        m: VistrMut<Node<T>>,
-        mut splitter: S,
+        m: VistrMut<Node<T>>
     ) -> (C, S)
     {
         if let Some([left, right]) = self.inner.recurse_common(this_axis, m) {
-            let (splitter11, splitter22) = splitter.div();
+            let (mut splitter11, mut splitter22) = self.inner.splitter.div();
             let (sl, sr) = match self.par.next() {
                 par::ParResult::Parallel([dleft, dright]) => {
                     let (sweeper1, sweeper2) = self.inner.sweeper.div();
                     let c1 = ParRecurser{
-                        inner:ColfindRecurser::new(self.inner.handler, sweeper1),
+                        inner:ColfindRecurser::new(self.inner.handler, sweeper1,splitter11),
                         par:dleft,
                         joiner:self.joiner.clone()
                     };
                     let c2 = ParRecurser{
-                        inner:ColfindRecurser::new(self.inner.handler, sweeper2),
+                        inner:ColfindRecurser::new(self.inner.handler, sweeper2,splitter22),
                         par:dright,
                         joiner:self.joiner.clone()
                     };
@@ -173,15 +184,13 @@ impl<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>,P:par::Joiner,J:crate:
                         |_joiner| {
                             c1.recurse_par(
                                 this_axis.next(),
-                                left,
-                                splitter11,
+                                left
                             )
                         },
                         |_joiner| {
                             c2.recurse_par(
                                 this_axis.next(),
-                                right,
-                                splitter22,
+                                right
                             )
                         },
                     );
@@ -190,14 +199,20 @@ impl<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>,P:par::Joiner,J:crate:
                     (sl.1, sr.1)
                 }
                 par::ParResult::Sequential(_) => {
-                    let sl = self.inner.recurse_seq(this_axis.next(), left, splitter11);
-                    let sr = self.inner.recurse_seq(this_axis.next(), right, splitter22);
-                    (sl, sr)
+                    core::mem::swap(&mut self.inner.splitter,&mut splitter11);
+                    self.inner.recurse_seq(this_axis.next(), left);
+                    core::mem::swap(&mut self.inner.splitter,&mut splitter11);
+                    
+                    core::mem::swap(&mut self.inner.splitter,&mut splitter22);
+                    self.inner.recurse_seq(this_axis.next(), right);
+                    core::mem::swap(&mut self.inner.splitter,&mut splitter22);
+                    
+                    (splitter11, splitter22)
                 }
             };
 
-            splitter.add(sl, sr);
+            self.inner.splitter.add(sl, sr);
         }
-        (self.inner.sweeper, splitter)
+        (self.inner.sweeper, self.inner.splitter)
     }
 }
