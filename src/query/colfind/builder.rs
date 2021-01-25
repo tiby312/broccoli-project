@@ -209,10 +209,10 @@ where
     ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())), //Handle a collision
     /// );
     ///
-    /// tree.new_builder().query_par_ext(
+    /// let (handler,_)=tree.new_builder().query_par_ext(
     ///     RayonJoin,
-    ///     &mut handler,
-    ///     &mut broccoli::build::SplitterEmpty
+    ///     handler,
+    ///     broccoli::build::SplitterEmpty
     /// );
     ///
     /// let intersections=handler.consume();
