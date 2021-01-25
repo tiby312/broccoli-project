@@ -7,27 +7,27 @@
 ///on each sub problem.
 pub const SWITCH_SEQUENTIAL_DEFAULT: usize = 6;
 
-pub struct ParallelBuilder{
-    height_switch:usize
+pub struct ParallelBuilder {
+    height_switch: usize,
 }
-impl ParallelBuilder{
-    pub fn new()->Self{
-        ParallelBuilder{height_switch:SWITCH_SEQUENTIAL_DEFAULT}
+impl ParallelBuilder {
+    pub fn new() -> Self {
+        ParallelBuilder {
+            height_switch: SWITCH_SEQUENTIAL_DEFAULT,
+        }
     }
-    pub fn with_switch_height(&mut self,height:usize){
-        self.height_switch=height;
+    pub fn with_switch_height(&mut self, height: usize) {
+        self.height_switch = height;
     }
 
-    pub fn build_for_tree_of_height(&self,tree_height:usize)->Parallel{
-        Parallel::new(if tree_height<self.height_switch{
+    pub fn build_for_tree_of_height(&self, tree_height: usize) -> Parallel {
+        Parallel::new(if tree_height < self.height_switch {
             0
-        }else{
-            tree_height-self.height_switch
+        } else {
+            tree_height - self.height_switch
         })
     }
-    
 }
-
 
 ///Returns either two Parallels or two Sequentials.
 pub enum ParResult<X, Y> {
@@ -77,4 +77,3 @@ impl Joiner for Sequential {
         ParResult::Sequential([Sequential, Sequential])
     }
 }
-

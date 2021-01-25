@@ -106,6 +106,12 @@ impl<'a, T: ?Sized> PMut<'a, T> {
         PMut { inner }
     }
 
+    pub fn shorten<'c>(self) -> PMut<'c, T>
+    where
+        'a: 'c,
+    {
+        PMut { inner: self.inner }
+    }
     ///Start a new borrow lifetime
     #[inline(always)]
     pub fn borrow_mut(&mut self) -> PMut<T> {
@@ -121,7 +127,7 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     ///defeat the purpose of this type.
     ///
     /// # Safety
-    /// 
+    ///
     /// This is unsafe, since the user may mutate the inner AABB
     /// while T is inserted in a tree thus undoing the whole
     /// point of this struct.
@@ -129,7 +135,6 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     pub unsafe fn into_inner(self) -> &'a mut T {
         self.inner
     }
-
 }
 
 ///A destructured [`Node`]

@@ -1,6 +1,5 @@
 use crate::inner_prelude::*;
 
-
 pub fn combine_slice<'a, T>(a: &'a [T], b: &'a [T]) -> &'a [T] {
     let alen = a.len();
     let blen = b.len();
@@ -11,7 +10,6 @@ pub fn combine_slice<'a, T>(a: &'a [T], b: &'a [T]) -> &'a [T] {
             "Slices are not continuous"
         );
 
-        
         core::slice::from_raw_parts(a.as_ptr(), alen + blen)
     }
 }
@@ -34,21 +32,16 @@ pub fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {
     collision_botids.sort_unstable_by(sclosure);
 }
 
-
-
-
-
 pub use self::prevec::PreVec;
 
 mod prevec {
-    use alloc::vec::Vec;
     use crate::pmut::PMut;
+    use alloc::vec::Vec;
     use twounordered::TwoUnorderedVecs;
 
-    
     //The vec is guarenteed to be empty unless get_empty_vec_mut() is called.
-    unsafe impl<T:Send> core::marker::Send for PreVec<T> {}
-    unsafe impl<T:Sync> core::marker::Sync for PreVec<T> {}
+    unsafe impl<T: Send> core::marker::Send for PreVec<T> {}
+    unsafe impl<T: Sync> core::marker::Sync for PreVec<T> {}
 
     ///An vec api to avoid excessive dynamic allocation by reusing a Vec
     pub struct PreVec<T> {
@@ -58,9 +51,9 @@ mod prevec {
     impl<T> PreVec<T> {
         #[allow(dead_code)]
         #[inline(always)]
-        pub fn new()->PreVec<T>{
-            PreVec{
-                vec:TwoUnorderedVecs::new()
+        pub fn new() -> PreVec<T> {
+            PreVec {
+                vec: TwoUnorderedVecs::new(),
             }
         }
         #[inline(always)]
@@ -71,35 +64,33 @@ mod prevec {
         }
 
         ///Take advantage of the big capacity of the original vec.
-        pub fn extract_two_vec<'b>(&mut self)->TwoUnorderedVecs<PMut<'b,T>>{
+        pub fn extract_two_vec<'b>(&mut self) -> TwoUnorderedVecs<PMut<'b, T>> {
             assert!(self.vec.as_vec().is_empty());
-            let mut v=TwoUnorderedVecs::new();
-            core::mem::swap(&mut v,&mut self.vec);
-            unsafe{v.convert()}
+            let mut v = TwoUnorderedVecs::new();
+            core::mem::swap(&mut v, &mut self.vec);
+            unsafe { v.convert() }
         }
 
-
         ///Take advantage of the big capacity of the original vec.
-        pub fn extract_vec<'a,'b>(&'a mut self)->Vec<PMut<'b,T>>{
+        pub fn extract_vec<'a, 'b>(&'a mut self) -> Vec<PMut<'b, T>> {
             assert!(self.vec.as_vec().is_empty());
             self.extract_two_vec().replace_inner(Vec::new()).0
         }
 
         ///Return the big capacity vec
-        pub fn insert_vec(&mut self,vec:Vec<PMut<'_,T>>){
+        pub fn insert_vec(&mut self, vec: Vec<PMut<'_, T>>) {
             assert!(self.vec.as_vec().is_empty());
-            let v=TwoUnorderedVecs::from_vec(vec);
-            let mut v=unsafe{v.convert()};
-            core::mem::swap(&mut self.vec,&mut v)
+            let v = TwoUnorderedVecs::from_vec(vec);
+            let mut v = unsafe { v.convert() };
+            core::mem::swap(&mut self.vec, &mut v)
         }
 
         ///Return the big capacity vec
-        pub fn insert_two_vec(&mut self,v:TwoUnorderedVecs<PMut<'_,T>>){
+        pub fn insert_two_vec(&mut self, v: TwoUnorderedVecs<PMut<'_, T>>) {
             assert!(self.vec.as_vec().is_empty());
-            let mut v=unsafe{v.convert()};
-            core::mem::swap(&mut v,&mut self.vec);
+            let mut v = unsafe { v.convert() };
+            core::mem::swap(&mut v, &mut self.vec);
         }
-        
     }
 }
 

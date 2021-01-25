@@ -12,18 +12,16 @@ fn handle_inner_theory(num_bots: usize, grow: f64) -> TheoryRes {
     let query = datanum::datanum_test2(|maker| {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
-        let mut levelc = LevelCounter::new();
-        let mut tree = TreeBuilder::new(&mut bots).build_with_splitter_seq(&mut levelc);
+        let mut tree = TreeBuilder::new(&mut bots).build_seq();
 
         maker.reset();
 
-        let mut levelc2 = LevelCounter::new();
-        tree.new_builder().query_with_splitter_seq(
+        let levelc2 = tree.new_builder().query_with_splitter_seq(
             |a, b| {
                 a.unpack_inner().x += 1.0;
                 b.unpack_inner().y += 1.0;
             },
-            &mut levelc2,
+            LevelCounter::new(),
         );
 
         levelc2.into_tree()
@@ -138,13 +136,13 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
 
     let mut fg = fb.build("query_evenness_theory");
     draw_graph(
-        &format!("Query Evenness with abspiral({},{})", num_bots,grow1),
+        &format!("Query Evenness with abspiral({},{})", num_bots, grow1),
         &mut fg,
         res1,
         0,
     );
     draw_graph(
-        &format!("Query Evenness with abspiral({},{})", num_bots,grow2),
+        &format!("Query Evenness with abspiral({},{})", num_bots, grow2),
         &mut fg,
         res2,
         1,

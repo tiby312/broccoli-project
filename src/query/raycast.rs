@@ -133,8 +133,7 @@ pub fn from_closure<A, T: Aabb>(
     }
 }
 
-
-///Hide the lifetime behind the RayCast trait 
+///Hide the lifetime behind the RayCast trait
 ///to make things simpler
 struct RayCastBorrow<'a, R>(&'a mut R);
 
@@ -243,11 +242,7 @@ impl<'a, R: RayCast> Recurser<'a, R> {
     }
 
     //Returns the first object that touches the ray.
-    fn recc<'b: 'a, A: Axis>(
-        &mut self,
-        axis: A,
-        stuff: LevelIter<VistrMut<'a, Node<'b, R::T>>>,
-    ) {
+    fn recc<'b: 'a, A: Axis>(&mut self, axis: A, stuff: LevelIter<VistrMut<'a, Node<'b, R::T>>>) {
         let ((_depth, nn), rest) = stuff.next();
         let handle_curr = if let Some([left, right]) = rest {
             let axis_next = axis.next();
@@ -294,7 +289,6 @@ impl<'a, R: RayCast> Recurser<'a, R> {
             }
         }
     }
-
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.

@@ -42,15 +42,15 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             b.update();
         }
 
-        
-        let mut base=broccoli::container::TreeIndBase::new(&mut bots,|a|Rect::from_point(a.pos,vec2same(radius)));
-        let mut tree=base.build();
-        
+        let mut base = broccoli::container::TreeIndBase::new(&mut bots, |a| {
+            Rect::from_point(a.pos, vec2same(radius))
+        });
+        let mut tree = base.build();
+
         tree.for_all_not_in_rect_mut(&dim, |a| {
             let a = a.unpack_inner();
             duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
         });
-    
 
         let vv = vec2same(100.0);
         tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), |b| {
@@ -105,7 +105,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             .with_color([1.0, 0.5, 1.0, 0.6])
             .draw();
 
-        tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
+        tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = duckduckgeo::repel([(a.pos, &mut a.force), (b.pos, &mut b.force)], 0.001, 2.0);
         });

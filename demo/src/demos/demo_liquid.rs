@@ -62,16 +62,15 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
     let mut bots = support::make_rand(2000, dim, |a| Liquid::new(a));
 
     Demo::new(move |cursor, canvas, _check_naive| {
-        
         let mut k = support::distribute(&mut bots, |bot| {
             let p = bot.pos;
             let r = radius;
             Rect::new(p.x - r, p.x + r, p.y - r, p.y + r)
         });
 
-        let mut tree = broccoli::new_par(RayonJoin,&mut k);
+        let mut tree = broccoli::new_par(RayonJoin, &mut k);
 
-        tree.find_colliding_pairs_mut_par(RayonJoin,move |a, b| {
+        tree.find_colliding_pairs_mut_par(RayonJoin, move |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = a.solve(b, radius);
         });

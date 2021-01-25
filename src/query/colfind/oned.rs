@@ -156,8 +156,7 @@ fn find<'a, A: Axis, F: CollisionHandler>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let mut active=prevec1.extract_vec();
-
+    let mut active = prevec1.extract_vec();
 
     for mut curr_bot in collision_botids.iter_mut() {
         let crr = *curr_bot.get().get_range(axis);
@@ -178,7 +177,7 @@ fn find<'a, A: Axis, F: CollisionHandler>(
 
         active.push(curr_bot);
     }
-    
+
     active.clear();
 
     prevec1.insert_vec(active);
@@ -201,7 +200,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
 
-    let mut active_lists=prevec1.extract_two_vec();
+    let mut active_lists = prevec1.extract_two_vec();
     loop {
         enum NextP {
             X,

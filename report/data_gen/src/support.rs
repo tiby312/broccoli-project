@@ -4,7 +4,7 @@ use std::time::Duration;
 use crate::inner_prelude::*;
 use std::time::Instant;
 
-pub mod convert{
+pub mod convert {
     //!
     //! The broccoli book mentioned in the root documentation shows that
     //! integer comparisons can be faster than floating point.
@@ -14,7 +14,7 @@ pub mod convert{
     //!
     //!
     use super::*;
-    
+
     use axgeom::Rect;
 
     /*
@@ -64,10 +64,7 @@ pub mod convert{
     fn convert1d_u16(a: f32, range: axgeom::Range<f32>) -> u16 {
         ((a - range.start) * (u16::MAX as f32 / range.distance())) as u16
     }
-
 }
-
-
 
 fn into_secs(elapsed: std::time::Duration) -> f64 {
     (elapsed.as_secs() as f64) + (f64::from(elapsed.subsec_nanos()) / 1_000_000_000.0)
@@ -280,11 +277,11 @@ fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
 }
 
 use broccoli::container::*;
-pub fn make_tree_ref_ind<'a,'b,N: Num, T>(
+pub fn make_tree_ref_ind<'a, 'b, N: Num, T>(
     bots: &'a mut [T],
     grow: f64,
     mut func: impl FnMut(RectConv) -> Rect<N>,
-) -> TreeIndBase<'a,N, T> {
+) -> TreeIndBase<'a, N, T> {
     let mut k = abspiral_f64(grow);
     TreeIndBase::new(bots, |_| func(RectConv(k.next().unwrap())))
 }

@@ -14,74 +14,71 @@ pub trait CollisionHandler {
 }
 
 ///Builder for a query on a NotSorted Dinotree.
-pub struct NotSortedQueryBuilder<'a, 'b: 'a, T: Aabb> {
+pub struct NotSortedQueryBuilder<'a, 'node: 'a, T: Aabb> {
     par_builder: ParallelBuilder,
-    vistr: VistrMut<'a, Node<'b, T>>,
+    vistr: VistrMut<'a, Node<'node, T>>,
 }
 
-impl<'a, 'b: 'a, T: Aabb + Send + Sync> NotSortedQueryBuilder<'a, 'b, T>
+impl<'a, 'node: 'a, T: Aabb + Send + Sync> NotSortedQueryBuilder<'a, 'node, T>
 where
     T::Num: Send + Sync,
 {
     #[inline(always)]
-    pub fn query_par(self,joiner:impl crate::Joinable, func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
-        let mut sweeper = QueryFn::new(func);
+    pub fn query_par(
+        self,
+        joiner: impl crate::Joinable,
+        func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync,
+    ) {
+        let sweeper = QueryFn::new(func);
 
-        let par=self.par_builder.build_for_tree_of_height(self.vistr.get_height());
+        let par = self
+            .par_builder
+            .build_for_tree_of_height(self.vistr.get_height());
 
-        ColfindRecurser::new(HandleNoSorted).recurse_par(
-            default_axis(),
+        ParRecurser {
+            inner: ColfindRecurser::new(HandleNoSorted, sweeper, SplitterEmpty),
             par,
-            &mut sweeper,
-            self.vistr,
-            &mut SplitterEmpty,
-            joiner
-        );
+            joiner,
+        }
+        .recurse_par(default_axis(), self.vistr);
     }
 }
 
-impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
+impl<'a, 'node: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'node, T> {
     #[inline(always)]
-    pub(super) fn new(vistr: VistrMut<'a, Node<'b, T>>) -> NotSortedQueryBuilder<'a, 'b, T> {
+    pub(super) fn new(vistr: VistrMut<'a, Node<'node, T>>) -> NotSortedQueryBuilder<'a, 'node, T> {
         NotSortedQueryBuilder {
-            par_builder:ParallelBuilder::new(),
+            par_builder: ParallelBuilder::new(),
             vistr,
         }
     }
 
     #[inline(always)]
-    pub fn query_with_splitter_seq(
+    pub fn query_with_splitter_seq<S: Splitter>(
         self,
         func: impl FnMut(PMut<T>, PMut<T>),
-        splitter: &mut impl Splitter,
-    ) {
-        let mut sweeper = QueryFnMut::new(func);
-        
-        ColfindRecurser::new(HandleNoSorted).recurse_seq(
-            default_axis(),
-            &mut sweeper,
-            self.vistr,
-            splitter,
-        );
+        splitter: S,
+    ) -> S {
+        let sweeper = QueryFnMut::new(func);
+
+        let mut c = ColfindRecurser::new(HandleNoSorted, sweeper, splitter);
+        c.recurse_seq(default_axis(), self.vistr);
+        c.finish()
     }
 
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        let mut sweeper = QueryFnMut::new(func);
-        
-        ColfindRecurser::new(HandleNoSorted).recurse_seq(
-            default_axis(),
-            &mut sweeper,
-            self.vistr,
-            &mut SplitterEmpty,
-        );
+        let sweeper = QueryFnMut::new(func);
+
+        ColfindRecurser::new(HandleNoSorted, sweeper, SplitterEmpty)
+            .recurse_seq(default_axis(), self.vistr);
     }
 }
 
 ///Builder for a query on a DinoTree.
-pub struct QueryBuilder<'a, 'b: 'a, T: Aabb> {
-    par_builder:ParallelBuilder,
-    vistr: VistrMut<'a, Node<'b, T>>,
+pub struct QueryBuilder<'a, 'node: 'a, T: Aabb> {
+    par_builder: ParallelBuilder,
+    vistr: VistrMut<'a, Node<'node, T>>,
 }
 
 ///Simple trait that consumes itself to produce a value.
@@ -164,26 +161,30 @@ pub fn from_closure<A: Send, T: Aabb + Send>(
     }
 }
 
-impl<'a, 'b: 'a, T: Aabb + Send + Sync> QueryBuilder<'a, 'b, T>
+impl<'a, 'node: 'a, T: Aabb + Send + Sync> QueryBuilder<'a, 'node, T>
 where
     T::Num: Send + Sync,
 {
     ///Perform the query in parallel, switching to sequential as specified
     ///by the [`QueryBuilder::with_switch_height()`]
     #[inline(always)]
-    pub fn query_par(self, joiner:impl Joinable,func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync) {
-        let mut sweeper = QueryFn::new(func);
-       
-        let par=self.par_builder.build_for_tree_of_height(self.vistr.get_height());
-                
-        ColfindRecurser::new(HandleSorted).recurse_par(
-            default_axis(),
+    pub fn query_par(
+        self,
+        joiner: impl Joinable,
+        func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync,
+    ) {
+        let sweeper = QueryFn::new(func);
+
+        let par = self
+            .par_builder
+            .build_for_tree_of_height(self.vistr.get_height());
+
+        ParRecurser {
+            inner: ColfindRecurser::new(HandleSorted, sweeper, SplitterEmpty),
             par,
-            &mut sweeper,
-            self.vistr,
-            &mut SplitterEmpty,
-            joiner
-        );
+            joiner,
+        }
+        .recurse_par(default_axis(), self.vistr);
     }
 
     /// An extended version of `find_colliding_pairs`. where the user can supply
@@ -208,10 +209,10 @@ where
     ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())), //Handle a collision
     /// );
     ///
-    /// tree.new_builder().query_par_ext(
+    /// let (handler,_)=tree.new_builder().query_par_ext(
     ///     RayonJoin,
-    ///     &mut handler,
-    ///     &mut broccoli::build::SplitterEmpty
+    ///     handler,
+    ///     broccoli::build::SplitterEmpty
     /// );
     ///
     /// let intersections=handler.consume();
@@ -219,32 +220,35 @@ where
     /// assert_eq!(intersections.len(),1);
     ///```
     #[inline(always)]
-    pub fn query_par_ext(
+    pub fn query_par_ext<
+        S: Splitter + Send + Sync,
+        C: CollisionHandler<T = T> + Splitter + Send + Sync,
+    >(
         self,
-        joiner:impl Joinable,
-        sweeper: &mut (impl CollisionHandler<T = T> + Splitter + Send + Sync),
-        splitter: &mut (impl Splitter + Send + Sync),
-    ) {
-        let par=self.par_builder.build_for_tree_of_height(self.vistr.get_height());
+        joiner: impl Joinable,
+        sweeper: C,
+        splitter: S,
+    ) -> (C, S) {
+        let par = self
+            .par_builder
+            .build_for_tree_of_height(self.vistr.get_height());
 
-        ColfindRecurser::new(HandleSorted).recurse_par(
-            default_axis(),
+        ParRecurser {
+            inner: ColfindRecurser::new(HandleSorted, sweeper, splitter),
             par,
-            sweeper,
-            self.vistr,
-            splitter,
-            joiner
-        );
+            joiner,
+        }
+        .recurse_par(default_axis(), self.vistr)
     }
 }
 
-impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
+impl<'a, 'node: 'a, T: Aabb> QueryBuilder<'a, 'node, T> {
     ///Create the builder.
     #[inline(always)]
     #[must_use]
-    pub(super) fn new(vistr: VistrMut<'a, Node<'b, T>>) -> QueryBuilder<'a, 'b, T> {
+    pub(super) fn new(vistr: VistrMut<'a, Node<'node, T>>) -> QueryBuilder<'a, 'node, T> {
         QueryBuilder {
-            par_builder:ParallelBuilder::new(),
+            par_builder: ParallelBuilder::new(),
             vistr,
         }
     }
@@ -261,38 +265,27 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     ///Perform the query sequentially.
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        let mut sweeper = QueryFnMut::new(func);
-        let mut splitter = SplitterEmpty;
-        
-        ColfindRecurser::new(HandleSorted).recurse_seq(
-            default_axis(),
-            &mut sweeper,
-            self.vistr,
-            &mut splitter,
-        );
+        let sweeper = QueryFnMut::new(func);
+
+        ColfindRecurser::new(HandleSorted, sweeper, SplitterEmpty)
+            .recurse_seq(default_axis(), self.vistr);
     }
 
     ///Perform the query sequentially with splitter functions getting called at every level of
     ///recursion.
     #[inline(always)]
-    pub fn query_with_splitter_seq(
+    pub fn query_with_splitter_seq<S: Splitter>(
         self,
         func: impl FnMut(PMut<T>, PMut<T>),
-        splitter: &mut impl Splitter,
-    ) {
-        let mut sweeper = QueryFnMut::new(func);
+        splitter: S,
+    ) -> S {
+        let sweeper = QueryFnMut::new(func);
 
-
-        ColfindRecurser::new(HandleSorted).recurse_seq(
-            default_axis(),
-            &mut sweeper,
-            self.vistr,
-            splitter,
-        );
+        let mut c = ColfindRecurser::new(HandleSorted, sweeper, splitter);
+        c.recurse_seq(default_axis(), self.vistr);
+        c.finish()
     }
 }
-
-
 
 struct QueryFnMut<T, F>(F, PhantomData<T>);
 impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> QueryFnMut<T, F> {
@@ -310,9 +303,7 @@ impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler for QueryFnMut<T, F> 
     }
 }
 
-
 struct QueryFn<T, F>(F, PhantomData<T>);
-
 
 impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> QueryFn<T, F> {
     #[inline(always)]

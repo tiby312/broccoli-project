@@ -6,8 +6,8 @@ mod inner_prelude {
     pub use crate::pmut::*;
     pub use crate::tree::build::default_axis;
     pub use crate::tree::build::Splitter;
-    pub use crate::util::*;
     pub use crate::tree::build::SplitterEmpty;
+    pub use crate::util::*;
     pub use alloc::vec::Vec;
     pub use axgeom;
     pub use axgeom::Rect;
@@ -165,6 +165,3 @@ where
 
     inner(default_axis(), tree.vistr().with_depth(compt::Depth(0)))
 }
-
-
-

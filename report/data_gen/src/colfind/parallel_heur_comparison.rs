@@ -30,7 +30,7 @@ fn test3(
     let (tree, query_time) = bench_closure_ret(|| {
         tree.new_builder()
             .with_switch_height(query_height)
-            .query_par(RayonJoin,|a, b| {
+            .query_par(RayonJoin, |a, b| {
                 **a.unpack_inner() += 2;
                 **b.unpack_inner() += 2;
             });

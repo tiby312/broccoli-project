@@ -8,24 +8,19 @@ use build::TreeBuilder;
 
 pub mod container;
 
-
-
-
-
 type TreeInner<N> = compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
 
 #[repr(C)]
-struct TreePtr<T:Aabb>{
-    _inner:TreeInner<NodePtr<T>>,
-    _num_aabbs:usize
+struct TreePtr<T: Aabb> {
+    _inner: TreeInner<NodePtr<T>>,
+    _num_aabbs: usize,
 }
-
 
 /// A space partitioning tree.
 #[repr(C)]
 pub struct Tree<'a, T: Aabb> {
     inner: TreeInner<Node<'a, T>>,
-    num_aabbs:usize
+    num_aabbs: usize,
 }
 
 ///Create a [`Tree`].
@@ -50,11 +45,11 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
 /// let tree = broccoli::new_par(broccoli::RayonJoin,&mut bots);
 ///
 ///```
-pub fn new_par<T: Aabb + Send + Sync>(joiner:impl crate::Joinable,bots: &mut [T]) -> Tree<T>
+pub fn new_par<T: Aabb + Send + Sync>(joiner: impl crate::Joinable, bots: &mut [T]) -> Tree<T>
 where
     T::Num: Send + Sync,
 {
-    Tree::new_par(joiner,bots)
+    Tree::new_par(joiner, bots)
 }
 
 impl<'a, T: Aabb> DrawQuery<'a> for Tree<'a, T> {}
@@ -101,7 +96,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// let tree = broccoli::Tree::new_par(broccoli::RayonJoin,&mut bots);
     ///
     ///```
-    pub fn new_par(joiner:impl crate::Joinable,bots: &'a mut [T]) -> Tree<'a, T>
+    pub fn new_par(joiner: impl crate::Joinable, bots: &'a mut [T]) -> Tree<'a, T>
     where
         T: Send + Sync,
         T::Num: Send + Sync,
@@ -126,7 +121,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
         self.inner.get_height()
     }
 
-
     /// # Examples
     ///
     ///```
@@ -138,7 +132,9 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// assert_eq!(inner.into_nodes().len(),1);
     ///```
     #[must_use]
-    pub fn into_inner(self)->compt::dfs_order::CompleteTreeContainer<Node<'a,T>, compt::dfs_order::PreOrder>{
+    pub fn into_inner(
+        self,
+    ) -> compt::dfs_order::CompleteTreeContainer<Node<'a, T>, compt::dfs_order::PreOrder> {
         self.inner
     }
 
@@ -154,7 +150,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///```
     ///
     #[must_use]
-    pub fn num_aabbs(&self)->usize{
+    pub fn num_aabbs(&self) -> usize {
         self.num_aabbs
     }
 
@@ -177,11 +173,11 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// that does not reflect the true number of aabbs in
     /// every node.
     ///
-    pub unsafe fn from_raw_parts(inner:compt::dfs_order::CompleteTreeContainer<Node<'a,T>, compt::dfs_order::PreOrder>,num_aabbs:usize)->Self{
-        Tree{
-            inner,
-            num_aabbs
-        }
+    pub unsafe fn from_raw_parts(
+        inner: compt::dfs_order::CompleteTreeContainer<Node<'a, T>, compt::dfs_order::PreOrder>,
+        num_aabbs: usize,
+    ) -> Self {
+        Tree { inner, num_aabbs }
     }
 
     /// # Examples
@@ -229,7 +225,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
         PMut::new(self.inner.get_nodes_mut())
     }
 
-
     /// Return the underlying slice of aabbs in the order sorted during tree construction.
     ///
     /// # Examples
@@ -242,9 +237,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     ///```
     #[must_use]
-    pub fn get_elements_mut(&mut self)->PMut<[T]>{
-
-        fn foo<'a,T:Aabb>(v:VistrMut<'a,Node<T>>)->PMut<'a,[T]>{
+    pub fn get_elements_mut(&mut self) -> PMut<[T]> {
+        fn foo<'a, T: Aabb>(v: VistrMut<'a, Node<T>>) -> PMut<'a, [T]> {
             let mut new_slice = None;
 
             v.dfs_preorder(|a| {
@@ -257,9 +251,9 @@ impl<'a, T: Aabb> Tree<'a, T> {
             new_slice.unwrap()
         }
 
-        let num_aabbs=self.num_aabbs;
-        let ret=foo(self.vistr_mut());
-        assert_eq!(ret.len(),num_aabbs);
+        let num_aabbs = self.num_aabbs;
+        let ret = foo(self.vistr_mut());
+        assert_eq!(ret.len(), num_aabbs);
         ret
     }
 
@@ -275,9 +269,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     ///```
     #[must_use]
-    pub fn get_elements(&self)->&[T]{
-
-        fn foo<'a,T:Aabb>(v:Vistr<'a,Node<T>>)->&'a [T]{
+    pub fn get_elements(&self) -> &[T] {
+        fn foo<'a, T: Aabb>(v: Vistr<'a, Node<T>>) -> &'a [T] {
             let mut new_slice = None;
 
             v.dfs_preorder(|a| {
@@ -290,10 +283,9 @@ impl<'a, T: Aabb> Tree<'a, T> {
             new_slice.unwrap()
         }
 
-        let num_aabbs=self.num_aabbs;
-        let ret=foo(self.vistr());
-        assert_eq!(ret.len(),num_aabbs);
+        let num_aabbs = self.num_aabbs;
+        let ret = foo(self.vistr());
+        assert_eq!(ret.len(), num_aabbs);
         ret
     }
-
 }

@@ -57,7 +57,6 @@
     html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
 )]
-
 #![no_std]
 
 #[macro_use]
@@ -72,9 +71,9 @@ mod inner_prelude {
     pub(crate) use crate::par;
     pub(crate) use crate::prelude::*;
     pub(crate) use crate::query::Queries;
-    pub(crate) use crate::Ptr;
     pub(crate) use crate::tree::*;
     pub(crate) use crate::util::*;
+    pub(crate) use crate::Ptr;
 
     pub(crate) use crate::node::*;
     pub(crate) use crate::pmut::*;
@@ -102,17 +101,16 @@ pub mod node;
 ///Generic slice utility functions.
 mod util;
 
-
 ///The broccoli prelude.
 pub mod prelude {
     pub use crate::query::draw::DrawQuery;
 
     pub use crate::query::colfind::ColfindQuery;
+    pub use crate::query::from_slice::FromSlice;
     pub use crate::query::intersect_with::IntersectQuery;
     pub use crate::query::knearest::KnearestQuery;
     pub use crate::query::raycast::RaycastQuery;
     pub use crate::query::rect::RectQuery;
-    pub use crate::query::from_slice::FromSlice;
     //pub use crate::query::Queries;
 }
 
@@ -125,39 +123,36 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
 
-
 #[cfg(feature = "use_rayon")]
 pub use self::rayonjoin::*;
 #[cfg(feature = "use_rayon")]
-mod rayonjoin{
+mod rayonjoin {
     use super::*;
     ///
     /// An implementation of [`Joinable`] that uses rayon's `join`.
-    #[derive(Copy,Clone)]
+    #[derive(Copy, Clone)]
     pub struct RayonJoin;
     impl Joinable for RayonJoin {
         #[inline(always)]
-        fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
+        fn join<A, B, RA, RB>(&self, oper_a: A, oper_b: B) -> (RA, RB)
         where
             A: FnOnce(&Self) -> RA + Send,
             B: FnOnce(&Self) -> RB + Send,
             RA: Send,
-            RB: Send
+            RB: Send,
         {
-            rayon_core::join(||oper_a(self),||oper_b(self))
+            rayon_core::join(|| oper_a(self), || oper_b(self))
         }
     }
 }
-
 
 ///
 /// Trait defining the main primitive with which the `_par` functions
 /// will be parallelized. The trait is based off of rayon's `join` function.
 ///
-pub trait Joinable:Clone+Send+Sync{
-
+pub trait Joinable: Clone + Send + Sync {
     ///Execute both closures potentially in parallel.
-    fn join<A, B, RA, RB>(&self,oper_a: A, oper_b: B) -> (RA, RB) 
+    fn join<A, B, RA, RB>(&self, oper_a: A, oper_b: B) -> (RA, RB)
     where
         A: FnOnce(&Self) -> RA + Send,
         B: FnOnce(&Self) -> RB + Send,
@@ -166,19 +161,16 @@ pub trait Joinable:Clone+Send+Sync{
 
     ///Execute function F on each element in parallel
     ///using `Self::join`.
-    fn for_every<T,F>(&self,arr:&mut [T],func:F)
-    where 
-    T:Send,
-    F:Fn(&mut T)+Send+Copy{
-        if let Some((front,rest))=arr.split_first_mut(){
-            self.join(move |_|func(front),move |_|self.for_every(rest,func));
+    fn for_every<T, F>(&self, arr: &mut [T], func: F)
+    where
+        T: Send,
+        F: Fn(&mut T) + Send + Copy,
+    {
+        if let Some((front, rest)) = arr.split_first_mut() {
+            self.join(move |_| func(front), move |_| self.for_every(rest, func));
         }
-
     }
-        
 }
-
-
 
 #[repr(transparent)]
 struct Ptr<T: ?Sized>(*mut T);

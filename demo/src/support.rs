@@ -1,5 +1,4 @@
 pub mod prelude {
-    pub use broccoli::RayonJoin;
     pub use crate::dists::*;
     pub use crate::Demo;
     pub use crate::*;
@@ -10,6 +9,7 @@ pub mod prelude {
     pub use broccoli::compt;
     pub use broccoli::node::*;
     pub use broccoli::prelude::*;
+    pub use broccoli::RayonJoin;
     //pub use broccoli::rayon;
     pub use dists::uniform_rand::UniformRandGen;
     pub use duckduckgeo::array2_inner_into;

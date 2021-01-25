@@ -261,7 +261,7 @@ impl<'a, 'b: 'a, T: Aabb> MultiRect<'a, 'b, T> {
             |bbox: PMut<T>| {
                 //This is only safe to do because the user is unable to mutate the bounding box,
                 //and we have checked that the query rectangles don't intersect.
-                let bbox:PMut<'a,T>=PMut::new(unsafe{&mut *(bbox.into_inner() as *mut _)});
+                let bbox: PMut<'a, T> = PMut::new(unsafe { &mut *(bbox.into_inner() as *mut _) });
                 func(bbox);
             },
         );
@@ -276,7 +276,10 @@ fn into_ptr_usize<T>(a: &T) -> usize {
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_not_in_rect_mut<T: Aabb>(tree: &mut crate::Tree<T>, rect: &axgeom::Rect<T::Num>) {
+pub fn assert_for_all_not_in_rect_mut<T: Aabb>(
+    tree: &mut crate::Tree<T>,
+    rect: &axgeom::Rect<T::Num>,
+) {
     let mut res_dino = Vec::new();
     tree.for_all_not_in_rect_mut(rect, |a| {
         res_dino.push(into_ptr_usize(a.deref()));

@@ -47,9 +47,9 @@ pub mod all {
         let bench_par = Some({
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| broccoli::new_par(RayonJoin,&mut bots));
+            let (mut tree, t1) = bench_closure_ret(|| broccoli::new_par(RayonJoin, &mut bots));
             let t2 = bench_closure(|| {
-                tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
+                tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
@@ -75,9 +75,9 @@ pub mod all {
         let nosort_par = bool_then(do_all || num_bots < 2500, || {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| NotSorted::new_par(RayonJoin,&mut bots));
+            let (mut tree, t1) = bench_closure_ret(|| NotSorted::new_par(RayonJoin, &mut bots));
             let t2 = bench_closure(|| {
-                tree.find_colliding_pairs_mut_par(RayonJoin,|a, b| {
+                tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());

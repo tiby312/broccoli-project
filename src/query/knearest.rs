@@ -48,8 +48,7 @@ where
     )
 }
 
-
-///Hide the lifetime behind the RayCast trait 
+///Hide the lifetime behind the RayCast trait
 ///to make things simpler
 struct KnearestBorrow<'a, K>(&'a mut K);
 impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
@@ -296,11 +295,7 @@ impl<'a, K: Knearest> Recurser<'a, K> {
         }
     }
 
-    fn recc<'b: 'a, A: Axis>(
-        &mut self,
-        axis: A,
-        stuff: LevelIter<VistrMut<'a, Node<'b, K::T>>>
-    ) {
+    fn recc<'b: 'a, A: Axis>(&mut self, axis: A, stuff: LevelIter<VistrMut<'a, Node<'b, K::T>>>) {
         let ((_depth, nn), rest) = stuff.next();
         //let nn = nn.get_mut();
         let handle_node = match rest {
@@ -345,7 +340,6 @@ impl<'a, K: Knearest> Recurser<'a, K> {
             }
         }
     }
-
 }
 
 ///Returned by knearest.
