@@ -279,7 +279,9 @@ where
 
     use crate::query::colfind::builder::*;
     tree.new_builder()
-        .query_par_ext(joiner, handler, SplitterEmpty).0.consume()
+        .query_par_ext(joiner, handler, SplitterEmpty)
+        .0
+        .consume()
 }
 
 ///Contains a filtered list of all elements in the tree from calling [`FromSlice::collect_all`].

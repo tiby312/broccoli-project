@@ -306,7 +306,6 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
     }
 }
 
-
 struct ParallelRecurser<
     'a,
     'b,
@@ -328,7 +327,6 @@ where
     T::Num: Send + Sync,
     K: Send + Sync,
 {
-   
     fn recurse<A: Axis>(self, axis: A, nodes: &mut Vec<Node<'a, T>>) -> K {
         if self.inner.depth < self.inner.constants.height - 1 {
             let depth = self.inner.depth;
@@ -336,18 +334,18 @@ where
 
             let (mut splitter, node, left, right) = self.inner.split(axis);
 
-            match self.dlevel.next(){
-                par::ParResult::Parallel([dleft,dright])=>{
-                    let joiner1=self.joiner.clone();
-                    let joiner2=self.joiner.clone();
+            match self.dlevel.next() {
+                par::ParResult::Parallel([dleft, dright]) => {
+                    let joiner1 = self.joiner.clone();
+                    let joiner2 = self.joiner.clone();
                     let ((ls, nodes), (rs, mut nodes2)) = self.joiner.join(
                         move |_joiner| {
                             nodes.push(node.finish());
 
-                            let left=ParallelRecurser{
-                                inner:left,
-                                dlevel:dleft,
-                                joiner:joiner1
+                            let left = ParallelRecurser {
+                                inner: left,
+                                dlevel: dleft,
+                                joiner: joiner1,
                             };
                             let ls = left.recurse(axis.next(), nodes);
                             (ls, nodes)
@@ -356,10 +354,10 @@ where
                             let n = nodes_left(depth, height - 1);
                             let mut nodes2: Vec<_> = Vec::with_capacity(n);
 
-                            let right=ParallelRecurser{
-                                inner:right,
-                                dlevel:dright,
-                                joiner:joiner2
+                            let right = ParallelRecurser {
+                                inner: right,
+                                dlevel: dright,
+                                joiner: joiner2,
                             };
                             let rs = right.recurse(axis.next(), &mut nodes2);
                             assert_eq!(nodes2.capacity(), n);
@@ -371,8 +369,8 @@ where
                     nodes.append(&mut nodes2);
                     splitter.add(ls, rs);
                     splitter
-                },
-                par::ParResult::Sequential(_)=>{
+                }
+                par::ParResult::Sequential(_) => {
                     nodes.push(node.finish());
 
                     let ls = left.recurse_seq(axis.next(), nodes);
@@ -381,7 +379,6 @@ where
                     splitter
                 }
             }
-
         } else {
             let (node, splitter) = self.inner.create_leaf(axis);
             nodes.push(node);

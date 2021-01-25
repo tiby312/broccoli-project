@@ -35,7 +35,7 @@ where
             .par_builder
             .build_for_tree_of_height(self.vistr.get_height());
 
-        ColfindRecurser::new(HandleNoSorted,sweeper).recurse_par(
+        ColfindRecurser::new(HandleNoSorted, sweeper).recurse_par(
             default_axis(),
             par,
             self.vistr,
@@ -55,14 +55,14 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
     }
 
     #[inline(always)]
-    pub fn query_with_splitter_seq<S:Splitter>(
+    pub fn query_with_splitter_seq<S: Splitter>(
         self,
         func: impl FnMut(PMut<T>, PMut<T>),
         splitter: S,
-    ) ->S{
+    ) -> S {
         let sweeper = QueryFnMut::new(func);
 
-        ColfindRecurser::new(HandleNoSorted,sweeper).recurse_seq(
+        ColfindRecurser::new(HandleNoSorted, sweeper).recurse_seq(
             default_axis(),
             self.vistr,
             splitter,
@@ -73,7 +73,7 @@ impl<'a, 'b: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'b, T> {
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
         let sweeper = QueryFnMut::new(func);
 
-        ColfindRecurser::new(HandleNoSorted,sweeper).recurse_seq(
+        ColfindRecurser::new(HandleNoSorted, sweeper).recurse_seq(
             default_axis(),
             self.vistr,
             SplitterEmpty,
@@ -185,7 +185,7 @@ where
             .par_builder
             .build_for_tree_of_height(self.vistr.get_height());
 
-        ColfindRecurser::new(HandleSorted,sweeper).recurse_par(
+        ColfindRecurser::new(HandleSorted, sweeper).recurse_par(
             default_axis(),
             par,
             self.vistr,
@@ -227,17 +227,20 @@ where
     /// assert_eq!(intersections.len(),1);
     ///```
     #[inline(always)]
-    pub fn query_par_ext<S:Splitter+Send+Sync,C:CollisionHandler<T = T> + Splitter + Send + Sync>(
+    pub fn query_par_ext<
+        S: Splitter + Send + Sync,
+        C: CollisionHandler<T = T> + Splitter + Send + Sync,
+    >(
         self,
         joiner: impl Joinable,
         sweeper: C,
         splitter: S,
-    ) ->(C,S){
+    ) -> (C, S) {
         let par = self
             .par_builder
             .build_for_tree_of_height(self.vistr.get_height());
 
-        ColfindRecurser::new(HandleSorted,sweeper).recurse_par(
+        ColfindRecurser::new(HandleSorted, sweeper).recurse_par(
             default_axis(),
             par,
             self.vistr,
@@ -271,8 +274,8 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     #[inline(always)]
     pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
         let sweeper = QueryFnMut::new(func);
-        
-        ColfindRecurser::new(HandleSorted,sweeper).recurse_seq(
+
+        ColfindRecurser::new(HandleSorted, sweeper).recurse_seq(
             default_axis(),
             self.vistr,
             SplitterEmpty,
@@ -282,14 +285,14 @@ impl<'a, 'b: 'a, T: Aabb> QueryBuilder<'a, 'b, T> {
     ///Perform the query sequentially with splitter functions getting called at every level of
     ///recursion.
     #[inline(always)]
-    pub fn query_with_splitter_seq<S:Splitter>(
+    pub fn query_with_splitter_seq<S: Splitter>(
         self,
         func: impl FnMut(PMut<T>, PMut<T>),
         splitter: S,
-    )->S {
+    ) -> S {
         let sweeper = QueryFnMut::new(func);
 
-        ColfindRecurser::new(HandleSorted,sweeper).recurse_seq(
+        ColfindRecurser::new(HandleSorted, sweeper).recurse_seq(
             default_axis(),
             self.vistr,
             splitter,
