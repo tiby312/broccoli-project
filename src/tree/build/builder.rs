@@ -244,8 +244,51 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
         )
     }
 
+    fn construct_non_leaf(
+        bin_strat: BinStrat,
+        div_axis: impl Axis,
+        bots: &mut [T],
+    ) -> ConstructResult<T> {
+        let med = if bots.is_empty() {
+            return ConstructResult::Empty(bots);
+        } else {
+            let closure = move |a: &T, b: &T| -> core::cmp::Ordering {
+                crate::util::compare_bots(div_axis, a, b)
+            };
+
+            let k = {
+                let mm = bots.len() / 2;
+                pdqselect::select_by(bots, mm, closure);
+                &bots[mm]
+            };
+
+            k.get().get_range(div_axis).start
+        };
+
+        //It is very important that the median bot end up be binned into the middile bin.
+        //We know this must be true because we chose the divider to be the medians left border,
+        //and we binned so that all bots who intersect with the divider end up in the middle bin.
+        //Very important that if a bots border is exactly on the divider, it is put in the middle.
+        //If this were not true, there is no guarentee that the middile bin has bots in it even
+        //though we did pick a divider.
+        let binned = match bin_strat {
+            BinStrat::Checked => oned::bin_middle_left_right(div_axis, &med, bots),
+            BinStrat::NotChecked => unsafe {
+                oned::bin_middle_left_right_unchecked(div_axis, &med, bots)
+            },
+        };
+
+        ConstructResult::NonEmpty {
+            mid: binned.middle,
+            div: med,
+            left: binned.left,
+            right: binned.right,
+        }
+    }
+
+    //TODO get rid of this??
     fn split<A: Axis>(mut self, axis: A) -> (K, NonLeafFinisher<'a,'b, A, T, S>, Self, Self) {
-        let (f, left, right) = match construct_non_leaf(self.constants.binstrat, axis, self.arr) {
+        let (f, left, right) = match Self::construct_non_leaf(self.constants.binstrat, axis, self.arr) {
             ConstructResult::NonEmpty {
                 div,
                 mid,
@@ -491,46 +534,4 @@ enum ConstructResult<'a, T: Aabb> {
         left: &'a mut [T],
     },
     Empty(&'a mut [T]),
-}
-
-fn construct_non_leaf<T: Aabb>(
-    bin_strat: BinStrat,
-    div_axis: impl Axis,
-    bots: &mut [T],
-) -> ConstructResult<T> {
-    let med = if bots.is_empty() {
-        return ConstructResult::Empty(bots);
-    } else {
-        let closure = move |a: &T, b: &T| -> core::cmp::Ordering {
-            crate::util::compare_bots(div_axis, a, b)
-        };
-
-        let k = {
-            let mm = bots.len() / 2;
-            pdqselect::select_by(bots, mm, closure);
-            &bots[mm]
-        };
-
-        k.get().get_range(div_axis).start
-    };
-
-    //It is very important that the median bot end up be binned into the middile bin.
-    //We know this must be true because we chose the divider to be the medians left border,
-    //and we binned so that all bots who intersect with the divider end up in the middle bin.
-    //Very important that if a bots border is exactly on the divider, it is put in the middle.
-    //If this were not true, there is no guarentee that the middile bin has bots in it even
-    //though we did pick a divider.
-    let binned = match bin_strat {
-        BinStrat::Checked => oned::bin_middle_left_right(div_axis, &med, bots),
-        BinStrat::NotChecked => unsafe {
-            oned::bin_middle_left_right_unchecked(div_axis, &med, bots)
-        },
-    };
-
-    ConstructResult::NonEmpty {
-        mid: binned.middle,
-        div: med,
-        left: binned.left,
-        right: binned.right,
-    }
 }
