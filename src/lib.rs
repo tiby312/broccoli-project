@@ -184,3 +184,10 @@ impl<T: ?Sized> Clone for Ptr<T> {
 }
 unsafe impl<T: ?Sized> Send for Ptr<T> {}
 unsafe impl<T: ?Sized> Sync for Ptr<T> {}
+
+
+
+
+
+
+
