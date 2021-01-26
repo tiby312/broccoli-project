@@ -429,6 +429,52 @@ where
     }
 }
 
+fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
+    match middle.split_first() {
+        Some((first, rest)) => {
+            let mut min = first.get().get_range(axis).start;
+            let mut max = first.get().get_range(axis).end;
+
+            for a in rest.iter() {
+                let start = &a.get().get_range(axis).start;
+                let end = &a.get().get_range(axis).end;
+
+                if *start < min {
+                    min = *start;
+                }
+
+                if *end > max {
+                    max = *end;
+                }
+            }
+
+            axgeom::Range {
+                start: min,
+                end: max,
+            }
+        }
+        None => axgeom::Range {
+            start: Default::default(),
+            end: Default::default(),
+        },
+    }
+}
+
+enum ConstructResult<'a, T: Aabb> {
+    NonEmpty {
+        div: T::Num,
+        mid: &'a mut [T],
+        right: &'a mut [T],
+        left: &'a mut [T],
+    },
+    Empty(&'a mut [T]),
+}
+
+
+
+
+
+
 #[bench]
 #[cfg(all(feature = "unstable", test))]
 fn bench_cont(b: &mut test::Bencher) {
@@ -493,45 +539,4 @@ fn bench_cont2(b: &mut test::Bencher) {
         let k = create_cont2(axgeom::XAXISS, &bots);
         let _ = test::black_box(k);
     });
-}
-
-fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
-    match middle.split_first() {
-        Some((first, rest)) => {
-            let mut min = first.get().get_range(axis).start;
-            let mut max = first.get().get_range(axis).end;
-
-            for a in rest.iter() {
-                let start = &a.get().get_range(axis).start;
-                let end = &a.get().get_range(axis).end;
-
-                if *start < min {
-                    min = *start;
-                }
-
-                if *end > max {
-                    max = *end;
-                }
-            }
-
-            axgeom::Range {
-                start: min,
-                end: max,
-            }
-        }
-        None => axgeom::Range {
-            start: Default::default(),
-            end: Default::default(),
-        },
-    }
-}
-
-enum ConstructResult<'a, T: Aabb> {
-    NonEmpty {
-        div: T::Num,
-        mid: &'a mut [T],
-        right: &'a mut [T],
-        left: &'a mut [T],
-    },
-    Empty(&'a mut [T]),
 }
