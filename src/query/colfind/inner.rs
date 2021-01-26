@@ -2,30 +2,18 @@ use super::node_handle::*;
 use crate::inner_prelude::*;
 
 use crate::query::colfind::CollisionHandler;
-struct InnerRecurser<
-    'a,
-    'node,
-    T: Aabb,
-    NN: NodeHandler,
-    KK: CollisionHandler<T = T>,
-    S: Splitter,
-    B: Axis,
-> {
+struct InnerRecurser<'a, 'node, T: Aabb, NN, C, B: Axis> {
     anchor: NodeAxis<'a, 'node, T, B>,
-    recc: &'a mut ColfindRecurser<T, NN, KK, S>,
+    handler: &'a mut NN,
+    sweeper: &'a mut C,
+    prevec: &'a mut PreVec<T>,
 }
 
-impl<'a, 'node, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, S: Splitter, B: Axis>
-    InnerRecurser<'a, 'node, T, NN, KK, S, B>
+impl<'a, 'node, T: Aabb, NN, C, B: Axis> InnerRecurser<'a, 'node, T, NN, C, B>
+where
+    NN: NodeHandler,
+    C: CollisionHandler<T = T>,
 {
-    #[inline(always)]
-    fn new(
-        anchor: NodeAxis<'a, 'node, T, B>,
-        recc: &'a mut ColfindRecurser<T, NN, KK, S>,
-    ) -> InnerRecurser<'a, 'node, T, NN, KK, S, B> {
-        InnerRecurser { anchor, recc }
-    }
-
     fn recurse<
         A: Axis, //this axis
     >(
@@ -41,12 +29,8 @@ impl<'a, 'node, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, S: Splitt
             axis: this_axis,
         };
 
-        self.recc.handler.handle_children(
-            &mut self.recc.sweeper,
-            &mut self.recc.prevec,
-            self.anchor.borrow_mut(),
-            current,
-        );
+        self.handler
+            .handle_children(self.sweeper, self.prevec, self.anchor.borrow_mut(), current);
 
         if let Some([left, right]) = rest {
             //Continue to recurse even if we know there are no more bots
@@ -75,145 +59,188 @@ impl<'a, 'node, T: Aabb, NN: NodeHandler, KK: CollisionHandler<T = T>, S: Splitt
     }
 }
 
-pub struct ColfindRecurser<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>, S: Splitter> {
-    prevec: PreVec<T>,
-    handler: NO,
-    sweeper: C,
-    splitter: S,
+use crate::Joinable;
+pub struct ParRecurser<'b, 'node, T: Aabb, NO, S, C, P, J> {
+    pub handler: NO,
+    pub vistr: SplitterVistr<C, SplitterVistr<S, VistrMut<'b, Node<'node, T>>>>,
+    pub par: P,
+    pub joiner: J,
+    pub prevec: PreVec<T>,
 }
 
-impl<T: Aabb, NO: NodeHandler, C: CollisionHandler<T = T>, S: Splitter>
-    ColfindRecurser<T, NO, C, S>
+impl<'b, 'node, T: Aabb, NO, S, C, P, J> ParRecurser<'b, 'node, T, NO, S, C, P, J>
+where
+    T: Send + Sync,
+    T::Num: Send + Sync,
+    S: Splitter + Send + Sync,
+    NO: NodeHandler + Send + Sync,
+    C: CollisionHandler<T = T> + Splitter + Send + Sync,
+    P: par::Joiner,
+    J: Joinable,
 {
-    #[inline(always)]
-    pub fn new(handler: NO, sweeper: C, splitter: S) -> ColfindRecurser<T, NO, C, S> {
-        ColfindRecurser {
-            handler,
-            prevec: PreVec::with_capacity(64),
-            sweeper,
-            splitter,
-        }
-    }
-
-    pub fn recurse_common<'a, 'b, A: Axis>(
-        &mut self,
-        this_axis: A,
-        m: VistrMut<'b, Node<'a, T>>,
-    ) -> Option<[VistrMut<'b, Node<'a, T>>; 2]> {
-        let (mut nn, rest) = m.next();
+    pub fn recurse_par<A: Axis>(mut self, this_axis: A) -> (C, S) {
+        let ((mut finisher_par, (finisher_seq, mut nn)), rest) = self.vistr.next();
 
         self.handler.handle_node(
-            &mut self.sweeper,
+            &mut finisher_par,
             &mut self.prevec,
             this_axis.next(),
             nn.borrow_mut().into_range(),
         );
 
         if let Some([mut left, mut right]) = rest {
-            {
-                let nn = NodeAxis {
+            let mut g = InnerRecurser {
+                anchor: NodeAxis {
                     node: nn,
                     axis: this_axis,
-                };
+                },
+                handler: &mut self.handler,
+                sweeper: &mut finisher_par,
+                prevec: &mut self.prevec,
+            };
 
-                let mut g = InnerRecurser::new(nn, self);
-                g.recurse(this_axis.next(), left.borrow_mut());
-                g.recurse(this_axis.next(), right.borrow_mut());
-            }
+            g.recurse(this_axis.next(), left.inner.inner.borrow_mut());
+            g.recurse(this_axis.next(), right.inner.inner.borrow_mut());
 
-            Some([left, right])
-        } else {
-            None
-        }
-    }
-
-    pub fn finish(self) -> S {
-        self.splitter
-    }
-    pub fn recurse_seq<A: Axis>(&mut self, this_axis: A, m: VistrMut<Node<T>>) -> &mut Self {
-        if let Some([left, right]) = self.recurse_common(this_axis, m) {
-            let (mut splitter11, mut splitter22) = self.splitter.div();
-
-            core::mem::swap(&mut splitter11, &mut self.splitter);
-            self.recurse_seq(this_axis.next(), left);
-            core::mem::swap(&mut splitter11, &mut self.splitter);
-
-            core::mem::swap(&mut splitter22, &mut self.splitter);
-            self.recurse_seq(this_axis.next(), right);
-            core::mem::swap(&mut splitter22, &mut self.splitter);
-            self.splitter.add(splitter11, splitter22);
-        }
-        self
-    }
-}
-
-pub struct ParRecurser<
-    T: Aabb,
-    NO: NodeHandler,
-    C: CollisionHandler<T = T>,
-    S: Splitter,
-    P: par::Joiner,
-    J: crate::Joinable,
-> {
-    pub inner: ColfindRecurser<T, NO, C, S>,
-    pub par: P,
-    pub joiner: J,
-}
-
-impl<
-        T: Aabb,
-        NO: NodeHandler,
-        C: CollisionHandler<T = T>,
-        S: Splitter,
-        P: par::Joiner,
-        J: crate::Joinable,
-    > ParRecurser<T, NO, C, S, P, J>
-where
-    T: Send + Sync,
-    T::Num: Send + Sync,
-    C: Splitter + Send + Sync,
-    S: Send + Sync,
-{
-    pub fn recurse_par<A: Axis>(mut self, this_axis: A, m: VistrMut<Node<T>>) -> (C, S) {
-        if let Some([left, right]) = self.inner.recurse_common(this_axis, m) {
-            let (mut splitter11, mut splitter22) = self.inner.splitter.div();
-            let (sl, sr) = match self.par.next() {
+            match self.par.next() {
                 par::ParResult::Parallel([dleft, dright]) => {
-                    let (sweeper1, sweeper2) = self.inner.sweeper.div();
-                    let c1 = ParRecurser {
-                        inner: ColfindRecurser::new(self.inner.handler, sweeper1, splitter11),
+                    
+                    let p1 = ParRecurser {
+                        handler: self.handler.clone(),
+                        vistr: left,
                         par: dleft,
                         joiner: self.joiner.clone(),
+                        prevec: self.prevec,
                     };
-                    let c2 = ParRecurser {
-                        inner: ColfindRecurser::new(self.inner.handler, sweeper2, splitter22),
+                    
+                    let p2 = ParRecurser {
+                        handler: self.handler.clone(),
+                        vistr: right,
                         par: dright,
                         joiner: self.joiner.clone(),
+                        prevec: PreVec::new(),
                     };
 
                     let (sl, sr) = self.joiner.join(
-                        |_joiner| c1.recurse_par(this_axis.next(), left),
-                        |_joiner| c2.recurse_par(this_axis.next(), right),
+                        |_joiner| p1.recurse_par(this_axis.next()),
+                        |_joiner| p2.recurse_par(this_axis.next()),
                     );
 
-                    self.inner.sweeper.add(sl.0, sr.0);
-                    (sl.1, sr.1)
+                    (
+                        finish_splitter(finisher_par, sl.0, sr.0),
+                        finish_splitter(finisher_seq, sl.1, sr.1),
+                    )
                 }
                 par::ParResult::Sequential(_) => {
-                    core::mem::swap(&mut self.inner.splitter, &mut splitter11);
-                    self.inner.recurse_seq(this_axis.next(), left);
-                    core::mem::swap(&mut self.inner.splitter, &mut splitter11);
+                    let mut ar = Recurser {
+                        handler: &mut self.handler,
+                        sweeper: &mut finisher_par,
+                        prevec: &mut self.prevec,
+                    };
+                    let ar = ar.recurse_seq(this_axis.next(), left.inner);
 
-                    core::mem::swap(&mut self.inner.splitter, &mut splitter22);
-                    self.inner.recurse_seq(this_axis.next(), right);
-                    core::mem::swap(&mut self.inner.splitter, &mut splitter22);
+                    let mut al = Recurser {
+                        handler: &mut self.handler.clone(),
+                        sweeper: &mut finisher_par,
+                        prevec: &mut self.prevec,
+                    };
 
-                    (splitter11, splitter22)
+                    let al = al.recurse_seq(this_axis.next(), right.inner);
+                    (finisher_par, finish_splitter(finisher_seq, al, ar))
                 }
-            };
-
-            self.inner.splitter.add(sl, sr);
+            }
+        } else {
+            (finisher_par, finisher_seq)
         }
-        (self.inner.sweeper, self.inner.splitter)
+    }
+}
+
+pub struct Recurser<'a, T: Aabb, NO, C> {
+    pub handler: &'a mut NO,
+    pub sweeper: &'a mut C,
+    pub prevec: &'a mut PreVec<T>,
+}
+
+impl<'a, T: Aabb, NO, C> Recurser<'a, T, NO, C>
+where
+    NO: NodeHandler,
+    C: CollisionHandler<T = T>,
+{
+    pub fn recurse_seq<A: Axis, S: Splitter>(
+        &mut self,
+        this_axis: A,
+        vistr: SplitterVistr<S, VistrMut<Node<T>>>,
+    ) -> S {
+        let ((finisher, mut nn), rest) = vistr.next();
+
+        self.handler.handle_node(
+            self.sweeper,
+            self.prevec,
+            this_axis.next(),
+            nn.borrow_mut().into_range(),
+        );
+
+        if let Some([mut left, mut right]) = rest {
+            {
+                let mut g = InnerRecurser {
+                    anchor: NodeAxis {
+                        node: nn,
+                        axis: this_axis,
+                    },
+                    handler: self.handler,
+                    sweeper: self.sweeper,
+                    prevec: self.prevec,
+                };
+
+                g.recurse(this_axis.next(), left.inner.borrow_mut());
+                g.recurse(this_axis.next(), right.inner.borrow_mut());
+            }
+
+            let al = self.recurse_seq(this_axis.next(), left);
+            let ar = self.recurse_seq(this_axis.next(), right);
+            finish_splitter(finisher, al, ar)
+        } else {
+            finisher
+        }
+    }
+}
+
+fn finish_splitter<S: Splitter>(mut a: S, b: S, c: S) -> S {
+    a.add(b, c);
+    a
+}
+
+pub struct SplitterVistr<S, V> {
+    pub inner: V,
+    pub splitter: S,
+}
+impl<S: Splitter, V: Visitor> SplitterVistr<S, V> {
+    pub fn new(splitter: S, inner: V) -> Self {
+        SplitterVistr { inner, splitter }
+    }
+}
+impl<S: Splitter, V: Visitor> Visitor for SplitterVistr<S, V> {
+    type Item = (S, V::Item);
+    fn next(mut self) -> (Self::Item, Option<[Self; 2]>) {
+        let (a, rest) = self.inner.next();
+
+        if let Some([left, right]) = rest {
+            let (d1, d2) = self.splitter.div();
+            (
+                (self.splitter, a),
+                Some([
+                    SplitterVistr {
+                        inner: left,
+                        splitter: d1,
+                    },
+                    SplitterVistr {
+                        inner: right,
+                        splitter: d2,
+                    },
+                ]),
+            )
+        } else {
+            ((self.splitter, a), None)
+        }
     }
 }

@@ -209,13 +209,13 @@ impl<'a, A: Axis, T: Aabb, S: Sorter> NonLeafFinisher<'a, A, T, S> {
     }
 }
 
-struct Constants<S: Sorter> {
+struct Constants<S> {
     height: usize,
     binstrat: BinStrat,
     sorter: S,
 }
 
-struct Recurser<'a, 'b, T: Aabb, S: Sorter, K: Splitter> {
+struct Recurser<'a, 'b, T: Aabb, S, K> {
     constants: &'b Constants<S>,
     depth: usize,
     arr: &'a mut [T],
@@ -306,26 +306,20 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
     }
 }
 
-struct ParallelRecurser<
-    'a,
-    'b,
-    T: Aabb,
-    S: Sorter,
-    JJ: par::Joiner,
-    Joiner: crate::Joinable,
-    K: Splitter,
-> {
+struct ParallelRecurser<'a, 'b, T: Aabb, S, JJ, Joiner, K> {
     inner: Recurser<'a, 'b, T, S, K>,
     dlevel: JJ,
     joiner: Joiner,
 }
 
-impl<'a, 'b, T: Aabb, S: Sorter, JJ: par::Joiner, Joiner: crate::Joinable, K: Splitter>
-    ParallelRecurser<'a, 'b, T, S, JJ, Joiner, K>
+impl<'a, 'b, T: Aabb, S, JJ, Joiner, K> ParallelRecurser<'a, 'b, T, S, JJ, Joiner, K>
 where
     T: Send + Sync,
     T::Num: Send + Sync,
-    K: Send + Sync,
+    S: Sorter,
+    JJ: par::Joiner,
+    Joiner: crate::Joinable,
+    K: Splitter + Send + Sync,
 {
     fn recurse<A: Axis>(self, axis: A, nodes: &mut Vec<Node<'a, T>>) -> K {
         if self.inner.depth < self.inner.constants.height - 1 {
