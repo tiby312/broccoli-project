@@ -53,6 +53,7 @@ impl<'a, N: Num, T> TreeIndBase<'a, N, T> {
     /// //We can make a tree using the internals, but we lost the guarentee
     /// //that all the `&'a mut T` belong to the same slice.
     /// ```
+    #[inline(always)]
     pub fn into_inner(self) -> Box<[BBox<N, &'a mut T>]> {
         self.aabbs
     }
@@ -150,20 +151,25 @@ unsafe impl<'a, 'b, N: Num, T> FromSlice<'a, 'b> for TreeInd<'a, 'b, N, T> {
     type T = BBox<N, &'a mut T>;
     type Inner = T;
     type Num = N;
+
+    #[inline(always)]
     fn get_inner_elements(&self) -> &[Self::Inner] {
         unsafe { &*self.orig.0 }
     }
 
+    #[inline(always)]
     fn get_inner_elements_mut(&mut self) -> &mut [Self::Inner] {
         unsafe { &mut *self.orig.0 }
     }
 
+    #[inline(always)]
     fn get_tree_mut(&mut self) -> &mut Tree<'b, BBox<N, &'a mut T>> {
         self
     }
 }
 
 impl<'a, 'b, N: Num, T> TreeInd<'a, 'b, N, T> {
+    #[inline(always)]
     pub(super) fn into_ptr(self) -> TreeIndPtr<N, T> {
         TreeIndPtr {
             tree: TreePtr {

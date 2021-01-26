@@ -106,6 +106,7 @@ impl<'a, T: ?Sized> PMut<'a, T> {
         PMut { inner }
     }
 
+    #[inline(always)]
     pub fn shorten<'c>(self) -> PMut<'c, T>
     where
         'a: 'c,
