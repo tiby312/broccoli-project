@@ -286,7 +286,6 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
         }
     }
 
-    //TODO get rid of this??
     fn split<A: Axis>(mut self, axis: A) -> (K, NonLeafFinisher<'a,'b, A, T, S>, Self, Self) {
         let (f, left, right) = match Self::construct_non_leaf(self.constants.binstrat, axis, self.arr) {
             ConstructResult::NonEmpty {
