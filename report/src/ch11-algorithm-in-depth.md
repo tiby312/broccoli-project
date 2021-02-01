@@ -94,6 +94,38 @@ Here are some profiling results finding all intersections on `abspiral(0.2,50_00
 The image below is a SVG image and is interactive. Hover over blocks to see the full names.
 Try this link for a full page view of the image (or if it is not rendering correctly): [SVG](graphs/flamegraph.svg)
 
+
+<object>
+<style>
+  .ayu{
+	  --pplot_color0:yellow;
+  }
+  .rust{
+	   --pplot_color0:green;
+  }
+  .coal{
+	  --pplot_color0:brown
+  }
+  .light{
+	  --pplot_color0:black;
+  }
+  .navy{
+	  --plot_color0:blue;
+  }
+  #splot{
+   	--fg_color:var(--fg);
+	--bg_color:var(--bg);
+	--plot_color0:var(--pplot_color0);
+	--plot_color1:blue;
+	--plot_color2:green;
+	--plot_color4:red;
+	--plot_color5:red;
+	--plot_color6:red;
+  }
+</style>
+{{#include graphs/image.svg}}
+</object>
+
 <object class="p" data="graphs/flamegraph.svg" type="image/svg+xml" style="width: 100%;">
 </object>
 
