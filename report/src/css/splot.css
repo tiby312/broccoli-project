@@ -11,45 +11,43 @@ svg{
     --pplot_color6:cyan;
 }
 .rust{
-     --pplot_color0:var(--sidebar-active);
-     --pplot_color1:yellow;
-     --pplot_color2:yellow;
-     --pplot_color3:yellow;
-     --pplot_color4:yellow;
-     --pplot_color5:yellow;
-     --pplot_color6:yellow;
-
+    --pplot_color0:blue;
+    --pplot_color1:red;
+    --pplot_color2:green;
+    --pplot_color3:yellow;
+    --pplot_color4:purple;
+    --pplot_color5:orange;
+    --pplot_color6:cyan;
 }
 .coal{
-    --pplot_color0:var(--sidebar-active);
-    --pplot_color1:yellow;
-    --pplot_color2:yellow;
+    --pplot_color0:rgb(0, 88, 251);
+    --pplot_color1:rgb(255, 0, 85);
+    --pplot_color2:rgb(0, 151, 0);
     --pplot_color3:yellow;
-    --pplot_color4:yellow;
-    --pplot_color5:yellow;
-    --pplot_color6:yellow;
-
+    --pplot_color4:purple;
+    --pplot_color5:orange;
+    --pplot_color6:cyan;
 }
 .light{
-    --pplot_color0:var(--sidebar-active);
-    --pplot_color1:yellow;
-    --pplot_color2:yellow;
+    --pplot_color0:blue;
+    --pplot_color1:red;
+    --pplot_color2:green;
     --pplot_color3:yellow;
-    --pplot_color4:yellow;
-    --pplot_color5:yellow;
-    --pplot_color6:yellow;
-
+    --pplot_color4:purple;
+    --pplot_color5:orange;
+    --pplot_color6:cyan;
 }
 .navy{
-    --pplot_color0:var(--sidebar-active);
-    --pplot_color1:yellow;
-    --pplot_color2:yellow;
+    --pplot_color0:rgb(0, 88, 251);
+    --pplot_color1:rgb(255, 0, 85);
+    --pplot_color2:rgb(0, 151, 0);
     --pplot_color3:yellow;
-    --pplot_color4:yellow;
-    --pplot_color5:yellow;
-    --pplot_color6:yellow;
+    --pplot_color4:purple;
+    --pplot_color5:orange;
+    --pplot_color6:cyan;
 }
 #splot{
+  font-family: "Open Sans", sans-serif;
   --fg_color:var(--fg);
   --bg_color:var(--bg);
   --plot_color0:var(--pplot_color0);
