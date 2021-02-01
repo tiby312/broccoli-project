@@ -1,0 +1,62 @@
+svg{
+    width: 100%;
+}
+.ayu{
+    --pplot_color0:rgb(0, 88, 251);
+    --pplot_color1:rgb(255, 0, 85);
+    --pplot_color2:rgb(0, 151, 0);
+    --pplot_color3:yellow;
+    --pplot_color4:purple;
+    --pplot_color5:orange;
+    --pplot_color6:cyan;
+}
+.rust{
+     --pplot_color0:var(--sidebar-active);
+     --pplot_color1:yellow;
+     --pplot_color2:yellow;
+     --pplot_color3:yellow;
+     --pplot_color4:yellow;
+     --pplot_color5:yellow;
+     --pplot_color6:yellow;
+
+}
+.coal{
+    --pplot_color0:var(--sidebar-active);
+    --pplot_color1:yellow;
+    --pplot_color2:yellow;
+    --pplot_color3:yellow;
+    --pplot_color4:yellow;
+    --pplot_color5:yellow;
+    --pplot_color6:yellow;
+
+}
+.light{
+    --pplot_color0:var(--sidebar-active);
+    --pplot_color1:yellow;
+    --pplot_color2:yellow;
+    --pplot_color3:yellow;
+    --pplot_color4:yellow;
+    --pplot_color5:yellow;
+    --pplot_color6:yellow;
+
+}
+.navy{
+    --pplot_color0:var(--sidebar-active);
+    --pplot_color1:yellow;
+    --pplot_color2:yellow;
+    --pplot_color3:yellow;
+    --pplot_color4:yellow;
+    --pplot_color5:yellow;
+    --pplot_color6:yellow;
+}
+#splot{
+  --fg_color:var(--fg);
+  --bg_color:var(--bg);
+  --plot_color0:var(--pplot_color0);
+  --plot_color1:var(--pplot_color1);
+  --plot_color2:var(--pplot_color2);
+  --plot_color3:var(--pplot_color3);
+  --plot_color4:var(--pplot_color4);
+  --plot_color5:var(--pplot_color5);
+  --plot_color6:var(--pplot_color6);
+}
