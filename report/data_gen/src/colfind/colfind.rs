@@ -4,20 +4,20 @@ use broccoli::query::colfind::NotSortedQueries;
 fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize) {
     #[derive(Debug)]
     struct Record {
-        num_bots: usize,
-        bench_alg: f64,
-        bench_par: f64,
-        bench_sweep: Option<f64>,
-        bench_naive: Option<f64>,
-        bench_nosort_par: Option<f64>,
-        bench_nosort_seq: Option<f64>,
+        num_bots: f32,
+        bench_alg: f32,
+        bench_par: f32,
+        bench_sweep: f32,
+        bench_naive: f32,
+        bench_nosort_par: f32,
+        bench_nosort_seq: f32,
     }
 
-    let stop_naive_at = 10000;
-    let stop_sweep_at = 40000;
+    //let stop_naive_at = 10000;
+    //let stop_sweep_at = 40000;
 
-    let rects = (0..50_000)
-        .step_by(500)
+    let rects = (0..10000)
+        .step_by(20)
         .map(move |num_bots| {
             dbg!(num_bots);
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
@@ -44,64 +44,74 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let c3 = bool_then(num_bots < stop_sweep_at, || {
+            let c3 = 
                 bench_closure(|| {
                     broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS, &mut bots, |a, b| {
                         **a.unpack_inner() -= 2;
                         **b.unpack_inner() -= 2;
                     });
                 })
-            });
+            ;
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let c4 = bool_then(num_bots < stop_naive_at, || {
+            let c4 = 
                 bench_closure(|| {
                     broccoli::query::colfind::query_naive_mut(PMut::new(&mut bots), |a, b| {
                         **a.unpack_inner() += 2;
                         **b.unpack_inner() += 2;
                     });
                 })
-            });
+            ;
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let c5 = Some(bench_closure(|| {
+            let c5 = bench_closure(|| {
                 let mut tree = NotSorted::new_par(RayonJoin, &mut bots);
                 tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
-            }));
+            });
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let c6 = Some(bench_closure(|| {
+            let c6 = bench_closure(|| {
                 let mut tree = NotSorted::new(&mut bots);
                 tree.find_colliding_pairs_mut(|a, b| {
                     **a.unpack_inner() -= 1;
                     **b.unpack_inner() -= 1;
                 });
-            }));
+            });
 
-            if num_bots < stop_naive_at {
-                for (i, &b) in bot_inner.iter().enumerate() {
-                    assert_eq!(b, 0, "failed iteration:{:?} numbots={:?}", i, num_bots);
-                }
+            for (i, &b) in bot_inner.iter().enumerate() {
+                assert_eq!(b, 0, "failed iteration:{:?} numbots={:?}", i, num_bots);
             }
-
+        
             Record {
-                num_bots,
-                bench_alg: c1,
-                bench_par: c0,
-                bench_sweep: c3,
-                bench_naive: c4,
-                bench_nosort_par: c5,
-                bench_nosort_seq: c6,
+                num_bots:num_bots as f32,
+                bench_alg: c1 as f32,
+                bench_par: c0 as f32,
+                bench_sweep: c3 as f32,
+                bench_naive: c4 as f32,
+                bench_nosort_par: c5 as f32,
+                bench_nosort_seq: c6 as f32,
             }
         })
         .collect::<Vec<_>>();
 
+    let mut plot=splot::plot("Collision","num bots","time in seconds");
+
+    plot.lines("naive",rects.iter().map(|a| [a.num_bots,a.bench_naive]).filter(|&[x,_]|x<3000.0));
+    plot.lines("sweep",rects.iter().map(|a| [a.num_bots,a.bench_sweep]).filter(|&[x,_]|x<6000.0));
+    plot.lines("nosort par",rects.iter().map(|a| [a.num_bots,a.bench_nosort_par]));
+    plot.lines("nosort seq",rects.iter().map(|a| [a.num_bots,a.bench_nosort_seq]));
+    plot.lines("broccoli par",rects.iter().map(|a| [a.num_bots,a.bench_par]));
+    plot.lines("broccoli seq",rects.iter().map(|a| [a.num_bots,a.bench_alg]));
+    
+    plot.render_to_file("test.svg").unwrap();
+
+    /*
     use gnuplot::*;
     let x = rects.iter().map(|a| a.num_bots);
     let y1 = rects
@@ -167,6 +177,7 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
         )
         .set_x_label("Number of Objects", &[])
         .set_y_label("Time taken in seconds", &[]);
+    */
 }
 
 fn handle_theory_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize) {
