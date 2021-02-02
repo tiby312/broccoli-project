@@ -13,8 +13,8 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
         bench_nosort_seq: f32,
     }
 
-    //let stop_naive_at = 10000;
-    //let stop_sweep_at = 40000;
+    let stop_naive_at = 3000;
+    let stop_sweep_at = 6000;
 
     let rects = (0..10000)
         .step_by(20)
@@ -24,45 +24,51 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let c0 = bench_closure(|| {
-                let mut tree = broccoli::new_par(RayonJoin, &mut bots);
-                tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
-                    **a.unpack_inner() += 1;
-                    **b.unpack_inner() += 1;
+            let c0 =                 bench_closure(|| {
+                    let mut tree = broccoli::new_par(RayonJoin, &mut bots);
+                    tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
+                        **a.unpack_inner() += 1;
+                        **b.unpack_inner() += 1;
+                    });
                 });
-            });
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let c1 = bench_closure(|| {
-                let mut tree = broccoli::new(&mut bots);
-                tree.find_colliding_pairs_mut(|a, b| {
-                    **a.unpack_inner() -= 1;
-                    **b.unpack_inner() -= 1;
+            let c1 = 
+                    bench_closure(|| {
+                    let mut tree = broccoli::new(&mut bots);
+                    tree.find_colliding_pairs_mut(|a, b| {
+                        **a.unpack_inner() -= 1;
+                        **b.unpack_inner() -= 1;
+                    });
                 });
-            });
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let c3 = 
+            let c3 = if num_bots<=stop_sweep_at{
                 bench_closure(|| {
                     broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS, &mut bots, |a, b| {
                         **a.unpack_inner() -= 2;
                         **b.unpack_inner() -= 2;
                     });
                 })
-            ;
+            }else{
+                0.0
+            };
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let c4 = 
+            let c4 = if num_bots<=stop_naive_at {
+
                 bench_closure(|| {
                     broccoli::query::colfind::query_naive_mut(PMut::new(&mut bots), |a, b| {
                         **a.unpack_inner() += 2;
                         **b.unpack_inner() += 2;
                     });
                 })
-            ;
+            }else{
+                0.0
+            };
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
@@ -84,8 +90,10 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
                 });
             });
 
-            for (i, &b) in bot_inner.iter().enumerate() {
-                assert_eq!(b, 0, "failed iteration:{:?} numbots={:?}", i, num_bots);
+            if num_bots<=stop_naive_at{
+                for (i, &b) in bot_inner.iter().enumerate(){
+                    assert_eq!(b, 0, "failed iteration:{:?} numbots={:?}", i, num_bots);
+                }
             }
         
             Record {
@@ -102,8 +110,8 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
 
     let mut plot=splot::plot("Collision","num bots","time in seconds");
 
-    plot.lines("naive",rects.iter().map(|a| [a.num_bots,a.bench_naive]).filter(|&[x,_]|x<3000.0));
-    plot.lines("sweep",rects.iter().map(|a| [a.num_bots,a.bench_sweep]).filter(|&[x,_]|x<6000.0));
+    plot.lines("naive",rects.iter().map(|a| [a.num_bots,a.bench_naive]).take_while(|&[x,_]|x<=stop_naive_at as f32));
+    plot.lines("sweep",rects.iter().map(|a| [a.num_bots,a.bench_sweep]).take_while(|&[x,_]|x<=stop_sweep_at as f32));
     plot.lines("nosort par",rects.iter().map(|a| [a.num_bots,a.bench_nosort_par]));
     plot.lines("nosort seq",rects.iter().map(|a| [a.num_bots,a.bench_nosort_seq]));
     plot.lines("broccoli par",rects.iter().map(|a| [a.num_bots,a.bench_par]));
