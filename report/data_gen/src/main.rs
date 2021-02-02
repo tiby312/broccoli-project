@@ -64,6 +64,13 @@ impl FigureBuilder {
             last_file_name: None,
         }
     }
+    
+    fn get_folder_path(&self,filename:&str)->String{
+        let s=format!("{}/{}.svg", &self.folder, filename);
+        dbg!(&s);
+        s
+    }
+
     fn build(&mut self, filename: &str) -> Figure {
         let mut fg = Figure::new();
         let ss = format!("{}/{}.gplot", &self.folder, filename);
@@ -182,13 +189,14 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
+            run_test!(&mut fb, colfind::colfind::handle_theory);
+
             /*
             run_test!(&mut fb, colfind::query_evenness::handle_num_node);
             run_test!(&mut fb, colfind::query_evenness::handle_theory);
 
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
 
-            run_test!(&mut fb, colfind::colfind::handle_theory);
 
             run_test!(&mut fb, spiral::handle);
 

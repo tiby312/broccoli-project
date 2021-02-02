@@ -1,7 +1,7 @@
 use crate::inner_prelude::*;
 use broccoli::pmut::PMut;
 use broccoli::query::colfind::NotSortedQueries;
-fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize) {
+fn handle_bench_inner(grow: f64, fg: &mut FigureBuilder, title: &str,filename:&str) {
     #[derive(Debug)]
     struct Record {
         num_bots: f32,
@@ -108,7 +108,8 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
         })
         .collect::<Vec<_>>();
 
-    let mut plot=splot::plot("Collision","num bots","time in seconds");
+    //TODO convert to milliseconds
+    let mut plot=splot::plot(title,"Number of Elements","Time in Seconds");
 
     plot.lines("naive",rects.iter().map(|a| [a.num_bots,a.bench_naive]).take_while(|&[x,_]|x<=stop_naive_at as f32));
     plot.lines("sweep",rects.iter().map(|a| [a.num_bots,a.bench_sweep]).take_while(|&[x,_]|x<=stop_sweep_at as f32));
@@ -117,85 +118,19 @@ fn handle_bench_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize)
     plot.lines("broccoli par",rects.iter().map(|a| [a.num_bots,a.bench_par]));
     plot.lines("broccoli seq",rects.iter().map(|a| [a.num_bots,a.bench_alg]));
     
-    plot.render_to_file("test.svg").unwrap();
 
-    /*
-    use gnuplot::*;
-    let x = rects.iter().map(|a| a.num_bots);
-    let y1 = rects
-        .iter()
-        .take_while(|a| a.bench_naive.is_some())
-        .map(|a| a.bench_naive.unwrap());
-    let y2 = rects
-        .iter()
-        .take_while(|a| a.bench_sweep.is_some())
-        .map(|a| a.bench_sweep.unwrap());
-    let y3 = rects.iter().map(|a| a.bench_alg);
-    let y4 = rects.iter().map(|a| a.bench_par);
-    let y5 = rects
-        .iter()
-        .take_while(|a| a.bench_nosort_par.is_some())
-        .map(|a| a.bench_nosort_par.unwrap());
-    let y6 = rects
-        .iter()
-        .take_while(|a| a.bench_nosort_seq.is_some())
-        .map(|a| a.bench_nosort_seq.unwrap());
+    plot.render_to_file(&fg.get_folder_path(filename)).unwrap();
 
-    fg.axes2d()
-        .set_pos_grid(2, 1, yposition as u32)
-        .set_title(title, &[])
-        .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])
-        .lines(
-            x.clone(),
-            y1,
-            &[Caption("Naive"), Color(COLS[0]), LineWidth(2.0)],
-        )
-        .lines(
-            x.clone(),
-            y2,
-            &[Caption("Sweep and Prune"), Color(COLS[1]), LineWidth(2.0)],
-        )
-        .lines(
-            x.clone(),
-            y3,
-            &[
-                Caption("broccoli Sequential"),
-                Color(COLS[2]),
-                LineWidth(2.0),
-            ],
-        )
-        .lines(
-            x.clone(),
-            y4,
-            &[Caption("broccoli Parallel"), Color(COLS[3]), LineWidth(2.0)],
-        )
-        .lines(
-            x.clone(),
-            y5,
-            &[Caption("KD Tree Parallel"), Color(COLS[4]), LineWidth(2.0)],
-        )
-        .lines(
-            x.clone(),
-            y6,
-            &[
-                Caption("KD Tree Sequential"),
-                Color(COLS[5]),
-                LineWidth(2.0),
-            ],
-        )
-        .set_x_label("Number of Objects", &[])
-        .set_y_label("Time taken in seconds", &[]);
-    */
 }
 
-fn handle_theory_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize) {
+fn handle_theory_inner(grow: f64, fg: &mut FigureBuilder, title: &str, filename:&str) {
     #[derive(Debug)]
     struct Record {
-        num_bots: usize,
-        num_comparison_alg: usize,
-        num_comparison_naive: Option<usize>,
-        num_comparison_sweep: Option<usize>,
-        num_comparison_nosort: usize,
+        num_bots: f32,
+        num_comparison_alg: f32,
+        num_comparison_naive: f32,
+        num_comparison_sweep: f32,
+        num_comparison_nosort: f32,
     }
 
     let stop_naive_at = 8_000;
@@ -218,7 +153,7 @@ fn handle_theory_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize
                 });
             });
 
-            let c2 = bool_then(num_bots < stop_naive_at, || {
+            let c2 = if num_bots <= stop_naive_at{
                 datanum::datanum_test(|maker| {
                     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
@@ -227,9 +162,11 @@ fn handle_theory_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize
                         **b.unpack_inner() -= 1;
                     });
                 })
-            });
+            }else{
+                0
+            };
 
-            let c3 = bool_then(num_bots < stop_sweep_at, || {
+            let c3 = if num_bots <= stop_sweep_at{
                 datanum::datanum_test(|maker| {
                     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
@@ -238,7 +175,9 @@ fn handle_theory_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize
                         **b.unpack_inner() -= 3;
                     });
                 })
-            });
+            }else{
+                0
+            };
 
             let c4 = datanum::datanum_test(|maker| {
                 let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
@@ -257,88 +196,54 @@ fn handle_theory_inner(grow: f64, fg: &mut Figure, title: &str, yposition: usize
             }
 
             Record {
-                num_bots,
-                num_comparison_alg: c1,
-                num_comparison_naive: c2,
-                num_comparison_sweep: c3,
-                num_comparison_nosort: c4,
+                num_bots:num_bots as f32,
+                num_comparison_alg: c1 as f32,
+                num_comparison_naive: c2 as f32,
+                num_comparison_sweep: c3 as f32,
+                num_comparison_nosort: c4 as f32,
             }
         })
         .collect::<Vec<_>>();
 
-    use gnuplot::*;
-    let x = rects.iter().map(|a| a.num_bots);
-    let y1 = rects.iter().map(|a| a.num_comparison_alg);
-    let y2 = rects
-        .iter()
-        .take_while(|a| a.num_comparison_naive.is_some())
-        .map(|a| a.num_comparison_naive.unwrap());
-    let y3 = rects
-        .iter()
-        .take_while(|a| a.num_comparison_sweep.is_some())
-        .map(|a| a.num_comparison_sweep.unwrap());
-    let y4 = rects.iter().map(|a| a.num_comparison_nosort);
+        let mut plot=splot::plot(title,"Number of Elements","Number of Comparisons");
 
-    fg.axes2d()
-        .set_pos_grid(2, 1, yposition as u32)
-        .set_title(title, &[])
-        .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])
-        .lines(
-            x.clone(),
-            y2,
-            &[Caption("Naive"), Color(COLS[0]), LineWidth(4.0)],
-        )
-        .lines(
-            x.clone(),
-            y3,
-            &[Caption("Sweep and Prune"), Color(COLS[1]), LineWidth(2.0)],
-        )
-        .lines(
-            x.clone(),
-            y1,
-            &[Caption("broccoli"), Color(COLS[2]), LineWidth(2.0)],
-        )
-        .lines(
-            x.clone(),
-            y4,
-            &[Caption("KDTree"), Color(COLS[3]), LineWidth(2.0)],
-        )
-        .set_x_label("Number of Objects", &[])
-        .set_y_label("Number of Comparisons", &[]);
+    plot.lines("naive",rects.iter().map(|a| [a.num_bots,a.num_comparison_naive]).take_while(|&[x,_]|x<=stop_naive_at as f32));
+    plot.lines("sweep",rects.iter().map(|a| [a.num_bots,a.num_comparison_sweep]).take_while(|&[x,_]|x<=stop_sweep_at as f32));
+    plot.lines("nosort",rects.iter().map(|a| [a.num_bots,a.num_comparison_nosort]));
+    plot.lines("broccoli",rects.iter().map(|a| [a.num_bots,a.num_comparison_alg]));
+    
+
+    plot.render_to_file(&fg.get_folder_path(filename)).unwrap();
+
 }
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
-    let mut fg = fb.build("colfind_theory");
-
+    
     handle_theory_inner(
         0.2,
-        &mut fg,
+        fb,
         "Comparison of space partitioning algs with abspiral(x,0.2)",
-        0,
+        "colfind_theory_0.2"
     );
     handle_theory_inner(
         0.05,
-        &mut fg,
+        fb,
         "Comparison of space partitioning algs with abspiral(x,0.05)",
-        1,
+        "colfind_theory_0.05"
     );
-    fb.finish(fg)
 }
 
-pub fn handle_bench(fb: &mut FigureBuilder) {
-    let mut fg = fb.build("colfind_bench");
+pub fn handle_bench(fg: &mut FigureBuilder) {
     handle_bench_inner(
         0.2,
-        &mut fg,
+        fg,
         "Comparison of space partitioning algs with abspiral(x,0.2)",
-        0,
+        "colfind_bench_0.2"
     );
     handle_bench_inner(
         0.05,
-        &mut fg,
+        fg,
         "Comparison of space partitioning algs with abspiral(x,0.05)",
-        1,
+        "colfind_bench_0.05"
     );
-
-    fb.finish(fg);
 }
