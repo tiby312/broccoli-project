@@ -2,10 +2,10 @@ svg{
     width: 100%;
 }
 .ayu{
-    --pplot_color0:rgba(0, 88, 251,0.5);
-    --pplot_color1:rgba(255, 0, 85,0.5);
-    --pplot_color2:rgba(0, 151, 0,0.5);
-    --pplot_color3:rgba(255, 255, 0, 0.753);
+    --pplot_color0:rgb(0, 88, 251);
+    --pplot_color1:rgb(255, 0, 85);
+    --pplot_color2:rgb(0, 151, 0);
+    --pplot_color3:rgb(255, 255, 0);
     --pplot_color4:purple;
     --pplot_color5:orange;
     --pplot_color6:cyan;
