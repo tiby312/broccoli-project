@@ -64,9 +64,9 @@ impl FigureBuilder {
             last_file_name: None,
         }
     }
-    
-    fn get_folder_path(&self,filename:&str)->String{
-        let s=format!("{}/{}.svg", &self.folder, filename);
+
+    fn get_folder_path(&self, filename: &str) -> String {
+        let s = format!("{}/{}.svg", &self.folder, filename);
         dbg!(&s);
         s
     }
@@ -221,7 +221,7 @@ fn main() {
             //done
             run_test!(&mut fb, colfind::rebal_strat::handle);
 
-            
+
             run_test!(&mut fb, colfind::tree_direct_indirect::handle);
 
             run_test!(&mut fb, colfind::float_vs_integer::handle);
