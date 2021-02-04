@@ -110,7 +110,7 @@ fn handle_theory_inner<I:Iterator<Item=(f32,TheoryRecord)>>(it:I, fg: &mut Figur
         rects.iter().map(|a| [a.0, a.1.num_comparison_alg]),
     );
 
-    plot.render_to_file(&fg.get_folder_path(filename)).unwrap();
+    fg.finish_splot(plot,filename);
 }
 
 pub fn handle_theory(fb: &mut FigureBuilder) {

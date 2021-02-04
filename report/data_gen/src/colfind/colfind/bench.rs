@@ -150,7 +150,7 @@ fn handle_bench_inner<I: Iterator<Item = (f32,BenchRecord)>>(
         );
     }
     
-    plot.render_to_file(&fg.get_folder_path(filename)).unwrap();
+    fg.finish_splot(plot,filename);
 }
 
 

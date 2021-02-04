@@ -65,10 +65,9 @@ impl FigureBuilder {
         }
     }
 
-    fn get_folder_path(&self, filename: &str) -> String {
+    fn finish_splot(&self,splot:splot::Plotter, filename: &str) {
         let s = format!("{}/{}.svg", &self.folder, filename);
-        dbg!(&s);
-        s
+        splot.render_to_file(&s).unwrap()
     }
 
     fn build(&mut self, filename: &str) -> Figure {
