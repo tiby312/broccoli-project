@@ -3,7 +3,10 @@
 
 
 
-<link rel="stylesheet" href="css/splot.css">
+<link rel="stylesheet" href="css/plotato.css">
+{{#include graphs/demo.svg}}
+
+<!--
 {{#include raw/colfind_bench_0.2.svg}}
 {{#include raw/colfind_bench_0.05.svg}}
 {{#include raw/colfind_bench_grow.svg}}
@@ -14,7 +17,7 @@
 {{#include raw/colfind_theory_0.05.svg}}
 {{#include raw/colfind_theory_grow.svg}}
 {{#include raw/colfind_theory_grow_wide.svg}}
-
+-->
 
 
 The above chart compares different implementations of `find_colliding_pairs` both in terms of comparisons and benches. It is interesting to note that the real world bench times follow the same trend as the theoretical number of comparisons.

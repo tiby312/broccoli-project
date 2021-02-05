@@ -47,23 +47,23 @@ svg{
     --pplot_color6:cyan;
 }
 
-.plot0stroke.plot0stroke{
+.plotato0stroke{
     stroke-dasharray:4;
     stroke-width:2;
 }
-.plot0fill.plot0fill{
+.plotato0fill{
     stroke-dasharray:4;
-    
 }
-.splotclass.splotclass{
+
+.plotato{
   font-family: "Open Sans", sans-serif;
-  --fg_color:var(--fg);
-  --bg_color:var(--bg);
-  --plot_color0:var(--pplot_color0);
-  --plot_color1:var(--pplot_color1);
-  --plot_color2:var(--pplot_color2);
-  --plot_color3:var(--pplot_color3);
-  --plot_color4:var(--pplot_color4);
-  --plot_color5:var(--pplot_color5);
-  --plot_color6:var(--pplot_color6);
+  --plotato_fg_color:var(--fg);
+  --plotato_bg_color:var(--bg);
+  --plotato_color0:var(--pplot_color0);
+  --plotato_color1:var(--pplot_color1);
+  --plotato_color2:var(--pplot_color2);
+  --plotato_color3:var(--pplot_color3);
+  --plotato_color4:var(--pplot_color4);
+  --plotato_color5:var(--pplot_color5);
+  --plotato_color6:var(--pplot_color6);
 }
