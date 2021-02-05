@@ -87,25 +87,25 @@ fn handle_theory_inner<I:Iterator<Item=(f32,TheoryRecord)>>(it:I, fg: &mut Figur
 
     let mut plot = splot::plot(title, xname, yname);
 
-    plot.lines(
+    plot.line(
         "naive",
         rects
             .iter()
             .map(|a| [a.0, a.1.num_comparison_naive])
             .take_while(|&[x, _]| x <= theory_stop_naive_at as f32),
     );
-    plot.lines(
+    plot.line(
         "sweep",
         rects
             .iter()
             .map(|a| [a.0, a.1.num_comparison_sweep])
             .take_while(|&[x, _]| x <= theory_stop_sweep_at as f32),
     );
-    plot.lines(
+    plot.line(
         "nosort",
         rects.iter().map(|a| [a.0, a.1.num_comparison_nosort]),
     );
-    plot.lines(
+    plot.line(
         "broccoli",
         rects.iter().map(|a| [a.0, a.1.num_comparison_alg]),
     );

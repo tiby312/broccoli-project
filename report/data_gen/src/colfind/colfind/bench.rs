@@ -113,25 +113,25 @@ fn handle_bench_inner<I: Iterator<Item = (f32,BenchRecord)>>(
     let rects: Vec<_> = it.collect();
     //TODO convert to milliseconds
     let mut plot = splot::plot(title, xname, yname);
-    plot.lines(
+    plot.line(
         "broccoli seq",
         rects.iter().map(|a| [a.0, a.1.bench_alg]),
     );
-    plot.lines(
+    plot.line(
         "broccoli par",
         rects.iter().map(|a| [a.0, a.1.bench_par]),
     );
-    plot.lines(
+    plot.line(
         "nosort seq",
         rects.iter().map(|a| [a.0, a.1.bench_nosort_seq]),
     );
-    plot.lines(
+    plot.line(
         "nosort par",
         rects.iter().map(|a| [a.0, a.1.bench_nosort_par]),
     );
         
     if sweep{
-        plot.lines(
+        plot.line(
             "sweep",
             rects
                 .iter()
@@ -141,7 +141,7 @@ fn handle_bench_inner<I: Iterator<Item = (f32,BenchRecord)>>(
     }
     
     if naive{
-        plot.lines(
+        plot.line(
             "naive",
             rects
                 .iter()
