@@ -47,9 +47,9 @@ svg{
     --pplot_color6:cyan;
 }
 
-.plot0color.plot0color{
+.plot0stroke.plot0stroke{
     stroke-dasharray:4;
-    stroke-width:5;
+    stroke-width:2;
 }
 .plot0fill.plot0fill{
     stroke-dasharray:4;
