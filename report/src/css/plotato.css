@@ -1,6 +1,4 @@
-svg{
-    width: 100%;
-}
+
 .ayu{
     --pplot_color0:rgb(0, 88, 251);
     --pplot_color1:rgb(255, 0, 85);
@@ -56,6 +54,7 @@ svg{
 }
 
 .plotato{
+    width: 100%;
   font-family: "Open Sans", sans-serif;
   --plotato_fg_color:var(--fg);
   --plotato_bg_color:var(--bg);
