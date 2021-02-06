@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Serialize,Debug)]
-pub struct BenchRecord {
+pub struct Record {
     bench_alg: f32,
     bench_par: f32,
     bench_sweep: f32,
@@ -12,8 +12,8 @@ pub struct BenchRecord {
 const bench_stop_naive_at: usize = 3000;
 const bench_stop_sweep_at: usize = 6000;
 
-impl BenchRecord {
-    pub fn new(grow: f64, num_bots: usize) -> BenchRecord {
+impl Record {
+    pub fn new(grow: f64, num_bots: usize) -> Record {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
@@ -88,7 +88,7 @@ impl BenchRecord {
             }
         }
 
-        BenchRecord {
+        Record {
             bench_alg: c1 as f32,
             bench_par: c0 as f32,
             bench_sweep: c3 as f32,
@@ -99,54 +99,6 @@ impl BenchRecord {
     }
 }
 
-/*
-fn handle_bench_inner<I: Iterator<Item = (f32, BenchRecord)>>(
-    it: I,
-    fg: &mut FigureBuilder,
-    filename: &str,
-    title: &str,
-    naive: bool,
-    sweep: bool,
-    xname: &str,
-    yname: &str,
-) {
-    let rects: Vec<_> = it.collect();
-    //TODO convert to milliseconds
-    let mut plot = plotato::plot(title, xname, yname);
-    plot.line("broccoli seq", rects.iter().map(|a| [a.0, a.1.bench_alg]));
-    plot.line("broccoli par", rects.iter().map(|a| [a.0, a.1.bench_par]));
-    plot.line(
-        "nosort seq",
-        rects.iter().map(|a| [a.0, a.1.bench_nosort_seq]),
-    );
-    plot.line(
-        "nosort par",
-        rects.iter().map(|a| [a.0, a.1.bench_nosort_par]),
-    );
-
-    if sweep {
-        plot.line(
-            "sweep",
-            rects
-                .iter()
-                .map(|a| [a.0, a.1.bench_sweep])
-                .take_while(|&[x, _]| x <= bench_stop_sweep_at as f32),
-        );
-    }
-
-    if naive {
-        plot.line(
-            "naive",
-            rects
-                .iter()
-                .map(|a| [a.0, a.1.bench_naive])
-                .take_while(|&[x, _]| x <= bench_stop_naive_at as f32),
-        );
-    }
-
-    fg.finish_plot(plot, filename);
-}
-*/
 
 
 pub fn handle_bench(fb: &mut FigureBuilder) {
@@ -157,7 +109,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         yname: "Time in Seconds",
         plots: (0usize..10_000)
             .step_by(100)
-            .map(|num_bots| (num_bots as f32, BenchRecord::new(0.2, num_bots))),
+            .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots))),
         stop_values: &[
             ("naive", bench_stop_naive_at as f32),
             ("sweep", bench_stop_sweep_at as f32),
@@ -171,7 +123,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         yname: "Time in Seconds",
         plots: (0usize..10_000)
             .step_by(100)
-            .map(|num_bots| (num_bots as f32, BenchRecord::new(0.05, num_bots))),
+            .map(|num_bots| (num_bots as f32, Record::new(0.05, num_bots))),
         stop_values: &[
             ("naive", bench_stop_naive_at as f32),
             ("sweep", bench_stop_sweep_at as f32),
@@ -185,7 +137,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Time in Seconds",
         plots: abspiral_grow_iter2(0.001, 0.008, 0.0001)
-        .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
+        .map(|grow| (grow as f32, Record::new(grow, 3000))),
         stop_values: &[
             ("naive", bench_stop_naive_at as f32),
             ("sweep", bench_stop_sweep_at as f32),
@@ -199,7 +151,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Time in Seconds",
         plots: abspiral_grow_iter2(0.01, 0.2, 0.002)
-        .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
+        .map(|grow| (grow as f32, Record::new(grow, 3000))),
         stop_values: &[
             ("naive", bench_stop_naive_at as f32),
             ("sweep", bench_stop_sweep_at as f32),

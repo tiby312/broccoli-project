@@ -269,7 +269,7 @@ fn main() {
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
             //run_test!(&mut fb, colfind::colfind::handle_theory);
-            run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
+            //run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
 
             /*
             run_test!(&mut fb, colfind::query_evenness::handle_num_node);
@@ -290,6 +290,8 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
+            run_test!(&mut fb, colfind::float_vs_integer::handle);
+
             //run_test!(&mut fb, colfind::colfind::handle_bench);
             //run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
 
@@ -304,8 +306,7 @@ fn main() {
 
             run_test!(&mut fb, colfind::tree_direct_indirect::handle);
 
-            run_test!(&mut fb, colfind::float_vs_integer::handle);
-
+            
             //This is the one thats interesting to see what the results are on phone/vs/laptop
 
             run_test!(&mut fb, colfind::height_heur_comparison::handle);

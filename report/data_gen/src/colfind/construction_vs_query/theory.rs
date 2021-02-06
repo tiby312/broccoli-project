@@ -1,14 +1,14 @@
 use super::*;
 
 #[derive(Debug,Serialize)]
-struct RecordTheory {
+struct Record {
     brocc_constr: f32,
     brocc_query:f32,
     nosort_constr: f32,
     nosort_query:f32
 }
-impl RecordTheory {
-    fn new(grow: f64,num_bots: usize) -> RecordTheory {
+impl Record {
+    fn new(grow: f64,num_bots: usize) -> Record {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
         let theory = datanum::datanum_test2(|maker| {
@@ -45,7 +45,7 @@ impl RecordTheory {
             (count as f32, count2 as f32)
         });
 
-        RecordTheory {
+        Record {
             brocc_constr:theory.0,
             brocc_query:theory.1,
             nosort_constr:nosort_theory.0,
@@ -53,32 +53,6 @@ impl RecordTheory {
         }
     }
 }
-
-/*
-fn plot_inner<I: Iterator<Item = (f32, RecordTheory)>>(
-    fg: &mut FigureBuilder,
-    it: I,
-    filename: &str,
-    title: &str,
-    xname: &str,
-    yname: &str,
-) {
-    let rects: Vec<_> = it.collect();
-
-    let y1 = rects.iter().map(|a| [a.0, a.1.theory.0]);
-    let y2 = rects.iter().map(|a| [a.0, a.1.theory.1]);
-    let y3 = rects.iter().map(|a| [a.0, a.1.nosort_theory.0]);
-    let y4 = rects.iter().map(|a| [a.0, a.1.nosort_theory.1]);
-
-    let mut p = plotato::plot(title, xname, yname);
-    p.line("construction", y1);
-    p.line("query", y2);
-    p.line("nosort_cons", y3);
-    p.line("nosort_query", y4);
-
-    fg.finish_plot(p, filename);
-}
-*/
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
@@ -88,7 +62,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         yname: "Number of Comparisons",
         plots: (0usize..6_000)
             .step_by(20)
-            .map(|num_bots| (num_bots as f32, RecordTheory::new(0.2, num_bots))),
+            .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots))),
         stop_values: &[],
     });
 
@@ -99,7 +73,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         yname: "Number of Comparisons",
         plots: (0usize..6_000)
             .step_by(20)
-            .map(|num_bots| (num_bots as f32, RecordTheory::new(4.0, num_bots))),
+            .map(|num_bots| (num_bots as f32, Record::new(4.0, num_bots))),
         stop_values: &[],
     });
 
@@ -109,7 +83,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Number of Comparisons",
         plots: abspiral_grow_iter2(0.1, 1.0, 0.005)
-            .map(|g| (g as f32, RecordTheory::new(g, 40_000))),
+            .map(|g| (g as f32, Record::new(g, 40_000))),
         stop_values: &[],
     });
 

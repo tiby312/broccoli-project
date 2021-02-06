@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, Serialize)]
-struct TheoryRecord {
+struct Record {
     broccoli: f32,
     naive: f32,
     sweep: f32,
@@ -11,8 +11,8 @@ struct TheoryRecord {
 const theory_stop_naive_at: usize = 8_000;
 const theory_stop_sweep_at: usize = 50_000;
 
-impl TheoryRecord {
-    fn new(grow: f64, num_bots: usize) -> TheoryRecord {
+impl Record {
+    fn new(grow: f64, num_bots: usize) -> Record {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
         let c1 = datanum::datanum_test(|maker| {
@@ -67,7 +67,7 @@ impl TheoryRecord {
             }
         }
 
-        TheoryRecord {
+        Record {
             broccoli: c1 as f32,
             naive: c2 as f32,
             sweep: c3 as f32,
@@ -84,7 +84,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         yname: "Number of Comparisons",
         plots: (0usize..80_000)
             .step_by(2000)
-            .map(|num_bots| (num_bots as f32, TheoryRecord::new(0.2, num_bots))),
+            .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots))),
         stop_values: &[
             ("naive", theory_stop_naive_at as f32),
             ("sweep", theory_stop_sweep_at as f32),
@@ -98,7 +98,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         yname: "Number of Comparisons",
         plots: (0usize..80_000)
             .step_by(2000)
-            .map(|num_bots| (num_bots as f32, TheoryRecord::new(0.05, num_bots))),
+            .map(|num_bots| (num_bots as f32, Record::new(0.05, num_bots))),
         stop_values: &[
             ("naive", theory_stop_naive_at as f32),
             ("sweep", theory_stop_sweep_at as f32),
@@ -112,7 +112,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Number of Comparisons",
         plots:abspiral_grow_iter2(0.001, 0.01, 0.0001)
-        .map(|grow| (grow as f32, TheoryRecord::new(grow, 3000))),
+        .map(|grow| (grow as f32, Record::new(grow, 3000))),
         stop_values: &[
             ("naive", theory_stop_naive_at as f32),
             ("sweep", theory_stop_sweep_at as f32),
@@ -125,7 +125,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Number of Comparisons",
         plots:abspiral_grow_iter2(0.01, 0.2, 0.001)
-        .map(|grow| (grow as f32, TheoryRecord::new(grow, 3000))),
+        .map(|grow| (grow as f32, Record::new(grow, 3000))),
         stop_values: &[
             ("naive", theory_stop_naive_at as f32),
             ("sweep", theory_stop_sweep_at as f32),

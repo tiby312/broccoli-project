@@ -10,7 +10,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         yname: "Time in Seconds",
         plots: (0usize..20_000)
             .step_by(80)
-            .map(|num_bots| (num_bots as f32, RecordBench::new(0.2, num_bots,false))),
+            .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots,false))),
         stop_values: &[
             ("nosort_contr", NO_SORT_MAX as f32),
             ("nosort_query", NO_SORT_MAX as f32),
@@ -22,7 +22,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
 
 
 #[derive(Debug,Serialize)]
-struct RecordBench {
+struct Record {
     brocc_contr: f32,
     brocc_query: f32,
     brocc_par_contr:f32,
@@ -33,8 +33,8 @@ struct RecordBench {
     nosort_par_query:f32,
 }
 
-impl RecordBench {
-    pub fn new(grow: f64,num_bots: usize,  do_all: bool) -> RecordBench {
+impl Record {
+    pub fn new(grow: f64,num_bots: usize,  do_all: bool) -> Record {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
         let bench = {
@@ -97,7 +97,7 @@ impl RecordBench {
             (0.0, 0.0)
         };
 
-        RecordBench {
+        Record {
             brocc_contr:bench.0,
             brocc_query:bench.1,
             brocc_par_contr:bench_par.0,
