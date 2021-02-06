@@ -102,8 +102,8 @@ impl BenchRecord {
 fn handle_bench_inner<I: Iterator<Item = (f32, BenchRecord)>>(
     it: I,
     fg: &mut FigureBuilder,
-    title: &str,
     filename: &str,
+    title: &str,
     naive: bool,
     sweep: bool,
     xname: &str,
@@ -152,8 +152,9 @@ pub fn handle_bench(fg: &mut FigureBuilder) {
             .step_by(100)
             .map(|num_bots| (num_bots as f32, BenchRecord::new(0.2, num_bots))),
         fg,
-        "Space partitioning algs with abspiral(x,0.2)",
         "colfind_bench_0.2",
+        
+        "Space partitioning algs with abspiral(x,0.2)",
         true,
         true,
         "Number of Elements",
@@ -165,8 +166,9 @@ pub fn handle_bench(fg: &mut FigureBuilder) {
             .step_by(100)
             .map(|num_bots| (num_bots as f32, BenchRecord::new(0.05, num_bots))),
         fg,
-        "Space partitioning algs with abspiral(x,0.05)",
         "colfind_bench_0.05",
+        
+        "Space partitioning algs with abspiral(x,0.05)",
         true,
         true,
         "Number of Elements",
@@ -177,8 +179,9 @@ pub fn handle_bench(fg: &mut FigureBuilder) {
         abspiral_grow_iter2(0.001, 0.008, 0.0001)
             .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
         fg,
-        "Space partitioning algs with abspiral(grow,3000)",
         "colfind_bench_grow",
+        
+        "Space partitioning algs with abspiral(grow,3000)",
         true,
         true,
         "Grow",
@@ -188,9 +191,9 @@ pub fn handle_bench(fg: &mut FigureBuilder) {
     handle_bench_inner(
         abspiral_grow_iter2(0.01, 0.2, 0.002)
             .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
-        fg,
+        fg,"colfind_bench_grow_wide",
+        
         "Space partitioning algs with abspiral(grow,6000)",
-        "colfind_bench_grow_wide",
         false,
         false,
         "Grow",

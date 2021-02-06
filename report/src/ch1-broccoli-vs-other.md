@@ -4,7 +4,6 @@
 
 
 <link rel="stylesheet" href="css/plotato.css">
-{{#include graphs/demo.svg}}
 
 
 {{#include raw/colfind_bench_0.2.svg}}

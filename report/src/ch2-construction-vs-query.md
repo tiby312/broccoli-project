@@ -25,6 +25,13 @@ Some observations:
 It makes sense that querying in more 'parallelizable' than rebalancing since the calculation that you have to perform for each node before you can divide and conquer the problem is more expensive for rebalancing. For rebalancing you need to find the median and bin the aabbs. For querying you only have to do sweep and prune. 
 So more work has to be done upfront on a node before we can recurse.
 
+<link rel="stylesheet" href="css/plotato.css">
+{{#include raw/construction_query_bench.svg}}
+{{#include raw/construction_vs_query_theory_0.2.svg}}
+{{#include raw/construction_vs_query_theory_4.0.svg}}
+{{#include raw/construction_vs_query_theory_grow.svg}}
+
+
 <img alt="Construction vs Query" src="graphs/construction_vs_query_grow_theory.svg" class="center" style="width: 100%;" />
 <img alt="Construction vs Query" src="graphs/construction_vs_query_grow_bench.svg" class="center" style="width: 100%;" />
 <img alt="Construction vs Query" src="graphs/construction_vs_query_num_theory.svg" class="center" style="width: 100%;" />

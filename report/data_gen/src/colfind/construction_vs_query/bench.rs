@@ -1,6 +1,84 @@
 use super::*;
 
+const NO_SORT_MAX:usize=8000;
 
+pub fn handle_bench(fb: &mut FigureBuilder) {
+
+    handle_bench_inner(
+        (0..20_000).step_by(80).map(|n |(n as f32,RecordBench::new(n,0.2,false))),
+        fb,
+        "construction_query_bench",
+        "Construction vs Query",
+        "Number of Elements",
+        "Time in Seconds"
+    );
+
+}
+//TODO make this a macro function???
+fn handle_bench_inner<I: Iterator<Item = (f32, RecordBench)>>(
+    it: I,
+    fg: &mut FigureBuilder,
+    filename: &str,
+    title: &str,
+    xname: &str,
+    yname: &str,
+) {
+    let rects: Vec<_> = it.collect();
+
+    let mut plot = plotato::plot(title, xname, yname);
+
+    plot.line(
+        "bench constr",
+        rects
+            .iter()
+            .map(|a| [a.0, a.1.bench.0])   
+    );
+    plot.line(
+        "bench query",
+        rects
+            .iter()
+            .map(|a| [a.0, a.1.bench.1])   
+    );
+
+
+    plot.line(
+        "bench_par constr",
+        rects
+            .iter()
+            .map(|a| [a.0, a.1.bench_par.0])
+    );
+    plot.line(
+        "bench_par query",
+        rects
+            .iter()
+            .map(|a| [a.0, a.1.bench_par.1])
+    );
+    
+    plot.line(
+        "nosort const",
+        rects.iter().map(|a| [a.0, a.1.nosort.0]).take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
+    );
+
+    plot.line(
+        "nosort query",
+        rects.iter().map(|a| [a.0, a.1.nosort.1]).take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
+    );
+
+
+    plot.line(
+        "nosort_par constr",
+        rects.iter().map(|a| [a.0, a.1.nosort_par.0]).take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
+    );
+
+    plot.line(
+        "nosort_par query",
+        rects.iter().map(|a| [a.0, a.1.nosort_par.1]).take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
+    );
+
+    fg.finish_plot(plot, filename);
+}
+
+/*
 fn handle_num_bots_bench_inner(fg: &mut Figure, grow: f64, position: u32) {
     let mut rects: Vec<_> = Vec::new();
 
@@ -186,98 +264,90 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
 
     fb.finish(fg);
 }
+*/
 
-fn handle_num_bots_bench(fb: &mut FigureBuilder) {
-    let mut fg = fb.build(&format!("construction_vs_query_num_bench"));
 
-    handle_num_bots_bench_inner(&mut fg, 0.2, 0);
-    handle_num_bots_bench_inner(&mut fg, 2.0, 1);
 
-    fb.finish(fg);
+
+#[derive(Debug)]
+struct RecordBench {
+    bench: (f32, f32),
+    bench_par: (f32, f32),
+    nosort: (f32, f32),
+    nosort_par: (f32, f32),
 }
 
-pub fn handle_bench(fb: &mut FigureBuilder) {
-    handle_grow_bench(fb);
-    handle_num_bots_bench(fb);
-}
+impl RecordBench{
 
-#[derive(Debug)]
-pub struct RecordBench {
-    pub grow: f64,
-    pub num_bots: usize,
-    pub bench: Option<(f64, f64)>,
-    pub bench_par: Option<(f64, f64)>,
-    pub nosort: Option<(f64, f64)>,
-    pub nosort_par: Option<(f64, f64)>,
-}
-
-
-
-pub fn handle_bench(num_bots: usize, grow: f64, do_all: bool) -> RecordBench {
-    let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
-
-    let bench = Some({
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
-
-        let (mut tree, t1) = bench_closure_ret(|| broccoli::new(&mut bots));
-        let t2 = bench_closure(|| {
-            tree.find_colliding_pairs_mut(|a, b| {
-                let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
-                let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
-                repel(aa, bb, a.unpack_inner(), b.unpack_inner());
+    pub fn new(num_bots: usize, grow: f64, do_all: bool) -> RecordBench {
+        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
+    
+        let bench = {
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+    
+            let (mut tree, t1) = bench_closure_ret(|| broccoli::new(&mut bots));
+            let t2 = bench_closure(|| {
+                tree.find_colliding_pairs_mut(|a, b| {
+                    let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
+                    let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
+                    repel(aa, bb, a.unpack_inner(), b.unpack_inner());
+                });
             });
-        });
-        (t1, t2)
-    });
-
-    let bench_par = Some({
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
-
-        let (mut tree, t1) = bench_closure_ret(|| broccoli::new_par(RayonJoin, &mut bots));
-        let t2 = bench_closure(|| {
-            tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
-                let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
-                let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
-                repel(aa, bb, a.unpack_inner(), b.unpack_inner());
+            (t1 as f32, t2 as f32)
+        };
+    
+        let bench_par = {
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+    
+            let (mut tree, t1) = bench_closure_ret(|| broccoli::new_par(RayonJoin, &mut bots));
+            let t2 = bench_closure(|| {
+                tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
+                    let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
+                    let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
+                    repel(aa, bb, a.unpack_inner(), b.unpack_inner());
+                });
             });
-        });
-        (t1, t2)
-    });
-
-    let nosort = bool_then(do_all || num_bots < 2000, || {
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
-
-        let (mut tree, t1) = bench_closure_ret(|| NotSorted::new(&mut bots));
-        let t2 = bench_closure(|| {
-            tree.find_colliding_pairs_mut(|a, b| {
-                let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
-                let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
-                repel(aa, bb, a.unpack_inner(), b.unpack_inner());
+            (t1 as f32, t2 as f32)
+        };
+    
+        let nosort = if do_all || num_bots <= NO_SORT_MAX {
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+    
+            let (mut tree, t1) = bench_closure_ret(|| NotSorted::new(&mut bots));
+            let t2 = bench_closure(|| {
+                tree.find_colliding_pairs_mut(|a, b| {
+                    let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
+                    let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
+                    repel(aa, bb, a.unpack_inner(), b.unpack_inner());
+                });
             });
-        });
-        (t1, t2)
-    });
+            (t1 as f32, t2 as f32)
+        }else{
+            (0.0,0.0)
+        };
 
-    let nosort_par = bool_then(do_all || num_bots < 2500, || {
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
-
-        let (mut tree, t1) = bench_closure_ret(|| NotSorted::new_par(RayonJoin, &mut bots));
-        let t2 = bench_closure(|| {
-            tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
-                let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
-                let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
-                repel(aa, bb, a.unpack_inner(), b.unpack_inner());
+        let nosort_par = if do_all || num_bots <= NO_SORT_MAX{
+            let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+    
+            let (mut tree, t1) = bench_closure_ret(|| NotSorted::new_par(RayonJoin, &mut bots));
+            let t2 = bench_closure(|| {
+                tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
+                    let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
+                    let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
+                    repel(aa, bb, a.unpack_inner(), b.unpack_inner());
+                });
             });
-        });
-        (t1, t2)
-    });
-
-    RecordBench {
-        grow,
-        num_bots,
-        bench,
-        bench_par,
-        nosort,
-        nosort_par,
+            (t1 as f32, t2 as f32)
+        }else{
+            (0.0,0.0)
+        };
+    
+        RecordBench {
+            bench,
+            bench_par,
+            nosort,
+            nosort_par,
+        }
     }
+    
 }

@@ -84,12 +84,6 @@ fn handle_theory_inner<I: Iterator<Item = (f32, TheoryRecord)>>(
     xname: &str,
     yname: &str,
 ) {
-    /*
-    let rects = (0usize..80_000)
-        .step_by(2000)
-        .map(move |num_bots| TheoryRecord::new(grow, num_bots))
-        .collect::<Vec<_>>();
-    */
     let rects: Vec<_> = it.collect();
 
     let mut plot = plotato::plot(title, xname, yname);

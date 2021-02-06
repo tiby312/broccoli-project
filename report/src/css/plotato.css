@@ -7,6 +7,9 @@
     --pplot_color4:purple;
     --pplot_color5:orange;
     --pplot_color6:cyan;
+    --pplot_color7:lime;
+    --pplot_color8:chocolate;
+    
 }
 .rust{
     --pplot_color0:blue;
@@ -16,6 +19,9 @@
     --pplot_color4:purple;
     --pplot_color5:orange;
     --pplot_color6:cyan;
+    --pplot_color7:lime;
+    --pplot_color8:chocolate;
+ 
 }
 .coal{
     --pplot_color0:rgb(0, 88, 251);
@@ -25,6 +31,9 @@
     --pplot_color4:purple;
     --pplot_color5:orange;
     --pplot_color6:cyan;
+    --pplot_color7:lime;
+    --pplot_color8:chocolate;
+ 
 }
 .light{
     --pplot_color0:blue;
@@ -34,6 +43,9 @@
     --pplot_color4:purple;
     --pplot_color5:orange;
     --pplot_color6:cyan;
+    --pplot_color7:lime;
+    --pplot_color8:chocolate;
+ 
 }
 .navy{
     --pplot_color0:rgb(0, 88, 251);
@@ -43,6 +55,9 @@
     --pplot_color4:purple;
     --pplot_color5:orange;
     --pplot_color6:cyan;
+    --pplot_color7:lime;
+    --pplot_color8:chocolate;
+ 
 }
 
 .plotato0stroke{
@@ -65,4 +80,6 @@
   --plotato_color4:var(--pplot_color4);
   --plotato_color5:var(--pplot_color5);
   --plotato_color6:var(--pplot_color6);
+  --plotato_color7:var(--pplot_color7);
+  --plotato_color8:var(--pplot_color8);
 }
