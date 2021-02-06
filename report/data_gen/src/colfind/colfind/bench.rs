@@ -153,7 +153,6 @@ pub fn handle_bench(fg: &mut FigureBuilder) {
             .map(|num_bots| (num_bots as f32, BenchRecord::new(0.2, num_bots))),
         fg,
         "colfind_bench_0.2",
-        
         "Space partitioning algs with abspiral(x,0.2)",
         true,
         true,
@@ -167,7 +166,6 @@ pub fn handle_bench(fg: &mut FigureBuilder) {
             .map(|num_bots| (num_bots as f32, BenchRecord::new(0.05, num_bots))),
         fg,
         "colfind_bench_0.05",
-        
         "Space partitioning algs with abspiral(x,0.05)",
         true,
         true,
@@ -180,7 +178,6 @@ pub fn handle_bench(fg: &mut FigureBuilder) {
             .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
         fg,
         "colfind_bench_grow",
-        
         "Space partitioning algs with abspiral(grow,3000)",
         true,
         true,
@@ -191,8 +188,8 @@ pub fn handle_bench(fg: &mut FigureBuilder) {
     handle_bench_inner(
         abspiral_grow_iter2(0.01, 0.2, 0.002)
             .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
-        fg,"colfind_bench_grow_wide",
-        
+        fg,
+        "colfind_bench_grow_wide",
         "Space partitioning algs with abspiral(grow,6000)",
         false,
         false,

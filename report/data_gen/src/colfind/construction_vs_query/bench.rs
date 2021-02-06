@@ -1,18 +1,18 @@
 use super::*;
 
-const NO_SORT_MAX:usize=8000;
+const NO_SORT_MAX: usize = 8000;
 
 pub fn handle_bench(fb: &mut FigureBuilder) {
-
     handle_bench_inner(
-        (0..20_000).step_by(80).map(|n |(n as f32,RecordBench::new(n,0.2,false))),
+        (0..20_000)
+            .step_by(80)
+            .map(|n| (n as f32, RecordBench::new(n, 0.2, false))),
         fb,
         "construction_query_bench",
         "Construction vs Query",
         "Number of Elements",
-        "Time in Seconds"
+        "Time in Seconds",
     );
-
 }
 //TODO make this a macro function???
 fn handle_bench_inner<I: Iterator<Item = (f32, RecordBench)>>(
@@ -27,52 +27,48 @@ fn handle_bench_inner<I: Iterator<Item = (f32, RecordBench)>>(
 
     let mut plot = plotato::plot(title, xname, yname);
 
-    plot.line(
-        "bench constr",
-        rects
-            .iter()
-            .map(|a| [a.0, a.1.bench.0])   
-    );
-    plot.line(
-        "bench query",
-        rects
-            .iter()
-            .map(|a| [a.0, a.1.bench.1])   
-    );
-
+    plot.line("bench constr", rects.iter().map(|a| [a.0, a.1.bench.0]));
+    plot.line("bench query", rects.iter().map(|a| [a.0, a.1.bench.1]));
 
     plot.line(
         "bench_par constr",
-        rects
-            .iter()
-            .map(|a| [a.0, a.1.bench_par.0])
+        rects.iter().map(|a| [a.0, a.1.bench_par.0]),
     );
     plot.line(
         "bench_par query",
-        rects
-            .iter()
-            .map(|a| [a.0, a.1.bench_par.1])
+        rects.iter().map(|a| [a.0, a.1.bench_par.1]),
     );
-    
+
     plot.line(
         "nosort const",
-        rects.iter().map(|a| [a.0, a.1.nosort.0]).take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
+        rects
+            .iter()
+            .map(|a| [a.0, a.1.nosort.0])
+            .take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
     );
 
     plot.line(
         "nosort query",
-        rects.iter().map(|a| [a.0, a.1.nosort.1]).take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
+        rects
+            .iter()
+            .map(|a| [a.0, a.1.nosort.1])
+            .take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
     );
-
 
     plot.line(
         "nosort_par constr",
-        rects.iter().map(|a| [a.0, a.1.nosort_par.0]).take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
+        rects
+            .iter()
+            .map(|a| [a.0, a.1.nosort_par.0])
+            .take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
     );
 
     plot.line(
         "nosort_par query",
-        rects.iter().map(|a| [a.0, a.1.nosort_par.1]).take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
+        rects
+            .iter()
+            .map(|a| [a.0, a.1.nosort_par.1])
+            .take_while(|&[x, _]| x <= NO_SORT_MAX as f32),
     );
 
     fg.finish_plot(plot, filename);
@@ -266,9 +262,6 @@ fn handle_grow_bench(fb: &mut FigureBuilder) {
 }
 */
 
-
-
-
 #[derive(Debug)]
 struct RecordBench {
     bench: (f32, f32),
@@ -277,14 +270,13 @@ struct RecordBench {
     nosort_par: (f32, f32),
 }
 
-impl RecordBench{
-
+impl RecordBench {
     pub fn new(num_bots: usize, grow: f64, do_all: bool) -> RecordBench {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
-    
+
         let bench = {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
-    
+
             let (mut tree, t1) = bench_closure_ret(|| broccoli::new(&mut bots));
             let t2 = bench_closure(|| {
                 tree.find_colliding_pairs_mut(|a, b| {
@@ -295,10 +287,10 @@ impl RecordBench{
             });
             (t1 as f32, t2 as f32)
         };
-    
+
         let bench_par = {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
-    
+
             let (mut tree, t1) = bench_closure_ret(|| broccoli::new_par(RayonJoin, &mut bots));
             let t2 = bench_closure(|| {
                 tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
@@ -309,10 +301,10 @@ impl RecordBench{
             });
             (t1 as f32, t2 as f32)
         };
-    
+
         let nosort = if do_all || num_bots <= NO_SORT_MAX {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
-    
+
             let (mut tree, t1) = bench_closure_ret(|| NotSorted::new(&mut bots));
             let t2 = bench_closure(|| {
                 tree.find_colliding_pairs_mut(|a, b| {
@@ -322,13 +314,13 @@ impl RecordBench{
                 });
             });
             (t1 as f32, t2 as f32)
-        }else{
-            (0.0,0.0)
+        } else {
+            (0.0, 0.0)
         };
 
-        let nosort_par = if do_all || num_bots <= NO_SORT_MAX{
+        let nosort_par = if do_all || num_bots <= NO_SORT_MAX {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
-    
+
             let (mut tree, t1) = bench_closure_ret(|| NotSorted::new_par(RayonJoin, &mut bots));
             let t2 = bench_closure(|| {
                 tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
@@ -338,10 +330,10 @@ impl RecordBench{
                 });
             });
             (t1 as f32, t2 as f32)
-        }else{
-            (0.0,0.0)
+        } else {
+            (0.0, 0.0)
         };
-    
+
         RecordBench {
             bench,
             bench_par,
@@ -349,5 +341,4 @@ impl RecordBench{
             nosort_par,
         }
     }
-    
 }
