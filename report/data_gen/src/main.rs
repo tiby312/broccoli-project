@@ -20,6 +20,7 @@ pub mod bbox_helper {
 }
 
 mod inner_prelude {
+    pub use serde::Serialize;
     pub use super::bbox_helper;
     pub use crate::black_box;
     pub(crate) use crate::datanum;
@@ -56,7 +57,8 @@ pub struct FigureBuilder {
     folder: String,
     last_file_name: Option<String>,
 }
-
+use serde::Serialize;
+    
 impl FigureBuilder {
     fn new(folder: String) -> FigureBuilder {
         FigureBuilder {
@@ -87,6 +89,79 @@ impl FigureBuilder {
     fn finish(&mut self, figure: Figure) {
         figure.echo_to_file(&self.last_file_name.take().unwrap());
     }
+
+    fn make_graph<S:Serialize,I: Iterator<Item = (f32, S)>>(
+        &mut self,
+        it: I,
+        title: &str,
+        filename: &str,
+        xname: &str,
+        yname: &str,
+        stop_values:&[(&str,f32)]
+    ) {
+        use core::convert::TryInto;
+        
+        {
+        let mut rects: Vec<_> = it.collect();
+        let mut ii=rects.iter();
+            
+        struct MySerialize{
+            value:serde_json::Value
+        }
+        impl MySerialize{
+            fn new<S:Serialize>(s:&S)->Self{
+                let serialized = serde_json::to_string(s).unwrap();
+                let value:serde_json::Value=serde_json::from_str(&serialized).unwrap();
+                MySerialize{value}    
+            }
+            fn as_object(&self)->&serde_json::map::Map<String,serde_json::value::Value>{
+                self.value.as_object().unwrap()
+            }
+        }
+        
+            if let Some(ff)=ii.next(){
+                let map=MySerialize::new(&ff.1);
+                let num_plots=map.as_object().len();
+                dbg!(num_plots);
+
+                let names=map.as_object().clone();
+
+                let mut plot = plotato::plot(title, xname, yname);
+
+                for (plot_name,_) in names.iter(){
+                    let k=ii.clone();
+                    let stop_val=stop_values.iter().find(|a|a.0.eq(plot_name)).map(|a|a.1);
+
+                    
+                    plot.line(
+                        plot_name,
+                        core::iter::once(ff).chain(k).filter(move|(secondx,_)|{
+                            if let Some(stop_val)=stop_val{
+                                *secondx<stop_val
+                            }else{
+                                true
+                            }
+                        }).map(move |(secondx,foo)|{
+                            
+                            let mapp=MySerialize::new(foo);
+                            let num:f32=match &mapp.as_object()[plot_name]{
+                                serde_json::Value::Number(val)=>val.as_f64().unwrap() as f32,
+                                _=>{panic!("not a number")}
+                            };
+
+                            [*secondx,num]
+                        })
+                    );
+                }
+
+                self.finish_plot(plot, filename);
+                
+            }
+        }
+
+        
+    }
+
 }
 
 use std::io::Write;
@@ -188,8 +263,8 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-            //run_test!(&mut fb, colfind::colfind::handle_theory);
-            run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
+            run_test!(&mut fb, colfind::colfind::handle_theory);
+            //run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
 
             /*
             run_test!(&mut fb, colfind::query_evenness::handle_num_node);
@@ -211,7 +286,7 @@ fn main() {
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
             //run_test!(&mut fb, colfind::colfind::handle_bench);
-            run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
+            //run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
             
             /*
             run_test!(&mut fb, colfind::optimal_query::handle);

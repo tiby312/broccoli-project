@@ -1,11 +1,14 @@
 use super::*;
 
-#[derive(Debug)]
+
+
+
+#[derive(Debug,Serialize)]
 struct TheoryRecord {
-    num_comparison_alg: f32,
-    num_comparison_naive: f32,
-    num_comparison_sweep: f32,
-    num_comparison_nosort: f32,
+    broccoli: f32,
+    naive: f32,
+    sweep: f32,
+    nosort: f32,
 }
 
 const theory_stop_naive_at: usize = 8_000;
@@ -68,53 +71,30 @@ impl TheoryRecord {
         }
 
         TheoryRecord {
-            num_comparison_alg: c1 as f32,
-            num_comparison_naive: c2 as f32,
-            num_comparison_sweep: c3 as f32,
-            num_comparison_nosort: c4 as f32,
+            broccoli: c1 as f32,
+            naive: c2 as f32,
+            sweep: c3 as f32,
+            nosort: c4 as f32,
         }
     }
 }
 
-fn handle_theory_inner<I: Iterator<Item = (f32, TheoryRecord)>>(
-    it: I,
-    fg: &mut FigureBuilder,
-    title: &str,
-    filename: &str,
-    xname: &str,
-    yname: &str,
-) {
-    let rects: Vec<_> = it.collect();
 
-    let mut plot = plotato::plot(title, xname, yname);
-
-    plot.line(
-        "naive",
-        rects
-            .iter()
-            .map(|a| [a.0, a.1.num_comparison_naive])
-            .take_while(|&[x, _]| x <= theory_stop_naive_at as f32),
-    );
-    plot.line(
-        "sweep",
-        rects
-            .iter()
-            .map(|a| [a.0, a.1.num_comparison_sweep])
-            .take_while(|&[x, _]| x <= theory_stop_sweep_at as f32),
-    );
-    plot.line(
-        "nosort",
-        rects.iter().map(|a| [a.0, a.1.num_comparison_nosort]),
-    );
-    plot.line(
-        "broccoli",
-        rects.iter().map(|a| [a.0, a.1.num_comparison_alg]),
-    );
-
-    fg.finish_plot(plot, filename);
-}
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
+    
+    fb.make_graph(
+        (0usize..80_000)
+            .step_by(2000)
+            .map(move |num_bots| (num_bots as f32, TheoryRecord::new(0.2, num_bots))),
+        "Comparison of space partitioning algs with abspiral(x,0.2)",
+        "colfind_theory_0.2",
+        "Number of Elements",
+        "Number of Comparisons",
+        &[("naive",theory_stop_naive_at as f32),("sweep",theory_stop_sweep_at as f32)]
+    );
+
+/*
     handle_theory_inner(
         (0usize..80_000)
             .step_by(2000)
@@ -155,4 +135,5 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         "Grow",
         "Number of Comparisons",
     );
+*/
 }
