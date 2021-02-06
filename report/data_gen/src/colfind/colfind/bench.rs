@@ -2,12 +2,12 @@ use super::*;
 
 #[derive(Serialize,Debug)]
 pub struct Record {
-    bench_alg: f32,
-    bench_par: f32,
-    bench_sweep: f32,
-    bench_naive: f32,
-    bench_nosort_par: f32,
-    bench_nosort_seq: f32,
+    brocc: f32,
+    brocc_par: f32,
+    sweep: f32,
+    naive: f32,
+    nosort_par: f32,
+    nosort: f32,
 }
 const bench_stop_naive_at: usize = 3000;
 const bench_stop_sweep_at: usize = 6000;
@@ -82,19 +82,19 @@ impl Record {
             });
         });
 
-        if num_bots <= bench_stop_naive_at {
+        if num_bots < bench_stop_naive_at {
             for (i, &b) in bot_inner.iter().enumerate() {
                 assert_eq!(b, 0, "failed iteration:{:?} numbots={:?}", i, num_bots);
             }
         }
 
         Record {
-            bench_alg: c1 as f32,
-            bench_par: c0 as f32,
-            bench_sweep: c3 as f32,
-            bench_naive: c4 as f32,
-            bench_nosort_par: c5 as f32,
-            bench_nosort_seq: c6 as f32,
+            brocc: c1 as f32,
+            brocc_par: c0 as f32,
+            sweep: c3 as f32,
+            naive: c4 as f32,
+            nosort_par: c5 as f32,
+            nosort: c6 as f32,
         }
     }
 }
