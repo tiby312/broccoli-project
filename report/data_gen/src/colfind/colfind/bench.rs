@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug)]
+#[derive(Serialize,Debug)]
 pub struct BenchRecord {
     bench_alg: f32,
     bench_par: f32,
@@ -99,6 +99,7 @@ impl BenchRecord {
     }
 }
 
+/*
 fn handle_bench_inner<I: Iterator<Item = (f32, BenchRecord)>>(
     it: I,
     fg: &mut FigureBuilder,
@@ -145,55 +146,63 @@ fn handle_bench_inner<I: Iterator<Item = (f32, BenchRecord)>>(
 
     fg.finish_plot(plot, filename);
 }
+*/
 
-pub fn handle_bench(fg: &mut FigureBuilder) {
-    handle_bench_inner(
-        (0..10000)
+
+pub fn handle_bench(fb: &mut FigureBuilder) {
+    fb.make_graph(Args {
+        filename: "colfind_bench_0.2",
+        title: "Comparison of space partitioning algs with abspiral(x,0.2)",
+        xname: "Number of Elements",
+        yname: "Time in Seconds",
+        plots: (0usize..10_000)
             .step_by(100)
             .map(|num_bots| (num_bots as f32, BenchRecord::new(0.2, num_bots))),
-        fg,
-        "colfind_bench_0.2",
-        "Space partitioning algs with abspiral(x,0.2)",
-        true,
-        true,
-        "Number of Elements",
-        "Time in Seconds",
-    );
+        stop_values: &[
+            ("naive", bench_stop_naive_at as f32),
+            ("sweep", bench_stop_sweep_at as f32),
+        ],
+    });
 
-    handle_bench_inner(
-        (0..10000)
+    fb.make_graph(Args {
+        filename: "colfind_bench_0.2",
+        title: "Comparison of space partitioning algs with abspiral(x,0.05)",
+        xname: "Number of Elements",
+        yname: "Time in Seconds",
+        plots: (0usize..10_000)
             .step_by(100)
             .map(|num_bots| (num_bots as f32, BenchRecord::new(0.05, num_bots))),
-        fg,
-        "colfind_bench_0.05",
-        "Space partitioning algs with abspiral(x,0.05)",
-        true,
-        true,
-        "Number of Elements",
-        "Time in Seconds",
-    );
+        stop_values: &[
+            ("naive", bench_stop_naive_at as f32),
+            ("sweep", bench_stop_sweep_at as f32),
+        ],
+    });
 
-    handle_bench_inner(
-        abspiral_grow_iter2(0.001, 0.008, 0.0001)
-            .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
-        fg,
-        "colfind_bench_grow",
-        "Space partitioning algs with abspiral(grow,3000)",
-        true,
-        true,
-        "Grow",
-        "Time in Seconds",
-    );
 
-    handle_bench_inner(
-        abspiral_grow_iter2(0.01, 0.2, 0.002)
-            .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
-        fg,
-        "colfind_bench_grow_wide",
-        "Space partitioning algs with abspiral(grow,6000)",
-        false,
-        false,
-        "Grow",
-        "Time in Seconds",
-    );
+    fb.make_graph(Args {
+        filename: "colfind_bench_grow",
+        title: "Comparison of space partitioning algs with abspiral(3000,grow)",
+        xname: "Grow",
+        yname: "Time in Seconds",
+        plots: abspiral_grow_iter2(0.001, 0.008, 0.0001)
+        .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
+        stop_values: &[
+            ("naive", bench_stop_naive_at as f32),
+            ("sweep", bench_stop_sweep_at as f32),
+        ],
+    });
+
+
+    fb.make_graph(Args {
+        filename: "colfind_bench_grow_wide",
+        title: "Comparison of space partitioning algs with abspiral(3000,grow)",
+        xname: "Grow",
+        yname: "Time in Seconds",
+        plots: abspiral_grow_iter2(0.01, 0.2, 0.002)
+        .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
+        stop_values: &[
+            ("naive", bench_stop_naive_at as f32),
+            ("sweep", bench_stop_sweep_at as f32),
+        ],
+    });
 }

@@ -1,12 +1,14 @@
 use super::*;
 
-#[derive(Debug)]
+#[derive(Debug,Serialize)]
 struct RecordTheory {
-    theory: (f32, f32),
-    nosort_theory: (f32, f32),
+    brocc_constr: f32,
+    brocc_query:f32,
+    nosort_constr: f32,
+    nosort_query:f32
 }
 impl RecordTheory {
-    fn new(num_bots: usize, grow: f64) -> RecordTheory {
+    fn new(grow: f64,num_bots: usize) -> RecordTheory {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
         let theory = datanum::datanum_test2(|maker| {
@@ -42,13 +44,17 @@ impl RecordTheory {
             let count2 = maker.count();
             (count as f32, count2 as f32)
         });
+
         RecordTheory {
-            nosort_theory,
-            theory,
+            brocc_constr:theory.0,
+            brocc_query:theory.1,
+            nosort_constr:nosort_theory.0,
+            nosort_query:nosort_theory.1
         }
     }
 }
 
+/*
 fn plot_inner<I: Iterator<Item = (f32, RecordTheory)>>(
     fg: &mut FigureBuilder,
     it: I,
@@ -72,36 +78,40 @@ fn plot_inner<I: Iterator<Item = (f32, RecordTheory)>>(
 
     fg.finish_plot(p, filename);
 }
+*/
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
-    plot_inner(
-        fb,
-        (0..6_000)
+    fb.make_graph(Args {
+        filename: "construction_vs_query_theory_0.2",
+        title: "Construction vs Query with abspiral(x,0.2)",
+        xname: "Number of Elements",
+        yname: "Number of Comparisons",
+        plots: (0usize..6_000)
             .step_by(20)
-            .map(|n| (n as f32, RecordTheory::new(n, 0.2))),
-        "construction_vs_query_theory_0.2",
-        "Construction vs Query",
-        "Number of Elements",
-        "Number of comparisons",
-    );
+            .map(|num_bots| (num_bots as f32, RecordTheory::new(0.2, num_bots))),
+        stop_values: &[],
+    });
 
-    plot_inner(
-        fb,
-        (0..6_000)
+    fb.make_graph(Args {
+        filename: "construction_vs_query_theory_4.0",
+        title: "Construction vs Query with abspiral(x,4.0)",
+        xname: "Number of Elements",
+        yname: "Number of Comparisons",
+        plots: (0usize..6_000)
             .step_by(20)
-            .map(|n| (n as f32, RecordTheory::new(n, 4.0))),
-        "construction_vs_query_theory_4.0",
-        "Construction vs Query",
-        "Number of Elements",
-        "Number of comparisons",
-    );
+            .map(|num_bots| (num_bots as f32, RecordTheory::new(4.0, num_bots))),
+        stop_values: &[],
+    });
 
-    plot_inner(
-        fb,
-        abspiral_grow_iter2(0.1, 1.0, 0.005).map(|g| (g as f32, RecordTheory::new(40_000, g))),
-        "construction_vs_query_theory_grow",
-        "Construction vs Query",
-        "Grow",
-        "Number of comparisons",
-    );
+    fb.make_graph(Args {
+        filename: "construction_vs_query_theory_grow",
+        title: "Construction vs Query with abspiral(40_000,grow)",
+        xname: "Grow",
+        yname: "Number of Comparisons",
+        plots: abspiral_grow_iter2(0.1, 1.0, 0.005)
+            .map(|g| (g as f32, RecordTheory::new(g, 40_000))),
+        stop_values: &[],
+    });
+
+
 }
