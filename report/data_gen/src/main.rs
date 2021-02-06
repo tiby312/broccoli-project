@@ -65,7 +65,7 @@ impl FigureBuilder {
         }
     }
 
-    fn finish_plot(&self,splot:plotato::Plotter, filename: &str) {
+    fn finish_plot(&self, splot: plotato::Plotter, filename: &str) {
         let s = format!("{}/{}.svg", &self.folder, filename);
         splot.render_to_file(&s).unwrap()
     }
@@ -188,7 +188,8 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-            run_test!(&mut fb, colfind::colfind::handle_theory);
+            //run_test!(&mut fb, colfind::colfind::handle_theory);
+            run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
 
             /*
             run_test!(&mut fb, colfind::query_evenness::handle_num_node);
@@ -209,7 +210,7 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-            run_test!(&mut fb, colfind::colfind::handle_bench);
+            //run_test!(&mut fb, colfind::colfind::handle_bench);
 
             /*
             run_test!(&mut fb, colfind::optimal_query::handle);
