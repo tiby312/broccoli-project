@@ -65,7 +65,7 @@ impl FigureBuilder {
         }
     }
 
-    fn finish_splot(&self,splot:splot::Plotter, filename: &str) {
+    fn finish_plot(&self,splot:plotato::Plotter, filename: &str) {
         let s = format!("{}/{}.svg", &self.folder, filename);
         splot.render_to_file(&s).unwrap()
     }

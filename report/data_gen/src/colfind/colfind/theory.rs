@@ -85,7 +85,7 @@ fn handle_theory_inner<I:Iterator<Item=(f32,TheoryRecord)>>(it:I, fg: &mut Figur
     */
     let rects:Vec<_>=it.collect();
 
-    let mut plot = splot::plot(title, xname, yname);
+    let mut plot = plotato::plot(title, xname, yname);
 
     plot.line(
         "naive",
@@ -110,7 +110,7 @@ fn handle_theory_inner<I:Iterator<Item=(f32,TheoryRecord)>>(it:I, fg: &mut Figur
         rects.iter().map(|a| [a.0, a.1.num_comparison_alg]),
     );
 
-    fg.finish_splot(plot,filename);
+    fg.finish_plot(plot,filename);
 }
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
