@@ -8,14 +8,10 @@
 
 {{#include raw/colfind_bench_0.2.svg}}
 {{#include raw/colfind_bench_0.05.svg}}
-{{#include raw/colfind_bench_grow.svg}}
-{{#include raw/colfind_bench_grow_wide.svg}}
 
 
 {{#include raw/colfind_theory_0.2.svg}}
 {{#include raw/colfind_theory_0.05.svg}}
-{{#include raw/colfind_theory_grow.svg}}
-{{#include raw/colfind_theory_grow_wide.svg}}
 
 
 
@@ -28,8 +24,12 @@ It's also worth noting that the difference between `sweep and prune`/`kdtree` an
 In the same vein, you can see that there aren't many gains to use `broccoli_par` over `broccoli`. It can double/quadruple your performance, but as you can see those gains pale in comparison to the gains from simply using the a better sequential algorithm. Thats not to say multiplying your performance by the number of cores you have isn't great, it's just that it isn't a big factor. This to me means that typically, allocating effort on
 investigating if your algorithm is optimal sequentially may be better than spending effort in parallelizing what you have.
 
+{{#include raw/colfind_theory_grow.svg}}
+{{#include raw/colfind_theory_grow_wide.svg}}
+{{#include raw/colfind_bench_grow.svg}}
+{{#include raw/colfind_bench_grow_wide.svg}}
 
-<img alt="3D Colfind" src="graphs/3d_colfind_num_pairs.svg" class="center" style="width: 100%;" />
+
 
 The above chart shows a 3d view of the characteristics of `naive`, `sweep and prune`, and `broccoli`.
 

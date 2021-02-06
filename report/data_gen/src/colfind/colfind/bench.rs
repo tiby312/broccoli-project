@@ -38,7 +38,7 @@ impl Record {
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-        let c3 = if num_bots <= bench_stop_sweep_at {
+        let c3 = if num_bots < bench_stop_sweep_at {
             bench_closure(|| {
                 broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS, &mut bots, |a, b| {
                     **a.unpack_inner() -= 2;
@@ -51,7 +51,7 @@ impl Record {
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-        let c4 = if num_bots <= bench_stop_naive_at {
+        let c4 = if num_bots < bench_stop_naive_at {
             bench_closure(|| {
                 broccoli::query::colfind::query_naive_mut(PMut::new(&mut bots), |a, b| {
                     **a.unpack_inner() += 2;
@@ -117,7 +117,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
     });
 
     fb.make_graph(Args {
-        filename: "colfind_bench_0.2",
+        filename: "colfind_bench_0.05",
         title: "Comparison of space partitioning algs with abspiral(x,0.05)",
         xname: "Number of Elements",
         yname: "Time in Seconds",

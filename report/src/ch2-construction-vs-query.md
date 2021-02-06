@@ -32,12 +32,6 @@ So more work has to be done upfront on a node before we can recurse.
 {{#include raw/construction_vs_query_theory_grow.svg}}
 
 
-<img alt="Construction vs Query" src="graphs/construction_vs_query_grow_theory.svg" class="center" style="width: 100%;" />
-<img alt="Construction vs Query" src="graphs/construction_vs_query_grow_bench.svg" class="center" style="width: 100%;" />
-<img alt="Construction vs Query" src="graphs/construction_vs_query_num_theory.svg" class="center" style="width: 100%;" />
-<img alt="Construction vs Query" src="graphs/construction_vs_query_num_bench.svg" class="center" style="width: 100%;" />
-
-
 
 ### Collect Performance
 
