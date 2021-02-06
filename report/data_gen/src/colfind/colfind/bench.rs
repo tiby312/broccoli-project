@@ -13,7 +13,6 @@ const bench_stop_naive_at: usize = 3000;
 const bench_stop_sweep_at: usize = 6000;
 
 impl BenchRecord {
-    
     pub fn new(grow: f64, num_bots: usize) -> BenchRecord {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
@@ -100,27 +99,21 @@ impl BenchRecord {
     }
 }
 
-fn handle_bench_inner<I: Iterator<Item = (f32,BenchRecord)>>(
+fn handle_bench_inner<I: Iterator<Item = (f32, BenchRecord)>>(
     it: I,
     fg: &mut FigureBuilder,
     title: &str,
     filename: &str,
-    naive:bool,
-    sweep:bool,
-    xname:&str,
-    yname:&str
+    naive: bool,
+    sweep: bool,
+    xname: &str,
+    yname: &str,
 ) {
     let rects: Vec<_> = it.collect();
     //TODO convert to milliseconds
     let mut plot = plotato::plot(title, xname, yname);
-    plot.line(
-        "broccoli seq",
-        rects.iter().map(|a| [a.0, a.1.bench_alg]),
-    );
-    plot.line(
-        "broccoli par",
-        rects.iter().map(|a| [a.0, a.1.bench_par]),
-    );
+    plot.line("broccoli seq", rects.iter().map(|a| [a.0, a.1.bench_alg]));
+    plot.line("broccoli par", rects.iter().map(|a| [a.0, a.1.bench_par]));
     plot.line(
         "nosort seq",
         rects.iter().map(|a| [a.0, a.1.bench_nosort_seq]),
@@ -129,8 +122,8 @@ fn handle_bench_inner<I: Iterator<Item = (f32,BenchRecord)>>(
         "nosort par",
         rects.iter().map(|a| [a.0, a.1.bench_nosort_par]),
     );
-        
-    if sweep{
+
+    if sweep {
         plot.line(
             "sweep",
             rects
@@ -139,8 +132,8 @@ fn handle_bench_inner<I: Iterator<Item = (f32,BenchRecord)>>(
                 .take_while(|&[x, _]| x <= bench_stop_sweep_at as f32),
         );
     }
-    
-    if naive{
+
+    if naive {
         plot.line(
             "naive",
             rects
@@ -149,59 +142,58 @@ fn handle_bench_inner<I: Iterator<Item = (f32,BenchRecord)>>(
                 .take_while(|&[x, _]| x <= bench_stop_naive_at as f32),
         );
     }
-    
-    fg.finish_plot(plot,filename);
+
+    fg.finish_plot(plot, filename);
 }
 
-
 pub fn handle_bench(fg: &mut FigureBuilder) {
-    
     handle_bench_inner(
         (0..10000)
             .step_by(100)
-            .map(|num_bots| (num_bots as f32,BenchRecord::new(0.2, num_bots))),
+            .map(|num_bots| (num_bots as f32, BenchRecord::new(0.2, num_bots))),
         fg,
         "Space partitioning algs with abspiral(x,0.2)",
         "colfind_bench_0.2",
-        true,true,
+        true,
+        true,
         "Number of Elements",
-        "Time in Seconds"
+        "Time in Seconds",
     );
 
     handle_bench_inner(
         (0..10000)
             .step_by(100)
-            .map(|num_bots| (num_bots as f32,BenchRecord::new(0.05, num_bots))),
+            .map(|num_bots| (num_bots as f32, BenchRecord::new(0.05, num_bots))),
         fg,
         "Space partitioning algs with abspiral(x,0.05)",
-        "colfind_bench_0.05",true,true,
+        "colfind_bench_0.05",
+        true,
+        true,
         "Number of Elements",
-        "Time in Seconds"
+        "Time in Seconds",
     );
-    
-    
-    
+
     handle_bench_inner(
         abspiral_grow_iter2(0.001, 0.008, 0.0001)
-            .map(|grow| (grow as f32,BenchRecord::new(grow, 3000))),
+            .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
         fg,
         "Space partitioning algs with abspiral(grow,3000)",
         "colfind_bench_grow",
-        true,true,
+        true,
+        true,
         "Grow",
-        "Time in Seconds"
+        "Time in Seconds",
     );
-    
+
     handle_bench_inner(
         abspiral_grow_iter2(0.01, 0.2, 0.002)
-            .map(|grow| (grow as f32,BenchRecord::new(grow, 3000))),
+            .map(|grow| (grow as f32, BenchRecord::new(grow, 3000))),
         fg,
         "Space partitioning algs with abspiral(grow,6000)",
         "colfind_bench_grow_wide",
-        false,false,
+        false,
+        false,
         "Grow",
-        "Time in Seconds"
+        "Time in Seconds",
     );
-    
-    
 }
