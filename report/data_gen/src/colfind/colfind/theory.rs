@@ -84,53 +84,52 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         yname: "Number of Comparisons",
         plots: (0usize..80_000)
             .step_by(2000)
-            .map(move |num_bots| (num_bots as f32, TheoryRecord::new(0.2, num_bots))),
+            .map(|num_bots| (num_bots as f32, TheoryRecord::new(0.2, num_bots))),
         stop_values: &[
             ("naive", theory_stop_naive_at as f32),
             ("sweep", theory_stop_sweep_at as f32),
         ],
     });
 
-    /*
-        handle_theory_inner(
-            (0usize..80_000)
-                .step_by(2000)
-                .map(move |num_bots| (num_bots as f32, TheoryRecord::new(0.2, num_bots))),
-            fb,
-            "Comparison of space partitioning algs with abspiral(x,0.2)",
-            "colfind_theory_0.2",
-            "Number of Elements",
-            "Number of Comparisons",
-        );
-        handle_theory_inner(
-            (0usize..80_000)
-                .step_by(2000)
-                .map(move |num_bots| (num_bots as f32, TheoryRecord::new(0.05, num_bots))),
-            fb,
-            "Comparison of space partitioning algs with abspiral(x,0.05)",
-            "colfind_theory_0.05",
-            "Number of Elements",
-            "Number of Comparisons",
-        );
+    fb.make_graph(Args {
+        filename: "colfind_theory_0.05",
+        title: "Comparison of space partitioning algs with abspiral(x,0.05)",
+        xname: "Number of Elements",
+        yname: "Number of Comparisons",
+        plots: (0usize..80_000)
+            .step_by(2000)
+            .map(|num_bots| (num_bots as f32, TheoryRecord::new(0.05, num_bots))),
+        stop_values: &[
+            ("naive", theory_stop_naive_at as f32),
+            ("sweep", theory_stop_sweep_at as f32),
+        ],
+    });
 
-        handle_theory_inner(
-            abspiral_grow_iter2(0.001, 0.01, 0.0001)
-                .map(|grow| (grow as f32, TheoryRecord::new(grow, 3000))),
-            fb,
-            "Comparison of space partitioning algs with abspiral(3000,grow)",
-            "colfind_theory_grow",
-            "Grow",
-            "Number of Comparisons",
-        );
 
-        handle_theory_inner(
-            abspiral_grow_iter2(0.01, 0.2, 0.001)
-                .map(|grow| (grow as f32, TheoryRecord::new(grow, 3000))),
-            fb,
-            "Comparison of space partitioning algs with abspiral(3000,grow)",
-            "colfind_theory_grow_wide",
-            "Grow",
-            "Number of Comparisons",
-        );
-    */
+    fb.make_graph(Args {
+        filename: "colfind_theory_grow",
+        title: "Comparison of space partitioning algs with abspiral(3000,grow)",
+        xname: "Grow",
+        yname: "Number of Comparisons",
+        plots:abspiral_grow_iter2(0.001, 0.01, 0.0001)
+        .map(|grow| (grow as f32, TheoryRecord::new(grow, 3000))),
+        stop_values: &[
+            ("naive", theory_stop_naive_at as f32),
+            ("sweep", theory_stop_sweep_at as f32),
+        ],
+    });
+
+    fb.make_graph(Args {
+        filename: "colfind_theory_grow_wide",
+        title: "Comparison of space partitioning algs with abspiral(3000,grow)",
+        xname: "Grow",
+        yname: "Number of Comparisons",
+        plots:abspiral_grow_iter2(0.01, 0.2, 0.001)
+        .map(|grow| (grow as f32, TheoryRecord::new(grow, 3000))),
+        stop_values: &[
+            ("naive", theory_stop_naive_at as f32),
+            ("sweep", theory_stop_sweep_at as f32),
+        ],
+    });
+
 }

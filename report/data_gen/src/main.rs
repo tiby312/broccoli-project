@@ -106,9 +106,9 @@ impl FigureBuilder {
         let xname = args.xname;
         let yname = args.yname;
         let stop_values = args.stop_values;
-        
+
         use core::convert::TryInto;
-    
+
         let mut rects: Vec<_> = it.collect();
         let mut ii = rects.iter();
 
@@ -130,7 +130,7 @@ impl FigureBuilder {
         if let Some(ff) = ii.next() {
             let map = MySerialize::new(&ff.1);
             let num_plots = map.as_object().len();
-            
+
             let names = map.as_object().clone();
 
             let mut plot = plotato::plot(title, xname, yname);
@@ -166,7 +166,6 @@ impl FigureBuilder {
 
             self.finish_plot(plot, filename);
         }
-        
     }
 }
 
