@@ -10,7 +10,7 @@ gnuplot = "0.0.32"
 num_cpus = "1.*"
 rayon-core = "1.9"
 dists={git="https://github.com/tiby312/dists.git"}
-plotato={path="../../../plotato"}
+plotato={git="https://github.com/tiby312/plotato.git"}
 serde = {version="1.0",features = ["derive"]}
 serde_json = "1.0"
 
