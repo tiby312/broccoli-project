@@ -200,8 +200,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
 
-    //let mut active_lists = prevec1.extract_two_vec();
-    let mut active_lists=twounordered::TwoUnorderedVecs::<PMut<F::T>>::new();
+    let mut active_lists = prevec1.extract_two_vec();
     loop {
         enum NextP {
             X,
@@ -267,7 +266,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
 
     active_lists.clear();
 
-    //prevec1.insert_two_vec(active_lists);
+    prevec1.insert_two_vec(active_lists);
 }
 /*
 //This only uses one stack, but it ends up being more comparisons.
