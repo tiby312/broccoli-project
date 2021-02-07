@@ -3,6 +3,6 @@ use broccoli::pmut::PMut;
 use broccoli::query::colfind::NotSortedQueries;
 
 mod bench;
-//mod theory;
+mod theory;
 pub use bench::handle_bench;
-//pub use theory::handle_theory;
+pub use theory::handle_theory;

@@ -49,15 +49,7 @@ impl Res{
 
 pub fn handle_bench(fb: &mut FigureBuilder) {
     let num_bots = 5000;
-    /*
-    let res1 = handle_inner_bench(
-        num_bots,
-        (0..1000).map(|a| {
-            let a: f64 = a as f64;
-            0.0005 + a * 0.00001
-        }),
-    );
-    */
+   
     
     let res2 = Res::new(
         num_bots,
@@ -93,32 +85,12 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         fb,
         res2.iter().map(|x|(x.0,x.1.rebal.as_slice()))
     );
-    /*
-    draw_graph(
-        &format!("Rebal Level Bench with abspiral({},x)", num_bots),
-        &mut fg,
-        &res2,
-        true,
-        1,
-    );
-    fb.finish(fg);
 
-    let mut fg = fb.build("level_analysis_bench_query");
     draw_graph(
+        "level_analysis_bench_query",
         &format!("Query Level Bench with abspiral({},x)", num_bots),
-        &mut fg,
-        &res1,
-        false,
-        0,
+        fb,
+        res2.iter().map(|x|(x.0,x.1.query.as_slice()))
     );
-    draw_graph(
-        &format!("Query Level Bench with abspiral({},x)", num_bots),
-        &mut fg,
-        &res2,
-        false,
-        1,
-    );
-    fb.finish(fg);
-    */
 }
 

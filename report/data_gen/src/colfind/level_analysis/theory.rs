@@ -1,12 +1,12 @@
 use super::*;
 
 struct Res {
-    rebal: Vec<usize>,
-    query: Vec<usize>,
+    rebal: Vec<f32>,
+    query: Vec<f32>,
 }
 
 impl Res{
-    fn new(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> Vec<Res> {
+    fn new(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> Vec<(f32,Res)> {
         let mut rects = Vec::new();
         for grow in grow_iter {
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
@@ -26,13 +26,13 @@ impl Res{
                     LevelCounter::new(),
                 );
     
-                (levelc.into_levels(), levelc2.into_levels())
+                (levelc.into_levels().into_iter().map(|x|x as f32).collect(), levelc2.into_levels().into_iter().map(|x|x as f32).collect())
             });
     
-            let t = Res { grow, rebal, query };
+            let t = Res { rebal, query };
     
             assert_eq!(t.rebal.len(), t.query.len());
-            rects.push(t)
+            rects.push((grow as f32,t))
         }
         rects
     }
@@ -44,15 +44,8 @@ use crate::inner_prelude::*;
 pub fn handle_theory(fb: &mut FigureBuilder) {
     let num_bots = 3000;
 
-    let res1 = handle_inner_theory(
-        num_bots,
-        (0..100).map(|a| {
-            let a: f64 = a as f64;
-            0.0005 + a * 0.0001
-        }),
-    );
 
-    let res2 = handle_inner_theory(
+    let res2 = Res::new(
         num_bots,
         (0..100).map(|a| {
             let a: f64 = a as f64;
@@ -60,72 +53,39 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         }),
     );
 
-    use gnuplot::*;
-
-    fn draw_graph(title_name: &str, fg: &mut Figure, res: &[TheoryRes], rebal: bool, pos: usize) {
-        let ax = fg
-            .axes2d()
-            .set_pos_grid(2, 1, pos as u32)
-            .set_title(title_name, &[])
-            .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])
-            .set_x_label("Spiral Grow", &[])
-            .set_y_label("Number of Comparisons", &[]);
-
-        let num = res.first().unwrap().rebal.len();
-
-        let x = res.iter().map(|a| a.grow);
-
-        if rebal {
-            let cc = (0..num).map(|ii: usize| res.iter().map(move |a| a.rebal[ii]));
-
-            for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
+    
+    fn draw_graph<'a, I:Iterator<Item=(f32,&'a [f32])>+Clone>(filename:&str,title_name: &str, fb: &mut FigureBuilder, mut it:I,) {
+        let mut plot=plotato::plot(title_name,"Spiral Grow","Number of Comparisons");
+        if let Some((xfirst,xrest))=it.next(){
+            let num=xrest.len();
+            
+            let cc = (0..num).map(|ii: usize| it.clone().map(move |(x,a)| [x,a[ii]]));
+            
+            for (i, y) in cc.enumerate() {
                 let s = format!("Level {}", i);
-                let yl = y.clone().map(|_| 0.0);
-                ax.fill_between(x.clone(), yl, y, &[Color(col), Caption(&s), LineWidth(1.0)]);
-            }
-        } else {
-            let cc = (0..num).map(|ii: usize| res.iter().map(move |a| a.query[ii]));
-
-            for (i, (col, y)) in COLS.iter().cycle().zip(cc).enumerate() {
-                let s = format!("Level {}", i);
-                let yl = y.clone().map(|_| 0.0);
-                ax.fill_between(x.clone(), yl, y, &[Color(col), Caption(&s), LineWidth(1.0)]);
+                //let yl = y.clone().map(|_| 0.0);
+                plot.line_fill(s,y);
             }
         }
+        dbg!("making graph");
+        fb.finish_plot(plot,filename);
+
     }
 
-    let mut fg = fb.build("level_analysis_theory_rebal");
     draw_graph(
-        &format!("Rebal Level Comparisons with {} Objects", num_bots),
-        &mut fg,
-        &res1,
-        true,
-        0,
+        "level_analysis_theory_rebal",
+        &format!("Rebal Level Comparisons with abspiral({},x)", num_bots),
+        fb,
+        res2.iter().map(|x|(x.0,x.1.rebal.as_slice()))
     );
-    draw_graph(
-        &format!("Rebal Level Comparisons with {} Objects", num_bots),
-        &mut fg,
-        &res2,
-        true,
-        1,
-    );
-    fb.finish(fg);
 
-    let mut fg = fb.build("level_analysis_theory_query");
     draw_graph(
-        &format!("Query Level Comparisons with {} Objects", num_bots),
-        &mut fg,
-        &res1,
-        false,
-        0,
+        "level_analysis_theory_query",
+        &format!("Query Level Comparisons with abspiral({},x)", num_bots),
+        fb,
+        res2.iter().map(|x|(x.0,x.1.query.as_slice()))
     );
-    draw_graph(
-        &format!("Query Level Comparisons with {} Objects", num_bots),
-        &mut fg,
-        &res2,
-        false,
-        1,
-    );
-    fb.finish(fg);
+
+
 }
 
