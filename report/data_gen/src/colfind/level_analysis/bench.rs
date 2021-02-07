@@ -14,27 +14,21 @@ impl Res{
             
             let (mut tree, times1) =
                 TreeBuilder::new(&mut bots).build_with_splitter_seq(LevelTimer::new());
-            dbg!("query start");
             
             
-            tree.find_colliding_pairs_mut(|a,b|{
-                **a.unpack_inner() += 1;
-                **b.unpack_inner() += 1
-            });
             
-            /*
+            
             let times2 = tree.new_builder().query_with_splitter_seq(
                 |a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1
                 },
-                SplitterEmpty,/*LevelTimer::new()*/
+                LevelTimer::new()
             );
-            */
             
             
-            dbg!("query end");
-            /*
+            
+            
             let t = Res {
                 rebal: times1.into_levels().into_iter().map(|x|x as f32).collect(),
                 query: times2.into_levels().into_iter().map(|x|x as f32).collect(),
@@ -44,7 +38,7 @@ impl Res{
     
             assert_eq!(t.rebal.len(), t.query.len());
             rects.push((grow as f32,t))
-            */
+            
             
         }
         rects
@@ -73,7 +67,6 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         }),
     );
 
-    return;
     
     fn draw_graph<'a, I:Iterator<Item=(f32,&'a [f32])>+Clone>(filename:&str,title_name: &str, fb: &mut FigureBuilder, mut it:I,) {
         let mut plot=plotato::plot(title_name,"Spiral Grow","Time taken in Seconds");
@@ -88,6 +81,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
                 plot.line_fill(s,y);
             }
         }
+        dbg!("making graph");
         fb.finish_plot(plot,filename);
 
     }
