@@ -7,5 +7,4 @@ pub mod optimal_query;
 pub mod parallel_heur_comparison;
 pub mod query_evenness;
 pub mod rebal_strat;
-pub mod theory_colfind_3d;
 pub mod tree_direct_indirect;

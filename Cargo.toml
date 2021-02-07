@@ -25,7 +25,7 @@ dists = {git="https://github.com/tiby312/dists.git"}
 is_sorted = "0.1"
 itertools = "0.9"
 rayon-core = {version="1.9.0",optional=true}
-compt = "1.10"
+compt = "1.10.1"
 axgeom = {version="1.9",default-features = false}
 pdqselect = "0.1"
 twounordered = "0.6.2"
@@ -34,4 +34,5 @@ twounordered = "0.6.2"
 # This sets the default target to `x86_64-unknown-linux-gnu`
 # and only builds that target
 targets = ["x86_64-unknown-linux-gnu"]
+
 

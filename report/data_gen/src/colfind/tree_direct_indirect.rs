@@ -5,16 +5,16 @@ pub trait TestTrait: Copy + Send + Sync {}
 impl<T: Copy + Send + Sync> TestTrait for T {}
 
 #[derive(Copy, Clone)]
-pub struct Bot<T> {
+struct Bot<T> {
     num: usize,
     aabb: Rect<i32>,
     _val: T,
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct TestResult {
-    rebal: f64,
-    query: f64,
+struct TestResult {
+    rebal: f32,
+    query: f32,
 }
 
 fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(PMut<T>, PMut<T>)) -> TestResult {
@@ -30,8 +30,8 @@ fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(PMut<T>, PMut<T>)) -> TestRes
     black_box(tree);
 
     TestResult {
-        rebal: construct_time,
-        query: query_time,
+        rebal: construct_time as f32,
+        query: query_time as f32,
     }
 }
 fn test_par<T: Aabb + Send + Sync>(
@@ -53,94 +53,115 @@ where
     black_box(tree);
 
     TestResult {
-        rebal: construct_time,
-        query: query_time,
+        rebal: construct_time as f32,
+        query: query_time as f32,
     }
 }
 
+
+#[derive(Serialize,Copy,Clone,Debug)]
+struct RebalRecord{
+    direct_seq: f32,
+    direct_par: f32,
+
+    indirect_seq: f32,
+    indirect_par: f32,
+
+    default_seq: f32,
+    default_par: f32,    
+}
+
+#[derive(Serialize,Copy,Clone,Debug)]
+struct QueryRecord{
+
+    direct_seq: f32,
+    direct_par: f32,
+
+    indirect_seq: f32,
+    indirect_par: f32,
+
+    default_seq: f32,
+    default_par: f32,
+}
 #[derive(Copy, Clone, Debug)]
-pub struct CompleteTestResult {
-    direct_seq: TestResult,
-    direct_par: TestResult,
-
-    indirect_seq: TestResult,
-    indirect_par: TestResult,
-
-    default_seq: TestResult,
-    default_par: TestResult,
+struct CompleteTestResult {
+    rebal:RebalRecord,
+    query:QueryRecord,
 }
 impl CompleteTestResult {
-    fn into_arr(self) -> [TestResult; 6] {
-        [
-            self.direct_seq,
-            self.direct_par,
-            self.indirect_seq,
-            self.indirect_par,
-            self.default_seq,
-            self.default_par,
-        ]
+    
+    fn new<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTestResult{
+        let (direct_seq, direct_par) = {
+            let mut bots =
+                distribute_iter(grow, (0..num_bots as isize).map(|a| (a, t)), |a| a.to_i32());
+            (
+                test_seq(&mut bots, |b, c| {
+                    b.unpack_inner().0 += 1;
+                    c.unpack_inner().0 += 1;
+                }),
+                test_par(&mut bots, |b, c| {
+                    b.unpack_inner().0 += 1;
+                    c.unpack_inner().0 += 1;
+                }),
+            )
+        };
+    
+        let (indirect_seq, indirect_par) = {
+            let mut bots =
+                distribute_iter(grow, (0..num_bots as isize).map(|a| (a, t)), |a| a.to_i32());
+    
+            let mut indirect: Vec<_> = bots.iter_mut().collect();
+    
+            (
+                test_seq(&mut indirect, |b, c| {
+                    b.unpack_inner().0 += 1;
+                    c.unpack_inner().0 += 1;
+                }),
+                test_par(&mut indirect, |b, c| {
+                    b.unpack_inner().0 += 1;
+                    c.unpack_inner().0 += 1;
+                }),
+            )
+        };
+        let (default_seq, default_par) = {
+            let mut bot_inner: Vec<_> = (0..num_bots).map(|_| (0isize, t)).collect();
+    
+            let mut default = distribute(grow, &mut bot_inner, |a| a.to_i32());
+    
+            (
+                test_seq(&mut default, |b, c| {
+                    b.unpack_inner().0 += 1;
+                    c.unpack_inner().0 += 1;
+                }),
+                test_par(&mut default, |b, c| {
+                    b.unpack_inner().0 += 1;
+                    c.unpack_inner().0 += 1;
+                }),
+            )
+        };
+    
+        CompleteTestResult{
+            rebal:RebalRecord{
+                direct_seq:direct_seq.rebal,
+                direct_par:direct_par.rebal,
+                indirect_seq:indirect_seq.rebal,
+                indirect_par:indirect_par.rebal,
+                default_seq:default_seq.rebal,
+                default_par:default_par.rebal
+            },
+            query:QueryRecord{
+                direct_seq:direct_seq.query,
+                direct_par:direct_par.query,
+                indirect_seq:indirect_seq.query,
+                indirect_par:indirect_par.query,
+                default_seq:default_seq.query,
+                default_par:default_par.query  
+            }
+        }
     }
 }
 
-fn complete_test<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTestResult {
-    let (direct_seq, direct_par) = {
-        let mut bots =
-            distribute_iter(grow, (0..num_bots as isize).map(|a| (a, t)), |a| a.to_i32());
-        (
-            test_seq(&mut bots, |b, c| {
-                b.unpack_inner().0 += 1;
-                c.unpack_inner().0 += 1;
-            }),
-            test_par(&mut bots, |b, c| {
-                b.unpack_inner().0 += 1;
-                c.unpack_inner().0 += 1;
-            }),
-        )
-    };
 
-    let (indirect_seq, indirect_par) = {
-        let mut bots =
-            distribute_iter(grow, (0..num_bots as isize).map(|a| (a, t)), |a| a.to_i32());
-
-        let mut indirect: Vec<_> = bots.iter_mut().collect();
-
-        (
-            test_seq(&mut indirect, |b, c| {
-                b.unpack_inner().0 += 1;
-                c.unpack_inner().0 += 1;
-            }),
-            test_par(&mut indirect, |b, c| {
-                b.unpack_inner().0 += 1;
-                c.unpack_inner().0 += 1;
-            }),
-        )
-    };
-    let (default_seq, default_par) = {
-        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| (0isize, t)).collect();
-
-        let mut default = distribute(grow, &mut bot_inner, |a| a.to_i32());
-
-        (
-            test_seq(&mut default, |b, c| {
-                b.unpack_inner().0 += 1;
-                c.unpack_inner().0 += 1;
-            }),
-            test_par(&mut default, |b, c| {
-                b.unpack_inner().0 += 1;
-                c.unpack_inner().0 += 1;
-            }),
-        )
-    };
-
-    CompleteTestResult {
-        direct_seq,
-        direct_par,
-        indirect_seq,
-        indirect_par,
-        default_seq,
-        default_par,
-    }
-}
 
 pub fn handle(fb: &mut FigureBuilder) {
     handle_num_bots(fb, 0.1, [0u8; 8]);
@@ -148,78 +169,39 @@ pub fn handle(fb: &mut FigureBuilder) {
     handle_num_bots(fb, 0.1, [0u8; 32]);
     handle_num_bots(fb, 0.1, [0u8; 128]);
     handle_num_bots(fb, 0.1, [0u8; 256]);
-
     handle_num_bots(fb, 0.01, [0u8; 128]);
     handle_num_bots(fb, 1.0, [0u8; 128]);
 }
 
-#[derive(Debug)]
-struct Record {
-    num_bots: usize,
-    arr: CompleteTestResult,
-}
-impl Record {
-    fn draw(
-        records: &[Record],
-        fg: &mut Figure,
-        grow: f64,
-        construction: &str,
-        name: &str,
-        func: impl Fn(TestResult) -> f64,
-    ) {
-        const NAMES: &[&str] = &[
-            "direct seq",
-            "direct par",
-            "indirect seq",
-            "indirect par",
-            "default seq",
-            "default par",
-        ];
-        {
-            let k = fg
-                .axes2d()
-                .set_title(
-                    &format!(
-                        "{} Semi-Direct vs Direct vs Indirect with abspiral-size(x, {}, {})",
-                        construction, grow, name
-                    ),
-                    &[],
-                )
-                .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])
-                .set_x_label("Number of Elements", &[])
-                .set_y_label("Time in Seconds", &[]);
-
-            let x = records.iter().map(|a| a.num_bots);
-            for index in 0..6 {
-                let y = records.iter().map(|a| func(a.arr.into_arr()[index]));
-                k.lines(
-                    x.clone(),
-                    y,
-                    &[Caption(NAMES[index]), Color(COLS[index]), LineWidth(1.0)],
-                );
-            }
-        }
-    }
-}
 
 fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
+    
     let mut rects = Vec::new();
 
     for num_bots in (0..30_000).rev().step_by(200) {
-        let r = Record {
-            num_bots,
-            arr: complete_test(num_bots, grow, val.clone()),
-        };
-        rects.push(r);
+        let r =  CompleteTestResult::new(num_bots, grow, val.clone());
+        rects.push((num_bots as f32,r));
     }
+
     let name = format!("{}_bytes", core::mem::size_of::<T>());
-    let name2 = format!("{} bytes", core::mem::size_of::<T>());
+    
+    fb.make_graph(Args {
+        filename: &format!("tree_direct_indirect_rebal_{}_{}", grow, name),
+        title: &format!("Construction:{}",name),
+        xname: "Number of Elements",
+        yname: "Time in Seconds",
+        plots:rects.iter().map(|x|(x.0,x.1.rebal)),
+        stop_values: &[],
+    });
 
-    let mut fg = fb.build(&format!("tree_direct_indirect_rebal_{}_{}", grow, name));
-    Record::draw(&rects, &mut fg, grow, "Construction:", &name2, |a| a.rebal);
-    fb.finish(fg);
+    fb.make_graph(Args {
+        filename: &format!("tree_direct_indirect_rebal_{}_{}", grow, name),
+        title: &format!("Query:{}",name),
+        xname: "Number of Elements",
+        yname: "Time in Seconds",
+        plots:rects.iter().map(|x|(x.0,x.1.query)),
+        stop_values: &[],
+    });
 
-    let mut fg = fb.build(&format!("tree_direct_indirect_query_{}_{}", grow, name));
-    Record::draw(&rects, &mut fg, grow, "Querying:", &name2, |a| a.query);
-    fb.finish(fg);
+
 }

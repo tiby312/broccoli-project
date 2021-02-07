@@ -56,7 +56,7 @@ pub fn handle(fb: &mut FigureBuilder) {
             rebal_height,
             4,
         );
-        rebals.push((rebal_height, a));
+        rebals.push((rebal_height as f32, a as f32));
     }
 
     let mut queries = Vec::new();
@@ -66,61 +66,26 @@ pub fn handle(fb: &mut FigureBuilder) {
             4,
             query_height,
         );
-        queries.push((query_height, b));
+        queries.push((query_height as f32, b as f32));
     }
-
-    let x1 = rebals.iter().map(|a| a.0);
-    let y1 = rebals.iter().map(|a| a.1);
-    let x2 = queries.iter().map(|a| a.0);
-    let y2 = queries.iter().map(|a| a.1);
 
     let mut seqs = Vec::new();
     for _ in 0..100 {
         let (a, b) = test1(&mut distribute(0.2, &mut bot_inner, |a| a.to_f32n()));
-        seqs.push((a, b));
+        seqs.push((a as f32, b as f32));
     }
-    let xx = seqs.iter().map(|_| height);
-    let yy1 = seqs.iter().map(|a| a.0);
-    let yy2 = seqs.iter().map(|a| a.1);
 
-    let mut fg = fb.build("parallel_height_heuristic");
+    let mut plot=plotato::plot(
+        "Parallel Height heuristic with abspiral(20,000,0.2) (which has a height of {})",
+        "Height at which to switch to sequential",
+        "Time in Seconds");
 
-    fg.axes2d()
-        .set_title(
-            &format!(
-                "Parallel Height heuristic with abspiral(20,000,0.2) (which has a height of {})",
-                height
-            ),
-            &[],
-        )
-        .points(
-            x1.clone(),
-            y1,
-            &[Caption("Rebalance"), Color(COLS[0]), LineWidth(4.0)],
-        )
-        .points(
-            x2.clone(),
-            y2,
-            &[Caption("Query"), Color(COLS[1]), LineWidth(4.0)],
-        )
-        .points(
-            xx.clone(),
-            yy1,
-            &[
-                Caption("Rebalance Sequential"),
-                Color(COLS[2]),
-                LineWidth(4.0),
-            ],
-        )
-        .points(
-            xx.clone(),
-            yy2,
-            &[Caption("Query Sequential"), Color(COLS[3]), LineWidth(4.0)],
-        )
-        .set_x_label("Height at which to switch to sequential", &[])
-        .set_y_label("Time in seconds", &[])
-        .set_x_grid(true)
-        .set_y_grid(true);
+    plot.scatter("Rebal Par",rebals.iter().map(|a|[a.0,a.1]));
+    plot.scatter("Query Par",queries.iter().map(|a|[a.0,a.1]));
+    plot.scatter("Rebal",seqs.iter().map(|a|[height as f32,a.0]));
+    plot.scatter("Query",seqs.iter().map(|a|[height as f32,a.1]));
 
-    fb.finish(fg);
+    fb.finish_plot(plot,"parallel_height_heuristic");
+    
+
 }
