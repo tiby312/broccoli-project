@@ -73,7 +73,6 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
                 plot.line_fill(s,y);
             }
         }
-        dbg!("making graph");
         fb.finish_plot(plot,filename);
 
     }

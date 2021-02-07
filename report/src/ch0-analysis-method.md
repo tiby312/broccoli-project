@@ -14,7 +14,10 @@ Lets make a archimedean spiral function that takes 3 inputs and produces an arch
 We increase n to increase the size of the problem.
 We can increase the grow rate to decrease the number of aabbs intersecting.
 
-<img alt="Spiral Visualize" src="graphs/spiral_visualize.svg" class="center" style="width: 100%;" />
+
+
+<link rel="stylesheet" href="css/plotato.css">
+{{#include raw/spiral_visualize.svg}}
 
 
 While those 3 variables change the distribution of the elements, there is another variable at play.
@@ -41,7 +44,9 @@ Its also clearly not linear, but all that really matters is that we have a way t
 the number of collisions easily. We just need something that will allow us to definitively see
 trends in how the algorithms stack up against each other.
 
-<img alt="Spiral Data" src="graphs/spiral_data.svg" class="center" style="width: 100%;" />
+
+
+{{#include raw/spiral_data_grow.svg}}
 
 Throughout this writeup, we use a grow of 0.2 a lot as a "typical" amount of colliding pairs.
 So for 10,000 aabbs, you might expect around 80,000 aabbs to intersect. This is still no where
@@ -54,5 +59,10 @@ for most use-cases. If you were to simulate a 2d ball-pit, every ball could be t
 The below graph shows that as we increase the number of elements, so does the number of collisions in a nice
 linear way.
 
-<img alt="Spiral Data" src="graphs/spiral_data_num.svg" class="center" style="width: 100%;" />
+
+
+<link rel="stylesheet" href="css/plotato.css">
+
+
+{{#include raw/spiral_data_num.svg}}
 

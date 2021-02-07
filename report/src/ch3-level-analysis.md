@@ -14,17 +14,31 @@ Some observations:
 * The leaves don't have much work to do since aabbs have a size, they aren't likely to 
   into a leaf.
 
-<img alt="Level Analysis" src="graphs/level_analysis_theory_rebal.svg" class="center" style="width: 100%;" />
-<img alt="Level Analysis" src="graphs/level_analysis_theory_query.svg" class="center" style="width: 100%;" />
-<img alt="Level Analysis" src="graphs/level_analysis_bench_rebal.svg" class="center" style="width: 100%;" />
-<img alt="Level Analysis" src="graphs/level_analysis_bench_query.svg" class="center" style="width: 100%;" />
+
+
+
+<link rel="stylesheet" href="css/plotato.css">
+{{#include raw/level_analysis_bench_query.svg}}
+{{#include raw/level_analysis_bench_rebal.svg}}
+{{#include raw/level_analysis_theory_query.svg}}
+{{#include raw/level_analysis_theory_rebal.svg}}
 
 
 
 ### Evenness of load
 
-<img alt="Level Analysis" src="graphs/query_evenness_theory.svg" class="center" style="width: 100%;" />
-<img alt="Level Analysis" src="graphs/tree_num_per_node_theory.svg" class="center" style="width: 100%;" />
+
+{{#include raw/query_evenness_theory_0.2.svg}}
+
+{{#include raw/query_evenness_theory_0.2.svg}}
+{{#include raw/query_evenness_theory_0.007.svg}}
+{{#include raw/query_evenness_theory_2.svg}}
+
+{{#include raw/query_num_per_node_theory_0.2.svg}}
+{{#include raw/query_num_per_node_theory_0.002.svg}}
+{{#include raw/query_num_per_node_theory_2.svg}}
+
+
 
 The above two charts shows that the work load is pretty even between the left and right recursing of the algorithm.
 As aabbs get more clumped up, the right side starts to dominate more. I'm not sure why this is, but I do know that picking the median based off of the right and bottom of the aabbs instead of left and top makes no difference in this case. I think it is just that this particular spiral distribution becomes not so uniform when the aabbs are extremely clumped up.

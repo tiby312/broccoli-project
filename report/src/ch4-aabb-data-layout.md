@@ -23,23 +23,16 @@ There are a couple of observations to make.
 * Indirect isn't far behind Semi-Direct, but suffers in some high density distributions.
 * Direct is greatly influenced by the size of `T`.
  
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_query_0.1_128_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_query_1_128_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_query_0.1_32_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_query_0.1_8_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_query_0.1_16_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_query_0.1_256_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_query_0.01_128_bytes.svg" class="center" style="width: 100%;" />
 
 
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_rebal_0.1_256_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_rebal_1_128_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_rebal_0.1_128_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_rebal_0.1_8_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_rebal_0.1_16_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_rebal_0.01_128_bytes.svg" class="center" style="width: 100%;" />
-<img alt="Direct vs Indirect Query" src="graphs/tree_direct_indirect_rebal_0.1_32_bytes.svg" class="center" style="width: 100%;" />
+<link rel="stylesheet" href="css/plotato.css">
+{{#include raw/tree_direct_indirect_rebal_0.1_16_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_0.1_256_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_0.1_32_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_0.1_8_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_1_128_bytes.svg}}
 
+# MISSING QUERY
 
 
 ### Different Data Layouts

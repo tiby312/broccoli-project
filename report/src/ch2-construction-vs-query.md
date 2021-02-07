@@ -39,11 +39,11 @@ Sometimes you need to iterate over all colliding pairs multiple times even thoug
 You could call `find_colliding_pairs()` multiple times, but it is slow.
 Broccoli provides functions to save off query results so that they can be iterated on though `TreeInd`.
 
-<img alt="Construction vs Query" src="graphs/broccoli_query.svg" class="center" style="width: 100%;" />
+{{#include raw/broccoli_query.svg}}
 
 The above graph shows the performance of `collect_colliding_pairs()` and `collect_colliding_pairs_par()`. These functions generate lists of colliding pairs. The graph shows only the time taken to construct the lists.
 
-<img alt="Construction vs Query" src="graphs/optimal_query.svg" class="center" style="width: 100%;" />
+{{#include raw/optimal_query.svg}}
 
 The above graph shows the performance of iterating over the pairs collected from calling `collect_colliding_pairs()` and `collect_colliding_pairs_par()`. The parallel version returns multiple disjoint pairs that can be iterated on in parallel. Notice that it is much faster to iterate over the pre-found colliding pairs when compared to the earlier chart. The graph makes it obvious that there are gains to iterating over disjoint pairs in parallel, but keep in mind that the times we are looking at are extremely small to begin with.
 

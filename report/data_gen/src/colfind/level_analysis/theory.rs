@@ -67,7 +67,6 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
                 plot.line_fill(s,y);
             }
         }
-        dbg!("making graph");
         fb.finish_plot(plot,filename);
 
     }
