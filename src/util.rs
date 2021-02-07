@@ -1,5 +1,6 @@
 use crate::inner_prelude::*;
 
+#[inline(always)]
 pub fn combine_slice<'a, T>(a: &'a [T], b: &'a [T]) -> &'a [T] {
     let alen = a.len();
     let blen = b.len();
@@ -11,6 +12,14 @@ pub fn combine_slice<'a, T>(a: &'a [T], b: &'a [T]) -> &'a [T] {
         );
 
         core::slice::from_raw_parts(a.as_ptr(), alen + blen)
+    }
+}
+
+#[inline(always)]
+pub fn empty_slice_from_mut<'a,'b,T>(a:&'a mut [T])->&'b mut [T]{
+    assert!(a.is_empty());
+    unsafe{
+        core::slice::from_raw_parts_mut(a.as_mut_ptr(),0)
     }
 }
 
