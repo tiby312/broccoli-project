@@ -1,22 +1,20 @@
 use crate::inner_prelude::*;
 
 pub fn handle(fb: &mut FigureBuilder) {
-    handle_optimal(0.2, fb);
-    handle_broccoli(0.2, fb);
+    handle_optimal(fb);
+    handle_broccoli(fb);
 }
 
-pub fn handle_broccoli(grow: f64, fb: &mut FigureBuilder) {
-    struct BenchRes {
-        num_bots: usize,
-        bench: f64,
-        bench_par: f64,
-        collect: f64,
-        collect_par: f64,
+pub fn handle_broccoli(fb: &mut FigureBuilder) {
+    #[derive(Serialize)]
+    struct Res {
+        bench: f32,
+        bench_par: f32,
+        collect: f32,
+        collect_par: f32,
     }
-
-    let rects: Vec<_> = (0..40_000usize)
-        .step_by(50)
-        .map(|num_bots| {
+    impl Res{
+        fn new(grow:f64,num_bots:usize)->Res{
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
             let bench = {
@@ -77,64 +75,39 @@ pub fn handle_broccoli(grow: f64, fb: &mut FigureBuilder) {
 
             black_box(bot_inner);
 
-            BenchRes {
-                num_bots,
-                bench,
-                bench_par,
-                collect,
-                collect_par,
+            Res {
+                bench:bench as f32,
+                bench_par:bench_par as f32,
+                collect:collect as f32,
+                collect_par:collect_par as f32,
             }
-        })
-        .collect();
-
-    let x = rects.iter().map(|a| a.num_bots);
-    let y1 = rects.iter().map(|a| a.bench);
-    let y2 = rects.iter().map(|a| a.bench_par);
-    let y3 = rects.iter().map(|a| a.collect);
-    let y4 = rects.iter().map(|a| a.collect_par);
-
-    let mut fg = fb.build("broccoli_query");
-
-    let linew = 1.0;
-    fg.axes2d()
-        .set_title("broccoli query with abspiral(0.2,n)", &[])
-        .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])
-        .lines(
-            x.clone(),
-            y1,
-            &[Caption("broccoli"), Color(COLS[0]), LineWidth(linew)],
-        )
-        .lines(
-            x.clone(),
-            y2,
-            &[Caption("broccoli par"), Color(COLS[1]), LineWidth(linew)],
-        )
-        .lines(
-            x.clone(),
-            y3,
-            &[Caption("collect"), Color(COLS[2]), LineWidth(linew)],
-        )
-        .lines(
-            x.clone(),
-            y4,
-            &[Caption("collect par"), Color(COLS[3]), LineWidth(linew)],
-        )
-        .set_x_label("Number of Objects", &[])
-        .set_y_label("Time taken in seconds", &[]);
-
-    fb.finish(fg);
-}
-
-pub fn handle_optimal(grow: f64, fb: &mut FigureBuilder) {
-    struct BenchRes {
-        num_bots: usize,
-        optimal: f64,
-        optimal_par: f64,
+        }
     }
 
-    let rects: Vec<_> = (0..40_000usize)
-        .step_by(50)
-        .map(|num_bots| {
+
+    
+    fb.make_graph(Args {
+        filename: "broccoli_query",
+        title: "broccoli query with abspiral(0.2,n)",
+        xname: "Number of Elements",
+        yname: "Time in Seconds",
+        plots: (0usize..40_000)
+            .step_by(100)
+            .map(|num_bots| (num_bots as f32, Res::new(0.2, num_bots))),
+        stop_values: &[],
+    });
+
+    
+}
+
+pub fn handle_optimal(fb: &mut FigureBuilder) {
+    #[derive(Serialize)]
+    struct Res {
+        optimal: f32,
+        optimal_par: f32,
+    }
+    impl Res{
+        fn new(grow:f64,num_bots:usize)->Res{
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
             let optimal = {
@@ -169,36 +142,24 @@ pub fn handle_optimal(grow: f64, fb: &mut FigureBuilder) {
 
             black_box(bot_inner);
 
-            BenchRes {
-                num_bots,
-                optimal,
-                optimal_par,
+            Res {
+                optimal:optimal as f32,
+                optimal_par:optimal_par as f32,
             }
-        })
-        .collect();
+        }
+    }
 
-    let x = rects.iter().map(|a| a.num_bots);
-    let y3 = rects.iter().map(|a| a.optimal);
-    let y4 = rects.iter().map(|a| a.optimal_par);
 
-    let mut fg = fb.build("optimal_query");
+    
+    fb.make_graph(Args {
+        filename: "optimal_query",
+        title: "optimal query with abspiral(0.2,n)",
+        xname: "Number of Elements",
+        yname: "Time in Seconds",
+        plots: (0usize..40_000)
+            .step_by(100)
+            .map(|num_bots| (num_bots as f32, Res::new(0.2, num_bots))),
+        stop_values: &[],
+    });
 
-    let linew = 1.0;
-    fg.axes2d()
-        .set_title("optimal query with abspiral(0.2,n)", &[])
-        .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])
-        .lines(
-            x.clone(),
-            y3,
-            &[Caption("optimal"), Color(COLS[2]), LineWidth(linew)],
-        )
-        .lines(
-            x.clone(),
-            y4,
-            &[Caption("optimal par"), Color(COLS[3]), LineWidth(linew)],
-        )
-        .set_x_label("Number of Objects", &[])
-        .set_y_label("Time taken in seconds", &[]);
-
-    fb.finish(fg);
 }

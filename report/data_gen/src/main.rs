@@ -291,9 +291,9 @@ fn main() {
             //run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
             //run_test!(&mut fb, colfind::height_heur_comparison::handle);
             //run_test!(&mut fb, colfind::level_analysis::handle_bench);
+            //run_test!(&mut fb, colfind::optimal_query::handle);
             
             /*
-            run_test!(&mut fb, colfind::optimal_query::handle);
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
 
             //done
