@@ -25,7 +25,7 @@ fn handle_num(fb: &mut FigureBuilder){
         rects.push((num, num_intersection));
     }
 
-    let mut plot=plotato::plot("Number of Intersections with abspiral(num,0.2)",
+    let mut plot=poloto::plot("Number of Intersections with abspiral(num,0.2)",
     "Number of Elements",
     "Number of Intersections");
 
@@ -54,7 +54,7 @@ fn handle_grow(fb: &mut FigureBuilder){
         rects.push((grow, num_intersection));
     }
 
-    let mut plot=plotato::plot("Number of Intersections with abspiral(20_000,grow)",
+    let mut plot=poloto::plot("Number of Intersections with abspiral(20_000,grow)",
     "Grow",
     "Number of Intersections");
 
@@ -73,7 +73,7 @@ fn handle_visualize(fb:&mut FigureBuilder){
     };
 
     //TODO add arrow using poloto
-    let mut plot=plotato::plot("abspiral(800,10.0)","x","y");
+    let mut plot=poloto::plot("abspiral(800,10.0)","x","y");
 
     plot.line("visual",make(0.2).into_iter().map(|v|[v.x,v.y]));
 

@@ -75,7 +75,7 @@ pub fn handle(fb: &mut FigureBuilder) {
         seqs.push((a as f32, b as f32));
     }
 
-    let mut plot=plotato::plot(
+    let mut plot=poloto::plot(
         "Parallel Height heuristic with abspiral(20,000,0.2) (which has a height of {})",
         "Height at which to switch to sequential",
         "Time in Seconds");

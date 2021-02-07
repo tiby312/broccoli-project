@@ -60,26 +60,26 @@
  
 }
 
-.plotato0stroke{
+.poloto0stroke{
     stroke-dasharray:4;
     stroke-width:2;
 }
-.plotato0fill{
+.poloto0fill{
     stroke-dasharray:4;
 }
 
-.plotato{
+.poloto{
     width: 100%;
   font-family: "Open Sans", sans-serif;
-  --plotato_fg_color:var(--fg);
-  --plotato_bg_color:var(--bg);
-  --plotato_color0:var(--pplot_color0);
-  --plotato_color1:var(--pplot_color1);
-  --plotato_color2:var(--pplot_color2);
-  --plotato_color3:var(--pplot_color3);
-  --plotato_color4:var(--pplot_color4);
-  --plotato_color5:var(--pplot_color5);
-  --plotato_color6:var(--pplot_color6);
-  --plotato_color7:var(--pplot_color7);
-  --plotato_color8:var(--pplot_color8);
+  --poloto_fg_color:var(--fg);
+  --poloto_bg_color:var(--bg);
+  --poloto_color0:var(--pplot_color0);
+  --poloto_color1:var(--pplot_color1);
+  --poloto_color2:var(--pplot_color2);
+  --poloto_color3:var(--pplot_color3);
+  --poloto_color4:var(--pplot_color4);
+  --poloto_color5:var(--pplot_color5);
+  --poloto_color6:var(--pplot_color6);
+  --poloto_color7:var(--pplot_color7);
+  --poloto_color8:var(--pplot_color8);
 }

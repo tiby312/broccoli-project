@@ -12,6 +12,6 @@ If you do convert your floats to integers, make sure to normalize it over all po
 
 
 
-<link rel="stylesheet" href="css/plotato.css">
+<link rel="stylesheet" href="css/poloto.css">
 {{#include raw/float_vs_integer.svg}}
 

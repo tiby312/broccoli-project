@@ -3,7 +3,7 @@
 
 
 
-<link rel="stylesheet" href="css/plotato.css">
+<link rel="stylesheet" href="css/poloto.css">
 
 
 {{#include raw/colfind_bench_0.2.svg}}

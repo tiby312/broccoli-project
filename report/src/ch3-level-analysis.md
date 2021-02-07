@@ -17,7 +17,7 @@ Some observations:
 
 
 
-<link rel="stylesheet" href="css/plotato.css">
+<link rel="stylesheet" href="css/poloto.css">
 {{#include raw/level_analysis_bench_query.svg}}
 {{#include raw/level_analysis_bench_rebal.svg}}
 {{#include raw/level_analysis_theory_query.svg}}
@@ -35,7 +35,7 @@ Some observations:
 {{#include raw/query_evenness_theory_2.svg}}
 
 {{#include raw/query_num_per_node_theory_0.2.svg}}
-{{#include raw/query_num_per_node_theory_0.002.svg}}
+{{#include raw/query_num_per_node_theory_0.007.svg}}
 {{#include raw/query_num_per_node_theory_2.svg}}
 
 

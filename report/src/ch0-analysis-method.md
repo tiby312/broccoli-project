@@ -16,7 +16,7 @@ We can increase the grow rate to decrease the number of aabbs intersecting.
 
 
 
-<link rel="stylesheet" href="css/plotato.css">
+<link rel="stylesheet" href="css/poloto.css">
 {{#include raw/spiral_visualize.svg}}
 
 
@@ -61,7 +61,7 @@ linear way.
 
 
 
-<link rel="stylesheet" href="css/plotato.css">
+<link rel="stylesheet" href="css/poloto.css">
 
 
 {{#include raw/spiral_data_num.svg}}

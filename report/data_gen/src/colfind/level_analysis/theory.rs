@@ -55,7 +55,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
 
     
     fn draw_graph<'a, I:Iterator<Item=(f32,&'a [f32])>+Clone>(filename:&str,title_name: &str, fb: &mut FigureBuilder, mut it:I,) {
-        let mut plot=plotato::plot(title_name,"Spiral Grow","Number of Comparisons");
+        let mut plot=poloto::plot(title_name,"Spiral Grow","Number of Comparisons");
         if let Some((xfirst,xrest))=it.next(){
             let num=xrest.len();
             

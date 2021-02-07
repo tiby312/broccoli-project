@@ -38,7 +38,7 @@ pub fn handle2(fb:&mut FigureBuilder,grow:f64,num_bots:usize){
     {
         let res = TheoryRes::new(num_bots, grow);
 
-        let mut splot=plotato::plot(&format!("Query Evenness with abspiral({},{})", num_bots, grow),
+        let mut splot=poloto::plot(&format!("Query Evenness with abspiral({},{})", num_bots, grow),
             "dfs inorder iteration",
             "Number of comparisons"
         );
@@ -60,7 +60,7 @@ pub fn handle2(fb:&mut FigureBuilder,grow:f64,num_bots:usize){
 
     let tree = broccoli::new(&mut bots);
 
-    let mut splot=plotato::plot(&format!("Num per Node with abspiral({},{})", num_bots, grow),
+    let mut splot=poloto::plot(&format!("Num per Node with abspiral({},{})", num_bots, grow),
         "dfs inorder iteration",
         "Number of comparisons"
     );

@@ -77,7 +77,7 @@ impl FigureBuilder {
         }
     }
 
-    fn finish_plot(&self, splot: plotato::Plotter, filename: &str) {
+    fn finish_plot(&self, splot: poloto::Plotter, filename: &str) {
         let s = format!("{}/{}.svg", &self.folder, filename);
         splot.render_to_file(&s).unwrap()
     }
@@ -133,7 +133,7 @@ impl FigureBuilder {
 
             let names = map.as_object().clone();
 
-            let mut plot = plotato::plot(title, xname, yname);
+            let mut plot = poloto::plot(title, xname, yname);
 
             for (plot_name, _) in names.iter() {
                 let k = ii.clone();
