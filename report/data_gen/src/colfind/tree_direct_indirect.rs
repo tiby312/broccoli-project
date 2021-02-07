@@ -195,7 +195,7 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
     });
 
     fb.make_graph(Args {
-        filename: &format!("tree_direct_indirect_rebal_{}_{}", grow, name),
+        filename: &format!("tree_direct_indirect_query_{}_{}", grow, name),
         title: &format!("Query:{}",name),
         xname: "Number of Elements",
         yname: "Time in Seconds",

@@ -32,7 +32,13 @@ There are a couple of observations to make.
 {{#include raw/tree_direct_indirect_rebal_0.1_8_bytes.svg}}
 {{#include raw/tree_direct_indirect_rebal_1_128_bytes.svg}}
 
-# MISSING QUERY
+
+{{#include raw/tree_direct_indirect_query_0.1_16_bytes.svg}}
+{{#include raw/tree_direct_indirect_query_0.1_256_bytes.svg}}
+{{#include raw/tree_direct_indirect_query_0.1_32_bytes.svg}}
+{{#include raw/tree_direct_indirect_query_0.1_8_bytes.svg}}
+{{#include raw/tree_direct_indirect_query_1_128_bytes.svg}}
+
 
 
 ### Different Data Layouts
