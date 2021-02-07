@@ -1,7 +1,7 @@
 set -ex
 #RUSTFLAGS='-g'
 #cargo flamegraph --bin data_gen profile
-cargo build --release --manifest-path data_gen/Cargo.toml
+cargo build --release  --manifest-path data_gen/Cargo.toml
 
 rm -rf src/raw
 ../target/release/data_gen bench src/raw

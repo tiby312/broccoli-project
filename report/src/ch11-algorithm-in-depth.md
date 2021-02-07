@@ -94,6 +94,10 @@ Here are some profiling results finding all intersections on `abspiral(0.2,50_00
 The image below is a SVG image and is interactive. Hover over blocks to see the full names.
 Try this link for a full page view of the image (or if it is not rendering correctly): [SVG](graphs/flamegraph.svg)
 
+
+<link rel="stylesheet" href="css/splot.css">
+{{#include graphs/image.svg}}
+
 <object class="p" data="graphs/flamegraph.svg" type="image/svg+xml" style="width: 100%;">
 </object>
 

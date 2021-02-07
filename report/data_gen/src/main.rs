@@ -25,6 +25,7 @@ mod inner_prelude {
     pub(crate) use crate::datanum;
     pub use crate::support::bool_then;
     pub use crate::support::*;
+    pub use crate::Args;
     pub(crate) use crate::FigureBuilder;
     pub use axgeom::vec2;
     pub use axgeom::vec2same;
@@ -39,6 +40,7 @@ mod inner_prelude {
     pub use broccoli::RayonJoin;
     pub use broccoli::*;
     pub use gnuplot::*;
+    pub use serde::Serialize;
     pub use std::time::Duration;
     pub use std::time::Instant;
 }
@@ -56,6 +58,16 @@ pub struct FigureBuilder {
     folder: String,
     last_file_name: Option<String>,
 }
+use serde::Serialize;
+
+pub struct Args<'a, S: Serialize, I: Iterator<Item = (f32, S)>> {
+    filename: &'a str,
+    title: &'a str,
+    xname: &'a str,
+    yname: &'a str,
+    plots: I,
+    stop_values: &'a [(&'a str, f32)],
+}
 
 impl FigureBuilder {
     fn new(folder: String) -> FigureBuilder {
@@ -64,6 +76,12 @@ impl FigureBuilder {
             last_file_name: None,
         }
     }
+
+    fn finish_plot(&self, splot: plotato::Plotter, filename: &str) {
+        let s = format!("{}/{}.svg", &self.folder, filename);
+        splot.render_to_file(&s).unwrap()
+    }
+
     fn build(&mut self, filename: &str) -> Figure {
         let mut fg = Figure::new();
         let ss = format!("{}/{}.gplot", &self.folder, filename);
@@ -80,6 +98,74 @@ impl FigureBuilder {
     }
     fn finish(&mut self, figure: Figure) {
         figure.echo_to_file(&self.last_file_name.take().unwrap());
+    }
+    fn make_graph<S: Serialize, I: Iterator<Item = (f32, S)>>(&mut self, args: Args<S, I>) {
+        let it = args.plots;
+        let filename = args.filename;
+        let title = args.title;
+        let xname = args.xname;
+        let yname = args.yname;
+        let stop_values = args.stop_values;
+
+        use core::convert::TryInto;
+
+        let mut rects: Vec<_> = it.collect();
+        let mut ii = rects.iter();
+
+        struct MySerialize {
+            value: serde_json::Value,
+        }
+
+        impl MySerialize {
+            fn new<S: Serialize>(s: &S) -> Self {
+                let serialized = serde_json::to_string(s).unwrap();
+                let value: serde_json::Value = serde_json::from_str(&serialized).unwrap();
+                MySerialize { value }
+            }
+            fn as_object(&self) -> &serde_json::map::Map<String, serde_json::value::Value> {
+                self.value.as_object().unwrap()
+            }
+        }
+
+        if let Some(ff) = ii.next() {
+            let map = MySerialize::new(&ff.1);
+            let num_plots = map.as_object().len();
+
+            let names = map.as_object().clone();
+
+            let mut plot = plotato::plot(title, xname, yname);
+
+            for (plot_name, _) in names.iter() {
+                let k = ii.clone();
+                let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
+
+                plot.line(
+                    plot_name,
+                    core::iter::once(ff)
+                        .chain(k)
+                        .filter(move |(secondx, _)| {
+                            if let Some(stop_val) = stop_val {
+                                *secondx < stop_val
+                            } else {
+                                true
+                            }
+                        })
+                        .map(move |(secondx, foo)| {
+                            let mapp = MySerialize::new(foo);
+                            let num: f32 = match &mapp.as_object()[plot_name] {
+                                serde_json::Value::Number(val) => val.as_f64().unwrap() as f32,
+                                _ => {
+                                    panic!("not a number")
+                                }
+                            };
+
+                            [*secondx, num]
+                        }),
+                );
+            }
+
+            self.finish_plot(plot, filename);
+        }
     }
 }
 
@@ -182,44 +268,51 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
+            //run_test!(&mut fb, colfind::colfind::handle_theory);
+            //run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
 
+            /*
             run_test!(&mut fb, colfind::query_evenness::handle_num_node);
             run_test!(&mut fb, colfind::query_evenness::handle_theory);
 
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
 
-            run_test!(&mut fb, colfind::colfind::handle_theory);
 
             run_test!(&mut fb, spiral::handle);
 
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
 
             run_test!(&mut fb, colfind::theory_colfind_3d::handle);
+            */
         }
         "bench" => {
             let folder = args[2].clone();
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-
-            run_test!(&mut fb, colfind::optimal_query::handle);
+            
+            //run_test!(&mut fb, colfind::float_vs_integer::handle);
+            //run_test!(&mut fb, colfind::colfind::handle_bench);
+            //run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
+            
+            //run_test!(&mut fb, colfind::height_heur_comparison::handle);
+            
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
-            run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
+            
+            /*
+            run_test!(&mut fb, colfind::optimal_query::handle);
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
 
             //done
             run_test!(&mut fb, colfind::rebal_strat::handle);
 
-            run_test!(&mut fb, colfind::colfind::handle_bench);
 
             run_test!(&mut fb, colfind::tree_direct_indirect::handle);
 
-            run_test!(&mut fb, colfind::float_vs_integer::handle);
-
+            
             //This is the one thats interesting to see what the results are on phone/vs/laptop
 
-            run_test!(&mut fb, colfind::height_heur_comparison::handle);
-
+            */
             //nbody::theory::handle(&mut fb);
         }
         "graph" => {

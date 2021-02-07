@@ -68,59 +68,30 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         }
     }
 
-    {
-        let mut fg = fb.build("height_heuristic_vs_optimal");
 
-        let x = benches.iter().map(|a| a.num_bots);
-        let y = benches.iter().map(|a| a.height);
 
-        let heur = {
-            let mut vec = Vec::new();
-            for num_bots in its.clone() {
-                let height = TreePreBuilder::new(num_bots).get_height();
-                vec.push((num_bots, height));
-            }
-            vec
-        };
+    let heur = {
+        let mut vec = Vec::new();
+        for num_bots in its.clone() {
+            let height = TreePreBuilder::new(num_bots).get_height();
+            vec.push((num_bots, height));
+        }
+        vec
+    };
 
-        let heurx = heur.iter().map(|a| a.0);
-        let heury = heur.iter().map(|a| a.1);
-        fg.axes2d()
-            .set_legend(
-                Graph(1.0),
-                Graph(0.0),
-                &[LegendOption::Placement(AlignRight, AlignBottom)],
-                &[],
-            )
-            .set_title(
-                "Broccoli Colfind Query: Optimal Height vs Heuristic Height with abspiral(x,0.2)",
-                &[],
-            )
-            .set_x_label("Num bots", &[])
-            .set_y_label("Best Tree Height", &[])
-            .points(
-                x,
-                y,
-                &[
-                    Caption("Optimal"),
-                    PointSymbol('O'),
-                    Color(COLS[0]),
-                    PointSize(1.0),
-                ],
-            )
-            .points(
-                heurx,
-                heury,
-                &[
-                    Caption("Heuristic"),
-                    PointSymbol('x'),
-                    Color(COLS[1]),
-                    PointSize(2.0),
-                ],
-            );
+    let mut plot=plotato::plot(
+        "Broccoli Colfind Query: Optimal Height vs Heuristic Height with abspiral(x,0.2)",
+        "Num bots",
+        "Tree Height");
 
-        fb.finish(fg);
-    }
+    
+    plot.scatter("Optimal",benches.iter().map(|a|[a.num_bots as f32,a.height as f32]));
+
+    plot.scatter("Heuristic",heur.iter().map(|a|[a.0 as f32,a.1 as f32]));
+
+
+    fb.finish_plot(plot,"height_heuristic_vs_optimal");
+
 }
 
 fn handle2d(fb: &mut FigureBuilder) {
@@ -156,29 +127,27 @@ fn handle2d(fb: &mut FigureBuilder) {
         bench_records.push(BenchRecord { height, bench });
     }
 
-    use gnuplot::*;
 
-    let mut fg = fb.build("height_heuristic");
+    let mut plot=plotato::plot(
+        "Number of Comparisons with different numbers of objects per node with abspiral(10000,0.2)",
+        "Tree Height",
+        "Number of Comparisons");
 
-    let x = theory_records.iter().map(|a| a.height);
-    let y = theory_records.iter().map(|a| a.num_comparison);
+    
+    plot.histogram("brocc",theory_records.iter().map(|a|[a.height as f32,a.num_comparison as f32]));
 
-    fg.axes2d()
-        .set_pos_grid(2, 1, 0)
-        .set_title("Number of Comparisons with different numbers of objects per node with abspiral(10000,0.2)", &[])
-        .lines(x,y,&[Color(COLS[0]), LineWidth(2.0)])
-        .set_x_label("Tree Height", &[])
-        .set_y_label("Number of Comparisons", &[]);
+    fb.finish_plot(plot,"height_heuristic_theory");
 
-    let x = bench_records.iter().map(|a| a.height);
-    let y = bench_records.iter().map(|a| a.bench);
 
-    fg.axes2d()
-        .set_pos_grid(2, 1, 1)
-        .set_title("Bench times with different numbers of objects per node (seq,colfind) with abspiral(10000,0.2)", &[])
-        .points(x,y,&[Color(COLS[0]), LineWidth(2.0)])
-        .set_x_label("Tree Height", &[])
-        .set_y_label("Time in seconds", &[]);
+    let mut plot=plotato::plot(
+        "Bench with different numbers of objects per node with abspiral(10000,0.2)",
+        "Tree Height",
+        "Number of Comparisons");
 
-    fb.finish(fg);
+    
+    plot.scatter("brocc",bench_records.iter().map(|a|[a.height as f32,a.bench as f32]));
+
+    fb.finish_plot(plot,"height_heuristic_bench");
+
+
 }

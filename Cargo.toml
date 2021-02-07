@@ -34,3 +34,6 @@ twounordered = "0.6.2"
 # This sets the default target to `x86_64-unknown-linux-gnu`
 # and only builds that target
 targets = ["x86_64-unknown-linux-gnu"]
+
+[patch.crates-io]
+twounordered={path="../twounordered"}
