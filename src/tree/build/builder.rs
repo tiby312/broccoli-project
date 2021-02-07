@@ -304,6 +304,9 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
                 right,
             ),
             ConstructResult::Empty(mid) => {
+                let mid1=crate::util::empty_slice_from_mut(mid);
+                let mid2=crate::util::empty_slice_from_mut(mid);
+                
                 let node = NonLeafFinisher {
                     mid,
                     div: None,
@@ -311,7 +314,7 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
                     sorter: &self.constants.sorter,
                 };
 
-                (node, &mut [] as &mut [_], &mut [] as &mut [_])
+                (node, mid1, mid2)
             }
         };
         let (splitter11, splitter22) = self.splitter.div();
