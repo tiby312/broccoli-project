@@ -47,7 +47,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
             .par_builder
             .build_for_tree_of_height(self.prebuilder.get_height());
 
-        NotSorted(create_tree_par(self, NoSorter, SplitterEmpty, pswitch, joiner).0)
+        NotSorted(self.create_tree_par(NoSorter, SplitterEmpty, pswitch, joiner).0)
     }
 
     ///Build in parallel
@@ -60,16 +60,16 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
             .par_builder
             .build_for_tree_of_height(self.prebuilder.get_height());
 
-        create_tree_par(self, DefaultSorter, SplitterEmpty, pswitch, joiner).0
+        self.create_tree_par(DefaultSorter, SplitterEmpty, pswitch, joiner).0
     }
     ///Build not sorted sequentially
     pub fn build_not_sorted_seq(&mut self) -> NotSorted<'a, T> {
-        NotSorted(create_tree_seq(self, NoSorter, SplitterEmpty).0)
+        NotSorted(self.create_tree_seq(NoSorter, SplitterEmpty).0)
     }
 
     ///Build sequentially
     pub fn build_seq(&mut self) -> Tree<'a, T> {
-        create_tree_seq(self, DefaultSorter, SplitterEmpty).0
+        self.create_tree_seq(DefaultSorter, SplitterEmpty).0
     }
 
     #[inline(always)]
@@ -94,110 +94,115 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
 
     ///Build with a Splitter.
     pub fn build_with_splitter_seq<S: Splitter>(&mut self, splitter: S) -> (Tree<'a, T>, S) {
-        create_tree_seq(self, DefaultSorter, splitter)
+        self.create_tree_seq(DefaultSorter, splitter)
     }
+
+
+    fn create_tree_seq<K: Splitter>(
+        &mut self,
+        sorter: impl Sorter,
+        splitter: K,
+    ) -> (Tree<'a, T>, K) {
+        let builder=self;
+        let bots = core::mem::replace(&mut builder.bots, &mut []);
+
+        let num_aabbs = bots.len();
+
+        let cc = builder.prebuilder.num_nodes();
+        let mut nodes = Vec::with_capacity(cc);
+
+        let constants = &Constants {
+            height: builder.prebuilder.get_height(),
+            binstrat: builder.rebal_strat,
+            sorter,
+        };
+
+        let r = Recurser {
+            constants,
+            arr: bots,
+            depth: 0,
+            splitter,
+        };
+
+        let splitter = r.recurse_seq(builder.axis, &mut nodes);
+        assert_eq!(cc, nodes.len());
+
+        let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
+
+        let k = inner
+            .get_nodes()
+            .iter()
+            .fold(0, move |acc, a| acc + a.range.len());
+        debug_assert_eq!(k, num_aabbs);
+
+        (Tree { inner, num_aabbs }, splitter)
+    }
+
+    fn create_tree_par<K: Splitter + Send + Sync>(
+        &mut self,
+        sorter: impl Sorter,
+        splitter: K,
+        par: impl par::Joiner,
+        joiner: impl crate::Joinable,
+    ) -> (Tree<'a, T>, K)
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        let builder=self;
+        let bots = core::mem::replace(&mut builder.bots, &mut []);
+    
+        let num_aabbs = bots.len();
+        let cc = builder.prebuilder.num_nodes();
+    
+        let mut nodes = Vec::with_capacity(cc);
+    
+        let constants = &Constants {
+            height: builder.prebuilder.get_height(),
+            binstrat: builder.rebal_strat,
+            sorter,
+        };
+    
+        let r = Recurser {
+            constants,
+            arr: bots,
+            depth: 0,
+            splitter,
+        };
+    
+        let r = ParallelRecurser {
+            inner: r,
+            dlevel: par,
+            joiner,
+        };
+    
+        let splitter = r.recurse(builder.axis, &mut nodes);
+    
+        assert_eq!(cc, nodes.len());
+    
+        let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
+    
+        let k = inner
+            .get_nodes()
+            .iter()
+            .fold(0, move |acc, a| acc + a.range.len());
+        debug_assert_eq!(k, num_aabbs);
+    
+        (Tree { inner, num_aabbs }, splitter)
+    }
+    
 }
 
-fn create_tree_seq<'a, T: Aabb, K: Splitter>(
-    builder: &mut TreeBuilder<'a, T>,
-    sorter: impl Sorter,
-    splitter: K,
-) -> (Tree<'a, T>, K) {
-    let bots = core::mem::replace(&mut builder.bots, &mut []);
 
-    let num_aabbs = bots.len();
-
-    let cc = builder.prebuilder.num_nodes();
-    let mut nodes = Vec::with_capacity(cc);
-
-    let constants = &Constants {
-        height: builder.prebuilder.get_height(),
-        binstrat: builder.rebal_strat,
-        sorter,
-    };
-
-    let r = Recurser {
-        constants,
-        arr: bots,
-        depth: 0,
-        splitter,
-    };
-
-    let splitter = r.recurse_seq(builder.axis, &mut nodes);
-    assert_eq!(cc, nodes.len());
-
-    let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
-
-    let k = inner
-        .get_nodes()
-        .iter()
-        .fold(0, move |acc, a| acc + a.range.len());
-    debug_assert_eq!(k, num_aabbs);
-
-    (Tree { inner, num_aabbs }, splitter)
-}
-
-fn create_tree_par<'a, T: Aabb, K: Splitter + Send + Sync>(
-    builder: &mut TreeBuilder<'a, T>,
-    sorter: impl Sorter,
-    splitter: K,
-    par: impl par::Joiner,
-    joiner: impl crate::Joinable,
-) -> (Tree<'a, T>, K)
-where
-    T: Send + Sync,
-    T::Num: Send + Sync,
-{
-    let bots = core::mem::replace(&mut builder.bots, &mut []);
-
-    let num_aabbs = bots.len();
-    let cc = builder.prebuilder.num_nodes();
-
-    let mut nodes = Vec::with_capacity(cc);
-
-    let constants = &Constants {
-        height: builder.prebuilder.get_height(),
-        binstrat: builder.rebal_strat,
-        sorter,
-    };
-
-    let r = Recurser {
-        constants,
-        arr: bots,
-        depth: 0,
-        splitter,
-    };
-
-    let r = ParallelRecurser {
-        inner: r,
-        dlevel: par,
-        joiner,
-    };
-
-    let splitter = r.recurse(builder.axis, &mut nodes);
-
-    assert_eq!(cc, nodes.len());
-
-    let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
-
-    let k = inner
-        .get_nodes()
-        .iter()
-        .fold(0, move |acc, a| acc + a.range.len());
-    debug_assert_eq!(k, num_aabbs);
-
-    (Tree { inner, num_aabbs }, splitter)
-}
-
-struct NonLeafFinisher<'a, A, T: Aabb, S> {
+struct NonLeafFinisher<'a,'b, A, T: Aabb, S> {
     axis: A,
     div: Option<T::Num>, //This can be null if there are no bots left at all
     mid: &'a mut [T],
-    sorter: S,
+    sorter: &'b S,
 }
-impl<'a, A: Axis, T: Aabb, S: Sorter> NonLeafFinisher<'a, A, T, S> {
+impl<'a,'b, A: Axis, T: Aabb, S: Sorter> NonLeafFinisher<'a, 'b,A, T, S> {
     #[inline(always)]
-    fn finish(self) -> Node<'a, T> {
+    fn finish(self) -> Node<'a,T> {
         self.sorter.sort(self.axis.next(), self.mid);
         let cont = create_cont(self.axis, self.mid);
 
@@ -239,8 +244,50 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
         )
     }
 
-    fn split<A: Axis>(mut self, axis: A) -> (K, NonLeafFinisher<'a, A, T, S>, Self, Self) {
-        let (f, left, right) = match construct_non_leaf(self.constants.binstrat, axis, self.arr) {
+    fn construct_non_leaf(
+        bin_strat: BinStrat,
+        div_axis: impl Axis,
+        bots: &mut [T],
+    ) -> ConstructResult<T> {
+        let med = if bots.is_empty() {
+            return ConstructResult::Empty(bots);
+        } else {
+            let closure = move |a: &T, b: &T| -> core::cmp::Ordering {
+                crate::util::compare_bots(div_axis, a, b)
+            };
+
+            let k = {
+                let mm = bots.len() / 2;
+                pdqselect::select_by(bots, mm, closure);
+                &bots[mm]
+            };
+
+            k.get().get_range(div_axis).start
+        };
+
+        //It is very important that the median bot end up be binned into the middile bin.
+        //We know this must be true because we chose the divider to be the medians left border,
+        //and we binned so that all bots who intersect with the divider end up in the middle bin.
+        //Very important that if a bots border is exactly on the divider, it is put in the middle.
+        //If this were not true, there is no guarentee that the middile bin has bots in it even
+        //though we did pick a divider.
+        let binned = match bin_strat {
+            BinStrat::Checked => oned::bin_middle_left_right(div_axis, &med, bots),
+            BinStrat::NotChecked => unsafe {
+                oned::bin_middle_left_right_unchecked(div_axis, &med, bots)
+            },
+        };
+
+        ConstructResult::NonEmpty {
+            mid: binned.middle,
+            div: med,
+            left: binned.left,
+            right: binned.right,
+        }
+    }
+
+    fn split<A: Axis>(mut self, axis: A) -> (K, NonLeafFinisher<'a,'b, A, T, S>, Self, Self) {
+        let (f, left, right) = match Self::construct_non_leaf(self.constants.binstrat, axis, self.arr) {
             ConstructResult::NonEmpty {
                 div,
                 mid,
@@ -251,7 +298,7 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
                     mid,
                     div: Some(div),
                     axis,
-                    sorter: self.constants.sorter,
+                    sorter: &self.constants.sorter,
                 },
                 left,
                 right,
@@ -265,7 +312,7 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
                     mid,
                     div: None,
                     axis,
-                    sorter: self.constants.sorter,
+                    sorter: &self.constants.sorter,
                 };
 
                 (node, mid1, mid2)
@@ -385,6 +432,52 @@ where
     }
 }
 
+fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
+    match middle.split_first() {
+        Some((first, rest)) => {
+            let mut min = first.get().get_range(axis).start;
+            let mut max = first.get().get_range(axis).end;
+
+            for a in rest.iter() {
+                let start = &a.get().get_range(axis).start;
+                let end = &a.get().get_range(axis).end;
+
+                if *start < min {
+                    min = *start;
+                }
+
+                if *end > max {
+                    max = *end;
+                }
+            }
+
+            axgeom::Range {
+                start: min,
+                end: max,
+            }
+        }
+        None => axgeom::Range {
+            start: Default::default(),
+            end: Default::default(),
+        },
+    }
+}
+
+enum ConstructResult<'a, T: Aabb> {
+    NonEmpty {
+        div: T::Num,
+        mid: &'a mut [T],
+        right: &'a mut [T],
+        left: &'a mut [T],
+    },
+    Empty(&'a mut [T]),
+}
+
+
+
+
+
+
 #[bench]
 #[cfg(all(feature = "unstable", test))]
 fn bench_cont(b: &mut test::Bencher) {
@@ -449,87 +542,4 @@ fn bench_cont2(b: &mut test::Bencher) {
         let k = create_cont2(axgeom::XAXISS, &bots);
         let _ = test::black_box(k);
     });
-}
-
-fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
-    match middle.split_first() {
-        Some((first, rest)) => {
-            let mut min = first.get().get_range(axis).start;
-            let mut max = first.get().get_range(axis).end;
-
-            for a in rest.iter() {
-                let start = &a.get().get_range(axis).start;
-                let end = &a.get().get_range(axis).end;
-
-                if *start < min {
-                    min = *start;
-                }
-
-                if *end > max {
-                    max = *end;
-                }
-            }
-
-            axgeom::Range {
-                start: min,
-                end: max,
-            }
-        }
-        None => axgeom::Range {
-            start: Default::default(),
-            end: Default::default(),
-        },
-    }
-}
-
-enum ConstructResult<'a, T: Aabb> {
-    NonEmpty {
-        div: T::Num,
-        mid: &'a mut [T],
-        right: &'a mut [T],
-        left: &'a mut [T],
-    },
-    Empty(&'a mut [T]),
-}
-
-fn construct_non_leaf<T: Aabb>(
-    bin_strat: BinStrat,
-    div_axis: impl Axis,
-    bots: &mut [T],
-) -> ConstructResult<T> {
-    let med = if bots.is_empty() {
-        return ConstructResult::Empty(bots);
-    } else {
-        let closure = move |a: &T, b: &T| -> core::cmp::Ordering {
-            crate::util::compare_bots(div_axis, a, b)
-        };
-
-        let k = {
-            let mm = bots.len() / 2;
-            pdqselect::select_by(bots, mm, closure);
-            &bots[mm]
-        };
-
-        k.get().get_range(div_axis).start
-    };
-
-    //It is very important that the median bot end up be binned into the middile bin.
-    //We know this must be true because we chose the divider to be the medians left border,
-    //and we binned so that all bots who intersect with the divider end up in the middle bin.
-    //Very important that if a bots border is exactly on the divider, it is put in the middle.
-    //If this were not true, there is no guarentee that the middile bin has bots in it even
-    //though we did pick a divider.
-    let binned = match bin_strat {
-        BinStrat::Checked => oned::bin_middle_left_right(div_axis, &med, bots),
-        BinStrat::NotChecked => unsafe {
-            oned::bin_middle_left_right_unchecked(div_axis, &med, bots)
-        },
-    };
-
-    ConstructResult::NonEmpty {
-        mid: binned.middle,
-        div: med,
-        left: binned.left,
-        right: binned.right,
-    }
 }

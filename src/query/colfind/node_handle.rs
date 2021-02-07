@@ -9,6 +9,7 @@ pub struct NodeAxis<'a, 'node, T: Aabb, A: Axis> {
 }
 
 impl<'a, 'node, T: Aabb, A: Axis> NodeAxis<'a, 'node, T, A> {
+    #[inline(always)]
     pub fn borrow_mut<'c>(&'c mut self) -> NodeAxis<'c, 'node, T, A>
     where
         'a: 'c,

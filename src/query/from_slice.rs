@@ -369,6 +369,7 @@ pub struct CollidingPairsPar<T, D> {
 }
 
 impl<T, D> From<CollidingPairsPar<T, D>> for CollidingPairs<T, D> {
+    #[inline(always)]
     fn from(a: CollidingPairsPar<T, D>) -> Self {
         let cols = a.cols.into_iter().flatten().collect();
         CollidingPairs {
@@ -379,6 +380,7 @@ impl<T, D> From<CollidingPairsPar<T, D>> for CollidingPairs<T, D> {
 }
 
 impl<T, D> CollidingPairsPar<T, D> {
+    #[inline(always)]
     pub fn get(&self, arr: &[T]) -> &[Vec<ColPair<T, D>>] {
         assert_eq!(arr as *const _, self.original.0 as *const _);
         unsafe { &*(self.cols.as_slice() as *const _ as *const _) }
@@ -404,19 +406,5 @@ impl<T: Send + Sync, D: Send + Sync> CollidingPairsPar<T, D> {
                 func(a, b, extra)
             }
         })
-        /*
-        self.cols.par_iter_mut().for_each(|a| {
-            for ColPairPtr {
-                first,
-                second,
-                extra,
-            } in a.iter_mut()
-            {
-                let a = unsafe { &mut *first.0 };
-                let b = unsafe { &mut *second.0 };
-                func(a, b, extra)
-            }
-        });
-        */
     }
 }

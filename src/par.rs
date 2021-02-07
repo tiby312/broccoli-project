@@ -11,16 +11,18 @@ pub struct ParallelBuilder {
     height_switch: usize,
 }
 impl ParallelBuilder {
-    pub fn new() -> Self {
+    #[inline(always)]
+    pub const fn new() -> Self {
         ParallelBuilder {
             height_switch: SWITCH_SEQUENTIAL_DEFAULT,
         }
     }
+    #[inline(always)]
     pub fn with_switch_height(&mut self, height: usize) {
         self.height_switch = height;
     }
-
-    pub fn build_for_tree_of_height(&self, tree_height: usize) -> Parallel {
+    #[inline(always)]
+    pub const fn build_for_tree_of_height(&self, tree_height: usize) -> Parallel {
         Parallel::new(if tree_height < self.height_switch {
             0
         } else {
@@ -58,6 +60,7 @@ impl Parallel {
 }
 
 impl Joiner for Parallel {
+    #[inline(always)]
     fn next(mut self) -> ParResult<Self, Sequential> {
         if self.current_depth >= self.depth_to_switch_at {
             ParResult::Sequential([Sequential, Sequential])
@@ -73,6 +76,7 @@ impl Joiner for Parallel {
 #[derive(Copy, Clone)]
 pub struct Sequential;
 impl Joiner for Sequential {
+    #[inline(always)]
     fn next(self) -> ParResult<Self, Sequential> {
         ParResult::Sequential([Sequential, Sequential])
     }

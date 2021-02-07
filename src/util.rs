@@ -115,6 +115,7 @@ mod slicesplit {
     }
 
     impl<'a, T, F: FnMut(&T, &T) -> bool> SliceSplitMut<'a, T, F> {
+        #[inline(always)]
         pub fn new(arr: &'a mut [T], func: F) -> SliceSplitMut<'a, T, F> {
             SliceSplitMut {
                 arr: Some(arr),

@@ -106,7 +106,7 @@ where
                 par::ParResult::Parallel([dleft, dright]) => {
                     
                     let p1 = ParRecurser {
-                        handler: self.handler.clone(),
+                        handler: self.handler,
                         vistr: left,
                         par: dleft,
                         joiner: self.joiner.clone(),
@@ -205,6 +205,7 @@ where
     }
 }
 
+#[inline(always)]
 fn finish_splitter<S: Splitter>(mut a: S, b: S, c: S) -> S {
     a.add(b, c);
     a
@@ -215,6 +216,7 @@ pub struct SplitterVistr<S, V> {
     pub splitter: S,
 }
 impl<S: Splitter, V: Visitor> SplitterVistr<S, V> {
+    #[inline(always)]
     pub fn new(splitter: S, inner: V) -> Self {
         SplitterVistr { inner, splitter }
     }
