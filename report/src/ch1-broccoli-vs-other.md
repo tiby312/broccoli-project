@@ -5,7 +5,6 @@
 
 <link rel="stylesheet" href="css/poloto.css">
 
-
 {{#include raw/colfind_bench_0.2.svg}}
 {{#include raw/colfind_bench_0.05.svg}}
 

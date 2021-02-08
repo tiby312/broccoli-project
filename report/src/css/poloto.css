@@ -69,10 +69,12 @@
     stroke-dasharray:4;
 }
 */
-
+.poloto.poloto {
+    font-family: "Open Sans", sans-serif;
+    width:100%;
+    height:auto;
+}
 .poloto{
-    width: 100%;
-  font-family: "Open Sans", sans-serif;
   --poloto_fg_color:var(--fg);
   --poloto_bg_color:var(--bg);
   --poloto_color0:var(--pplot_color0);
