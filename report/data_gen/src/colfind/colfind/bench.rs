@@ -9,8 +9,8 @@ pub struct Record {
     nosort_par: f32,
     nosort: f32,
 }
-const bench_stop_naive_at: usize = 3000;
-const bench_stop_sweep_at: usize = 6000;
+const BENCH_STOP_NAIVE_AT: usize = 3000;
+const BENCH_STOP_SWEEP_AT: usize = 6000;
 
 impl Record {
     pub fn new(grow: f64, num_bots: usize) -> Record {
@@ -38,7 +38,7 @@ impl Record {
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-        let c3 = if num_bots < bench_stop_sweep_at {
+        let c3 = if num_bots < BENCH_STOP_SWEEP_AT {
             bench_closure(|| {
                 broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS, &mut bots, |a, b| {
                     **a.unpack_inner() -= 2;
@@ -51,7 +51,7 @@ impl Record {
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-        let c4 = if num_bots < bench_stop_naive_at {
+        let c4 = if num_bots < BENCH_STOP_NAIVE_AT {
             bench_closure(|| {
                 broccoli::query::colfind::query_naive_mut(PMut::new(&mut bots), |a, b| {
                     **a.unpack_inner() += 2;
@@ -82,7 +82,7 @@ impl Record {
             });
         });
 
-        if num_bots < bench_stop_naive_at {
+        if num_bots < BENCH_STOP_NAIVE_AT {
             for (i, &b) in bot_inner.iter().enumerate() {
                 assert_eq!(b, 0, "failed iteration:{:?} numbots={:?}", i, num_bots);
             }
@@ -104,57 +104,57 @@ impl Record {
 pub fn handle_bench(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
         filename: "colfind_bench_0.2",
-        title: "Comparison of space partitioning algs with abspiral(x,0.2)",
+        title: "Bench of space partitioning algs with abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: (0usize..10_000)
             .step_by(100)
             .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots))),
         stop_values: &[
-            ("naive", bench_stop_naive_at as f32),
-            ("sweep", bench_stop_sweep_at as f32),
+            ("naive", BENCH_STOP_NAIVE_AT as f32),
+            ("sweep", BENCH_STOP_SWEEP_AT as f32),
         ],
     });
 
     fb.make_graph(Args {
         filename: "colfind_bench_0.05",
-        title: "Comparison of space partitioning algs with abspiral(x,0.05)",
+        title: "Bench of space partitioning algs with abspiral(x,0.05)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: (0usize..10_000)
             .step_by(100)
             .map(|num_bots| (num_bots as f32, Record::new(0.05, num_bots))),
         stop_values: &[
-            ("naive", bench_stop_naive_at as f32),
-            ("sweep", bench_stop_sweep_at as f32),
+            ("naive", BENCH_STOP_NAIVE_AT as f32),
+            ("sweep", BENCH_STOP_SWEEP_AT as f32),
         ],
     });
 
 
     fb.make_graph(Args {
         filename: "colfind_bench_grow",
-        title: "Comparison of space partitioning algs with abspiral(3000,grow)",
+        title: "Bench of space partitioning algs with abspiral(3000,grow)",
         xname: "Grow",
         yname: "Time in Seconds",
         plots: abspiral_grow_iter2(0.001, 0.008, 0.0001)
         .map(|grow| (grow as f32, Record::new(grow, 3000))),
         stop_values: &[
-            ("naive", bench_stop_naive_at as f32),
-            ("sweep", bench_stop_sweep_at as f32),
+            ("naive", BENCH_STOP_NAIVE_AT as f32),
+            ("sweep", BENCH_STOP_SWEEP_AT as f32),
         ],
     });
 
 
     fb.make_graph(Args {
         filename: "colfind_bench_grow_wide",
-        title: "Comparison of space partitioning algs with abspiral(3000,grow)",
+        title: "Bench of space partitioning algs with abspiral(3000,grow)",
         xname: "Grow",
         yname: "Time in Seconds",
         plots: abspiral_grow_iter2(0.01, 0.2, 0.002)
         .map(|grow| (grow as f32, Record::new(grow, 3000))),
         stop_values: &[
-            ("naive", bench_stop_naive_at as f32),
-            ("sweep", bench_stop_sweep_at as f32),
+            ("naive", BENCH_STOP_NAIVE_AT as f32),
+            ("sweep", BENCH_STOP_SWEEP_AT as f32),
         ],
     });
 }

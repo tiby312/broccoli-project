@@ -23,7 +23,6 @@ mod inner_prelude {
     pub use super::bbox_helper;
     pub use crate::black_box;
     pub(crate) use crate::datanum;
-    pub use crate::support::bool_then;
     pub use crate::support::*;
     pub use crate::Args;
     pub(crate) use crate::FigureBuilder;
@@ -39,7 +38,6 @@ mod inner_prelude {
     pub use broccoli::query::*;
     pub use broccoli::RayonJoin;
     pub use broccoli::*;
-    pub use gnuplot::*;
     pub use serde::Serialize;
     pub use std::time::Duration;
     pub use std::time::Instant;
@@ -51,12 +49,10 @@ mod colfind;
 pub(crate) mod datanum;
 mod spiral;
 
-use gnuplot::*;
 use std::env;
 
 pub struct FigureBuilder {
     folder: String,
-    last_file_name: Option<String>,
 }
 use serde::Serialize;
 
@@ -73,7 +69,6 @@ impl FigureBuilder {
     fn new(folder: String) -> FigureBuilder {
         FigureBuilder {
             folder,
-            last_file_name: None,
         }
     }
 
@@ -82,23 +77,6 @@ impl FigureBuilder {
         splot.render_to_file(&s).unwrap()
     }
 
-    fn build(&mut self, filename: &str) -> Figure {
-        let mut fg = Figure::new();
-        let ss = format!("{}/{}.gplot", &self.folder, filename);
-
-        //fg.set_terminal("pngcairo size 640,480 enhanced font 'Veranda,10'", "");
-        fg.set_terminal("svg enhanced background rgb '#e1e1db'", "");
-
-        fg.set_pre_commands(format!("set output sdir.'{}.svg'", filename).as_str());
-        //fg.set_pre_commands("set output system(\"echo $FILE_PATH\")");
-
-        //set terminal pngcairo size 350,262 enhanced font 'Verdana,10'
-        self.last_file_name = Some(ss);
-        fg
-    }
-    fn finish(&mut self, figure: Figure) {
-        figure.echo_to_file(&self.last_file_name.take().unwrap());
-    }
     fn make_graph<S: Serialize, I: Iterator<Item = (f32, S)>>(&mut self, args: Args<S, I>) {
         let it = args.plots;
         let filename = args.filename;
@@ -107,9 +85,7 @@ impl FigureBuilder {
         let yname = args.yname;
         let stop_values = args.stop_values;
 
-        use core::convert::TryInto;
-
-        let mut rects: Vec<_> = it.collect();
+        let rects: Vec<_> = it.collect();
         let mut ii = rects.iter();
 
         struct MySerialize {
@@ -129,8 +105,7 @@ impl FigureBuilder {
 
         if let Some(ff) = ii.next() {
             let map = MySerialize::new(&ff.1);
-            let num_plots = map.as_object().len();
-
+            
             let names = map.as_object().clone();
 
             let mut plot = poloto::plot(title, xname, yname);
@@ -296,50 +271,6 @@ fn main() {
             run_test!(&mut fb, colfind::tree_direct_indirect::handle);
             
             
-        }
-        "graph" => {
-            let folder = args[2].clone();
-
-            let path = Path::new(folder.trim_end_matches('/'));
-
-            let target_folder = args[3].clone();
-            let target_dir = Path::new(target_folder.trim_end_matches('/'));
-            std::fs::create_dir_all(&target_dir).expect("failed to create directory");
-
-            let paths = std::fs::read_dir(path).unwrap();
-
-            for path in paths {
-                let path = match path {
-                    Ok(path) => path,
-                    _ => continue,
-                };
-
-                if let Some(ext) = path.path().extension() {
-                    if ext == "gplot" {
-                        let path_command = path.path();
-                        println!("generating {:?}", path.file_name());
-
-                        //let output=format!("-e \"output='{}' \"",path.path().with_extension("png").to_str().unwrap());
-                        //gnuplot -e "filename='foo.data'" foo.plg
-
-                        let mut command = std::process::Command::new("gnuplot");
-
-                        //let new_path = path.path().with_extension("svg");
-                        //let blag = Path::new(new_path.file_name().unwrap().to_str().unwrap());
-                        command
-                            .arg("-e")
-                            .arg(format!("sdir='{}/'", target_dir.to_str().unwrap()))
-                            .arg("-p")
-                            .arg(path_command);
-
-                        println!("{:?}", command);
-
-                        command.status()
-                            .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.");
-                    }
-                }
-            }
-            println!("Finished generating graphs");
         }
         _ => {
             println!("Check code to see what it should be");

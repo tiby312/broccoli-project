@@ -1,21 +1,22 @@
 use super::*;
 
 const NO_SORT_MAX: usize = 8000;
+const NO_SORT_PAR_MAX:usize = 15000;
 
 pub fn handle_bench(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
         filename: "construction_query_bench",
-        title: "Construction vs Query abspiral(x,0.2)",
+        title: "Bench of construction vs query abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: (0usize..20_000)
             .step_by(80)
             .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots,false))),
         stop_values: &[
-            ("nosort_contr", NO_SORT_MAX as f32),
+            ("nosort_contr", NO_SORT_PAR_MAX as f32),
             ("nosort_query", NO_SORT_MAX as f32),
-            ("nosort_par_contr", NO_SORT_MAX as f32),
-            ("nosort_par_query", NO_SORT_MAX as f32),
+            ("nosort_par_contr", NO_SORT_PAR_MAX as f32),
+            ("nosort_par_query", NO_SORT_PAR_MAX as f32),
         ],
     });
 }
@@ -81,7 +82,7 @@ impl Record {
             (0.0, 0.0)
         };
 
-        let nosort_par = if do_all || num_bots <= NO_SORT_MAX {
+        let nosort_par = if do_all || num_bots <= NO_SORT_PAR_MAX {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
             let (mut tree, t1) = bench_closure_ret(|| NotSorted::new_par(RayonJoin, &mut bots));

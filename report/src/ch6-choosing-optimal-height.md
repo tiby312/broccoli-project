@@ -19,6 +19,14 @@ based off of the bounding rectangles of the dividers. In 'normal' looking trees 
 
 The below chart compares the empirically best height against the height that our heuristic tree height function produces. 
 
-{{#include raw/height_heuristic_vs_optimal.svg}}
 
+<style>
+.test .poloto0fill{
+    stroke:var(--pplot_color0);
+    stroke-width:7;
+}
+</style>
+<div class="test">
+{{#include raw/height_heuristic_vs_optimal.svg}}
+</div>
 

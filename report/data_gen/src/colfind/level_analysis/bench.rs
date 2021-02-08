@@ -62,7 +62,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
     
     fn draw_graph<'a, I:Iterator<Item=(f32,&'a [f32])>+Clone>(filename:&str,title_name: &str, fb: &mut FigureBuilder, mut it:I,) {
         let mut plot=poloto::plot(title_name,"Spiral Grow","Time taken in Seconds");
-        if let Some((xfirst,xrest))=it.next(){
+        if let Some((_,xrest))=it.next(){
             let num=xrest.len();
             
             let cc = (0..num).map(|ii: usize| it.clone().map(move |(x,a)| [x,a[ii]]));
@@ -80,14 +80,14 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
     //let mut fg = fb.build("level_analysis_bench_rebal");
     draw_graph(
         "level_analysis_bench_rebal",
-        &format!("Rebal Level Bench with abspiral({},x)", num_bots),
+        &format!("Bench of rebal levels with abspiral({},x)", num_bots),
         fb,
         res2.iter().map(|x|(x.0,x.1.rebal.as_slice()))
     );
 
     draw_graph(
         "level_analysis_bench_query",
-        &format!("Query Level Bench with abspiral({},x)", num_bots),
+        &format!("Bench of query levels with abspiral({},x)", num_bots),
         fb,
         res2.iter().map(|x|(x.0,x.1.query.as_slice()))
     );

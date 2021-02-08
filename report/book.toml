@@ -6,4 +6,4 @@ src = "src"
 title = "broccoli_report"
 
 [output.html]
-default-theme="Rust" 
+default-theme="Navy" 

@@ -80,8 +80,8 @@ fn handle_lowest(fb: &mut FigureBuilder) {
     };
 
     let mut plot=poloto::plot(
-        "Broccoli Colfind Query: Optimal Height vs Heuristic Height with abspiral(x,0.2)",
-        "Num bots",
+        "Bench of optimal vs heuristic with abspiral(x,0.2)",
+        "Number of ELements",
         "Tree Height");
 
     
@@ -129,7 +129,7 @@ fn handle2d(fb: &mut FigureBuilder) {
 
 
     let mut plot=poloto::plot(
-        "Number of Comparisons with different numbers of objects per node with abspiral(10000,0.2)",
+        "Complexity of differing num elem per node with abspiral(10000,0.2)",
         "Tree Height",
         "Number of Comparisons");
 
@@ -140,7 +140,7 @@ fn handle2d(fb: &mut FigureBuilder) {
 
 
     let mut plot=poloto::plot(
-        "Bench with different numbers of objects per node with abspiral(10000,0.2)",
+        "Bench of differing num elem per node with abspiral(10000,0.2)",
         "Tree Height",
         "Number of Comparisons");
 

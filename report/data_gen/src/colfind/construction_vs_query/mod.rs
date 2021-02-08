@@ -1,5 +1,4 @@
 use crate::inner_prelude::*;
-use broccoli::pmut::PMut;
 use broccoli::query::colfind::NotSortedQueries;
 
 mod bench;

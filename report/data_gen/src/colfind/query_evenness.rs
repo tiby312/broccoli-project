@@ -38,12 +38,11 @@ pub fn handle2(fb:&mut FigureBuilder,grow:f64,num_bots:usize){
     {
         let res = TheoryRes::new(num_bots, grow);
 
-        let mut splot=poloto::plot(&format!("Query Evenness with abspiral({},{})", num_bots, grow),
+        let mut splot=poloto::plot(&format!("Complexity of query evenness with abspiral({},{})", num_bots, grow),
             "dfs inorder iteration",
             "Number of comparisons"
         );
 
-        use broccoli::compt::Visitor;
         splot.histogram("query",res.query
             .vistr()
             .dfs_inorder_iter()
@@ -60,8 +59,8 @@ pub fn handle2(fb:&mut FigureBuilder,grow:f64,num_bots:usize){
 
     let tree = broccoli::new(&mut bots);
 
-    let mut splot=poloto::plot(&format!("Num per Node with abspiral({},{})", num_bots, grow),
-        "dfs inorder iteration",
+    let mut splot=poloto::plot(&format!("Num per node with abspiral({},{})", num_bots, grow),
+        "DFS inorder iteration",
         "Number of comparisons"
     );
 
@@ -79,9 +78,7 @@ pub fn handle2(fb:&mut FigureBuilder,grow:f64,num_bots:usize){
 pub fn handle_theory(fb: &mut FigureBuilder) {
     let num_bots = 3000;
 
-    let grow1 = 0.2;
-    let grow2 = 0.007;
-
+    
     handle2(fb,0.2,num_bots);
     handle2(fb,0.007,num_bots);
     handle2(fb,2.0,num_bots);

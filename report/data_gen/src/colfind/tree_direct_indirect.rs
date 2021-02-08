@@ -187,7 +187,7 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
     
     fb.make_graph(Args {
         filename: &format!("tree_direct_indirect_rebal_{}_{}", grow, name),
-        title: &format!("Construction:{}",name),
+        title: &format!("Bench of rebal:{} with abspiral(num,{})",name,grow),
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots:rects.iter().map(|x|(x.0,x.1.rebal)),
@@ -196,7 +196,7 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
 
     fb.make_graph(Args {
         filename: &format!("tree_direct_indirect_query_{}_{}", grow, name),
-        title: &format!("Query:{}",name),
+        title: &format!("Bench of query:{} with abspiral(num,{})",name,grow),
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots:rects.iter().map(|x|(x.0,x.1.query)),

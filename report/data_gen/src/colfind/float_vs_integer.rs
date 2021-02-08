@@ -3,13 +3,13 @@ use crate::inner_prelude::*;
 
 #[derive(Debug,Serialize)]
 struct Record {
-    bench_float: f32,
-    bench_float_par: f32,
-    bench_integer: f32,
-    bench_integer_par: f32,
-    bench_i64: f32,
-    bench_i64_par: f32,
-    bench_float_i32: f32,
+    float: f32,
+    float_par: f32,
+    int: f32,
+    int_par: f32,
+    i64: f32,
+    i64_par: f32,
+    float_i32: f32,
 }
 
 impl Record{
@@ -114,13 +114,13 @@ impl Record{
 
 
         Record {
-            bench_i64:bench_i64 as f32,
-            bench_i64_par:bench_i64_par as f32,
-            bench_float:bench_float as f32,
-            bench_integer:bench_integer as f32,
-            bench_float_par:bench_float_par as f32,
-            bench_integer_par:bench_integer_par as f32,
-            bench_float_i32:bench_float_i32 as f32,
+            i64:bench_i64 as f32,
+            i64_par:bench_i64_par as f32,
+            float:bench_float as f32,
+            int:bench_integer as f32,
+            float_par:bench_float_par as f32,
+            int_par:bench_integer_par as f32,
+            float_i32:bench_float_i32 as f32,
         }
 
     }
@@ -131,10 +131,10 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     fb.make_graph(Args {
         filename: "float_vs_integer",
-        title: "Performance of Different Number Types With abspiral(x,0.2)",
+        title: "Bench of differing number types With abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: (100..20_000).step_by(100).map(|n| (n as f32, Record::new(0.2, n))),
+        plots: (100..10_000).step_by(100).map(|n| (n as f32, Record::new(0.2, n))),
         stop_values: &[],
     });
     

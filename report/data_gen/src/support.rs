@@ -48,35 +48,13 @@ pub mod convert {
     }
     */
 
-    ///Convert a `f32` rect to a normalizde `u32` rect normalized over an area.
 
-    #[inline(always)]
-    pub fn rect_f32_to_u16(a: Rect<f32>, border: &Rect<f32>) -> Rect<u16> {
-        axgeom::rect(
-            convert1d_u16(a.x.start, border.x),
-            convert1d_u16(a.x.end, border.x),
-            convert1d_u16(a.y.start, border.x),
-            convert1d_u16(a.y.end, border.x),
-        )
-    }
-
-    #[inline(always)]
-    fn convert1d_u16(a: f32, range: axgeom::Range<f32>) -> u16 {
-        ((a - range.start) * (u16::MAX as f32 / range.distance())) as u16
-    }
 }
 
 fn into_secs(elapsed: std::time::Duration) -> f64 {
     (elapsed.as_secs() as f64) + (f64::from(elapsed.subsec_nanos()) / 1_000_000_000.0)
 }
 
-pub fn bool_then<T>(a: bool, mut func: impl FnMut() -> T) -> Option<T> {
-    if a {
-        Some(func())
-    } else {
-        None
-    }
-}
 
 pub use self::levelcounter::LevelCounter;
 mod levelcounter {
@@ -221,21 +199,6 @@ mod leveltimer {
         */
     }
 }
-
-pub const COLS: &[&str] = &[
-    "blue",
-    "dark-green",
-    "red",
-    "violet",
-    "orange",
-    "brown",
-    "pink",
-    "plum",
-    "yellow",
-    "aquamarine",
-    "turquoise",
-    "green",
-];
 
 pub fn bench_closure(func: impl FnOnce()) -> f64 {
     black_box(bench_closure_ret(func).1)

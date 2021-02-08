@@ -59,14 +59,16 @@
     --pplot_color8:chocolate;
  
 }
-
+/*
 .poloto0stroke{
     stroke-dasharray:4;
     stroke-width:2;
 }
+
 .poloto0fill{
     stroke-dasharray:4;
 }
+*/
 
 .poloto{
     width: 100%;

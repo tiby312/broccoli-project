@@ -63,42 +63,16 @@ impl Record {
             not_checked,
         }
     }
-    /*
-    fn draw(records: &[Record], fg: &mut Figure) {
-        
-    
-        let k = fg
-            .axes2d()
-            .set_title(
-                &"Checked vs Unchecked binning indexing with abspiral(x,1.0)".to_string(),
-                &[],
-            )
-            .set_legend(Graph(1.0), Graph(1.0), &[LegendOption::Horizontal], &[])
-            .set_x_label("Number of Objects", &[])
-            .set_y_label("Time in Seconds", &[]);
-
-        let x = records.iter().map(|a| a.num_bots);
-        for index in 0..4 {
-            let y = records.iter().map(|a| a.arr[index]);
-            k.lines(
-                x.clone(),
-                y,
-                &[Caption(NAMES[index]), Color(COLS[index]), LineWidth(2.0)],
-            );
-        }
-    
-    }
-    */
 }
 
 pub fn handle(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
         filename: "checked_vs_unchecked_binning",
-        title: "Checked vs Unchecked binning indexing with abspiral(x,1.0)",
+        title: "Bench of checked vs unchecked binning with abspiral(x,1.0)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: (0usize..40_000)
-            .step_by(500)
+            .step_by(200)
             .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots))),
         stop_values: &[],
     });

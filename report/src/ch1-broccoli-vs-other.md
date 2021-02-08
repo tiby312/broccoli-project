@@ -15,7 +15,7 @@
 
 
 
-The above chart compares different implementations of `find_colliding_pairs` both in terms of comparisons and benches. It is interesting to note that the real world bench times follow the same trend as the theoretical number of comparisons.
+The above charts compare different implementations of `find_colliding_pairs` both in terms of comparisons and benches. It is interesting to note that the real world bench times follow the same trend as the theoretical number of comparisons.
 
 The jumps that you see in the theoretical `broccoli` line are the points at which the trees height grows. It is a complete binary tree so a slight increase in the height causes a doubling of nodes so it is a drastic change. As the number of aabbs increases it is inevitable that sometimes the tree will be too tall or too short. 
 
@@ -31,7 +31,8 @@ investigating if your algorithm is optimal sequentially may be better than spend
 
 
 
-The above chart shows a 3d view of the characteristics of `naive`, `sweep and prune`, and `broccoli`.
+The above charts shows the characteristics of `naive`, `sweep and prune`, and `broccoli` as things get more
+clumped up.
 
 There are a couple of observations to make here. First, you might have noticed that the naive algorithm is not completely static with respect to the spiral grow. This is because the naive implementation I used is not 100% naive. While it does check
 every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the aabbs are clumped up. If there were no short-circuiting, it would be flat all across. It is clear from the graph that this short-circuiting optimization does not gain you all that much.

@@ -6,9 +6,26 @@ Obviously if you choose to switch to sequential straight away, you have sequenti
 This was benched on a laptop with 4 physical cores. This means that if you just parallelize one level of the kdtree, you're only taking advantage of two of the 4 cores. This explains the time it took when we switched at level 8 vs 9. 
 
 
-<link rel="stylesheet" href="css/poloto.css">
-{{#include raw/parallel_height_heuristic.svg}}
 
+<link rel="stylesheet" href="css/poloto.css">
+<style>
+.test .poloto0fill{
+    stroke:var(--pplot_color0);
+    stroke-width:7;
+}
+.test .poloto2fill{
+    stroke:var(--pplot_color2);
+    stroke-width:7;
+}
+.test .poloto3fill{
+    stroke:var(--pplot_color3);
+    stroke-width:7;
+}
+
+</style>
+<div class="test">
+{{#include raw/parallel_height_heuristic.svg}}
+</div>
 
 
 

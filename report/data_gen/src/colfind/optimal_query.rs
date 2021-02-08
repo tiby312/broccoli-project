@@ -88,7 +88,7 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
     
     fb.make_graph(Args {
         filename: "broccoli_query",
-        title: "broccoli query with abspiral(0.2,n)",
+        title: "Bench of query vs collect with abspiral(0.2,n)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: (0usize..40_000)
@@ -153,7 +153,7 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
     
     fb.make_graph(Args {
         filename: "optimal_query",
-        title: "optimal query with abspiral(0.2,n)",
+        title: "Bench of optimal with abspiral(0.2,n)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: (0usize..40_000)

@@ -76,7 +76,7 @@ pub fn handle(fb: &mut FigureBuilder) {
     }
 
     let mut plot=poloto::plot(
-        "Parallel Height heuristic with abspiral(20,000,0.2) (which has a height of {})",
+        "Bench of differing parallel switch levels with abspiral(20,000,0.2)",
         "Height at which to switch to sequential",
         "Time in Seconds");
 
