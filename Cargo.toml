@@ -35,4 +35,7 @@ twounordered = "^0.6.2"
 # and only builds that target
 targets = ["x86_64-unknown-linux-gnu"]
 
+# when using flamegraph
+#[profile.release]
+#debug = true
 
