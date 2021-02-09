@@ -2,7 +2,7 @@
 
 ### Dependencies
 
-<img alt="dependencies" src="graphs/graph.png" class="center" style="width: 100%;" />
+<img alt="dependencies" src="graphs/graph.svg" class="center" style="width: 100%;" />
 
 
 ### Code Layout
