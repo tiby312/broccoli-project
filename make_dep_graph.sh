@@ -1,1 +1,1 @@
-cargo depgraph --exclude demo,data_gen | dot -Tpng > graph.png
+cargo-deps deps --exclude demo,data_gen | dot -Tsvg> graph.svg
