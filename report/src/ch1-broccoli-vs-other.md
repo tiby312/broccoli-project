@@ -1,44 +1,67 @@
 
-### Comparison against other Algorithms
+### Trends as N increases
 
 
+The broccoli crate's goal is to provide a broad-phase queries such as "find all elements that intersect". Its data structure is basically a kdtree with the added feature that elements belong to a node are sorted along the divider axis so that we can use sweep and prune during the query phase. Lets compare the complexity of finding all intersecting pairs whith the complexity of a kdtree, sweep and prune, and the naive method.
 
 <link rel="stylesheet" href="css/poloto.css">
 
-{{#include raw/colfind_bench_0.2.svg}}
-{{#include raw/colfind_bench_0.05.svg}}
-
-
 {{#include raw/colfind_theory_0.2.svg}}
+
+As you can see, broccoli is a clear winner in terms of minimizing the number of comparisons. The jumps that you see in the kdtree line are the points at which the trees height grows. It is a complete binary tree so a slight increase in the height causes a doubling of nodes so it is a drastic change. As the number of aabbs increases it is inevitable that sometimes the tree will be too tall or too short. Like kdtree, broccoli is also a complete binary tree so it also have jumps, but they are less pronounced. Probably because the second strategy of sweep and prune can "absorb" the jumps.
+
+Lets make sure that broccoli is still the winner if the aabbs are more clumped up.
+
 {{#include raw/colfind_theory_0.05.svg}}
 
+Okay good broccoli is still the winner against its building blocks in terms of comparisons.
 
+So thats great that we've found a strategy that minimizes the comparisons, but that doesn't really mean anything unless the real world performance is also just as fast. Lets look at how it benches against the same set of strategies.
 
-The above charts compare different implementations of `find_colliding_pairs` both in terms of comparisons and benches. It is interesting to note that the real world bench times follow the same trend as the theoretical number of comparisons.
+{{#include raw/colfind_bench_0.2.svg}}
 
-The jumps that you see in the theoretical `broccoli` line are the points at which the trees height grows. It is a complete binary tree so a slight increase in the height causes a doubling of nodes so it is a drastic change. As the number of aabbs increases it is inevitable that sometimes the tree will be too tall or too short. 
+Here we have also plotted the parallel versions that uses the  `rayon` work-stealing crate under the hood.
+This is benched on my quad-core laptop. It is interesting to note that the real world bench times follow the same trend as the theoretical number of comparisons. Again, we can see that brococli wins. Parallel broccoli beats parallel kdtree, and ditto for sequential versions. Lets make sure things don't change when elements are more clumped up.
 
-It's also worth noting that the difference between `sweep and prune`/`kdtree` and `naive` is much bigger than the difference between `sweep and prune`/`kdtree` and `broccoli`. So using these simpler algorithms gets you big gains as it is. The gains you get from using `broccoli` are not as pronounced, but are noticeable with more elements.
+{{#include raw/colfind_bench_0.05.svg}}
+
+Okay good its still the same results.
+
+It's worth noting that the difference between `sweep and prune`/`kdtree` and `naive` is much bigger than the difference between `sweep and prune`/`kdtree` and `broccoli`. So using these simpler algorithms gets you big gains as it is. The gains you get from using `broccoli` are not as pronounced, but are noticeable with more elements.
 
 In the same vein, you can see that there aren't many gains to use `broccoli_par` over `broccoli`. It can double/quadruple your performance, but as you can see those gains pale in comparison to the gains from simply using the a better sequential algorithm. Thats not to say multiplying your performance by the number of cores you have isn't great, it's just that it isn't a big factor. This to me means that typically, allocating effort on
 investigating if your algorithm is optimal sequentially may be better than spending effort in parallelizing what you have.
 
-{{#include raw/colfind_theory_grow.svg}}
+### Trends as Grow increases
+
+Up until now, we have been looking at trends of how the algorithms preform as we increase the number of aabbs that it has to find intersections for. Lets instead look at trends of what happens when we change how clumped the aabbs instead.
+
 {{#include raw/colfind_theory_grow_wide.svg}}
-{{#include raw/colfind_bench_grow.svg}}
+
+
+You might have noticed that the naive algorithm is not completely static with respect to the spiral grow. This is because the naive implementation I used is not 100% naive. While it does check
+every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the aabbs are clumped up. If there were no short-circuiting, it would be flat all across. It is clear from the graph that this short-circuiting optimization does not gain you all that much.
+
+
+So after a while, its obvious broccoli is the best, with sweep and prune and kd tree tied. Now lets look at the benches.
+
+
 {{#include raw/colfind_bench_grow_wide.svg}}
 
+Same trends
 
 
-The above charts shows the characteristics of `naive`, `sweep and prune`, and `broccoli` as things get more
-clumped up.
 
-There are a couple of observations to make here. First, you might have noticed that the naive algorithm is not completely static with respect to the spiral grow. This is because the naive implementation I used is not 100% naive. While it does check
-every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the aabbs are clumped up. If there were no short-circuiting, it would be flat all across. It is clear from the graph that this short-circuiting optimization does not gain you all that much.
+It's important to note that these comparisons aren't really fair. With broccoli, we are focused on optimising the finding colliding pairs portion, but these comparisons are comparing construct + one call to finding colliding pairs. However, we can't really show a graph of just the query portion, because other algorithms can't be easily split up into a construction and query part. Perhaps a better test would be to compare multiple query calls. So for each algorithm with one set of elements, find all the colliding pairs, then also find all the elements in a rectangle, then also find knearest, etc.
+
+
+### Extremely clumped up case
+
+{{#include raw/colfind_theory_grow.svg}}
 
 Another interesting observation is that these graphs show that `sweep and prune` has a better worst case than the `broccoli`. This makes sense since in the worst case, `sweep and prune` will sort all the elements, and then sweep. In the worst case for `broccoli`, it will first find the median, and then sort all the elements, and then sweep. So `broccoli` is slower since it redundantly found the median, and then sorted everything. However, it is easy to see that this only happens when the aabbs are extremely clumped up (abspiral(grow) where grow<=0.003). So while `sweep and prune` has a better worst-cast, the worst-cast scenario of `broccoli` is rare and it is not much worse (median finding + sort versus just sort). 
 
-It's important to note that these comparisons aren't really fair. With broccoli, we are focused on optimising the finding colliding pairs portion, but these comparisons are comparing construct + one call to finding colliding pairs. However, we can't really show a graph of just the query portion, because other algorithms can't be easily split up into a construction and query part. Perhaps a better test would be to compare multiple query calls. So for each algorithm with one set of elements, find all the colliding pairs, then also find all the elements in a rectangle, then also find knearest, etc.
+{{#include raw/colfind_bench_grow.svg}}
 
 
 
