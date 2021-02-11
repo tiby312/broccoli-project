@@ -16,6 +16,7 @@ impl Record {
     pub fn new(grow: f64, num_bots: usize) -> Record {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
+        
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
         let c0 = bench_closure(|| {
@@ -38,7 +39,7 @@ impl Record {
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-        let c3 = if num_bots < BENCH_STOP_SWEEP_AT {
+        let c3 = if num_bots <= BENCH_STOP_SWEEP_AT {
             bench_closure(|| {
                 broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS, &mut bots, |a, b| {
                     **a.unpack_inner() -= 2;
@@ -51,7 +52,7 @@ impl Record {
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-        let c4 = if num_bots < BENCH_STOP_NAIVE_AT {
+        let c4 = if num_bots <= BENCH_STOP_NAIVE_AT {
             bench_closure(|| {
                 broccoli::query::colfind::query_naive_mut(PMut::new(&mut bots), |a, b| {
                     **a.unpack_inner() += 2;
@@ -82,7 +83,7 @@ impl Record {
             });
         });
 
-        if num_bots < BENCH_STOP_NAIVE_AT {
+        if num_bots <= BENCH_STOP_NAIVE_AT {
             for (i, &b) in bot_inner.iter().enumerate() {
                 assert_eq!(b, 0, "failed iteration:{:?} numbots={:?}", i, num_bots);
             }
@@ -134,27 +135,21 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
         filename: "colfind_bench_grow",
         title: "Bench of space partitioning algs with abspiral(3000,grow)",
-        xname: "Grow",
+        xname: "Num Itersections",
         yname: "Time in Seconds",
         plots: abspiral_grow_iter2(0.001, 0.008, 0.0001)
-        .map(|grow| (grow as f32, Record::new(grow, 3000))),
-        stop_values: &[
-            ("naive", BENCH_STOP_NAIVE_AT as f32),
-            ("sweep", BENCH_STOP_SWEEP_AT as f32),
-        ],
+        .map(|grow| (num_intersections_for_grow(grow,3000) as f32, Record::new(grow, 3000))),
+        stop_values: &[],
     });
 
 
     fb.make_graph(Args {
         filename: "colfind_bench_grow_wide",
         title: "Bench of space partitioning algs with abspiral(3000,grow)",
-        xname: "Grow",
+        xname: "Num Itersections",
         yname: "Time in Seconds",
         plots: abspiral_grow_iter2(0.01, 0.2, 0.002)
-        .map(|grow| (grow as f32, Record::new(grow, 3000))),
-        stop_values: &[
-            ("naive", BENCH_STOP_NAIVE_AT as f32),
-            ("sweep", BENCH_STOP_SWEEP_AT as f32),
-        ],
+        .map(|grow| (num_intersections_for_grow(grow,3000) as f32, Record::new(grow, 3000))),
+        stop_values: &[],
     });
 }

@@ -217,6 +217,19 @@ pub fn instant_to_sec(elapsed: Duration) -> f64 {
     secs + nano / 1_000_000_000.0
 }
 
+
+//TODO cache???
+pub fn num_intersections_for_grow(grow:f64,num_bot:usize)->usize{
+    let mut g:Vec<_>=abspiral_f64(grow).take(num_bot).collect();
+
+    let mut tree=broccoli::new(&mut g);
+    let mut num_collision=0;
+    tree.find_colliding_pairs_mut(|_,_|{
+        num_collision+=1;
+    });
+    num_collision
+}
+
 pub fn abspiral_grow_iter2(start: f64, end: f64, delta: f64) -> impl Iterator<Item = f64> {
     let mut c = start;
     core::iter::from_fn(move || {

@@ -109,27 +109,21 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
         filename: "colfind_theory_grow",
         title: "Complexity of space partitioning algs with abspiral(3000,grow)",
-        xname: "Grow",
+        xname: "Number of Intersections",
         yname: "Number of Comparisons",
         plots:abspiral_grow_iter2(0.001, 0.01, 0.0001)
-        .map(|grow| (grow as f32, Record::new(grow, 3000))),
-        stop_values: &[
-            ("naive", THEORY_STOP_NAIVE_AT as f32),
-            ("sweep", THEORY_STOP_SWEEP_AT as f32),
-        ],
+        .map(|grow| (num_intersections_for_grow(grow,3000) as f32, Record::new(grow, 3000))),
+        stop_values: &[],
     });
 
     fb.make_graph(Args {
         filename: "colfind_theory_grow_wide",
         title: "Complexity of space partitioning algs with abspiral(3000,grow)",
-        xname: "Grow",
+        xname: "Number of Intersections",
         yname: "Number of Comparisons",
         plots:abspiral_grow_iter2(0.01, 0.2, 0.001)
-        .map(|grow| (grow as f32, Record::new(grow, 3000))),
-        stop_values: &[
-            ("naive", THEORY_STOP_NAIVE_AT as f32),
-            ("sweep", THEORY_STOP_SWEEP_AT as f32),
-        ],
+        .map(|grow| (num_intersections_for_grow(grow,3000) as f32, Record::new(grow, 3000))),
+        stop_values: &[],
     });
 
 }
