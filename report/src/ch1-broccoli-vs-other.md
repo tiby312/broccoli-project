@@ -38,12 +38,7 @@ Up until now, we have been looking at trends of how the algorithms preform as we
 
 {{#include raw/colfind_theory_grow_wide.svg}}
 
-
-You might have noticed that the naive algorithm is not completely static with respect to the spiral grow. This is because the naive implementation I used is not 100% naive. While it does check
-every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the aabbs are clumped up. If there were no short-circuiting, it would be flat all across. It is clear from the graph that this short-circuiting optimization does not gain you all that much.
-
-
-So after a while, its obvious broccoli is the best, with sweep and prune and kd tree tied. Now lets look at the benches.
+Okay broccoli is still the test good. We didnt include naive because it dwarfed the other algorithms so that you couldnt see the differences between the non naive algorithms. Lets look at bench times:
 
 
 {{#include raw/colfind_bench_grow_wide.svg}}
@@ -58,6 +53,13 @@ It's important to note that these comparisons aren't really fair. With broccoli,
 ### Extremely clumped up case
 
 {{#include raw/colfind_theory_grow.svg}}
+
+You might have noticed that the naive algorithm is not completely static with respect to the spiral grow. This is because the naive implementation I used is not 100% naive. While it does check
+every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the aabbs are clumped up. If there were no short-circuiting, it would be flat all across. It is clear from the graph that this short-circuiting optimization does not gain you all that much.
+
+
+So after a while, its obvious broccoli is the best, with sweep and prune and kd tree tied. Now lets look at the benches.
+
 
 Another interesting observation is that these graphs show that `sweep and prune` has a better worst case than the `broccoli`. This makes sense since in the worst case, `sweep and prune` will sort all the elements, and then sweep. In the worst case for `broccoli`, it will first find the median, and then sort all the elements, and then sweep. So `broccoli` is slower since it redundantly found the median, and then sorted everything. However, it is easy to see that this only happens when the aabbs are extremely clumped up (abspiral(grow) where grow<=0.003). So while `sweep and prune` has a better worst-cast, the worst-cast scenario of `broccoli` is rare and it is not much worse (median finding + sort versus just sort). 
 

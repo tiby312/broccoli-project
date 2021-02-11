@@ -8,11 +8,8 @@ struct Record {
     nosort: f32,
 }
 
-const THEORY_STOP_NAIVE_AT: usize = 8_000;
-const THEORY_STOP_SWEEP_AT: usize = 50_000;
-
 impl Record {
-    fn new(grow: f64, num_bots: usize) -> Record {
+    fn new(grow: f64, num_bots: usize,naive:bool,sweep:bool) -> Record {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
         let c1 = datanum::datanum_test(|maker| {
@@ -25,7 +22,7 @@ impl Record {
             });
         });
 
-        let c2 = if num_bots <= THEORY_STOP_NAIVE_AT {
+        let c2 = if naive {
             datanum::datanum_test(|maker| {
                 let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
@@ -38,7 +35,7 @@ impl Record {
             0
         };
 
-        let c3 = if num_bots <= THEORY_STOP_SWEEP_AT {
+        let c3 = if sweep {
             datanum::datanum_test(|maker| {
                 let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
@@ -61,7 +58,7 @@ impl Record {
             });
         });
 
-        if num_bots < THEORY_STOP_NAIVE_AT {
+        if naive && sweep {
             for (i, &a) in bot_inner.iter().enumerate() {
                 assert_eq!(a, 0, "failed iteration:{:?} numbots={:?}", i, num_bots);
             }
@@ -77,14 +74,17 @@ impl Record {
 }
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
+
+    const THEORY_STOP_NAIVE_AT: usize = 8_000;
+    const THEORY_STOP_SWEEP_AT: usize = 50_000;
+
     fb.make_graph(Args {
         filename: "colfind_theory_0.2",
         title: "Complexity of space partitioning algs with abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Number of Comparisons",
-        plots: (0usize..80_000)
-            .step_by(2000)
-            .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots))),
+        plots: n_iter(0,80_000)
+            .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots,num_bots<=THEORY_STOP_NAIVE_AT,num_bots<=THEORY_STOP_SWEEP_AT))),
         stop_values: &[
             ("naive", THEORY_STOP_NAIVE_AT as f32),
             ("sweep", THEORY_STOP_SWEEP_AT as f32),
@@ -96,9 +96,8 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of space partitioning algs with abspiral(x,0.05)",
         xname: "Number of Elements",
         yname: "Number of Comparisons",
-        plots: (0usize..80_000)
-            .step_by(2000)
-            .map(|num_bots| (num_bots as f32, Record::new(0.05, num_bots))),
+        plots: n_iter(0,80_000)
+            .map(|num_bots| (num_bots as f32, Record::new(0.05, num_bots,num_bots<=THEORY_STOP_NAIVE_AT,num_bots<=THEORY_STOP_SWEEP_AT))),
         stop_values: &[
             ("naive", THEORY_STOP_NAIVE_AT as f32),
             ("sweep", THEORY_STOP_SWEEP_AT as f32),
@@ -109,20 +108,20 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
         filename: "colfind_theory_grow",
         title: "Complexity of space partitioning algs with abspiral(3000,grow)",
-        xname: "Number of Intersections",
+        xname: "Grow",
         yname: "Number of Comparisons",
-        plots:abspiral_grow_iter2(0.001, 0.01, 0.0001)
-        .map(|grow| (num_intersections_for_grow(grow,3000) as f32, Record::new(grow, 3000))),
+        plots: grow_iter(0.0,0.02)
+        .map(|grow| (grow as f32, Record::new(grow, 3000,true,true))),
         stop_values: &[],
     });
 
     fb.make_graph(Args {
         filename: "colfind_theory_grow_wide",
         title: "Complexity of space partitioning algs with abspiral(3000,grow)",
-        xname: "Number of Intersections",
+        xname: "Grow",
         yname: "Number of Comparisons",
-        plots:abspiral_grow_iter2(0.01, 0.2, 0.001)
-        .map(|grow| (num_intersections_for_grow(grow,3000) as f32, Record::new(grow, 3000))),
+        plots:grow_iter(0.2,4.0)
+        .map(|grow| (grow as f32, Record::new(grow, 3000,false,true))),
         stop_values: &[],
     });
 

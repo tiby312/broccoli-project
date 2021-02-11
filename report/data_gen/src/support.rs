@@ -230,6 +230,30 @@ pub fn num_intersections_for_grow(grow:f64,num_bot:usize)->usize{
     num_collision
 }
 
+
+//TODO use this!!!!
+pub fn n_iter(start:usize,end:usize)-> core::iter::StepBy<std::ops::Range<usize>>{
+    assert!(end>start);
+    //hardcode the number of samples
+    //because its tied to the graph
+    let num_samples=100;
+
+    let step_size=(end-start)/num_samples;
+    
+    (start..end).step_by(step_size)
+}
+
+//TODO use this!!!!!!!
+pub fn grow_iter(start:f64,end:f64)->impl Iterator<Item=f64>+core::iter::DoubleEndedIterator+core::iter::ExactSizeIterator{
+    //hardcode the number of samples
+    //because it is tied to the graph
+    let num_samples=100;
+    let step_size=(end-start)/num_samples as f64;
+
+    (0..num_samples).map(move |x|start+(x as f64*step_size))
+}
+
+
 pub fn abspiral_grow_iter2(start: f64, end: f64, delta: f64) -> impl Iterator<Item = f64> {
     let mut c = start;
     core::iter::from_fn(move || {
@@ -245,7 +269,8 @@ pub fn abspiral_grow_iter2(start: f64, end: f64, delta: f64) -> impl Iterator<It
 pub const RADIUS: f32 = 5.0;
 
 fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
-    let s = dists::spiral_iter([0.0, 0.0], 17.0, grow as f64);
+    
+    let s = dists::spiral_iter([0.0, 0.0], 17.0, grow);
     s.map(move |a| {
         let r = axgeom::Rect::from_point(a.into(), vec2same(RADIUS as f64));
         r
@@ -323,3 +348,6 @@ pub fn distribute<'a, T, X>(
         .map(|(a, b)| bbox(func(RectConv(a)), b))
         .collect()
 }
+
+
+

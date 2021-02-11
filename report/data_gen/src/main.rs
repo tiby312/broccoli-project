@@ -243,7 +243,7 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-            run_test!(&mut fb, colfind::colfind::handle_theory);
+                run_test!(&mut fb, colfind::colfind::handle_theory);
             
             /*
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
@@ -251,8 +251,9 @@ fn main() {
             run_test!(&mut fb, colfind::query_evenness::handle_theory);
             
             
-            run_test!(&mut fb, spiral::handle);
+            
             */
+            run_test!(&mut fb, spiral::handle);
         }
         "bench" => {
             let folder = args[2].clone();
