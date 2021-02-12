@@ -71,8 +71,7 @@ pub fn handle(fb: &mut FigureBuilder) {
         title: "Bench of checked vs unchecked binning with abspiral(x,1.0)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: (0usize..40_000)
-            .step_by(200)
+        plots: n_iter(0,40_000)
             .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots))),
         stop_values: &[],
     });

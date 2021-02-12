@@ -91,8 +91,7 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
         title: "Bench of query vs collect with abspiral(0.2,n)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: (0usize..40_000)
-            .step_by(100)
+        plots: n_iter(0,40_000)
             .map(|num_bots| (num_bots as f32, Res::new(0.2, num_bots))),
         stop_values: &[],
     });
@@ -156,8 +155,7 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
         title: "Bench of optimal with abspiral(0.2,n)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: (0usize..40_000)
-            .step_by(100)
+        plots: n_iter(0,40_000)
             .map(|num_bots| (num_bots as f32, Res::new(0.2, num_bots))),
         stop_values: &[],
     });

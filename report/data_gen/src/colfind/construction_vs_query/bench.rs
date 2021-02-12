@@ -9,8 +9,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         title: "Bench of construction vs query abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: (0usize..20_000)
-            .step_by(80)
+        plots: n_iter(0,20_000)
             .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots,false))),
         stop_values: &[
             ("nosort_contr", NO_SORT_PAR_MAX as f32),
