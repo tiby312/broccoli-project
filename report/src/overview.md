@@ -6,7 +6,7 @@ The source code for this book is the repo [broccoli](https://github.com/tiby312/
 
 ### Graphs
 
-The graphs are made uses [poloto](https://github.com/tiby312/poloto) on github.
+The graphs are made using [poloto](https://github.com/tiby312/poloto) on github.
 
 ### Disclaimer
 
