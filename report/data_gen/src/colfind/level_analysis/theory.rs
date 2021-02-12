@@ -46,10 +46,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
 
     let res2 = Res::new(
         num_bots,
-        (0..100).map(|a| {
-            let a: f64 = a as f64;
-            0.01 + a * 0.0002
-        }),
+        grow_iter(0.05,0.3)
     );
 
     

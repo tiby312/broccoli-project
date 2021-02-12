@@ -120,7 +120,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of space partitioning algs with abspiral(3000,grow)",
         xname: "Grow",
         yname: "Number of Comparisons",
-        plots:grow_iter(0.2,4.0)
+        plots:grow_iter(0.2,4.0).map(|x|x)
         .map(|grow| (grow as f32, Record::new(grow, 3000,false,true))),
         stop_values: &[],
     });

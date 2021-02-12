@@ -138,8 +138,8 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         title: "Bench of space partitioning algs with abspiral(3000,grow)",
         xname: "Grow",
         yname: "Time in Seconds",
-        plots: grow_iter(0.0,0.02)
-        .map(|grow| (grow as f32, Record::new(grow, 30_000,true,true))),
+        plots: grow_iter(0.0,0.005)
+        .map(|grow| (grow as f32, Record::new(grow, 3_000,true,true))),
         stop_values: &[],
     });
 

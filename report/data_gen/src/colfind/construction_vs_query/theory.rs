@@ -60,8 +60,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of construction vs query with abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Number of Comparisons",
-        plots: (0usize..6_000)
-            .step_by(20)
+        plots: n_iter(0,6_000)
             .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots))),
         stop_values: &[],
     });
@@ -71,8 +70,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of construction vs query with abspiral(x,4.0)",
         xname: "Number of Elements",
         yname: "Number of Comparisons",
-        plots: (0usize..6_000)
-            .step_by(20)
+        plots: n_iter(0,6_000)
             .map(|num_bots| (num_bots as f32, Record::new(4.0, num_bots))),
         stop_values: &[],
     });
@@ -82,7 +80,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of construction vs query with abspiral(40_000,grow)",
         xname: "Grow",
         yname: "Number of Comparisons",
-        plots: abspiral_grow_iter2(0.1, 1.0, 0.005)
+        plots: grow_iter(0.1,1.0)
             .map(|g| (g as f32, Record::new(g, 40_000))),
         stop_values: &[],
     });
