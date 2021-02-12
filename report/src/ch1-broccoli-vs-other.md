@@ -38,7 +38,7 @@ Up until now, we have been looking at trends of how the algorithms preform as we
 
 {{#include raw/colfind_theory_grow_wide.svg}}
 
-Okay broccoli is still the test good. We didnt include naive because it dwarfed the other algorithms so that you couldnt see the differences between the non naive algorithms. Lets look at bench times:
+Okay broccoli is still the best. We didn't include naive because it dwarfed the other algorithms so that you couldn't see the differences between the non naive algorithms. Lets look at bench times:
 
 
 {{#include raw/colfind_bench_grow_wide.svg}}

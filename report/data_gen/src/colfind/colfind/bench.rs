@@ -146,7 +146,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
 
     fb.make_graph(Args {
         filename: "colfind_bench_grow_wide",
-        title: "Bench of space partitioning algs with abspiral(3000,grow)",
+        title: "Bench of space partitioning algs with abspiral(30_000,grow)",
         xname: "Grow",
         yname: "Time in Seconds",
         plots: grow_iter(0.2,4.0)
