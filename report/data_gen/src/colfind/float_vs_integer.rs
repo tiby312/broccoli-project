@@ -134,7 +134,7 @@ pub fn handle(fb: &mut FigureBuilder) {
         title: "Bench of differing number types With abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: (100..10_000).step_by(100).map(|n| (n as f32, Record::new(0.2, n))),
+        plots: n_iter(10,10_000).map(|n| (n as f32, Record::new(0.2, n))),
         stop_values: &[],
     });
     

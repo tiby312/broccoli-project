@@ -72,6 +72,10 @@
 .poloto.poloto {
     font-family: "Open Sans", sans-serif;
     width:100%;
+    display:block;
+    max-width: 600px;
+    margin-left:auto;
+    margin-right:auto;
     height:auto;
 }
 .poloto{
