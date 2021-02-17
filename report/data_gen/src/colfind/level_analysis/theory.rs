@@ -60,7 +60,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             for (i, y) in cc.enumerate() {
                 let s = format!("Level {}", i);
                 //let yl = y.clone().map(|_| 0.0);
-                plot.line_fill(s,y);
+                plot.line_fill(&s,y);
             }
         }
         fb.finish_plot(plot,filename);

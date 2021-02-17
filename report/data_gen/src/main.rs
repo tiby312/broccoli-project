@@ -74,7 +74,8 @@ impl FigureBuilder {
 
     fn finish_plot(&self, splot: poloto::Plotter, filename: &str) {
         let s = format!("{}/{}.svg", &self.folder, filename);
-        splot.render_to_file(&s).unwrap()
+        let file = std::fs::File::create(s).unwrap();
+        poloto::render_svg_io(file,splot).unwrap();
     }
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f32, S)>>(&mut self, args: Args<S, I>) {
