@@ -13,8 +13,8 @@ struct Bot<T> {
 
 #[derive(Copy, Clone, Debug)]
 struct TestResult {
-    rebal: f32,
-    query: f32,
+    rebal: f64,
+    query: f64,
 }
 
 fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(PMut<T>, PMut<T>)) -> TestResult {
@@ -30,8 +30,8 @@ fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(PMut<T>, PMut<T>)) -> TestRes
     black_box(tree);
 
     TestResult {
-        rebal: construct_time as f32,
-        query: query_time as f32,
+        rebal: construct_time as f64,
+        query: query_time as f64,
     }
 }
 fn test_par<T: Aabb + Send + Sync>(
@@ -53,35 +53,35 @@ where
     black_box(tree);
 
     TestResult {
-        rebal: construct_time as f32,
-        query: query_time as f32,
+        rebal: construct_time as f64,
+        query: query_time as f64,
     }
 }
 
 
 #[derive(Serialize,Copy,Clone,Debug)]
 struct RebalRecord{
-    direct_seq: f32,
-    direct_par: f32,
+    direct_seq: f64,
+    direct_par: f64,
 
-    indirect_seq: f32,
-    indirect_par: f32,
+    indirect_seq: f64,
+    indirect_par: f64,
 
-    default_seq: f32,
-    default_par: f32,    
+    default_seq: f64,
+    default_par: f64,    
 }
 
 #[derive(Serialize,Copy,Clone,Debug)]
 struct QueryRecord{
 
-    direct_seq: f32,
-    direct_par: f32,
+    direct_seq: f64,
+    direct_par: f64,
 
-    indirect_seq: f32,
-    indirect_par: f32,
+    indirect_seq: f64,
+    indirect_par: f64,
 
-    default_seq: f32,
-    default_par: f32,
+    default_seq: f64,
+    default_par: f64,
 }
 #[derive(Copy, Clone, Debug)]
 struct CompleteTestResult {
@@ -180,7 +180,7 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
 
     for num_bots in n_iter(0,30_000).rev() {
         let r =  CompleteTestResult::new(num_bots, grow, val.clone());
-        rects.push((num_bots as f32,r));
+        rects.push((num_bots as f64,r));
     }
 
     let name = format!("{}_bytes", core::mem::size_of::<T>());

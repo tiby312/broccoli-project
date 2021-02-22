@@ -2,10 +2,10 @@ use super::*;
 
 #[derive(Debug, Serialize)]
 struct Record {
-    broccoli: f32,
-    naive: f32,
-    sweep: f32,
-    nosort: f32,
+    broccoli: f64,
+    naive: f64,
+    sweep: f64,
+    nosort: f64,
 }
 
 impl Record {
@@ -65,10 +65,10 @@ impl Record {
         }
 
         Record {
-            broccoli: c1 as f32,
-            naive: c2 as f32,
-            sweep: c3 as f32,
-            nosort: c4 as f32,
+            broccoli: c1 as f64,
+            naive: c2 as f64,
+            sweep: c3 as f64,
+            nosort: c4 as f64,
         }
     }
 }
@@ -84,10 +84,10 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Number of Elements",
         yname: "Number of Comparisons",
         plots: n_iter(0,80_000)
-            .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots,num_bots<=THEORY_STOP_NAIVE_AT,num_bots<=THEORY_STOP_SWEEP_AT))),
+            .map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots,num_bots<=THEORY_STOP_NAIVE_AT,num_bots<=THEORY_STOP_SWEEP_AT))),
         stop_values: &[
-            ("naive", THEORY_STOP_NAIVE_AT as f32),
-            ("sweep", THEORY_STOP_SWEEP_AT as f32),
+            ("naive", THEORY_STOP_NAIVE_AT as f64),
+            ("sweep", THEORY_STOP_SWEEP_AT as f64),
         ],
     });
 
@@ -97,10 +97,10 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Number of Elements",
         yname: "Number of Comparisons",
         plots: n_iter(0,80_000)
-            .map(|num_bots| (num_bots as f32, Record::new(0.05, num_bots,num_bots<=THEORY_STOP_NAIVE_AT,num_bots<=THEORY_STOP_SWEEP_AT))),
+            .map(|num_bots| (num_bots as f64, Record::new(0.05, num_bots,num_bots<=THEORY_STOP_NAIVE_AT,num_bots<=THEORY_STOP_SWEEP_AT))),
         stop_values: &[
-            ("naive", THEORY_STOP_NAIVE_AT as f32),
-            ("sweep", THEORY_STOP_SWEEP_AT as f32),
+            ("naive", THEORY_STOP_NAIVE_AT as f64),
+            ("sweep", THEORY_STOP_SWEEP_AT as f64),
         ],
     });
 
@@ -111,7 +111,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Number of Comparisons",
         plots: grow_iter(0.0,0.02)
-        .map(|grow| (grow as f32, Record::new(grow, 3000,true,true))),
+        .map(|grow| (grow as f64, Record::new(grow, 3000,true,true))),
         stop_values: &[],
     });
 
@@ -121,7 +121,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Number of Comparisons",
         plots:grow_iter(0.2,4.0).map(|x|x)
-        .map(|grow| (grow as f32, Record::new(grow, 3000,false,true))),
+        .map(|grow| (grow as f64, Record::new(grow, 3000,false,true))),
         stop_values: &[],
     });
 

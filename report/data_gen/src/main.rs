@@ -56,13 +56,13 @@ pub struct FigureBuilder {
 }
 use serde::Serialize;
 
-pub struct Args<'a, S: Serialize, I: Iterator<Item = (f32, S)>> {
+pub struct Args<'a, S: Serialize, I: Iterator<Item = (f64, S)>> {
     filename: &'a str,
     title: &'a str,
     xname: &'a str,
     yname: &'a str,
     plots: I,
-    stop_values: &'a [(&'a str, f32)],
+    stop_values: &'a [(&'a str, f64)],
 }
 
 impl FigureBuilder {
@@ -78,7 +78,7 @@ impl FigureBuilder {
         poloto::render_svg_io(file,splot).unwrap();
     }
 
-    fn make_graph<S: Serialize, I: Iterator<Item = (f32, S)>>(&mut self, args: Args<S, I>) {
+    fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {
         let it = args.plots;
         let filename = args.filename;
         let title = args.title;
@@ -128,8 +128,8 @@ impl FigureBuilder {
                         })
                         .map(move |(secondx, foo)| {
                             let mapp = MySerialize::new(foo);
-                            let num: f32 = match &mapp.as_object()[plot_name] {
-                                serde_json::Value::Number(val) => val.as_f64().unwrap() as f32,
+                            let num: f64 = match &mapp.as_object()[plot_name] {
+                                serde_json::Value::Number(val) => val.as_f64().unwrap(),
                                 _ => {
                                     panic!("not a number")
                                 }
@@ -176,7 +176,7 @@ fn profile_test() {
     use broccoli::prelude::*;
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
-    let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+    let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
     for _ in 0..30 {
         let c0 = bench_closure(|| {

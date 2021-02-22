@@ -8,10 +8,10 @@ pub fn handle(fb: &mut FigureBuilder) {
 pub fn handle_broccoli(fb: &mut FigureBuilder) {
     #[derive(Serialize)]
     struct Res {
-        bench: f32,
-        bench_par: f32,
-        collect: f32,
-        collect_par: f32,
+        bench: f64,
+        bench_par: f64,
+        collect: f64,
+        collect_par: f64,
     }
     impl Res{
         fn new(grow:f64,num_bots:usize)->Res{
@@ -19,7 +19,7 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
 
             let bench = {
                 let mut base =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
+                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
                 let mut tree = base.build();
 
                 bench_closure(|| {
@@ -32,7 +32,7 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
 
             let bench_par = {
                 let mut base =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
+                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
                 let mut tree = base.build();
 
                 bench_closure(|| {
@@ -45,7 +45,7 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
 
             let collect = {
                 let mut base =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
+                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
                 let mut tree = base.build();
 
                 bench_closure(|| {
@@ -60,7 +60,7 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
 
             let collect_par = {
                 let mut base =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
+                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
                 let mut tree = base.build();
 
                 bench_closure(|| {
@@ -76,10 +76,10 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
             black_box(bot_inner);
 
             Res {
-                bench:bench as f32,
-                bench_par:bench_par as f32,
-                collect:collect as f32,
-                collect_par:collect_par as f32,
+                bench:bench as f64,
+                bench_par:bench_par as f64,
+                collect:collect as f64,
+                collect_par:collect_par as f64,
             }
         }
     }
@@ -92,7 +92,7 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0,40_000)
-            .map(|num_bots| (num_bots as f32, Res::new(0.2, num_bots))),
+            .map(|num_bots| (num_bots as f64, Res::new(0.2, num_bots))),
         stop_values: &[],
     });
 
@@ -102,8 +102,8 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
 pub fn handle_optimal(fb: &mut FigureBuilder) {
     #[derive(Serialize)]
     struct Res {
-        optimal: f32,
-        optimal_par: f32,
+        optimal: f64,
+        optimal_par: f64,
     }
     impl Res{
         fn new(grow:f64,num_bots:usize)->Res{
@@ -111,7 +111,7 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
 
             let optimal = {
                 let mut base =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
+                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
                 let mut tree = base.build();
 
                 let mut pairs = tree.collect_colliding_pairs(|_, _| Some(()));
@@ -126,7 +126,7 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
 
             let optimal_par = {
                 let mut base =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f32n());
+                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
                 let mut tree = base.build();
 
                 let mut pairs = tree.collect_colliding_pairs_par(RayonJoin, |_, _| Some(()));
@@ -142,8 +142,8 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
             black_box(bot_inner);
 
             Res {
-                optimal:optimal as f32,
-                optimal_par:optimal_par as f32,
+                optimal:optimal as f64,
+                optimal_par:optimal_par as f64,
             }
         }
     }
@@ -156,7 +156,7 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0,40_000)
-            .map(|num_bots| (num_bots as f32, Res::new(0.2, num_bots))),
+            .map(|num_bots| (num_bots as f64, Res::new(0.2, num_bots))),
         stop_values: &[],
     });
 

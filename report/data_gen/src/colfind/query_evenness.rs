@@ -7,7 +7,7 @@ struct TheoryRes {
 }
 impl TheoryRes{
     fn new(num_bots:usize,grow:f64)->TheoryRes{
-        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
+        let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f64)).collect();
 
         let query = datanum::datanum_test2(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
@@ -47,15 +47,15 @@ pub fn handle2(fb:&mut FigureBuilder,grow:f64,num_bots:usize){
             .vistr()
             .dfs_inorder_iter()
             .enumerate().map(|(i,  element)|{
-                [i as f32,*element as f32]
+                [i as f64,*element as f64]
             }));
 
         fb.finish_plot(splot,&format!("query_evenness_theory_{}",grow));
     }
 
-    let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
+    let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f64)).collect();
 
-    let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+    let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
     let tree = broccoli::new(&mut bots);
 
@@ -70,7 +70,7 @@ pub fn handle2(fb:&mut FigureBuilder,grow:f64,num_bots:usize){
         .vistr()
         .dfs_inorder_iter()
         .enumerate().map(|(i,  element)|{
-            [i as f32,element.range.len() as f32]
+            [i as f64,element.range.len() as f64]
         }));
 
     fb.finish_plot(splot,&format!("query_num_per_node_theory_{}",grow));

@@ -29,7 +29,7 @@ fn handle_num(fb: &mut FigureBuilder){
     "Number of Elements",
     "Number of Intersections");
 
-    plot.line("intersections",rects.iter().map(|x|[x.0 as f32,x.1 as f32]));
+    plot.line("intersections",rects.iter().map(|x|[x.0 as f64,x.1 as f64]));
     fb.finish_plot(plot,"spiral_data_num");
 }   
 
@@ -58,7 +58,7 @@ fn handle_grow(fb: &mut FigureBuilder){
     "Grow",
     "Number of Intersections");
 
-    plot.line("intersections",rects.iter().map(|x|[x.0 as f32,x.1 as f32]));
+    plot.line("intersections",rects.iter().map(|x|[x.0 as f64,x.1 as f64]));
     fb.finish_plot(plot,"spiral_data_grow");
 }
 
@@ -75,7 +75,7 @@ fn handle_visualize(fb:&mut FigureBuilder){
     //TODO add arrow using poloto
     let mut plot=poloto::plot("abspiral(800,10.0)","x","y");
 
-    plot.line("visual",make(0.2).into_iter().map(|v|[v.x,v.y]));
+    plot.line("visual",make(0.2).into_iter().map(|v|[v.x as f64,v.y as f64]));
 
     fb.finish_plot(plot,"spiral_visualize");
 }

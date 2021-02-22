@@ -2,10 +2,10 @@ use super::*;
 
 #[derive(Debug,Serialize)]
 struct Record {
-    brocc_constr: f32,
-    brocc_query:f32,
-    nosort_constr: f32,
-    nosort_query:f32
+    brocc_constr: f64,
+    brocc_query:f64,
+    nosort_constr: f64,
+    nosort_query:f64
 }
 impl Record {
     fn new(grow: f64,num_bots: usize) -> Record {
@@ -25,7 +25,7 @@ impl Record {
             });
 
             let count2 = maker.count();
-            (count as f32, count2 as f32)
+            (count as f64, count2 as f64)
         });
 
         let nosort_theory = datanum::datanum_test2(|maker| {
@@ -42,7 +42,7 @@ impl Record {
             });
 
             let count2 = maker.count();
-            (count as f32, count2 as f32)
+            (count as f64, count2 as f64)
         });
 
         Record {
@@ -61,7 +61,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Number of Elements",
         yname: "Number of Comparisons",
         plots: n_iter(0,6_000)
-            .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots))),
+            .map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots))),
         stop_values: &[],
     });
 
@@ -71,7 +71,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Number of Elements",
         yname: "Number of Comparisons",
         plots: n_iter(0,6_000)
-            .map(|num_bots| (num_bots as f32, Record::new(4.0, num_bots))),
+            .map(|num_bots| (num_bots as f64, Record::new(4.0, num_bots))),
         stop_values: &[],
     });
 
@@ -81,7 +81,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Number of Comparisons",
         plots: grow_iter(0.1,1.0)
-            .map(|g| (g as f32, Record::new(g, 40_000))),
+            .map(|g| (g as f64, Record::new(g, 40_000))),
         stop_values: &[],
     });
 

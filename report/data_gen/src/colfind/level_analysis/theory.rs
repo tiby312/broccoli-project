@@ -1,12 +1,12 @@
 use super::*;
 
 struct Res {
-    rebal: Vec<f32>,
-    query: Vec<f32>,
+    rebal: Vec<f64>,
+    query: Vec<f64>,
 }
 
 impl Res{
-    fn new(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> Vec<(f32,Res)> {
+    fn new(num_bots: usize, grow_iter: impl Iterator<Item = f64>) -> Vec<(f64,Res)> {
         let mut rects = Vec::new();
         for grow in grow_iter {
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
@@ -26,13 +26,13 @@ impl Res{
                     LevelCounter::new(),
                 );
     
-                (levelc.into_levels().into_iter().map(|x|x as f32).collect(), levelc2.into_levels().into_iter().map(|x|x as f32).collect())
+                (levelc.into_levels().into_iter().map(|x|x as f64).collect(), levelc2.into_levels().into_iter().map(|x|x as f64).collect())
             });
     
             let t = Res { rebal, query };
     
             assert_eq!(t.rebal.len(), t.query.len());
-            rects.push((grow as f32,t))
+            rects.push((grow as f64,t))
         }
         rects
     }
@@ -50,7 +50,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
     );
 
     
-    fn draw_graph<'a, I:Iterator<Item=(f32,&'a [f32])>+Clone>(filename:&str,title_name: &str, fb: &mut FigureBuilder, mut it:I,) {
+    fn draw_graph<'a, I:Iterator<Item=(f64,&'a [f64])>+Clone>(filename:&str,title_name: &str, fb: &mut FigureBuilder, mut it:I,) {
         let mut plot=poloto::plot(title_name,"Spiral Grow","Number of Comparisons");
         if let Some((_,xrest))=it.next(){
             let num=xrest.len();

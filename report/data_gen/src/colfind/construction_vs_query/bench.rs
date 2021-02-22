@@ -10,12 +10,12 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0,20_000)
-            .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots,false))),
+            .map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots,false))),
         stop_values: &[
-            ("nosort_contr", NO_SORT_PAR_MAX as f32),
-            ("nosort_query", NO_SORT_MAX as f32),
-            ("nosort_par_contr", NO_SORT_PAR_MAX as f32),
-            ("nosort_par_query", NO_SORT_PAR_MAX as f32),
+            ("nosort_contr", NO_SORT_PAR_MAX as f64),
+            ("nosort_query", NO_SORT_MAX as f64),
+            ("nosort_par_contr", NO_SORT_PAR_MAX as f64),
+            ("nosort_par_query", NO_SORT_PAR_MAX as f64),
         ],
     });
 }
@@ -23,14 +23,14 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
 
 #[derive(Debug,Serialize)]
 struct Record {
-    brocc_contr: f32,
-    brocc_query: f32,
-    brocc_par_contr:f32,
-    brocc_par_query:f32,
-    nosort_contr:f32,
-    nosort_query:f32,
-    nosort_par_contr:f32,
-    nosort_par_query:f32,
+    brocc_contr: f64,
+    brocc_query: f64,
+    brocc_par_contr:f64,
+    brocc_par_query:f64,
+    nosort_contr:f64,
+    nosort_query:f64,
+    nosort_par_contr:f64,
+    nosort_par_query:f64,
 }
 
 impl Record {
@@ -48,7 +48,7 @@ impl Record {
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
                 });
             });
-            (t1 as f32, t2 as f32)
+            (t1 as f64, t2 as f64)
         };
 
         let bench_par = {
@@ -62,7 +62,7 @@ impl Record {
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
                 });
             });
-            (t1 as f32, t2 as f32)
+            (t1 as f64, t2 as f64)
         };
 
         let nosort = if do_all || num_bots <= NO_SORT_MAX {
@@ -76,7 +76,7 @@ impl Record {
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
                 });
             });
-            (t1 as f32, t2 as f32)
+            (t1 as f64, t2 as f64)
         } else {
             (0.0, 0.0)
         };
@@ -92,7 +92,7 @@ impl Record {
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
                 });
             });
-            (t1 as f32, t2 as f32)
+            (t1 as f64, t2 as f64)
         } else {
             (0.0, 0.0)
         };

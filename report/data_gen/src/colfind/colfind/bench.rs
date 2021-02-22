@@ -2,12 +2,12 @@ use super::*;
 
 #[derive(Serialize,Debug)]
 pub struct Record {
-    brocc: f32,
-    brocc_par: f32,
-    sweep: f32,
-    naive: f32,
-    nosort_par: f32,
-    nosort: f32,
+    brocc: f64,
+    brocc_par: f64,
+    sweep: f64,
+    naive: f64,
+    nosort_par: f64,
+    nosort: f64,
 }
 
 impl Record {
@@ -15,7 +15,7 @@ impl Record {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
         
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c0 = bench_closure(|| {
             let mut tree = broccoli::new_par(RayonJoin, &mut bots);
@@ -25,7 +25,7 @@ impl Record {
             });
         });
 
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c1 = bench_closure(|| {
             let mut tree = broccoli::new(&mut bots);
@@ -35,7 +35,7 @@ impl Record {
             });
         });
 
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c3 = if sweep_bench {
             bench_closure(|| {
@@ -48,7 +48,7 @@ impl Record {
             0.0
         };
 
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c4 = if naive_bench {
             bench_closure(|| {
@@ -61,7 +61,7 @@ impl Record {
             0.0
         };
 
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c5 = bench_closure(|| {
             let mut tree = NotSorted::new_par(RayonJoin, &mut bots);
@@ -71,7 +71,7 @@ impl Record {
             });
         });
 
-        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
+        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c6 = bench_closure(|| {
             let mut tree = NotSorted::new(&mut bots);
@@ -88,12 +88,12 @@ impl Record {
         }
 
         Record {
-            brocc: c1 as f32,
-            brocc_par: c0 as f32,
-            sweep: c3 as f32,
-            naive: c4 as f32,
-            nosort_par: c5 as f32,
-            nosort: c6 as f32,
+            brocc: c1 as f64,
+            brocc_par: c0 as f64,
+            sweep: c3 as f64,
+            naive: c4 as f64,
+            nosort_par: c5 as f64,
+            nosort: c6 as f64,
         }
     }
 }
@@ -111,10 +111,10 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0,10_000)
-            .map(|num_bots| (num_bots as f32, Record::new(0.2, num_bots,num_bots <= BENCH_STOP_NAIVE_AT,num_bots <= BENCH_STOP_SWEEP_AT))),
+            .map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots,num_bots <= BENCH_STOP_NAIVE_AT,num_bots <= BENCH_STOP_SWEEP_AT))),
         stop_values: &[
-            ("naive", BENCH_STOP_NAIVE_AT as f32),
-            ("sweep", BENCH_STOP_SWEEP_AT as f32),
+            ("naive", BENCH_STOP_NAIVE_AT as f64),
+            ("sweep", BENCH_STOP_SWEEP_AT as f64),
         ],
     });
 
@@ -124,10 +124,10 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0,10_000)
-            .map(|num_bots| (num_bots as f32, Record::new(0.05, num_bots,num_bots <= BENCH_STOP_NAIVE_AT,num_bots <= BENCH_STOP_SWEEP_AT))),
+            .map(|num_bots| (num_bots as f64, Record::new(0.05, num_bots,num_bots <= BENCH_STOP_NAIVE_AT,num_bots <= BENCH_STOP_SWEEP_AT))),
         stop_values: &[
-            ("naive", BENCH_STOP_NAIVE_AT as f32),
-            ("sweep", BENCH_STOP_SWEEP_AT as f32),
+            ("naive", BENCH_STOP_NAIVE_AT as f64),
+            ("sweep", BENCH_STOP_SWEEP_AT as f64),
         ],
     });
 
@@ -139,7 +139,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Time in Seconds",
         plots: grow_iter(0.0,0.005)
-        .map(|grow| (grow as f32, Record::new(grow, 3_000,true,true))),
+        .map(|grow| (grow as f64, Record::new(grow, 3_000,true,true))),
         stop_values: &[],
     });
 
@@ -150,7 +150,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Time in Seconds",
         plots: grow_iter(0.2,4.0)
-        .map(|grow| (grow as f32, Record::new(grow, 30_000,false,true))),
+        .map(|grow| (grow as f64, Record::new(grow, 30_000,false,true))),
         stop_values: &[],
     });
 }
