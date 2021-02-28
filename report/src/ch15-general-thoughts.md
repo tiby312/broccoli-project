@@ -1,15 +1,8 @@
 
-#### Multithreading
-
-Evenly dividing up work into chunks for up to N cores is preferable. You don't want to make assumptions about how many cores the user has. Why set up your system to only take up advantage of 2 cores if 16 are available. So here, using a thread pool library like rayon is useful. 
-
-In a big complicated system, it can be tempting to keep sub-systems sequential and then just allow multiple sub-systems to happen in parallel if they are computation heavy. But this is not fully taking advantage of multithreading. You want each subsystem to itself be parallelizable. You want to parallelize in a platform independent way exploiting as many cores as are available.
-
-
 #### Testing correctness
 
 A good test is a test that tests with good certainty that a large portion of code is working properly and that is itself short.
-Maintaining tests comes at the cost of anchoring down the design of the production code in addition to having to be maintained themselves. As a result, making good abstractions between your crates and modules that have simple and well defined apis is very important. Then you can have a few simple tests to fully exercise an api and verify large amounts of code.
+Maintaining tests comes at the cost of anchoring down the design of the actual code in addition to having to be maintained themselves. As a result, making good abstractions between your crates and modules that have simple and well defined apis is very important. Then you can have a few simple tests to fully exercise an api and verify large amounts of code.
 
 This crate's sole purpose is to provide a method of providing collision detection that is faster than the naive method. So a good high level test would be to compare the query results from using this crate to the naive method (which is much easier to verify is correct). This one test can be performed on many different inputs of lists of aabbs to try to expose any corner cases. So this one test when fed with both random and specifically hand tailored inputs to expose corner cases can show with a lot of certainty that the crate is satisfying the api. 
 
@@ -40,3 +33,10 @@ Often times, its not the dynamic allocation that is slow, but some other residua
 
 Writing apis that don't do dynamic allocation is tough and can be cumbersome, since you probably have to have the user give you a slice of a certain size, but typically you need to first get the problem size from the user to figure out the amount of memory you want to request.
 On one hand the level of explicitness is great and users don't have to put any faith in allocation system. But on the other hand it adds a lot of logic to your api that makes it harder to see what your library actually does. 
+
+#### Multithreading
+
+Evenly dividing up work into chunks for up to N cores is preferable. You don't want to make assumptions about how many cores the user has. Why set up your system to only take up advantage of 2 cores if 16 are available. So here, using a thread pool library like rayon is useful. 
+
+In a big complicated system, it can be tempting to keep sub-systems sequential and then just allow multiple sub-systems to happen in parallel if they are computation heavy. But this is not fully taking advantage of multithreading. You want each subsystem to itself be parallelizable. You want to parallelize in a platform independent way exploiting as many cores as are available.
+

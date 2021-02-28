@@ -2,7 +2,7 @@
 ### Trends as N increases
 
 
-The broccoli crate's goal is to provide broad-phase queries such as "find all elements that intersect". Its data structure is basically a kdtree with the added feature that elements that belong to a node are sorted along the divider axis so that we can use sweep and prune during the query phase. Lets compare the complexity of finding all intersecting pairs whith the complexity of a kdtree, sweep and prune, and the naive method by find all intersecting pairs given a distribution using the method described in the analysis method section.
+The broccoli crate's goal is to provide broad-phase queries such as "find all elements that intersect". Its data structure is basically a kdtree with the added feature that elements that belong to a node are sorted along the divider axis so that we can use sweep and prune during the query phase. Lets compare the complexity of finding all intersecting pairs using four different methods: kdtree, sweep and prune, naive, and broccoli.
 
 <link rel="stylesheet" href="css/poloto.css">
 
@@ -66,7 +66,7 @@ Now lets look at the benches.
 
 Above we benched for a smaller number of elements since it simply takes too long at this density to bench 30_000 elements like we did in the non-extremely-clumped-up case earlier. This graph looks extremely weird!
 
-I really can't fathom why its faster to find collisions when everything is touching everything when everything is almost touching everything. My only guess is that in the former case, branch prediction is very straight forward. You just assume you're also going down the path of a collision hit. 
+I really can't fathom why its faster to find collisions when everything is touching everything when everything is almost touching everything. My only guess is that in the former case, branch prediction is very straight forward. You just assume you're also going down the path of a collision hit. So its very weird to say, but the actual worst case when it comes to real-world performance is the almost-worst theoretical case.
 
 ### Fairness
 
