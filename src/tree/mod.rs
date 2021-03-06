@@ -238,14 +238,14 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///```
     #[must_use]
     pub fn get_elements_mut(&mut self) -> PMut<[T]> {
-        fn foo<'a, T: Aabb>(num_aabbs:usize,mut v: VistrMut<'a, Node<T>>) -> PMut<'a, [T]> {
+        fn foo<'a, T: Aabb>(num_aabbs: usize, mut v: VistrMut<'a, Node<T>>) -> PMut<'a, [T]> {
             let mut new_slice = None;
 
-            let mut siz=0;
-            v.borrow_mut().dfs_preorder(|a|{
-                siz+=a.range.len();
+            let mut siz = 0;
+            v.borrow_mut().dfs_preorder(|a| {
+                siz += a.range.len();
             });
-            assert_eq!(siz,num_aabbs);
+            assert_eq!(siz, num_aabbs);
             v.dfs_preorder(|a| {
                 if let Some(s) = new_slice.take() {
                     new_slice = Some(crate::pmut::combine_slice(s, a.into_range()));
@@ -257,7 +257,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         }
 
         let num_aabbs = self.num_aabbs;
-        let ret = foo(num_aabbs,self.vistr_mut());
+        let ret = foo(num_aabbs, self.vistr_mut());
         assert_eq!(ret.len(), num_aabbs);
         ret
     }

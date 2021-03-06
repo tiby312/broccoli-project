@@ -1,14 +1,14 @@
 use super::*;
 
-#[derive(Debug,Serialize)]
+#[derive(Debug, Serialize)]
 struct Record {
     brocc_constr: f64,
-    brocc_query:f64,
+    brocc_query: f64,
     nosort_constr: f64,
-    nosort_query:f64
+    nosort_query: f64,
 }
 impl Record {
-    fn new(grow: f64,num_bots: usize) -> Record {
+    fn new(grow: f64, num_bots: usize) -> Record {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
         let theory = datanum::datanum_test2(|maker| {
@@ -46,10 +46,10 @@ impl Record {
         });
 
         Record {
-            brocc_constr:theory.0,
-            brocc_query:theory.1,
-            nosort_constr:nosort_theory.0,
-            nosort_query:nosort_theory.1
+            brocc_constr: theory.0,
+            brocc_query: theory.1,
+            nosort_constr: nosort_theory.0,
+            nosort_query: nosort_theory.1,
         }
     }
 }
@@ -60,8 +60,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of construction vs query with abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Number of Comparisons",
-        plots: n_iter(0,6_000)
-            .map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots))),
+        plots: n_iter(0, 6_000).map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots))),
         stop_values: &[],
     });
 
@@ -70,8 +69,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of construction vs query with abspiral(x,4.0)",
         xname: "Number of Elements",
         yname: "Number of Comparisons",
-        plots: n_iter(0,6_000)
-            .map(|num_bots| (num_bots as f64, Record::new(4.0, num_bots))),
+        plots: n_iter(0, 6_000).map(|num_bots| (num_bots as f64, Record::new(4.0, num_bots))),
         stop_values: &[],
     });
 
@@ -80,10 +78,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of construction vs query with abspiral(40_000,grow)",
         xname: "Grow",
         yname: "Number of Comparisons",
-        plots: grow_iter(0.1,1.0)
-            .map(|g| (g as f64, Record::new(g, 40_000))),
+        plots: grow_iter(0.1, 1.0).map(|g| (g as f64, Record::new(g, 40_000))),
         stop_values: &[],
     });
-
-
 }

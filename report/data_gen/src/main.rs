@@ -20,7 +20,6 @@ pub mod bbox_helper {
 }
 
 mod inner_prelude {
-    pub use poloto::prelude::*;
     pub use super::bbox_helper;
     pub use crate::black_box;
     pub(crate) use crate::datanum;
@@ -39,6 +38,7 @@ mod inner_prelude {
     pub use broccoli::query::*;
     pub use broccoli::RayonJoin;
     pub use broccoli::*;
+    pub use poloto::prelude::*;
     pub use serde::Serialize;
     pub use std::time::Duration;
     pub use std::time::Instant;
@@ -68,17 +68,17 @@ pub struct Args<'a, S: Serialize, I: Iterator<Item = (f64, S)>> {
 
 impl FigureBuilder {
     fn new(folder: String) -> FigureBuilder {
-        FigureBuilder {
-            folder,
-        }
+        FigureBuilder { folder }
     }
 
-    fn plot(&self,filename:&str)->poloto::Plotter<poloto::tagger::WriterAdaptor<std::fs::File>>{
+    fn plot(
+        &self,
+        filename: &str,
+    ) -> poloto::Plotter<poloto::tagger::WriterAdaptor<std::fs::File>> {
         let s = format!("{}/{}.svg", &self.folder, filename);
         let file = std::fs::File::create(s).unwrap();
         poloto::plot_io(file)
     }
-
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {
         let it = args.plots;
@@ -108,18 +108,18 @@ impl FigureBuilder {
 
         if let Some(ff) = ii.next() {
             let map = MySerialize::new(&ff.1);
-            
+
             let names = map.as_object().clone();
 
-            let mut plot=self.plot(filename);
+            let mut plot = self.plot(filename);
 
             use poloto::prelude::*;
-                
+
             for (plot_name, _) in names.iter() {
                 let k = ii.clone();
                 let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
                 plot.line(
-                    wr!("{}",plot_name),
+                    wr!("{}", plot_name),
                     core::iter::once(ff)
                         .chain(k)
                         .filter(move |(secondx, _)| {
@@ -143,11 +143,8 @@ impl FigureBuilder {
                 );
             }
 
-            plot.render(
-                wr!("{}",title),
-                wr!("{}",xname),
-                wr!("{}",yname)
-            ).unwrap();
+            plot.render(wr!("{}", title), wr!("{}", xname), wr!("{}", yname))
+                .unwrap();
         }
     }
 }
@@ -251,28 +248,23 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-            
+
             run_test!(&mut fb, colfind::colfind::handle_theory);
-            
-            
+
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
             run_test!(&mut fb, colfind::query_evenness::handle_theory);
-            
-            
-            
-            
+
             run_test!(&mut fb, spiral::handle);
-            
         }
         "bench" => {
             let folder = args[2].clone();
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-            
+
             run_test!(&mut fb, colfind::colfind::handle_bench);
-            
+
             run_test!(&mut fb, colfind::float_vs_integer::handle);
             run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
@@ -281,8 +273,6 @@ fn main() {
             run_test!(&mut fb, colfind::rebal_strat::handle);
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
             run_test!(&mut fb, colfind::tree_direct_indirect::handle);
-            
-            
         }
         _ => {
             println!("Check code to see what it should be");

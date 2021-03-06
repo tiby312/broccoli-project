@@ -13,8 +13,8 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
         collect: f64,
         collect_par: f64,
     }
-    impl Res{
-        fn new(grow:f64,num_bots:usize)->Res{
+    impl Res {
+        fn new(grow: f64, num_bots: usize) -> Res {
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
             let bench = {
@@ -76,27 +76,22 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
             black_box(bot_inner);
 
             Res {
-                bench:bench as f64,
-                bench_par:bench_par as f64,
-                collect:collect as f64,
-                collect_par:collect_par as f64,
+                bench: bench as f64,
+                bench_par: bench_par as f64,
+                collect: collect as f64,
+                collect_par: collect_par as f64,
             }
         }
     }
 
-
-    
     fb.make_graph(Args {
         filename: "broccoli_query",
         title: "Bench of query vs collect with abspiral(0.2,n)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(0,40_000)
-            .map(|num_bots| (num_bots as f64, Res::new(0.2, num_bots))),
+        plots: n_iter(0, 40_000).map(|num_bots| (num_bots as f64, Res::new(0.2, num_bots))),
         stop_values: &[],
     });
-
-    
 }
 
 pub fn handle_optimal(fb: &mut FigureBuilder) {
@@ -105,8 +100,8 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
         optimal: f64,
         optimal_par: f64,
     }
-    impl Res{
-        fn new(grow:f64,num_bots:usize)->Res{
+    impl Res {
+        fn new(grow: f64, num_bots: usize) -> Res {
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
             let optimal = {
@@ -142,22 +137,18 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
             black_box(bot_inner);
 
             Res {
-                optimal:optimal as f64,
-                optimal_par:optimal_par as f64,
+                optimal: optimal as f64,
+                optimal_par: optimal_par as f64,
             }
         }
     }
 
-
-    
     fb.make_graph(Args {
         filename: "optimal_query",
         title: "Bench of optimal with abspiral(0.2,n)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(0,40_000)
-            .map(|num_bots| (num_bots as f64, Res::new(0.2, num_bots))),
+        plots: n_iter(0, 40_000).map(|num_bots| (num_bots as f64, Res::new(0.2, num_bots))),
         stop_values: &[],
     });
-
 }

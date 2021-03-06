@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Serialize,Debug)]
+#[derive(Serialize, Debug)]
 pub struct Record {
     brocc: f64,
     brocc_par: f64,
@@ -11,10 +11,9 @@ pub struct Record {
 }
 
 impl Record {
-    pub fn new(grow: f64, num_bots: usize,naive_bench:bool,sweep_bench:bool) -> Record {
+    pub fn new(grow: f64, num_bots: usize, naive_bench: bool, sweep_bench: bool) -> Record {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
-        
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c0 = bench_closure(|| {
@@ -98,20 +97,26 @@ impl Record {
     }
 }
 
-
-
 pub fn handle_bench(fb: &mut FigureBuilder) {
     const BENCH_STOP_NAIVE_AT: usize = 3000;
     const BENCH_STOP_SWEEP_AT: usize = 6000;
-
 
     fb.make_graph(Args {
         filename: "colfind_bench_0.2",
         title: "Bench of space partitioning algs with abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(0,10_000)
-            .map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots,num_bots <= BENCH_STOP_NAIVE_AT,num_bots <= BENCH_STOP_SWEEP_AT))),
+        plots: n_iter(0, 10_000).map(|num_bots| {
+            (
+                num_bots as f64,
+                Record::new(
+                    0.2,
+                    num_bots,
+                    num_bots <= BENCH_STOP_NAIVE_AT,
+                    num_bots <= BENCH_STOP_SWEEP_AT,
+                ),
+            )
+        }),
         stop_values: &[
             ("naive", BENCH_STOP_NAIVE_AT as f64),
             ("sweep", BENCH_STOP_SWEEP_AT as f64),
@@ -123,34 +128,40 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         title: "Bench of space partitioning algs with abspiral(x,0.05)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(0,10_000)
-            .map(|num_bots| (num_bots as f64, Record::new(0.05, num_bots,num_bots <= BENCH_STOP_NAIVE_AT,num_bots <= BENCH_STOP_SWEEP_AT))),
+        plots: n_iter(0, 10_000).map(|num_bots| {
+            (
+                num_bots as f64,
+                Record::new(
+                    0.05,
+                    num_bots,
+                    num_bots <= BENCH_STOP_NAIVE_AT,
+                    num_bots <= BENCH_STOP_SWEEP_AT,
+                ),
+            )
+        }),
         stop_values: &[
             ("naive", BENCH_STOP_NAIVE_AT as f64),
             ("sweep", BENCH_STOP_SWEEP_AT as f64),
         ],
     });
 
-    
-
     fb.make_graph(Args {
         filename: "colfind_bench_grow",
         title: "Bench of space partitioning algs with abspiral(3000,grow)",
         xname: "Grow",
         yname: "Time in Seconds",
-        plots: grow_iter(0.0,0.005)
-        .map(|grow| (grow as f64, Record::new(grow, 3_000,true,true))),
+        plots: grow_iter(0.0, 0.005)
+            .map(|grow| (grow as f64, Record::new(grow, 3_000, true, true))),
         stop_values: &[],
     });
-
 
     fb.make_graph(Args {
         filename: "colfind_bench_grow_wide",
         title: "Bench of space partitioning algs with abspiral(30_000,grow)",
         xname: "Grow",
         yname: "Time in Seconds",
-        plots: grow_iter(0.2,4.0)
-        .map(|grow| (grow as f64, Record::new(grow, 30_000,false,true))),
+        plots: grow_iter(0.2, 4.0)
+            .map(|grow| (grow as f64, Record::new(grow, 30_000, false, true))),
         stop_values: &[],
     });
 }

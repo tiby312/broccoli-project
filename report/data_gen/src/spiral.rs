@@ -8,8 +8,7 @@ pub fn handle(fb: &mut FigureBuilder) {
     handle_visualize(fb);
 }
 
-fn handle_num(fb: &mut FigureBuilder){
-
+fn handle_num(fb: &mut FigureBuilder) {
     let mut rects = Vec::new();
     for num in 0..2000 {
         let mut bot_inner: Vec<_> = (0..num).map(|_| 0isize).collect();
@@ -25,20 +24,23 @@ fn handle_num(fb: &mut FigureBuilder){
         rects.push((num, num_intersection));
     }
 
-    let mut plot=fb.plot("spiral_data_num");
+    let mut plot = fb.plot("spiral_data_num");
 
-    plot.line(wr!("intersections"),rects.iter().map(|x|[x.0 as f64,x.1 as f64]));
+    plot.line(
+        wr!("intersections"),
+        rects.iter().map(|x| [x.0 as f64, x.1 as f64]),
+    );
 
     plot.render(
-        wr!("Number of Intersections with abspiral(num,0.2)"),  
+        wr!("Number of Intersections with abspiral(num,0.2)"),
         wr!("Number of Elements"),
-        wr!("Number of Intersections")
-    ).unwrap();
+        wr!("Number of Intersections"),
+    )
+    .unwrap();
+}
 
-}   
-
-fn handle_grow(fb: &mut FigureBuilder){
-    let num_bots=20_000;
+fn handle_grow(fb: &mut FigureBuilder) {
+    let num_bots = 20_000;
     let mut rects = Vec::new();
     for grow in (0..100).map(|a| {
         let a: f64 = a as f64;
@@ -58,19 +60,22 @@ fn handle_grow(fb: &mut FigureBuilder){
         rects.push((grow, num_intersection));
     }
 
-    let mut plot=fb.plot("spiral_data_grow");
+    let mut plot = fb.plot("spiral_data_grow");
 
-    plot.line(wr!("intersections"),rects.iter().map(|x|[x.0 as f64,x.1 as f64]));
+    plot.line(
+        wr!("intersections"),
+        rects.iter().map(|x| [x.0 as f64, x.1 as f64]),
+    );
 
     plot.render(
         wr!("Number of Intersections with abspiral(20_000,grow)"),
         wr!("Grow"),
-        wr!("Number of Intersections")
-    ).unwrap();
-
+        wr!("Number of Intersections"),
+    )
+    .unwrap();
 }
 
-fn handle_visualize(fb:&mut FigureBuilder){
+fn handle_visualize(fb: &mut FigureBuilder) {
     fn make(grow: f64) -> Vec<Vec2<f32>> {
         let mut bot_inner: Vec<_> = (0..800).map(|_| 0isize).collect();
 
@@ -80,14 +85,13 @@ fn handle_visualize(fb:&mut FigureBuilder){
             .collect()
     };
 
-    let mut plot=fb.plot("spiral_visualize");
+    let mut plot = fb.plot("spiral_visualize");
 
+    plot.line(
+        wr!("visual"),
+        make(0.2).into_iter().map(|v| [v.x as f64, v.y as f64]),
+    );
 
-    plot.line(wr!("visual"),make(0.2).into_iter().map(|v|[v.x as f64,v.y as f64]));
-
-    plot.render(
-        wr!("abspiral(800,10.0)"),
-        wr!("x"),
-        wr!("y")
-    ).unwrap();
+    plot.render(wr!("abspiral(800,10.0)"), wr!("x"), wr!("y"))
+        .unwrap();
 }

@@ -1,7 +1,7 @@
 use super::*;
 
 const NO_SORT_MAX: usize = 8000;
-const NO_SORT_PAR_MAX:usize = 15000;
+const NO_SORT_PAR_MAX: usize = 15000;
 
 pub fn handle_bench(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
@@ -9,8 +9,8 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         title: "Bench of construction vs query abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(0,20_000)
-            .map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots,false))),
+        plots: n_iter(0, 20_000)
+            .map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots, false))),
         stop_values: &[
             ("nosort_contr", NO_SORT_PAR_MAX as f64),
             ("nosort_query", NO_SORT_MAX as f64),
@@ -20,21 +20,20 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
     });
 }
 
-
-#[derive(Debug,Serialize)]
+#[derive(Debug, Serialize)]
 struct Record {
     brocc_contr: f64,
     brocc_query: f64,
-    brocc_par_contr:f64,
-    brocc_par_query:f64,
-    nosort_contr:f64,
-    nosort_query:f64,
-    nosort_par_contr:f64,
-    nosort_par_query:f64,
+    brocc_par_contr: f64,
+    brocc_par_query: f64,
+    nosort_contr: f64,
+    nosort_query: f64,
+    nosort_par_contr: f64,
+    nosort_par_query: f64,
 }
 
 impl Record {
-    pub fn new(grow: f64,num_bots: usize,  do_all: bool) -> Record {
+    pub fn new(grow: f64, num_bots: usize, do_all: bool) -> Record {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f32)).collect();
 
         let bench = {
@@ -98,14 +97,14 @@ impl Record {
         };
 
         Record {
-            brocc_contr:bench.0,
-            brocc_query:bench.1,
-            brocc_par_contr:bench_par.0,
-            brocc_par_query:bench_par.1,
-            nosort_contr:nosort.0,
-            nosort_query:nosort.1,
-            nosort_par_contr:nosort_par.0,
-            nosort_par_query:nosort_par.1,
+            brocc_contr: bench.0,
+            brocc_query: bench.1,
+            brocc_par_contr: bench_par.0,
+            brocc_par_query: bench_par.1,
+            nosort_contr: nosort.0,
+            nosort_query: nosort.1,
+            nosort_par_contr: nosort_par.0,
+            nosort_par_query: nosort_par.1,
         }
     }
 }

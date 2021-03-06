@@ -104,7 +104,6 @@ where
 
             match self.par.next() {
                 par::ParResult::Parallel([dleft, dright]) => {
-                    
                     let p1 = ParRecurser {
                         handler: self.handler,
                         vistr: left,
@@ -112,7 +111,7 @@ where
                         joiner: self.joiner.clone(),
                         prevec: self.prevec,
                     };
-                    
+
                     let p2 = ParRecurser {
                         handler: self.handler.clone(),
                         vistr: right,

@@ -1,7 +1,6 @@
 use crate::inner_prelude::*;
 
-
-#[derive(Debug,Serialize)]
+#[derive(Debug, Serialize)]
 struct Record {
     float: f64,
     float_par: f64,
@@ -12,9 +11,9 @@ struct Record {
     float_i32: f64,
 }
 
-impl Record{
-    fn new(grow:f64,num_bots:usize)->Record{
-        let grow=grow as f64;
+impl Record {
+    fn new(grow: f64, num_bots: usize) -> Record {
+        let grow = grow as f64;
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
         let bench_integer = {
@@ -112,30 +111,25 @@ impl Record{
             })
         };
 
-
         Record {
-            i64:bench_i64 as f64,
-            i64_par:bench_i64_par as f64,
-            float:bench_float as f64,
-            int:bench_integer as f64,
-            float_par:bench_float_par as f64,
-            int_par:bench_integer_par as f64,
-            float_i32:bench_float_i32 as f64,
+            i64: bench_i64 as f64,
+            i64_par: bench_i64_par as f64,
+            float: bench_float as f64,
+            int: bench_integer as f64,
+            float_par: bench_float_par as f64,
+            int_par: bench_integer_par as f64,
+            float_i32: bench_float_i32 as f64,
         }
-
     }
 }
 
-
 pub fn handle(fb: &mut FigureBuilder) {
-
     fb.make_graph(Args {
         filename: "float_vs_integer",
         title: "Bench of differing number types With abspiral(x,0.2)",
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(10,10_000).map(|n| (n as f64, Record::new(0.2, n))),
+        plots: n_iter(10, 10_000).map(|n| (n as f64, Record::new(0.2, n))),
         stop_values: &[],
     });
-    
 }

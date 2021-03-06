@@ -68,8 +68,6 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         }
     }
 
-
-
     let heur = {
         let mut vec = Vec::new();
         for num_bots in its.clone() {
@@ -79,20 +77,24 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         vec
     };
 
-    let mut plot=fb.plot("height_heuristic_vs_optimal");
+    let mut plot = fb.plot("height_heuristic_vs_optimal");
 
-    
-    plot.scatter(wr!("Optimal"),benches.iter().map(|a|[a.num_bots as f64,a.height as f64]));
+    plot.scatter(
+        wr!("Optimal"),
+        benches.iter().map(|a| [a.num_bots as f64, a.height as f64]),
+    );
 
-    plot.scatter(wr!("Heuristic"),heur.iter().map(|a|[a.0 as f64,a.1 as f64]));
-
+    plot.scatter(
+        wr!("Heuristic"),
+        heur.iter().map(|a| [a.0 as f64, a.1 as f64]),
+    );
 
     plot.render(
         wr!("Bench of optimal vs heuristic with abspiral(x,0.2)"),
         wr!("Number of Elements"),
-        wr!("Tree Height")
-    ).unwrap();
-
+        wr!("Tree Height"),
+    )
+    .unwrap();
 }
 
 fn handle2d(fb: &mut FigureBuilder) {
@@ -128,28 +130,35 @@ fn handle2d(fb: &mut FigureBuilder) {
         bench_records.push(BenchRecord { height, bench });
     }
 
+    let mut plot = fb.plot("height_heuristic_theory");
 
-    let mut plot=fb.plot("height_heuristic_theory");
-
-    
-    plot.histogram(wr!("brocc"),theory_records.iter().map(|a|[a.height as f64,a.num_comparison as f64]));
+    plot.histogram(
+        wr!("brocc"),
+        theory_records
+            .iter()
+            .map(|a| [a.height as f64, a.num_comparison as f64]),
+    );
 
     plot.render(
         wr!("Complexity of differing num elem per node with abspiral(10000,0.2)"),
         wr!("Tree Height"),
-        wr!("Number of Comparisons")
-    ).unwrap();
+        wr!("Number of Comparisons"),
+    )
+    .unwrap();
 
+    let mut plot = fb.plot("height_heuristic_bench");
 
-    let mut plot=fb.plot("height_heuristic_bench");
-
-    
-    plot.scatter(wr!("brocc"),bench_records.iter().map(|a|[a.height as f64,a.bench as f64]));
+    plot.scatter(
+        wr!("brocc"),
+        bench_records
+            .iter()
+            .map(|a| [a.height as f64, a.bench as f64]),
+    );
 
     plot.render(
         wr!("Bench of differing num elem per node with abspiral(10000,0.2)"),
         wr!("Tree Height"),
-        wr!("Number of Comparisons")
-    ).unwrap();
-
+        wr!("Number of Comparisons"),
+    )
+    .unwrap();
 }
