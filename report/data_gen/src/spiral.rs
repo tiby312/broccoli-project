@@ -25,12 +25,16 @@ fn handle_num(fb: &mut FigureBuilder){
         rects.push((num, num_intersection));
     }
 
-    let mut plot=poloto::plot("Number of Intersections with abspiral(num,0.2)",
-    "Number of Elements",
-    "Number of Intersections");
+    let mut plot=fb.plot("spiral_data_num");
 
-    plot.line("intersections",rects.iter().map(|x|[x.0 as f64,x.1 as f64]));
-    fb.finish_plot(plot,"spiral_data_num");
+    plot.line(wr!("intersections"),rects.iter().map(|x|[x.0 as f64,x.1 as f64]));
+
+    plot.render(
+        wr!("Number of Intersections with abspiral(num,0.2)"),  
+        wr!("Number of Elements"),
+        wr!("Number of Intersections")
+    ).unwrap();
+
 }   
 
 fn handle_grow(fb: &mut FigureBuilder){
@@ -54,12 +58,16 @@ fn handle_grow(fb: &mut FigureBuilder){
         rects.push((grow, num_intersection));
     }
 
-    let mut plot=poloto::plot("Number of Intersections with abspiral(20_000,grow)",
-    "Grow",
-    "Number of Intersections");
+    let mut plot=fb.plot("spiral_data_grow");
 
-    plot.line("intersections",rects.iter().map(|x|[x.0 as f64,x.1 as f64]));
-    fb.finish_plot(plot,"spiral_data_grow");
+    plot.line(wr!("intersections"),rects.iter().map(|x|[x.0 as f64,x.1 as f64]));
+
+    plot.render(
+        wr!("Number of Intersections with abspiral(20_000,grow)"),
+        wr!("Grow"),
+        wr!("Number of Intersections")
+    ).unwrap();
+
 }
 
 fn handle_visualize(fb:&mut FigureBuilder){
@@ -72,10 +80,14 @@ fn handle_visualize(fb:&mut FigureBuilder){
             .collect()
     };
 
-    //TODO add arrow using poloto
-    let mut plot=poloto::plot("abspiral(800,10.0)","x","y");
+    let mut plot=fb.plot("spiral_visualize");
 
-    plot.line("visual",make(0.2).into_iter().map(|v|[v.x as f64,v.y as f64]));
 
-    fb.finish_plot(plot,"spiral_visualize");
+    plot.line(wr!("visual"),make(0.2).into_iter().map(|v|[v.x as f64,v.y as f64]));
+
+    plot.render(
+        wr!("abspiral(800,10.0)"),
+        wr!("x"),
+        wr!("y")
+    ).unwrap();
 }

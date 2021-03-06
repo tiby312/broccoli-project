@@ -20,6 +20,7 @@ pub mod bbox_helper {
 }
 
 mod inner_prelude {
+    pub use poloto::prelude::*;
     pub use super::bbox_helper;
     pub use crate::black_box;
     pub(crate) use crate::datanum;
@@ -72,11 +73,12 @@ impl FigureBuilder {
         }
     }
 
-    fn finish_plot(&self, splot: poloto::Plotter, filename: &str) {
+    fn plot(&self,filename:&str)->poloto::Plotter<poloto::tagger::WriterAdaptor<std::fs::File>>{
         let s = format!("{}/{}.svg", &self.folder, filename);
         let file = std::fs::File::create(s).unwrap();
-        poloto::render_svg_io(file,splot).unwrap();
+        poloto::plot_io(file)
     }
+
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {
         let it = args.plots;
@@ -109,14 +111,15 @@ impl FigureBuilder {
             
             let names = map.as_object().clone();
 
-            let mut plot = poloto::plot(title, xname, yname);
+            let mut plot=self.plot(filename);
 
+            use poloto::prelude::*;
+                
             for (plot_name, _) in names.iter() {
                 let k = ii.clone();
                 let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
-
                 plot.line(
-                    plot_name,
+                    wr!("{}",plot_name),
                     core::iter::once(ff)
                         .chain(k)
                         .filter(move |(secondx, _)| {
@@ -140,7 +143,11 @@ impl FigureBuilder {
                 );
             }
 
-            self.finish_plot(plot, filename);
+            plot.render(
+                wr!("{}",title),
+                wr!("{}",xname),
+                wr!("{}",yname)
+            ).unwrap();
         }
     }
 }
@@ -256,6 +263,7 @@ fn main() {
             
             
             run_test!(&mut fb, spiral::handle);
+            
         }
         "bench" => {
             let folder = args[2].clone();

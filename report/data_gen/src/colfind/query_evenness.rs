@@ -37,20 +37,23 @@ impl TheoryRes{
 pub fn handle2(fb:&mut FigureBuilder,grow:f64,num_bots:usize){
     {
         let res = TheoryRes::new(num_bots, grow);
-        let title=format!("Complexity of query evenness with abspiral({},{})", num_bots, grow);
-        let mut splot=poloto::plot(&title,
-            "dfs inorder iteration",
-            "Number of comparisons"
-        );
+        
+        let mut splot=fb.plot(&format!("query_evenness_theory_{}",grow));
 
-        splot.histogram("query",res.query
+
+        splot.histogram(wr!("query"),res.query
             .vistr()
             .dfs_inorder_iter()
             .enumerate().map(|(i,  element)|{
                 [i as f64,*element as f64]
             }));
 
-        fb.finish_plot(splot,&format!("query_evenness_theory_{}",grow));
+        splot.render(
+            wr!("Complexity of query evenness with abspiral({},{})",num_bots,grow),
+            wr!("DFS inorder iteration"),
+            wr!("Number of comparisons")
+        ).unwrap();
+        
     }
 
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f64)).collect();
@@ -59,21 +62,21 @@ pub fn handle2(fb:&mut FigureBuilder,grow:f64,num_bots:usize){
 
     let tree = broccoli::new(&mut bots);
 
-    let title=format!("Num per node with abspiral({},{})", num_bots, grow);
-    let mut splot=poloto::plot(&title,
-        "DFS inorder iteration",
-        "Number of comparisons"
-    );
+    let mut splot=fb.plot(&format!("query_num_per_node_theory_{}",grow));
 
     use broccoli::compt::Visitor;
-    splot.histogram("query",tree
+    splot.histogram(wr!("query"),tree
         .vistr()
         .dfs_inorder_iter()
         .enumerate().map(|(i,  element)|{
             [i as f64,element.range.len() as f64]
         }));
 
-    fb.finish_plot(splot,&format!("query_num_per_node_theory_{}",grow));
+    splot.render(
+        wr!("Num per node with abspiral({},{})", num_bots, grow),
+        wr!("DFS inorder iteration"),
+        wr!("Number of comparisons")
+    ).unwrap();
 
 }
 pub fn handle_theory(fb: &mut FigureBuilder) {

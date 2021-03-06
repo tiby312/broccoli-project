@@ -51,20 +51,22 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
 
     
     fn draw_graph<'a, I:Iterator<Item=(f64,&'a [f64])>+Clone>(filename:&str,title_name: &str, fb: &mut FigureBuilder, mut it:I,) {
-        let mut plot=poloto::plot(title_name,"Spiral Grow","Number of Comparisons");
+        let mut plot=fb.plot(filename);
+
         if let Some((_,xrest))=it.next(){
             let num=xrest.len();
             
             let cc = (0..num).map(|ii: usize| it.clone().map(move |(x,a)| [x,a[ii]]));
             
             for (i, y) in cc.enumerate() {
-                let s = format!("Level {}", i);
-                //let yl = y.clone().map(|_| 0.0);
-                plot.line_fill(&s,y);
+                plot.line_fill(wr!("Level {}",i),y);
             }
         }
-        fb.finish_plot(plot,filename);
-
+        plot.render(
+            wr!("{}",title_name),
+            wr!("Spiral Grow"),
+            wr!("Number of Comparisons")
+        ).unwrap();
     }
 
     draw_graph(
