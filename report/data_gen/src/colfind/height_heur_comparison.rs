@@ -81,12 +81,12 @@ fn handle_lowest(fb: &mut FigureBuilder) {
 
     plot.scatter(
         wr!("Optimal"),
-        benches.iter().map(|a| [a.num_bots as f64, a.height as f64]),
+        benches.iter().map(|a| [a.num_bots as f64, a.height as f64]).twice_iter(),
     );
 
     plot.scatter(
         wr!("Heuristic"),
-        heur.iter().map(|a| [a.0 as f64, a.1 as f64]),
+        heur.iter().map(|a| [a.0 as f64, a.1 as f64]).twice_iter(),
     );
 
     plot.render(
@@ -136,7 +136,7 @@ fn handle2d(fb: &mut FigureBuilder) {
         wr!("brocc"),
         theory_records
             .iter()
-            .map(|a| [a.height as f64, a.num_comparison as f64]),
+            .map(|a| [a.height as f64, a.num_comparison as f64]).twice_iter(),
     );
 
     plot.render(
@@ -152,7 +152,7 @@ fn handle2d(fb: &mut FigureBuilder) {
         wr!("brocc"),
         bench_records
             .iter()
-            .map(|a| [a.height as f64, a.bench as f64]),
+            .map(|a| [a.height as f64, a.bench as f64]).twice_iter(),
     );
 
     plot.render(

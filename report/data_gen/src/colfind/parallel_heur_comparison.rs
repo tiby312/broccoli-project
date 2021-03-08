@@ -77,10 +77,10 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut plot = fb.plot("parallel_height_heuristic");
 
-    plot.scatter(wr!("Rebal Par"), rebals.iter().map(|a| [a.0, a.1]));
-    plot.scatter(wr!("Query Par"), queries.iter().map(|a| [a.0, a.1]));
-    plot.scatter(wr!("Rebal"), seqs.iter().map(|a| [height as f64, a.0]));
-    plot.scatter(wr!("Query"), seqs.iter().map(|a| [height as f64, a.1]));
+    plot.scatter(wr!("Rebal Par"), rebals.iter().map(|a| [a.0, a.1]).twice_iter());
+    plot.scatter(wr!("Query Par"), queries.iter().map(|a| [a.0, a.1]).twice_iter());
+    plot.scatter(wr!("Rebal"), seqs.iter().map(|a| [height as f64, a.0]).twice_iter());
+    plot.scatter(wr!("Query"), seqs.iter().map(|a| [height as f64, a.1]).twice_iter());
 
     plot.render(
         wr!("Bench of differing parallel switch levels with abspiral(20,000,0.2)"),

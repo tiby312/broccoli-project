@@ -139,7 +139,7 @@ impl FigureBuilder {
                             };
 
                             [*secondx, num]
-                        }),
+                        }).twice_iter(),  //TODO buffer instead?
                 );
             }
 

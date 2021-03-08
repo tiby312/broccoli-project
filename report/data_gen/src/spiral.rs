@@ -28,7 +28,7 @@ fn handle_num(fb: &mut FigureBuilder) {
 
     plot.line(
         wr!("intersections"),
-        rects.iter().map(|x| [x.0 as f64, x.1 as f64]),
+        rects.iter().map(|x| [x.0 as f64, x.1 as f64]).twice_iter(),
     );
 
     plot.render(
@@ -64,7 +64,7 @@ fn handle_grow(fb: &mut FigureBuilder) {
 
     plot.line(
         wr!("intersections"),
-        rects.iter().map(|x| [x.0 as f64, x.1 as f64]),
+        rects.iter().map(|x| [x.0 as f64, x.1 as f64]).twice_iter(),
     );
 
     plot.render(
@@ -89,7 +89,7 @@ fn handle_visualize(fb: &mut FigureBuilder) {
 
     plot.line(
         wr!("visual"),
-        make(0.2).into_iter().map(|v| [v.x as f64, v.y as f64]),
+        make(0.2).into_iter().map(|v| [v.x as f64, v.y as f64]).twice_iter(),
     );
 
     plot.render(wr!("abspiral(800,10.0)"), wr!("x"), wr!("y"))
