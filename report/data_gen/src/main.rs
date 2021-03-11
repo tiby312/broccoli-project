@@ -71,13 +71,19 @@ impl FigureBuilder {
         FigureBuilder { folder }
     }
 
-    fn plot(
+    fn plot(&self)->poloto::PlotterBuilder{
+        let mut p=poloto::PlotterBuilder::new();
+        p.with_variable_style();
+        p
+    }
+    fn finish_plot(
         &self,
-        filename: &str,
-    ) -> poloto::Plotter<poloto::tagger::WriterAdaptor<std::fs::File>> {
+        plot:poloto::Plotter,
+        filename: impl core::fmt::Display,
+    )  {
         let s = format!("{}/{}.svg", &self.folder, filename);
         let file = std::fs::File::create(s).unwrap();
-        poloto::plot_io(file)
+        plot.render_io(file).unwrap();
     }
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {
@@ -111,7 +117,7 @@ impl FigureBuilder {
 
             let names = map.as_object().clone();
 
-            let mut plot = self.plot(filename);
+            let mut plot = self.plot().build(title,xname,yname);
 
             use poloto::prelude::*;
 
@@ -119,7 +125,7 @@ impl FigureBuilder {
                 let k = ii.clone();
                 let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
                 plot.line(
-                    wr!("{}", plot_name),
+                    plot_name,
                     core::iter::once(ff)
                         .chain(k)
                         .filter(move |(secondx, _)| {
@@ -143,8 +149,7 @@ impl FigureBuilder {
                 );
             }
 
-            plot.render(wr!("{}", title), wr!("{}", xname), wr!("{}", yname))
-                .unwrap();
+            self.finish_plot(plot,filename);
         }
     }
 }

@@ -56,7 +56,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         fb: &mut FigureBuilder,
         mut it: I,
     ) {
-        let mut plot = fb.plot(filename);
+        let mut plot = fb.plot().build(title_name,"Spiral Grow","Number of Comparisons");
 
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();
@@ -64,15 +64,11 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             let cc = (0..num).map(|ii: usize| it.clone().map(move |(x, a)| [x, a[ii]]));
 
             for (i, y) in cc.enumerate() {
-                plot.line_fill(wr!("Level {}", i), y.twice_iter());
+                plot.line_fill(move_format!("Level {}", i), y.twice_iter());
             }
         }
-        plot.render(
-            wr!("{}", title_name),
-            wr!("Spiral Grow"),
-            wr!("Number of Comparisons"),
-        )
-        .unwrap();
+        fb.finish_plot(plot,filename);
+        
     }
 
     draw_graph(

@@ -77,24 +77,20 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         vec
     };
 
-    let mut plot = fb.plot("height_heuristic_vs_optimal");
+    let mut plot = fb.plot().build("Bench of optimal vs heuristic with abspiral(x,0.2)","Number of Elements","Tree Height");
 
     plot.scatter(
-        wr!("Optimal"),
+        "Optimal",
         benches.iter().map(|a| [a.num_bots as f64, a.height as f64]).twice_iter(),
     );
 
     plot.scatter(
-        wr!("Heuristic"),
+        "Heuristic",
         heur.iter().map(|a| [a.0 as f64, a.1 as f64]).twice_iter(),
     );
 
-    plot.render(
-        wr!("Bench of optimal vs heuristic with abspiral(x,0.2)"),
-        wr!("Number of Elements"),
-        wr!("Tree Height"),
-    )
-    .unwrap();
+    fb.finish_plot(plot,"height_heuristic_vs_optimal");
+   
 }
 
 fn handle2d(fb: &mut FigureBuilder) {
@@ -130,35 +126,27 @@ fn handle2d(fb: &mut FigureBuilder) {
         bench_records.push(BenchRecord { height, bench });
     }
 
-    let mut plot = fb.plot("height_heuristic_theory");
+    let mut plot = fb.plot().build("Complexity of differing num elem per node with abspiral(10000,0.2)","Tree Height","Number of Comparisons");
 
     plot.histogram(
-        wr!("brocc"),
+        "brocc",
         theory_records
             .iter()
             .map(|a| [a.height as f64, a.num_comparison as f64]).twice_iter(),
     );
 
-    plot.render(
-        wr!("Complexity of differing num elem per node with abspiral(10000,0.2)"),
-        wr!("Tree Height"),
-        wr!("Number of Comparisons"),
-    )
-    .unwrap();
+    fb.finish_plot(plot,"height_heuristic_theory");
 
-    let mut plot = fb.plot("height_heuristic_bench");
+
+    let mut plot = fb.plot().build("Bench of differing num elem per node with abspiral(10000,0.2)","Tree Height","Number of Comparisons");
 
     plot.scatter(
-        wr!("brocc"),
+        "brocc",
         bench_records
             .iter()
             .map(|a| [a.height as f64, a.bench as f64]).twice_iter(),
     );
 
-    plot.render(
-        wr!("Bench of differing num elem per node with abspiral(10000,0.2)"),
-        wr!("Tree Height"),
-        wr!("Number of Comparisons"),
-    )
-    .unwrap();
+    fb.finish_plot(plot,"height_heuristic_bench");
+
 }

@@ -24,19 +24,16 @@ fn handle_num(fb: &mut FigureBuilder) {
         rects.push((num, num_intersection));
     }
 
-    let mut plot = fb.plot("spiral_data_num");
+
+    let mut plot = fb.plot().build("Number of Intersections with abspiral(num,0.2)","Number of Elements","Number of Intersections");
 
     plot.line(
-        wr!("intersections"),
+        "intersections",
         rects.iter().map(|x| [x.0 as f64, x.1 as f64]).twice_iter(),
     );
 
-    plot.render(
-        wr!("Number of Intersections with abspiral(num,0.2)"),
-        wr!("Number of Elements"),
-        wr!("Number of Intersections"),
-    )
-    .unwrap();
+    fb.finish_plot(plot,"spiral_data_num");
+
 }
 
 fn handle_grow(fb: &mut FigureBuilder) {
@@ -60,19 +57,15 @@ fn handle_grow(fb: &mut FigureBuilder) {
         rects.push((grow, num_intersection));
     }
 
-    let mut plot = fb.plot("spiral_data_grow");
+    let mut plot = fb.plot().build("Number of Intersections with abspiral(20_000,grow)","Grow","Number of Intersections");
 
     plot.line(
-        wr!("intersections"),
+        "intersections",
         rects.iter().map(|x| [x.0 as f64, x.1 as f64]).twice_iter(),
     );
 
-    plot.render(
-        wr!("Number of Intersections with abspiral(20_000,grow)"),
-        wr!("Grow"),
-        wr!("Number of Intersections"),
-    )
-    .unwrap();
+    fb.finish_plot(plot,"spiral_data_grow");
+
 }
 
 fn handle_visualize(fb: &mut FigureBuilder) {
@@ -85,13 +78,13 @@ fn handle_visualize(fb: &mut FigureBuilder) {
             .collect()
     };
 
-    let mut plot = fb.plot("spiral_visualize");
+    let mut plot = fb.plot().build("abspiral(800,10.0)","x","y"); 
 
     plot.line(
-        wr!("visual"),
+        "visual",
         make(0.2).into_iter().map(|v| [v.x as f64, v.y as f64]).twice_iter(),
     );
 
-    plot.render(wr!("abspiral(800,10.0)"), wr!("x"), wr!("y"))
-        .unwrap();
+    fb.finish_plot(plot,"spiral_visualize");
+
 }
