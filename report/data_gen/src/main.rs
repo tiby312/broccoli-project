@@ -71,10 +71,9 @@ impl FigureBuilder {
         FigureBuilder { folder }
     }
 
-    fn plot(&self)->poloto::PlotterBuilder{
-        let mut p=poloto::PlotterBuilder::new();
-        p.with_variable_style();
-        p
+    fn plot(&self)->poloto::PlotterBuilder<impl core::fmt::Display>{
+        poloto::PlotterBuilder::new()
+            .with_data(poloto::DataBuilder::new().push_default_css_with_variable())
     }
     fn finish_plot(
         &self,
