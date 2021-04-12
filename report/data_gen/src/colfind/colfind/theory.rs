@@ -74,19 +74,19 @@ impl Record {
 }
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
-    const THEORY_STOP_NAIVE_AT: usize = 8_000;
+    const THEORY_STOP_NAIVE_AT: usize = 2_000;
     const THEORY_STOP_SWEEP_AT: usize = 50_000;
 
     fb.make_graph(Args {
-        filename: "colfind_theory_0.2",
-        title: "Complexity of space partitioning algs with abspiral(x,0.2)",
+        filename: "colfind_theory_default",
+        title: &format!("Complexity of space partitioning algs with abspiral(x,{})",DEFAULT_GROW),
         xname: "Number of Elements",
-        yname: "Number of Comparisons",
-        plots: n_iter(0, 80_000).map(|num_bots| {
+        yname: "Number of Comparisons", 
+        plots: n_iter(0, 10_000).map(|num_bots| {
             (
                 num_bots as f64,
                 Record::new(
-                    0.2,
+                    DEFAULT_GROW,
                     num_bots,
                     num_bots <= THEORY_STOP_NAIVE_AT,
                     num_bots <= THEORY_STOP_SWEEP_AT,
@@ -100,15 +100,15 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
     });
 
     fb.make_graph(Args {
-        filename: "colfind_theory_0.05",
-        title: "Complexity of space partitioning algs with abspiral(x,0.05)",
+        filename: "colfind_theory_dense",
+        title: &format!("Complexity of space partitioning algs with abspiral(x,{})",DENSE_GROW),
         xname: "Number of Elements",
         yname: "Number of Comparisons",
-        plots: n_iter(0, 80_000).map(|num_bots| {
+        plots: n_iter(0, 10_000).map(|num_bots| {
             (
                 num_bots as f64,
                 Record::new(
-                    0.05,
+                    DENSE_GROW,
                     num_bots,
                     num_bots <= THEORY_STOP_NAIVE_AT,
                     num_bots <= THEORY_STOP_SWEEP_AT,
@@ -126,7 +126,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of space partitioning algs with abspiral(3000,grow)",
         xname: "Grow",
         yname: "Number of Comparisons",
-        plots: grow_iter(0.0, 0.02).map(|grow| (grow as f64, Record::new(grow, 3000, true, true))),
+        plots: grow_iter(MEGA_MEGA_DENSE_GROW, MEGA_DENSE_GROW).map(|grow| (grow as f64, Record::new(grow, 3000, true, true))),
         stop_values: &[],
     });
 
@@ -135,7 +135,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of space partitioning algs with abspiral(3000,grow)",
         xname: "Grow",
         yname: "Number of Comparisons",
-        plots: grow_iter(0.2, 4.0)
+        plots: grow_iter(MEGA_DENSE_GROW, DENSE_GROW)
             .map(|x| x)
             .map(|grow| (grow as f64, Record::new(grow, 3000, false, true))),
         stop_values: &[],

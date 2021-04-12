@@ -67,10 +67,10 @@ impl Record {
 pub fn handle(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
         filename: "checked_vs_unchecked_binning",
-        title: "Bench of checked vs unchecked binning with abspiral(x,1.0)",
+        title: &format!("Bench of checked vs unchecked binning with abspiral(x,{})",DEFAULT_GROW),
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(0, 40_000).map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots))),
+        plots: n_iter(0, 40_000).map(|num_bots| (num_bots as f64, Record::new(DEFAULT_GROW, num_bots))),
         stop_values: &[],
     });
 }

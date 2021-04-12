@@ -126,10 +126,10 @@ impl Record {
 pub fn handle(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
         filename: "float_vs_integer",
-        title: "Bench of differing number types With abspiral(x,0.2)",
+        title: &format!("Bench of differing number types With abspiral(x,{})",DEFAULT_GROW),
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(10, 10_000).map(|n| (n as f64, Record::new(0.2, n))),
+        plots: n_iter(10, 10_000).map(|n| (n as f64, Record::new(DEFAULT_GROW, n))),
         stop_values: &[],
     });
 }

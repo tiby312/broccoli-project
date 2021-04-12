@@ -2,25 +2,21 @@
 
 Before we can measure and compare performance of broccoli to other broad-phase strategies, we have to come up with a good way to test it. We often want to see how performance degrades as the size of the problem increases, but we also do not want to influence other variables.
 
-For our tests lets use an archimedean spiral distribution. It gives us a lot of variation in how the aabbs intersects, and allows us to grow the size of the problem without affecting density too much by simply adding aabbs to the end of a spiral. 
+For our tests lets use the same distribution that sunflowers use. This distribution gives us a good consistent packing of aabbs, and also gives us a easy way to grow the size of the problem. It also gives us a lot of variation in how the aabbs intersects. (If all the aabbs were distributed along only one dimension then that would also skew our results. For example, sweep and prune will perform very well if all the aabbs are spaced out along the axis we are sweeping.)
 
-If all the aabbs were distributed along only one dimension then that would also skew our results. For example, sweep and prune will perform very well if all the aabbs are spaced out along the axis we are sweeping.
-
-Lets make a archimedean spiral function that takes 3 inputs and produces an archimedean spiral.: 
+Lets use [Vogel's model](https://en.wikipedia.org/wiki/Fermat%27s_spiral#The_golden_ratio_and_the_golden_angle) that takes 2 inputs and produces an sunflower spiral.: 
 * n: the number of aabbs
-* separation: the separation between the aabbs as they are laid out along the spiral.
 * grow rate: the rate at which the spiral grow outward from the center.
 
 We increase n to increase the size of the problem.
-We can increase the grow rate to increase the number of aabbs intersecting.
-
-
+We can increase the grow rate to decrease the number of aabbs intersecting.
 
 <link rel="stylesheet" href="css/poloto.css">
+
 {{#include raw/spiral_visualize.svg}}
 
 
-While those 3 variables change the distribution of the elements, there is another variable at play.
+While those 2 variables change the distribution of the elements, there is another variable at play.
 
 * aabb size (the bounding box size of each element)
 
@@ -31,12 +27,11 @@ Lets define a particular scene / distribution just so that it makes are benching
 Let `abspiral(n,grow)` be a distribution of aabbs where:
 * n=number of aabbs
 * grow=spiral grow rate
-* separation=constant (17)
-* aabb radius=constant (5)
+* aabb radius= `2`
 
-The constants are just arbitrary values. We just want all the elements to have some bounding box size and to influence how many of them are intersecting. This just makes things simpler since for most of the benches, we can typically show trends what we want to show by only influencing these two variables, so we might as well pick constants for the other variables and imbue that in the meaning of abspiral() itself.
+The `2` constant is just an arbitrary value. We just want all the elements to have some bounding box size and to influence how many of them are intersecting. This just makes things simpler since for most of the benches, we can show trends by only influencing `n` and `grow`, so we might as well pick constants for the other variables and imbue that in the meaning of `abspiral()` itself.
 
-The below chart shows how influencing the spiral_grow affects the number of bot intersections for abspiral(). This shows that we can influence the spiral grow to see how the performance of the tree degrades. We could influence how many aabbs are colliding by changing the separation, but the relationship to the grow rate and the number of intersection pairs makes a smooth downward graph. It is not entirely smooth, but it is smooth enough that we can use this function to change the load on the broccoli without having to sample multiple times.
+The below chart shows how influencing the spiral_grow affects the number of bot intersections for abspiral(). This shows that we can influence the spiral grow to see how the performance of the tree degrades. It is not entirely smooth, but it is smooth enough that we can use this function to change the load on the broccoli without having to sample multiple times.
 
 Its also clearly not linear, but all that really matters is that we have a way to increase/decrease
 the number of collisions easily. We just need something that will allow us to definitively see
@@ -46,13 +41,23 @@ trends in how the algorithms stack up against each other.
 
 {{#include raw/spiral_data_grow.svg}}
 
-Throughout this writeup, we use a grow of 0.2 a lot as a "typical" amount of colliding pairs.
-So for 10,000 aabbs, you might expect around 80,000 aabbs to intersect. This is still no where
-near the worst case of 10,000*10,000 aabbs, which is 100,000,000. But this worst case, doesn't really 
+Throughout this writeup, we use a grow of `1.5` a lot as a "typical" amount of colliding pairs.
+So for `20,000` aabbs, a grow rate of `1.5` gives you around `3 * 20,000` intersections. This is no where
+near the worst case of `20,000 * 20,000` aabbs, which is `400000000`. But this worst case, doesn't really 
 happen in a lot of use cases.
 
-So a `abspiral(n,grow=0.2)` produces around `8*n` collisions. Even this is probably a conservative number of collisions
-for most use-cases. If you were to simulate a 2d ball-pit, every ball could be touching 6 other balls ([Circle Packing](https://en.wikipedia.org/wiki/Circle_packing)). So in that system, there are only `(6 * n)/2 = 3*n` collisions. That said with liquid or soft-body physics, the number can be much higher.
+So a `abspiral(n,grow=1.5)` produces around `3*n` collisions. If you were to simulate a 2d ball-pit, every ball could be touching 6 other balls ([Circle Packing](https://en.wikipedia.org/wiki/Circle_packing)). So in that system, there are `(6 * n)/2 = 3*n` collisions. That said with liquid or soft-body physics, the number can be much higher.
+
+
+Here are some inputs into our abspiral function and a ballparck of how many intersections occur:
+
+```
+abspiral( 20_000, 2.1 ) ~= 20_000           // SPARSE
+abspiral( 20_000, 1.5 ) ~= 3 * 20_000       // DEFAULT
+abspiral( 20_000, 0.6 ) ~= 20 * 20_000      // DENSE
+abspiral( 20_000, 0.2 ) ~= 180 * 20_000     // MEGA DENSE
+```
+
 
 The below graph shows that as we increase the number of elements, so does the number of collisions in a nice
 linear way.

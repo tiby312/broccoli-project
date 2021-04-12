@@ -31,7 +31,7 @@ impl TheoryRes {
     }
 }
 
-pub fn handle2(fb: &mut FigureBuilder, grow: f64, num_bots: usize) {
+pub fn handle2(fb: &mut FigureBuilder,prefix:&str, grow: f64, num_bots: usize) {
     {
         let res = TheoryRes::new(num_bots, grow);
 
@@ -48,7 +48,7 @@ pub fn handle2(fb: &mut FigureBuilder, grow: f64, num_bots: usize) {
                 .map(|(i, element)| [i as f64, *element as f64]).twice_iter(),
         );
 
-        fb.finish_plot(splot,move_format!("query_evenness_theory_{}", grow));
+        fb.finish_plot(splot,move_format!("query_evenness_theory_{}", prefix));
     }
 
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f64)).collect();
@@ -69,13 +69,13 @@ pub fn handle2(fb: &mut FigureBuilder, grow: f64, num_bots: usize) {
             .map(|(i, element)| [i as f64, element.range.len() as f64]).twice_iter(),
     );
 
-    fb.finish_plot(splot,move_format!("query_num_per_node_theory_{}", grow));
+    fb.finish_plot(splot,move_format!("query_num_per_node_theory_{}", prefix));
    
 }
 pub fn handle_theory(fb: &mut FigureBuilder) {
     let num_bots = 3000;
 
-    handle2(fb, 0.2, num_bots);
-    handle2(fb, 0.007, num_bots);
-    handle2(fb, 2.0, num_bots);
+    handle2(fb, "default",DEFAULT_GROW, num_bots);
+    handle2(fb, "dense",MEGA_DENSE_GROW, num_bots);
+    handle2(fb, "sparse",SPARSE_GROW, num_bots);
 }

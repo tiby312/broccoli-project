@@ -27,8 +27,7 @@ So more work has to be done upfront on a node before we can recurse.
 
 <link rel="stylesheet" href="css/poloto.css">
 {{#include raw/construction_query_bench.svg}}
-{{#include raw/construction_vs_query_theory_0.2.svg}}
-{{#include raw/construction_vs_query_theory_4.0.svg}}
+{{#include raw/construction_vs_query_theory_sparse.svg}}
 {{#include raw/construction_vs_query_theory_grow.svg}}
 
 

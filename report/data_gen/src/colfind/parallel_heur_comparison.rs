@@ -52,7 +52,7 @@ pub fn handle(fb: &mut FigureBuilder) {
     let mut rebals = Vec::new();
     for rebal_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {
         let (a, _b) = test3(
-            &mut distribute(0.2, &mut bot_inner, |a| a.to_f64n()),
+            &mut distribute(DEFAULT_GROW, &mut bot_inner, |a| a.to_f64n()),
             rebal_height,
             4,
         );
@@ -71,11 +71,12 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut seqs = Vec::new();
     for _ in 0..100 {
-        let (a, b) = test1(&mut distribute(0.2, &mut bot_inner, |a| a.to_f64n()));
+        let (a, b) = test1(&mut distribute(DEFAULT_GROW, &mut bot_inner, |a| a.to_f64n()));
         seqs.push((a as f64, b as f64));
     }
 
-    let mut plot = fb.plot().build("Bench of differing parallel switch levels with abspiral(20,000,0.2)","Height at which to switch to sequential","Time in Seconds");
+    let s=format!("Bench of differing parallel switch levels with abspiral(20,000,{})",DEFAULT_GROW);
+    let mut plot = fb.plot().build(&s,"Height at which to switch to sequential","Time in Seconds");
 
     plot.scatter("Rebal Par", rebals.iter().map(|a| [a.0, a.1]).twice_iter());
     plot.scatter("Query Par", queries.iter().map(|a| [a.0, a.1]).twice_iter());

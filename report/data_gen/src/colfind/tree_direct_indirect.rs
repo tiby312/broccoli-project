@@ -159,16 +159,16 @@ impl CompleteTestResult {
 }
 
 pub fn handle(fb: &mut FigureBuilder) {
-    handle_num_bots(fb, 0.1, [0u8; 8]);
-    handle_num_bots(fb, 0.1, [0u8; 16]);
-    handle_num_bots(fb, 0.1, [0u8; 32]);
-    handle_num_bots(fb, 0.1, [0u8; 128]);
-    handle_num_bots(fb, 0.1, [0u8; 256]);
-    handle_num_bots(fb, 0.01, [0u8; 128]);
-    handle_num_bots(fb, 1.0, [0u8; 128]);
+    handle_num_bots(fb, "default",DEFAULT_GROW, [0u8; 8]);
+    handle_num_bots(fb, "default", DEFAULT_GROW, [0u8; 16]);
+    handle_num_bots(fb,  "default",DEFAULT_GROW, [0u8; 32]);
+    handle_num_bots(fb,  "default",DEFAULT_GROW, [0u8; 128]);
+    handle_num_bots(fb,  "default",DEFAULT_GROW, [0u8; 256]);
+    handle_num_bots(fb, "dense",DENSE_GROW, [0u8; 128]);
+    handle_num_bots(fb, "sparse",SPARSE_GROW, [0u8; 128]);
 }
 
-fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
+fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, prefix:&str,grow: f64, val: T) {
     let mut rects = Vec::new();
 
     for num_bots in n_iter(0, 30_000).rev() {
@@ -179,7 +179,7 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
     let name = format!("{}_bytes", core::mem::size_of::<T>());
 
     fb.make_graph(Args {
-        filename: &format!("tree_direct_indirect_rebal_{}_{}", grow, name),
+        filename: &format!("tree_direct_indirect_rebal_{}_{}", prefix, name),
         title: &format!("Bench of rebal:{} with abspiral(num,{})", name, grow),
         xname: "Number of Elements",
         yname: "Time in Seconds",
@@ -188,7 +188,7 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, grow: f64, val: T) {
     });
 
     fb.make_graph(Args {
-        filename: &format!("tree_direct_indirect_query_{}_{}", grow, name),
+        filename: &format!("tree_direct_indirect_query_{}_{}", prefix, name),
         title: &format!("Bench of query:{} with abspiral(num,{})", name, grow),
         xname: "Number of Elements",
         yname: "Time in Seconds",

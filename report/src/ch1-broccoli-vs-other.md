@@ -6,24 +6,24 @@ The broccoli crate's goal is to provide broad-phase queries such as "find all el
 
 <link rel="stylesheet" href="css/poloto.css">
 
-{{#include raw/colfind_theory_0.2.svg}}
+{{#include raw/colfind_theory_default.svg}}
 
 As you can see, broccoli is a clear winner in terms of minimizing the number of comparisons. The jumps that you see in the kdtree line are the points at which the trees height grows. It is a complete binary tree so a slight increase in the height causes a doubling of nodes so it is a drastic change. As the number of aabbs increases it is inevitable that sometimes the tree will be too tall or too short. Like kdtree, broccoli is also a complete binary tree so it also have jumps, but they are less pronounced. I think this is because the second strategy of sweep and prune can "absorb" the jumps.
 
 Lets make sure that broccoli is still the winner if the aabbs are more clumped up.
 
-{{#include raw/colfind_theory_0.05.svg}}
+{{#include raw/colfind_theory_dense.svg}}
 
 Okay good broccoli is still the winner against its building blocks in terms of comparisons.
 
 So thats great that we've found a strategy that minimizes the comparisons, but that doesn't really mean anything unless the real world performance is also just as fast. Lets look at how it benches against the same set of strategies.
 
-{{#include raw/colfind_bench_0.2.svg}}
+{{#include raw/colfind_bench_default.svg}}
 
 Here we have also plotted the parallel versions that uses the  `rayon` work-stealing crate under the hood.
 This is benched on my quad-core laptop. It is interesting to note that the real world bench times follow the same trend as the theoretical number of comparisons. Again, we can see that brococli wins. Parallel broccoli beats parallel kdtree, and ditto for sequential versions. Lets make sure things don't change when elements are more clumped up.
 
-{{#include raw/colfind_bench_0.05.svg}}
+{{#include raw/colfind_bench_dense.svg}}
 
 Okay good its still the same results. In fact you can see that the parallel kdtree algorithm is suffering a bit with the extra clumpiness. Earlier it was on par with sequential broccoli, but now it is definitively worse.
 
@@ -58,7 +58,7 @@ Okay so there are some weird things going on here. For one thing naive isnt a st
 The first weird thing is explained by the fact that the naive implementation I used is not 100% naive. While it does check
 every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the aabbs are clumped up. If there were no short-circuiting, it would be flat all across. It is clear from the graph that this short-circuiting optimization does not gain you all that much.
 
-The second weird thing of `sweep and prune` seemingly having a better worst case than the `broccoli`: This makes sense since in the worst case, `sweep and prune` will sort all the elements, and then sweep. In the worst case for `broccoli`, it will first find the median, and then sort all the elements, and then sweep. So `broccoli` is slower since it redundantly found the median, and then sorted everything. However, it is easy to see that this only happens when the aabbs are extremely clumped up (abspiral(grow) where grow<=0.003). So while `sweep and prune` has a better worst-cast, the worst-cast scenario of `broccoli` is rare and it is not much worse (median finding + sort versus just sort). 
+The second weird thing of `sweep and prune` seemingly having a better worst case than the `broccoli`: This makes sense since in the worst case, `sweep and prune` will sort all the elements, and then sweep. In the worst case for `broccoli`, it will first find the median, and then sort all the elements, and then sweep. So `broccoli` is slower since it redundantly found the median, and then sorted everything. However, it is easy to see that this only happens when the aabbs are extremely clumped up. So while `sweep and prune` has a better worst-cast, the worst-cast scenario of `broccoli` is rare and it is not much worse (median finding + sort versus just sort). 
 
 Now lets look at the benches.
 

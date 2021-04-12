@@ -56,20 +56,20 @@ impl Record {
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
-        filename: "construction_vs_query_theory_0.2",
-        title: "Complexity of construction vs query with abspiral(x,0.2)",
+        filename: "construction_vs_query_theory_default",
+        title: &format!("Complexity of construction vs query with abspiral(x,{})",DEFAULT_GROW),
         xname: "Number of Elements",
         yname: "Number of Comparisons",
-        plots: n_iter(0, 6_000).map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots))),
+        plots: n_iter(0, 6_000).map(|num_bots| (num_bots as f64, Record::new(DEFAULT_GROW, num_bots))),
         stop_values: &[],
     });
 
     fb.make_graph(Args {
-        filename: "construction_vs_query_theory_4.0",
-        title: "Complexity of construction vs query with abspiral(x,4.0)",
+        filename: "construction_vs_query_theory_sparse",
+        title: &format!("Complexity of construction vs query with abspiral(x,{})",SPARSE_GROW),
         xname: "Number of Elements",
         yname: "Number of Comparisons",
-        plots: n_iter(0, 6_000).map(|num_bots| (num_bots as f64, Record::new(4.0, num_bots))),
+        plots: n_iter(0, 6_000).map(|num_bots| (num_bots as f64, Record::new(SPARSE_GROW, num_bots))),
         stop_values: &[],
     });
 
@@ -78,7 +78,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         title: "Complexity of construction vs query with abspiral(40_000,grow)",
         xname: "Grow",
         yname: "Number of Comparisons",
-        plots: grow_iter(0.1, 1.0).map(|g| (g as f64, Record::new(g, 40_000))),
+        plots: grow_iter(DEFAULT_GROW, SPARSE_GROW).map(|g| (g as f64, Record::new(g, 40_000))),
         stop_values: &[],
     });
 }

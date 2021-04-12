@@ -29,10 +29,9 @@ Some observations:
 ### Evenness of load
 
 
-{{#include raw/query_evenness_theory_0.2.svg}}
-{{#include raw/query_evenness_theory_0.2.svg}}
-{{#include raw/query_evenness_theory_0.007.svg}}
-{{#include raw/query_evenness_theory_2.svg}}
+{{#include raw/query_evenness_theory_default.svg}}
+{{#include raw/query_evenness_theory_dense.svg}}
+{{#include raw/query_evenness_theory_sparse.svg}}
 
 
 The above charts show that the work load is pretty even between the left and right recursing of the algorithm.
@@ -40,9 +39,9 @@ As aabbs get more clumped up, the right side starts to dominate more. I'm not su
 
 
 
-{{#include raw/query_num_per_node_theory_0.2.svg}}
-{{#include raw/query_num_per_node_theory_0.007.svg}}
-{{#include raw/query_num_per_node_theory_2.svg}}
+{{#include raw/query_num_per_node_theory_default.svg}}
+{{#include raw/query_num_per_node_theory_dense.svg}}
+{{#include raw/query_num_per_node_theory_sparse.svg}}
 
 The above charts show that the number of elements per node becomes very saturated / evenly distributed when elements are not as clumped up.
 

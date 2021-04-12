@@ -71,13 +71,13 @@ impl FigureBuilder {
         FigureBuilder { folder }
     }
 
-    fn plot(&self)->poloto::PlotterBuilder<impl core::fmt::Display>{
-        poloto::PlotterBuilder::new()
-            .with_data(poloto::DataBuilder::new().push_default_css_with_variable())
+    fn plot(&self)->poloto::build::PlotterBuilder<impl core::fmt::Display>{
+        poloto::build::PlotterBuilder::new()
+            .with_header(poloto::build::HeaderBuilder::new().push_default_css_with_variable().build())
     }
-    fn finish_plot(
+    fn finish_plot<X:poloto::build::Names>(
         &self,
-        plot:poloto::Plotter,
+        plot:poloto::Plotter<X>,
         filename: impl core::fmt::Display,
     )  {
         let s = format!("{}/{}.svg", &self.folder, filename);
@@ -178,7 +178,7 @@ macro_rules! run_test {
 }
 
 fn profile_test() {
-    let grow = 0.2;
+    let grow = DEFAULT_GROW;
     let num_bots = 50_000;
     use crate::support::*;
     use broccoli::prelude::*;
@@ -227,8 +227,8 @@ fn main() {
             profile_test();
         }
         "profile_cmp" => {
-            let grow = 0.2;
-            let num_bots = 50_000;
+            let grow = DEFAULT_GROW;
+            let num_bots = 20_000;
             use crate::support::*;
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
@@ -238,10 +238,14 @@ fn main() {
                     use broccoli::prelude::*;
 
                     let mut tree = broccoli::new(&mut bots);
+                    let mut num_collide=0;
+
                     tree.find_colliding_pairs_mut(|a, b| {
                         **a.unpack_inner() += 1;
                         **b.unpack_inner() += 1;
+                        num_collide+=1;
                     });
+                    dbg!(num_collide);
                 });
 
                 dbg!(c0);
@@ -252,31 +256,33 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-
+            run_test!(&mut fb, spiral::handle);
             run_test!(&mut fb, colfind::colfind::handle_theory);
-
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
             run_test!(&mut fb, colfind::query_evenness::handle_theory);
-
-            run_test!(&mut fb, spiral::handle);
+            
+            
+            
+            
+            
         }
         "bench" => {
             let folder = args[2].clone();
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-
+            
             run_test!(&mut fb, colfind::colfind::handle_bench);
-
-            run_test!(&mut fb, colfind::float_vs_integer::handle);
             run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
-            run_test!(&mut fb, colfind::height_heur_comparison::handle);
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
+            run_test!(&mut fb, colfind::float_vs_integer::handle);
+            run_test!(&mut fb, colfind::height_heur_comparison::handle);
             run_test!(&mut fb, colfind::optimal_query::handle);
             run_test!(&mut fb, colfind::rebal_strat::handle);
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
             run_test!(&mut fb, colfind::tree_direct_indirect::handle);
+            
         }
         _ => {
             println!("Check code to see what it should be");

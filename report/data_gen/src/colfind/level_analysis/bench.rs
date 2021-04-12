@@ -40,7 +40,7 @@ impl Res {
 pub fn handle_bench(fb: &mut FigureBuilder) {
     let num_bots = 5000;
 
-    let res2 = Res::new(num_bots, grow_iter(0.05, 0.3));
+    let res2 = Res::new(num_bots, grow_iter(DENSE_GROW, DEFAULT_GROW));
 
     fn draw_graph<'a, I: Iterator<Item = (f64, &'a [f64])> + Clone>(
         filename: &str,

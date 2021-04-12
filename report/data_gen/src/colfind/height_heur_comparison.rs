@@ -46,7 +46,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         let mut minimum = None;
         let max_height = (num_bots as f64).log2() as usize;
 
-        let grow = 0.2;
+        let grow = DEFAULT_GROW;
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
         for height in 1..max_height {
@@ -77,7 +77,8 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         vec
     };
 
-    let mut plot = fb.plot().build("Bench of optimal vs heuristic with abspiral(x,0.2)","Number of Elements","Tree Height");
+    let s=format!("Bench of optimal vs heuristic with abspiral(x,{})",DEFAULT_GROW);
+    let mut plot = fb.plot().build(&s,"Number of Elements","Tree Height");
 
     plot.scatter(
         "Optimal",
@@ -110,7 +111,7 @@ fn handle2d(fb: &mut FigureBuilder) {
 
     let mut bench_records: Vec<BenchRecord> = Vec::new();
     let num_bots = 10000;
-    let grow = 0.2;
+    let grow = DEFAULT_GROW;
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
     for height in 2..13 {
@@ -126,7 +127,8 @@ fn handle2d(fb: &mut FigureBuilder) {
         bench_records.push(BenchRecord { height, bench });
     }
 
-    let mut plot = fb.plot().build("Complexity of differing num elem per node with abspiral(10000,0.2)","Tree Height","Number of Comparisons");
+    let s=format!("Complexity of differing num elem per node with abspiral(10000,{})",DEFAULT_GROW);
+    let mut plot = fb.plot().build(&s,"Tree Height","Number of Comparisons");
 
     plot.histogram(
         "brocc",
@@ -138,7 +140,8 @@ fn handle2d(fb: &mut FigureBuilder) {
     fb.finish_plot(plot,"height_heuristic_theory");
 
 
-    let mut plot = fb.plot().build("Bench of differing num elem per node with abspiral(10000,0.2)","Tree Height","Number of Comparisons");
+    let s=format!("Bench of differing num elem per node with abspiral(10000,{})",DEFAULT_GROW);
+    let mut plot = fb.plot().build(&s,"Tree Height","Number of Comparisons");
 
     plot.scatter(
         "brocc",

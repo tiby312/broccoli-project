@@ -13,7 +13,7 @@ fn handle_num(fb: &mut FigureBuilder) {
     for num in 0..2000 {
         let mut bot_inner: Vec<_> = (0..num).map(|_| 0isize).collect();
 
-        let mut bots = distribute(0.2, &mut bot_inner, |a| a.to_f32n());
+        let mut bots = distribute(DEFAULT_GROW, &mut bot_inner, |a| a.to_f32n());
 
         let mut tree = broccoli::new_par(RayonJoin, &mut bots);
         let mut num_intersection = 0;
@@ -25,7 +25,7 @@ fn handle_num(fb: &mut FigureBuilder) {
     }
 
 
-    let mut plot = fb.plot().build("Number of Intersections with abspiral(num,0.2)","Number of Elements","Number of Intersections");
+    let mut plot = fb.plot().build(format!("Number of Intersections with abspiral(num,0.{})",DEFAULT_GROW),"Number of Elements","Number of Intersections");
 
     plot.line(
         "intersections",
@@ -39,10 +39,7 @@ fn handle_num(fb: &mut FigureBuilder) {
 fn handle_grow(fb: &mut FigureBuilder) {
     let num_bots = 20_000;
     let mut rects = Vec::new();
-    for grow in (0..100).map(|a| {
-        let a: f64 = a as f64;
-        0.2 + a * 0.02
-    }) {
+    for grow in grow_iter(DENSE_GROW,SPARSE_GROW){
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
@@ -70,7 +67,7 @@ fn handle_grow(fb: &mut FigureBuilder) {
 
 fn handle_visualize(fb: &mut FigureBuilder) {
     fn make(grow: f64) -> Vec<Vec2<f32>> {
-        let mut bot_inner: Vec<_> = (0..800).map(|_| 0isize).collect();
+        let mut bot_inner: Vec<_> = (0..600).map(|_| 0isize).collect();
 
         let bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
         bots.into_iter()
@@ -78,11 +75,11 @@ fn handle_visualize(fb: &mut FigureBuilder) {
             .collect()
     };
 
-    let mut plot = fb.plot().build("abspiral(800,10.0)","x","y"); 
+    let mut plot = fb.plot().build("abspiral(600,0.2)","x","y"); 
 
-    plot.line(
+    plot.scatter(
         "visual",
-        make(0.2).into_iter().map(|v| [v.x as f64, v.y as f64]).twice_iter(),
+        make(DEFAULT_GROW).into_iter().map(|v| [v.x as f64, v.y as f64]).twice_iter(),
     );
 
     fb.finish_plot(plot,"spiral_visualize");

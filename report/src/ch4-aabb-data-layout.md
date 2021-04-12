@@ -26,18 +26,22 @@ There are a couple of observations to make.
 
 
 <link rel="stylesheet" href="css/poloto.css">
-{{#include raw/tree_direct_indirect_rebal_0.1_16_bytes.svg}}
-{{#include raw/tree_direct_indirect_rebal_0.1_256_bytes.svg}}
-{{#include raw/tree_direct_indirect_rebal_0.1_32_bytes.svg}}
-{{#include raw/tree_direct_indirect_rebal_0.1_8_bytes.svg}}
-{{#include raw/tree_direct_indirect_rebal_1_128_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_default_8_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_default_16_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_default_32_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_default_128_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_default_256_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_dense_128_bytes.svg}}
+{{#include raw/tree_direct_indirect_rebal_sparse_128_bytes.svg}}
 
+{{#include raw/tree_direct_indirect_query_default_8_bytes.svg}}
+{{#include raw/tree_direct_indirect_query_default_16_bytes.svg}}
+{{#include raw/tree_direct_indirect_query_default_32_bytes.svg}}
+{{#include raw/tree_direct_indirect_query_default_128_bytes.svg}}
+{{#include raw/tree_direct_indirect_query_default_256_bytes.svg}}
+{{#include raw/tree_direct_indirect_query_dense_128_bytes.svg}}
+{{#include raw/tree_direct_indirect_query_sparse_128_bytes.svg}}
 
-{{#include raw/tree_direct_indirect_query_0.1_16_bytes.svg}}
-{{#include raw/tree_direct_indirect_query_0.1_256_bytes.svg}}
-{{#include raw/tree_direct_indirect_query_0.1_32_bytes.svg}}
-{{#include raw/tree_direct_indirect_query_0.1_8_bytes.svg}}
-{{#include raw/tree_direct_indirect_query_1_128_bytes.svg}}
 
 
 

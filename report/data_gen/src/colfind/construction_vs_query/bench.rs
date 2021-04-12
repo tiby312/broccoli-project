@@ -6,11 +6,11 @@ const NO_SORT_PAR_MAX: usize = 15000;
 pub fn handle_bench(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
         filename: "construction_query_bench",
-        title: "Bench of construction vs query abspiral(x,0.2)",
+        title: &format!("Bench of construction vs query abspiral(x,{})",DEFAULT_GROW),
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0, 20_000)
-            .map(|num_bots| (num_bots as f64, Record::new(0.2, num_bots, false))),
+            .map(|num_bots| (num_bots as f64, Record::new(DEFAULT_GROW, num_bots, false))),
         stop_values: &[
             ("nosort_contr", NO_SORT_PAR_MAX as f64),
             ("nosort_query", NO_SORT_MAX as f64),

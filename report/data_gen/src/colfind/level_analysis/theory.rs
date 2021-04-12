@@ -48,7 +48,7 @@ impl Res {
 pub fn handle_theory(fb: &mut FigureBuilder) {
     let num_bots = 3000;
 
-    let res2 = Res::new(num_bots, grow_iter(0.05, 0.3));
+    let res2 = Res::new(num_bots, grow_iter(DENSE_GROW, DEFAULT_GROW));
 
     fn draw_graph<'a, I: Iterator<Item = (f64, &'a [f64])> + Clone>(
         filename: &str,

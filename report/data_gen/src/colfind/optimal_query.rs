@@ -86,10 +86,10 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
 
     fb.make_graph(Args {
         filename: "broccoli_query",
-        title: "Bench of query vs collect with abspiral(0.2,n)",
+        title: &format!("Bench of query vs collect with abspiral({},n)",DEFAULT_GROW),
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(0, 40_000).map(|num_bots| (num_bots as f64, Res::new(0.2, num_bots))),
+        plots: n_iter(0, 40_000).map(|num_bots| (num_bots as f64, Res::new(DEFAULT_GROW, num_bots))),
         stop_values: &[],
     });
 }
@@ -145,10 +145,10 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
 
     fb.make_graph(Args {
         filename: "optimal_query",
-        title: "Bench of optimal with abspiral(0.2,n)",
+        title: &format!("Bench of optimal with abspiral({},n)",DEFAULT_GROW),
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(0, 40_000).map(|num_bots| (num_bots as f64, Res::new(0.2, num_bots))),
+        plots: n_iter(0, 40_000).map(|num_bots| (num_bots as f64, Res::new(DEFAULT_GROW, num_bots))),
         stop_values: &[],
     });
 }

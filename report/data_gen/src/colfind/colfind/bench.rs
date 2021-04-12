@@ -102,15 +102,15 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
     const BENCH_STOP_SWEEP_AT: usize = 6000;
 
     fb.make_graph(Args {
-        filename: "colfind_bench_0.2",
-        title: "Bench of space partitioning algs with abspiral(x,0.2)",
+        filename: "colfind_bench_default",
+        title: &format!("Bench of space partitioning algs with abspiral(x,{})",DEFAULT_GROW),
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0, 10_000).map(|num_bots| {
             (
                 num_bots as f64,
                 Record::new(
-                    0.2,
+                    DEFAULT_GROW,
                     num_bots,
                     num_bots <= BENCH_STOP_NAIVE_AT,
                     num_bots <= BENCH_STOP_SWEEP_AT,
@@ -124,15 +124,15 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
     });
 
     fb.make_graph(Args {
-        filename: "colfind_bench_0.05",
-        title: "Bench of space partitioning algs with abspiral(x,0.05)",
+        filename: "colfind_bench_dense",
+        title: &format!("Bench of space partitioning algs with abspiral(x,{})",DENSE_GROW),
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0, 10_000).map(|num_bots| {
             (
                 num_bots as f64,
                 Record::new(
-                    0.05,
+                    DENSE_GROW,
                     num_bots,
                     num_bots <= BENCH_STOP_NAIVE_AT,
                     num_bots <= BENCH_STOP_SWEEP_AT,
@@ -150,7 +150,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         title: "Bench of space partitioning algs with abspiral(3000,grow)",
         xname: "Grow",
         yname: "Time in Seconds",
-        plots: grow_iter(0.0, 0.005)
+        plots: grow_iter(MEGA_MEGA_DENSE_GROW, MEGA_DENSE_GROW)
             .map(|grow| (grow as f64, Record::new(grow, 3_000, true, true))),
         stop_values: &[],
     });
@@ -160,7 +160,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         title: "Bench of space partitioning algs with abspiral(30_000,grow)",
         xname: "Grow",
         yname: "Time in Seconds",
-        plots: grow_iter(0.2, 4.0)
+        plots: grow_iter(MEGA_DENSE_GROW, DENSE_GROW)
             .map(|grow| (grow as f64, Record::new(grow, 30_000, false, true))),
         stop_values: &[],
     });
