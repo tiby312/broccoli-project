@@ -15,24 +15,24 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         plots: n_iter(0, 20_000)
             .map(|num_bots| (num_bots as f64, Record::new(DEFAULT_GROW, num_bots, false))),
         stop_values: &[
-            ("nosort_contr", NO_SORT_PAR_MAX as f64),
-            ("nosort_query", NO_SORT_MAX as f64),
-            ("nosort_par_contr", NO_SORT_PAR_MAX as f64),
-            ("nosort_par_query", NO_SORT_PAR_MAX as f64),
+            ("ns_contr", NO_SORT_MAX as f64),
+            ("ns_query", NO_SORT_MAX as f64),
+            ("ns_par_contr", NO_SORT_PAR_MAX as f64),
+            ("ns_par_query", NO_SORT_PAR_MAX as f64),
         ],
     });
 }
 
 #[derive(Debug, Serialize)]
 struct Record {
-    brocc_contr: f64,
-    brocc_query: f64,
-    brocc_par_contr: f64,
-    brocc_par_query: f64,
-    nosort_contr: f64,
-    nosort_query: f64,
-    nosort_par_contr: f64,
-    nosort_par_query: f64,
+    contr: f64,
+    query: f64,
+    par_contr: f64,
+    par_query: f64,
+    ns_contr: f64,
+    ns_query: f64,
+    ns_par_contr: f64,
+    ns_par_query: f64,
 }
 
 impl Record {
@@ -100,14 +100,14 @@ impl Record {
         };
 
         Record {
-            brocc_contr: bench.0,
-            brocc_query: bench.1,
-            brocc_par_contr: bench_par.0,
-            brocc_par_query: bench_par.1,
-            nosort_contr: nosort.0,
-            nosort_query: nosort.1,
-            nosort_par_contr: nosort_par.0,
-            nosort_par_query: nosort_par.1,
+            contr: bench.0,
+            query: bench.1,
+            par_contr: bench_par.0,
+            par_query: bench_par.1,
+            ns_contr: nosort.0,
+            ns_query: nosort.1,
+            ns_par_contr: nosort_par.0,
+            ns_par_query: nosort_par.1,
         }
     }
 }
