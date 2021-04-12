@@ -46,7 +46,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
         );
 
         splot.histogram(
-            "query",
+            "",
             res.query
                 .vistr()
                 .dfs_inorder_iter()
@@ -72,7 +72,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
 
     use broccoli::compt::Visitor;
     splot.histogram(
-        "query",
+        "",
         tree.vistr()
             .dfs_inorder_iter()
             .enumerate()

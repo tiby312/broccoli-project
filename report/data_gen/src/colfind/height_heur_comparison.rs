@@ -139,7 +139,7 @@ fn handle2d(fb: &mut FigureBuilder) {
     let mut plot = fb.plot().build(&s, "Tree Height", "Number of Comparisons");
 
     plot.histogram(
-        "brocc",
+        "",
         theory_records
             .iter()
             .map(|a| [a.height as f64, a.num_comparison as f64])
@@ -155,7 +155,7 @@ fn handle2d(fb: &mut FigureBuilder) {
     let mut plot = fb.plot().build(&s, "Tree Height", "Number of Comparisons");
 
     plot.scatter(
-        "brocc",
+        "",
         bench_records
             .iter()
             .map(|a| [a.height as f64, a.bench as f64])

@@ -100,6 +100,44 @@ mod prevec {
             core::mem::swap(&mut v, &mut self.vec);
         }
     }
+
+    #[test]
+    fn test_prevec(){
+        use axgeom::*;
+        let mut rects=vec![rect(0usize,0,0,0);100];
+
+        let mut k=PreVec::with_capacity(0);
+        for (i,r) in rects.chunks_mut(2).enumerate(){
+            let (a,rest)=r.split_first_mut().unwrap();
+            let (b,_)=rest.split_first_mut().unwrap();
+
+            let mut j=k.extract_two_vec();
+            if i%2==0{
+                j.second().push(PMut::new(a));
+                j.first().push(PMut::new(b));
+            }
+            else
+            {
+                j.first().push(PMut::new(a));
+                j.second().push(PMut::new(b));    
+            }
+            j.clear();
+            k.insert_two_vec(j);
+
+
+        }
+
+        {
+            let mut j=k.extract_vec();
+            for a in rects.iter_mut(){
+                j.push(PMut::new(a));
+            }
+            j.clear();
+            k.insert_vec(j);
+        }
+        assert_eq!(k.vec.as_vec().capacity(),128);
+
+    }
 }
 
 pub use self::slicesplit::SliceSplitMut;

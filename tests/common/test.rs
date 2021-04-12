@@ -1,6 +1,3 @@
-extern crate axgeom;
-extern crate broccoli;
-extern crate compt;
 
 use axgeom::*;
 use broccoli::node::*;

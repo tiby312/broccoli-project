@@ -34,7 +34,7 @@ fn handle_num(fb: &mut FigureBuilder) {
     );
 
     plot.line(
-        "intersections",
+        "",
         rects.iter().map(|x| [x.0 as f64, x.1 as f64]).twice_iter(),
     );
 
@@ -66,7 +66,7 @@ fn handle_grow(fb: &mut FigureBuilder) {
     );
 
     plot.line(
-        "intersections",
+        "",
         rects.iter().map(|x| [x.0 as f64, x.1 as f64]).twice_iter(),
     );
 
@@ -81,12 +81,12 @@ fn handle_visualize(fb: &mut FigureBuilder) {
         bots.into_iter()
             .map(|a| vec2(a.rect.x.start, a.rect.y.start))
             .collect()
-    };
+    }
 
     let mut plot = fb.plot().build("abspiral(600,0.2)", "x", "y");
 
     plot.scatter(
-        "visual",
+        "",
         make(DEFAULT_GROW)
             .into_iter()
             .map(|v| [v.x as f64, v.y as f64])

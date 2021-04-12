@@ -329,7 +329,7 @@ fn test_parallel() {
 
     struct Test {
         set: BTreeSet<[usize; 2]>,
-    };
+    }
     impl CollisionHandler for Test {
         type T = BBox<isize, Bot>;
         fn collide(&mut self, a: PMut<BBox<isize, Bot>>, b: PMut<BBox<isize, Bot>>) {
