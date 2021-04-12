@@ -1,4 +1,4 @@
-use crate::inner_prelude::*;
+use crate::*;
 
 #[inline(always)]
 pub fn combine_slice<'a, T>(a: &'a [T], b: &'a [T]) -> &'a [T] {

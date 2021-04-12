@@ -1,21 +1,16 @@
 //! Contains query modules for each query algorithm.
 
-mod inner_prelude {
-    pub use crate::node::*;
-    pub(crate) use crate::par;
-    pub use crate::pmut::*;
-    pub use crate::tree::build::default_axis;
-    pub use crate::tree::build::Splitter;
-    pub use crate::tree::build::SplitterEmpty;
-    pub use crate::util::*;
-    pub use alloc::vec::Vec;
-    pub use axgeom;
-    pub use axgeom::Rect;
-    pub use axgeom::*;
-    pub use compt::*;
-    pub use core::marker::PhantomData;
-    pub use itertools::Itertools;
-}
+use crate::node::*;
+use crate::par;
+use crate::pmut::*;
+use crate::tree::build::default_axis;
+use crate::tree::build::Splitter;
+use crate::tree::build::SplitterEmpty;
+use crate::util::*;
+use alloc::vec::Vec;
+use axgeom::*;
+use compt::*;
+use core::marker::PhantomData;
 
 pub mod from_slice;
 
@@ -34,8 +29,6 @@ pub mod nbody;
 pub mod rect;
 
 mod tools;
-
-use self::inner_prelude::*;
 
 ///Query modules provide functions based off of this trait.
 pub trait Queries<'a> {

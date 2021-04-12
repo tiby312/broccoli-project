@@ -103,7 +103,10 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
 
     fb.make_graph(Args {
         filename: "colfind_bench_default",
-        title: &format!("Bench of space partitioning algs with abspiral(x,{})",DEFAULT_GROW),
+        title: &format!(
+            "Bench of space partitioning algs with abspiral(x,{})",
+            DEFAULT_GROW
+        ),
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0, 10_000).map(|num_bots| {
@@ -125,7 +128,10 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
 
     fb.make_graph(Args {
         filename: "colfind_bench_dense",
-        title: &format!("Bench of space partitioning algs with abspiral(x,{})",DENSE_GROW),
+        title: &format!(
+            "Bench of space partitioning algs with abspiral(x,{})",
+            DENSE_GROW
+        ),
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0, 10_000).map(|num_bots| {

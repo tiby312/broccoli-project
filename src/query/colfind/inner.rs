@@ -1,5 +1,5 @@
 use super::node_handle::*;
-use crate::inner_prelude::*;
+use crate::*;
 
 use crate::query::colfind::CollisionHandler;
 struct InnerRecurser<'a, 'node, T: Aabb, NN, C, B: Axis> {
@@ -113,7 +113,7 @@ where
                     };
 
                     let p2 = ParRecurser {
-                        handler: self.handler.clone(),
+                        handler: self.handler,
                         vistr: right,
                         par: dright,
                         joiner: self.joiner.clone(),

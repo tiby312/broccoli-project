@@ -7,7 +7,7 @@ mod oned;
 use self::inner::*;
 use self::node_handle::*;
 use super::tools;
-use crate::query::inner_prelude::*;
+use crate::query::*;
 use crate::Joinable;
 
 pub mod builder;

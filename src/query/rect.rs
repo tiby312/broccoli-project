@@ -1,6 +1,6 @@
 //! Rect query module
 
-use crate::query::inner_prelude::*;
+use crate::query::*;
 
 macro_rules! rect {
     ($iterator:ty,$colsingle:ty,$get_section:ident,$get_bots:ident) => {

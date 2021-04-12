@@ -56,7 +56,9 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         fb: &mut FigureBuilder,
         mut it: I,
     ) {
-        let mut plot = fb.plot().build(title_name,"Spiral Grow","Number of Comparisons");
+        let mut plot = fb
+            .plot()
+            .build(title_name, "Spiral Grow", "Number of Comparisons");
 
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();
@@ -67,8 +69,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
                 plot.line_fill(move_format!("Level {}", i), y.twice_iter());
             }
         }
-        fb.finish_plot(plot,filename);
-        
+        fb.finish_plot(plot, filename);
     }
 
     draw_graph(

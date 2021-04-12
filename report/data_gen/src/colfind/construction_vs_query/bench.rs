@@ -6,7 +6,10 @@ const NO_SORT_PAR_MAX: usize = 15000;
 pub fn handle_bench(fb: &mut FigureBuilder) {
     fb.make_graph(Args {
         filename: "construction_query_bench",
-        title: &format!("Bench of construction vs query abspiral(x,{})",DEFAULT_GROW),
+        title: &format!(
+            "Bench of construction vs query abspiral(x,{})",
+            DEFAULT_GROW
+        ),
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0, 20_000)

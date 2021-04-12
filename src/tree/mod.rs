@@ -1,4 +1,4 @@
-use crate::inner_prelude::*;
+use crate::*;
 
 #[cfg(test)]
 mod tests;

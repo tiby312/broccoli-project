@@ -71,18 +71,32 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut seqs = Vec::new();
     for _ in 0..100 {
-        let (a, b) = test1(&mut distribute(DEFAULT_GROW, &mut bot_inner, |a| a.to_f64n()));
+        let (a, b) = test1(&mut distribute(DEFAULT_GROW, &mut bot_inner, |a| {
+            a.to_f64n()
+        }));
         seqs.push((a as f64, b as f64));
     }
 
-    let s=format!("Bench of differing parallel switch levels with abspiral(20,000,{})",DEFAULT_GROW);
-    let mut plot = fb.plot().build(&s,"Height at which to switch to sequential","Time in Seconds");
+    let s = format!(
+        "Bench of differing parallel switch levels with abspiral(20,000,{})",
+        DEFAULT_GROW
+    );
+    let mut plot = fb.plot().build(
+        &s,
+        "Height at which to switch to sequential",
+        "Time in Seconds",
+    );
 
     plot.scatter("Rebal Par", rebals.iter().map(|a| [a.0, a.1]).twice_iter());
     plot.scatter("Query Par", queries.iter().map(|a| [a.0, a.1]).twice_iter());
-    plot.scatter("Rebal", seqs.iter().map(|a| [height as f64, a.0]).twice_iter());
-    plot.scatter("Query", seqs.iter().map(|a| [height as f64, a.1]).twice_iter());
+    plot.scatter(
+        "Rebal",
+        seqs.iter().map(|a| [height as f64, a.0]).twice_iter(),
+    );
+    plot.scatter(
+        "Query",
+        seqs.iter().map(|a| [height as f64, a.1]).twice_iter(),
+    );
 
-    fb.finish_plot(plot,"parallel_height_heuristic");
-    
+    fb.finish_plot(plot, "parallel_height_heuristic");
 }

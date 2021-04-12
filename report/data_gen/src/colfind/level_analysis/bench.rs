@@ -48,7 +48,9 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         fb: &mut FigureBuilder,
         mut it: I,
     ) {
-        let mut plot = fb.plot().build(title_name,"Spiral Grow","Time taken in Seconds");
+        let mut plot = fb
+            .plot()
+            .build(title_name, "Spiral Grow", "Time taken in Seconds");
 
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();
@@ -60,7 +62,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
             }
         }
 
-        fb.finish_plot(plot,filename);
+        fb.finish_plot(plot, filename);
     }
 
     //let mut fg = fb.build("level_analysis_bench_rebal");

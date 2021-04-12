@@ -1,6 +1,6 @@
 //! misc tools
 
-use super::inner_prelude::*;
+use super::*;
 
 //this can have some false positives.
 //but it will still prune a lot of bots.

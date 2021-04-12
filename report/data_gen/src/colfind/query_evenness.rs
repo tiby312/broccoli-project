@@ -31,13 +31,19 @@ impl TheoryRes {
     }
 }
 
-pub fn handle2(fb: &mut FigureBuilder,prefix:&str, grow: f64, num_bots: usize) {
+pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize) {
     {
         let res = TheoryRes::new(num_bots, grow);
 
-        let mut splot=fb.plot().build(move_format!("Complexity of query evenness with abspiral({},{})",
-        num_bots,
-        grow),"DFS inorder iteration","Number of comparisons");
+        let mut splot = fb.plot().build(
+            move_format!(
+                "Complexity of query evenness with abspiral({},{})",
+                num_bots,
+                grow
+            ),
+            "DFS inorder iteration",
+            "Number of comparisons",
+        );
 
         splot.histogram(
             "query",
@@ -45,10 +51,11 @@ pub fn handle2(fb: &mut FigureBuilder,prefix:&str, grow: f64, num_bots: usize) {
                 .vistr()
                 .dfs_inorder_iter()
                 .enumerate()
-                .map(|(i, element)| [i as f64, *element as f64]).twice_iter(),
+                .map(|(i, element)| [i as f64, *element as f64])
+                .twice_iter(),
         );
 
-        fb.finish_plot(splot,move_format!("query_evenness_theory_{}", prefix));
+        fb.finish_plot(splot, move_format!("query_evenness_theory_{}", prefix));
     }
 
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f64)).collect();
@@ -57,8 +64,11 @@ pub fn handle2(fb: &mut FigureBuilder,prefix:&str, grow: f64, num_bots: usize) {
 
     let tree = broccoli::new(&mut bots);
 
-    let mut splot = fb.plot().build(move_format!("Num per node with abspiral({},{})", num_bots, grow),"DFS inorder iteration","Number of comparisons");
-    
+    let mut splot = fb.plot().build(
+        move_format!("Num per node with abspiral({},{})", num_bots, grow),
+        "DFS inorder iteration",
+        "Number of comparisons",
+    );
 
     use broccoli::compt::Visitor;
     splot.histogram(
@@ -66,16 +76,16 @@ pub fn handle2(fb: &mut FigureBuilder,prefix:&str, grow: f64, num_bots: usize) {
         tree.vistr()
             .dfs_inorder_iter()
             .enumerate()
-            .map(|(i, element)| [i as f64, element.range.len() as f64]).twice_iter(),
+            .map(|(i, element)| [i as f64, element.range.len() as f64])
+            .twice_iter(),
     );
 
-    fb.finish_plot(splot,move_format!("query_num_per_node_theory_{}", prefix));
-   
+    fb.finish_plot(splot, move_format!("query_num_per_node_theory_{}", prefix));
 }
 pub fn handle_theory(fb: &mut FigureBuilder) {
     let num_bots = 3000;
 
-    handle2(fb, "default",DEFAULT_GROW, num_bots);
-    handle2(fb, "dense",MEGA_DENSE_GROW, num_bots);
-    handle2(fb, "sparse",SPARSE_GROW, num_bots);
+    handle2(fb, "default", DEFAULT_GROW, num_bots);
+    handle2(fb, "dense", MEGA_DENSE_GROW, num_bots);
+    handle2(fb, "sparse", SPARSE_GROW, num_bots);
 }

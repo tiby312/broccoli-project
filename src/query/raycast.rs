@@ -1,6 +1,6 @@
 //! Raycast query module
 
-use crate::query::inner_prelude::*;
+use crate::query::*;
 use axgeom::Ray;
 
 ///Create a handler that just casts directly to the axis aligned rectangle

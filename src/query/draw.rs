@@ -1,6 +1,6 @@
 //! Functions that make it easier to visualize the tree data structure
 //!
-use crate::query::inner_prelude::*;
+use crate::query::*;
 use axgeom::AxisDyn;
 
 struct DrawClosure<T, A> {

@@ -67,23 +67,16 @@ extern crate pdqselect;
 pub use axgeom;
 pub use compt;
 
-mod inner_prelude {
-    pub(crate) use crate::par;
-    pub(crate) use crate::prelude::*;
-    pub(crate) use crate::query::Queries;
-    pub(crate) use crate::tree::*;
-    pub(crate) use crate::util::*;
-    pub(crate) use crate::Ptr;
-
-    pub(crate) use crate::node::*;
-    pub(crate) use crate::pmut::*;
-
-    pub(crate) use crate::tree::build::*;
-    pub use alloc::vec::Vec;
-    pub use axgeom::*;
-    pub(crate) use compt::Visitor;
-    pub use core::marker::PhantomData;
-}
+use crate::node::*;
+use crate::pmut::*;
+use crate::prelude::*;
+use crate::query::Queries;
+use crate::tree::build::*;
+use crate::tree::*;
+use crate::util::*;
+use alloc::vec::Vec;
+use axgeom::*;
+use compt::Visitor;
 
 mod par;
 
@@ -103,15 +96,13 @@ mod util;
 
 ///The broccoli prelude.
 pub mod prelude {
-    pub use crate::query::draw::DrawQuery;
-
     pub use crate::query::colfind::ColfindQuery;
+    pub use crate::query::draw::DrawQuery;
     pub use crate::query::from_slice::FromSlice;
     pub use crate::query::intersect_with::IntersectQuery;
     pub use crate::query::knearest::KnearestQuery;
     pub use crate::query::raycast::RaycastQuery;
     pub use crate::query::rect::RectQuery;
-    //pub use crate::query::Queries;
 }
 
 pub use axgeom::rect;

@@ -241,23 +241,19 @@ pub fn grow_iter(
 
 pub const RADIUS: f32 = 2.0;
 
-
 //abspiral(20_000,2.1)~=20_000
 //abspiral(20_000,1.5)~=3*20_000
 //abspiral(20_000,0.6)~=20*20_000
 //abspiral(20_000,0.2)~=180*20_000
-pub const DEFAULT_GROW:f64=1.5;
-pub const DENSE_GROW:f64=0.6;
-pub const MEGA_DENSE_GROW:f64=0.2;
-pub const MEGA_MEGA_DENSE_GROW:f64=0.02;
+pub const DEFAULT_GROW: f64 = 1.5;
+pub const DENSE_GROW: f64 = 0.6;
+pub const MEGA_DENSE_GROW: f64 = 0.2;
+pub const MEGA_MEGA_DENSE_GROW: f64 = 0.02;
 
-pub const SPARSE_GROW:f64=2.1;
-
-
+pub const SPARSE_GROW: f64 = 2.1;
 
 fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
-    
-    let s=dists::fib_iter([0.0,0.0],grow);
+    let s = dists::fib_iter([0.0, 0.0], grow);
 
     //let s = dists::spiral_iter([0.0, 0.0], 17.0, grow);
     s.map(move |a| {

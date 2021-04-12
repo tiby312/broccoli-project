@@ -1,4 +1,4 @@
-use crate::inner_prelude::*;
+use crate::*;
 
 pub use axgeom::Range;
 pub use axgeom::Rect;
@@ -132,7 +132,7 @@ unsafe impl<N: Num, T> HasInner for &mut BBox<N, T> {
 pub type Vistr<'a, N> = compt::dfs_order::Vistr<'a, N, compt::dfs_order::PreOrder>;
 
 mod vistr_mut {
-    use crate::inner_prelude::*;
+    use crate::*;
 
     /// Tree Iterator that returns a protected mutable reference to each node.
     #[repr(transparent)]

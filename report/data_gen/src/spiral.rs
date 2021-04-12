@@ -24,22 +24,27 @@ fn handle_num(fb: &mut FigureBuilder) {
         rects.push((num, num_intersection));
     }
 
-
-    let mut plot = fb.plot().build(format!("Number of Intersections with abspiral(num,0.{})",DEFAULT_GROW),"Number of Elements","Number of Intersections");
+    let mut plot = fb.plot().build(
+        format!(
+            "Number of Intersections with abspiral(num,0.{})",
+            DEFAULT_GROW
+        ),
+        "Number of Elements",
+        "Number of Intersections",
+    );
 
     plot.line(
         "intersections",
         rects.iter().map(|x| [x.0 as f64, x.1 as f64]).twice_iter(),
     );
 
-    fb.finish_plot(plot,"spiral_data_num");
-
+    fb.finish_plot(plot, "spiral_data_num");
 }
 
 fn handle_grow(fb: &mut FigureBuilder) {
     let num_bots = 20_000;
     let mut rects = Vec::new();
-    for grow in grow_iter(DENSE_GROW,SPARSE_GROW){
+    for grow in grow_iter(DENSE_GROW, SPARSE_GROW) {
         let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
@@ -54,15 +59,18 @@ fn handle_grow(fb: &mut FigureBuilder) {
         rects.push((grow, num_intersection));
     }
 
-    let mut plot = fb.plot().build("Number of Intersections with abspiral(20_000,grow)","Grow","Number of Intersections");
+    let mut plot = fb.plot().build(
+        "Number of Intersections with abspiral(20_000,grow)",
+        "Grow",
+        "Number of Intersections",
+    );
 
     plot.line(
         "intersections",
         rects.iter().map(|x| [x.0 as f64, x.1 as f64]).twice_iter(),
     );
 
-    fb.finish_plot(plot,"spiral_data_grow");
-
+    fb.finish_plot(plot, "spiral_data_grow");
 }
 
 fn handle_visualize(fb: &mut FigureBuilder) {
@@ -75,13 +83,15 @@ fn handle_visualize(fb: &mut FigureBuilder) {
             .collect()
     };
 
-    let mut plot = fb.plot().build("abspiral(600,0.2)","x","y"); 
+    let mut plot = fb.plot().build("abspiral(600,0.2)", "x", "y");
 
     plot.scatter(
         "visual",
-        make(DEFAULT_GROW).into_iter().map(|v| [v.x as f64, v.y as f64]).twice_iter(),
+        make(DEFAULT_GROW)
+            .into_iter()
+            .map(|v| [v.x as f64, v.y as f64])
+            .twice_iter(),
     );
 
-    fb.finish_plot(plot,"spiral_visualize");
-
+    fb.finish_plot(plot, "spiral_visualize");
 }

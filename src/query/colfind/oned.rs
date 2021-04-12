@@ -1,5 +1,5 @@
 use super::CollisionHandler;
-use crate::query::inner_prelude::*;
+use crate::query::*;
 use crate::util::PreVec;
 
 //For sweep and prune type algorithms, we can narrow down which bots

@@ -1,5 +1,5 @@
-use crate::inner_prelude::*;
 use crate::node::Aabb;
+use crate::*;
 
 ///The results of the binning process.
 pub struct Binned<'a, T: 'a> {

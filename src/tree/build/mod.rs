@@ -1,7 +1,7 @@
 //! Contains code to help build the [`Tree`] structure with more options than
 //! just using [`broccoli::new`](crate::new).
 
-use crate::inner_prelude::*;
+use crate::*;
 
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
 ///This means that the first divider is a 'vertical' line since it is

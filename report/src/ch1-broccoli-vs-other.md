@@ -21,7 +21,7 @@ So thats great that we've found a strategy that minimizes the comparisons, but t
 {{#include raw/colfind_bench_default.svg}}
 
 Here we have also plotted the parallel versions that uses the  `rayon` work-stealing crate under the hood.
-This is benched on my quad-core laptop. It is interesting to note that the real world bench times follow the same trend as the theoretical number of comparisons. Again, we can see that brococli wins. Parallel broccoli beats parallel kdtree, and ditto for sequential versions. Lets make sure things don't change when elements are more clumped up.
+This is benched on my quad-core laptop. It is interesting to note that the real world bench times follow the same trend as the theoretical number of comparisons. Again, we can see that broccoli wins. Parallel broccoli beats parallel kdtree, and ditto for sequential versions. Lets make sure things don't change when elements are more clumped up.
 
 {{#include raw/colfind_bench_dense.svg}}
 
