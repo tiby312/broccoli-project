@@ -69,14 +69,6 @@ const fn nodes_left(depth: usize, height: usize) -> usize {
     2usize.rotate_left(levels as u32) - 1
 }
 
-///Passed to the binning algorithm to determine
-///if the binning algorithm should check for index out of bounds.
-#[derive(Copy, Clone, Debug)]
-pub enum BinStrat {
-    Checked,
-    NotChecked,
-}
-
 ///The default number of elements per node
 ///
 ///If we had a node per bot, the tree would have too many levels. Too much time would be spent recursing.
