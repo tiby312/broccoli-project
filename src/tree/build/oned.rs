@@ -15,6 +15,7 @@ pub fn bin_middle_left_right<'b, A: Axis, X: Aabb>(
     med: &X::Num,
     bots: &'b mut [X],
 ) -> Binned<'b, X> {
+
     let bot_len = bots.len();
 
     let mut left_end = 0;

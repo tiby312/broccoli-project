@@ -1,5 +1,7 @@
 ### Broccoli
 
+Requires Rust 1.49
+
 [![Crates.io](https://img.shields.io/crates/v/broccoli)](https://crates.io/crates/broccoli)
 [![docs.rs](https://docs.rs/broccoli/badge.svg)](https://docs.rs/broccoli)
 [![Crates.io](https://img.shields.io/crates/d/broccoli)](https://crates.io/crates/broccoli)

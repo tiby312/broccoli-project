@@ -237,33 +237,28 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
         div_axis: impl Axis,
         bots: &mut [T],
     ) -> ConstructResult<T> {
-        let med = if bots.is_empty() {
+    
+        if bots.is_empty(){
             return ConstructResult::Empty(bots);
-        } else {
-            let closure = move |a: &T, b: &T| -> core::cmp::Ordering {
-                crate::util::compare_bots(div_axis, a, b)
-            };
-
-            let k = {
-                let mm = bots.len() / 2;
-                pdqselect::select_by(bots, mm, closure);
-                &bots[mm]
-            };
-
-            k.get().get_range(div_axis).start
-        };
-
+        }
+        
+        let med_index=bots.len()/2;
+        let (_,med,_) =bots.select_nth_unstable_by(med_index,move |a,b|crate::util::compare_bots(div_axis,a,b));
+        
+        let med_val=med.get().get_range(div_axis).start;
+        
+    
         //It is very important that the median bot end up be binned into the middile bin.
         //We know this must be true because we chose the divider to be the medians left border,
         //and we binned so that all bots who intersect with the divider end up in the middle bin.
         //Very important that if a bots border is exactly on the divider, it is put in the middle.
         //If this were not true, there is no guarentee that the middile bin has bots in it even
         //though we did pick a divider.
-        let binned = oned::bin_middle_left_right(div_axis, &med, bots);
+        let binned = oned::bin_middle_left_right(div_axis, &med_val, bots);
 
         ConstructResult::NonEmpty {
             mid: binned.middle,
-            div: med,
+            div: med_val,
             left: binned.left,
             right: binned.right,
         }

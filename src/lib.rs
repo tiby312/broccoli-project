@@ -61,8 +61,6 @@
 
 #[macro_use]
 extern crate alloc;
-extern crate is_sorted;
-extern crate pdqselect;
 
 pub use axgeom;
 pub use compt;
