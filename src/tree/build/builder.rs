@@ -8,7 +8,6 @@ use par::ParallelBuilder;
 pub struct TreeBuilder<'a, T> {
     axis: DefaultA,
     bots: &'a mut [T],
-    rebal_strat: BinStrat,
     prebuilder: TreePreBuilder,
     par_builder: ParallelBuilder,
 }
@@ -20,7 +19,6 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
         TreeBuilder {
             axis: default_axis(),
             bots,
-            rebal_strat: BinStrat::Checked,
             prebuilder,
             par_builder: ParallelBuilder::new(),
         }
@@ -32,7 +30,6 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
         TreeBuilder {
             axis: default_axis(),
             bots,
-            rebal_strat: BinStrat::Checked,
             prebuilder,
             par_builder: ParallelBuilder::new(),
         }
@@ -77,12 +74,6 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
     }
 
     #[inline(always)]
-    pub fn with_bin_strat(&mut self, strat: BinStrat) -> &mut Self {
-        self.rebal_strat = strat;
-        self
-    }
-
-    #[inline(always)]
     pub fn with_height(&mut self, height: usize) -> &mut Self {
         self.prebuilder = TreePreBuilder::with_height(height);
         self
@@ -116,7 +107,6 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
 
         let constants = &Constants {
             height: builder.prebuilder.get_height(),
-            binstrat: builder.rebal_strat,
             sorter,
         };
 
@@ -162,7 +152,6 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
 
         let constants = &Constants {
             height: builder.prebuilder.get_height(),
-            binstrat: builder.rebal_strat,
             sorter,
         };
 
@@ -217,7 +206,6 @@ impl<'a, 'b, A: Axis, T: Aabb, S: Sorter> NonLeafFinisher<'a, 'b, A, T, S> {
 
 struct Constants<S> {
     height: usize,
-    binstrat: BinStrat,
     sorter: S,
 }
 
@@ -246,7 +234,6 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
     }
 
     fn construct_non_leaf(
-        bin_strat: BinStrat,
         div_axis: impl Axis,
         bots: &mut [T],
     ) -> ConstructResult<T> {
@@ -272,12 +259,7 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
         //Very important that if a bots border is exactly on the divider, it is put in the middle.
         //If this were not true, there is no guarentee that the middile bin has bots in it even
         //though we did pick a divider.
-        let binned = match bin_strat {
-            BinStrat::Checked => oned::bin_middle_left_right(div_axis, &med, bots),
-            BinStrat::NotChecked => unsafe {
-                oned::bin_middle_left_right_unchecked(div_axis, &med, bots)
-            },
-        };
+        let binned = oned::bin_middle_left_right(div_axis, &med, bots);
 
         ConstructResult::NonEmpty {
             mid: binned.middle,
@@ -289,7 +271,7 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
 
     fn split<A: Axis>(mut self, axis: A) -> (K, NonLeafFinisher<'a, 'b, A, T, S>, Self, Self) {
         let (f, left, right) =
-            match Self::construct_non_leaf(self.constants.binstrat, axis, self.arr) {
+            match Self::construct_non_leaf(axis, self.arr) {
                 ConstructResult::NonEmpty {
                     div,
                     mid,

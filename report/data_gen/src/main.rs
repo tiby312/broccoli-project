@@ -278,7 +278,6 @@ fn main() {
             run_test!(&mut fb, colfind::float_vs_integer::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
             run_test!(&mut fb, colfind::optimal_query::handle);
-            run_test!(&mut fb, colfind::rebal_strat::handle);
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
             run_test!(&mut fb, colfind::tree_direct_indirect::handle);
         }
