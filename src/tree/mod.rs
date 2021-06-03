@@ -37,7 +37,7 @@ pub mod helper{
     pub use query::colfind::builder::from_closure as colfind_from_closure;
 }
 
-pub mod misc{
+pub mod query_items{
     use super::query;
     pub use query::draw::DividerDrawer;
     //TODO get rid of consumer??
@@ -50,7 +50,7 @@ pub mod misc{
 
 
 
-use misc::*;
+use query_items::*;
 
 
 
