@@ -10,17 +10,15 @@ pub mod container;
 
 type TreeInner<N> = compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
 
-#[repr(C)]
+#[repr(transparent)]
 struct TreePtr<T: Aabb> {
-    _inner: TreeInner<NodePtr<T>>,
-    _num_aabbs: usize,
+    _inner: TreeInner<NodePtr<T>>
 }
 
 /// A space partitioning tree.
-#[repr(C)]
+#[repr(transparent)]
 pub struct Tree<'a, T: Aabb> {
-    inner: TreeInner<Node<'a, T>>,
-    num_aabbs: usize,
+    inner: TreeInner<Node<'a, T>>
 }
 
 ///Create a [`Tree`].
@@ -145,26 +143,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// const NUM_ELEMENT:usize=7;
     /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
     /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// assert_eq!(tree.num_aabbs(),7);
-    ///```
-    ///
-    #[must_use]
-    pub fn num_aabbs(&self) -> usize {
-        self.num_aabbs
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::build;
-    /// const NUM_ELEMENT:usize=7;
-    /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// let num_aabbs=tree.num_aabbs();
     /// let inner =tree.into_inner();
-    /// let tree=unsafe{broccoli::Tree::from_raw_parts(inner,num_aabbs)};
-    /// assert_eq!(tree.num_aabbs(),7);
+    /// let tree=unsafe{broccoli::Tree::from_raw_parts(inner)};
     ///```
     ///
     /// # Safety
@@ -175,9 +155,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     pub unsafe fn from_raw_parts(
         inner: compt::dfs_order::CompleteTreeContainer<Node<'a, T>, compt::dfs_order::PreOrder>,
-        num_aabbs: usize,
     ) -> Self {
-        Tree { inner, num_aabbs }
+        Tree { inner}
     }
 
     /// # Examples
@@ -238,14 +217,13 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///```
     #[must_use]
     pub fn get_elements_mut(&mut self) -> PMut<[T]> {
-        fn foo<'a, T: Aabb>(num_aabbs: usize, mut v: VistrMut<'a, Node<T>>) -> PMut<'a, [T]> {
+        fn foo<'a, T: Aabb>(mut v: VistrMut<'a, Node<T>>) -> PMut<'a, [T]> {
             let mut new_slice = None;
 
             let mut siz = 0;
             v.borrow_mut().dfs_preorder(|a| {
                 siz += a.range.len();
             });
-            assert_eq!(siz, num_aabbs);
             v.dfs_preorder(|a| {
                 if let Some(s) = new_slice.take() {
                     new_slice = Some(crate::pmut::combine_slice(s, a.into_range()));
@@ -256,10 +234,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
             new_slice.unwrap()
         }
 
-        let num_aabbs = self.num_aabbs;
-        let ret = foo(num_aabbs, self.vistr_mut());
-        assert_eq!(ret.len(), num_aabbs);
-        ret
+        foo(self.vistr_mut())
     }
 
     /// Return the underlying slice of aabbs in the order sorted during tree construction.
@@ -288,9 +263,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
             new_slice.unwrap()
         }
 
-        let num_aabbs = self.num_aabbs;
-        let ret = foo(self.vistr());
-        assert_eq!(ret.len(), num_aabbs);
-        ret
+        foo(self.vistr())
     }
 }

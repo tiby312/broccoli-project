@@ -308,8 +308,6 @@ where
     <N::T as Aabb>::Num: Send + Sync,
     N::Mass: Send + Sync,
 {
-    let num_aabbs = tree.num_aabbs();
-
     let mut newtree = convert_tree_into_wrapper(tree.into_inner());
 
     //calculate node masses of each node.
@@ -321,14 +319,13 @@ where
 
     apply_tree(newtree.vistr_mut(), no);
 
-    unsafe { crate::Tree::from_raw_parts(convert_wrapper_into_tree(newtree), num_aabbs) }
+    unsafe { crate::Tree::from_raw_parts(convert_wrapper_into_tree(newtree)) }
 }
 
 ///Perform nbody
 ///The tree is taken by value so that its nodes can be expended to include more data.
 pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
-    let num_aabbs = tree.num_aabbs();
-
+    
     let mut newtree = convert_tree_into_wrapper(tree.into_inner());
 
     //calculate node masses of each node.
@@ -337,5 +334,5 @@ pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate
     recc(default_axis(), newtree.vistr_mut(), no);
 
     apply_tree(newtree.vistr_mut(), no);
-    unsafe { crate::Tree::from_raw_parts(convert_wrapper_into_tree(newtree), num_aabbs) }
+    unsafe { crate::Tree::from_raw_parts(convert_wrapper_into_tree(newtree)) }
 }

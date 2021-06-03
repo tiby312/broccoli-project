@@ -173,8 +173,7 @@ impl<'a, 'b, N: Num, T> TreeInd<'a, 'b, N, T> {
     pub(super) fn into_ptr(self) -> TreeIndPtr<N, T> {
         TreeIndPtr {
             tree: TreePtr {
-                _inner: unsafe { self.tree.inner.convert() },
-                _num_aabbs: self.tree.num_aabbs,
+                _inner: unsafe { self.tree.inner.convert() }
             },
             orig: self.orig,
         }

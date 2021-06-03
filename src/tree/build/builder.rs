@@ -100,8 +100,6 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
         let builder = self;
         let bots = core::mem::replace(&mut builder.bots, &mut []);
 
-        let num_aabbs = bots.len();
-
         let cc = builder.prebuilder.num_nodes();
         let mut nodes = Vec::with_capacity(cc);
 
@@ -122,13 +120,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
 
         let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
-        let k = inner
-            .get_nodes()
-            .iter()
-            .fold(0, move |acc, a| acc + a.range.len());
-        debug_assert_eq!(k, num_aabbs);
-
-        (Tree { inner, num_aabbs }, splitter)
+        (Tree { inner }, splitter)
     }
 
     fn create_tree_par<K: Splitter + Send + Sync>(
@@ -145,7 +137,6 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
         let builder = self;
         let bots = core::mem::replace(&mut builder.bots, &mut []);
 
-        let num_aabbs = bots.len();
         let cc = builder.prebuilder.num_nodes();
 
         let mut nodes = Vec::with_capacity(cc);
@@ -174,13 +165,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
 
         let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
 
-        let k = inner
-            .get_nodes()
-            .iter()
-            .fold(0, move |acc, a| acc + a.range.len());
-        debug_assert_eq!(k, num_aabbs);
-
-        (Tree { inner, num_aabbs }, splitter)
+        (Tree { inner }, splitter)
     }
 }
 

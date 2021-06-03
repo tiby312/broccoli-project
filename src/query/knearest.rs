@@ -3,6 +3,8 @@
 use crate::query::*;
 use core::cmp::Ordering;
 
+
+
 ///The geometric functions that the user must provide.
 pub trait Knearest {
     type T: Aabb<Num = Self::N>;
