@@ -82,43 +82,6 @@ where
 
 impl<'a, T: Aabb> Tree<'a, T> {
 
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots = [bbox(rect(0,10,0,10),0)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// use compt::Visitor;
-    /// for b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.into_range().iter_mut()){
-    ///    *b.unpack_inner()+=1;    
-    /// }
-    /// assert_eq!(bots[0].inner,1);
-    ///```
-    #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
-        VistrMut::new(self.inner.vistr_mut())
-    }
-
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// let mut bots = [rect(0,10,0,10)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// use compt::Visitor;
-    /// let mut test = Vec::new();
-    /// for b in tree.vistr().dfs_preorder_iter().flat_map(|n|n.range.iter()){
-    ///    test.push(b);
-    /// }
-    /// assert_eq!(test[0],&axgeom::rect(0,10,0,10));
-    ///```
-    #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
-        self.inner.vistr()
-    }
 
     ///Create a [`Tree`].
     ///
@@ -251,6 +214,45 @@ impl<'a, T: Aabb> Tree<'a, T> {
         PMut::new(self.inner.get_nodes_mut())
     }
 
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [bbox(rect(0,10,0,10),0)];
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// use compt::Visitor;
+    /// for b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.into_range().iter_mut()){
+    ///    *b.unpack_inner()+=1;    
+    /// }
+    /// assert_eq!(bots[0].inner,1);
+    ///```
+    #[inline(always)]
+    pub fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
+        VistrMut::new(self.inner.vistr_mut())
+    }
+
+
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{prelude::*,bbox,rect};
+    /// let mut bots = [rect(0,10,0,10)];
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// use compt::Visitor;
+    /// let mut test = Vec::new();
+    /// for b in tree.vistr().dfs_preorder_iter().flat_map(|n|n.range.iter()){
+    ///    test.push(b);
+    /// }
+    /// assert_eq!(test[0],&axgeom::rect(0,10,0,10));
+    ///```
+    #[inline(always)]
+    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
+        self.inner.vistr()
+    }
+    
     /// Return the underlying slice of aabbs in the order sorted during tree construction.
     ///
     /// # Examples
