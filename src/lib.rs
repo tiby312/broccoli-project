@@ -67,8 +67,6 @@ pub use compt;
 
 use crate::node::*;
 use crate::pmut::*;
-use crate::prelude::*;
-use crate::query::Queries;
 use crate::tree::build::*;
 use crate::tree::*;
 use crate::util::*;
@@ -76,9 +74,12 @@ use alloc::vec::Vec;
 use axgeom::*;
 use compt::Visitor;
 
+pub mod prelude{
+    
+}
+
 mod par;
 
-pub mod query;
 
 ///Contains generic tree construction code
 mod tree;
@@ -91,17 +92,6 @@ pub mod node;
 
 ///Generic slice utility functions.
 mod util;
-
-///The broccoli prelude.
-pub mod prelude {
-    pub use crate::query::colfind::ColfindQuery;
-    pub use crate::query::draw::DrawQuery;
-    pub use crate::query::from_slice::FromSlice;
-    pub use crate::query::intersect_with::IntersectQuery;
-    pub use crate::query::knearest::KnearestQuery;
-    pub use crate::query::raycast::RaycastQuery;
-    pub use crate::query::rect::RectQuery;
-}
 
 pub use axgeom::rect;
 

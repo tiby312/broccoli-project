@@ -1,7 +1,7 @@
 use super::node_handle::*;
 use crate::*;
 
-use crate::query::colfind::CollisionHandler;
+use super::colfind::CollisionHandler;
 struct InnerRecurser<'a, 'node, T: Aabb, NN, C, B: Axis> {
     anchor: NodeAxis<'a, 'node, T, B>,
     handler: &'a mut NN,

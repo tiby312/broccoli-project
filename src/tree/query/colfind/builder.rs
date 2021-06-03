@@ -50,7 +50,7 @@ where
 
 impl<'a, 'node: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'node, T> {
     #[inline(always)]
-    pub(super) fn new(vistr: VistrMut<'a, Node<'node, T>>) -> NotSortedQueryBuilder<'a, 'node, T> {
+    pub fn new(vistr: VistrMut<'a, Node<'node, T>>) -> NotSortedQueryBuilder<'a, 'node, T> {
         NotSortedQueryBuilder {
             par_builder: ParallelBuilder::new(),
             vistr,
@@ -215,11 +215,11 @@ where
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,RayonJoin,rect,bbox,query,query::colfind::builder::Consumer};
+    /// use broccoli::{prelude::*,RayonJoin,rect,bbox,Consumer};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// let mut handler=query::colfind::builder::from_closure(
+    /// let mut handler=broccoli::colfind_from_closure(
     ///     &tree,
     ///     Vec::new(),
     ///     |_|(Vec::new(),Vec::new()),        //Start a new thread
@@ -227,7 +227,7 @@ where
     ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())), //Handle a collision
     /// );
     ///
-    /// let (handler,_)=tree.new_builder().query_par_ext(
+    /// let (handler,_)=tree.new_colfind_builder().query_par_ext(
     ///     RayonJoin,
     ///     handler,
     ///     broccoli::build::SplitterEmpty
@@ -266,7 +266,7 @@ impl<'a, 'node: 'a, T: Aabb> QueryBuilder<'a, 'node, T> {
     ///Create the builder.
     #[inline(always)]
     #[must_use]
-    pub(super) fn new(vistr: VistrMut<'a, Node<'node, T>>) -> QueryBuilder<'a, 'node, T> {
+    pub fn new(vistr: VistrMut<'a, Node<'node, T>>) -> QueryBuilder<'a, 'node, T> {
         QueryBuilder {
             par_builder: ParallelBuilder::new(),
             vistr,

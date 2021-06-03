@@ -1,6 +1,6 @@
 //! Knearest query module
 
-use crate::query::*;
+use super::*;
 use core::cmp::Ordering;
 
 
@@ -437,91 +437,31 @@ pub fn naive_k_nearest_mut<'a, T: Aabb>(
     }
 }
 
-use super::Queries;
 
-///Knearest functions that can be called on a tree.
-pub trait KnearestQuery<'a>: Queries<'a> {
-    /// Find the closest `num` elements to the specified `point`.
-    /// The user provides two functions:
-    ///
-    /// The result is returned as one `Vec`. The closest elements will
-    /// appear first. Multiple elements can be returned
-    /// with the same distance in the event of ties. These groups of elements are seperated by
-    /// one entry of `Option::None`. In order to iterate over each group,
-    /// try using the slice function: `arr.split(|a| a.is_none())`
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// use axgeom::vec2;
-    ///
-    /// let mut inner1=vec2(5,5);
-    /// let mut inner2=vec2(3,3);
-    /// let mut inner3=vec2(7,7);
-    ///
-    /// let mut bots = [bbox(rect(0,10,0,10),&mut inner1),
-    ///               bbox(rect(2,4,2,4),&mut inner2),
-    ///               bbox(rect(6,8,6,8),&mut inner3)];
-    ///
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// let mut handler = broccoli::query::knearest::from_closure(
-    ///    &tree,
-    ///    (),
-    ///    |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),
-    ///    |_, point, a| a.inner.distance_squared_to_point(point),
-    ///    |_, point, a| distance_squared(point.x,a),
-    ///    |_, point, a| distance_squared(point.y,a),
-    /// );
-    ///
-    /// let mut res = tree.k_nearest_mut(
-    ///       vec2(30, 30),
-    ///       2,
-    ///       &mut handler
-    /// );
-    ///
-    /// assert_eq!(res.len(),2);
-    /// assert_eq!(res.total_len(),2);
-    ///
-    /// let foo:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
-    ///
-    /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)]);
-    ///
-    ///
-    /// fn distance_squared(a:isize,b:isize)->isize{
-    ///     let a=(a-b).abs();
-    ///     a*a
-    /// }
-    ///```
-    #[must_use]
-    fn k_nearest_mut<'b, K: Knearest<T = Self::T, N = Self::Num>>(
-        &'b mut self,
-        point: Vec2<Self::Num>,
-        num: usize,
-        ktrait: &mut K,
-    ) -> KResult<Self::T>
-    where
-        'a: 'b,
-    {
-        let dt = self.vistr_mut().with_depth(Depth(0));
+pub fn knearest_mut<'a,'b, K: Knearest>(
+    tree:&'a mut Tree<K::T>,
+    point: Vec2<K::N>,
+    num: usize,
+    ktrait: &mut K,
+) -> KResult<'a,K::T>
+{
+    let dt = tree.vistr_mut().with_depth(Depth(0));
 
-        let knear = KnearestBorrow(ktrait);
+    let knear = KnearestBorrow(ktrait);
 
-        let closest = ClosestCand::new(num);
+    let closest = ClosestCand::new(num);
 
-        let mut rec = Recurser {
-            knear,
-            point,
-            closest,
-        };
+    let mut rec = Recurser {
+        knear,
+        point,
+        closest,
+    };
 
-        rec.recc(default_axis(), dt);
+    rec.recc(default_axis(), dt);
 
-        let num_entires = rec.closest.curr_num;
-        KResult {
-            num_entires,
-            inner: rec.closest.into_sorted(),
-        }
+    let num_entires = rec.closest.curr_num;
+    KResult {
+        num_entires,
+        inner: rec.closest.into_sorted(),
     }
 }

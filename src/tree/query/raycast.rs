@@ -1,6 +1,6 @@
 //! Raycast query module
 
-use crate::query::*;
+use super::*;
 use axgeom::Ray;
 
 ///Create a handler that just casts directly to the axis aligned rectangle
@@ -366,7 +366,6 @@ pub fn raycast_naive_mut<'a, T: Aabb>(
     }
 }
 
-use super::Queries;
 
 ///What is returned when the ray hits something.
 ///It provides the length of the ray,
@@ -375,68 +374,29 @@ pub struct CastAnswer<'a, T: Aabb> {
     pub elems: Vec<PMut<'a, T>>,
     pub mag: T::Num,
 }
-///Raycast functions that can be called on a tree.
-pub trait RaycastQuery<'a>: Queries<'a> {
-    /// Find the elements that are hit by a ray.
-    ///
-    /// The result is returned as a `Vec`. In the event of a tie, multiple
-    /// elements can be returned.
-    ///
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// use axgeom::{vec2,ray};
-    ///
-    ///
-    /// let mut bots = [bbox(rect(0,10,0,10),vec2(5,5)),
-    ///                bbox(rect(2,5,2,5),vec2(4,4)),
-    ///                bbox(rect(4,10,4,10),vec2(5,5))];
-    ///
-    /// let mut bots_copy=bots.clone();
-    /// let mut tree = broccoli::new(&mut bots);
-    /// let ray=ray(vec2(5,-5),vec2(1,2));
-    ///
-    /// let mut handler = broccoli::query::raycast::from_closure(
-    ///    &tree,
-    ///    (),
-    ///    |_, _, _| None,
-    ///    |_, ray, a| ray.cast_to_rect(&a.rect),
-    ///    |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
-    ///    |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
-    /// );
-    /// let res = tree.raycast_mut(
-    ///     ray,
-    ///     &mut handler);
-    ///
-    /// let res=res.unwrap();
-    /// assert_eq!(res.mag,2);
-    /// assert_eq!(res.elems.len(),1);
-    /// assert_eq!(res.elems[0].inner,vec2(5,5));
-    ///```
-    fn raycast_mut<'b, R: RayCast<T = Self::T, N = Self::Num>>(
-        &'b mut self,
-        ray: axgeom::Ray<Self::Num>,
-        rtrait: &mut R,
-    ) -> axgeom::CastResult<CastAnswer<'b, Self::T>>
-    where
-        'a: 'b,
-    {
-        let rtrait = RayCastBorrow(rtrait);
-        let dt = self.vistr_mut().with_depth(Depth(0));
 
-        let closest = Closest { closest: None };
-        let mut rec = Recurser {
-            rtrait,
-            ray,
-            closest,
-        };
-        rec.recc(default_axis(), dt);
 
-        match rec.closest.closest {
-            Some((a, b)) => axgeom::CastResult::Hit(CastAnswer { elems: a, mag: b }),
-            None => axgeom::CastResult::NoHit,
-        }
+
+pub fn raycast_mut<'b, R: RayCast>(
+    tree:&'b mut Tree<R::T>,
+    ray: axgeom::Ray<R::N>,
+    rtrait: &mut R,
+) -> axgeom::CastResult<CastAnswer<'b, R::T>>
+{
+    
+    let rtrait = RayCastBorrow(rtrait);
+    let dt = tree.vistr_mut().with_depth(Depth(0));
+
+    let closest = Closest { closest: None };
+    let mut rec = Recurser {
+        rtrait,
+        ray,
+        closest,
+    };
+    rec.recc(default_axis(), dt);
+
+    match rec.closest.closest {
+        Some((a, b)) => axgeom::CastResult::Hit(CastAnswer { elems: a, mag: b }),
+        None => axgeom::CastResult::NoHit,
     }
 }
