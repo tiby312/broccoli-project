@@ -19,7 +19,7 @@ fn main() {
 
     let mut tree = broccoli::new(&mut bots);
 
-    let mut handler = broccoli::knearest_from_closure(
+    let mut handler = broccoli::helper::knearest_from_closure(
         &tree,
         (),
         |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),

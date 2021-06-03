@@ -5,16 +5,29 @@ mod tests;
 
 pub mod build;
 
-pub use query::draw::DividerDrawer;
-pub use query::colfind::builder::QueryBuilder;
-pub use query::colfind::builder::NotSortedQueryBuilder;
-pub use query::colfind::builder::Consumer;
+
 
 mod query;
-pub use query::raycast::from_closure as raycast_from_closure;
-pub use query::knearest::from_closure as knearest_from_closure;
-pub use query::colfind::builder::from_closure as colfind_from_closure;
+pub mod assert{
+    use super::query;
+    pub use query::raycast::assert_raycast;
+    pub use query::knearest::assert_k_nearest_mut;
+    pub use query::rect::assert_for_all_in_rect_mut;
+    pub use query::rect::assert_for_all_intersect_rect_mut;
+    pub use query::rect::assert_for_all_not_in_rect_mut;    
+}
+pub mod helper{
+    use super::query;
+    pub use query::raycast::{from_closure as raycast_from_closure,default_rect_raycast};
+    pub use query::knearest::{from_closure as knearest_from_closure,default_rect_knearest};
+    pub use query::colfind::builder::from_closure as colfind_from_closure;
+}
+pub use query::draw::DividerDrawer;
+pub use query::colfind::builder::{QueryBuilder,NotSortedQueryBuilder,Consumer};
+pub use query::raycast::{CastAnswer,RayCast};
+pub use query::knearest::{Knearest,KnearestResult};
 pub use query::rect::RectIntersectErr;
+
 
 
 
@@ -487,7 +500,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// let mut handler = broccoli::knearest_from_closure(
+    /// let mut handler = broccoli::helper::knearest_from_closure(
     ///    &tree,
     ///    (),
     ///    |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),
@@ -570,7 +583,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// let mut tree = broccoli::new(&mut bots);
     /// let ray=ray(vec2(5,-5),vec2(1,2));
     ///
-    /// let mut handler = broccoli::raycast_from_closure(
+    /// let mut handler = broccoli::helper::raycast_from_closure(
     ///    &tree,
     ///    (),
     ///    |_, _, _| None,
@@ -695,8 +708,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         &'b mut self,
         rect: &Rect<T::Num>,
         mut func: impl FnMut(PMut<'b, T>),
-    ) where
-        'a: 'b,
+    )
     {
         query::rect::for_all_not_in_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| (func)(a));
     }

@@ -219,7 +219,7 @@ where
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// let mut handler=broccoli::colfind_from_closure(
+    /// let mut handler=broccoli::helper::colfind_from_closure(
     ///     &tree,
     ///     Vec::new(),
     ///     |_|(Vec::new(),Vec::new()),        //Start a new thread
