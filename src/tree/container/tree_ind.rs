@@ -232,7 +232,7 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
         CollidingPairs { cols, orig }
     }
 
-    /// The parallel version of [`FromSlice::collect_colliding_pairs`] that instead
+    /// The parallel version of [`TreeInd::collect_colliding_pairs`] that instead
     /// returns a [`CollidingPairsPar`].
     ///
     /// # Examples
@@ -391,7 +391,7 @@ where
         .consume()
 }
 
-///Contains a filtered list of all elements in the tree from calling [`FromSlice::collect_all`].
+///Contains a filtered list of all elements in the tree from calling [`TreeInd::collect_all`].
 pub struct FilteredElements<T, D> {
     elems: Vec<(Ptr<T>, D)>,
     orig: Ptr<[T]>,
@@ -421,7 +421,7 @@ struct ColPairPtr<T, D> {
     second: Ptr<T>,
     extra: D,
 }
-///CollidingPairs created via [`FromSlice::collect_colliding_pairs`]
+///CollidingPairs created via [`TreeInd::collect_colliding_pairs`]
 pub struct CollidingPairs<T, D> {
     ///See collect_intersections_list()
     ///The same elements can be part of
@@ -467,7 +467,7 @@ impl<T, D> CollidingPairs<T, D> {
     }
 }
 
-///CollidingPairsPar created via [`FromSlice::collect_colliding_pairs_par`]
+///CollidingPairsPar created via [`TreeInd::collect_colliding_pairs_par`]
 ///All colliding pairs partitioned into
 ///mutually exclusive sets so that they can be traversed in parallel
 pub struct CollidingPairsPar<T, D> {

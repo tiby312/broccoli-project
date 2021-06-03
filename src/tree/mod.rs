@@ -357,7 +357,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         query::colfind::builder::QueryBuilder::new(self.vistr_mut()).query_seq(move |a, b| func(a, b));
     }
 
-    /// The parallel version of [`ColfindQuery::find_colliding_pairs_mut`].
+    /// The parallel version of [`Tree::find_colliding_pairs_mut`].
     ///
     /// # Examples
     ///

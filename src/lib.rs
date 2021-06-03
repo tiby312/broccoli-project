@@ -14,7 +14,7 @@
 //!
 //! The [`container`] module lists the tree types and they are all described there, but in general
 //! use [`Tree`] unless you want
-//! to use functions like [`collect_colliding_pairs`](crate::query::from_slice::FromSlice::collect_colliding_pairs).
+//! to use functions like [`collect_colliding_pairs`](crate::container::TreeInd::collect_colliding_pairs).
 //! In which case use [`TreeInd`](crate::container::TreeInd).
 //!
 //! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
@@ -49,7 +49,7 @@
 //! Raw pointers are used for the container types in the container module
 //! and for caching the results of finding colliding pairs.
 //!
-//! [`multi_rect`](query::rect::RectQuery::multi_rect) uses unsafety to allow the user to have mutable references to elements
+//! [`multi_rect`](Tree::multi_rect) uses unsafety to allow the user to have mutable references to elements
 //! that belong to rectangle regions that don't intersect at the same time. This is why
 //! the [`node::Aabb`] trait is unsafe.
 
