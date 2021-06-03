@@ -15,21 +15,42 @@ pub mod assert{
     pub use query::rect::assert_for_all_in_rect_mut;
     pub use query::rect::assert_for_all_intersect_rect_mut;
     pub use query::rect::assert_for_all_not_in_rect_mut;    
+    pub use query::assert_tree_invariants;
+    pub use query::colfind::assert_query;
 }
+pub mod naive{
+    use super::query;
+    pub use query::raycast::raycast_naive_mut;
+    pub use query::knearest::naive_k_nearest_mut;
+    pub use query::rect::naive_for_all_in_rect_mut;
+    pub use query::rect::naive_for_all_intersect_rect_mut;
+    pub use query::rect::naive_for_all_not_in_rect_mut;
+    pub use query::colfind::query_naive_mut;
+    pub use query::colfind::query_sweep_mut;
+    pub use query::nbody::naive_mut;    
+}
+
 pub mod helper{
     use super::query;
     pub use query::raycast::{from_closure as raycast_from_closure,default_rect_raycast};
     pub use query::knearest::{from_closure as knearest_from_closure,default_rect_knearest};
     pub use query::colfind::builder::from_closure as colfind_from_closure;
 }
-pub use query::draw::DividerDrawer;
-pub use query::colfind::builder::{QueryBuilder,NotSortedQueryBuilder,Consumer};
-pub use query::raycast::{CastAnswer,RayCast};
-pub use query::knearest::{Knearest,KnearestResult};
-pub use query::rect::RectIntersectErr;
+
+pub mod misc{
+    use super::query;
+    pub use query::draw::DividerDrawer;
+    //TODO get rid of consumer??
+    pub use query::colfind::builder::{QueryBuilder,NotSortedQueryBuilder,Consumer};
+    pub use query::raycast::{CastAnswer,RayCast};
+    pub use query::knearest::{Knearest,KnearestResult};
+    pub use query::rect::RectIntersectErr;
+}
 
 
 
+
+use misc::*;
 
 
 

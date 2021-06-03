@@ -12,7 +12,6 @@ use crate::Joinable;
 
 pub mod builder;
 use self::builder::CollisionHandler;
-use self::builder::NotSortedQueryBuilder;
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_query<T: Aabb>(tree: &mut crate::Tree<T>) {

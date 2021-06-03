@@ -293,17 +293,17 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
 
 
     #[inline(always)]
-    fn get_inner_elements(&self) -> &[T] {
+    pub fn get_inner_elements(&self) -> &[T] {
         unsafe { &*self.orig.0 }
     }
 
     #[inline(always)]
-    fn get_inner_elements_mut(&mut self) -> &mut [T] {
+    pub fn get_inner_elements_mut(&mut self) -> &mut [T] {
         unsafe { &mut *self.orig.0 }
     }
 
     #[inline(always)]
-    fn get_tree_mut(&mut self) -> &mut Tree<'b,BBox<N, &'a mut T>> {
+    pub fn get_tree_mut(&mut self) -> &mut Tree<'b,BBox<N, &'a mut T>> {
         self
     }
 
