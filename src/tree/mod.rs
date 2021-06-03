@@ -759,7 +759,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     /// multi.for_all_in_rect_mut(rect(0,10,0,10),|a|{}).unwrap();
     /// let res = multi.for_all_in_rect_mut(rect(5,15,5,15),|a|{});
-    /// assert_eq!(res,Err(broccoli::RectIntersectErr));
+    /// assert_eq!(res,Err(broccoli::misc::RectIntersectErr));
     ///```
     #[must_use]
     pub fn multi_rect<'c>(&'c mut self) -> query::rect::MultiRect<'c, 'a, T> {
