@@ -75,7 +75,7 @@ where
     S: Splitter + Send + Sync,
     NO: NodeHandler + Send + Sync,
     C: CollisionHandler<T = T> + Splitter + Send + Sync,
-    P: par::Joiner,
+    P: parallel::Joiner,
     J: Joinable,
 {
     pub fn recurse_par<A: Axis>(mut self, this_axis: A) -> (C, S) {
@@ -103,7 +103,7 @@ where
             g.recurse(this_axis.next(), right.inner.inner.borrow_mut());
 
             match self.par.next() {
-                par::ParResult::Parallel([dleft, dright]) => {
+                parallel::ParResult::Parallel([dleft, dright]) => {
                     let p1 = ParRecurser {
                         handler: self.handler,
                         vistr: left,
@@ -130,7 +130,7 @@ where
                         finish_splitter(finisher_seq, sl.1, sr.1),
                     )
                 }
-                par::ParResult::Sequential(_) => {
+                parallel::ParResult::Sequential(_) => {
                     let mut ar = Recurser {
                         handler: &mut self.handler,
                         sweeper: &mut finisher_par,

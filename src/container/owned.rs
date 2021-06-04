@@ -88,7 +88,7 @@ impl<N: Num, T> TreeIndOwned<N, T> {
 /// An owned `(Rect<N>,T)` example
 ///
 /// ```rust
-/// use broccoli::{node::BBox,bbox,rect,prelude::*,container::*};
+/// use broccoli::{node::BBox,bbox,rect,container::*};
 ///
 /// fn not_lifetimed()->TreeOwned<BBox<i32,f32>>
 /// {

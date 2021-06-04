@@ -1,7 +1,7 @@
 //! Contains query modules for each query algorithm.
 
 use crate::node::*;
-use crate::par;
+use crate::parallel;
 use crate::pmut::*;
 use crate::build::default_axis;
 use crate::build::Splitter;

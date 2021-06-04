@@ -1,5 +1,5 @@
 use super::*;
-use par::ParallelBuilder;
+use parallel::ParallelBuilder;
 ///Builder pattern for Tree.
 ///For most usecases, the user is suggested to use
 ///the built in new() functions to create the tree.
@@ -127,7 +127,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
         &mut self,
         sorter: impl Sorter,
         splitter: K,
-        par: impl par::Joiner,
+        par: impl parallel::Joiner,
         joiner: impl crate::Joinable,
     ) -> (Tree<'a, T>, K)
     where
@@ -331,7 +331,7 @@ where
     T: Send + Sync,
     T::Num: Send + Sync,
     S: Sorter,
-    JJ: par::Joiner,
+    JJ: parallel::Joiner,
     Joiner: crate::Joinable,
     K: Splitter + Send + Sync,
 {
@@ -343,7 +343,7 @@ where
             let (mut splitter, node, left, right) = self.inner.split(axis);
 
             match self.dlevel.next() {
-                par::ParResult::Parallel([dleft, dright]) => {
+                parallel::ParResult::Parallel([dleft, dright]) => {
                     let joiner1 = self.joiner.clone();
                     let joiner2 = self.joiner.clone();
                     let ((ls, nodes), (rs, mut nodes2)) = self.joiner.join(
@@ -378,7 +378,7 @@ where
                     splitter.add(ls, rs);
                     splitter
                 }
-                par::ParResult::Sequential(_) => {
+                parallel::ParResult::Sequential(_) => {
                     nodes.push(node.finish());
 
                     let ls = left.recurse_seq(axis.next(), nodes);

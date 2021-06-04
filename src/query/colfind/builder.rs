@@ -1,7 +1,7 @@
 //! Contains code to customize the colliding pair finding algorithm.
 
 use super::*;
-use par::ParallelBuilder;
+use parallel::ParallelBuilder;
 
 ///Used for the advanced algorithms.
 ///Trait that user implements to handling aabb collisions.
@@ -215,7 +215,7 @@ where
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,RayonJoin,rect,bbox,misc::Consumer};
+    /// use broccoli::{par::RayonJoin,rect,bbox,misc::Consumer};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///

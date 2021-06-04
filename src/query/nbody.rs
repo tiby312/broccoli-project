@@ -190,7 +190,7 @@ fn recc_common<'a, 'b, N: Nbody>(
     }
 }
 
-fn recc_par<N: Nbody, JJ: par::Joiner>(
+fn recc_par<N: Nbody, JJ: parallel::Joiner>(
     joiner: impl crate::Joinable,
     axis: impl Axis,
     par: JJ,
@@ -206,7 +206,7 @@ fn recc_par<N: Nbody, JJ: par::Joiner>(
 
     if let Some([left, right]) = keep_going {
         match par.next() {
-            par::ParResult::Parallel([dleft, dright]) => {
+            parallel::ParResult::Parallel([dleft, dright]) => {
                 let (mut no1, mut no2) = no.div();
 
                 joiner.join(
@@ -215,7 +215,7 @@ fn recc_par<N: Nbody, JJ: par::Joiner>(
                 );
                 no.add(no1, no2);
             }
-            par::ParResult::Sequential(_) => {
+            parallel::ParResult::Sequential(_) => {
                 recc(axis.next(), left, no);
                 recc(axis.next(), right, no);
             }
@@ -313,7 +313,7 @@ where
     //calculate node masses of each node.
     build_masses2(newtree.vistr_mut(), no);
 
-    let par = par::ParallelBuilder::new().build_for_tree_of_height(newtree.get_height());
+    let par = parallel::ParallelBuilder::new().build_for_tree_of_height(newtree.get_height());
 
     recc_par(joiner, default_axis(), par, newtree.vistr_mut(), no);
 

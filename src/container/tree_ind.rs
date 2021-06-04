@@ -128,7 +128,6 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
     /// # Examples
     ///
     ///```
-    /// use broccoli::prelude::*;
     /// let mut aabbs = [
     ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     ///    broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
@@ -177,7 +176,6 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
     /// # Examples
     ///
     ///```
-    /// use broccoli::prelude::*;
     /// let mut aabbs = [
     ///     broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     ///     broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
@@ -238,7 +236,7 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
     /// # Examples
     ///
     ///```
-    /// use broccoli::{RayonJoin,prelude::*};
+    /// use broccoli::par::RayonJoin;
     /// let mut aabbs = [
     ///     broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     ///     broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),

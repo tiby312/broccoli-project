@@ -151,10 +151,10 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
 }
 
 
-mod par;
-use parallel::*;
+mod parallel;
+use par::*;
 ///Items     to parallel build/query functions.
-pub mod parallel{
+pub mod par{
     #[cfg(feature = "use_rayon")]
     pub use self::rayonjoin::*;
     #[cfg(feature = "use_rayon")]
@@ -409,7 +409,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots = [bbox(rect(0,10,0,10),0)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
@@ -428,7 +428,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots = [rect(0,10,0,10)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
@@ -512,7 +512,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// tree.find_colliding_pairs_mut(|a,b|{
@@ -532,7 +532,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect,RayonJoin};
+    /// use broccoli::{bbox,rect,RayonJoin};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// tree.find_colliding_pairs_mut_par(RayonJoin,|a,b|{
@@ -559,7 +559,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
@@ -580,7 +580,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     /// ```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// use axgeom::Rect;
     ///
     /// let dim=rect(0,100,0,100);
@@ -628,7 +628,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
     /// let mut bots2 = [bbox(rect(5,15,5,15),0u8)];
     /// let mut tree = broccoli::new(&mut bots1);
@@ -680,7 +680,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// use axgeom::vec2;
     ///
     /// let mut inner1=vec2(5,5);
@@ -764,7 +764,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// use axgeom::{vec2,ray};
     ///
     ///
@@ -806,7 +806,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
     /// let mut tree = broccoli::new(&mut bots);
     /// let mut test = Vec::new();
@@ -825,7 +825,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// tree.for_all_intersect_rect_mut(&rect(9,20,9,20),|a|{
@@ -848,7 +848,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
     /// let mut tree = broccoli::new(&mut bots);
     /// let mut test = Vec::new();
@@ -866,7 +866,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// tree.for_all_in_rect_mut(&rect(0,10,0,10),|a|{
@@ -887,7 +887,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// tree.for_all_not_in_rect_mut(&rect(10,20,10,20),|a|{
@@ -922,7 +922,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,bbox,rect};
+    /// use broccoli::{bbox,rect};
     /// let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
     /// let mut tree = broccoli::new(&mut bots1);
     /// let mut multi = tree.multi_rect();
