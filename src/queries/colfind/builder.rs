@@ -215,11 +215,11 @@ where
     /// # Examples
     ///
     ///```
-    /// use broccoli::{par::RayonJoin,rect,bbox,misc::Consumer};
+    /// use broccoli::{par::RayonJoin,rect,bbox};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// let mut handler=broccoli::helper::colfind_from_closure(
+    /// let mut handler=broccoli::helper::QueryParClosure::new(
     ///     &tree,
     ///     Vec::new(),
     ///     |_|(Vec::new(),Vec::new()),        //Start a new thread
@@ -233,7 +233,7 @@ where
     ///     broccoli::build::SplitterEmpty
     /// );
     ///
-    /// let intersections=handler.consume();
+    /// let intersections=handler.acc;
     ///
     /// assert_eq!(intersections.len(),1);
     ///```

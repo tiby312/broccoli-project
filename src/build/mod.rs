@@ -154,7 +154,7 @@ const fn log_2(x: u64) -> u64 {
 }
 
 
-
+use crate::queries::colfind::builder::NotSortedQueryBuilder;
 ///A version of Tree where the elements are not sorted along each axis, like a KD Tree.
 /// For comparison, a normal kd-tree is provided by [`NotSorted`]. In this tree, the elements are not sorted
 /// along an axis at each level. Construction of [`NotSorted`] is faster than [`Tree`] since it does not have to

@@ -3,7 +3,7 @@
 //! [`PMut`] is short for protected mutable reference.
 //!
 //! ```rust
-//! use broccoli::{prelude::*,bbox,rect};
+//! use broccoli::{bbox,rect};
 //!
 //!
 //! let mut bots=[bbox(rect(0,10,0,10),0)];

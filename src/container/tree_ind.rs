@@ -89,7 +89,7 @@ impl<'a, N: Num, T> TreeIndBase<'a, N, T> {
     /// ];
     ///
     /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect);
-    /// let mut tree = base.build_par(broccoli::RayonJoin);
+    /// let mut tree = base.build_par(broccoli::par::RayonJoin);
     /// ```
     pub fn build_par<'b>(&'b mut self, joiner: impl crate::Joinable) -> TreeInd<'a, 'b, N, T>
     where
@@ -367,7 +367,7 @@ where
     T::Num: Send + Sync,
     T: Send + Sync,
 {
-    let handler = query::colfind::builder::QueryParClosure::new(
+    let handler = queries::colfind::builder::QueryParClosure::new(
         tree,
         vec![Vec::new()],
         move |_| (vec![Vec::new()], vec![Vec::new()]),
