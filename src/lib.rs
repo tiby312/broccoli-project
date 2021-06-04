@@ -127,6 +127,8 @@ pub mod query{
     pub use queries::raycast::{CastAnswer,RayCast};
     pub use queries::knearest::{Knearest,KnearestResult};
     pub use queries::rect::RectIntersectErr;
+    pub use queries::nbody::GravEnum;
+    pub use queries::nbody::Nbody;
 }
 
 
