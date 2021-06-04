@@ -97,8 +97,6 @@ pub struct QueryBuilder<'a, 'node: 'a, T: Aabb> {
     vistr: VistrMut<'a, Node<'node, T>>,
 }
 
-
-
 pub struct QueryParClosure<T, A, B, C, D> {
     _p: PhantomData<T>,
     pub acc: A,
@@ -107,22 +105,16 @@ pub struct QueryParClosure<T, A, B, C, D> {
     pub collision: D,
 }
 
-
-
 impl<
-    T:Aabb,
-    A:Send,
-    B:Fn(&mut A) -> (A, A) + Copy + Send,
-    C:Fn(&mut A, A, A) + Copy + Send,
-    D:Fn(&mut A, PMut<T>, PMut<T>) + Copy + Send
-> QueryParClosure<T,A,B,C,D>{
-    pub fn new(_tree: &crate::Tree<T>,
-        acc: A,
-        split: B,
-        fold: C ,
-        collision: D,)->Self{
-
-            QueryParClosure {
+        T: Aabb,
+        A: Send,
+        B: Fn(&mut A) -> (A, A) + Copy + Send,
+        C: Fn(&mut A, A, A) + Copy + Send,
+        D: Fn(&mut A, PMut<T>, PMut<T>) + Copy + Send,
+    > QueryParClosure<T, A, B, C, D>
+{
+    pub fn new(_tree: &crate::Tree<T>, acc: A, split: B, fold: C, collision: D) -> Self {
+        QueryParClosure {
             _p: PhantomData,
             acc,
             split,
@@ -175,7 +167,6 @@ where
         (self.fold)(&mut self.acc, a.acc, b.acc)
     }
 }
-
 
 impl<'a, 'node: 'a, T: Aabb + Send + Sync> QueryBuilder<'a, 'node, T>
 where

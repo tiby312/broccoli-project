@@ -153,7 +153,6 @@ const fn log_2(x: u64) -> u64 {
     num_bits::<u64>() as u64 - x.leading_zeros() as u64 - 1
 }
 
-
 use crate::queries::colfind::builder::NotSortedQueryBuilder;
 ///A version of Tree where the elements are not sorted along each axis, like a KD Tree.
 /// For comparison, a normal kd-tree is provided by [`NotSorted`]. In this tree, the elements are not sorted
@@ -189,7 +188,6 @@ impl<'a, T: Aabb> NotSorted<'a, T> {
         self.0.get_height()
     }
 
-
     pub fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c, 'a, T> {
         NotSortedQueryBuilder::new(self.vistr_mut())
     }
@@ -208,9 +206,4 @@ impl<'a, T: Aabb> NotSorted<'a, T> {
     {
         NotSortedQueryBuilder::new(self.vistr_mut()).query_par(joiner, move |a, b| func(a, b));
     }
-
-
-
-
 }
-

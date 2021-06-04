@@ -1,6 +1,6 @@
 use super::super::tools;
-use super::CollisionHandler;
 use super::oned;
+use super::CollisionHandler;
 use super::*;
 
 pub struct NodeAxis<'a, 'node, T: Aabb, A: Axis> {

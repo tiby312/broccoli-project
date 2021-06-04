@@ -33,7 +33,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
 
         let mut rects = canvas.rects();
 
-        let mut handler = broccoli::query::raycast::from_closure(
+        let mut handler = broccoli::helper::raycast_from_closure(
             tree,
             (),
             |_, _, _| None,
@@ -46,7 +46,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         );
 
         if check_naive {
-            broccoli::query::raycast::assert_raycast(tree, ray, &mut handler);
+            broccoli::assert::assert_raycast(tree, ray, &mut handler);
         }
 
         let test = {

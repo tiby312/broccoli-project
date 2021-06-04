@@ -103,8 +103,6 @@ impl<'a, N: Num, T> TreeIndBase<'a, N, T> {
             orig: self.orig,
         }
     }
-
-
 }
 
 /// A less general tree that provides `collect` functions
@@ -121,8 +119,7 @@ pub struct TreeInd<'a, 'b, N: Num, T> {
     tree: Tree<'b, BBox<N, &'a mut T>>,
     orig: Ptr<[T]>,
 }
-impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
-
+impl<'a, 'b, N: Num, T> TreeInd<'a, 'b, N, T> {
     /// Collect all elements based off of a predicate and return a [`FilteredElements`].
     ///
     /// # Examples
@@ -168,7 +165,7 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
                 }
             }
         }
-        FilteredElements { orig, elems }
+        FilteredElements { elems, orig }
     }
 
     /// Find all colliding pairs based on a predicate and return a [`CollidingPairs`].
@@ -272,23 +269,18 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
     {
         let orig = Ptr(self.get_inner_elements_mut() as *mut _);
 
-        let cols =
-            collect_colliding_pairs_par_inner(self.get_tree_mut(), joiner, |a, b| {
-                match func(a, b) {
-                    Some(extra) => Some(ColPairPtr {
-                        first: Ptr(a as *mut _),
-                        second: Ptr(b as *mut _),
-                        extra,
-                    }),
-                    None => None,
-                }
-            });
+        let cols = collect_colliding_pairs_par_inner(self.get_tree_mut(), joiner, |a, b| {
+            func(a, b).map(|extra| ColPairPtr {
+                first: Ptr(a as *mut _),
+                second: Ptr(b as *mut _),
+                extra,
+            })
+        });
         CollidingPairsPar {
             cols,
             original: orig,
         }
     }
-
 
     #[inline(always)]
     pub fn get_inner_elements(&self) -> &[T] {
@@ -301,10 +293,9 @@ impl<'a,'b,N:Num,T> TreeInd<'a,'b,N,T>{
     }
 
     #[inline(always)]
-    pub fn get_tree_mut(&mut self) -> &mut Tree<'b,BBox<N, &'a mut T>> {
+    pub fn get_tree_mut(&mut self) -> &mut Tree<'b, BBox<N, &'a mut T>> {
         self
     }
-
 }
 
 #[repr(C)]
@@ -334,24 +325,17 @@ impl<'a, 'b, N: Num, T> core::ops::DerefMut for TreeInd<'a, 'b, N, T> {
     }
 }
 
-
 impl<'a, 'b, N: Num, T> TreeInd<'a, 'b, N, T> {
     #[inline(always)]
     pub(super) fn into_ptr(self) -> TreeIndPtr<N, T> {
         TreeIndPtr {
             tree: TreePtr {
-                _inner: unsafe { self.tree.inner.convert() }
+                _inner: unsafe { self.tree.inner.convert() },
             },
             orig: self.orig,
         }
     }
 }
-
-
-
-
-
-
 
 fn collect_colliding_pairs_par_inner<
     'a,

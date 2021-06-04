@@ -128,8 +128,8 @@ pub use constant::*;
 pub use mutable::*;
 
 mod mutable {
-    use super::*;
     use super::tools::get_section_mut;
+    use super::*;
     fn foo<'a, 'b: 'a, T: Aabb>(node: PMut<'a, Node<'b, T>>) -> PMut<'a, [T]> {
         node.into_range()
     }
@@ -188,8 +188,8 @@ mod mutable {
 
 mod constant {
 
-    use super::*;
     use super::tools::get_section;
+    use super::*;
     fn foo<'a, 'b: 'a, T: Aabb>(node: &'a Node<'b, T>) -> &'a [T] {
         &node.range
     }
@@ -337,4 +337,3 @@ pub fn assert_for_all_in_rect_mut<T: Aabb>(tree: &mut crate::Tree<T>, rect: &axg
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
-

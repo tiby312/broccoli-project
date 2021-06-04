@@ -1,17 +1,16 @@
 //! Contains query modules for each query algorithm.
 
-use crate::node::*;
-use crate::parallel;
-use crate::pmut::*;
 use crate::build::default_axis;
 use crate::build::Splitter;
 use crate::build::SplitterEmpty;
+use crate::node::*;
+use crate::parallel;
+use crate::pmut::*;
 use crate::util::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use compt::*;
 use core::marker::PhantomData;
-
 
 pub mod colfind;
 
@@ -26,7 +25,6 @@ pub mod nbody;
 pub mod rect;
 
 mod tools;
-
 
 ///panics if a broken broccoli tree invariant is detected.
 ///For debugging purposes only.

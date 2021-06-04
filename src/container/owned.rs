@@ -116,7 +116,7 @@ where
         let tree = crate::new_par(joiner, &mut bots);
 
         let inner = TreePtr {
-            _inner: unsafe { tree.inner.convert() }
+            _inner: unsafe { tree.inner.convert() },
         };
         TreeOwned { inner, _bots: bots }
     }
@@ -127,7 +127,7 @@ impl<T: Aabb> TreeOwned<T> {
         let tree = crate::new(&mut bots);
 
         let inner = TreePtr {
-            _inner: unsafe { tree.inner.convert() }
+            _inner: unsafe { tree.inner.convert() },
         };
         TreeOwned { inner, _bots: bots }
     }

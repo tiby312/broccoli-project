@@ -83,4 +83,3 @@ pub fn query_sweep_mut<T: Aabb>(
         },
     );
 }
-

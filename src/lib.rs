@@ -65,75 +65,65 @@ extern crate alloc;
 pub use axgeom;
 pub use compt;
 
+use crate::build::*;
 use crate::node::*;
 use crate::pmut::*;
-use crate::build::*;
 use crate::util::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use compt::Visitor;
-
 
 #[cfg(test)]
 mod tests;
 
 pub mod build;
 
-
-
-
-
-
 mod queries;
 
 ///Assertion functions to ensure correct results.
-pub mod assert{
+pub mod assert {
     use super::queries;
-    pub use queries::raycast::assert_raycast;
-    pub use queries::knearest::assert_k_nearest_mut;
-    pub use queries::rect::assert_for_all_in_rect_mut;
-    pub use queries::rect::assert_for_all_intersect_rect_mut;
-    pub use queries::rect::assert_for_all_not_in_rect_mut;    
     pub use queries::assert_tree_invariants;
     pub use queries::colfind::assert_query;
+    pub use queries::knearest::assert_k_nearest_mut;
+    pub use queries::raycast::assert_raycast;
+    pub use queries::rect::assert_for_all_in_rect_mut;
+    pub use queries::rect::assert_for_all_intersect_rect_mut;
+    pub use queries::rect::assert_for_all_not_in_rect_mut;
 }
 
 ///Naive query functions to compare against broccoli.
-pub mod naive{
+pub mod naive {
     use super::queries;
-    pub use queries::raycast::raycast_naive_mut;
+    pub use queries::colfind::query_naive_mut;
+    pub use queries::colfind::query_sweep_mut;
     pub use queries::knearest::naive_k_nearest_mut;
+    pub use queries::nbody::naive_nbody_mut;
+    pub use queries::raycast::raycast_naive_mut;
     pub use queries::rect::naive_for_all_in_rect_mut;
     pub use queries::rect::naive_for_all_intersect_rect_mut;
     pub use queries::rect::naive_for_all_not_in_rect_mut;
-    pub use queries::colfind::query_naive_mut;
-    pub use queries::colfind::query_sweep_mut;
-    pub use queries::nbody::naive_mut;    
 }
 
 ///Helper functions to construct objects from closures that implement query traits.
-pub mod helper{
+pub mod helper {
     use super::queries;
-    pub use queries::raycast::{from_closure as raycast_from_closure,default_rect_raycast};
-    pub use queries::knearest::{from_closure as knearest_from_closure,default_rect_knearest};
     pub use queries::colfind::builder::QueryParClosure;
+    pub use queries::knearest::{default_rect_knearest, from_closure as knearest_from_closure};
+    pub use queries::raycast::{default_rect_raycast, from_closure as raycast_from_closure};
 }
 
 ///Items related to querying.
-pub mod query{
+pub mod query {
     use super::queries;
+    pub use queries::colfind::builder::{NotSortedQueryBuilder, QueryBuilder};
     pub use queries::draw::DividerDrawer;
-    pub use queries::colfind::builder::{QueryBuilder,NotSortedQueryBuilder};
-    pub use queries::raycast::{CastAnswer,RayCast};
-    pub use queries::knearest::{Knearest,KnearestResult};
-    pub use queries::rect::RectIntersectErr;
+    pub use queries::knearest::{Knearest, KnearestResult};
     pub use queries::nbody::GravEnum;
     pub use queries::nbody::Nbody;
+    pub use queries::raycast::{CastAnswer, RayCast};
+    pub use queries::rect::RectIntersectErr;
 }
-
-
-
-
 
 pub mod pmut;
 
@@ -152,11 +142,10 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
 
-
 mod parallel;
 use par::*;
 ///Items     to parallel build/query functions.
-pub mod par{
+pub mod par {
     #[cfg(feature = "use_rayon")]
     pub use self::rayonjoin::*;
     #[cfg(feature = "use_rayon")]
@@ -219,11 +208,6 @@ impl<T: ?Sized> Clone for Ptr<T> {
 unsafe impl<T: ?Sized> Send for Ptr<T> {}
 unsafe impl<T: ?Sized> Sync for Ptr<T> {}
 
-
-
-
-
-
 use build::TreeBuilder;
 
 pub mod container;
@@ -232,13 +216,13 @@ type TreeInner<N> = compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order:
 
 #[repr(transparent)]
 struct TreePtr<T: Aabb> {
-    _inner: TreeInner<NodePtr<T>>
+    _inner: TreeInner<NodePtr<T>>,
 }
 
 /// A space partitioning tree.
 #[repr(transparent)]
 pub struct Tree<'a, T: Aabb> {
-    inner: TreeInner<Node<'a, T>>
+    inner: TreeInner<Node<'a, T>>,
 }
 
 ///Create a [`Tree`].
@@ -270,10 +254,7 @@ where
     Tree::new_par(joiner, bots)
 }
 
-
 impl<'a, T: Aabb> Tree<'a, T> {
-
-
     ///Create a [`Tree`].
     ///
     /// # Examples
@@ -357,7 +338,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub unsafe fn from_raw_parts(
         inner: compt::dfs_order::CompleteTreeContainer<Node<'a, T>, compt::dfs_order::PreOrder>,
     ) -> Self {
-        Tree { inner}
+        Tree { inner }
     }
 
     /// # Examples
@@ -405,7 +386,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
         PMut::new(self.inner.get_nodes_mut())
     }
 
-
     /// # Examples
     ///
     ///```
@@ -423,7 +403,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
         VistrMut::new(self.inner.vistr_mut())
     }
-
 
     /// # Examples
     ///
@@ -443,7 +422,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn vistr(&self) -> Vistr<Node<'a, T>> {
         self.inner.vistr()
     }
-    
+
     /// Return the underlying slice of aabbs in the order sorted during tree construction.
     ///
     /// # Examples
@@ -524,7 +503,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// assert_eq!(bots[1].inner,1);
     ///```
     pub fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<T>, PMut<T>)) {
-        queries::colfind::builder::QueryBuilder::new(self.vistr_mut()).query_seq(move |a, b| func(a, b));
+        queries::colfind::builder::QueryBuilder::new(self.vistr_mut())
+            .query_seq(move |a, b| func(a, b));
     }
 
     /// The parallel version of [`Tree::find_colliding_pairs_mut`].
@@ -551,7 +531,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
         T: Send + Sync,
         T::Num: Send + Sync,
     {
-        queries::colfind::builder::QueryBuilder::new(self.vistr_mut()).query_par(joiner, move |a, b| func(a, b));
+        queries::colfind::builder::QueryBuilder::new(self.vistr_mut())
+            .query_par(joiner, move |a, b| func(a, b));
     }
 
     /// For analysis, allows the user to query with custom settings
@@ -573,7 +554,9 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// assert_eq!(bots[0].inner,1);
     /// assert_eq!(bots[1].inner,1);
     ///```
-    pub fn new_colfind_builder<'c>(&'c mut self) -> queries::colfind::builder::QueryBuilder<'c, 'a, T> {
+    pub fn new_colfind_builder<'c>(
+        &'c mut self,
+    ) -> queries::colfind::builder::QueryBuilder<'c, 'a, T> {
         queries::colfind::builder::QueryBuilder::new(self.vistr_mut())
     }
 
@@ -727,15 +710,13 @@ impl<'a, T: Aabb> Tree<'a, T> {
         point: Vec2<K::N>,
         num: usize,
         ktrait: &mut K,
-    ) -> queries::knearest::KResult<'b,K::T>
-    {
-        queries::knearest::knearest_mut(self,point,num,ktrait)
+    ) -> queries::knearest::KResult<'b, K::T> {
+        queries::knearest::knearest_mut(self, point, num, ktrait)
     }
-
 
     ///Perform nbody
     ///The tree is taken by value so that its nodes can be expended to include more data.
-    pub fn nbody_mut_par<N: queries::nbody::Nbody<T=T,N=T::Num>>(
+    pub fn nbody_mut_par<N: queries::nbody::Nbody<T = T, N = T::Num>>(
         self,
         joiner: impl crate::Joinable,
         no: &mut N,
@@ -746,13 +727,13 @@ impl<'a, T: Aabb> Tree<'a, T> {
         <N::T as Aabb>::Num: Send + Sync,
         N::Mass: Send + Sync,
     {
-        queries::nbody::nbody_mut_par(self,joiner,no)
+        queries::nbody::nbody_mut_par(self, joiner, no)
     }
 
     ///Perform nbody
     ///The tree is taken by value so that its nodes can be expended to include more data.
-    pub fn nbody_mut<N: queries::nbody::Nbody<T=T,N=T::Num>>(self, no: &mut N) -> Self {
-        queries::nbody::nbody_mut(self,no)
+    pub fn nbody_mut<N: queries::nbody::Nbody<T = T, N = T::Num>>(self, no: &mut N) -> Self {
+        queries::nbody::nbody_mut(self, no)
     }
 
     /// Find the elements that are hit by a ray.
@@ -797,10 +778,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
         &'b mut self,
         ray: axgeom::Ray<T::Num>,
         rtrait: &mut R,
-    ) -> axgeom::CastResult<queries::raycast::CastAnswer<'b, T>>
-    {
-        queries::raycast::raycast_mut(self,ray,rtrait)
-        
+    ) -> axgeom::CastResult<queries::raycast::CastAnswer<'b, T>> {
+        queries::raycast::raycast_mut(self, ray, rtrait)
     }
 
     /// # Examples
@@ -817,8 +796,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// assert_eq!(test[0],&rect(0,10,0,10));
     ///
     ///```
-    pub fn for_all_intersect_rect<'b>(&'b self, rect: &Rect<T::Num>, func: impl FnMut(&'b T))
-    {
+    pub fn for_all_intersect_rect<'b>(&'b self, rect: &Rect<T::Num>, func: impl FnMut(&'b T)) {
         queries::rect::for_all_intersect_rect(default_axis(), self.vistr(), rect, func);
     }
 
@@ -839,10 +817,13 @@ impl<'a, T: Aabb> Tree<'a, T> {
         &'b mut self,
         rect: &Rect<T::Num>,
         mut func: impl FnMut(PMut<'b, T>),
-    ){
-        queries::rect::for_all_intersect_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| {
-            (func)(a)
-        });
+    ) {
+        queries::rect::for_all_intersect_rect_mut(
+            default_axis(),
+            self.vistr_mut(),
+            rect,
+            move |a| (func)(a),
+        );
     }
 
     /// # Examples
@@ -858,8 +839,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     /// assert_eq!(test[0],&rect(0,10,0,10));
     ///
-    pub fn for_all_in_rect<'b>(&'b self, rect: &Rect<T::Num>, func: impl FnMut(&'b T))
-    {
+    pub fn for_all_in_rect<'b>(&'b self, rect: &Rect<T::Num>, func: impl FnMut(&'b T)) {
         queries::rect::for_all_in_rect(default_axis(), self.vistr(), rect, func);
     }
 
@@ -880,8 +860,10 @@ impl<'a, T: Aabb> Tree<'a, T> {
         &'b mut self,
         rect: &Rect<T::Num>,
         mut func: impl FnMut(PMut<'b, T>),
-    ){
-        queries::rect::for_all_in_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| (func)(a));
+    ) {
+        queries::rect::for_all_in_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| {
+            (func)(a)
+        });
     }
 
     /// # Examples
@@ -901,9 +883,10 @@ impl<'a, T: Aabb> Tree<'a, T> {
         &'b mut self,
         rect: &Rect<T::Num>,
         mut func: impl FnMut(PMut<'b, T>),
-    )
-    {
-        queries::rect::for_all_not_in_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| (func)(a));
+    ) {
+        queries::rect::for_all_not_in_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| {
+            (func)(a)
+        });
     }
 
     /// If we have two non intersecting rectangles, it is safe to return to the user two sets of mutable references
@@ -936,9 +919,3 @@ impl<'a, T: Aabb> Tree<'a, T> {
         queries::rect::MultiRect::new(self.vistr_mut())
     }
 }
-
-
-
-
-
-

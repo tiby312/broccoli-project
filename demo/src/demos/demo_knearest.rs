@@ -52,7 +52,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         let mut rects = canvas.rects();
         let tree = tree.as_tree_mut();
 
-        let mut handler = broccoli::query::knearest::from_closure(
+        let mut handler = broccoli::helper::knearest_from_closure(
             tree,
             (),
             |_, _, _| None,
@@ -65,7 +65,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         );
 
         if check_naive {
-            broccoli::query::knearest::assert_k_nearest_mut(tree, cursor, 3, &mut handler);
+            broccoli::assert::assert_k_nearest_mut(tree, cursor, 3, &mut handler);
         }
 
         let mut vv = {

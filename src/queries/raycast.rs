@@ -217,10 +217,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
     }
 
     fn get_dis(&self) -> Option<T::Num> {
-        match &self.closest {
-            Some(x) => Some(x.1),
-            None => None,
-        }
+        self.closest.as_ref().map(|x| x.1)
     }
 }
 
@@ -366,7 +363,6 @@ pub fn raycast_naive_mut<'a, T: Aabb>(
     }
 }
 
-
 ///What is returned when the ray hits something.
 ///It provides the length of the ray,
 ///as well as all solutions in a unspecified order.
@@ -375,15 +371,11 @@ pub struct CastAnswer<'a, T: Aabb> {
     pub mag: T::Num,
 }
 
-
-
 pub fn raycast_mut<'b, R: RayCast>(
-    tree:&'b mut Tree<R::T>,
+    tree: &'b mut Tree<R::T>,
     ray: axgeom::Ray<R::N>,
     rtrait: &mut R,
-) -> axgeom::CastResult<CastAnswer<'b, R::T>>
-{
-    
+) -> axgeom::CastResult<CastAnswer<'b, R::T>> {
     let rtrait = RayCastBorrow(rtrait);
     let dt = tree.vistr_mut().with_depth(Depth(0));
 

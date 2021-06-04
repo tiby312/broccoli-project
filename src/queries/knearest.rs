@@ -3,8 +3,6 @@
 use super::*;
 use core::cmp::Ordering;
 
-
-
 ///The geometric functions that the user must provide.
 pub trait Knearest {
     type T: Aabb<Num = Self::N>;
@@ -437,14 +435,12 @@ pub fn naive_k_nearest_mut<'a, T: Aabb>(
     }
 }
 
-
-pub fn knearest_mut<'a,'b, K: Knearest>(
-    tree:&'a mut Tree<K::T>,
+pub fn knearest_mut<'a, K: Knearest>(
+    tree: &'a mut Tree<K::T>,
     point: Vec2<K::N>,
     num: usize,
     ktrait: &mut K,
-) -> KResult<'a,K::T>
-{
+) -> KResult<'a, K::T> {
     let dt = tree.vistr_mut().with_depth(Depth(0));
 
     let knear = KnearestBorrow(ktrait);

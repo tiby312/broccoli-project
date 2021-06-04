@@ -48,7 +48,7 @@ struct NodeWrapper<'a, T: Aabb, M> {
 }
 
 ///Naive version simply visits every pair.
-pub fn naive_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
+pub fn naive_nbody_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
     tools::for_every_pair(bots, func);
 }
 
@@ -325,7 +325,6 @@ where
 ///Perform nbody
 ///The tree is taken by value so that its nodes can be expended to include more data.
 pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
-    
     let mut newtree = convert_tree_into_wrapper(tree.into_inner());
 
     //calculate node masses of each node.
