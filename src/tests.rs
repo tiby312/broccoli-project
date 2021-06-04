@@ -16,7 +16,7 @@ fn test() {
 
     let mut tree = crate::new(&mut bots);
 
-    crate::query::assert_tree_invariants(&tree);
+    queries::assert_tree_invariants(&tree);
 
     assert_length(tree.vistr_mut().dfs_preorder_iter());
     assert_length(tree.vistr().dfs_preorder_iter());

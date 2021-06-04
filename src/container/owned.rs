@@ -4,7 +4,7 @@ use super::*;
 ///
 /// ```rust
 /// use axgeom::*;
-/// use broccoli::{*,container::*,node::*,prelude::*};
+/// use broccoli::{*,container::*,node::*};
 ///
 /// fn not_lifetimed()->TreeIndOwned<i32,BBox<i32,f32>>
 /// {
@@ -88,7 +88,7 @@ impl<N: Num, T> TreeIndOwned<N, T> {
 /// An owned `(Rect<N>,T)` example
 ///
 /// ```rust
-/// use broccoli::{node::BBox,bbox,rect,prelude::*,container::*};
+/// use broccoli::{node::BBox,bbox,rect,container::*};
 ///
 /// fn not_lifetimed()->TreeOwned<BBox<i32,f32>>
 /// {
@@ -116,7 +116,7 @@ where
         let tree = crate::new_par(joiner, &mut bots);
 
         let inner = TreePtr {
-            _inner: unsafe { tree.inner.convert() }
+            _inner: unsafe { tree.inner.convert() },
         };
         TreeOwned { inner, _bots: bots }
     }
@@ -127,7 +127,7 @@ impl<T: Aabb> TreeOwned<T> {
         let tree = crate::new(&mut bots);
 
         let inner = TreePtr {
-            _inner: unsafe { tree.inner.convert() }
+            _inner: unsafe { tree.inner.convert() },
         };
         TreeOwned { inner, _bots: bots }
     }

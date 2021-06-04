@@ -16,7 +16,7 @@ impl TheoryRes {
 
             maker.reset();
 
-            let levelc2 = tree.new_builder().query_with_splitter_seq(
+            let levelc2 = tree.new_colfind_builder().query_with_splitter_seq(
                 |a, b| {
                     a.unpack_inner().x += 1.0;
                     b.unpack_inner().y += 1.0;

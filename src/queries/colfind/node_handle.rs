@@ -1,7 +1,7 @@
 use super::super::tools;
+use super::oned;
 use super::CollisionHandler;
-use crate::query::colfind::oned;
-use crate::query::*;
+use super::*;
 
 pub struct NodeAxis<'a, 'node, T: Aabb, A: Axis> {
     pub node: PMut<'a, Node<'node, T>>,

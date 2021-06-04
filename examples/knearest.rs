@@ -1,5 +1,5 @@
 use axgeom::vec2;
-use broccoli::{bbox, prelude::*, rect};
+use broccoli::{bbox, rect};
 
 fn distance_squared(a: isize, b: isize) -> isize {
     let a = (a - b).abs();
@@ -19,7 +19,7 @@ fn main() {
 
     let mut tree = broccoli::new(&mut bots);
 
-    let mut handler = broccoli::query::knearest::from_closure(
+    let mut handler = broccoli::helper::knearest_from_closure(
         &tree,
         (),
         |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),

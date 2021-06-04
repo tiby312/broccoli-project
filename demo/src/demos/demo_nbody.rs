@@ -43,7 +43,6 @@ impl Default for NodeMass {
 }
 
 use broccoli::pmut::*;
-use broccoli::query::nbody::*;
 use core::marker::PhantomData;
 
 #[derive(Clone, Copy)]
@@ -68,7 +67,7 @@ impl<'a> broccoli::build::Splitter for Bla<'a> {
         //do nothing
     }
 }
-impl<'b> broccoli::query::nbody::Nbody for Bla<'b> {
+impl<'b> broccoli::query::Nbody for Bla<'b> {
     type Mass = NodeMass;
     type T = BBox<f32, &'b mut Bot>;
     type N = f32;
@@ -158,7 +157,7 @@ impl<'b> broccoli::query::nbody::Nbody for Bla<'b> {
     }
 
     fn gravitate_self(&mut self, a: PMut<[Self::T]>) {
-        broccoli::query::nbody::naive_mut(a, |a, b| {
+        broccoli::naive::naive_nbody_mut(a, |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
 
             let _ = duckduckgeo::gravitate(
@@ -232,8 +231,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             //let now = Instant::now();
             let tree = broccoli::new_par(RayonJoin, &mut k);
 
-            let mut tree = broccoli::query::nbody::nbody_mut_par(
-                tree,
+            let mut tree = tree.nbody_mut_par(
                 RayonJoin,
                 &mut Bla {
                     _num_pairs_checked: 0,

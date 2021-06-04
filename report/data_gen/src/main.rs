@@ -33,10 +33,8 @@ mod inner_prelude {
     pub use broccoli::build::*;
     pub use broccoli::node::*;
     pub use broccoli::pmut::PMut;
-    pub use broccoli::prelude::*;
-    pub use broccoli::query::colfind::NotSortedQueries;
     pub use broccoli::query::*;
-    pub use broccoli::RayonJoin;
+    pub use broccoli::par::*;
     pub use broccoli::*;
     pub use poloto::prelude::*;
     pub use serde::Serialize;
@@ -185,7 +183,6 @@ fn profile_test() {
     let grow = DEFAULT_GROW;
     let num_bots = 50_000;
     use crate::support::*;
-    use broccoli::prelude::*;
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
@@ -239,8 +236,7 @@ fn main() {
             for _ in 0..30 {
                 let c0 = datanum::datanum_test(|maker| {
                     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
-                    use broccoli::prelude::*;
-
+                    
                     let mut tree = broccoli::new(&mut bots);
                     let mut num_collide = 0;
 

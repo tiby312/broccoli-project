@@ -1,90 +1,130 @@
-//! Provides `collect()` functions through the [`FromSlice`] trait.
-//!
-
 use super::*;
-use crate::prelude::*;
-use crate::Ptr;
-use crate::Tree;
 
+///This is a `Vec<BBox<N,&'a mut T>>` under the hood
+///with the added guarentee that all the `&'a mut T`
+///point to the same slice.
 ///
-/// A trait indicating that this is a tree that is composed of pointers
-/// to the same underlying slice. Unsafe because the user must guarantee
-/// that all the pointers in the tree originate from the same slice.
-///
-pub unsafe trait FromSlice<'a, 'b>
-where
-    Self::T: HasInner<Inner = &'a mut Self::Inner>,
-{
-    ///The tree must be filled with T, which must have a pointer to `Self::Inner`.
-    type T: Aabb<Num = Self::Num> + HasInner<Inner = &'a mut Self::Inner> + 'b;
-    ///The number type of the aabb.
-    type Num: Num;
-    ///The type that the pointers are pointing to.
-    ///The original slice is composed of this.
-    type Inner: 'a;
-
-    ///Return a reference to the underlying tree.
+///From this struct a user can create a [`TreeInd`].
+pub struct TreeIndBase<'a, N: Num, T> {
+    aabbs: Box<[BBox<N, &'a mut T>]>,
+    orig: Ptr<[T]>,
+}
+impl<'a, N: Num, T> TreeIndBase<'a, N, T> {
+    /// Create a [`TreeIndBase`].
     ///
     /// # Examples
     ///
     ///```
-    /// use broccoli::prelude::*;
-    /// let mut aabbs = [
-    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
-    /// ];
-    ///
-    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect);
-    /// let mut tree_cont = base.build();
-    /// tree_cont.get_tree_mut().find_colliding_pairs_mut(|a,b|{});
-    /// ```
-    fn get_tree_mut(&mut self) -> &mut Tree<'b, Self::T>;
-
-    /// Retrieve the underlying list of elements.
-    /// Unlike [`Tree::get_elements_mut()`] which
-    /// returns the aabbs of the tree, this returns the
-    /// list of T that each aabb points to.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::prelude::*;
     /// let mut aabbs = [
     ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     /// ];
     ///
     /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect);
     /// let mut tree = base.build();
-    /// let bots=tree.get_inner_elements();
-    ///
     /// ```
-    fn get_inner_elements(&self) -> &[Self::Inner];
+    pub fn new(
+        bots: &'a mut [T],
+        mut func: impl FnMut(&mut T) -> Rect<N>,
+    ) -> TreeIndBase<'a, N, T> {
+        let orig = Ptr(bots as *mut _);
 
-    /// Retrieve the underlying list of elements.
-    /// Unlike [`Tree::get_elements_mut()`] which
-    /// returns the aabbs of the tree, this returns the
-    /// list of T that each aabb points to.
+        TreeIndBase {
+            orig,
+            aabbs: bots
+                .iter_mut()
+                .map(|a| crate::bbox(func(a), a))
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+        }
+    }
+
+    /// Extra the internals of a [`TreeIndBase`].
     ///
     /// # Examples
     ///
     ///```
-    /// use broccoli::prelude::*;
+    /// let mut aabbs = [
+    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    /// ];
+    ///
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect);
+    /// let mut inner=base.into_inner();
+    /// let mut tree = broccoli::new(&mut inner);
+    /// //We can make a tree using the internals, but we lost the guarentee
+    /// //that all the `&'a mut T` belong to the same slice.
+    /// ```
+    #[inline(always)]
+    pub fn into_inner(self) -> Box<[BBox<N, &'a mut T>]> {
+        self.aabbs
+    }
+
+    /// Build a [`TreeInd`].
+    ///
+    /// # Examples
+    ///
+    ///```
     /// let mut aabbs = [
     ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     /// ];
     ///
     /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect);
     /// let mut tree = base.build();
-    /// let bots=tree.get_inner_elements_mut();
-    ///
     /// ```
-    fn get_inner_elements_mut(&mut self) -> &mut [Self::Inner];
+    pub fn build<'b>(&'b mut self) -> TreeInd<'a, 'b, N, T> {
+        let tree = crate::new(&mut self.aabbs);
 
+        TreeInd {
+            tree,
+            orig: self.orig,
+        }
+    }
+
+    /// Build a [`TreeInd`].
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// let mut aabbs = [
+    ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
+    /// ];
+    ///
+    /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect);
+    /// let mut tree = base.build_par(broccoli::par::RayonJoin);
+    /// ```
+    pub fn build_par<'b>(&'b mut self, joiner: impl crate::Joinable) -> TreeInd<'a, 'b, N, T>
+    where
+        N: Send + Sync,
+        T: Send + Sync,
+    {
+        let tree = crate::new_par(joiner, &mut self.aabbs);
+
+        TreeInd {
+            tree,
+            orig: self.orig,
+        }
+    }
+}
+
+/// A less general tree that provides `collect` functions
+/// and also derefs to a [`Tree`].
+///
+/// [`TreeInd`] assumes there is a layer of indirection where
+/// all the pointers point to the same slice.
+/// It uses this assumption to provide `collect` functions that allow
+/// storing query results that can then be iterated through multiple times
+/// quickly.
+///
+#[repr(C)]
+pub struct TreeInd<'a, 'b, N: Num, T> {
+    tree: Tree<'b, BBox<N, &'a mut T>>,
+    orig: Ptr<[T]>,
+}
+impl<'a, 'b, N: Num, T> TreeInd<'a, 'b, N, T> {
     /// Collect all elements based off of a predicate and return a [`FilteredElements`].
     ///
     /// # Examples
     ///
     ///```
-    /// use broccoli::prelude::*;
     /// let mut aabbs = [
     ///    broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     ///    broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
@@ -110,10 +150,10 @@ where
     ///         a.inner+=1;
     ///     }
     /// }
-    fn collect_all<D: Send + Sync>(
+    pub fn collect_all<D: Send + Sync>(
         &mut self,
-        mut func: impl FnMut(&Rect<Self::Num>, &mut Self::Inner) -> Option<D>,
-    ) -> FilteredElements<Self::Inner, D> {
+        mut func: impl FnMut(&Rect<N>, &mut T) -> Option<D>,
+    ) -> FilteredElements<T, D> {
         let orig = Ptr(self.get_inner_elements_mut() as *mut _);
 
         let mut elems = Vec::new();
@@ -125,7 +165,7 @@ where
                 }
             }
         }
-        FilteredElements { orig, elems }
+        FilteredElements { elems, orig }
     }
 
     /// Find all colliding pairs based on a predicate and return a [`CollidingPairs`].
@@ -133,7 +173,6 @@ where
     /// # Examples
     ///
     ///```
-    /// use broccoli::prelude::*;
     /// let mut aabbs = [
     ///     broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     ///     broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
@@ -158,10 +197,10 @@ where
     ///         b.inner+=1;
     ///     })
     /// }
-    fn collect_colliding_pairs<D: Send + Sync>(
+    pub fn collect_colliding_pairs<D: Send + Sync>(
         &mut self,
-        mut func: impl FnMut(&mut Self::Inner, &mut Self::Inner) -> Option<D> + Send + Sync,
-    ) -> CollidingPairs<Self::Inner, D> {
+        mut func: impl FnMut(&mut T, &mut T) -> Option<D> + Send + Sync,
+    ) -> CollidingPairs<T, D> {
         let orig = Ptr(self.get_inner_elements_mut() as *mut _);
 
         let mut cols: Vec<_> = Vec::new();
@@ -188,13 +227,13 @@ where
         CollidingPairs { cols, orig }
     }
 
-    /// The parallel version of [`FromSlice::collect_colliding_pairs`] that instead
+    /// The parallel version of [`TreeInd::collect_colliding_pairs`] that instead
     /// returns a [`CollidingPairsPar`].
     ///
     /// # Examples
     ///
     ///```
-    /// use broccoli::{RayonJoin,prelude::*};
+    /// use broccoli::par::RayonJoin;
     /// let mut aabbs = [
     ///     broccoli::bbox(broccoli::rect(0isize, 10, 0, 10), 0),
     ///     broccoli::bbox(broccoli::rect(15, 20, 15, 20), 1),
@@ -219,31 +258,81 @@ where
     ///         b.inner+=1;
     ///     })
     /// }
-    fn collect_colliding_pairs_par<D: Send + Sync>(
+    pub fn collect_colliding_pairs_par<D: Send + Sync>(
         &mut self,
         joiner: impl crate::Joinable,
-        func: impl Fn(&mut Self::Inner, &mut Self::Inner) -> Option<D> + Send + Sync + Copy,
-    ) -> CollidingPairsPar<Self::Inner, D>
+        func: impl Fn(&mut T, &mut T) -> Option<D> + Send + Sync + Copy,
+    ) -> CollidingPairsPar<T, D>
     where
-        Self::T: Send + Sync,
-        Self::Num: Send + Sync,
+        T: Send + Sync,
+        N: Send + Sync,
     {
         let orig = Ptr(self.get_inner_elements_mut() as *mut _);
 
-        let cols =
-            collect_colliding_pairs_par_inner(self.get_tree_mut(), joiner, |a, b| {
-                match func(a, b) {
-                    Some(extra) => Some(ColPairPtr {
-                        first: Ptr(a as *mut _),
-                        second: Ptr(b as *mut _),
-                        extra,
-                    }),
-                    None => None,
-                }
-            });
+        let cols = collect_colliding_pairs_par_inner(self.get_tree_mut(), joiner, |a, b| {
+            func(a, b).map(|extra| ColPairPtr {
+                first: Ptr(a as *mut _),
+                second: Ptr(b as *mut _),
+                extra,
+            })
+        });
         CollidingPairsPar {
             cols,
             original: orig,
+        }
+    }
+
+    #[inline(always)]
+    pub fn get_inner_elements(&self) -> &[T] {
+        unsafe { &*self.orig.0 }
+    }
+
+    #[inline(always)]
+    pub fn get_inner_elements_mut(&mut self) -> &mut [T] {
+        unsafe { &mut *self.orig.0 }
+    }
+
+    #[inline(always)]
+    pub fn get_tree_mut(&mut self) -> &mut Tree<'b, BBox<N, &'a mut T>> {
+        self
+    }
+}
+
+#[repr(C)]
+pub(super) struct TreeIndPtr<N: Num, T> {
+    pub(super) tree: TreePtr<BBox<N, Ptr<T>>>,
+    pub(super) orig: Ptr<[T]>,
+}
+
+impl<'a, 'b, N: Num, T> From<TreeInd<'a, 'b, N, T>> for Tree<'b, BBox<N, &'a mut T>> {
+    #[inline(always)]
+    fn from(a: TreeInd<'a, 'b, N, T>) -> Self {
+        a.tree
+    }
+}
+
+impl<'a, 'b, N: Num, T> core::ops::Deref for TreeInd<'a, 'b, N, T> {
+    type Target = Tree<'b, BBox<N, &'a mut T>>;
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        &self.tree
+    }
+}
+impl<'a, 'b, N: Num, T> core::ops::DerefMut for TreeInd<'a, 'b, N, T> {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.tree
+    }
+}
+
+impl<'a, 'b, N: Num, T> TreeInd<'a, 'b, N, T> {
+    #[inline(always)]
+    pub(super) fn into_ptr(self) -> TreeIndPtr<N, T> {
+        TreeIndPtr {
+            tree: TreePtr {
+                _inner: unsafe { self.tree.inner.convert() },
+            },
+            orig: self.orig,
         }
     }
 }
@@ -262,7 +351,7 @@ where
     T::Num: Send + Sync,
     T: Send + Sync,
 {
-    let handler = crate::query::colfind::builder::from_closure(
+    let handler = queries::colfind::builder::QueryParClosure::new(
         tree,
         vec![Vec::new()],
         move |_| (vec![Vec::new()], vec![Vec::new()]),
@@ -277,14 +366,13 @@ where
         },
     );
 
-    use crate::query::colfind::builder::*;
-    tree.new_builder()
+    tree.new_colfind_builder()
         .query_par_ext(joiner, handler, SplitterEmpty)
         .0
-        .consume()
+        .acc
 }
 
-///Contains a filtered list of all elements in the tree from calling [`FromSlice::collect_all`].
+///Contains a filtered list of all elements in the tree from calling [`TreeInd::collect_all`].
 pub struct FilteredElements<T, D> {
     elems: Vec<(Ptr<T>, D)>,
     orig: Ptr<[T]>,
@@ -314,7 +402,7 @@ struct ColPairPtr<T, D> {
     second: Ptr<T>,
     extra: D,
 }
-///CollidingPairs created via [`FromSlice::collect_colliding_pairs`]
+///CollidingPairs created via [`TreeInd::collect_colliding_pairs`]
 pub struct CollidingPairs<T, D> {
     ///See collect_intersections_list()
     ///The same elements can be part of
@@ -360,7 +448,7 @@ impl<T, D> CollidingPairs<T, D> {
     }
 }
 
-///CollidingPairsPar created via [`FromSlice::collect_colliding_pairs_par`]
+///CollidingPairsPar created via [`TreeInd::collect_colliding_pairs_par`]
 ///All colliding pairs partitioned into
 ///mutually exclusive sets so that they can be traversed in parallel
 pub struct CollidingPairsPar<T, D> {

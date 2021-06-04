@@ -8,8 +8,8 @@ pub mod prelude {
     pub use broccoli::build::*;
     pub use broccoli::compt;
     pub use broccoli::node::*;
-    pub use broccoli::prelude::*;
-    pub use broccoli::RayonJoin;
+    pub use broccoli::par::RayonJoin;
+    pub use broccoli::query::*;
     //pub use broccoli::rayon;
     pub use dists::uniform_rand::UniformRandGen;
     pub use duckduckgeo::array2_inner_into;

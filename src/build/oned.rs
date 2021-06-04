@@ -15,7 +15,6 @@ pub fn bin_middle_left_right<'b, A: Axis, X: Aabb>(
     med: &X::Num,
     bots: &'b mut [X],
 ) -> Binned<'b, X> {
-
     let bot_len = bots.len();
 
     let mut left_end = 0;
@@ -54,8 +53,8 @@ pub fn bin_middle_left_right<'b, A: Axis, X: Aabb>(
     //println!("middile left right={:?}",(middle.len(),left.len(),right.len()));
     debug_assert!(left.len() + right.len() + middle.len() == bot_len);
     Binned {
-        left,
         middle,
+        left,
         right,
     }
 }

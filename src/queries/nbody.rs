@@ -48,7 +48,7 @@ struct NodeWrapper<'a, T: Aabb, M> {
 }
 
 ///Naive version simply visits every pair.
-pub fn naive_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
+pub fn naive_nbody_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
     tools::for_every_pair(bots, func);
 }
 
@@ -190,7 +190,7 @@ fn recc_common<'a, 'b, N: Nbody>(
     }
 }
 
-fn recc_par<N: Nbody, JJ: par::Joiner>(
+fn recc_par<N: Nbody, JJ: parallel::Joiner>(
     joiner: impl crate::Joinable,
     axis: impl Axis,
     par: JJ,
@@ -206,7 +206,7 @@ fn recc_par<N: Nbody, JJ: par::Joiner>(
 
     if let Some([left, right]) = keep_going {
         match par.next() {
-            par::ParResult::Parallel([dleft, dright]) => {
+            parallel::ParResult::Parallel([dleft, dright]) => {
                 let (mut no1, mut no2) = no.div();
 
                 joiner.join(
@@ -215,7 +215,7 @@ fn recc_par<N: Nbody, JJ: par::Joiner>(
                 );
                 no.add(no1, no2);
             }
-            par::ParResult::Sequential(_) => {
+            parallel::ParResult::Sequential(_) => {
                 recc(axis.next(), left, no);
                 recc(axis.next(), right, no);
             }
@@ -313,7 +313,7 @@ where
     //calculate node masses of each node.
     build_masses2(newtree.vistr_mut(), no);
 
-    let par = par::ParallelBuilder::new().build_for_tree_of_height(newtree.get_height());
+    let par = parallel::ParallelBuilder::new().build_for_tree_of_height(newtree.get_height());
 
     recc_par(joiner, default_axis(), par, newtree.vistr_mut(), no);
 
@@ -325,7 +325,6 @@ where
 ///Perform nbody
 ///The tree is taken by value so that its nodes can be expended to include more data.
 pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
-    
     let mut newtree = convert_tree_into_wrapper(tree.into_inner());
 
     //calculate node masses of each node.

@@ -25,7 +25,7 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
         let r2 = axgeom::Rect::new(100, 400, 100, 400);
 
         if check_naive {
-            use broccoli::query::rect::*;
+            use broccoli::assert::*;
 
             assert_for_all_in_rect_mut(tree, &r1);
             assert_for_all_in_rect_mut(tree, &r2);

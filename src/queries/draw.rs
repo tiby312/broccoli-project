@@ -1,11 +1,11 @@
 //! Functions that make it easier to visualize the tree data structure
 //!
-use crate::query::*;
+use super::*;
 use axgeom::AxisDyn;
 
-struct DrawClosure<T, A> {
-    _p: PhantomData<T>,
-    line: A,
+pub struct DrawClosure<T, A> {
+    pub _p: PhantomData<T>,
+    pub line: A,
 }
 
 impl<T: Aabb, A> DividerDrawer for DrawClosure<T, A>
@@ -28,7 +28,7 @@ where
 }
 
 ///Trait user must implement.
-trait DividerDrawer {
+pub trait DividerDrawer {
     type T: Aabb<Num = Self::N>;
     type N: Num;
     fn draw_divider<A: Axis>(
@@ -42,7 +42,7 @@ trait DividerDrawer {
 
 ///Calls the user supplied function on each divider.
 ///Since the leaves do not have dividers, it is not called for the leaves.
-fn draw<A: Axis, T: Aabb, D: DividerDrawer<T = T, N = T::Num>>(
+pub fn draw<A: Axis, T: Aabb, D: DividerDrawer<T = T, N = T::Num>>(
     axis: A,
     vistr: Vistr<Node<T>>,
     dr: &mut D,
@@ -68,53 +68,4 @@ fn draw<A: Axis, T: Aabb, D: DividerDrawer<T = T, N = T::Num>>(
     }
 
     recc(axis, vistr.with_depth(Depth(0)), dr, rect);
-}
-
-use super::Queries;
-
-///Draw functions that can be called on a tree.
-pub trait DrawQuery<'a>: Queries<'a> {
-    /// # Examples
-    ///
-    /// ```
-    /// use broccoli::{prelude::*,bbox,rect};
-    /// use axgeom::Rect;
-    ///
-    /// let dim=rect(0,100,0,100);
-    /// let mut bots =[rect(0,10,0,10)];
-    /// let tree=broccoli::new(&mut bots);
-    ///
-    /// let mut rects=Vec::new();
-    /// tree.draw_divider(
-    ///     |axis,node,rect,_|
-    ///     {
-    ///         if !node.range.is_empty(){    
-    ///             rects.push(
-    ///                 axis.map_val(
-    ///                     Rect {x: node.cont.into(),y: rect.y.into()},
-    ///                     Rect {x: rect.x.into(),y: node.cont.into()}
-    ///                 )   
-    ///             );
-    ///         }
-    ///     },
-    ///     dim
-    /// );
-    ///
-    /// //rects now contains a bunch of rectangles that can be drawn to visualize
-    /// //where all the dividers are and how thick they each are.
-    ///
-    /// ```
-    ///
-    fn draw_divider(
-        &self,
-        line: impl FnMut(AxisDyn, &Node<Self::T>, &Rect<Self::Num>, usize),
-        rect: Rect<Self::Num>,
-    ) {
-        let mut d = DrawClosure {
-            _p: PhantomData,
-            line,
-        };
-
-        draw(default_axis(), self.vistr(), &mut d, rect)
-    }
 }

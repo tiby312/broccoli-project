@@ -83,7 +83,7 @@ fn handle_visualize(fb: &mut FigureBuilder) {
             .collect()
     }
 
-    let f=format!("abspiral(600,{})",DEFAULT_GROW);
+    let f = format!("abspiral(600,{})", DEFAULT_GROW);
     let mut plot = fb.plot().build(&f, "x", "y");
 
     plot.scatter(

@@ -38,7 +38,7 @@ impl Record {
 
         let c3 = if sweep_bench {
             bench_closure(|| {
-                broccoli::query::colfind::query_sweep_mut(axgeom::XAXIS, &mut bots, |a, b| {
+                broccoli::naive::query_sweep_mut(axgeom::XAXIS, &mut bots, |a, b| {
                     **a.unpack_inner() -= 2;
                     **b.unpack_inner() -= 2;
                 });
@@ -51,7 +51,7 @@ impl Record {
 
         let c4 = if naive_bench {
             bench_closure(|| {
-                broccoli::query::colfind::query_naive_mut(PMut::new(&mut bots), |a, b| {
+                broccoli::naive::query_naive_mut(PMut::new(&mut bots), |a, b| {
                     **a.unpack_inner() += 2;
                     **b.unpack_inner() += 2;
                 });

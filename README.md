@@ -5,7 +5,6 @@ Requires Rust 1.49
 [![Crates.io](https://img.shields.io/crates/v/broccoli)](https://crates.io/crates/broccoli)
 [![docs.rs](https://docs.rs/broccoli/badge.svg)](https://docs.rs/broccoli)
 [![Crates.io](https://img.shields.io/crates/d/broccoli)](https://crates.io/crates/broccoli)
-[![Discord](https://img.shields.io/discord/802222889046638653)](https://discord.com/channels/802222889046638653)
 
 Broccoli is a broad-phase collision detection library. 
 
@@ -28,7 +27,7 @@ Broccoli are also basically small trees and broccoli uses a tree data structure.
 ### Example
 
 ```rust
-use broccoli::{bbox, prelude::*, rect};
+use broccoli::{bbox, rect};
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -57,5 +56,4 @@ fn main() {
     assert_eq!(inner2, 0);
     assert_eq!(inner3, 1);
 }
-
 ```

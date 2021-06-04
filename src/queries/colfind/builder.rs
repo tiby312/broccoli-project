@@ -1,7 +1,7 @@
 //! Contains code to customize the colliding pair finding algorithm.
 
 use super::*;
-use par::ParallelBuilder;
+use parallel::ParallelBuilder;
 
 ///Used for the advanced algorithms.
 ///Trait that user implements to handling aabb collisions.
@@ -50,7 +50,7 @@ where
 
 impl<'a, 'node: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'node, T> {
     #[inline(always)]
-    pub(super) fn new(vistr: VistrMut<'a, Node<'node, T>>) -> NotSortedQueryBuilder<'a, 'node, T> {
+    pub fn new(vistr: VistrMut<'a, Node<'node, T>>) -> NotSortedQueryBuilder<'a, 'node, T> {
         NotSortedQueryBuilder {
             par_builder: ParallelBuilder::new(),
             vistr,
@@ -97,83 +97,75 @@ pub struct QueryBuilder<'a, 'node: 'a, T: Aabb> {
     vistr: VistrMut<'a, Node<'node, T>>,
 }
 
-///Simple trait that consumes itself to produce a value.
-pub trait Consumer {
-    type Item;
-    fn consume(self) -> Self::Item;
+///Used to create an object that implements [`CollisionHandler`] and [`Splitter`] from closures.
+pub struct QueryParClosure<T, A, B, C, D> {
+    _p: PhantomData<T>,
+    pub acc: A,
+    pub split: B,
+    pub fold: C,
+    pub collision: D,
 }
 
-///Create an object to satisfy [`QueryBuilder::query_par_ext`].
-pub fn from_closure<A: Send, T: Aabb + Send>(
-    _tree: &crate::Tree<T>,
-    acc: A,
-    split: impl Fn(&mut A) -> (A, A) + Copy + Send,
-    fold: impl Fn(&mut A, A, A) + Copy + Send,
-    collision: impl Fn(&mut A, PMut<T>, PMut<T>) + Copy + Send,
-) -> impl CollisionHandler<T = T> + Splitter + Send + Consumer<Item = A> {
-    struct QueryParSplitter<T, A, B, C, D> {
-        pub _p: PhantomData<T>,
-        pub acc: A,
-        pub split: B,
-        pub fold: C,
-        pub collision: D,
-    }
-    impl<T, A, B, C, D> Consumer for QueryParSplitter<T, A, B, C, D> {
-        type Item = A;
-        fn consume(self) -> Self::Item {
-            self.acc
+impl<
+        T: Aabb,
+        A: Send,
+        B: Fn(&mut A) -> (A, A) + Copy + Send,
+        C: Fn(&mut A, A, A) + Copy + Send,
+        D: Fn(&mut A, PMut<T>, PMut<T>) + Copy + Send,
+    > QueryParClosure<T, A, B, C, D>
+{
+    pub fn new(_tree: &crate::Tree<T>, acc: A, split: B, fold: C, collision: D) -> Self {
+        QueryParClosure {
+            _p: PhantomData,
+            acc,
+            split,
+            fold,
+            collision,
         }
     }
-    impl<T: Aabb, A, B, C, D> CollisionHandler for QueryParSplitter<T, A, B, C, D>
-    where
-        D: Fn(&mut A, PMut<T>, PMut<T>),
-    {
-        type T = T;
+}
 
-        #[inline(always)]
-        fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
-            (self.collision)(&mut self.acc, a, b)
-        }
-    }
+impl<T: Aabb, A, B, C, D> CollisionHandler for QueryParClosure<T, A, B, C, D>
+where
+    D: Fn(&mut A, PMut<T>, PMut<T>),
+{
+    type T = T;
 
-    impl<T, A, B, C, D> Splitter for QueryParSplitter<T, A, B, C, D>
-    where
-        B: Fn(&mut A) -> (A, A) + Copy,
-        C: Fn(&mut A, A, A) + Copy,
-        D: Copy,
-    {
-        #[inline(always)]
-        fn div(&mut self) -> (Self, Self) {
-            let (acc1, acc2) = (self.split)(&mut self.acc);
-            (
-                QueryParSplitter {
-                    _p: PhantomData,
-                    acc: acc1,
-                    split: self.split,
-                    fold: self.fold,
-                    collision: self.collision,
-                },
-                QueryParSplitter {
-                    _p: PhantomData,
-                    acc: acc2,
-                    split: self.split,
-                    fold: self.fold,
-                    collision: self.collision,
-                },
-            )
-        }
-        #[inline(always)]
-        fn add(&mut self, a: Self, b: Self) {
-            (self.fold)(&mut self.acc, a.acc, b.acc)
-        }
+    #[inline(always)]
+    fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
+        (self.collision)(&mut self.acc, a, b)
     }
+}
 
-    QueryParSplitter {
-        _p: PhantomData,
-        acc,
-        split,
-        fold,
-        collision,
+impl<T, A, B, C, D> Splitter for QueryParClosure<T, A, B, C, D>
+where
+    B: Fn(&mut A) -> (A, A) + Copy,
+    C: Fn(&mut A, A, A) + Copy,
+    D: Copy,
+{
+    #[inline(always)]
+    fn div(&mut self) -> (Self, Self) {
+        let (acc1, acc2) = (self.split)(&mut self.acc);
+        (
+            QueryParClosure {
+                _p: PhantomData,
+                acc: acc1,
+                split: self.split,
+                fold: self.fold,
+                collision: self.collision,
+            },
+            QueryParClosure {
+                _p: PhantomData,
+                acc: acc2,
+                split: self.split,
+                fold: self.fold,
+                collision: self.collision,
+            },
+        )
+    }
+    #[inline(always)]
+    fn add(&mut self, a: Self, b: Self) {
+        (self.fold)(&mut self.acc, a.acc, b.acc)
     }
 }
 
@@ -215,11 +207,11 @@ where
     /// # Examples
     ///
     ///```
-    /// use broccoli::{prelude::*,RayonJoin,rect,bbox,query,query::colfind::builder::Consumer};
+    /// use broccoli::{par::RayonJoin,rect,bbox};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
-    /// let mut handler=query::colfind::builder::from_closure(
+    /// let mut handler=broccoli::helper::QueryParClosure::new(
     ///     &tree,
     ///     Vec::new(),
     ///     |_|(Vec::new(),Vec::new()),        //Start a new thread
@@ -227,13 +219,13 @@ where
     ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())), //Handle a collision
     /// );
     ///
-    /// let (handler,_)=tree.new_builder().query_par_ext(
+    /// let (handler,_)=tree.new_colfind_builder().query_par_ext(
     ///     RayonJoin,
     ///     handler,
     ///     broccoli::build::SplitterEmpty
     /// );
     ///
-    /// let intersections=handler.consume();
+    /// let intersections=handler.acc;
     ///
     /// assert_eq!(intersections.len(),1);
     ///```
@@ -266,7 +258,7 @@ impl<'a, 'node: 'a, T: Aabb> QueryBuilder<'a, 'node, T> {
     ///Create the builder.
     #[inline(always)]
     #[must_use]
-    pub(super) fn new(vistr: VistrMut<'a, Node<'node, T>>) -> QueryBuilder<'a, 'node, T> {
+    pub fn new(vistr: VistrMut<'a, Node<'node, T>>) -> QueryBuilder<'a, 'node, T> {
         QueryBuilder {
             par_builder: ParallelBuilder::new(),
             vistr,

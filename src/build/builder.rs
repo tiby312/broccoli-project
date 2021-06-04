@@ -1,5 +1,5 @@
 use super::*;
-use par::ParallelBuilder;
+use parallel::ParallelBuilder;
 ///Builder pattern for Tree.
 ///For most usecases, the user is suggested to use
 ///the built in new() functions to create the tree.
@@ -127,7 +127,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
         &mut self,
         sorter: impl Sorter,
         splitter: K,
-        par: impl par::Joiner,
+        par: impl parallel::Joiner,
         joiner: impl crate::Joinable,
     ) -> (Tree<'a, T>, K)
     where
@@ -218,21 +218,18 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
         )
     }
 
-    fn construct_non_leaf(
-        div_axis: impl Axis,
-        bots: &mut [T],
-    ) -> ConstructResult<T> {
-    
-        if bots.is_empty(){
+    fn construct_non_leaf(div_axis: impl Axis, bots: &mut [T]) -> ConstructResult<T> {
+        if bots.is_empty() {
             return ConstructResult::Empty(bots);
         }
-        
-        let med_index=bots.len()/2;
-        let (_,med,_) =bots.select_nth_unstable_by(med_index,move |a,b|crate::util::compare_bots(div_axis,a,b));
-        
-        let med_val=med.get().get_range(div_axis).start;
-        
-    
+
+        let med_index = bots.len() / 2;
+        let (_, med, _) = bots.select_nth_unstable_by(med_index, move |a, b| {
+            crate::util::compare_bots(div_axis, a, b)
+        });
+
+        let med_val = med.get().get_range(div_axis).start;
+
         //It is very important that the median bot end up be binned into the middile bin.
         //We know this must be true because we chose the divider to be the medians left border,
         //and we binned so that all bots who intersect with the divider end up in the middle bin.
@@ -250,37 +247,36 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
     }
 
     fn split<A: Axis>(mut self, axis: A) -> (K, NonLeafFinisher<'a, 'b, A, T, S>, Self, Self) {
-        let (f, left, right) =
-            match Self::construct_non_leaf(axis, self.arr) {
-                ConstructResult::NonEmpty {
-                    div,
+        let (f, left, right) = match Self::construct_non_leaf(axis, self.arr) {
+            ConstructResult::NonEmpty {
+                div,
+                mid,
+                left,
+                right,
+            } => (
+                NonLeafFinisher {
                     mid,
-                    left,
-                    right,
-                } => (
-                    NonLeafFinisher {
-                        mid,
-                        div: Some(div),
-                        axis,
-                        sorter: &self.constants.sorter,
-                    },
-                    left,
-                    right,
-                ),
-                ConstructResult::Empty(mid) => {
-                    let mid1 = crate::util::empty_slice_from_mut(mid);
-                    let mid2 = crate::util::empty_slice_from_mut(mid);
+                    div: Some(div),
+                    axis,
+                    sorter: &self.constants.sorter,
+                },
+                left,
+                right,
+            ),
+            ConstructResult::Empty(mid) => {
+                let mid1 = crate::util::empty_slice_from_mut(mid);
+                let mid2 = crate::util::empty_slice_from_mut(mid);
 
-                    let node = NonLeafFinisher {
-                        mid,
-                        div: None,
-                        axis,
-                        sorter: &self.constants.sorter,
-                    };
+                let node = NonLeafFinisher {
+                    mid,
+                    div: None,
+                    axis,
+                    sorter: &self.constants.sorter,
+                };
 
-                    (node, mid1, mid2)
-                }
-            };
+                (node, mid1, mid2)
+            }
+        };
         let (splitter11, splitter22) = self.splitter.div();
 
         (
@@ -331,7 +327,7 @@ where
     T: Send + Sync,
     T::Num: Send + Sync,
     S: Sorter,
-    JJ: par::Joiner,
+    JJ: parallel::Joiner,
     Joiner: crate::Joinable,
     K: Splitter + Send + Sync,
 {
@@ -343,7 +339,7 @@ where
             let (mut splitter, node, left, right) = self.inner.split(axis);
 
             match self.dlevel.next() {
-                par::ParResult::Parallel([dleft, dright]) => {
+                parallel::ParResult::Parallel([dleft, dright]) => {
                     let joiner1 = self.joiner.clone();
                     let joiner2 = self.joiner.clone();
                     let ((ls, nodes), (rs, mut nodes2)) = self.joiner.join(
@@ -378,7 +374,7 @@ where
                     splitter.add(ls, rs);
                     splitter
                 }
-                par::ParResult::Sequential(_) => {
+                parallel::ParResult::Sequential(_) => {
                     nodes.push(node.finish());
 
                     let ls = left.recurse_seq(axis.next(), nodes);

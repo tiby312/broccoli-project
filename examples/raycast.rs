@@ -1,5 +1,5 @@
 use axgeom::vec2;
-use broccoli::{bbox, prelude::*, rect};
+use broccoli::{bbox, rect};
 
 fn main() {
     let mut inner1 = 4;
@@ -19,7 +19,7 @@ fn main() {
         dir: vec2(1, 0),
     };
 
-    let mut handler = broccoli::query::raycast::from_closure(
+    let mut handler = broccoli::helper::raycast_from_closure(
         &tree,
         (),
         |_, _, _| None,

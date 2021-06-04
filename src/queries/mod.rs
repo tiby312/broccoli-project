@@ -1,18 +1,16 @@
 //! Contains query modules for each query algorithm.
 
+use crate::build::default_axis;
+use crate::build::Splitter;
+use crate::build::SplitterEmpty;
 use crate::node::*;
-use crate::par;
+use crate::parallel;
 use crate::pmut::*;
-use crate::tree::build::default_axis;
-use crate::tree::build::Splitter;
-use crate::tree::build::SplitterEmpty;
 use crate::util::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use compt::*;
 use core::marker::PhantomData;
-
-pub mod from_slice;
 
 pub mod colfind;
 
@@ -22,52 +20,11 @@ pub mod knearest;
 
 pub mod raycast;
 
-pub mod intersect_with;
-
 pub mod nbody;
 
 pub mod rect;
 
 mod tools;
-
-///Query modules provide functions based off of this trait.
-pub trait Queries<'a> {
-    type T: Aabb<Num = Self::Num> + 'a;
-    type Num: Num;
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect,query::Queries};
-    /// let mut bots = [bbox(rect(0,10,0,10),0)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// use compt::Visitor;
-    /// for b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.into_range().iter_mut()){
-    ///    *b.unpack_inner()+=1;    
-    /// }
-    /// assert_eq!(bots[0].inner,1);
-    ///```
-    #[must_use]
-    fn vistr_mut(&mut self) -> VistrMut<Node<'a, Self::T>>;
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{prelude::*,bbox,rect,query::Queries};
-    /// let mut bots = [rect(0,10,0,10)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// use compt::Visitor;
-    /// let mut test = Vec::new();
-    /// for b in tree.vistr().dfs_preorder_iter().flat_map(|n|n.range.iter()){
-    ///    test.push(b);
-    /// }
-    /// assert_eq!(test[0],&axgeom::rect(0,10,0,10));
-    ///```
-    #[must_use]
-    fn vistr(&self) -> Vistr<Node<'a, Self::T>>;
-}
 
 ///panics if a broken broccoli tree invariant is detected.
 ///For debugging purposes only.

@@ -185,10 +185,8 @@ mod vistr_mut {
         fn next(self) -> (Self::Item, Option<[Self; 2]>) {
             let (nn, rest) = self.inner.next();
 
-            let k = match rest {
-                Some([left, right]) => Some([VistrMut { inner: left }, VistrMut { inner: right }]),
-                None => None,
-            };
+            let k = rest.map(|[left, right]| [VistrMut { inner: left }, VistrMut { inner: right }]);
+
             (PMut::new(nn), k)
         }
 
