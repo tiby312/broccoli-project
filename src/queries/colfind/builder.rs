@@ -97,6 +97,7 @@ pub struct QueryBuilder<'a, 'node: 'a, T: Aabb> {
     vistr: VistrMut<'a, Node<'node, T>>,
 }
 
+///Used to create an object that implements [`CollisionHandler`] and [`Splitter`] from closures.
 pub struct QueryParClosure<T, A, B, C, D> {
     _p: PhantomData<T>,
     pub acc: A,

@@ -123,6 +123,8 @@ pub mod query {
     pub use queries::nbody::Nbody;
     pub use queries::raycast::{CastAnswer, RayCast};
     pub use queries::rect::RectIntersectErr;
+    pub use queries::colfind::builder::CollisionHandler;
+    
 }
 
 pub mod pmut;

@@ -15,7 +15,7 @@ impl Res {
             let (mut tree, times1) =
                 TreeBuilder::new(&mut bots).build_with_splitter_seq(LevelTimer::new());
 
-            let times2 = tree.new_builder().query_with_splitter_seq(
+            let times2 = tree.new_colfind_builder().query_with_splitter_seq(
                 |a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1
