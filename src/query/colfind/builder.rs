@@ -97,85 +97,85 @@ pub struct QueryBuilder<'a, 'node: 'a, T: Aabb> {
     vistr: VistrMut<'a, Node<'node, T>>,
 }
 
-///Simple trait that consumes itself to produce a value.
-pub trait Consumer {
-    type Item;
-    fn consume(self) -> Self::Item;
+
+
+pub struct QueryParClosure<T, A, B, C, D> {
+    _p: PhantomData<T>,
+    pub acc: A,
+    pub split: B,
+    pub fold: C,
+    pub collision: D,
 }
 
-///Create an object to satisfy [`QueryBuilder::query_par_ext`].
-pub fn from_closure<A: Send, T: Aabb + Send>(
-    _tree: &crate::Tree<T>,
-    acc: A,
-    split: impl Fn(&mut A) -> (A, A) + Copy + Send,
-    fold: impl Fn(&mut A, A, A) + Copy + Send,
-    collision: impl Fn(&mut A, PMut<T>, PMut<T>) + Copy + Send,
-) -> impl CollisionHandler<T = T> + Splitter + Send + Consumer<Item = A> {
-    struct QueryParSplitter<T, A, B, C, D> {
-        pub _p: PhantomData<T>,
-        pub acc: A,
-        pub split: B,
-        pub fold: C,
-        pub collision: D,
-    }
-    impl<T, A, B, C, D> Consumer for QueryParSplitter<T, A, B, C, D> {
-        type Item = A;
-        fn consume(self) -> Self::Item {
-            self.acc
-        }
-    }
-    impl<T: Aabb, A, B, C, D> CollisionHandler for QueryParSplitter<T, A, B, C, D>
-    where
-        D: Fn(&mut A, PMut<T>, PMut<T>),
-    {
-        type T = T;
 
-        #[inline(always)]
-        fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
-            (self.collision)(&mut self.acc, a, b)
-        }
-    }
 
-    impl<T, A, B, C, D> Splitter for QueryParSplitter<T, A, B, C, D>
-    where
-        B: Fn(&mut A) -> (A, A) + Copy,
-        C: Fn(&mut A, A, A) + Copy,
-        D: Copy,
-    {
-        #[inline(always)]
-        fn div(&mut self) -> (Self, Self) {
-            let (acc1, acc2) = (self.split)(&mut self.acc);
-            (
-                QueryParSplitter {
-                    _p: PhantomData,
-                    acc: acc1,
-                    split: self.split,
-                    fold: self.fold,
-                    collision: self.collision,
-                },
-                QueryParSplitter {
-                    _p: PhantomData,
-                    acc: acc2,
-                    split: self.split,
-                    fold: self.fold,
-                    collision: self.collision,
-                },
-            )
-        }
-        #[inline(always)]
-        fn add(&mut self, a: Self, b: Self) {
-            (self.fold)(&mut self.acc, a.acc, b.acc)
-        }
-    }
+impl<
+    T:Aabb,
+    A:Send,
+    B:Fn(&mut A) -> (A, A) + Copy + Send,
+    C:Fn(&mut A, A, A) + Copy + Send,
+    D:Fn(&mut A, PMut<T>, PMut<T>) + Copy + Send
+> QueryParClosure<T,A,B,C,D>{
+    pub fn new(_tree: &crate::Tree<T>,
+        acc: A,
+        split: B,
+        fold: C ,
+        collision: D,)->Self{
 
-    QueryParSplitter {
-        _p: PhantomData,
-        acc,
-        split,
-        fold,
-        collision,
+            QueryParClosure {
+            _p: PhantomData,
+            acc,
+            split,
+            fold,
+            collision,
+        }
     }
 }
+
+impl<T: Aabb, A, B, C, D> CollisionHandler for QueryParClosure<T, A, B, C, D>
+where
+    D: Fn(&mut A, PMut<T>, PMut<T>),
+{
+    type T = T;
+
+    #[inline(always)]
+    fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
+        (self.collision)(&mut self.acc, a, b)
+    }
+}
+
+impl<T, A, B, C, D> Splitter for QueryParClosure<T, A, B, C, D>
+where
+    B: Fn(&mut A) -> (A, A) + Copy,
+    C: Fn(&mut A, A, A) + Copy,
+    D: Copy,
+{
+    #[inline(always)]
+    fn div(&mut self) -> (Self, Self) {
+        let (acc1, acc2) = (self.split)(&mut self.acc);
+        (
+            QueryParClosure {
+                _p: PhantomData,
+                acc: acc1,
+                split: self.split,
+                fold: self.fold,
+                collision: self.collision,
+            },
+            QueryParClosure {
+                _p: PhantomData,
+                acc: acc2,
+                split: self.split,
+                fold: self.fold,
+                collision: self.collision,
+            },
+        )
+    }
+    #[inline(always)]
+    fn add(&mut self, a: Self, b: Self) {
+        (self.fold)(&mut self.acc, a.acc, b.acc)
+    }
+}
+
 
 impl<'a, 'node: 'a, T: Aabb + Send + Sync> QueryBuilder<'a, 'node, T>
 where

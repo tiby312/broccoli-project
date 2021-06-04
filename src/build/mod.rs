@@ -153,3 +153,64 @@ const fn log_2(x: u64) -> u64 {
     num_bits::<u64>() as u64 - x.leading_zeros() as u64 - 1
 }
 
+
+
+///A version of Tree where the elements are not sorted along each axis, like a KD Tree.
+/// For comparison, a normal kd-tree is provided by [`NotSorted`]. In this tree, the elements are not sorted
+/// along an axis at each level. Construction of [`NotSorted`] is faster than [`Tree`] since it does not have to
+/// sort bots that belong to each node along an axis. But most query algorithms can usually take advantage of this
+/// extra property to be faster.
+pub struct NotSorted<'a, T: Aabb>(pub Tree<'a, T>);
+
+impl<'a, T: Aabb> NotSorted<'a, T> {
+    pub fn new(bots: &'a mut [T]) -> NotSorted<'a, T> {
+        TreeBuilder::new(bots).build_not_sorted_seq()
+    }
+
+    pub fn new_par(joiner: impl crate::Joinable, bots: &'a mut [T]) -> NotSorted<'a, T>
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        TreeBuilder::new(bots).build_not_sorted_par(joiner)
+    }
+
+    #[inline(always)]
+    pub fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
+        self.0.vistr_mut()
+    }
+
+    #[inline(always)]
+    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
+        self.0.vistr()
+    }
+    #[inline(always)]
+    pub fn get_height(&self) -> usize {
+        self.0.get_height()
+    }
+
+
+    pub fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c, 'a, T> {
+        NotSortedQueryBuilder::new(self.vistr_mut())
+    }
+
+    pub fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<T>, PMut<T>)) {
+        NotSortedQueryBuilder::new(self.vistr_mut()).query_seq(move |a, b| func(a, b));
+    }
+
+    pub fn find_colliding_pairs_mut_par(
+        &mut self,
+        joiner: impl crate::Joinable,
+        func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync,
+    ) where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        NotSortedQueryBuilder::new(self.vistr_mut()).query_par(joiner, move |a, b| func(a, b));
+    }
+
+
+
+
+}
+

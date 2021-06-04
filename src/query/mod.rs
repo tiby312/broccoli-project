@@ -3,9 +3,9 @@
 use crate::node::*;
 use crate::par;
 use crate::pmut::*;
-use crate::tree::build::default_axis;
-use crate::tree::build::Splitter;
-use crate::tree::build::SplitterEmpty;
+use crate::build::default_axis;
+use crate::build::Splitter;
+use crate::build::SplitterEmpty;
 use crate::util::*;
 use alloc::vec::Vec;
 use axgeom::*;

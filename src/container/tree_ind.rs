@@ -369,7 +369,7 @@ where
     T::Num: Send + Sync,
     T: Send + Sync,
 {
-    let handler = query::colfind::builder::from_closure(
+    let handler = query::colfind::builder::QueryParClosure::new(
         tree,
         vec![Vec::new()],
         move |_| (vec![Vec::new()], vec![Vec::new()]),
@@ -384,11 +384,10 @@ where
         },
     );
 
-    use query::colfind::builder::*;
     tree.new_colfind_builder()
         .query_par_ext(joiner, handler, SplitterEmpty)
         .0
-        .consume()
+        .acc
 }
 
 ///Contains a filtered list of all elements in the tree from calling [`TreeInd::collect_all`].
