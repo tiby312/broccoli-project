@@ -8,7 +8,7 @@ rm -rf src/raw
 ../target/release/data_gen bench src/raw
 ../target/release/data_gen theory src/raw
 
-
+mkdir -p src/graphs
 cargo-deps deps --exclude demo,data_gen | dot -Tsvg> src/graphs/graph.svg
 
 

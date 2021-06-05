@@ -88,22 +88,6 @@ There are a couple of options:
 Option 4 is the fastest. It exploits the sorted property of the aabbs, but also does not require
 any kind of storage of an active list.
 
-#### Profiling Construction + Finding all colliding pairs.
-
-Here are some profiling results finding all intersections on `abspiral(0.2,50_000)` 30 times. 
-The image below is a SVG image and is interactive. Hover over blocks to see the full names.
-Try this link for a full page view of the image (or if it is not rendering correctly): [SVG](graphs/flamegraph.svg)
-
-
-
-<object class="p" data="graphs/flamegraph.svg" type="image/svg+xml" style="width: 100%;">
-</object>
-
-The flame graph shows a very insightful map of how much time is spent in which sections of the algorithm.
-You can clearly see how the rebalancing and the querying are each individually broken down.
-You can see how at each recursive step, a piece of the problem is broken off.
-
-
 
 #### nbody (experimental)
 
