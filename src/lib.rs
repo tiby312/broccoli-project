@@ -709,10 +709,10 @@ impl<'a, T: Aabb> Tree<'a, T> {
     #[must_use]
     pub fn k_nearest_mut<'b, K: queries::knearest::Knearest<T = T, N = T::Num>>(
         &'b mut self,
-        point: Vec2<K::N>,
+        point: Vec2<T::Num>,
         num: usize,
         ktrait: &mut K,
-    ) -> queries::knearest::KResult<'b, K::T> {
+    ) -> queries::knearest::KResult<'b, T> {
         queries::knearest::knearest_mut(self, point, num, ktrait)
     }
 
@@ -725,8 +725,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ) -> Self
     where
         N: Send + Sync + Splitter,
-        N::T: Send + Sync,
-        <N::T as Aabb>::Num: Send + Sync,
+        T: Send + Sync,
+        T::Num: Send + Sync,
         N::Mass: Send + Sync,
     {
         queries::nbody::nbody_mut_par(self, joiner, no)
