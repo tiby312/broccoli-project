@@ -116,6 +116,7 @@ pub mod helper {
 ///Items related to querying.
 pub mod query {
     use super::queries;
+    pub use queries::colfind::builder::CollisionHandler;
     pub use queries::colfind::builder::{NotSortedQueryBuilder, QueryBuilder};
     pub use queries::draw::DividerDrawer;
     pub use queries::knearest::{Knearest, KnearestResult};
@@ -123,8 +124,6 @@ pub mod query {
     pub use queries::nbody::Nbody;
     pub use queries::raycast::{CastAnswer, RayCast};
     pub use queries::rect::RectIntersectErr;
-    pub use queries::colfind::builder::CollisionHandler;
-    
 }
 
 pub mod pmut;
@@ -487,8 +486,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         foo(self.vistr())
     }
 
-    /// Find all aabb intersections and return a PMut<T> of it. Unlike the regular `find_colliding_pairs_mut`, this allows the
-    /// user to access a read only reference of the AABB.
+    /// Find all aabb intersections and return a PMut<T> of it.
     ///
     /// # Examples
     ///
@@ -542,13 +540,13 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// # Examples
     ///
     ///```
-    /// use broccoli::{bbox,rect};
+    /// use broccoli::{bbox,rect,par::RayonJoin};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     ///
     /// let builder=tree.new_colfind_builder();
     /// let builder=builder.with_switch_height(4);
-    /// builder.query_seq(|a,b|{
+    /// builder.query_par(RayonJoin,|a,b|{
     ///    *a.unpack_inner()+=1;
     ///    *b.unpack_inner()+=1;
     /// });

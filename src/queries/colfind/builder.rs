@@ -21,33 +21,6 @@ pub struct NotSortedQueryBuilder<'a, 'node: 'a, T: Aabb> {
     vistr: VistrMut<'a, Node<'node, T>>,
 }
 
-impl<'a, 'node: 'a, T: Aabb + Send + Sync> NotSortedQueryBuilder<'a, 'node, T>
-where
-    T::Num: Send + Sync,
-{
-    #[inline(always)]
-    pub fn query_par(
-        self,
-        joiner: impl crate::Joinable,
-        func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync,
-    ) {
-        let sweeper = QueryFn::new(func);
-
-        let par = self
-            .par_builder
-            .build_for_tree_of_height(self.vistr.get_height());
-
-        ParRecurser {
-            handler: HandleNoSorted,
-            vistr: SplitterVistr::new(sweeper, SplitterVistr::new(SplitterEmpty, self.vistr)),
-            par,
-            joiner,
-            prevec: PreVec::new(),
-        }
-        .recurse_par(default_axis());
-    }
-}
-
 impl<'a, 'node: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'node, T> {
     #[inline(always)]
     pub fn new(vistr: VistrMut<'a, Node<'node, T>>) -> NotSortedQueryBuilder<'a, 'node, T> {
@@ -88,6 +61,30 @@ impl<'a, 'node: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'node, T> {
             default_axis(),
             SplitterVistr::new(SplitterEmpty, self.vistr),
         );
+    }
+    #[inline(always)]
+    pub fn query_par(
+        self,
+        joiner: impl crate::Joinable,
+        func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync,
+    ) where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        let sweeper = QueryFn::new(func);
+
+        let par = self
+            .par_builder
+            .build_for_tree_of_height(self.vistr.get_height());
+
+        ParRecurser {
+            handler: HandleNoSorted,
+            vistr: SplitterVistr::new(sweeper, SplitterVistr::new(SplitterEmpty, self.vistr)),
+            par,
+            joiner,
+            prevec: PreVec::new(),
+        }
+        .recurse_par(default_axis());
     }
 }
 
@@ -169,91 +166,6 @@ where
     }
 }
 
-impl<'a, 'node: 'a, T: Aabb + Send + Sync> QueryBuilder<'a, 'node, T>
-where
-    T::Num: Send + Sync,
-{
-    ///Perform the query in parallel, switching to sequential as specified
-    ///by the [`QueryBuilder::with_switch_height()`]
-    #[inline(always)]
-    pub fn query_par(
-        self,
-        joiner: impl Joinable,
-        func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync,
-    ) {
-        let sweeper = QueryFn::new(func);
-
-        let par = self
-            .par_builder
-            .build_for_tree_of_height(self.vistr.get_height());
-
-        ParRecurser {
-            handler: HandleSorted,
-            vistr: SplitterVistr::new(sweeper, SplitterVistr::new(SplitterEmpty, self.vistr)),
-            par,
-            joiner,
-            prevec: PreVec::new(),
-        }
-        .recurse_par(default_axis());
-    }
-
-    /// An extended version of `find_colliding_pairs`. where the user can supply
-    /// callbacks to when new worker tasks are spawned and joined by `rayon`.
-    /// Allows the user to potentially collect some aspect of every aabb collision in parallel.
-    ///
-    /// `sweeper` : The splitter div/add functions will be called every time a new parallel recurse is started.
-    /// `splitter`: The splitter div/add will be called at every level of recursion.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{par::RayonJoin,rect,bbox};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// let mut handler=broccoli::helper::QueryParClosure::new(
-    ///     &tree,
-    ///     Vec::new(),
-    ///     |_|(Vec::new(),Vec::new()),        //Start a new thread
-    ///     |a,mut b,mut c|{a.append(&mut b);a.append(&mut c)}, //Combine two threads
-    ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())), //Handle a collision
-    /// );
-    ///
-    /// let (handler,_)=tree.new_colfind_builder().query_par_ext(
-    ///     RayonJoin,
-    ///     handler,
-    ///     broccoli::build::SplitterEmpty
-    /// );
-    ///
-    /// let intersections=handler.acc;
-    ///
-    /// assert_eq!(intersections.len(),1);
-    ///```
-    #[inline(always)]
-    pub fn query_par_ext<
-        S: Splitter + Send + Sync,
-        C: CollisionHandler<T = T> + Splitter + Send + Sync,
-    >(
-        self,
-        joiner: impl Joinable,
-        sweeper: C,
-        splitter: S,
-    ) -> (C, S) {
-        let par = self
-            .par_builder
-            .build_for_tree_of_height(self.vistr.get_height());
-
-        ParRecurser {
-            handler: HandleSorted,
-            vistr: SplitterVistr::new(sweeper, SplitterVistr::new(splitter, self.vistr)),
-            par,
-            joiner,
-            prevec: PreVec::new(),
-        }
-        .recurse_par(default_axis())
-    }
-}
-
 impl<'a, 'node: 'a, T: Aabb> QueryBuilder<'a, 'node, T> {
     ///Create the builder.
     #[inline(always)]
@@ -308,6 +220,93 @@ impl<'a, 'node: 'a, T: Aabb> QueryBuilder<'a, 'node, T> {
         };
 
         r.recurse_seq(default_axis(), SplitterVistr::new(splitter, self.vistr))
+    }
+
+    /// An extended version of `find_colliding_pairs`. where the user can supply
+    /// callbacks to when new worker tasks are spawned and joined by `rayon`.
+    /// Allows the user to potentially collect some aspect of every aabb collision in parallel.
+    ///
+    /// `sweeper` : The splitter div/add functions will be called every time a new parallel recurse is started.
+    /// `splitter`: The splitter div/add will be called at every level of recursion.
+    ///
+    /// # Examples
+    ///
+    ///```
+    /// use broccoli::{par::RayonJoin,rect,bbox};
+    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
+    /// let mut tree = broccoli::new(&mut bots);
+    ///
+    /// let mut handler=broccoli::helper::QueryParClosure::new(
+    ///     &tree,
+    ///     Vec::new(),
+    ///     |_|(Vec::new(),Vec::new()),        //Start a new thread
+    ///     |a,mut b,mut c|{a.append(&mut b);a.append(&mut c)}, //Combine two threads
+    ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())), //Handle a collision
+    /// );
+    ///
+    /// let (handler,_)=tree.new_colfind_builder().query_par_ext(
+    ///     RayonJoin,
+    ///     handler,
+    ///     broccoli::build::SplitterEmpty
+    /// );
+    ///
+    /// let intersections=handler.acc;
+    ///
+    /// assert_eq!(intersections.len(),1);
+    ///```
+    #[inline(always)]
+    pub fn query_par_ext<
+        S: Splitter + Send + Sync,
+        C: CollisionHandler<T = T> + Splitter + Send + Sync,
+    >(
+        self,
+        joiner: impl Joinable,
+        sweeper: C,
+        splitter: S,
+    ) -> (C, S)
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        let par = self
+            .par_builder
+            .build_for_tree_of_height(self.vistr.get_height());
+
+        ParRecurser {
+            handler: HandleSorted,
+            vistr: SplitterVistr::new(sweeper, SplitterVistr::new(splitter, self.vistr)),
+            par,
+            joiner,
+            prevec: PreVec::new(),
+        }
+        .recurse_par(default_axis())
+    }
+
+    ///Perform the query in parallel, switching to sequential as specified
+    ///by the [`QueryBuilder::with_switch_height()`]
+    #[inline(always)]
+    pub fn query_par(
+        self,
+        joiner: impl Joinable,
+        func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync,
+    ) where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        let sweeper = QueryFn::new(func);
+
+        let par = self
+            .par_builder
+            .build_for_tree_of_height(self.vistr.get_height());
+
+        ParRecurser {
+            handler: HandleSorted,
+            vistr: SplitterVistr::new(sweeper, SplitterVistr::new(SplitterEmpty, self.vistr)),
+            par,
+            joiner,
+            prevec: PreVec::new(),
+        }
+        .recurse_par(default_axis());
     }
 }
 
