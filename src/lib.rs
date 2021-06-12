@@ -332,9 +332,9 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     /// # Safety
     ///
-    /// Unsafe, since the user may pass a number of aabbs
-    /// that does not reflect the true number of aabbs in
-    /// every node.
+    /// Unsafe, since the user may pass in nodes
+    /// in an arrangement that violates the invariants
+    /// of the tree.
     ///
     pub unsafe fn from_raw_parts(
         inner: compt::dfs_order::CompleteTreeContainer<Node<'a, T>, compt::dfs_order::PreOrder>,
@@ -486,7 +486,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         foo(self.vistr())
     }
 
-    /// Find all aabb intersections and return a PMut<T> of it.
+    /// Find all aabb intersections and visit every pair wrapped in [`PMut`].
     ///
     /// # Examples
     ///
@@ -535,7 +535,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
             .query_par(joiner, move |a, b| func(a, b));
     }
 
-    /// For analysis, allows the user to query with custom settings
+    /// For analysis, allows the user to find all colliding pairs with custom settings
     ///
     /// # Examples
     ///
