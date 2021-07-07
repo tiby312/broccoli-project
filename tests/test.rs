@@ -1,6 +1,5 @@
 use axgeom::*;
 use broccoli::node::*;
-use broccoli::query::*;
 use compt::*;
 
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.
