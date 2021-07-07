@@ -48,20 +48,11 @@ where
         let ((_depth, nn), rest) = iter.next();
         let axis_next = axis.next();
 
-        let f = |a: &&T, b: &&T| -> Option<core::cmp::Ordering> {
-            let j = a
-                .get()
-                .get_range(axis_next)
-                .start
-                .partial_cmp(&b.get().get_range(axis_next).start)
-                .unwrap();
-            Some(j)
-        };
-
-        {
-            use is_sorted::IsSorted;
-            assert!(IsSorted::is_sorted_by(&mut nn.range.iter(), f));
-        }
+        assert!(crate::util::is_sorted_by(&nn.range, |a, b| a
+            .get()
+            .get_range(axis_next)
+            .start
+            .partial_cmp(&b.get().get_range(axis_next).start)));
 
         if let Some([start, end]) = rest {
             match nn.div {

@@ -202,9 +202,9 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         }
         let curr_dis = knear.distance_to_fine(*point, curr_bot.borrow_mut());
 
-        if self.curr_num < self.num {
-            let arr = &mut self.bots;
+        let arr = &mut self.bots;
 
+        if self.curr_num < self.num {
             for i in 0..arr.len() {
                 if curr_dis < arr[i].mag {
                     let unit = KnearestResult {
@@ -224,7 +224,6 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
             self.curr_num += 1;
             arr.push(unit);
         } else {
-            let arr = &mut self.bots;
             for i in 0..arr.len() {
                 if curr_dis < arr[i].mag {
                     let v = arr.pop().unwrap();
@@ -269,8 +268,10 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
     }
 
     fn full_and_max_distance(&self) -> Option<T::Num> {
-        use is_sorted::IsSorted;
-        assert!(IsSorted::is_sorted(&mut self.bots.iter().map(|a| a.mag)));
+        assert!(crate::util::is_sorted_by(&self.bots, |a, b| a
+            .mag
+            .partial_cmp(&b.mag)));
+
         if self.curr_num == self.num {
             self.bots.last().map(|a| a.mag)
         } else {
