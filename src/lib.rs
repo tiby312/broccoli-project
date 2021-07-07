@@ -119,7 +119,7 @@ pub mod query {
     pub use queries::colfind::builder::CollisionHandler;
     pub use queries::colfind::builder::{NotSortedQueryBuilder, QueryBuilder};
     pub use queries::draw::DividerDrawer;
-    pub use queries::knearest::{Knearest, KnearestResult};
+    pub use queries::knearest::{KResult,Knearest, KnearestResult};
     pub use queries::nbody::GravEnum;
     pub use queries::nbody::Nbody;
     pub use queries::raycast::{CastAnswer, RayCast};
