@@ -20,6 +20,7 @@ pub mod bbox_helper {
 }
 
 mod inner_prelude {
+    pub use crate::REPORT_THEME;
     pub use super::bbox_helper;
     pub use crate::black_box;
     pub(crate) use crate::datanum;
@@ -64,19 +65,15 @@ pub struct Args<'a, S: Serialize, I: Iterator<Item = (f64, S)>> {
     stop_values: &'a [(&'a str, f64)],
 }
 
+pub const REPORT_THEME:&str=poloto::HTML_CONFIG_CSS_VARIABLE_DEFAULT;
+
 impl FigureBuilder {
     fn new(folder: String) -> FigureBuilder {
         FigureBuilder { folder }
     }
 
-    fn plot(&self) -> poloto::build::PlotterBuilder<impl core::fmt::Display> {
-        poloto::build::PlotterBuilder::new().with_header(
-            poloto::build::HeaderBuilder::new()
-                .push_default_css_with_variable()
-                .build(),
-        )
-    }
-    fn finish_plot<X: poloto::build::Names>(
+    
+    fn finish_plot<X: poloto::Names>(
         &self,
         plot: poloto::Plotter<X>,
         filename: impl core::fmt::Display,
@@ -117,7 +114,7 @@ impl FigureBuilder {
 
             let names = map.as_object().clone();
 
-            let mut plot = self.plot().build(title, xname, yname);
+            let mut plot = poloto::plot_with_html(title, xname, yname,REPORT_THEME);
 
             use poloto::prelude::*;
 

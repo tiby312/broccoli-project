@@ -56,9 +56,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         fb: &mut FigureBuilder,
         mut it: I,
     ) {
-        let mut plot = fb
-            .plot()
-            .build(title_name, "Spiral Grow", "Number of Comparisons");
+        let mut plot = poloto::plot_with_html(title_name, "Spiral Grow", "Number of Comparisons",REPORT_THEME);
 
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();

@@ -81,10 +81,11 @@ pub fn handle(fb: &mut FigureBuilder) {
         "Bench of differing parallel switch levels with abspiral(20,000,{})",
         DEFAULT_GROW
     );
-    let mut plot = fb.plot().build(
+    let mut plot = poloto::plot_with_html(
         &s,
         "Height at which to switch to sequential",
         "Time in Seconds",
+        REPORT_THEME
     );
 
     plot.scatter("Rebal Par", rebals.iter().map(|a| [a.0, a.1]).twice_iter());

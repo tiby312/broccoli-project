@@ -35,7 +35,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
     {
         let res = TheoryRes::new(num_bots, grow);
 
-        let mut splot = fb.plot().build(
+        let mut splot = poloto::plot_with_html(
             move_format!(
                 "Complexity of query evenness with abspiral({},{})",
                 num_bots,
@@ -43,6 +43,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
             ),
             "DFS inorder iteration",
             "Number of comparisons",
+            REPORT_THEME
         );
 
         splot.histogram(
@@ -64,10 +65,11 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
 
     let tree = broccoli::new(&mut bots);
 
-    let mut splot = fb.plot().build(
+    let mut splot = poloto::plot_with_html(
         move_format!("Num per node with abspiral({},{})", num_bots, grow),
         "DFS inorder iteration",
         "Number of comparisons",
+        REPORT_THEME
     );
 
     use broccoli::compt::Visitor;

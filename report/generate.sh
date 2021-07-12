@@ -16,4 +16,4 @@ cargo-deps deps --exclude demo,data_gen | dot -Tsvg> src/graphs/graph.svg
 #cargo flamegraph --bin data_gen profile
 #RUSTFLAGS=``
 
-mdbook serve
+mdbook serve -p 3001

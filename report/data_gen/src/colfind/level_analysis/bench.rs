@@ -48,9 +48,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         fb: &mut FigureBuilder,
         mut it: I,
     ) {
-        let mut plot = fb
-            .plot()
-            .build(title_name, "Spiral Grow", "Time taken in Seconds");
+        let mut plot = poloto::plot_with_html(title_name, "Spiral Grow", "Time taken in Seconds",REPORT_THEME);
 
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();
