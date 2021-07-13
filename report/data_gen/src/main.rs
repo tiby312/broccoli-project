@@ -116,8 +116,7 @@ impl FigureBuilder {
 
             let mut plot = poloto::plot_with_html(title, xname, yname,REPORT_THEME);
 
-            use poloto::prelude::*;
-
+            
             for (plot_name, _) in names.iter() {
                 let k = ii.clone();
                 let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
@@ -142,8 +141,7 @@ impl FigureBuilder {
                             };
 
                             [*secondx, num]
-                        })
-                        .twice_iter(), //TODO buffer instead?
+                        }),
                 );
             }
 

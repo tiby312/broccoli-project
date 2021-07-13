@@ -36,7 +36,7 @@ fn handle_num(fb: &mut FigureBuilder) {
 
     plot.line(
         "",
-        rects.iter().map(|x| [x.0 as f64, x.1 as f64]).twice_iter(),
+        rects.iter().map(|x| [x.0 as f64, x.1 as f64]),
     );
 
     fb.finish_plot(plot, "spiral_data_num");
@@ -69,7 +69,7 @@ fn handle_grow(fb: &mut FigureBuilder) {
 
     plot.line(
         "",
-        rects.iter().map(|x| [x.0 as f64, x.1 as f64]).twice_iter(),
+        rects.iter().map(|x| [x.0 as f64, x.1 as f64]),
     );
 
     fb.finish_plot(plot, "spiral_data_grow");
@@ -93,7 +93,6 @@ fn handle_visualize(fb: &mut FigureBuilder) {
         make(DEFAULT_GROW)
             .into_iter()
             .map(|v| [v.x as f64, v.y as f64])
-            .twice_iter(),
     );
 
     fb.finish_plot(plot, "spiral_visualize");

@@ -56,7 +56,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
             let cc = (0..num).map(|ii: usize| it.clone().map(move |(x, a)| [x, a[ii]]));
 
             for (i, y) in cc.enumerate() {
-                plot.line_fill(move_format!("Level {}", i), y.twice_iter());
+                plot.line_fill(move_format!("Level {}", i), y);
             }
         }
 

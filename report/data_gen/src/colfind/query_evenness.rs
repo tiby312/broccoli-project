@@ -53,7 +53,6 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
                 .dfs_inorder_iter()
                 .enumerate()
                 .map(|(i, element)| [i as f64, *element as f64])
-                .twice_iter(),
         );
 
         fb.finish_plot(splot, move_format!("query_evenness_theory_{}", prefix));
@@ -79,7 +78,6 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
             .dfs_inorder_iter()
             .enumerate()
             .map(|(i, element)| [i as f64, element.range.len() as f64])
-            .twice_iter(),
     );
 
     fb.finish_plot(splot, move_format!("query_num_per_node_theory_{}", prefix));
