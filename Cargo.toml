@@ -1,6 +1,6 @@
 [package]
 name = "broccoli"
-version = "2.0.4"
+version = "2.0.5"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
 license = "MIT"
@@ -33,7 +33,7 @@ twounordered = "^0.6.2"
 # and only builds that target
 targets = ["x86_64-unknown-linux-gnu"]
 
-# when using flamegraph
-[profile.release]
-debug = true
+#  when using flamegraph
+# [profile.release]
+# debug = true
 
