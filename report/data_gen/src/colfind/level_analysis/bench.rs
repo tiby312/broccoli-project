@@ -53,7 +53,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();
 
-            let cc = (0..num).map(|ii: usize| it.clone().map(move |(x, a)| [x, a[ii]]));
+            let cc = (0..num).map(|ii: usize| it.clone().map(move |(x, a)| [x as f32, a[ii] as f32]));
 
             for (i, y) in cc.enumerate() {
                 plot.line_fill(move_format!("Level {}", i), y);
@@ -63,7 +63,6 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         fb.finish_plot(plot, filename);
     }
 
-    //let mut fg = fb.build("level_analysis_bench_rebal");
     draw_graph(
         "level_analysis_bench_rebal",
         &format!("Bench of rebal levels with abspiral({},x)", num_bots),

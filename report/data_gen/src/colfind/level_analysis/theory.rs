@@ -61,7 +61,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();
 
-            let cc = (0..num).map(|ii: usize| it.clone().map(move |(x, a)| [x, a[ii]]));
+            let cc = (0..num).map(|ii: usize| it.clone().map(move |(x, a)| [x as f32, a[ii] as f32]));
 
             for (i, y) in cc.enumerate() {
                 plot.line_fill(move_format!("Level {}", i), y);

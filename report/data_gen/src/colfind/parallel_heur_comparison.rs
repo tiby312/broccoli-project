@@ -88,15 +88,15 @@ pub fn handle(fb: &mut FigureBuilder) {
         REPORT_THEME
     );
 
-    plot.scatter("Rebal Par", rebals.iter().map(|a| [a.0, a.1]));
-    plot.scatter("Query Par", queries.iter().map(|a| [a.0, a.1]));
+    plot.scatter("Rebal Par", rebals.iter().map(|a| [a.0 as f32, a.1 as f32]));
+    plot.scatter("Query Par", queries.iter().map(|a| [a.0 as f32, a.1 as f32]));
     plot.scatter(
         "Rebal",
-        seqs.iter().map(|a| [height as f64, a.0]),
+        seqs.iter().map(|a| [height as f32, a.0 as f32]),
     );
     plot.scatter(
         "Query",
-        seqs.iter().map(|a| [height as f64, a.1]),
+        seqs.iter().map(|a| [height as f32, a.1 as f32]),
     );
 
     fb.finish_plot(plot, "parallel_height_heuristic");

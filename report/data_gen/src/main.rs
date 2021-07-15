@@ -37,7 +37,7 @@ mod inner_prelude {
     pub use broccoli::pmut::PMut;
     pub use broccoli::query::*;
     pub use broccoli::*;
-    pub use poloto::prelude::*;
+    pub use poloto::move_format;
     pub use serde::Serialize;
     pub use std::time::Duration;
     pub use std::time::Instant;
@@ -140,7 +140,7 @@ impl FigureBuilder {
                                 }
                             };
 
-                            [*secondx, num]
+                            [*secondx as f32, num as f32]
                         }),
                 );
             }

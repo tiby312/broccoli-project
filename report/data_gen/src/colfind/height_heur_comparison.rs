@@ -87,12 +87,12 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         "Optimal",
         benches
             .iter()
-            .map(|a| [a.num_bots as f64, a.height as f64]),
+            .map(|a| [a.num_bots as f32, a.height as f32]),
     );
 
     plot.scatter(
         "Heuristic",
-        heur.iter().map(|a| [a.0 as f64, a.1 as f64]),
+        heur.iter().map(|a| [a.0 as f32, a.1 as f32]),
     );
 
     fb.finish_plot(plot, "height_heuristic_vs_optimal");
@@ -141,7 +141,7 @@ fn handle2d(fb: &mut FigureBuilder) {
         "",
         theory_records
             .iter()
-            .map(|a| [a.height as f64, a.num_comparison as f64]),
+            .map(|a| [a.height as f32, a.num_comparison as f32]),
     );
 
     fb.finish_plot(plot, "height_heuristic_theory");
@@ -156,7 +156,7 @@ fn handle2d(fb: &mut FigureBuilder) {
         "",
         bench_records
             .iter()
-            .map(|a| [a.height as f64, a.bench as f64]),
+            .map(|a| [a.height as f32, a.bench as f32]),
     );
 
     fb.finish_plot(plot, "height_heuristic_bench");
