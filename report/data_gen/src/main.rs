@@ -73,9 +73,9 @@ impl FigureBuilder {
     }
 
     
-    fn finish_plot<X: poloto::Names>(
+    fn finish_plot(
         &self,
-        plot: poloto::Plotter<X>,
+        plot: poloto::Plotter,
         filename: impl core::fmt::Display,
     ) {
         let s = format!("{}/{}.svg", &self.folder, filename);
