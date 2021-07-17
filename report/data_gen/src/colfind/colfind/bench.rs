@@ -87,12 +87,12 @@ impl Record {
         }
 
         Record {
-            brocc: c1 as f64,
-            brocc_par: c0 as f64,
-            sweep: c3 as f64,
-            naive: c4 as f64,
-            nosort_par: c5 as f64,
-            nosort: c6 as f64,
+            brocc: c1,
+            brocc_par: c0,
+            sweep: c3,
+            naive: c4,
+            nosort_par: c5,
+            nosort: c6,
         }
     }
 }

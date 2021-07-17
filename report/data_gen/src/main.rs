@@ -140,7 +140,7 @@ impl FigureBuilder {
                                 }
                             };
 
-                            [*secondx as f32, num as f32]
+                            [*secondx, num]
                         }),
                 );
             }

@@ -76,10 +76,10 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
             black_box(bot_inner);
 
             Res {
-                bench: bench as f64,
-                bench_par: bench_par as f64,
-                collect: collect as f64,
-                collect_par: collect_par as f64,
+                bench,
+                bench_par,
+                collect,
+                collect_par,
             }
         }
     }
@@ -141,8 +141,8 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
             black_box(bot_inner);
 
             Res {
-                optimal: optimal as f64,
-                optimal_par: optimal_par as f64,
+                optimal,
+                optimal_par,
             }
         }
     }
