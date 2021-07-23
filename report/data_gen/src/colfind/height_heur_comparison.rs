@@ -81,7 +81,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         "Bench of optimal vs heuristic with abspiral(x,{})",
         DEFAULT_GROW
     );
-    let mut plot = poloto::plot_with_html(&s, "Number of Elements", "Tree Height",REPORT_THEME);
+    let mut plot = my_plot(&s, "Number of Elements", "Tree Height");
 
     plot.scatter(
         "Optimal",
@@ -135,7 +135,7 @@ fn handle2d(fb: &mut FigureBuilder) {
         "Complexity of differing num elem per node with abspiral(10000,{})",
         DEFAULT_GROW
     );
-    let mut plot = poloto::plot_with_html(&s, "Tree Height", "Number of Comparisons",REPORT_THEME);
+    let mut plot = my_plot(&s, "Tree Height", "Number of Comparisons");
 
     plot.histogram(
         "",
@@ -150,7 +150,7 @@ fn handle2d(fb: &mut FigureBuilder) {
         "Bench of differing num elem per node with abspiral(10000,{})",
         DEFAULT_GROW
     );
-    let mut plot = poloto::plot_with_html(&s, "Tree Height", "Number of Comparisons",REPORT_THEME);
+    let mut plot = my_plot(&s, "Tree Height", "Number of Comparisons");
 
     plot.scatter(
         "",

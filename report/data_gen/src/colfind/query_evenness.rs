@@ -35,15 +35,14 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
     {
         let res = TheoryRes::new(num_bots, grow);
 
-        let mut splot = poloto::plot_with_html(
-            move_format!(
+        let mut splot = my_plot(
+            formatm!(
                 "Complexity of query evenness with abspiral({},{})",
                 num_bots,
                 grow
             ),
             "DFS inorder iteration",
-            "Number of comparisons",
-            REPORT_THEME
+            "Number of comparisons"
         );
 
         splot.histogram(
@@ -55,7 +54,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
                 .map(|(i, element)| [i, *element])
         );
 
-        fb.finish_plot(splot, move_format!("query_evenness_theory_{}", prefix));
+        fb.finish_plot(splot, formatm!("query_evenness_theory_{}", prefix));
     }
 
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f64)).collect();
@@ -64,11 +63,10 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
 
     let tree = broccoli::new(&mut bots);
 
-    let mut splot = poloto::plot_with_html(
-        move_format!("Num per node with abspiral({},{})", num_bots, grow),
+    let mut splot = my_plot(
+        formatm!("Num per node with abspiral({},{})", num_bots, grow),
         "DFS inorder iteration",
-        "Number of comparisons",
-        REPORT_THEME
+        "Number of comparisons"
     );
 
     use broccoli::compt::Visitor;
@@ -80,7 +78,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
             .map(|(i, element)| [i, element.range.len()])
     );
 
-    fb.finish_plot(splot, move_format!("query_num_per_node_theory_{}", prefix));
+    fb.finish_plot(splot, formatm!("query_num_per_node_theory_{}", prefix));
 }
 pub fn handle_theory(fb: &mut FigureBuilder) {
     let num_bots = 3000;

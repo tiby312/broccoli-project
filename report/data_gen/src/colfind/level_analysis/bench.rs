@@ -48,7 +48,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         fb: &mut FigureBuilder,
         mut it: I,
     ) {
-        let mut plot = poloto::plot_with_html(title_name, "Spiral Grow", "Time taken in Seconds",REPORT_THEME);
+        let mut plot = my_plot(title_name, "Spiral Grow", "Time taken in Seconds");
 
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();
@@ -56,7 +56,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
             let cc = (0..num).map(|ii: usize| it.clone().map(move |(x, a)| [x, a[ii]]));
 
             for (i, y) in cc.enumerate() {
-                plot.line_fill(move_format!("Level {}", i), y);
+                plot.line_fill(formatm!("Level {}", i), y);
             }
         }
 

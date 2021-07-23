@@ -24,14 +24,13 @@ fn handle_num(fb: &mut FigureBuilder) {
         rects.push((num, num_intersection));
     }
 
-    let mut plot = poloto::plot_with_html(
+    let mut plot = my_plot(
         format!(
             "Number of Intersections with abspiral(num,0.{})",
             DEFAULT_GROW
         ),
         "Number of Elements",
-        "Number of Intersections",
-        REPORT_THEME
+        "Number of Intersections"
     );
 
     plot.line(
@@ -60,11 +59,10 @@ fn handle_grow(fb: &mut FigureBuilder) {
         rects.push((grow, num_intersection));
     }
 
-    let mut plot = poloto::plot_with_html(
+    let mut plot = my_plot(
         "Number of Intersections with abspiral(20_000,grow)",
         "Grow",
-        "Number of Intersections",
-        REPORT_THEME
+        "Number of Intersections"
     );
 
     plot.line(
@@ -86,7 +84,7 @@ fn handle_visualize(fb: &mut FigureBuilder) {
     }
 
     let f = format!("abspiral(600,{})", DEFAULT_GROW);
-    let mut plot = poloto::plot_with_html(&f, "x", "y",REPORT_THEME);
+    let mut plot = my_plot(&f, "x", "y");
 
     plot.scatter(
         "",

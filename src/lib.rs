@@ -57,7 +57,21 @@
     html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
 )]
-//#![no_std]
+#![no_std]
+
+
+#[cfg(doctest)]
+mod test_readme {
+    macro_rules! external_doc_test {
+        ($x:expr) => {
+            #[doc = $x]
+            extern "C" {}
+        };
+    }
+
+    external_doc_test!(include_str!("../README.md"));
+}
+
 
 #[macro_use]
 extern crate alloc;
