@@ -42,7 +42,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
                 grow
             ),
             "DFS inorder iteration",
-            "Number of comparisons"
+            "Number of comparisons",
         );
 
         splot.histogram(
@@ -51,7 +51,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
                 .vistr()
                 .dfs_inorder_iter()
                 .enumerate()
-                .map(|(i, element)| [i, *element])
+                .map(|(i, element)| [i, *element]),
         );
 
         fb.finish_plot(splot, formatm!("query_evenness_theory_{}", prefix));
@@ -66,7 +66,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
     let mut splot = my_plot(
         formatm!("Num per node with abspiral({},{})", num_bots, grow),
         "DFS inorder iteration",
-        "Number of comparisons"
+        "Number of comparisons",
     );
 
     use broccoli::compt::Visitor;
@@ -75,7 +75,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
         tree.vistr()
             .dfs_inorder_iter()
             .enumerate()
-            .map(|(i, element)| [i, element.range.len()])
+            .map(|(i, element)| [i, element.range.len()]),
     );
 
     fb.finish_plot(splot, formatm!("query_num_per_node_theory_{}", prefix));

@@ -59,7 +59,6 @@
 )]
 #![no_std]
 
-
 #[cfg(doctest)]
 mod test_readme {
     macro_rules! external_doc_test {
@@ -71,7 +70,6 @@ mod test_readme {
 
     external_doc_test!(include_str!("../README.md"));
 }
-
 
 #[macro_use]
 extern crate alloc;
@@ -133,7 +131,7 @@ pub mod query {
     pub use queries::colfind::builder::CollisionHandler;
     pub use queries::colfind::builder::{NotSortedQueryBuilder, QueryBuilder};
     pub use queries::draw::DividerDrawer;
-    pub use queries::knearest::{KResult,Knearest, KnearestResult};
+    pub use queries::knearest::{KResult, Knearest, KnearestResult};
     pub use queries::nbody::GravEnum;
     pub use queries::nbody::Nbody;
     pub use queries::raycast::{CastAnswer, RayCast};

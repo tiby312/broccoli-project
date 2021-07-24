@@ -84,19 +84,13 @@ pub fn handle(fb: &mut FigureBuilder) {
     let mut plot = my_plot(
         &s,
         "Height at which to switch to sequential",
-        "Time in Seconds"
+        "Time in Seconds",
     );
 
     plot.scatter("Rebal Par", rebals.iter().map(|a| [a.0, a.1]));
     plot.scatter("Query Par", queries.iter().map(|a| [a.0, a.1]));
-    plot.scatter(
-        "Rebal",
-        seqs.iter().map(|a| [height as f64, a.0 ]),
-    );
-    plot.scatter(
-        "Query",
-        seqs.iter().map(|a| [height as f64, a.1]),
-    );
+    plot.scatter("Rebal", seqs.iter().map(|a| [height as f64, a.0]));
+    plot.scatter("Query", seqs.iter().map(|a| [height as f64, a.1]));
 
     fb.finish_plot(plot, "parallel_height_heuristic");
 }

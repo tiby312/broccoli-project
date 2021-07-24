@@ -30,13 +30,10 @@ fn handle_num(fb: &mut FigureBuilder) {
             DEFAULT_GROW
         ),
         "Number of Elements",
-        "Number of Intersections"
+        "Number of Intersections",
     );
 
-    plot.line(
-        "",
-        rects.iter().map(|x| [x.0 as f32, x.1 as f32]),
-    );
+    plot.line("", rects.iter().map(|x| [x.0 as f32, x.1 as f32]));
 
     fb.finish_plot(plot, "spiral_data_num");
 }
@@ -62,13 +59,10 @@ fn handle_grow(fb: &mut FigureBuilder) {
     let mut plot = my_plot(
         "Number of Intersections with abspiral(20_000,grow)",
         "Grow",
-        "Number of Intersections"
+        "Number of Intersections",
     );
 
-    plot.line(
-        "",
-        rects.iter().map(|x| [x.0 as f32, x.1 as f32]),
-    );
+    plot.line("", rects.iter().map(|x| [x.0 as f32, x.1 as f32]));
 
     fb.finish_plot(plot, "spiral_data_grow");
 }
@@ -90,7 +84,7 @@ fn handle_visualize(fb: &mut FigureBuilder) {
         "",
         make(DEFAULT_GROW)
             .into_iter()
-            .map(|v| [v.x as f32, v.y as f32])
+            .map(|v| [v.x as f32, v.y as f32]),
     );
 
     fb.finish_plot(plot, "spiral_visualize");

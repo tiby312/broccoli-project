@@ -20,13 +20,14 @@ pub mod bbox_helper {
 }
 
 mod inner_prelude {
-    pub use crate::REPORT_THEME;
     pub use super::bbox_helper;
     pub use crate::black_box;
     pub(crate) use crate::datanum;
+    pub use crate::my_plot;
     pub use crate::support::*;
     pub use crate::Args;
     pub(crate) use crate::FigureBuilder;
+    pub use crate::REPORT_THEME;
     pub use axgeom::vec2;
     pub use axgeom::vec2same;
     pub use axgeom::Rect;
@@ -37,17 +38,25 @@ mod inner_prelude {
     pub use broccoli::pmut::PMut;
     pub use broccoli::query::*;
     pub use broccoli::*;
-    pub use tagger::prelude::*;
     pub use serde::Serialize;
     pub use std::time::Duration;
     pub use std::time::Instant;
-    pub use crate::my_plot;
+    pub use tagger::prelude::*;
 }
 
 use std::fmt;
 use tagger::prelude::*;
-pub fn my_plot<'a>(title:impl fmt::Display+'a,xname:impl fmt::Display+'a,yname:impl fmt::Display+'a)->poloto::Plotter<'a>{
-    poloto::Plotter::new(poloto::default_svg().add(single!(poloto::HTML_CONFIG_CSS_VARIABLE_DEFAULT)),title,xname,yname)
+pub fn my_plot<'a>(
+    title: impl fmt::Display + 'a,
+    xname: impl fmt::Display + 'a,
+    yname: impl fmt::Display + 'a,
+) -> poloto::Plotter<'a> {
+    poloto::Plotter::new(
+        poloto::default_svg().appendm(single!(poloto::HTML_CONFIG_CSS_VARIABLE_DEFAULT)),
+        title,
+        xname,
+        yname,
+    )
 }
 
 #[macro_use]
@@ -72,22 +81,17 @@ pub struct Args<'a, S: Serialize, I: Iterator<Item = (f64, S)>> {
     stop_values: &'a [(&'a str, f64)],
 }
 
-pub const REPORT_THEME:&str=poloto::HTML_CONFIG_CSS_VARIABLE_DEFAULT;
+pub const REPORT_THEME: &str = poloto::HTML_CONFIG_CSS_VARIABLE_DEFAULT;
 
 impl FigureBuilder {
     fn new(folder: String) -> FigureBuilder {
         FigureBuilder { folder }
     }
 
-    
-    fn finish_plot(
-        &self,
-        plot: poloto::Plotter,
-        filename: impl core::fmt::Display,
-    ) {
+    fn finish_plot(&self, mut plot: poloto::Plotter, filename: impl core::fmt::Display) {
         let s = format!("{}/{}.svg", &self.folder, filename);
         let mut file = std::fs::File::create(s).unwrap();
-        write!(file,"{}",plot.render()).unwrap();
+        write!(file, "{}", plot.render()).unwrap();
     }
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {
@@ -123,7 +127,6 @@ impl FigureBuilder {
 
             let mut plot = my_plot(title, xname, yname);
 
-            
             for (plot_name, _) in names.iter() {
                 let k = ii.clone();
                 let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
