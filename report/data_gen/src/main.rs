@@ -45,14 +45,12 @@ mod inner_prelude {
 }
 
 use std::fmt;
-use tagger::prelude::*;
 pub fn my_plot<'a>(
     title: impl fmt::Display + 'a,
     xname: impl fmt::Display + 'a,
     yname: impl fmt::Display + 'a,
 ) -> poloto::Plotter<'a> {
     poloto::Plotter::new(
-        poloto::default_svg().appendm(single!(poloto::HTML_CONFIG_CSS_VARIABLE_DEFAULT)),
         title,
         xname,
         yname,
@@ -89,9 +87,11 @@ impl FigureBuilder {
     }
 
     fn finish_plot(&self, mut plot: poloto::Plotter, filename: impl core::fmt::Display) {
+        let plot=poloto::theme_css_variable().appendm(plot.render());
+
         let s = format!("{}/{}.svg", &self.folder, filename);
         let mut file = std::fs::File::create(s).unwrap();
-        write!(file, "{}", plot.render()).unwrap();
+        write!(file, "{}", plot.display()).unwrap();
     }
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {
