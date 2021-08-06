@@ -21,9 +21,8 @@ The below chart compares the empirically best height against the height that our
 
 
 <style>
-.test .poloto0fill{
-    stroke:var(--pplot_color0);
-    stroke-width:7;
+.test .poloto0stroke{
+    stroke-width:20;
 }
 </style>
 <div class="test">

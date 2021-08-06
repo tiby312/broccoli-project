@@ -41,7 +41,8 @@ mod inner_prelude {
     pub use serde::Serialize;
     pub use std::time::Duration;
     pub use std::time::Instant;
-    pub use tagger::prelude::*;
+    pub use tagger;
+    pub use poloto::*;
 }
 
 use std::fmt;
@@ -87,11 +88,16 @@ impl FigureBuilder {
     }
 
     fn finish_plot(&self, mut plot: poloto::Plotter, filename: impl core::fmt::Display) {
-        let plot=poloto::theme_css_variable().appendm(plot.render());
-
+        
         let s = format!("{}/{}.svg", &self.folder, filename);
         let mut file = std::fs::File::create(s).unwrap();
-        write!(file, "{}", plot.display()).unwrap();
+        
+        let mut e=tagger::new(poloto::upgrade_write(&mut file));
+        
+        poloto::default_svg(&mut e,tagger::no_attr(),|w|{
+            plot.render(w.writer());
+        });
+
     }
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {

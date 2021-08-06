@@ -9,19 +9,15 @@ This was benched on a laptop with 4 physical cores. This means that if you just 
 
 <link rel="stylesheet" href="css/poloto.css">
 <style>
-.test .poloto0fill{
-    stroke:var(--pplot_color0);
-    stroke-width:7;
+.test .poloto0stroke{
+    stroke-width:12;
 }
-.test .poloto2fill{
-    stroke:var(--pplot_color2);
-    stroke-width:7;
+.test .poloto2stroke{
+    stroke-width:12;
 }
-.test .poloto3fill{
-    stroke:var(--pplot_color3);
-    stroke-width:7;
+.test .poloto3stroke{
+    stroke-width:20;
 }
-
 </style>
 <div class="test">
 {{#include raw/parallel_height_heuristic.svg}}
