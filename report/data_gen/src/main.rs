@@ -27,7 +27,6 @@ mod inner_prelude {
     pub use crate::support::*;
     pub use crate::Args;
     pub(crate) use crate::FigureBuilder;
-    pub use crate::REPORT_THEME;
     pub use axgeom::vec2;
     pub use axgeom::vec2same;
     pub use axgeom::Rect;
@@ -80,7 +79,6 @@ pub struct Args<'a, S: Serialize, I: Iterator<Item = (f64, S)>> {
     stop_values: &'a [(&'a str, f64)],
 }
 
-pub const REPORT_THEME: &str = poloto::HTML_CONFIG_CSS_VARIABLE_DEFAULT;
 
 impl FigureBuilder {
     fn new(folder: String) -> FigureBuilder {
