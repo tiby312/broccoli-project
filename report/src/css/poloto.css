@@ -1,8 +1,27 @@
 
+
+
 .poloto {
-stroke-linecap:round;
-font-family: sans-serif;
-stroke-width:2;
+    font-family: "Open Sans", sans-serif;
+    width:100%;
+    display:block;
+    margin-left:auto;
+    margin-right:auto;
+    height:auto;
+    stroke-linecap:round;
+    font-family: sans-serif;
+    stroke-width:2;
+    --poloto_fg_color:var(--fg);
+    --poloto_bg_color:var(--bg);
+    --poloto_color0:var(--pplot_color0);
+    --poloto_color1:var(--pplot_color1);
+    --poloto_color2:var(--pplot_color2);
+    --poloto_color3:var(--pplot_color3);
+    --poloto_color4:var(--pplot_color4);
+    --poloto_color5:var(--pplot_color5);
+    --poloto_color6:var(--pplot_color6);
+    --poloto_color7:var(--pplot_color7);
+    --poloto_color8:var(--pplot_color8);
 }
 .scatter{stroke-width:7}
 .poloto_text{fill: var(--poloto_fg_color,black);}
@@ -85,35 +104,4 @@ stroke-width:2;
     --pplot_color8:chocolate;
  
 }
-/*
-.poloto0stroke{
-    stroke-dasharray:4;
-    stroke-width:2;
-}
 
-.poloto0fill{
-    stroke-dasharray:4;
-}
-*/
-.poloto.poloto {
-    font-family: "Open Sans", sans-serif;
-    width:100%;
-    display:block;
-    max-width: 600px;
-    margin-left:auto;
-    margin-right:auto;
-    height:auto;
-}
-.poloto{
-  --poloto_fg_color:var(--fg);
-  --poloto_bg_color:var(--bg);
-  --poloto_color0:var(--pplot_color0);
-  --poloto_color1:var(--pplot_color1);
-  --poloto_color2:var(--pplot_color2);
-  --poloto_color3:var(--pplot_color3);
-  --poloto_color4:var(--pplot_color4);
-  --poloto_color5:var(--pplot_color5);
-  --poloto_color6:var(--pplot_color6);
-  --poloto_color7:var(--pplot_color7);
-  --poloto_color8:var(--pplot_color8);
-}
