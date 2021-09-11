@@ -87,6 +87,6 @@ fn handle_visualize(fb: &mut FigureBuilder) {
             .map(|v| [v.x as f32, v.y as f32]),
     );
     plot.preserve_aspect();
-    
+
     fb.finish_plot(plot, "spiral_visualize");
 }

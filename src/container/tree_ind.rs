@@ -159,7 +159,8 @@ impl<'a, 'b, N: Num, T> TreeInd<'a, 'b, N, T> {
         let mut elems = Vec::new();
         for node in self.get_tree_mut().get_nodes_mut().iter_mut() {
             for b in node.into_range().iter_mut() {
-                let (x, y) = b.unpack();
+                let x = b.rect();
+                let y = b.unpack_inner();
                 if let Some(d) = func(x, y) {
                     elems.push((Ptr(*y as *mut _), d));
                 }

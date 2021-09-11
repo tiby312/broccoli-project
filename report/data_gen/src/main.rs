@@ -37,11 +37,11 @@ mod inner_prelude {
     pub use broccoli::pmut::PMut;
     pub use broccoli::query::*;
     pub use broccoli::*;
+    pub use poloto::*;
     pub use serde::Serialize;
     pub use std::time::Duration;
     pub use std::time::Instant;
     pub use tagger;
-    pub use poloto::*;
 }
 
 use std::fmt;
@@ -50,11 +50,7 @@ pub fn my_plot<'a>(
     xname: impl fmt::Display + 'a,
     yname: impl fmt::Display + 'a,
 ) -> poloto::Plotter<'a> {
-    poloto::Plotter::new(
-        title,
-        xname,
-        yname,
-    )
+    poloto::Plotter::new(title, xname, yname)
 }
 
 #[macro_use]
@@ -79,23 +75,20 @@ pub struct Args<'a, S: Serialize, I: Iterator<Item = (f64, S)>> {
     stop_values: &'a [(&'a str, f64)],
 }
 
-
 impl FigureBuilder {
     fn new(folder: String) -> FigureBuilder {
         FigureBuilder { folder }
     }
 
     fn finish_plot(&self, mut plot: poloto::Plotter, filename: impl core::fmt::Display) {
-        
         let s = format!("{}/{}.svg", &self.folder, filename);
         let mut file = std::fs::File::create(s).unwrap();
-        
-        let mut e=tagger::new(poloto::upgrade_write(&mut file));
-        
-        poloto::default_svg(&mut e,tagger::no_attr(),|w|{
+
+        let mut e = tagger::new(poloto::upgrade_write(&mut file));
+
+        poloto::default_svg(&mut e, tagger::no_attr(), |w| {
             plot.render(w.writer());
         });
-
     }
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {

@@ -159,7 +159,7 @@ fn find<'a, A: Axis, F: CollisionHandler>(
     let mut active = prevec1.extract_vec();
 
     for mut curr_bot in collision_botids.iter_mut() {
-        let crr = *curr_bot.get().get_range(axis);
+        let crr = curr_bot.rect().get_range(axis);
 
         active.retain_mut_unordered(|that_bot| {
             if that_bot.get().get_range(axis).end > crr.start {
