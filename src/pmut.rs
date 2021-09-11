@@ -148,6 +148,11 @@ impl<'a, 'b: 'a, T: Aabb> PMut<'a, Node<'b, T>> {
         }
     }
 
+    #[inline(always)]
+    pub fn get_cont(&self) -> &'a Range<T::Num> {
+        unsafe { &*(&self.cont as *const _) }
+    }
+
     /// Return a mutable list of elements in this node.
     #[inline(always)]
     pub fn into_range(self) -> PMut<'a, [T]> {

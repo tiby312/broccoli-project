@@ -656,8 +656,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
         //The two trees could be recursed at the same time to break up the problem.
 
         for mut i in PMut::new(other).iter_mut() {
-            let rect = *i.get();
-            self.for_all_intersect_rect_mut(&rect, |a| {
+            let rect = i.rect();
+            self.for_all_intersect_rect_mut(rect, |a| {
                 func(a, i.borrow_mut());
             });
         }

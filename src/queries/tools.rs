@@ -5,7 +5,7 @@ use super::*;
 //this can have some false positives.
 //but it will still prune a lot of bots.
 #[inline(always)]
-pub fn get_section<I: Aabb, A: Axis>(axis: A, arr: &[I], range: Range<I::Num>) -> &[I] {
+pub fn get_section<'a, I: Aabb, A: Axis>(axis: A, arr: &'a [I], range: &Range<I::Num>) -> &'a [I] {
     let mut start = None;
     let mut ii = arr.iter().enumerate();
     for (e, i) in &mut ii {
@@ -52,7 +52,7 @@ fn test_section() {
     let k = get_section_mut(
         axgeom::XAXIS,
         PMut::new(&mut aabbs),
-        axgeom::Range::new(5, 10),
+        &axgeom::Range::new(5, 10),
     );
     let k: &[axgeom::Rect<isize>] = &k;
     assert_eq!(k.len(), 3);
@@ -61,11 +61,11 @@ fn test_section() {
 //this can have some false positives.
 //but it will still prune a lot of bots.
 #[inline(always)]
-pub fn get_section_mut<I: Aabb, A: Axis>(
+pub fn get_section_mut<'a, I: Aabb, A: Axis>(
     axis: A,
-    arr: PMut<[I]>,
-    range: Range<I::Num>,
-) -> PMut<[I]> {
+    arr: PMut<'a, [I]>,
+    range: &Range<I::Num>,
+) -> PMut<'a, [I]> {
     let mut start = None;
     let mut ii = arr.iter().enumerate();
     for (e, i) in &mut ii {

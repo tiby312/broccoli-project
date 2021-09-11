@@ -62,7 +62,7 @@ where
                         let v: T::Num = Default::default();
                         assert_eq!(nn.cont.start, v);
                     } else {
-                        let cont = nn.cont;
+                        let cont = &nn.cont;
                         for bot in nn.range.iter() {
                             assert!(bot.get().get_range(axis).contains(div));
                         }

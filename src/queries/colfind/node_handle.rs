@@ -106,8 +106,8 @@ impl NodeHandler for HandleSorted {
         current: NodeAxis<T, B>,
     ) {
         if !current.axis.is_equal_to(anchor.axis) {
-            let cc1 = anchor.node.cont;
-            let cc2 = current.node.cont;
+            let cc1 = anchor.node.get_cont();
+            let cc2 = current.node.get_cont();
 
             let r1 = super::tools::get_section_mut(anchor.axis, current.node.into_range(), cc1);
 

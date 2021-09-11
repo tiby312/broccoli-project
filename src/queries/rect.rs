@@ -22,7 +22,7 @@ macro_rules! rect {
                     let sl = $get_section(
                         this_axis.next(),
                         $get_bots(nn),
-                        *rect.get_range(this_axis.next()),
+                        rect.get_range(this_axis.next()),
                     );
 
                     for i in sl {
@@ -41,7 +41,7 @@ macro_rules! rect {
                     let sl = $get_section(
                         this_axis.next(),
                         $get_bots(nn),
-                        *rect.get_range(this_axis.next()),
+                        rect.get_range(this_axis.next()),
                     );
 
                     for i in sl {
@@ -252,8 +252,6 @@ impl<'a, 'b: 'a, T: Aabb> MultiRect<'a, 'b, T> {
             }
         }
 
-        self.rects.push(rect);
-
         for_all_in_rect_mut(
             default_axis(),
             self.vistr.borrow_mut(),
@@ -265,6 +263,8 @@ impl<'a, 'b: 'a, T: Aabb> MultiRect<'a, 'b, T> {
                 func(bbox);
             },
         );
+
+        self.rects.push(rect);
 
         Ok(())
     }
