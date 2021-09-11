@@ -66,7 +66,8 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             let mut tree = broccoli::new_par(RayonJoin, &mut k);
 
             tree.intersect_with_mut(&mut walls, |bot2, wall| {
-                let (rect, bot) = bot2.unpack();
+                let rect=bot2.rect();
+                let bot = bot2.unpack_inner();
                 let wall = wall.unpack_rect();
 
                 let fric = 0.8;
