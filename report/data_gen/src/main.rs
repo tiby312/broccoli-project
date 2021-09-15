@@ -181,24 +181,27 @@ macro_rules! run_test {
     };
 }
 
-fn profile_test() {
+fn profile_test(num_bots:usize) {
     let grow = DEFAULT_GROW;
-    let num_bots = 50_000;
+    //let num_bots = 50_000;
     use crate::support::*;
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
+    
     for _ in 0..30 {
+        let mut num_collision=0;
         let c0 = bench_closure(|| {
             let mut tree = broccoli::new(&mut bots);
             tree.find_colliding_pairs_mut(|a, b| {
+                num_collision+=1;
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
             });
         });
 
-        dbg!(c0);
+        dbg!(c0,num_collision);
     }
 }
 fn main() {
@@ -227,7 +230,7 @@ fn main() {
     dbg!(&args);
     match args[1].as_ref() {
         "profile" => {
-            profile_test();
+            profile_test(args[2].parse().unwrap());
         }
         "profile_cmp" => {
             let grow = DEFAULT_GROW;
