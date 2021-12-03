@@ -82,10 +82,11 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         DEFAULT_GROW
     );
     let mut plot = my_plot(&s, "Number of Elements", "Tree Height");
+    plot.ymarker(0.0);
+        
+    plot.scatter("Optimal", benches.iter().map(|a| [a.num_bots as f64, a.height as f64]));
 
-    plot.scatter("Optimal", benches.iter().map(|a| [a.num_bots, a.height]));
-
-    plot.scatter("Heuristic", heur.iter().map(|a| [a.0, a.1]));
+    plot.scatter("Heuristic", heur.iter().map(|a| [a.0 as f64, a.1 as f64]));
 
     fb.finish_plot(plot, "height_heuristic_vs_optimal");
 }
@@ -128,10 +129,11 @@ fn handle2d(fb: &mut FigureBuilder) {
         DEFAULT_GROW
     );
     let mut plot = my_plot(&s, "Tree Height", "Number of Comparisons");
-
+    plot.ymarker(0.0);
+        
     plot.histogram(
         "",
-        theory_records.iter().map(|a| [a.height, a.num_comparison]),
+        theory_records.iter().map(|a| [a.height as f64, a.num_comparison as f64]),
     );
 
     fb.finish_plot(plot, "height_heuristic_theory");
@@ -141,7 +143,8 @@ fn handle2d(fb: &mut FigureBuilder) {
         DEFAULT_GROW
     );
     let mut plot = my_plot(&s, "Tree Height", "Number of Comparisons");
-
+    plot.ymarker(0.0);
+        
     plot.scatter("", bench_records.iter().map(|a| [a.height as f64, a.bench]));
 
     fb.finish_plot(plot, "height_heuristic_bench");

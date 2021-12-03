@@ -49,7 +49,7 @@ pub fn my_plot<'a>(
     title: impl fmt::Display + 'a,
     xname: impl fmt::Display + 'a,
     yname: impl fmt::Display + 'a,
-) -> poloto::Plotter<'a> {
+) -> poloto::Plotter<'a,f64,f64> {
     poloto::Plotter::new(title, xname, yname)
 }
 
@@ -80,7 +80,7 @@ impl FigureBuilder {
         FigureBuilder { folder }
     }
 
-    fn finish_plot(&self, mut plot: poloto::Plotter, filename: impl core::fmt::Display) {
+    fn finish_plot(&self, mut plot: poloto::Plotter<f64,f64>, filename: impl core::fmt::Display) {
         let s = format!("{}/{}.svg", &self.folder, filename);
         let mut file = std::fs::File::create(s).unwrap();
 
@@ -124,6 +124,7 @@ impl FigureBuilder {
 
             let mut plot = my_plot(title, xname, yname);
 
+            plot.ymarker(0.0);
             for (plot_name, _) in names.iter() {
                 let k = ii.clone();
                 let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
