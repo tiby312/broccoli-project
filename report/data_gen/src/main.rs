@@ -84,11 +84,14 @@ impl FigureBuilder {
         let s = format!("{}/{}.svg", &self.folder, filename);
         let mut file = std::fs::File::create(s).unwrap();
 
-        let mut e = tagger::new(poloto::upgrade_write(&mut file));
+        
+        let mut e = poloto::upgrade_write(&mut file);
 
-        poloto::default_svg(&mut e, tagger::no_attr(), |w| {
-            plot.render(w.writer());
-        });
+        use std::fmt::Write;
+        write!(&mut e,"{}",poloto::SVG_HEADER).unwrap();
+        plot.render(&mut e);
+        write!(&mut e,"{}",poloto::SVG_END).unwrap();
+
     }
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {
