@@ -1,7 +1,7 @@
 use super::*;
 
 ///This is a `Vec<BBox<N,&'a mut T>>` under the hood
-///with the added guarentee that all the `&'a mut T`
+///with the added guarantee that all the `&'a mut T`
 ///point to the same slice.
 ///
 ///From this struct a user can create a [`TreeInd`].
@@ -50,7 +50,7 @@ impl<'a, N: Num, T> TreeIndBase<'a, N, T> {
     /// let mut base=broccoli::container::TreeIndBase::new(&mut aabbs,|a|a.rect);
     /// let mut inner=base.into_inner();
     /// let mut tree = broccoli::new(&mut inner);
-    /// //We can make a tree using the internals, but we lost the guarentee
+    /// //We can make a tree using the internals, but we lost the guarantee
     /// //that all the `&'a mut T` belong to the same slice.
     /// ```
     #[inline(always)]

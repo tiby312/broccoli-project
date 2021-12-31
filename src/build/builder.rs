@@ -4,7 +4,7 @@ use parallel::ParallelBuilder;
 ///For most usecases, the user is suggested to use
 ///the built in new() functions to create the tree.
 ///This is provided in cases the user wants more control
-///on the behavior of the tree for benching and debuging purposes.
+///on the behavior of the tree for benching and debugging purposes.
 pub struct TreeBuilder<'a, T> {
     axis: DefaultA,
     bots: &'a mut [T],
@@ -234,7 +234,7 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
         //We know this must be true because we chose the divider to be the medians left border,
         //and we binned so that all bots who intersect with the divider end up in the middle bin.
         //Very important that if a bots border is exactly on the divider, it is put in the middle.
-        //If this were not true, there is no guarentee that the middile bin has bots in it even
+        //If this were not true, there is no guarantee that the middile bin has bots in it even
         //though we did pick a divider.
         let binned = oned::bin_middle_left_right(div_axis, &med_val, bots);
 

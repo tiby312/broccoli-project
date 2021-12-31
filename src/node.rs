@@ -5,7 +5,7 @@ pub use axgeom::Rect;
 
 /// The underlying number type used for the tree.
 /// It is auto implemented by all types that satisfy the type constraints.
-/// Notice that no arithmatic is possible. The tree is constructed
+/// Notice that no arithmetic is possible. The tree is constructed
 /// using only comparisons and copying.
 pub trait Num: PartialOrd + Copy + Default {}
 impl<T> Num for T where T: PartialOrd + Copy + Default {}

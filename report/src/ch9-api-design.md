@@ -59,7 +59,7 @@ A problem with using recursion on an kd tree is that every time you recurse, you
 A downside to this is that the starting axis of the tree
 must be chosen at compile time. It is certainly possible to create a wrapper around two specialized versions of the tree, one for each axis, but this would leads to a lot of generated code, for little benefit. Not much time is spent handling the root node anyway, so even if the suboptimal starting axis is picked it is not that big of a deal.
 
-For this reason I hardcoded the starting divider to be a vertical line, partitioning aabbs based off of their x axis. This is completely arbitrary. In some cases, users might have more information about their particular distribution of aabbs to want a different starting axis, but the loss of choosing the not optimal starting axis isn't tht big in most cases I think. 
+For this reason I hardcoded the starting divider to be a vertical line, partitioning aabbs based off of their x axis. This is completely arbitrary. In some cases, users might have more information about their particular distribution of aabbs to want a different starting axis, but the loss of choosing the not optimal starting axis isn't that big in most cases, I think. 
 
 ### Mutable vs Read-Only api
 

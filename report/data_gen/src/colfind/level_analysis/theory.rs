@@ -58,7 +58,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
     ) {
         let mut plot = my_plot(title_name, "Spiral Grow", "Number of Comparisons");
         plot.ymarker(0.0);
-        
+
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();
 

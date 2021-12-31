@@ -9,7 +9,7 @@ pub mod convert {
     //! The broccoli book mentioned in the root documentation shows that
     //! integer comparisons can be faster than floating point.
     //!
-    //! Here are some convinience functions that take a floating point,
+    //! Here are some convenience functions that take a floating point,
     //! and then normalize it over an area as integers
     //!
     //!

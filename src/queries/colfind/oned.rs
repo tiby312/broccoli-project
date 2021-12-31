@@ -31,9 +31,9 @@ pub fn find_2d<A: Axis, F: CollisionHandler>(
     prevec1: &mut PreVec<F::T>,
     axis: A,
     bots: PMut<[F::T]>,
-    clos2: &mut F,
+    func: &mut F,
 ) {
-    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
+    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
     self::find(prevec1, axis, bots, &mut b);
 }
 
@@ -44,9 +44,9 @@ pub fn find_parallel_2d<A: Axis, F: CollisionHandler>(
     axis: A,
     bots1: PMut<[F::T]>,
     bots2: PMut<[F::T]>,
-    clos2: &mut F,
+    func: &mut F,
 ) {
-    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
+    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
 
     self::find_other_parallel3(prevec1, axis, (bots1, bots2), &mut b)
 }
@@ -57,7 +57,7 @@ pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
     axis: A, //the axis of r1.
     r1: PMut<[F::T]>,
     mut r2: PMut<[F::T]>,
-    clos2: &mut F,
+    func: &mut F,
 ) {
     //OPTION 1
     /*
@@ -74,7 +74,7 @@ pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
             core::cmp::Ordering::Less
         }
     }
-    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: clos2, axis };
+    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
 
     let mut rr1=prevec3.get_empty_vec_mut();
     rr1.extend(r1);
@@ -96,7 +96,7 @@ pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
 
     //OPTION2
     /*
-    let mut b = OtherAxisCollider { a: clos2, axis };
+    let mut b = OtherAxisCollider { a: func, axis };
 
     for y in r1.iter_mut() {
         self::find_other_parallel3(prevec1, axis, (y.into_slice(), r2.borrow_mut()), &mut b);
@@ -109,14 +109,14 @@ pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
     for mut inda in r1.iter_mut() {
         for mut indb in r2.borrow_mut().iter_mut() {
             if inda.get().intersects_rect(indb.get()) {
-                clos2.collide(inda.borrow_mut(), indb.borrow_mut());
+                func.collide(inda.borrow_mut(), indb.borrow_mut());
             }
         }
     }
     */
 
     // OPTION4
-    let mut b = OtherAxisCollider { a: clos2, axis };
+    let mut b = OtherAxisCollider { a: func, axis };
 
     for mut y in r1.iter_mut() {
         for y2 in r2.borrow_mut() {
@@ -125,7 +125,7 @@ pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
                 break;
             }
 
-            //Because we didnt exit from the previous comparion, we only need to check one thing.
+            //Because we didnt exit from the previous comparison, we only need to check one thing.
             if y.get().get_range(axis).start < y2.get().get_range(axis).end {
                 b.collide(y.borrow_mut(), y2);
             }
@@ -299,7 +299,7 @@ fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
         //Prune all the x's that are no longer touching the y.
         active_x.retain_mut_unordered(|x| {
             if x.get().get_range(axis).end > yr.start {
-                //So at this point some of the x's could actualy not intersect y.
+                //So at this point some of the x's could actually not intersect y.
                 //These are the x's that are to the complete right of y.
                 //So to handle collisions, we want to make sure to not hit these.
                 //That is why have an if condition.

@@ -251,7 +251,7 @@ impl<'a, R: RayCast> Recurser<'a, R> {
 
             let line = (axis, div);
 
-            //more likely to find closest in child than curent node.
+            //more likely to find closest in child than current node.
             //so recurse first before handling this node.
             if *self.ray.point.get_axis(axis) < div {
                 self.recc(axis_next, left);

@@ -8,7 +8,6 @@ pub fn handle(fb: &mut FigureBuilder) {
     handle_visualize(fb);
 }
 
-
 fn handle_num(fb: &mut FigureBuilder) {
     let mut rects = Vec::new();
     for num in 0..2000 {
@@ -64,7 +63,6 @@ fn handle_grow(fb: &mut FigureBuilder) {
         "Number of Intersections",
     );
     plot.ymarker(0.0);
-        
 
     plot.line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]));
 

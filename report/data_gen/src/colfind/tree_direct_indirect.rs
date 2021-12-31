@@ -6,8 +6,8 @@ impl<T: Copy + Send + Sync> TestTrait for T {}
 
 #[derive(Copy, Clone)]
 struct Bot<T> {
-    num: usize,
-    aabb: Rect<i32>,
+    _num: usize,
+    _aabb: Rect<i32>,
     _val: T,
 }
 

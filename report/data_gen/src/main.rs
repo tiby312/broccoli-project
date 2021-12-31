@@ -49,7 +49,7 @@ pub fn my_plot<'a>(
     title: impl fmt::Display + 'a,
     xname: impl fmt::Display + 'a,
     yname: impl fmt::Display + 'a,
-) -> poloto::Plotter<'a,f64,f64> {
+) -> poloto::Plotter<'a, f64, f64> {
     poloto::Plotter::new(title, xname, yname)
 }
 
@@ -80,18 +80,16 @@ impl FigureBuilder {
         FigureBuilder { folder }
     }
 
-    fn finish_plot(&self, mut plot: poloto::Plotter<f64,f64>, filename: impl core::fmt::Display) {
+    fn finish_plot(&self, mut plot: poloto::Plotter<f64, f64>, filename: impl core::fmt::Display) {
         let s = format!("{}/{}.svg", &self.folder, filename);
         let mut file = std::fs::File::create(s).unwrap();
 
-        
         let mut e = poloto::upgrade_write(&mut file);
 
         use std::fmt::Write;
-        write!(&mut e,"{}",poloto::SVG_HEADER).unwrap();
-        plot.render(&mut e);
-        write!(&mut e,"{}",poloto::SVG_END).unwrap();
-
+        write!(&mut e, "{}", poloto::SVG_HEADER).unwrap();
+        plot.render(&mut e).unwrap();
+        write!(&mut e, "{}", poloto::SVG_END).unwrap();
     }
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {
@@ -143,8 +141,8 @@ impl FigureBuilder {
                             }
                         })
                         .map(move |(secondx, foo)| {
-                            let mapp = MySerialize::new(foo);
-                            let num: f64 = match &mapp.as_object()[plot_name] {
+                            let map = MySerialize::new(foo);
+                            let num: f64 = match &map.as_object()[plot_name] {
                                 serde_json::Value::Number(val) => val.as_f64().unwrap(),
                                 _ => {
                                     panic!("not a number")
@@ -172,12 +170,12 @@ fn into_secs(elapsed: std::time::Duration) -> f64 {
 // This is a simple macro named `say_hello`.
 macro_rules! run_test {
     // `()` indicates that the macro takes no argument.
-    ($fo:expr,$tre:expr) => {
+    ($builder:expr,$test:expr) => {
         // The macro will expand into the contents of this block.
-        print!("Running {}...", stringify!($tre));
+        print!("Running {}...", stringify!($test));
         std::io::stdout().flush().unwrap();
         let time = Instant::now();
-        $tre($fo);
+        $test($builder);
         let val = into_secs(time.elapsed());
         println!("finished in {} seconds.", val);
         //Give benches some time to cool down.
@@ -185,7 +183,7 @@ macro_rules! run_test {
     };
 }
 
-fn profile_test(num_bots:usize) {
+fn profile_test(num_bots: usize) {
     let grow = DEFAULT_GROW;
     //let num_bots = 50_000;
     use crate::support::*;
@@ -193,19 +191,18 @@ fn profile_test(num_bots:usize) {
 
     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
-    
     for _ in 0..30 {
-        let mut num_collision=0;
+        let mut num_collision = 0;
         let c0 = bench_closure(|| {
             let mut tree = broccoli::new(&mut bots);
             tree.find_colliding_pairs_mut(|a, b| {
-                num_collision+=1;
+                num_collision += 1;
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
             });
         });
 
-        dbg!(c0,num_collision);
+        dbg!(c0, num_collision);
     }
 }
 fn main() {
@@ -225,7 +222,7 @@ fn main() {
     //adb -d pull "/sdcard/broccoli/graphs"
     //
     //TODO
-    //seperate into benches versus theory runs
+    //separate into benches versus theory runs
     //run benches on laptop/new gaming laptop/android phone/web assembly, and compare differences.
     //
 

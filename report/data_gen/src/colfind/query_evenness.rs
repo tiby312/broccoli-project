@@ -45,7 +45,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
             "Number of comparisons",
         );
         splot.ymarker(0.0);
-        
+
         splot.histogram(
             "",
             res.query
@@ -70,7 +70,6 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
         "Number of comparisons",
     );
     splot.ymarker(0.0);
-        
 
     use broccoli::compt::Visitor;
     splot.histogram(

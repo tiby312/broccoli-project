@@ -34,7 +34,7 @@ pub static mut COUNTER: usize = 0;
 ///within the closure, the user is allowed to create DataNum numbers
 ///NOT SAFE
 ///The number type Dnum is incorrectly marked as Send and Sync.
-///Ths is because broccoli::Num requires Send and Sync.
+///This is because broccoli::Num requires Send and Sync.
 ///It i up to the user to not move any Dnum's between threads
 ///inside of this closure.
 pub fn datanum_test(func: impl FnOnce(&mut Maker)) -> usize {

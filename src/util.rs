@@ -56,7 +56,7 @@ mod prevec {
     use alloc::vec::Vec;
     use twounordered::TwoUnorderedVecs;
 
-    //The vec is guarenteed to be empty..
+    //The vec is guaranteed to be empty..
     unsafe impl<T: Send> core::marker::Send for PreVec<T> {}
     unsafe impl<T: Sync> core::marker::Sync for PreVec<T> {}
 

@@ -15,7 +15,7 @@ fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
             //So in the case that a point is in the rect, we establish our own ordering,
             //by falling back on the distance between the center of a rect and the point.
             //Since the distance between a rect and a point that is outside of the rect is
-            //guarenteeded to be positive, we have all the negative numbers in which to
+            //guaranteed to be positive, we have all the negative numbers in which to
             //apply our custom ordering for bots that are inside of the rect.
 
             //The main reason that we are doing this is so that there arn't

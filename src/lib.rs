@@ -641,7 +641,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         other: &mut [X],
         func: impl Fn(PMut<T>, PMut<X>),
     ) {
-        //TODO instead of create just a list of BBox, construct a tree using the dividors of the current tree.
+        //TODO instead of create just a list of BBox, construct a tree using the dividers of the current tree.
         //This way we can parallelize this function.
         //Find all intersecting pairs between the elements in this tree, and the specified elements.
         //No intersecting pairs within each group are looked for, only those between the two groups.
@@ -668,7 +668,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     /// The result is returned as one `Vec`. The closest elements will
     /// appear first. Multiple elements can be returned
-    /// with the same distance in the event of ties. These groups of elements are seperated by
+    /// with the same distance in the event of ties. These groups of elements are separated by
     /// one entry of `Option::None`. In order to iterate over each group,
     /// try using the slice function: `arr.split(|a| a.is_none())`
     ///

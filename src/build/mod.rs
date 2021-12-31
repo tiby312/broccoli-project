@@ -82,7 +82,7 @@ const fn nodes_left(depth: usize, height: usize) -> usize {
 ///and too much time will be spent recursing.
 ///Make this number too high, and you will lose the properties of a tree,
 ///and you will end up with just sweep and prune.
-///This number was chosen emprically from running the Tree_alg_data project,
+///This number was chosen empirically from running the Tree_alg_data project,
 ///on two different machines.
 pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 32;
 
@@ -99,7 +99,7 @@ impl TreePreBuilder {
         let height = compute_tree_height_heuristic(num_elements, DEFAULT_NUMBER_ELEM_PER_NODE);
         TreePreBuilder { height }
     }
-    ///Specify a custom default nuber of elements per leaf.
+    ///Specify a custom default number of elements per leaf.
     pub const fn with_num_elem_in_leaf(
         num_elements: usize,
         num_elem_leaf: usize,

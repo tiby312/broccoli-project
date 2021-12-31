@@ -87,7 +87,7 @@ pub fn handle(fb: &mut FigureBuilder) {
         "Time in Seconds",
     );
     plot.ymarker(0.0);
-        
+
     plot.scatter("Rebal Par", rebals.iter().map(|a| [a.0, a.1]));
     plot.scatter("Query Par", queries.iter().map(|a| [a.0, a.1]));
     plot.scatter("Rebal", seqs.iter().map(|a| [height as f64, a.0]));

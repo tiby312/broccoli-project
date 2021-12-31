@@ -345,7 +345,7 @@ impl<'a, K: Knearest> Recurser<'a, K> {
 
 ///Returned by knearest.
 pub struct KResult<'a, T: Aabb> {
-    num_entires: usize,
+    num_entries: usize,
     inner: Vec<KnearestResult<'a, T>>,
 }
 
@@ -375,7 +375,7 @@ impl<'a, T: Aabb> KResult<'a, T> {
     ///Returns the number of unique distances
     #[inline(always)]
     pub fn len(&self) -> usize {
-        self.num_entires
+        self.num_entries
     }
     #[inline(always)]
     pub fn is_empty(&self) -> bool {
@@ -429,9 +429,9 @@ pub fn naive_k_nearest_mut<'a, T: Aabb>(
         closest.consider(&point, k, b);
     }
 
-    let num_entires = closest.curr_num;
+    let num_entries = closest.curr_num;
     KResult {
-        num_entires,
+        num_entries,
         inner: closest.into_sorted(),
     }
 }
@@ -456,9 +456,9 @@ pub fn knearest_mut<'a, K: Knearest>(
 
     rec.recc(default_axis(), dt);
 
-    let num_entires = rec.closest.curr_num;
+    let num_entries = rec.closest.curr_num;
     KResult {
-        num_entires,
+        num_entries,
         inner: rec.closest.into_sorted(),
     }
 }

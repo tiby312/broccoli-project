@@ -26,7 +26,7 @@
 use crate::*;
 
 /// Trait exposes an api where you can return a read-only reference to the axis-aligned bounding box
-/// and at the same time return a mutable reference to a seperate inner section.
+/// and at the same time return a mutable reference to a separate inner section.
 pub trait HasInner: Aabb {
     type Inner;
     fn get_inner_mut(&mut self) -> &mut Self::Inner;
@@ -164,7 +164,7 @@ impl<'a, T: Aabb> PMut<'a, T> {
     ///
     /// Return a read-only reference to the aabb.
     /// Note the lifetime.
-    /// Given the guarentees of the [`Aabb`] trait, we can have this extended lifetime.
+    /// Given the guarantees of the [`Aabb`] trait, we can have this extended lifetime.
     ///
     pub fn rect(&self) -> &'a Rect<T::Num> {
         unsafe { &*(self.inner as *const T) }.get()
