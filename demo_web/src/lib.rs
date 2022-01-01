@@ -14,7 +14,7 @@ pub use crate::support::prelude::*;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum MEvent {
     CanvasMouseMove { x: f32, y: f32 },
-    ButtonClick,
+    NextButtonClick,
     ShutdownClick,
 }
 
@@ -24,9 +24,9 @@ pub async fn main_entry() {
 
     log!("demo start");
 
-    let (canvas, button, shutdown_button) = (
+    let (canvas, next_button, shutdown_button) = (
         utils::get_by_id_canvas("mycanvas"),
-        utils::get_by_id_elem("mybutton"),
+        utils::get_by_id_elem("nextbutton"),
         utils::get_by_id_elem("shutdownbutton"),
     );
 
@@ -39,7 +39,7 @@ pub async fn main_entry() {
         MEvent::CanvasMouseMove { x, y }
     });
 
-    let _handler = worker.register_event(&button, "click", |_| MEvent::ButtonClick);
+    let _handler = worker.register_event(&next_button, "click", |_| MEvent::NextButtonClick);
 
     let _handler = worker.register_event(&shutdown_button, "click", |_| MEvent::ShutdownClick);
 
@@ -73,7 +73,9 @@ pub async fn worker_entry() {
         for e in frame_timer.next().await {
             match e {
                 MEvent::CanvasMouseMove { x, y } => mouse_pos = [*x, *y],
-                MEvent::ButtonClick => {}
+                MEvent::NextButtonClick => {
+                    curr=demo_iter.next(area,&ctx)
+                }
                 MEvent::ShutdownClick => break 'outer,
             }
         }
