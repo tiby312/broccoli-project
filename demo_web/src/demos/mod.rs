@@ -10,7 +10,8 @@ impl DemoIter {
     }
     pub fn next(&mut self, area: Vec2<u32>,ctx:&web_sys::WebGl2RenderingContext) -> Demo {
         let curr = self.0;
-
+        //let k=ctx.shader_system();
+    
         let area = Rect::new(0.0, area.x as f32, 0.0, area.y as f32);
 
         let k: Demo = match curr {

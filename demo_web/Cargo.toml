@@ -18,7 +18,7 @@ js-sys = "0.3.20"
 serde = { version = "1.0", features = ["derive"] }
 axgeom="*"
 duckduckgeo ={git="https://github.com/tiby312/duckduckgeo"}
-
+dists={git="https://github.com/tiby312/dists"}
 
 [dependencies.gloo]
 version = "0.5"

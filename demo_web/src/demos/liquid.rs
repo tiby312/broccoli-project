@@ -58,23 +58,24 @@ impl Liquid {
 }
 pub fn make_demo(dim: Rect<f32>,ctx:&web_sys::WebGl2RenderingContext) -> Demo {
     let radius = 50.0;
-
+    
     let mut bots = support::make_rand(2000, dim, |a| Liquid::new(a));
 
     let mut verts=vec![];
 
     let mut buffer=ctx.buffer_dynamic();
-
+    
     Demo::new(move |cursor, sys,ctx, _check_naive| {
+        
         let mut k = support::distribute(&mut bots, |bot| {
             let p = bot.pos;
             let r = radius;
             Rect::new(p.x - r, p.x + r, p.y - r, p.y + r)
         });
 
-        let mut tree = broccoli::new_par(RayonJoin, &mut k);
+        let mut tree = broccoli::new(&mut k);
 
-        tree.find_colliding_pairs_mut_par(RayonJoin, move |a, b| {
+        tree.find_colliding_pairs_mut(move |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = a.solve(b, radius);
         });
@@ -97,6 +98,7 @@ pub fn make_demo(dim: Rect<f32>,ctx:&web_sys::WebGl2RenderingContext) -> Demo {
             b.acc = vec2same(0.0);
         }
 
+        verts.clear();
         for bot in bots.iter() {
             verts.push(bot.pos.into());
         }
@@ -114,18 +116,9 @@ pub fn make_demo(dim: Rect<f32>,ctx:&web_sys::WebGl2RenderingContext) -> Demo {
             vec2(dim.x.end,dim.y.end),
             &[1.0,0.0,1.0,1.0],
             [0.0, 0.0],
-            radius,
+            2.0,
         );
 
-        /*
-        let mut circle = canvas.circles();
-        for bot in bots.iter() {
-            circle.add(bot.pos.into());
-        }
-        circle
-            .send_and_uniforms(canvas, 2.0)
-            .with_color([1.0, 0.6, 0.7, 0.5])
-            .draw();
-        */
+        
     })
 }
