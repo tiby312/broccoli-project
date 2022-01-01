@@ -56,17 +56,16 @@ impl Liquid {
         spring_force_mag
     }
 }
-pub fn make_demo(dim: Rect<f32>,ctx:&web_sys::WebGl2RenderingContext) -> Demo {
+pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo {
     let radius = 50.0;
-    
-    let mut bots = support::make_rand(2000, dim, |a| Liquid::new(a));
 
-    let mut verts=vec![];
+    let mut bots = support::make_bots(2000, dim, |a| Liquid::new(a));
 
-    let mut buffer=ctx.buffer_dynamic();
-    
-    Demo::new(move |cursor, sys,ctx, _check_naive| {
-        
+    let mut verts = vec![];
+
+    let mut buffer = ctx.buffer_dynamic();
+
+    Demo::new(move |cursor, sys, ctx, _check_naive| {
         let mut k = support::distribute(&mut bots, |bot| {
             let p = bot.pos;
             let r = radius;
@@ -105,20 +104,15 @@ pub fn make_demo(dim: Rect<f32>,ctx:&web_sys::WebGl2RenderingContext) -> Demo {
 
         buffer.update(&verts);
 
-
         ctx.clear_color(0.13, 0.13, 0.13, 1.0);
         ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
-        
-
 
         sys.draw_circles(
             &buffer,
-            vec2(dim.x.end,dim.y.end),
-            &[1.0,0.0,1.0,1.0],
+            vec2(dim.x.end, dim.y.end),
+            &[1.0, 0.0, 1.0, 1.0],
             [0.0, 0.0],
             2.0,
         );
-
-        
     })
 }

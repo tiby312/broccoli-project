@@ -15,40 +15,17 @@ pub mod prelude {
     pub use duckduckgeo::*;
     pub use shogo::dots::CtxExt;
     pub use shogo::dots::Shapes;
+    pub use crate::demos::Demo;
 }
 
 use axgeom::*;
 use broccoli::node::*;
 
-pub fn make_rand<T>(num: usize, border: Rect<f32>, mut func: impl FnMut(Vec2<f32>) -> T) -> Vec<T> {
-    /*
-    crate::dists::rand2_iter(border)
-        .map(|[a, b]| axgeom::vec2(a as f32, b as f32))
-        .map(|a| func(a))
-        .take(num)
-        .collect()
-    */
+pub fn make_bots<T>(num: usize, border: Rect<f32>, func: impl FnMut(Vec2<f32>) -> T) -> Vec<T> {
 
-    crate::dists::grid::Grid::new(border,num)
-    .map(|a| func(a))
-    .collect()
-}
-
-pub fn make_rand_rect<T>(
-    num: usize,
-    border: Rect<f32>,
-    radius: [f32; 2],
-    mut func: impl FnMut(Rect<f32>) -> T,
-) -> Vec<T> {
-    unimplemented!();
-    /*
-    crate::dists::rand2_iter(border)
-        .zip(crate::dists::rand_iter(radius[0], radius[1]))
-        .map(|([x, y], radius)| Rect::from_point(vec2(x as f32, y as f32), vec2same(radius as f32)))
-        .map(|a| func(a))
-        .take(num)
+    crate::dists::grid::Grid::new(border, num)
+        .map(func)
         .collect()
-    */
 }
 
 use broccoli::*;

@@ -3,33 +3,14 @@ use serde::{Deserialize, Serialize};
 use shogo::utils;
 use wasm_bindgen::{prelude::*, JsCast};
 
-const COLORS: &[[f32; 4]] = &[
-    [1.0, 0.0, 0.0, 0.5],
-    [0.0, 1.0, 0.0, 0.5],
-    [0.0, 0.0, 1.0, 0.5],
-];
-
-
 
 use axgeom::*;
 use web_sys::WebGl2RenderingContext;
-
-pub struct Demo(Box<dyn FnMut(Vec2<f32>, &mut shogo::dots::ShaderSystem, &WebGl2RenderingContext, bool)>);
-impl Demo {
-    pub fn new(func: impl FnMut(Vec2<f32>, &mut shogo::dots::ShaderSystem, &WebGl2RenderingContext, bool) + 'static) -> Self {
-        Demo(Box::new(func))
-    }
-    pub fn step(&mut self, point: Vec2<f32>, sys:&mut shogo::dots::ShaderSystem, ctx:&WebGl2RenderingContext, check_naive: bool) {
-        self.0(point, sys,ctx, check_naive);
-    }
-}
 
 
 mod demos;
 mod support;
 pub use crate::support::prelude::*;
-
-
 
 ///Common data sent from the main thread to the worker.
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -72,7 +53,6 @@ pub async fn main_entry() {
 pub async fn worker_entry() {
     let area = vec2(800, 600);
 
-
     use shogo::dots::{CtxExt, Shapes};
 
     let (mut w, ss) = shogo::EngineWorker::new().await;
@@ -84,27 +64,28 @@ pub async fn worker_entry() {
 
     let mut mouse_pos = [0.0f32; 2];
 
-    let mut sys=ctx.shader_system();
-
+    let mut sys = ctx.shader_system();
 
     let mut demo_iter = demos::DemoIter::new();
-    let mut curr = demo_iter.next(area,&ctx);
+    let mut curr = demo_iter.next(area, &ctx);
 
-    
-    let check_naive=false;
+    let check_naive = false;
 
     'outer: loop {
         for e in frame_timer.next().await {
             match e {
                 MEvent::CanvasMouseMove { x, y } => mouse_pos = [*x, *y],
-                MEvent::ButtonClick => {
-                }
+                MEvent::ButtonClick => {}
                 MEvent::ShutdownClick => break 'outer,
             }
         }
 
-        curr.step(Vec2::from(mouse_pos).inner_try_into().unwrap(), &mut sys,&ctx, check_naive);
-                    
+        curr.step(
+            Vec2::from(mouse_pos).inner_try_into().unwrap(),
+            &mut sys,
+            &ctx,
+            check_naive,
+        );
     }
 
     w.post_message(());
