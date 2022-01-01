@@ -11,7 +11,7 @@ struct Bot {
 pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo {
     let radius = 10.0;
     let line_width=3.0;
-    let vv = support::make_bots(200, dim, |center| {
+    let vv = support::make_rand(200, dim, |center| {
         bbox(Rect::from_point(center, vec2same(radius)), Bot { center })
     })
     .into_boxed_slice();
