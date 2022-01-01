@@ -78,6 +78,8 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
         ctx.clear_color(0.13, 0.13, 0.13, 1.0);
         ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
 
+
+        
         sys.draw_circles(
             &circle_save,
             vec2(dim.x.end, dim.y.end),

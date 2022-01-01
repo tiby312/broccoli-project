@@ -2,7 +2,6 @@
 <head>
   <script type=module>
     import { default as init } from './pkg/demo_web.js';
-    delete WebAssembly.instantiateStreaming;
     var w=await init('pkg/demo_web_bg.wasm');
     await w.main_entry();
   </script>
