@@ -98,10 +98,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
         }
 
         verts.clear();
-        for bot in bots.iter() {
-            verts.push(bot.pos.into());
-        }
-
+        verts.extend(bots.iter().map(|x| <[f32; 2]>::from(x.pos)));
         buffer.update(&verts);
 
         ctx.clear_color(0.13, 0.13, 0.13, 1.0);

@@ -3,10 +3,8 @@ use serde::{Deserialize, Serialize};
 use shogo::utils;
 use wasm_bindgen::{prelude::*, JsCast};
 
-
 use axgeom::*;
 use web_sys::WebGl2RenderingContext;
-
 
 mod demos;
 mod support;
