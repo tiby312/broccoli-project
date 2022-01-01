@@ -10,20 +10,19 @@ struct Bot {
 
 pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo {
     let radius = 10.0;
-    let line_width=3.0;
+    let line_width = 3.0;
     let vv = support::make_rand(200, dim, |center| {
         bbox(Rect::from_point(center, vec2same(radius)), Bot { center })
     })
     .into_boxed_slice();
 
-    let circle_save={
-        let mut f=vec![];
-        for b in vv.iter(){
+    let circle_save = {
+        let mut f = vec![];
+        for b in vv.iter() {
             f.push(b.inner.center.into());
         }
         ctx.buffer_static(&f)
     };
-
 
     let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
@@ -32,9 +31,9 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
 
     Demo::new(move |cursor, sys, ctx, check_naive| {
         verts.clear();
-    
+
         let tree = tree.as_tree_mut();
-        
+
         //let mut ray_cast = canvas.lines(1.0);
 
         for dir in 0..360i32 {
@@ -72,31 +71,18 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
 
             let end = ray.point_at_tval(mag);
 
-            verts.line(line_width, end,ray.point);
+            verts.line(line_width, end, ray.point);
         }
 
         ctx.clear_color(0.13, 0.13, 0.13, 1.0);
         ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
 
-
-        
-        sys.draw_circles(
-            &circle_save,
-            vec2(dim.x.end, dim.y.end),
-            &[1.0, 0.0, 1.0, 1.0],
-            [0.0, 0.0],
-            radius*2.0,
-        );
-
         buffer.update(&verts);
-        sys.draw_circles(
-            &buffer,
-            vec2(dim.x.end, dim.y.end),
-            &[0.0, 1.0, 1.0, 1.0],
-            [0.0, 0.0],
-            line_width,
-        );
 
-    
+        let mut cam = sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
+
+        cam.draw_circles(&circle_save, radius * 2.0, &[1.0, 0.0, 1.0, 1.0]);
+
+        cam.draw_circles(&buffer, line_width, &[0.0, 1.0, 1.0, 1.0]);
     })
 }

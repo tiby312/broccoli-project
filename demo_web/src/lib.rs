@@ -73,9 +73,7 @@ pub async fn worker_entry() {
         for e in frame_timer.next().await {
             match e {
                 MEvent::CanvasMouseMove { x, y } => mouse_pos = [*x, *y],
-                MEvent::NextButtonClick => {
-                    curr=demo_iter.next(area,&ctx)
-                }
+                MEvent::NextButtonClick => curr = demo_iter.next(area, &ctx),
                 MEvent::ShutdownClick => break 'outer,
             }
         }

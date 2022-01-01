@@ -37,7 +37,7 @@ impl DemoIter {
 
         let k: Demo = match curr {
             0 => liquid::make_demo(area, ctx),
-            1 => raycast::make_demo(area,ctx),
+            1 => raycast::make_demo(area, ctx),
             /*
             1 => demo_original_order::make_demo(area),
             2 => demo_raycast_f32::make_demo(area, canvas),
