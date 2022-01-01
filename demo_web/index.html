@@ -1,0 +1,15 @@
+<html>
+<head>
+  <script type=module>
+    import { default as init } from './pkg/demo_web.js';
+    delete WebAssembly.instantiateStreaming;
+    var w=await init('pkg/demo_web_bg.wasm');
+    await w.main_entry();
+  </script>
+</head>
+<body style="background-color: black;">
+  <canvas id="mycanvas" style="border-style: dotted" width="800" height="600"></canvas>
+  <button id="mybutton">change color</button>
+  <button id="shutdownbutton">shutdown</button>
+</body>
+</html>
