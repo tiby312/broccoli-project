@@ -81,8 +81,8 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
 
         let mut cam = sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
 
-        cam.draw_circles(&circle_save, radius * 2.0, &[1.0, 0.0, 1.0, 1.0]);
+        cam.draw_circles(&circle_save,radius*2.0, &[1.0, 0.0, 1.0, 1.0]);
 
-        cam.draw_circles(&buffer, line_width, &[0.0, 1.0, 1.0, 1.0]);
+        cam.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 1.0]);
     })
 }
