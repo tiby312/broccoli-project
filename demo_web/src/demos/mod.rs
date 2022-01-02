@@ -1,5 +1,6 @@
 pub mod liquid;
 pub mod raycast;
+pub mod nbody;
 
 pub struct Demo(
     Box<dyn FnMut(Vec2<f32>, &mut shogo::dots::ShaderSystem, &WebGl2RenderingContext, bool)>,
@@ -38,6 +39,7 @@ impl DemoIter {
         let k: Demo = match curr {
             0 => liquid::make_demo(area, ctx),
             1 => raycast::make_demo(area, ctx),
+            2 => nbody::make_demo(area,ctx),
             /*
             1 => demo_original_order::make_demo(area),
             2 => demo_raycast_f32::make_demo(area, canvas),
@@ -52,7 +54,7 @@ impl DemoIter {
         };
         self.0 += 1;
 
-        if self.0 == 2 {
+        if self.0 == 3 {
             self.0 = 0
         }
         k
