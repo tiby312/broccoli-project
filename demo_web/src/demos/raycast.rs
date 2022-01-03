@@ -84,5 +84,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
         cam.draw_circles(&circle_save,radius*2.0, &[1.0, 0.0, 1.0, 1.0]);
 
         cam.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 1.0]);
+
+        ctx.flush();
     })
 }

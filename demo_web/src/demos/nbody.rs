@@ -349,6 +349,7 @@ pub fn make_demo(dim: Rect<f32>,ctx: &web_sys::WebGl2RenderingContext) -> Demo {
         sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0])
             .draw_triangles(&buffer, &[1.0, 0.0, 1.0, 1.0]);
 
+        ctx.flush();
 
         //Remove bots that have no mass, and add them to the pool
         //of bots that don't exist yet.

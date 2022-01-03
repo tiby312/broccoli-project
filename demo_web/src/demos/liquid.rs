@@ -61,7 +61,7 @@ impl Liquid {
 pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo {
     let radius = 50.0;
 
-    let mut bots = support::make_bots(1000, dim, |a| Liquid::new(a));
+    let mut bots = support::make_bots(2000, dim, |a| Liquid::new(a));
 
     let mut verts = vec![];
 
@@ -122,5 +122,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
 
         sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0])
             .draw_squares(&buffer, 3.0, &[1.0, 0.0, 1.0, 0.2]);
+
+        ctx.flush();
     })
 }
