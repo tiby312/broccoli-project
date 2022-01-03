@@ -309,6 +309,7 @@ pub fn make_demo(dim: Rect<f32>,ctx: &web_sys::WebGl2RenderingContext) -> Demo {
                 let (a, b) = (a.unpack_inner(), b.unpack_inner());
                 let (a, b) = if a.mass > b.mass { (a, b) } else { (b, a) };
 
+                
                 if b.mass != 0.0 {
                     let ma = a.mass;
                     let mb = b.mass;

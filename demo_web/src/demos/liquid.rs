@@ -56,10 +56,12 @@ impl Liquid {
         spring_force_mag
     }
 }
+
+
 pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo {
     let radius = 50.0;
 
-    let mut bots = support::make_bots(2000, dim, |a| Liquid::new(a));
+    let mut bots = support::make_bots(1000, dim, |a| Liquid::new(a));
 
     let mut verts = vec![];
 
@@ -74,13 +76,23 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
 
         let mut tree = broccoli::new(&mut k);
 
+        /*
+        broccoli::naive::query_naive_mut(broccoli::pmut::PMut::new(&mut k),
+            move |a, b| {
+                let (a, b) = (a.unpack_inner(), b.unpack_inner());
+                let _ = a.solve(b, radius);
+            }
+        );
+        */
+        
         tree.find_colliding_pairs_mut(move |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = a.solve(b, radius);
         });
-
+        
         let vv = vec2same(100.0);
 
+        
         tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), move |b| {
             let b = b.unpack_inner();
             let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cursor, 0.001, 100.0);
@@ -90,6 +102,8 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
             let a = a.unpack_inner();
             duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
         });
+        
+        
 
         for b in bots.iter_mut() {
             b.pos += b.vel;
@@ -97,14 +111,16 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
             b.acc = vec2same(0.0);
         }
 
+        
         verts.clear();
         verts.extend(bots.iter().map(|x| <[f32; 2]>::from(x.pos)));
         buffer.update(&verts);
+        
 
         ctx.clear_color(0.13, 0.13, 0.13, 1.0);
         ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
 
         sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0])
-            .draw_circles(&buffer, 2.0, &[1.0, 0.0, 1.0, 1.0]);
+            .draw_squares(&buffer, 3.0, &[1.0, 0.0, 1.0, 0.2]);
     })
 }
