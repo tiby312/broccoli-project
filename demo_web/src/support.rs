@@ -11,6 +11,7 @@ pub mod prelude {
     pub use broccoli::query::*;
     //pub use broccoli::rayon;
     pub use crate::demos::Demo;
+    pub use crate::demos::DemoData;
     pub use dists::uniform_rand::UniformRandGen;
     pub use duckduckgeo::array2_inner_into;
     pub use duckduckgeo::*;
@@ -21,24 +22,31 @@ pub mod prelude {
 use axgeom::*;
 use broccoli::node::*;
 
-pub fn make_bots<T>(num: usize, border: Rect<f32>, func: impl FnMut(Vec2<f32>) -> T) -> Vec<T> {
-    crate::dists::grid::Grid::new(border, num)
-        .map(func)
-        .collect()
-}
-
-pub fn make_rand<T>(num: usize, border: Rect<f32>, mut func: impl FnMut(Vec2<f32>) -> T) -> Vec<T> {
-    let mut v = Vec::new();
-    for a in 0..num {
+pub fn make_rand(border: Rect<f32>) -> impl Iterator<Item = [f32; 2]> + Clone + Send + Sync {
+    std::iter::repeat_with(move || {
         let randx = js_sys::Math::random() as f32;
         let randy = js_sys::Math::random() as f32;
 
         let xx = border.x.start + randx * border.x.end;
         let yy = border.y.start + randy * border.y.end;
+        [xx, yy]
+    })
+}
 
-        v.push(func(vec2(xx, yy)));
-    }
-    v
+pub fn make_rand_rect(
+    border: Rect<f32>,
+    radius: [f32; 2],
+) -> impl Iterator<Item = Rect<f32>> + Clone + Send + Sync {
+    std::iter::repeat_with(move || {
+        let randx = js_sys::Math::random() as f32;
+        let randy = js_sys::Math::random() as f32;
+        let radiusr = js_sys::Math::random() as f32;
+
+        let xx = border.x.start + randx * border.x.end;
+        let yy = border.y.start + randy * border.y.end;
+        let radius = radius[0] + (radius[1] - radius[0]) * radiusr;
+        Rect::from_point(vec2(xx, yy), vec2same(radius))
+    })
 }
 
 use broccoli::*;

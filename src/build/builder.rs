@@ -98,7 +98,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
         splitter: K,
     ) -> (Tree<'a, T>, K) {
         let builder = self;
-        let bots = core::mem::replace(&mut builder.bots, &mut []);
+        let bots = core::mem::take(&mut builder.bots);
 
         let cc = builder.prebuilder.num_nodes();
         let mut nodes = Vec::with_capacity(cc);
@@ -135,7 +135,8 @@ impl<'a, T: Aabb> TreeBuilder<'a, T> {
         T::Num: Send + Sync,
     {
         let builder = self;
-        let bots = core::mem::replace(&mut builder.bots, &mut []);
+
+        let bots = core::mem::take(&mut builder.bots);
 
         let cc = builder.prebuilder.num_nodes();
 

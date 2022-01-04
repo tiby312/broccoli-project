@@ -51,7 +51,7 @@ pub async fn main_entry() {
 pub async fn worker_entry() {
     let area = vec2(800, 600);
 
-    use shogo::dots::{CtxExt, Shapes};
+    use shogo::dots::CtxExt;
 
     let (mut w, ss) = shogo::EngineWorker::new().await;
     let mut frame_timer = shogo::FrameTimer::new(60, ss);
@@ -63,7 +63,7 @@ pub async fn worker_entry() {
     let mut mouse_pos = [0.0f32; 2];
 
     let mut sys = ctx.shader_system();
-
+    ctx.setup_alpha();
     let mut demo_iter = demos::DemoIter::new();
     let mut curr = demo_iter.next(area, &ctx);
 

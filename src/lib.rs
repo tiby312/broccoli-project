@@ -828,14 +828,9 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn for_all_intersect_rect_mut<'b>(
         &'b mut self,
         rect: &Rect<T::Num>,
-        mut func: impl FnMut(PMut<'b, T>),
+        func: impl FnMut(PMut<'b, T>),
     ) {
-        queries::rect::for_all_intersect_rect_mut(
-            default_axis(),
-            self.vistr_mut(),
-            rect,
-            move |a| (func)(a),
-        );
+        queries::rect::for_all_intersect_rect_mut(default_axis(), self.vistr_mut(), rect, func);
     }
 
     /// # Examples

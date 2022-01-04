@@ -11,6 +11,9 @@ pub trait Num: PartialOrd + Copy + Default {}
 impl<T> Num for T where T: PartialOrd + Copy + Default {}
 
 /// Trait to signify that this object has an axis aligned bounding box.
+///
+/// # Safety
+///
 /// Multiple calls to [`Aabb::get()`] must return a aabb with the same value.
 /// This is hard for the user not to do since the user
 /// does not have `&mut self`,
@@ -20,6 +23,8 @@ impl<T> Num for T where T: PartialOrd + Copy + Default {}
 /// This is unsafe since we allow query algorithms to assume the following:
 /// If two object's aabb's don't intersect, then they can be mutated at the same time.
 /// See [`PMut::rect`]
+///
+///
 pub unsafe trait Aabb {
     type Num: Num;
     fn get(&self) -> &Rect<Self::Num>;
