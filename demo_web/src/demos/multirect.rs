@@ -1,12 +1,11 @@
 use crate::support::prelude::*;
 
-pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl FnMut(DemoData) {
+pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let bots = support::make_rand_rect(dim, [5.0, 20.0])
         .take(200)
         .map(|rect| bbox(rect.inner_as::<i32>(), ()))
         .collect::<Vec<_>>()
         .into_boxed_slice();
-
 
     let rect_save = {
         let mut verts = vec![];

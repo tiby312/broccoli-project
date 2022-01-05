@@ -193,7 +193,7 @@ impl<'b> broccoli::query::Nbody for Bla<'b> {
     }
 }
 
-pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl FnMut(DemoData) {
+pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let mut bots: Vec<_> = support::make_rand(dim)
         .take(4000)
         .map(|pos| Bot {

@@ -1,8 +1,8 @@
+mod knearest;
 mod liquid;
 mod multirect;
 mod nbody;
 mod raycast;
-mod knearest;
 
 pub struct DemoData<'a> {
     cursor: Vec2<f32>,
@@ -39,7 +39,7 @@ impl DemoIter {
     pub fn new() -> DemoIter {
         DemoIter(0)
     }
-    pub fn next(&mut self, area: Vec2<u32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo {
+    pub fn next(&mut self, area: Vec2<u32>, ctx: &shogo::dots::CtxWrap) -> Demo {
         let curr = self.0;
         //let k=ctx.shader_system();
 
@@ -51,7 +51,7 @@ impl DemoIter {
             2 => Demo::new(nbody::make_demo(area, ctx)),
             3 => Demo::new(multirect::make_demo(area, ctx)),
             4 => Demo::new(knearest::make_demo(area, ctx)),
-            
+
             /*
             1 => demo_original_order::make_demo(area),
             2 => demo_raycast_f32::make_demo(area, canvas),

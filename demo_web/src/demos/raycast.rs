@@ -7,7 +7,7 @@ struct Bot {
     center: Vec2<f32>,
 }
 
-pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl FnMut(DemoData) {
+pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 10.0;
     let line_width = 1.0;
 

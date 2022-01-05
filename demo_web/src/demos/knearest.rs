@@ -31,13 +31,12 @@ fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
     dis
 }
 
-pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl FnMut(DemoData) {
+pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let bots = support::make_rand_rect(dim, [1.0, 8.0])
-    .take(500)
-    .map(|rect| bbox(rect, ()))
-    .collect::<Vec<_>>()
-    .into_boxed_slice();
-
+        .take(500)
+        .map(|rect| bbox(rect, ()))
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
 
     let rect_save = {
         let mut verts = vec![];
@@ -49,13 +48,15 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl 
 
     let mut tree = broccoli::container::TreeOwned::new(bots);
 
-
-    let mut verts=vec![];
-    let mut buffer=ctx.buffer_dynamic();
+    let mut verts = vec![];
+    let mut buffer = ctx.buffer_dynamic();
 
     move |data| {
         let DemoData {
-            cursor, sys, ctx, check_naive
+            cursor,
+            sys,
+            ctx,
+            check_naive,
         } = data;
 
         let cols = [
@@ -86,7 +87,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl 
         ctx.clear_color(0.13, 0.13, 0.13, 1.0);
         ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
 
-        let mut camera=sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
+        let mut camera = sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
 
         let mut vv = {
             let k = tree.k_nearest_mut(cursor, 3, &mut handler);
@@ -94,29 +95,25 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl 
 
             buffer.update(&verts);
 
-            camera.draw_triangles(&buffer,&[1.0,1.0,0.0,0.3]);
+            camera.draw_triangles(&buffer, &[1.0, 1.0, 0.0, 0.3]);
 
             k
         };
 
-        
-        camera.draw_triangles(&rect_save,&[0.0,0.1,0.0,0.3]);
+        camera.draw_triangles(&rect_save, &[0.0, 0.1, 0.0, 0.3]);
         for (k, color) in vv.iter().rev().zip(cols.iter()) {
             verts.clear();
             verts.push(cursor.into());
             buffer.update(&verts);
-            let radius=k[0].mag.sqrt() * 2.0;
-            camera.draw_circles(&buffer,radius,color);
-
-
+            let radius = k[0].mag.sqrt() * 2.0;
+            camera.draw_circles(&buffer, radius, color);
 
             verts.clear();
             for b in k.iter() {
                 verts.rect(b.bot.rect);
             }
             buffer.update(&verts);
-            camera.draw_triangles(&buffer,color);
-
+            camera.draw_triangles(&buffer, color);
         }
 
         ctx.flush();

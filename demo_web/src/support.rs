@@ -15,7 +15,7 @@ pub mod prelude {
     pub use dists::uniform_rand::UniformRandGen;
     pub use duckduckgeo::array2_inner_into;
     pub use duckduckgeo::*;
-    pub use shogo::dots::CtxExt;
+    pub use shogo::dots::CtxWrap;
     pub use shogo::dots::Shapes;
 }
 

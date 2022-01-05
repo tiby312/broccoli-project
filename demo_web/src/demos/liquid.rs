@@ -2,61 +2,7 @@ use crate::support::prelude::*;
 
 use axgeom::Rect;
 
-#[derive(Copy, Clone, Debug)]
-pub struct Liquid {
-    pub pos: Vec2<f32>,
-    pub vel: Vec2<f32>,
-    pub acc: Vec2<f32>,
-}
-
-impl Liquid {
-    pub fn new(pos: Vec2<f32>) -> Liquid {
-        let z = vec2same(0.0);
-
-        Liquid {
-            pos,
-            acc: z,
-            vel: z,
-        }
-    }
-
-    pub fn solve(&mut self, b: &mut Self, radius: f32) -> f32 {
-        let diff = b.pos - self.pos;
-
-        let dis_sqr = diff.magnitude2();
-
-        if dis_sqr < 0.00001 {
-            self.acc += vec2(1.0, 0.0);
-            b.acc -= vec2(1.0, 0.0);
-            return 0.0;
-        }
-
-        if dis_sqr >= (2. * radius) * (2. * radius) {
-            return 0.0;
-        }
-
-        let dis = dis_sqr.sqrt();
-
-        //d is zero if barely touching, 1 is overlapping.
-        //d grows linearly with position of bots
-        let d = 1.0 - (dis / (radius * 2.));
-
-        let spring_force_mag = -(d - 0.5) * 0.02;
-
-        let velociy_diff = b.vel - self.vel;
-        let damping_ratio = 0.00027;
-        let spring_dampen = velociy_diff.dot(diff) * (1. / dis) * damping_ratio;
-
-        let spring_force = diff * (1. / dis) * (spring_force_mag + spring_dampen);
-
-        self.acc += spring_force;
-        b.acc -= spring_force;
-
-        spring_force_mag
-    }
-}
-
-pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl FnMut(DemoData) {
+pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 50.0;
 
     let mut bots: Vec<_> = dists::grid_rect_iter(2000, dim)
@@ -123,5 +69,59 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl 
             .draw_squares(&buffer, 2.0, &[1.0, 0.0, 1.0, 1.0]);
 
         ctx.flush();
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct Liquid {
+    pub pos: Vec2<f32>,
+    pub vel: Vec2<f32>,
+    pub acc: Vec2<f32>,
+}
+
+impl Liquid {
+    pub fn new(pos: Vec2<f32>) -> Liquid {
+        let z = vec2same(0.0);
+
+        Liquid {
+            pos,
+            acc: z,
+            vel: z,
+        }
+    }
+
+    pub fn solve(&mut self, b: &mut Self, radius: f32) -> f32 {
+        let diff = b.pos - self.pos;
+
+        let dis_sqr = diff.magnitude2();
+
+        if dis_sqr < 0.00001 {
+            self.acc += vec2(1.0, 0.0);
+            b.acc -= vec2(1.0, 0.0);
+            return 0.0;
+        }
+
+        if dis_sqr >= (2. * radius) * (2. * radius) {
+            return 0.0;
+        }
+
+        let dis = dis_sqr.sqrt();
+
+        //d is zero if barely touching, 1 is overlapping.
+        //d grows linearly with position of bots
+        let d = 1.0 - (dis / (radius * 2.));
+
+        let spring_force_mag = -(d - 0.5) * 0.02;
+
+        let velociy_diff = b.vel - self.vel;
+        let damping_ratio = 0.00027;
+        let spring_dampen = velociy_diff.dot(diff) * (1. / dis) * damping_ratio;
+
+        let spring_force = diff * (1. / dis) * (spring_force_mag + spring_dampen);
+
+        self.acc += spring_force;
+        b.acc -= spring_force;
+
+        spring_force_mag
     }
 }
