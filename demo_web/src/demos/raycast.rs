@@ -7,7 +7,7 @@ struct Bot {
     center: Vec2<f32>,
 }
 
-pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo {
+pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl FnMut(DemoData) {
     let radius = 10.0;
     let line_width = 1.0;
 
@@ -33,69 +33,69 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
 
     let mut tree = broccoli::container::TreeOwned::new(vv);
 
-    Demo::new(
-        move |DemoData {
-                  cursor,
-                  sys,
-                  ctx,
-                  check_naive,
-              }| {
-            verts.clear();
+    move |data| {
+        let DemoData {
+            cursor,
+            sys,
+            ctx,
+            check_naive,
+        } = data;
 
-            let tree = tree.as_tree_mut();
+        verts.clear();
 
-            //let mut ray_cast = canvas.lines(1.0);
+        let tree = tree.as_tree_mut();
 
-            for dir in 0..1000i32 {
-                let dir = (dir as f32) * (std::f32::consts::TAU / 1000.0);
-                let x = (dir.cos() * 20.0) as f32;
-                let y = (dir.sin() * 20.0) as f32;
+        //let mut ray_cast = canvas.lines(1.0);
 
-                let ray = {
-                    let k = vec2(x, y);
-                    Ray {
-                        point: cursor,
-                        dir: k,
-                    }
-                };
+        for dir in 0..1000i32 {
+            let dir = (dir as f32) * (std::f32::consts::TAU / 1000.0);
+            let x = (dir.cos() * 20.0) as f32;
+            let y = (dir.sin() * 20.0) as f32;
 
-                let mut handler = broccoli::helper::raycast_from_closure(
-                    tree,
-                    (),
-                    |_, ray, a| Some(ray.cast_to_rect(&a.rect)),
-                    |_, ray, a| ray.cast_to_circle(a.inner.center, radius),
-                    |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
-                    |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
-                );
-
-                if check_naive {
-                    broccoli::assert::assert_raycast(tree, ray, &mut handler);
+            let ray = {
+                let k = vec2(x, y);
+                Ray {
+                    point: cursor,
+                    dir: k,
                 }
+            };
 
-                let res = tree.raycast_mut(ray, &mut handler);
+            let mut handler = broccoli::helper::raycast_from_closure(
+                tree,
+                (),
+                |_, ray, a| Some(ray.cast_to_rect(&a.rect)),
+                |_, ray, a| ray.cast_to_circle(a.inner.center, radius),
+                |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
+                |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
+            );
 
-                let mag = match res {
-                    axgeom::CastResult::Hit(res) => res.mag,
-                    axgeom::CastResult::NoHit => 800.0,
-                };
-
-                let end = ray.point_at_tval(mag);
-
-                verts.line(line_width, end, ray.point);
+            if check_naive {
+                broccoli::assert::assert_raycast(tree, ray, &mut handler);
             }
 
-            ctx.clear_color(0.13, 0.13, 0.13, 1.0);
-            ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
+            let res = tree.raycast_mut(ray, &mut handler);
 
-            buffer.update(&verts);
+            let mag = match res {
+                axgeom::CastResult::Hit(res) => res.mag,
+                axgeom::CastResult::NoHit => 800.0,
+            };
 
-            let mut cam = sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
+            let end = ray.point_at_tval(mag);
 
-            cam.draw_circles(&circle_save, radius * 2.0, &[1.0, 0.0, 1.0, 1.0]);
+            verts.line(line_width, end, ray.point);
+        }
 
-            cam.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.2]);
+        ctx.clear_color(0.13, 0.13, 0.13, 1.0);
+        ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
 
-            ctx.flush();
-        },
-    )
+        buffer.update(&verts);
+
+        let mut cam = sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
+
+        cam.draw_circles(&circle_save, radius * 2.0, &[1.0, 0.0, 1.0, 1.0]);
+
+        cam.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.2]);
+
+        ctx.flush();
+    }
 }

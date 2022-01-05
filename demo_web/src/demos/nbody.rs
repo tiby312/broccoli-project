@@ -193,7 +193,7 @@ impl<'b> broccoli::query::Nbody for Bla<'b> {
     }
 }
 
-pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo {
+pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl FnMut(DemoData) {
     let mut bots: Vec<_> = support::make_rand(dim)
         .take(4000)
         .map(|pos| Bot {
@@ -213,174 +213,174 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
 
     let mut buffer = ctx.buffer_dynamic();
 
-    Demo::new(
-        move |DemoData {
-                  cursor,
-                  sys,
-                  ctx,
-                  check_naive,
-              }| {
-            let no_mass_bots = &mut no_mass_bots;
+    move |data| {
+        let DemoData {
+            cursor,
+            sys,
+            ctx,
+            check_naive,
+        } = data;
 
-            let mut k = support::distribute(&mut bots, |b| {
-                let radius = 5.0f32.min(b.mass.sqrt() / 10.0);
-                support::point_to_rect_f32(b.pos, radius)
+        let no_mass_bots = &mut no_mass_bots;
+
+        let mut k = support::distribute(&mut bots, |b| {
+            let radius = 5.0f32.min(b.mass.sqrt() / 10.0);
+            support::point_to_rect_f32(b.pos, radius)
+        });
+
+        {
+            /* naive
+            broccoli::query::nbody::naive_mut(PMut::new(&mut k),|a,b|{
+                let (a, b) = (a.unpack_inner(), b.unpack_inner());
+
+                let _ = duckduckgeo::gravitate(
+                    [(a.pos, a.mass, &mut a.force), (b.pos, b.mass, &mut b.force)],
+                    0.0001,
+                    0.004,
+                );
+            });
+            */
+
+            //use std::time::{Duration, Instant};
+            //let now = Instant::now();
+            let tree = broccoli::new(&mut k);
+
+            let mut tree = tree.nbody_mut(&mut Bla {
+                _num_pairs_checked: 0,
+                _p: PhantomData,
             });
 
-            {
-                /* naive
-                broccoli::query::nbody::naive_mut(PMut::new(&mut k),|a,b|{
-                    let (a, b) = (a.unpack_inner(), b.unpack_inner());
+            //println!("{}", now.elapsed().as_millis());
+            //panic!();
+            if check_naive {
 
-                    let _ = duckduckgeo::gravitate(
-                        [(a.pos, a.mass, &mut a.force), (b.pos, b.mass, &mut b.force)],
-                        0.0001,
-                        0.004,
-                    );
-                });
-                */
-
-                //use std::time::{Duration, Instant};
-                //let now = Instant::now();
-                let tree = broccoli::new(&mut k);
-
-                let mut tree = tree.nbody_mut(&mut Bla {
-                    _num_pairs_checked: 0,
+                /* TODO update
+                let mut bla = Bla {
+                    num_pairs_checked: 0,
                     _p: PhantomData,
-                });
-
-                //println!("{}", now.elapsed().as_millis());
-                //panic!();
-                if check_naive {
-
-                    /* TODO update
-                    let mut bla = Bla {
-                        num_pairs_checked: 0,
-                        _p: PhantomData,
-                    };
-                    tree.nbody_mut(&mut bla, border);
+                };
+                tree.nbody_mut(&mut bla, border);
 
 
 
 
-                    for b in bots3.iter_mut() {
-                        b.force = vec2same(0.0);
-                    }
+                for b in bots3.iter_mut() {
+                    b.force = vec2same(0.0);
+                }
 
-                    {
-                        let mut max_diff = None;
+                {
+                    let mut max_diff = None;
 
-                        for (a, bb) in bots3.iter().zip(bots2.iter()) {
-                            let b = &bb.inner;
+                    for (a, bb) in bots3.iter().zip(bots2.iter()) {
+                        let b = &bb.inner;
 
-                            let dis_sqr1 = a.force.magnitude2();
-                            let dis_sqr2 = b.force.magnitude2();
-                            let dis1 = dis_sqr1.sqrt();
-                            let dis2 = dis_sqr2.sqrt();
+                        let dis_sqr1 = a.force.magnitude2();
+                        let dis_sqr2 = b.force.magnitude2();
+                        let dis1 = dis_sqr1.sqrt();
+                        let dis2 = dis_sqr2.sqrt();
 
-                            let acc_dis1 = dis1 / a.mass;
-                            let acc_dis2 = dis2 / a.mass;
+                        let acc_dis1 = dis1 / a.mass;
+                        let acc_dis2 = dis2 / a.mass;
 
-                            let diff = (acc_dis1 - acc_dis2).abs();
+                        let diff = (acc_dis1 - acc_dis2).abs();
 
-                            let error: f32 = (acc_dis2 - acc_dis1).abs() / acc_dis2;
+                        let error: f32 = (acc_dis2 - acc_dis1).abs() / acc_dis2;
 
-                            match max_diff {
-                                None => max_diff = Some((diff, bb, error)),
-                                Some(max) => {
-                                    if diff > max.0 {
-                                        max_diff = Some((diff, bb, error))
-                                    }
+                        match max_diff {
+                            None => max_diff = Some((diff, bb, error)),
+                            Some(max) => {
+                                if diff > max.0 {
+                                    max_diff = Some((diff, bb, error))
                                 }
                             }
                         }
-                        /*
-                        let max_diff = max_diff.unwrap();
-                        self.max_percentage_error = max_diff.2 * 100.0;
-
-                        let f = {
-                            let a: f32 = num_pair_alg as f32;
-                            let b: f32 = num_pair_naive as f32;
-                            a / b
-                        };
-
-                        println!("absolute acceleration err={:06.5} percentage err={:06.2}% current bot not checked ratio={:05.2}%",max_diff.0,self.max_percentage_error,f*100.0);
-                        */
-                        //draw_rect_f32([1.0, 0.0, 1.0, 1.0], max_diff.1.get().as_ref(), c, g);
                     }
+                    /*
+                    let max_diff = max_diff.unwrap();
+                    self.max_percentage_error = max_diff.2 * 100.0;
+
+                    let f = {
+                        let a: f32 = num_pair_alg as f32;
+                        let b: f32 = num_pair_naive as f32;
+                        a / b
+                    };
+
+                    println!("absolute acceleration err={:06.5} percentage err={:06.2}% current bot not checked ratio={:05.2}%",max_diff.0,self.max_percentage_error,f*100.0);
                     */
+                    //draw_rect_f32([1.0, 0.0, 1.0, 1.0], max_diff.1.get().as_ref(), c, g);
                 }
-
-                tree.find_colliding_pairs_mut(|a, b| {
-                    let (a, b) = (a.unpack_inner(), b.unpack_inner());
-                    let (a, b) = if a.mass > b.mass { (a, b) } else { (b, a) };
-
-                    if b.mass != 0.0 {
-                        let ma = a.mass;
-                        let mb = b.mass;
-                        let ua = a.vel;
-                        let ub = b.vel;
-
-                        //Do perfectly inelastic collision.
-                        let vx = (ma * ua.x + mb * ub.x) / (ma + mb);
-                        let vy = (ma * ua.y + mb * ub.y) / (ma + mb);
-                        assert!(!vx.is_nan() && !vy.is_nan());
-                        a.mass += b.mass;
-
-                        a.force += b.force;
-                        a.vel = vec2(vx, vy);
-
-                        b.mass = 0.0;
-                        b.force = vec2same(0.0);
-                        b.vel = vec2same(0.0);
-                        b.pos = vec2same(0.0);
-                    }
-                });
+                */
             }
 
-            //Draw bots.
-            verts.clear();
-            for bot in k.iter() {
-                verts.rect(bot.rect);
-            }
-            buffer.update(&verts);
+            tree.find_colliding_pairs_mut(|a, b| {
+                let (a, b) = (a.unpack_inner(), b.unpack_inner());
+                let (a, b) = if a.mass > b.mass { (a, b) } else { (b, a) };
 
-            ctx.clear_color(0.13, 0.13, 0.13, 1.0);
-            ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
+                if b.mass != 0.0 {
+                    let ma = a.mass;
+                    let mb = b.mass;
+                    let ua = a.vel;
+                    let ub = b.vel;
 
-            sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0])
-                .draw_triangles(&buffer, &[1.0, 0.0, 1.0, 1.0]);
+                    //Do perfectly inelastic collision.
+                    let vx = (ma * ua.x + mb * ub.x) / (ma + mb);
+                    let vy = (ma * ua.y + mb * ub.y) / (ma + mb);
+                    assert!(!vx.is_nan() && !vy.is_nan());
+                    a.mass += b.mass;
 
-            ctx.flush();
+                    a.force += b.force;
+                    a.vel = vec2(vx, vy);
 
-            //Remove bots that have no mass, and add them to the pool
-            //of bots that don't exist yet.
-            {
-                let mut new_bots = Vec::new();
-                for b in bots.drain(..) {
-                    if b.mass == 0.0 {
-                        no_mass_bots.push(b);
-                    } else {
-                        new_bots.push(b);
-                    }
+                    b.mass = 0.0;
+                    b.force = vec2same(0.0);
+                    b.vel = vec2same(0.0);
+                    b.pos = vec2same(0.0);
                 }
-                bots.append(&mut new_bots);
-            };
+            });
+        }
 
-            //Update bot locations.
-            for bot in bots.iter_mut() {
-                Bot::handle(bot);
-                duckduckgeo::wrap_position(&mut bot.pos, dim);
-            }
+        //Draw bots.
+        verts.clear();
+        for bot in k.iter() {
+            verts.rect(bot.rect);
+        }
+        buffer.update(&verts);
 
-            //Add one bott each iteration.
-            if let Some(mut b) = no_mass_bots.pop() {
-                b.mass = 30.0;
-                b.pos = cursor;
-                b.force = vec2same(0.0);
-                b.vel = vec2(1.0, 0.0);
-                bots.push(b);
+        ctx.clear_color(0.13, 0.13, 0.13, 1.0);
+        ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
+
+        sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0])
+            .draw_triangles(&buffer, &[1.0, 0.0, 1.0, 1.0]);
+
+        ctx.flush();
+
+        //Remove bots that have no mass, and add them to the pool
+        //of bots that don't exist yet.
+        {
+            let mut new_bots = Vec::new();
+            for b in bots.drain(..) {
+                if b.mass == 0.0 {
+                    no_mass_bots.push(b);
+                } else {
+                    new_bots.push(b);
+                }
             }
-        },
-    )
+            bots.append(&mut new_bots);
+        };
+
+        //Update bot locations.
+        for bot in bots.iter_mut() {
+            Bot::handle(bot);
+            duckduckgeo::wrap_position(&mut bot.pos, dim);
+        }
+
+        //Add one bott each iteration.
+        if let Some(mut b) = no_mass_bots.pop() {
+            b.mass = 30.0;
+            b.pos = cursor;
+            b.force = vec2same(0.0);
+            b.vel = vec2(1.0, 0.0);
+            bots.push(b);
+        }
+    }
 }

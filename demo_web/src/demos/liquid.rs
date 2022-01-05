@@ -56,7 +56,7 @@ impl Liquid {
     }
 }
 
-pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo {
+pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> impl FnMut(DemoData) {
     let radius = 50.0;
 
     let mut bots: Vec<_> = dists::grid_rect_iter(2000, dim)
@@ -67,61 +67,61 @@ pub fn make_demo(dim: Rect<f32>, ctx: &web_sys::WebGl2RenderingContext) -> Demo 
 
     let mut buffer = ctx.buffer_dynamic();
 
-    Demo::new(
-        move |DemoData {
-                  cursor, sys, ctx, ..
-              }| {
-            let mut k = support::distribute(&mut bots, |bot| {
-                let p = bot.pos;
-                let r = radius;
-                Rect::new(p.x - r, p.x + r, p.y - r, p.y + r)
-            });
+    move |data| {
+        let DemoData {
+            cursor, sys, ctx, ..
+        } = data;
 
-            let mut tree = broccoli::new(&mut k);
+        let mut k = support::distribute(&mut bots, |bot| {
+            let p = bot.pos;
+            let r = radius;
+            Rect::new(p.x - r, p.x + r, p.y - r, p.y + r)
+        });
 
-            /*
-            broccoli::naive::query_naive_mut(broccoli::pmut::PMut::new(&mut k),
-                move |a, b| {
-                    let (a, b) = (a.unpack_inner(), b.unpack_inner());
-                    let _ = a.solve(b, radius);
-                }
-            );
-            */
+        let mut tree = broccoli::new(&mut k);
 
-            tree.find_colliding_pairs_mut(move |a, b| {
+        /*
+        broccoli::naive::query_naive_mut(broccoli::pmut::PMut::new(&mut k),
+            move |a, b| {
                 let (a, b) = (a.unpack_inner(), b.unpack_inner());
                 let _ = a.solve(b, radius);
-            });
-
-            let vv = vec2same(100.0);
-
-            tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), move |b| {
-                let b = b.unpack_inner();
-                let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cursor, 0.001, 100.0);
-            });
-
-            tree.for_all_not_in_rect_mut(&dim, move |a| {
-                let a = a.unpack_inner();
-                duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
-            });
-
-            for b in bots.iter_mut() {
-                b.pos += b.vel;
-                b.vel += b.acc;
-                b.acc = vec2same(0.0);
             }
+        );
+        */
 
-            verts.clear();
-            verts.extend(bots.iter().map(|x| <[f32; 2]>::from(x.pos)));
-            buffer.update(&verts);
+        tree.find_colliding_pairs_mut(move |a, b| {
+            let (a, b) = (a.unpack_inner(), b.unpack_inner());
+            let _ = a.solve(b, radius);
+        });
 
-            ctx.clear_color(0.13, 0.13, 0.13, 1.0);
-            ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
+        let vv = vec2same(100.0);
 
-            sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0])
-                .draw_squares(&buffer, 2.0, &[1.0, 0.0, 1.0, 1.0]);
+        tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), move |b| {
+            let b = b.unpack_inner();
+            let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cursor, 0.001, 100.0);
+        });
 
-            ctx.flush();
-        },
-    )
+        tree.for_all_not_in_rect_mut(&dim, move |a| {
+            let a = a.unpack_inner();
+            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
+        });
+
+        for b in bots.iter_mut() {
+            b.pos += b.vel;
+            b.vel += b.acc;
+            b.acc = vec2same(0.0);
+        }
+
+        verts.clear();
+        verts.extend(bots.iter().map(|x| <[f32; 2]>::from(x.pos)));
+        buffer.update(&verts);
+
+        ctx.clear_color(0.13, 0.13, 0.13, 1.0);
+        ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
+
+        sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0])
+            .draw_squares(&buffer, 2.0, &[1.0, 0.0, 1.0, 1.0]);
+
+        ctx.flush();
+    }
 }
