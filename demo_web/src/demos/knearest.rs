@@ -84,8 +84,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             broccoli::assert::assert_k_nearest_mut(tree, cursor, 3, &mut handler);
         }
 
-        ctx.clear_color(0.13, 0.13, 0.13, 1.0);
-        ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
+        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 
         let mut camera = sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
 

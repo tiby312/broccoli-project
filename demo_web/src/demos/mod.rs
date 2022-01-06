@@ -10,7 +10,7 @@ mod raycast_debug;
 pub struct DemoData<'a> {
     cursor: Vec2<f32>,
     sys: &'a mut shogo::dots::ShaderSystem,
-    ctx: &'a WebGl2RenderingContext,
+    ctx: &'a CtxWrap,
     check_naive: bool,
 }
 
@@ -23,7 +23,7 @@ impl Demo {
         &mut self,
         cursor: Vec2<f32>,
         sys: &mut shogo::dots::ShaderSystem,
-        ctx: &WebGl2RenderingContext,
+        ctx: &CtxWrap,
         check_naive: bool,
     ) {
         self.0(DemoData {

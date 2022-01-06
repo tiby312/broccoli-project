@@ -73,8 +73,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             }
         };
 
-        ctx.clear_color(0.13, 0.13, 0.13, 1.0);
-        ctx.clear(web_sys::WebGl2RenderingContext::COLOR_BUFFER_BIT);
+        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 
         cam.draw_triangles(&rect_save, &[0.3, 0.3, 0.3, 0.4]);
 
