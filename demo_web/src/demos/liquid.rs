@@ -114,7 +114,7 @@ impl Liquid {
         let spring_force_mag = -(d - 0.5) * 0.02;
 
         let velociy_diff = b.vel - self.vel;
-        let damping_ratio = 0.00027;
+        let damping_ratio = 0.00025;
         let spring_dampen = velociy_diff.dot(diff) * (1. / dis) * damping_ratio;
 
         let spring_force = diff * (1. / dis) * (spring_force_mag + spring_dampen);

@@ -1,9 +1,11 @@
+mod intersect_with;
 mod knearest;
 mod liquid;
 mod multirect;
 mod nbody;
 mod original_order;
 mod raycast;
+mod raycast_debug;
 
 pub struct DemoData<'a> {
     cursor: Vec2<f32>,
@@ -53,6 +55,8 @@ impl DemoIter {
             3 => Demo::new(multirect::make_demo(area, ctx)),
             4 => Demo::new(knearest::make_demo(area, ctx)),
             5 => Demo::new(original_order::make_demo(area, ctx)),
+            6 => Demo::new(raycast_debug::make_demo(area, ctx)),
+            7 => Demo::new(intersect_with::make_demo(area, ctx)),
             /*
             1 => demo_original_order::make_demo(area),
             2 => demo_raycast_f32::make_demo(area, canvas),
@@ -67,7 +71,7 @@ impl DemoIter {
         };
         self.0 += 1;
 
-        if self.0 == 6 {
+        if self.0 == 8 {
             self.0 = 0
         }
         k
