@@ -2,6 +2,7 @@ mod knearest;
 mod liquid;
 mod multirect;
 mod nbody;
+mod original_order;
 mod raycast;
 
 pub struct DemoData<'a> {
@@ -51,7 +52,7 @@ impl DemoIter {
             2 => Demo::new(nbody::make_demo(area, ctx)),
             3 => Demo::new(multirect::make_demo(area, ctx)),
             4 => Demo::new(knearest::make_demo(area, ctx)),
-
+            5 => Demo::new(original_order::make_demo(area, ctx)),
             /*
             1 => demo_original_order::make_demo(area),
             2 => demo_raycast_f32::make_demo(area, canvas),
@@ -66,7 +67,7 @@ impl DemoIter {
         };
         self.0 += 1;
 
-        if self.0 == 5 {
+        if self.0 == 6 {
             self.0 = 0
         }
         k
