@@ -57,16 +57,6 @@ impl DemoIter {
             5 => Demo::new(original_order::make_demo(area, ctx)),
             6 => Demo::new(raycast_debug::make_demo(area, ctx)),
             7 => Demo::new(intersect_with::make_demo(area, ctx)),
-            /*
-            1 => demo_original_order::make_demo(area),
-            2 => demo_raycast_f32::make_demo(area, canvas),
-            3 => demo_raycast_f32_debug::make_demo(area, canvas),
-            4 => demo_multirect::make_demo(area, canvas),
-            5 => demo_intersect_with::make_demo(area, canvas),
-            6 => demo_knearest::make_demo(area, canvas),
-            7 => demo_nbody::make_demo(area),
-            8 => demo_raycast_grid::make_demo(area, canvas),
-            */
             _ => unreachable!(),
         };
         self.0 += 1;

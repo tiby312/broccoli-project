@@ -45,8 +45,6 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         let tree = tree.as_tree_mut();
 
-        //let mut ray_cast = canvas.lines(1.0);
-
         for dir in 0..1000i32 {
             let dir = (dir as f32) * (std::f32::consts::TAU / 1000.0);
             let x = (dir.cos() * 20.0) as f32;
