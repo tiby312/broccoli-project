@@ -16,7 +16,7 @@ use_rayon = ["rayon-core"]
 
 
 [workspace]
-members = [ "demo","demo_web","report/data_gen"]
+members = [ "demo_web","report/data_gen"]
 
 [dev-dependencies]
 dists = {git="https://github.com/tiby312/dists.git"}
