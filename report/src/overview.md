@@ -1,3 +1,16 @@
+### Web Demo
+
+<script type=module>
+    import { default as init } from './pkg/demo_web.js';
+    var w=await init('pkg/demo_web_bg.wasm');
+    await w.main_entry();
+</script>
+<div>
+<canvas id="mycanvas" style="border-style: dotted" width="800" height="600"></canvas>
+<button id="nextbutton">next</button>
+<button id="shutdownbutton">shutdown</button>
+</div>
+
 ### For the reader
 
 In this book I'll go over a bunch of design problems/decisions while developing the [broccoli crate](https://crates.io/crates/broccoli) with performance analysis to back it up. 
