@@ -5,7 +5,7 @@ use axgeom::Rect;
 pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 50.0;
 
-    let mut bots: Vec<_> = dists::grid_rect_iter(2000, dim)
+    let mut bots: Vec<_> = dists::grid_rect_iter(1000, dim)
         .map(|a| Liquid::new(a.into()))
         .collect();
 

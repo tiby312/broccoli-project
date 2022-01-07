@@ -1,14 +1,15 @@
 ### Web Demo
 
+<link rel="stylesheet" href="css/web_demo.css">
 <script type=module>
     import { default as init } from './pkg/demo_web.js';
     var w=await init('pkg/demo_web_bg.wasm');
     await w.main_entry();
 </script>
 <div>
-<canvas id="mycanvas" style="border-style: dotted" width="800" height="600"></canvas>
-<button id="nextbutton">next</button>
-<button id="shutdownbutton">shutdown</button>
+<canvas id="mycanvas" style="border-style: dotted;width:100%" width="800" height="600"></canvas>
+<button id="nextbutton" class="mybutton">next</button>
+<button id="shutdownbutton" class="mybutton">shutdown</button>
 </div>
 
 ### For the reader
