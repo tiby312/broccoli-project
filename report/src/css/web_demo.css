@@ -1,7 +1,7 @@
 .mybutton {
-    background-color: #4CAF50; /* Green */
+    background-color: var(--fg); /* Green */
     border: none;
-    color: white;
+    color: var(--bg);
     padding: 15px 32px;
     text-align: center;
     text-decoration: none;

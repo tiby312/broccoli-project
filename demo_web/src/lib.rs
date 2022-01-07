@@ -88,15 +88,23 @@ pub async fn worker_entry() {
     log!("worker thread closing");
 }
 
+//https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
 fn convert_coord(canvas: &web_sys::HtmlElement, event: &web_sys::Event) -> [f32; 2] {
+    let rect = canvas.get_bounding_client_rect();
+
+    let canvas_width:f64=canvas.get_attribute("width").unwrap_throw().parse().unwrap_throw();
+    let canvas_height:f64=canvas.get_attribute("height").unwrap_throw().parse().unwrap_throw();
+    
+    let scalex=canvas_width/rect.width();
+    let scaley=canvas_height/rect.height();
+
     let e = event
         .dyn_ref::<web_sys::MouseEvent>()
         .unwrap_throw()
         .clone();
 
-    let [x, y] = [e.client_x() as f32, e.client_y() as f32];
-    let bb = canvas.get_bounding_client_rect();
-    let tl = bb.x() as f32;
-    let tr = bb.y() as f32;
-    [x - tl, y - tr]
+    let [x, y] = [e.client_x() as f64, e.client_y() as f64];
+
+    let [x,y]=[(x-rect.left() )*scalex,(y-rect.top() )*scaley];
+    [x as f32,y as f32]
 }
