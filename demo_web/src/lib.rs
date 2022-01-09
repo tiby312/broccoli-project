@@ -55,7 +55,7 @@ pub async fn worker_entry() {
 
     let canvas = w.canvas();
 
-    let ctx = shogo::dots::CtxWrap::new(&utils::get_context_webgl2_offscreen(&canvas));
+    let ctx = shogo::simple2d::CtxWrap::new(&utils::get_context_webgl2_offscreen(&canvas));
 
     let mut mouse_pos = [0.0f32; 2];
 
@@ -92,11 +92,19 @@ pub async fn worker_entry() {
 fn convert_coord(canvas: &web_sys::HtmlElement, event: &web_sys::Event) -> [f32; 2] {
     let rect = canvas.get_bounding_client_rect();
 
-    let canvas_width:f64=canvas.get_attribute("width").unwrap_throw().parse().unwrap_throw();
-    let canvas_height:f64=canvas.get_attribute("height").unwrap_throw().parse().unwrap_throw();
-    
-    let scalex=canvas_width/rect.width();
-    let scaley=canvas_height/rect.height();
+    let canvas_width: f64 = canvas
+        .get_attribute("width")
+        .unwrap_throw()
+        .parse()
+        .unwrap_throw();
+    let canvas_height: f64 = canvas
+        .get_attribute("height")
+        .unwrap_throw()
+        .parse()
+        .unwrap_throw();
+
+    let scalex = canvas_width / rect.width();
+    let scaley = canvas_height / rect.height();
 
     let e = event
         .dyn_ref::<web_sys::MouseEvent>()
@@ -105,6 +113,6 @@ fn convert_coord(canvas: &web_sys::HtmlElement, event: &web_sys::Event) -> [f32;
 
     let [x, y] = [e.client_x() as f64, e.client_y() as f64];
 
-    let [x,y]=[(x-rect.left() )*scalex,(y-rect.top() )*scaley];
-    [x as f32,y as f32]
+    let [x, y] = [(x - rect.left()) * scalex, (y - rect.top()) * scaley];
+    [x as f32, y as f32]
 }

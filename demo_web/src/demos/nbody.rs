@@ -348,7 +348,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 
-        sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0])
+        sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0])
             .draw_triangles(&buffer, &[1.0, 0.0, 1.0, 1.0]);
 
         ctx.flush();

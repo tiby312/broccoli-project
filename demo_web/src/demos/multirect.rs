@@ -56,7 +56,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             to_draw.rect(a.rect.inner_as());
         });
 
-        let mut cam = sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
+        let mut cam = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
 
         let col = match res {
             Ok(()) => {

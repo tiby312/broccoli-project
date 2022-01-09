@@ -110,7 +110,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 
-        let mut camera = sys.camera(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
+        let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
 
         camera.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.3]);
 

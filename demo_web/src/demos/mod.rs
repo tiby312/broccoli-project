@@ -9,7 +9,7 @@ mod raycast_debug;
 
 pub struct DemoData<'a> {
     cursor: Vec2<f32>,
-    sys: &'a mut shogo::dots::ShaderSystem,
+    sys: &'a mut shogo::simple2d::ShaderSystem,
     ctx: &'a CtxWrap,
     check_naive: bool,
 }
@@ -22,7 +22,7 @@ impl Demo {
     pub fn step(
         &mut self,
         cursor: Vec2<f32>,
-        sys: &mut shogo::dots::ShaderSystem,
+        sys: &mut shogo::simple2d::ShaderSystem,
         ctx: &CtxWrap,
         check_naive: bool,
     ) {
@@ -42,7 +42,7 @@ impl DemoIter {
     pub fn new() -> DemoIter {
         DemoIter(0)
     }
-    pub fn next(&mut self, area: Vec2<u32>, ctx: &shogo::dots::CtxWrap) -> Demo {
+    pub fn next(&mut self, area: Vec2<u32>, ctx: &shogo::simple2d::CtxWrap) -> Demo {
         let curr = self.0;
         //let k=ctx.shader_system();
 
