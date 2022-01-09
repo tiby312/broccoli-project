@@ -13,7 +13,7 @@ wasm-bindgen = "0.2"
 wasm-bindgen-futures="0.4"
 web-sys = "0.3"
 futures="0.3"
-shogo = {git="https://github.com/tiby312/shogo"}
+shogo = {git="https://github.com/tiby312/shogo",features=["simple2d"]}
 js-sys = "0.3.20"
 serde = { version = "1.0", features = ["derive"] }
 axgeom="*"
