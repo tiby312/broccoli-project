@@ -193,20 +193,34 @@ impl<'b> broccoli::query::Nbody for Bla<'b> {
     }
 }
 
-pub fn make_demo(dim: Rect<f32>) -> Demo {
-    let mut bots = support::make_rand(4000, dim, |pos| Bot {
-        mass: 100.0,
-        pos,
-        vel: vec2same(0.0),
-        force: vec2same(0.0),
-    });
+pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
+    let mut bots: Vec<_> = support::make_rand(dim)
+        .take(4000)
+        .map(|pos| Bot {
+            mass: 100.0,
+            pos: pos.into(),
+            vel: vec2same(0.0),
+            force: vec2same(0.0),
+        })
+        .collect();
 
     //Make one of the bots have a lot of mass.
     bots.last_mut().unwrap().mass = 10000.0;
 
     let mut no_mass_bots: Vec<Bot> = Vec::new();
 
-    Demo::new(move |cursor, canvas, check_naive| {
+    let mut verts = vec![];
+
+    let mut buffer = ctx.buffer_dynamic();
+
+    move |data| {
+        let DemoData {
+            cursor,
+            sys,
+            ctx,
+            check_naive,
+        } = data;
+
         let no_mass_bots = &mut no_mass_bots;
 
         let mut k = support::distribute(&mut bots, |b| {
@@ -229,15 +243,12 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
 
             //use std::time::{Duration, Instant};
             //let now = Instant::now();
-            let tree = broccoli::new_par(RayonJoin, &mut k);
+            let tree = broccoli::new(&mut k);
 
-            let mut tree = tree.nbody_mut_par(
-                RayonJoin,
-                &mut Bla {
-                    _num_pairs_checked: 0,
-                    _p: PhantomData,
-                },
-            );
+            let mut tree = tree.nbody_mut(&mut Bla {
+                _num_pairs_checked: 0,
+                _p: PhantomData,
+            });
 
             //println!("{}", now.elapsed().as_millis());
             //panic!();
@@ -301,7 +312,7 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                 */
             }
 
-            tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
+            tree.find_colliding_pairs_mut(|a, b| {
                 let (a, b) = (a.unpack_inner(), b.unpack_inner());
                 let (a, b) = if a.mass > b.mass { (a, b) } else { (b, a) };
 
@@ -329,14 +340,18 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
         }
 
         //Draw bots.
-        let mut rects = canvas.rects();
+        verts.clear();
         for bot in k.iter() {
-            rects.add(bot.rect.into());
+            verts.rect(bot.rect);
         }
-        rects
-            .send_and_uniforms(canvas)
-            .with_color([0.9, 0.9, 0.3, 0.6])
-            .draw();
+        buffer.update(&verts);
+
+        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
+
+        sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0])
+            .draw_triangles(&buffer, &[1.0, 0.0, 1.0, 1.0]);
+
+        ctx.flush();
 
         //Remove bots that have no mass, and add them to the pool
         //of bots that don't exist yet.
@@ -366,5 +381,5 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             b.vel = vec2(1.0, 0.0);
             bots.push(b);
         }
-    })
+    }
 }

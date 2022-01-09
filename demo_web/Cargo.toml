@@ -1,0 +1,30 @@
+[package]
+name = "demo_web"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-futures="0.4"
+web-sys = "0.3"
+futures="0.3"
+shogo = {git="https://github.com/tiby312/shogo",features=["simple2d"]}
+js-sys = "0.3.20"
+serde = { version = "1.0", features = ["derive"] }
+axgeom="*"
+duckduckgeo ={git="https://github.com/tiby312/duckduckgeo"}
+dists={git="https://github.com/tiby312/dists"}
+
+[dependencies.gloo]
+version = "0.5"
+features=[
+  'futures'
+  ]
+
+[dependencies.broccoli]
+path = ".."

@@ -21,25 +21,39 @@ impl Bot {
     }
 }
 
-pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
+pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 5.0;
 
-    let mut bots = support::make_rand(4000, dim, |pos| Bot {
-        pos,
-        vel: vec2same(0.0),
-        force: vec2same(0.0),
-        wall_move: [None; 2],
-    });
+    let mut bots = support::make_rand(dim)
+        .take(2000)
+        .map(|pos| Bot {
+            pos: pos.into(),
+            vel: vec2same(0.0),
+            force: vec2same(0.0),
+            wall_move: [None; 2],
+        })
+        .collect::<Vec<_>>();
 
-    let mut walls = support::make_rand_rect(10, dim, [10.0, 60.0], |a| a);
+    let mut walls = support::make_rand_rect(dim, [10.0, 60.0])
+        .take(10)
+        .collect::<Vec<_>>();
 
-    let mut rects = canvas.rects();
-    for wall in walls.iter() {
-        rects.add(wall.into());
-    }
-    let rect_save = rects.save(canvas);
+    let rect_save = {
+        let mut verts = vec![];
+        for &wall in walls.iter() {
+            verts.rect(wall);
+        }
+        ctx.buffer_static(&verts)
+    };
 
-    Demo::new(move |cursor, canvas, _check_naive| {
+    let mut verts = vec![];
+    let mut buffer = ctx.buffer_dynamic();
+
+    move |data| {
+        let DemoData {
+            cursor, sys, ctx, ..
+        } = data;
+
         for b in bots.iter_mut() {
             b.update();
 
@@ -106,18 +120,19 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             });
         }
 
-        rect_save
-            .uniforms(canvas)
-            .with_color([0.7, 0.7, 0.7, 0.3])
-            .draw();
+        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 
-        let mut circles = canvas.circles();
+        let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
+
+        camera.draw_triangles(&rect_save, &[0.7, 0.7, 0.7, 0.3]);
+
+        verts.clear();
         for bot in k.iter() {
-            circles.add(bot.inner.pos.into());
+            verts.push(bot.inner.pos.into());
         }
-        circles
-            .send_and_uniforms(canvas, radius)
-            .with_color([1.0, 0.0, 0.5, 0.3])
-            .draw();
-    })
+        buffer.update(&verts);
+        camera.draw_circles(&buffer, radius, &[1.0, 0.0, 0.5, 0.3]);
+
+        ctx.flush();
+    }
 }

@@ -20,24 +20,40 @@ impl Bot {
     }
 }
 
-pub fn make_demo(dim: Rect<f32>) -> Demo {
+pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 5.0;
 
     let mut bots = {
         let mut idcounter = 0;
-        support::make_rand(4000, dim, |pos| {
-            let b = Bot {
-                id: idcounter,
-                pos,
-                vel: vec2same(0.0),
-                force: vec2same(0.0),
-            };
-            idcounter += 1;
-            b
-        })
+        support::make_rand(dim)
+            .take(2000)
+            .map(|pos| {
+                let b = Bot {
+                    id: idcounter,
+                    pos: pos.into(),
+                    vel: vec2same(0.0),
+                    force: vec2same(0.0),
+                };
+                idcounter += 1;
+                b
+            })
+            .collect::<Vec<_>>()
     };
 
-    Demo::new(move |cursor, canvas, check_naive| {
+    let mut verts = vec![];
+
+    let mut buffer = ctx.buffer_dynamic();
+
+    move |data| {
+        let DemoData {
+            cursor,
+            sys,
+            ctx,
+            check_naive,
+        } = data;
+
+        verts.clear();
+
         for b in bots.iter_mut() {
             b.update();
         }
@@ -58,11 +74,22 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
         });
 
-        //Draw the dividers
-        let mut rects = canvas.rects();
-        let mut lines = canvas.lines(2.0);
+        let mut verts2 = vec![];
         tree.draw_divider(
             |axis, node, rect, _| {
+                if !node.range.is_empty() {
+                    verts.rect(axis.map_val(
+                        Rect {
+                            x: node.cont.into(),
+                            y: rect.y.into(),
+                        },
+                        Rect {
+                            x: rect.x.into(),
+                            y: node.cont.into(),
+                        },
+                    ));
+                }
+
                 let mid = if let Some(div) = node.div {
                     axis.map(
                         |x| get_nonleaf_mid(x, rect, div),
@@ -72,38 +99,23 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
                     get_leaf_mid(rect)
                 };
 
-                if !node.range.is_empty() {
-                    rects.add(
-                        axis.map_val(
-                            Rect {
-                                x: node.cont.into(),
-                                y: rect.y.into(),
-                            },
-                            Rect {
-                                x: rect.x.into(),
-                                y: node.cont.into(),
-                            },
-                        )
-                        .into(),
-                    );
-                }
-
                 for b in node.range.iter() {
-                    lines.add(b.inner.pos.into(), mid.into());
+                    verts2.line(1.0, b.inner.pos, mid);
                 }
             },
             dim,
         );
 
-        rects
-            .send_and_uniforms(canvas)
-            .with_color([0.0, 1.0, 1.0, 0.3])
-            .draw();
+        buffer.update(&verts);
 
-        lines
-            .send_and_uniforms(canvas)
-            .with_color([1.0, 0.5, 1.0, 0.6])
-            .draw();
+        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
+
+        let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
+
+        camera.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.3]);
+
+        buffer.update(&verts2);
+        camera.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.3]);
 
         tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
@@ -114,27 +126,26 @@ pub fn make_demo(dim: Rect<f32>) -> Demo {
             broccoli::assert::assert_query(&mut tree);
         }
 
-        let mut circles = canvas.circles();
+        verts.clear();
         for bot in bots.iter() {
-            circles.add(bot.pos.into());
+            verts.push(bot.pos.into());
         }
-        circles
-            .send_and_uniforms(canvas, radius)
-            .with_color([1.0, 1.0, 0.0, 0.6])
-            .draw();
+        buffer.update(&verts);
+        camera.draw_circles(&buffer, radius, &[1.0, 1.0, 0.0, 0.6]);
 
-        let mut lines = canvas.lines(radius * 0.5);
+        verts.clear();
         for bot in bots.iter() {
-            lines.add(
-                bot.pos.into(),
-                (bot.pos + vec2(0.0, (bot.id % 100) as f32) * 0.1).into(),
+            verts.line(
+                radius * 0.5,
+                bot.pos,
+                bot.pos + vec2(0.0, (bot.id % 100) as f32) * 0.1,
             );
         }
-        lines
-            .send_and_uniforms(canvas)
-            .with_color([0.0, 0.0, 1.0, 0.5])
-            .draw();
-    })
+        buffer.update(&verts);
+        camera.draw_triangles(&buffer, &[0.0, 0.0, 0.0, 0.7]);
+
+        ctx.flush();
+    }
 }
 
 fn get_leaf_mid(rect: &Rect<f32>) -> Vec2<f32> {

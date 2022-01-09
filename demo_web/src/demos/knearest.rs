@@ -31,33 +31,49 @@ fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
     dis
 }
 
-pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
-    let bots = support::make_rand_rect(2000, dim, [1.0, 4.0], |a| bbox(a, ())).into_boxed_slice();
+pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
+    let bots = support::make_rand_rect(dim, [1.0, 8.0])
+        .take(500)
+        .map(|rect| bbox(rect, ()))
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
 
-    let mut rects = canvas.rects();
-    for bot in bots.iter() {
-        rects.add(bot.rect.into());
-    }
-    let rect_save = rects.save(canvas);
+    let rect_save = {
+        let mut verts = vec![];
+        for bot in bots.iter() {
+            verts.rect(bot.inner_as().rect);
+        }
+        ctx.buffer_static(&verts)
+    };
 
     let mut tree = broccoli::container::TreeOwned::new(bots);
 
-    Demo::new(move |cursor, canvas, check_naive| {
+    let mut verts = vec![];
+    let mut buffer = ctx.buffer_dynamic();
+
+    move |data| {
+        let DemoData {
+            cursor,
+            sys,
+            ctx,
+            check_naive,
+        } = data;
+
         let cols = [
-            [1.0, 0.0, 0.0, 0.6], //red closest
-            [0.0, 1.0, 0.0, 0.6], //green second closest
-            [0.0, 0.0, 1.0, 0.6], //blue third closets
+            [1.0, 0.0, 0.0, 0.3], //red closest
+            [0.0, 1.0, 0.0, 0.3], //green second closest
+            [0.0, 0.0, 1.0, 0.3], //blue third closets
         ];
 
-        let mut rects = canvas.rects();
+        //let mut rects = canvas.rects();
         let tree = tree.as_tree_mut();
-
+        verts.clear();
         let mut handler = broccoli::helper::knearest_from_closure(
             tree,
             (),
             |_, _, _| None,
             |_, point, a| {
-                rects.add(a.rect.into());
+                verts.rect(a.rect);
                 distance_to_rect(&a.rect, point)
             },
             |_, point, val| distance_to_line(point, axgeom::XAXIS, val),
@@ -68,34 +84,37 @@ pub fn make_demo(dim: Rect<f32>, canvas: &mut SimpleCanvas) -> Demo {
             broccoli::assert::assert_k_nearest_mut(tree, cursor, 3, &mut handler);
         }
 
+        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
+
+        let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
+
         let mut vv = {
             let k = tree.k_nearest_mut(cursor, 3, &mut handler);
             drop(handler);
-            rects
-                .send_and_uniforms(canvas)
-                .with_color([1.0, 1.0, 0.0, 0.3])
-                .draw();
+
+            buffer.update(&verts);
+
+            camera.draw_triangles(&buffer, &[1.0, 1.0, 0.0, 0.3]);
+
             k
         };
 
-        rect_save
-            .uniforms(canvas)
-            .with_color([0.0, 0.0, 0.0, 0.3])
-            .draw();
-
+        camera.draw_triangles(&rect_save, &[0.0, 0.1, 0.0, 0.3]);
         for (k, color) in vv.iter().rev().zip(cols.iter()) {
-            canvas
-                .circles()
-                .add(cursor.into())
-                .send_and_uniforms(canvas, k[0].mag.sqrt() * 2.0)
-                .with_color(*color)
-                .draw();
+            verts.clear();
+            verts.push(cursor.into());
+            buffer.update(&verts);
+            let radius = k[0].mag.sqrt() * 2.0;
+            camera.draw_circles(&buffer, radius, color);
 
-            let mut rects = canvas.rects();
+            verts.clear();
             for b in k.iter() {
-                rects.add(b.bot.rect.into());
+                verts.rect(b.bot.rect);
             }
-            rects.send_and_uniforms(canvas).with_color(*color).draw();
+            buffer.update(&verts);
+            camera.draw_triangles(&buffer, color);
         }
-    })
+
+        ctx.flush();
+    }
 }
