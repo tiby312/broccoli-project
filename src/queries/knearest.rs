@@ -349,10 +349,8 @@ impl<'a, T: Aabb> KResult<'a, T> {
     ) -> impl Iterator<Item = &mut [KnearestResult<'a, T>]>
            + core::iter::FusedIterator
            + DoubleEndedIterator {
-        crate::util::SliceSplitMut::new(&mut self.inner, |a, b| a.mag == b.mag).fuse()
-
-        //use slice_group_by::GroupByMut;
-        //self.inner.linear_group_by_mut(|a,b|a.mag==b.mag)
+        use slice_group_by::GroupByMut;
+        self.inner.linear_group_by_mut(|a,b|a.mag==b.mag)
     }
 
     ///Return the underlying datastructure
