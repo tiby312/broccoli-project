@@ -26,7 +26,7 @@ fn test_tie_knearest() {
     let mut handler = broccoli::helper::default_rect_knearest(&tree);
     let mut res = tree.k_nearest_mut(vec2(15, 30), 2, &mut handler);
 
-    assert_eq!(res.len(), 2);
+    assert_eq!(res.len(), 1);
     assert_eq!(res.total_len(), 2);
 
     use broccoli::query::KnearestResult;
