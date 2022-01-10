@@ -1,7 +1,6 @@
 //! Knearest query module
 
 use super::*;
-use core::cmp::Ordering;
 
 ///The geometric functions that the user must provide.
 pub trait Knearest {
@@ -190,12 +189,12 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         point: &Vec2<K::N>,
         knear: &mut K,
         mut curr_bot: PMut<'a, T>,
-    ) -> bool {
+    ) {
         if let Some(long_dis) = knear.distance_to_broad(*point, curr_bot.borrow_mut()) {
             if self.curr_num == self.num {
                 if let Some(l) = self.bots.last() {
                     if long_dis > l.mag {
-                        return false;
+                        return;
                     }
                 }
             }
@@ -205,133 +204,58 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         let arr = &mut self.bots;
 
 
-        /*
-        use slice_group_by::GroupByMut;
-        let mut index_counter=0;
-        //starts with the closest.
-        for group in self.bots.linear_group_by_mut(|a,b|a.mag==b.mag){
-            if curr_dis<group[0]{
-                //discard last group.
-                //push new group to front.
-                //mark done
-            }else if curr_dis==group[0].dis{
-                //add to this group
-                //mark done
-            }
-        }
-        */
 
-        let mut delete_last_group=false;
         let mut insert_index=None;
 
+        //The closest bots are at the start.
+
         for (i,a) in arr.iter().enumerate(){
+            
             if curr_dis<a.mag{
+                //If we find a bot closer than everything we've had before, 
+                //start a new group.
+
                 insert_index=Some(i);
-                delete_last_group=true;
                 self.curr_num+=1;
+                break;
             }else if curr_dis==a.mag{
+                //If we find a bot at the same distance of another bot, add it to that group.
                 insert_index=Some(i);
+                break;
             }
         }
 
-        if insert_index.is_none(){
-            if self.curr_num<self.num{
-                self.curr_num+=1;
-                insert_index=Some(arr.len());
-            }
-        }
 
-        //dbg!(insert_index);
-        let foo=if let Some(i)=insert_index{
+        if let Some(i)=insert_index{
             arr.insert(i,KnearestResult {
                 bot: curr_bot,
                 mag: curr_dis,
             });
 
-
-            if delete_last_group{
+            //If we have too many groups, delete the group thats furthest away.
+            if self.curr_num>self.num{
                 //We know its not empty if we have gotten here
                 let last_mag=arr.last().unwrap().mag;
+                self.curr_num-=1;
                 while let Some(k)=arr.last(){
                     if k.mag==last_mag{
                         arr.pop();
+                    }else{
+                        break;
                     }
                 }
             }
-
-            true
-            
         }else{
-            false
-        };
-
-
-        dbg!(insert_index,arr.iter().map(|x|x.mag).collect::<Vec<_>>(),self.curr_num,self.num);
-
-        foo
-        /*
-        if self.curr_num < self.num {
-            for i in 0..arr.len() {
-                if curr_dis < arr[i].mag {
-                    let unit = KnearestResult {
-                        bot: curr_bot,
-                        mag: curr_dis,
-                    };
-                    arr.insert(i, unit);
-                    self.curr_num += 1;
-                    return true;
-                }
-            }
-            //only way we get here is if the above didnt return.
-            let unit = KnearestResult {
-                bot: curr_bot,
-                mag: curr_dis,
-            };
-            self.curr_num += 1;
-            arr.push(unit);
-        } else {
-            for i in 0..arr.len() {
-                if curr_dis < arr[i].mag {
-                    let v = arr.pop().unwrap();
-                    loop {
-                        if arr[arr.len() - 1].mag == v.mag {
-                            arr.pop().unwrap();
-                        } else {
-                            break;
-                        }
-                    }
-                    let unit = KnearestResult {
-                        bot: curr_bot,
-                        mag: curr_dis,
-                    }; //$unit_create!(curr_bot,curr_dis);
-                    arr.insert(i, unit);
-
-                    let max = arr
-                        .iter()
-                        .map(|a| a.mag)
-                        .max_by(|a, b| {
-                            if a > b {
-                                Ordering::Greater
-                            } else {
-                                Ordering::Less
-                            }
-                        })
-                        .unwrap();
-                    assert!(max < v.mag);
-                    return true;
-                } else if curr_dis == arr[i].mag {
-                    let unit = KnearestResult {
-                        bot: curr_bot,
-                        mag: curr_dis,
-                    };
-                    arr.insert(i, unit);
-                    return true;
-                }
+            //If at this point, we havent found a place to insert the bot, check if we can just
+            //make a new group at the end.
+            if self.curr_num<self.num{
+                self.curr_num+=1;
+                arr.insert(arr.len(),KnearestResult {
+                    bot: curr_bot,
+                    mag: curr_dis,
+                });
             }
         }
-
-        false
-        */
     }
 
     fn full_and_max_distance(&self) -> Option<T::Num> {
