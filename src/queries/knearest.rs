@@ -204,6 +204,72 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
 
         let arr = &mut self.bots;
 
+
+        /*
+        use slice_group_by::GroupByMut;
+        let mut index_counter=0;
+        //starts with the closest.
+        for group in self.bots.linear_group_by_mut(|a,b|a.mag==b.mag){
+            if curr_dis<group[0]{
+                //discard last group.
+                //push new group to front.
+                //mark done
+            }else if curr_dis==group[0].dis{
+                //add to this group
+                //mark done
+            }
+        }
+        */
+
+        let mut delete_last_group=false;
+        let mut insert_index=None;
+
+        for (i,a) in arr.iter().enumerate(){
+            if curr_dis<a.mag{
+                insert_index=Some(i);
+                delete_last_group=true;
+                self.curr_num+=1;
+            }else if curr_dis==a.mag{
+                insert_index=Some(i);
+            }
+        }
+
+        if insert_index.is_none(){
+            if self.curr_num<self.num{
+                self.curr_num+=1;
+                insert_index=Some(arr.len());
+            }
+        }
+
+        //dbg!(insert_index);
+        let foo=if let Some(i)=insert_index{
+            arr.insert(i,KnearestResult {
+                bot: curr_bot,
+                mag: curr_dis,
+            });
+
+
+            if delete_last_group{
+                //We know its not empty if we have gotten here
+                let last_mag=arr.last().unwrap().mag;
+                while let Some(k)=arr.last(){
+                    if k.mag==last_mag{
+                        arr.pop();
+                    }
+                }
+            }
+
+            true
+            
+        }else{
+            false
+        };
+
+
+        dbg!(insert_index,arr.iter().map(|x|x.mag).collect::<Vec<_>>(),self.curr_num,self.num);
+
+        foo
+        /*
         if self.curr_num < self.num {
             for i in 0..arr.len() {
                 if curr_dis < arr[i].mag {
@@ -265,6 +331,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         }
 
         false
+        */
     }
 
     fn full_and_max_distance(&self) -> Option<T::Num> {
@@ -359,6 +426,9 @@ impl<'a, T: Aabb> KResult<'a, T> {
            + core::iter::FusedIterator
            + DoubleEndedIterator {
         crate::util::SliceSplitMut::new(&mut self.inner, |a, b| a.mag == b.mag).fuse()
+
+        //use slice_group_by::GroupByMut;
+        //self.inner.linear_group_by_mut(|a,b|a.mag==b.mag)
     }
 
     ///Return the underlying datastructure
