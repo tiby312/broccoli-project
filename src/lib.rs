@@ -639,7 +639,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn intersect_with_mut<X: Aabb<Num = T::Num>>(
         &mut self,
         other: &mut [X],
-        func: impl Fn(PMut<T>, PMut<X>),
+        mut func: impl FnMut(PMut<T>, PMut<X>),
     ) {
         //TODO instead of create just a list of BBox, construct a tree using the dividers of the current tree.
         //This way we can parallelize this function.
