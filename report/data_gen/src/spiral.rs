@@ -24,19 +24,21 @@ fn handle_num(fb: &mut FigureBuilder) {
         rects.push((num, num_intersection));
     }
 
-    let mut plot = my_plot(
-        format!(
-            "Number of Intersections with abspiral(num,0.{})",
-            DEFAULT_GROW
+    let mut data = poloto::data();
+    data.ymarker(0.0);
+    data.line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]));
+
+    fb.finish_plot(
+        data.build().plot(
+            format!(
+                "Number of Intersections with abspiral(num,0.{})",
+                DEFAULT_GROW
+            ),
+            "Number of Elements",
+            "Number of Intersections",
         ),
-        "Number of Elements",
-        "Number of Intersections",
+        "spiral_data_num",
     );
-
-    plot.ymarker(0.0);
-    plot.line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]));
-
-    fb.finish_plot(plot, "spiral_data_num");
 }
 
 fn handle_grow(fb: &mut FigureBuilder) {
@@ -57,16 +59,20 @@ fn handle_grow(fb: &mut FigureBuilder) {
         rects.push((grow, num_intersection));
     }
 
-    let mut plot = my_plot(
-        "Number of Intersections with abspiral(20_000,grow)",
-        "Grow",
-        "Number of Intersections",
+    let mut data = poloto::data();
+
+    data.ymarker(0.0);
+
+    data.line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]));
+
+    fb.finish_plot(
+        data.build().plot(
+            "Number of Intersections with abspiral(20_000,grow)",
+            "Grow",
+            "Number of Intersections",
+        ),
+        "spiral_data_grow",
     );
-    plot.ymarker(0.0);
-
-    plot.line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]));
-
-    fb.finish_plot(plot, "spiral_data_grow");
 }
 
 fn handle_visualize(fb: &mut FigureBuilder) {
@@ -80,15 +86,15 @@ fn handle_visualize(fb: &mut FigureBuilder) {
     }
 
     let f = format!("abspiral(600,{})", DEFAULT_GROW);
-    let mut plot = my_plot(&f, "x", "y");
+    let mut data = poloto::data();
 
-    plot.scatter(
+    data.scatter(
         "",
         make(DEFAULT_GROW)
             .into_iter()
             .map(|v| [v.x as f64, v.y as f64]),
     );
-    plot.preserve_aspect();
+    data.preserve_aspect();
 
-    fb.finish_plot(plot, "spiral_visualize");
+    fb.finish_plot(data.build().plot(&f, "x", "y"), "spiral_visualize");
 }

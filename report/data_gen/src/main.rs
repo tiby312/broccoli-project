@@ -23,7 +23,6 @@ mod inner_prelude {
     pub use super::bbox_helper;
     pub use crate::black_box;
     pub(crate) use crate::datanum;
-    pub use crate::my_plot;
     pub use crate::support::*;
     pub use crate::Args;
     pub(crate) use crate::FigureBuilder;
@@ -42,15 +41,6 @@ mod inner_prelude {
     pub use std::time::Duration;
     pub use std::time::Instant;
     pub use tagger;
-}
-
-use std::fmt;
-pub fn my_plot<'a>(
-    title: impl fmt::Display + 'a,
-    xname: impl fmt::Display + 'a,
-    yname: impl fmt::Display + 'a,
-) -> poloto::Plotter<'a, f64, f64> {
-    poloto::Plotter::new(title, xname, yname)
 }
 
 #[macro_use]
@@ -87,9 +77,9 @@ impl FigureBuilder {
         let mut e = poloto::upgrade_write(&mut file);
 
         use std::fmt::Write;
-        write!(&mut e, "{}", poloto::SVG_HEADER).unwrap();
+        write!(&mut e, "{}", poloto::simple_theme::SVG_HEADER).unwrap();
         plot.render(&mut e).unwrap();
-        write!(&mut e, "{}", poloto::SVG_END).unwrap();
+        write!(&mut e, "{}", poloto::simple_theme::SVG_END).unwrap();
     }
 
     fn make_graph<S: Serialize, I: Iterator<Item = (f64, S)>>(&mut self, args: Args<S, I>) {
@@ -123,13 +113,13 @@ impl FigureBuilder {
 
             let names = map.as_object().clone();
 
-            let mut plot = my_plot(title, xname, yname);
+            let mut data = poloto::data();
 
-            plot.ymarker(0.0);
+            data.ymarker(0.0);
             for (plot_name, _) in names.iter() {
                 let k = ii.clone();
                 let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
-                plot.line(
+                data.line(
                     plot_name,
                     core::iter::once(ff)
                         .chain(k)
@@ -154,7 +144,7 @@ impl FigureBuilder {
                 );
             }
 
-            self.finish_plot(plot, filename);
+            self.finish_plot(data.build().plot(title, xname, yname), filename);
         }
     }
 }

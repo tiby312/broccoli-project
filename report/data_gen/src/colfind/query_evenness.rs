@@ -35,18 +35,11 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
     {
         let res = TheoryRes::new(num_bots, grow);
 
-        let mut splot = my_plot(
-            formatm!(
-                "Complexity of query evenness with abspiral({},{})",
-                num_bots,
-                grow
-            ),
-            "DFS inorder iteration",
-            "Number of comparisons",
-        );
-        splot.ymarker(0.0);
+        let mut data = poloto::data();
 
-        splot.histogram(
+        data.ymarker(0.0);
+
+        data.histogram(
             "",
             res.query
                 .vistr()
@@ -55,7 +48,18 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
                 .map(|(i, element)| [i as f64, *element as f64]),
         );
 
-        fb.finish_plot(splot, formatm!("query_evenness_theory_{}", prefix));
+        fb.finish_plot(
+            data.build().plot(
+                formatm!(
+                    "Complexity of query evenness with abspiral({},{})",
+                    num_bots,
+                    grow
+                ),
+                "DFS inorder iteration",
+                "Number of comparisons",
+            ),
+            formatm!("query_evenness_theory_{}", prefix),
+        );
     }
 
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| vec2same(0.0f64)).collect();
@@ -64,15 +68,12 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
 
     let tree = broccoli::new(&mut bots);
 
-    let mut splot = my_plot(
-        formatm!("Num per node with abspiral({},{})", num_bots, grow),
-        "DFS inorder iteration",
-        "Number of comparisons",
-    );
-    splot.ymarker(0.0);
+    let mut data = poloto::data();
+
+    data.ymarker(0.0);
 
     use broccoli::compt::Visitor;
-    splot.histogram(
+    data.histogram(
         "",
         tree.vistr()
             .dfs_inorder_iter()
@@ -80,7 +81,14 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
             .map(|(i, element)| [i as f64, element.range.len() as f64]),
     );
 
-    fb.finish_plot(splot, formatm!("query_num_per_node_theory_{}", prefix));
+    fb.finish_plot(
+        data.build().plot(
+            formatm!("Num per node with abspiral({},{})", num_bots, grow),
+            "DFS inorder iteration",
+            "Number of comparisons",
+        ),
+        formatm!("query_num_per_node_theory_{}", prefix),
+    );
 }
 pub fn handle_theory(fb: &mut FigureBuilder) {
     let num_bots = 3000;

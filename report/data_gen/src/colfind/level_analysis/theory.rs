@@ -56,8 +56,8 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         fb: &mut FigureBuilder,
         mut it: I,
     ) {
-        let mut plot = my_plot(title_name, "Spiral Grow", "Number of Comparisons");
-        plot.ymarker(0.0);
+        let mut data = poloto::data();
+        data.ymarker(0.0);
 
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();
@@ -65,9 +65,14 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             let cc = (0..num).map(|ii: usize| it.clone().map(move |(x, a)| [x, a[ii]]));
 
             for (i, y) in cc.enumerate() {
-                plot.line_fill(formatm!("Level {}", i), y);
+                data.line_fill(formatm!("Level {}", i), y);
             }
         }
+
+        let plot = data
+            .build()
+            .plot(title_name, "Spiral Grow", "Number of Comparisons");
+
         fb.finish_plot(plot, filename);
     }
 

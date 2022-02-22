@@ -7,8 +7,8 @@ pub use axgeom::Rect;
 /// It is auto implemented by all types that satisfy the type constraints.
 /// Notice that no arithmetic is possible. The tree is constructed
 /// using only comparisons and copying.
-pub trait Num: PartialOrd + Copy + Default +std::fmt::Debug{}
-impl<T> Num for T where T: PartialOrd + Copy + Default+std::fmt::Debug {}
+pub trait Num: PartialOrd + Copy + Default + std::fmt::Debug {}
+impl<T> Num for T where T: PartialOrd + Copy + Default + std::fmt::Debug {}
 
 /// Trait to signify that this object has an axis aligned bounding box.
 ///

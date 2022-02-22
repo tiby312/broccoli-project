@@ -203,57 +203,59 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
 
         let arr = &mut self.bots;
 
-
-
-        let mut insert_index=None;
+        let mut insert_index = None;
 
         //The closest bots are at the start.
 
-        for (i,a) in arr.iter().enumerate(){
-            
-            if curr_dis<a.mag{
-                //If we find a bot closer than everything we've had before, 
+        for (i, a) in arr.iter().enumerate() {
+            if curr_dis < a.mag {
+                //If we find a bot closer than everything we've had before,
                 //start a new group.
 
-                insert_index=Some(i);
-                self.curr_num+=1;
+                insert_index = Some(i);
+                self.curr_num += 1;
                 break;
-            }else if curr_dis==a.mag{
+            } else if curr_dis == a.mag {
                 //If we find a bot at the same distance of another bot, add it to that group.
-                insert_index=Some(i);
+                insert_index = Some(i);
                 break;
             }
         }
 
-
-        if let Some(i)=insert_index{
-            arr.insert(i,KnearestResult {
-                bot: curr_bot,
-                mag: curr_dis,
-            });
+        if let Some(i) = insert_index {
+            arr.insert(
+                i,
+                KnearestResult {
+                    bot: curr_bot,
+                    mag: curr_dis,
+                },
+            );
 
             //If we have too many groups, delete the group thats furthest away.
-            if self.curr_num>self.num{
+            if self.curr_num > self.num {
                 //We know its not empty if we have gotten here
-                let last_mag=arr.last().unwrap().mag;
-                self.curr_num-=1;
-                while let Some(k)=arr.last(){
-                    if k.mag==last_mag{
+                let last_mag = arr.last().unwrap().mag;
+                self.curr_num -= 1;
+                while let Some(k) = arr.last() {
+                    if k.mag == last_mag {
                         arr.pop();
-                    }else{
+                    } else {
                         break;
                     }
                 }
             }
-        }else{
+        } else {
             //If at this point, we havent found a place to insert the bot, check if we can just
             //make a new group at the end.
-            if self.curr_num<self.num{
-                self.curr_num+=1;
-                arr.insert(arr.len(),KnearestResult {
-                    bot: curr_bot,
-                    mag: curr_dis,
-                });
+            if self.curr_num < self.num {
+                self.curr_num += 1;
+                arr.insert(
+                    arr.len(),
+                    KnearestResult {
+                        bot: curr_bot,
+                        mag: curr_dis,
+                    },
+                );
             }
         }
     }
@@ -350,7 +352,7 @@ impl<'a, T: Aabb> KResult<'a, T> {
            + core::iter::FusedIterator
            + DoubleEndedIterator {
         use slice_group_by::GroupByMut;
-        self.inner.linear_group_by_mut(|a,b|a.mag==b.mag)
+        self.inner.linear_group_by_mut(|a, b| a.mag == b.mag)
     }
 
     ///Return the underlying datastructure

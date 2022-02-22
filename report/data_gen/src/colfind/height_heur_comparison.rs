@@ -81,15 +81,19 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         "Bench of optimal vs heuristic with abspiral(x,{})",
         DEFAULT_GROW
     );
-    let mut plot = my_plot(&s, "Number of Elements", "Tree Height");
-    plot.ymarker(0.0);
 
-    plot.scatter(
+    let mut data = poloto::data();
+
+    data.ymarker(0.0);
+
+    data.scatter(
         "Optimal",
         benches.iter().map(|a| [a.num_bots as f64, a.height as f64]),
     );
 
-    plot.scatter("Heuristic", heur.iter().map(|a| [a.0 as f64, a.1 as f64]));
+    data.scatter("Heuristic", heur.iter().map(|a| [a.0 as f64, a.1 as f64]));
+
+    let plot = data.build().plot(&s, "Number of Elements", "Tree Height");
 
     fb.finish_plot(plot, "height_heuristic_vs_optimal");
 }
@@ -131,26 +135,38 @@ fn handle2d(fb: &mut FigureBuilder) {
         "Complexity of differing num elem per node with abspiral(10000,{})",
         DEFAULT_GROW
     );
-    let mut plot = my_plot(&s, "Tree Height", "Number of Comparisons");
-    plot.ymarker(0.0);
 
-    plot.histogram(
+    let mut data = poloto::data();
+
+    data.ymarker(0.0);
+
+    data.histogram(
         "",
         theory_records
             .iter()
             .map(|a| [a.height as f64, a.num_comparison as f64]),
     );
 
-    fb.finish_plot(plot, "height_heuristic_theory");
+    fb.finish_plot(
+        data.build()
+            .plot(&s, "Tree Height", "Number of Comparisons"),
+        "height_heuristic_theory",
+    );
 
     let s = format!(
         "Bench of differing num elem per node with abspiral(10000,{})",
         DEFAULT_GROW
     );
-    let mut plot = my_plot(&s, "Tree Height", "Number of Comparisons");
-    plot.ymarker(0.0);
 
-    plot.scatter("", bench_records.iter().map(|a| [a.height as f64, a.bench]));
+    let mut data = poloto::data();
 
-    fb.finish_plot(plot, "height_heuristic_bench");
+    data.ymarker(0.0);
+
+    data.scatter("", bench_records.iter().map(|a| [a.height as f64, a.bench]));
+
+    fb.finish_plot(
+        data.build()
+            .plot(&s, "Tree Height", "Number of Comparisons"),
+        "height_heuristic_bench",
+    );
 }
