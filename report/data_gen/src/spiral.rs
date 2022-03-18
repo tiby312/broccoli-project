@@ -25,7 +25,7 @@ fn handle_num(fb: &mut FigureBuilder) {
     }
 
     let foo = poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]))
-        .build_with([], [0.0])
+        .into_boxed().build_with([], [0.0])
         .stage_with(fb.canvas().build())
         .plot(
             format!(
@@ -58,7 +58,7 @@ fn handle_grow(fb: &mut FigureBuilder) {
     }
 
     let foo = poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]))
-        .build_with([], [0.0])
+        .into_boxed().build_with([], [0.0])
         .stage_with(fb.canvas().build())
         .plot(
             "Number of Intersections with abspiral(20_000,grow)",
@@ -87,7 +87,7 @@ fn handle_visualize(fb: &mut FigureBuilder) {
             .into_iter()
             .map(|v| [v.x as f64, v.y as f64]),
     )
-    .build()
+    .into_boxed().build()
     .stage_with(fb.canvas().preserve_aspect().build())
     .plot(&f, "x", "y");
 

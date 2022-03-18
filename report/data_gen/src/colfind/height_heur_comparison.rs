@@ -93,7 +93,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
     
 
     
-    let plot = data.build_with([],[0.0]).stage_with(fb.canvas().build()).plot(&s, "Number of Elements", "Tree Height");
+    let plot = data.into_boxed().build_with([],[0.0]).stage_with(fb.canvas().build()).plot(&s, "Number of Elements", "Tree Height");
 
     fb.finish_plot(plot, "height_heuristic_vs_optimal");
 }
@@ -144,7 +144,7 @@ fn handle2d(fb: &mut FigureBuilder) {
     );
 
     fb.finish_plot(
-        data.build_with([],[0.0])
+        data.into_boxed().build_with([],[0.0])
             .stage_with(fb.canvas().build())
             .plot(&s, "Tree Height", "Number of Comparisons"),
         "height_heuristic_theory",
@@ -158,7 +158,7 @@ fn handle2d(fb: &mut FigureBuilder) {
     let data=poloto::build::scatter("", bench_records.iter().map(|a| [a.height as f64, a.bench]));
 
     fb.finish_plot(
-        data.build_with([],[0.0])
+        data.into_boxed().build_with([],[0.0])
             .stage_with(fb.canvas().build())
             .plot(&s, "Tree Height", "Number of Comparisons"),
         "height_heuristic_bench",

@@ -90,7 +90,7 @@ pub fn handle(fb: &mut FigureBuilder) {
     );
     
     fb.finish_plot(
-        data.build_with([],[0.0]).stage_with(fb.canvas().build()).plot(
+        data.into_boxed().build_with([],[0.0]).stage_with(fb.canvas().build()).plot(
             &s,
             "Height at which to switch to sequential",
             "Time in Seconds",

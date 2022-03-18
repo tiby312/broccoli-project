@@ -45,7 +45,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
         );
 
         fb.finish_plot(
-            data.build_with([],[0.0]).stage_with(fb.canvas().build()).plot(
+            data.into_boxed().build_with([],[0.0]).stage_with(fb.canvas().build()).plot(
                 formatm!(
                     "Complexity of query evenness with abspiral({},{})",
                     num_bots,
@@ -74,7 +74,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
     );
 
     fb.finish_plot(
-        data.build_with([],[0.0]).stage_with(fb.canvas().build()).plot(
+        data.into_boxed().build_with([],[0.0]).stage_with(fb.canvas().build()).plot(
             formatm!("Num per node with abspiral({},{})", num_bots, grow),
             "DFS inorder iteration",
             "Number of comparisons",
