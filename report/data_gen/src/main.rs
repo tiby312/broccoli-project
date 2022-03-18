@@ -36,6 +36,7 @@ mod inner_prelude {
     pub use broccoli::pmut::PMut;
     pub use broccoli::query::*;
     pub use broccoli::*;
+    pub use poloto::prelude::*;
     pub use poloto::*;
     pub use serde::Serialize;
     pub use std::time::Duration;
@@ -70,7 +71,15 @@ impl FigureBuilder {
         FigureBuilder { folder }
     }
 
-    fn finish_plot(&self, mut plot: poloto::Plotter<f64, f64>, filename: impl core::fmt::Display) {
+    pub fn canvas(&self) -> poloto::render::CanvasBuilder {
+        poloto::render::canvas()
+    }
+
+    fn finish_plot<K: poloto::render::Disp>(
+        &self,
+        mut plot: poloto::render::Plotter<K>,
+        filename: impl core::fmt::Display,
+    ) {
         let s = format!("{}/{}.svg", &self.folder, filename);
         let mut file = std::fs::File::create(s).unwrap();
 
@@ -113,13 +122,11 @@ impl FigureBuilder {
 
             let names = map.as_object().clone();
 
-            let mut data = poloto::data();
-
-            data.ymarker(0.0);
+            let mut data=vec![];
             for (plot_name, _) in names.iter() {
                 let k = ii.clone();
                 let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
-                data.line(
+                data.push(poloto::build::line(
                     plot_name,
                     core::iter::once(ff)
                         .chain(k)
@@ -141,10 +148,10 @@ impl FigureBuilder {
 
                             [*secondx, num]
                         }),
-                );
+                ));
             }
-
-            self.finish_plot(data.build().plot(title, xname, yname), filename);
+            use poloto::prelude::*;
+            self.finish_plot(poloto::build::plots_dyn(data).build_with([],[0.0]).stage_with(self.canvas().build()).plot(title, xname, yname), filename);
         }
     }
 }

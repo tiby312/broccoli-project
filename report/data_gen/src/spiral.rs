@@ -24,21 +24,19 @@ fn handle_num(fb: &mut FigureBuilder) {
         rects.push((num, num_intersection));
     }
 
-    let mut data = poloto::data();
-    data.ymarker(0.0);
-    data.line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]));
-
-    fb.finish_plot(
-        data.build().plot(
+    let foo = poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]))
+        .build_with([], [0.0])
+        .stage_with(fb.canvas().build())
+        .plot(
             format!(
                 "Number of Intersections with abspiral(num,0.{})",
                 DEFAULT_GROW
             ),
             "Number of Elements",
             "Number of Intersections",
-        ),
-        "spiral_data_num",
-    );
+        );
+
+    fb.finish_plot(foo, "spiral_data_num");
 }
 
 fn handle_grow(fb: &mut FigureBuilder) {
@@ -59,20 +57,16 @@ fn handle_grow(fb: &mut FigureBuilder) {
         rects.push((grow, num_intersection));
     }
 
-    let mut data = poloto::data();
-
-    data.ymarker(0.0);
-
-    data.line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]));
-
-    fb.finish_plot(
-        data.build().plot(
+    let foo = poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]))
+        .build_with([], [0.0])
+        .stage_with(fb.canvas().build())
+        .plot(
             "Number of Intersections with abspiral(20_000,grow)",
             "Grow",
             "Number of Intersections",
-        ),
-        "spiral_data_grow",
-    );
+        );
+
+    fb.finish_plot(foo, "spiral_data_grow");
 }
 
 fn handle_visualize(fb: &mut FigureBuilder) {
@@ -86,15 +80,16 @@ fn handle_visualize(fb: &mut FigureBuilder) {
     }
 
     let f = format!("abspiral(600,{})", DEFAULT_GROW);
-    let mut data = poloto::data();
 
-    data.scatter(
+    let foo = poloto::build::scatter(
         "",
         make(DEFAULT_GROW)
             .into_iter()
             .map(|v| [v.x as f64, v.y as f64]),
-    );
-    data.preserve_aspect();
+    )
+    .build()
+    .stage_with(fb.canvas().preserve_aspect().build())
+    .plot(&f, "x", "y");
 
-    fb.finish_plot(data.build().plot(&f, "x", "y"), "spiral_visualize");
+    fb.finish_plot(foo, "spiral_visualize");
 }

@@ -1,16 +1,17 @@
 
 
 
-.poloto {
-    font-family: "Open Sans", sans-serif;
+
+.poloto{
     width:100%;
     display:block;
     margin-left:auto;
     margin-right:auto;
     height:auto;
     stroke-linecap:round;
-    font-family: sans-serif;
-    stroke-width:2;
+    stroke-linejoin:round;
+    font-family:Roboto,sans-serif;
+    font-size:16px;
     --poloto_fg_color:var(--fg);
     --poloto_bg_color:var(--bg);
     --poloto_color0:var(--pplot_color0);
@@ -23,10 +24,16 @@
     --poloto_color7:var(--pplot_color7);
     --poloto_color8:var(--pplot_color8);
 }
-.scatter{stroke-width:7}
-.poloto_text{fill: var(--poloto_fg_color,black);}
-.poloto_axis_lines{stroke: var(--poloto_fg_color,black);stroke-width:3;fill:none}
-.poloto_background{fill: var(--poloto_bg_color,aliceblue);}
+.poloto_background{fill:var(--poloto_bg_color,AliceBlue);}
+.poloto_scatter{stroke-width:7}
+.poloto_tick_line{stroke:gray;stroke-width:0.5}
+.poloto_line{stroke-width:2}
+.poloto_text{fill:var(--poloto_fg_color,black);}
+.poloto_axis_lines{stroke:var(--poloto_fg_color,black);stroke-width:3;fill:none;stroke-dasharray:none}
+.poloto_title{font-size:24px;dominant-baseline:start;text-anchor:middle;}
+.poloto_xname{font-size:24px;dominant-baseline:start;text-anchor:middle;}
+.poloto_yname{font-size:24px;dominant-baseline:start;text-anchor:middle;}
+.poloto_legend_text{font-size:20px;dominant-baseline:middle;text-anchor:start;}
 .poloto0stroke{stroke:  var(--poloto_color0,blue);}
 .poloto1stroke{stroke:  var(--poloto_color1,red);}
 .poloto2stroke{stroke:  var(--poloto_color2,green);}

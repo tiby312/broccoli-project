@@ -82,16 +82,15 @@ pub fn handle(fb: &mut FigureBuilder) {
         DEFAULT_GROW
     );
 
-    let mut data = poloto::data();
-
-    data.ymarker(0.0);
-    data.scatter("Rebal Par", rebals.iter().map(|a| [a.0, a.1]));
-    data.scatter("Query Par", queries.iter().map(|a| [a.0, a.1]));
-    data.scatter("Rebal", seqs.iter().map(|a| [height as f64, a.0]));
-    data.scatter("Query", seqs.iter().map(|a| [height as f64, a.1]));
-
+    let data=plots!(
+        poloto::build::scatter("Rebal Par", rebals.iter().map(|a| [a.0, a.1])),
+        poloto::build::scatter("Query Par", queries.iter().map(|a| [a.0, a.1])),
+        poloto::build::scatter("Rebal", seqs.iter().map(|a| [height as f64, a.0])),
+        poloto::build::scatter("Query", seqs.iter().map(|a| [height as f64, a.1]))
+    );
+    
     fb.finish_plot(
-        data.build().plot(
+        data.build_with([],[0.0]).stage_with(fb.canvas().build()).plot(
             &s,
             "Height at which to switch to sequential",
             "Time in Seconds",
