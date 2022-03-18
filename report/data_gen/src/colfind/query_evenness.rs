@@ -35,7 +35,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
     {
         let res = TheoryRes::new(num_bots, grow);
 
-        let data=poloto::build::histogram(
+        let data = poloto::build::histogram(
             "",
             res.query
                 .vistr()
@@ -45,15 +45,17 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
         );
 
         fb.finish_plot(
-            data.into_boxed().build_with([],[0.0]).stage_with(fb.canvas().build()).plot(
-                formatm!(
-                    "Complexity of query evenness with abspiral({},{})",
-                    num_bots,
-                    grow
+            data.build_with([], [0.0])
+                .stage_with(fb.canvas().build())
+                .plot(
+                    formatm!(
+                        "Complexity of query evenness with abspiral({},{})",
+                        num_bots,
+                        grow
+                    ),
+                    "DFS inorder iteration",
+                    "Number of comparisons",
                 ),
-                "DFS inorder iteration",
-                "Number of comparisons",
-            ),
             formatm!("query_evenness_theory_{}", prefix),
         );
     }
@@ -65,7 +67,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
     let tree = broccoli::new(&mut bots);
 
     use broccoli::compt::Visitor;
-    let data=poloto::build::histogram(
+    let data = poloto::build::histogram(
         "",
         tree.vistr()
             .dfs_inorder_iter()
@@ -74,11 +76,13 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
     );
 
     fb.finish_plot(
-        data.into_boxed().build_with([],[0.0]).stage_with(fb.canvas().build()).plot(
-            formatm!("Num per node with abspiral({},{})", num_bots, grow),
-            "DFS inorder iteration",
-            "Number of comparisons",
-        ),
+        data.build_with([], [0.0])
+            .stage_with(fb.canvas().build())
+            .plot(
+                formatm!("Num per node with abspiral({},{})", num_bots, grow),
+                "DFS inorder iteration",
+                "Number of comparisons",
+            ),
         formatm!("query_num_per_node_theory_{}", prefix),
     );
 }

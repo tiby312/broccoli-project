@@ -49,7 +49,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         mut it: I,
     ) {
         let mut data = vec![];
-        
+
         if let Some((_, xrest)) = it.next() {
             let num = xrest.len();
 
@@ -61,7 +61,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         }
 
         let plot = poloto::build::plots_dyn(data)
-            .into_boxed().build_with([],[0.0])
+            .build_with([], [0.0])
             .stage_with(fb.canvas().build())
             .plot(title_name, "Spiral Grow", "Time taken in Seconds");
 

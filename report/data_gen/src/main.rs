@@ -122,7 +122,7 @@ impl FigureBuilder {
 
             let names = map.as_object().clone();
 
-            let mut data=vec![];
+            let mut data = vec![];
             for (plot_name, _) in names.iter() {
                 let k = ii.clone();
                 let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
@@ -151,7 +151,13 @@ impl FigureBuilder {
                 ));
             }
             use poloto::prelude::*;
-            self.finish_plot(poloto::build::plots_dyn(data).into_boxed().build_with([],[0.0]).stage_with(self.canvas().build()).plot(title, xname, yname), filename);
+            self.finish_plot(
+                poloto::build::plots_dyn(data)
+                    .build_with([], [0.0])
+                    .stage_with(self.canvas().build())
+                    .plot(title, xname, yname),
+                filename,
+            );
         }
     }
 }
