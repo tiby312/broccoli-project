@@ -75,11 +75,7 @@ impl FigureBuilder {
         poloto::render::canvas_builder()
     }
 
-    fn finish_plot<K: poloto::render::Disp>(
-        &self,
-        mut plot: poloto::render::Plotter<K>,
-        filename: impl core::fmt::Display,
-    ) {
+    fn finish_plot(&self, plot: impl core::fmt::Display, filename: impl core::fmt::Display) {
         let s = format!("{}/{}.svg", &self.folder, filename);
         let mut file = std::fs::File::create(s).unwrap();
 
@@ -87,7 +83,8 @@ impl FigureBuilder {
 
         use std::fmt::Write;
         write!(&mut e, "{}", poloto::simple_theme::SVG_HEADER).unwrap();
-        plot.render(&mut e).unwrap();
+        write!(&mut e, "{}", plot).unwrap();
+        //plot.render(&mut e).unwrap();
         write!(&mut e, "{}", poloto::simple_theme::SVG_END).unwrap();
     }
 
@@ -150,13 +147,13 @@ impl FigureBuilder {
                         }),
                 ));
             }
-            self.finish_plot(
-                self.canvas()
-                    .build()
-                    .build_with(poloto::build::plots_dyn(data), [], [0.0])
-                    .plot(title, xname, yname),
-                filename,
-            );
+
+            let canvas = self.canvas().build();
+            let plot = canvas
+                .build_with(poloto::build::plots_dyn(data), [], [0.0])
+                .plot(title, xname, yname);
+
+            self.finish_plot(poloto::disp(|w| plot.render(w)), filename);
         }
     }
 }

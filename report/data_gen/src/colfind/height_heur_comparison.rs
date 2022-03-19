@@ -95,7 +95,10 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         .build_with(data, [], [0.0])
         .plot(&s, "Number of Elements", "Tree Height");
 
-    fb.finish_plot(plot, "height_heuristic_vs_optimal");
+    fb.finish_plot(
+        poloto::disp(|w| plot.render(w)),
+        "height_heuristic_vs_optimal",
+    );
 }
 
 fn handle2d(fb: &mut FigureBuilder) {
@@ -143,14 +146,12 @@ fn handle2d(fb: &mut FigureBuilder) {
             .map(|a| [a.height as f64, a.num_comparison as f64]),
     );
 
-    fb.finish_plot(
-        fb.canvas().build().build_with(data, [], [0.0]).plot(
-            &s,
-            "Tree Height",
-            "Number of Comparisons",
-        ),
-        "height_heuristic_theory",
-    );
+    let canvas = fb.canvas().build();
+    let plot = canvas
+        .build_with(data, [], [0.0])
+        .plot(&s, "Tree Height", "Number of Comparisons");
+
+    fb.finish_plot(poloto::disp(|w| plot.render(w)), "height_heuristic_theory");
 
     let s = format!(
         "Bench of differing num elem per node with abspiral(10000,{})",
@@ -159,12 +160,10 @@ fn handle2d(fb: &mut FigureBuilder) {
 
     let data = poloto::build::scatter("", bench_records.iter().map(|a| [a.height as f64, a.bench]));
 
-    fb.finish_plot(
-        fb.canvas().build().build_with(data, [], [0.0]).plot(
-            &s,
-            "Tree Height",
-            "Number of Comparisons",
-        ),
-        "height_heuristic_bench",
-    );
+    let canvas = fb.canvas().build();
+    let plot = canvas
+        .build_with(data, [], [0.0])
+        .plot(&s, "Tree Height", "Number of Comparisons");
+
+    fb.finish_plot(poloto::disp(|w| plot.render(w)), "height_heuristic_bench");
 }

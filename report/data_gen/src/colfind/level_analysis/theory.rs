@@ -73,7 +73,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             .build_with(poloto::build::plots_dyn(data), [], [0.0])
             .plot(title_name, "Spiral Grow", "Number of Comparisons");
 
-        fb.finish_plot(plot, filename);
+        fb.finish_plot(poloto::disp(|w| plot.render(w)), filename);
     }
 
     draw_graph(

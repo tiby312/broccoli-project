@@ -65,7 +65,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
             .build_with(poloto::build::plots_dyn(data), [], [0.0])
             .plot(title_name, "Spiral Grow", "Time taken in Seconds");
 
-        fb.finish_plot(plot, filename);
+        fb.finish_plot(poloto::disp(|w| plot.render(w)), filename);
     }
 
     draw_graph(

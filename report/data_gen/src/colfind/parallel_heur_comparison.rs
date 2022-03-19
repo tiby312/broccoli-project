@@ -89,12 +89,15 @@ pub fn handle(fb: &mut FigureBuilder) {
         poloto::build::scatter("Query", seqs.iter().map(|a| [height as f64, a.1]))
     );
 
+    let canvas = fb.canvas().build();
+    let plot = canvas.build_with(data, [], [0.0]).plot(
+        &s,
+        "Height at which to switch to sequential",
+        "Time in Seconds",
+    );
+
     fb.finish_plot(
-        fb.canvas().build().build_with(data, [], [0.0]).plot(
-            &s,
-            "Height at which to switch to sequential",
-            "Time in Seconds",
-        ),
+        poloto::disp(|w| plot.render(w)),
         "parallel_height_heuristic",
     );
 }

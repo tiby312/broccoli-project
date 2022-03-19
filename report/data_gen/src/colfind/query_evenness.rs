@@ -44,16 +44,19 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
                 .map(|(i, element)| [i as f64, *element as f64]),
         );
 
-        fb.finish_plot(
-            fb.canvas().build().build_with(data, [], [0.0]).plot(
-                formatm!(
-                    "Complexity of query evenness with abspiral({},{})",
-                    num_bots,
-                    grow
-                ),
-                "DFS inorder iteration",
-                "Number of comparisons",
+        let canvas = fb.canvas().build();
+        let plot = canvas.build_with(data, [], [0.0]).plot(
+            formatm!(
+                "Complexity of query evenness with abspiral({},{})",
+                num_bots,
+                grow
             ),
+            "DFS inorder iteration",
+            "Number of comparisons",
+        );
+
+        fb.finish_plot(
+            poloto::disp(|w| plot.render(w)),
             formatm!("query_evenness_theory_{}", prefix),
         );
     }
@@ -73,12 +76,15 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
             .map(|(i, element)| [i as f64, element.range.len() as f64]),
     );
 
+    let canvas = fb.canvas().build();
+    let plot = canvas.build_with(data, [], [0.0]).plot(
+        formatm!("Num per node with abspiral({},{})", num_bots, grow),
+        "DFS inorder iteration",
+        "Number of comparisons",
+    );
+
     fb.finish_plot(
-        fb.canvas().build().build_with(data, [], [0.0]).plot(
-            formatm!("Num per node with abspiral({},{})", num_bots, grow),
-            "DFS inorder iteration",
-            "Number of comparisons",
-        ),
+        poloto::disp(|w| plot.render(w)),
         formatm!("query_num_per_node_theory_{}", prefix),
     );
 }

@@ -25,7 +25,7 @@ fn handle_num(fb: &mut FigureBuilder) {
     }
 
     let canvas = fb.canvas().build();
-    let foo = canvas
+    let plot = canvas
         .build_with(
             poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64])),
             [],
@@ -40,7 +40,7 @@ fn handle_num(fb: &mut FigureBuilder) {
             "Number of Intersections",
         );
 
-    fb.finish_plot(foo, "spiral_data_num");
+    fb.finish_plot(poloto::disp(|w| plot.render(w)), "spiral_data_num");
 }
 
 fn handle_grow(fb: &mut FigureBuilder) {
@@ -62,7 +62,7 @@ fn handle_grow(fb: &mut FigureBuilder) {
     }
 
     let canvas = fb.canvas().build();
-    let foo = canvas
+    let plot = canvas
         .build_with(
             poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64])),
             [],
@@ -74,7 +74,7 @@ fn handle_grow(fb: &mut FigureBuilder) {
             "Number of Intersections",
         );
 
-    fb.finish_plot(foo, "spiral_data_grow");
+    fb.finish_plot(poloto::disp(|w| plot.render(w)), "spiral_data_grow");
 }
 
 fn handle_visualize(fb: &mut FigureBuilder) {
@@ -91,7 +91,7 @@ fn handle_visualize(fb: &mut FigureBuilder) {
 
     let canvas = fb.canvas().preserve_aspect().build();
 
-    let foo = canvas
+    let plot = canvas
         .build(poloto::build::scatter(
             "",
             make(DEFAULT_GROW)
@@ -100,5 +100,5 @@ fn handle_visualize(fb: &mut FigureBuilder) {
         ))
         .plot(&f, "x", "y");
 
-    fb.finish_plot(foo, "spiral_visualize");
+    fb.finish_plot(poloto::disp(|w| plot.render(w)), "spiral_visualize");
 }
