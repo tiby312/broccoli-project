@@ -90,9 +90,9 @@ fn handle_lowest(fb: &mut FigureBuilder) {
         poloto::build::scatter("Heuristic", heur.iter().map(|a| [a.0 as f64, a.1 as f64]))
     );
 
-    let plot = data
-        .build_with([], [0.0])
-        .stage_with(fb.canvas().build())
+    let canvas = fb.canvas().build();
+    let plot = canvas
+        .build_with(data, [], [0.0])
         .plot(&s, "Number of Elements", "Tree Height");
 
     fb.finish_plot(plot, "height_heuristic_vs_optimal");
@@ -144,9 +144,11 @@ fn handle2d(fb: &mut FigureBuilder) {
     );
 
     fb.finish_plot(
-        data.build_with([], [0.0])
-            .stage_with(fb.canvas().build())
-            .plot(&s, "Tree Height", "Number of Comparisons"),
+        fb.canvas().build().build_with(data, [], [0.0]).plot(
+            &s,
+            "Tree Height",
+            "Number of Comparisons",
+        ),
         "height_heuristic_theory",
     );
 
@@ -158,9 +160,11 @@ fn handle2d(fb: &mut FigureBuilder) {
     let data = poloto::build::scatter("", bench_records.iter().map(|a| [a.height as f64, a.bench]));
 
     fb.finish_plot(
-        data.build_with([], [0.0])
-            .stage_with(fb.canvas().build())
-            .plot(&s, "Tree Height", "Number of Comparisons"),
+        fb.canvas().build().build_with(data, [], [0.0]).plot(
+            &s,
+            "Tree Height",
+            "Number of Comparisons",
+        ),
         "height_heuristic_bench",
     );
 }

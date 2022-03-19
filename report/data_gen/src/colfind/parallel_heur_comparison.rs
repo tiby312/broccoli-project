@@ -90,13 +90,11 @@ pub fn handle(fb: &mut FigureBuilder) {
     );
 
     fb.finish_plot(
-        data.build_with([], [0.0])
-            .stage_with(fb.canvas().build())
-            .plot(
-                &s,
-                "Height at which to switch to sequential",
-                "Time in Seconds",
-            ),
+        fb.canvas().build().build_with(data, [], [0.0]).plot(
+            &s,
+            "Height at which to switch to sequential",
+            "Time in Seconds",
+        ),
         "parallel_height_heuristic",
     );
 }

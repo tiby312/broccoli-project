@@ -72,7 +72,7 @@ impl FigureBuilder {
     }
 
     pub fn canvas(&self) -> poloto::render::CanvasBuilder {
-        poloto::render::canvas()
+        poloto::render::canvas_builder()
     }
 
     fn finish_plot<K: poloto::render::Disp>(
@@ -150,11 +150,10 @@ impl FigureBuilder {
                         }),
                 ));
             }
-            use poloto::prelude::*;
             self.finish_plot(
-                poloto::build::plots_dyn(data)
-                    .build_with([], [0.0])
-                    .stage_with(self.canvas().build())
+                self.canvas()
+                    .build()
+                    .build_with(poloto::build::plots_dyn(data), [], [0.0])
                     .plot(title, xname, yname),
                 filename,
             );

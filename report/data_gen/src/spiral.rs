@@ -24,9 +24,13 @@ fn handle_num(fb: &mut FigureBuilder) {
         rects.push((num, num_intersection));
     }
 
-    let foo = poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]))
-        .build_with([], [0.0])
-        .stage_with(fb.canvas().build())
+    let canvas = fb.canvas().build();
+    let foo = canvas
+        .build_with(
+            poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64])),
+            [],
+            [0.0],
+        )
         .plot(
             format!(
                 "Number of Intersections with abspiral(num,0.{})",
@@ -57,9 +61,13 @@ fn handle_grow(fb: &mut FigureBuilder) {
         rects.push((grow, num_intersection));
     }
 
-    let foo = poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]))
-        .build_with([], [0.0])
-        .stage_with(fb.canvas().build())
+    let canvas = fb.canvas().build();
+    let foo = canvas
+        .build_with(
+            poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64])),
+            [],
+            [0.0],
+        )
         .plot(
             "Number of Intersections with abspiral(20_000,grow)",
             "Grow",
@@ -81,15 +89,16 @@ fn handle_visualize(fb: &mut FigureBuilder) {
 
     let f = format!("abspiral(600,{})", DEFAULT_GROW);
 
-    let foo = poloto::build::scatter(
-        "",
-        make(DEFAULT_GROW)
-            .into_iter()
-            .map(|v| [v.x as f64, v.y as f64]),
-    )
-    .build()
-    .stage_with(fb.canvas().preserve_aspect().build())
-    .plot(&f, "x", "y");
+    let canvas = fb.canvas().preserve_aspect().build();
+
+    let foo = canvas
+        .build(poloto::build::scatter(
+            "",
+            make(DEFAULT_GROW)
+                .into_iter()
+                .map(|v| [v.x as f64, v.y as f64]),
+        ))
+        .plot(&f, "x", "y");
 
     fb.finish_plot(foo, "spiral_visualize");
 }

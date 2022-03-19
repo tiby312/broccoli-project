@@ -68,9 +68,9 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
             }
         }
 
-        let plot = poloto::build::plots_dyn(data)
-            .build_with([], [0.0])
-            .stage_with(fb.canvas().build())
+        let canvas = fb.canvas().build();
+        let plot = canvas
+            .build_with(poloto::build::plots_dyn(data), [], [0.0])
             .plot(title_name, "Spiral Grow", "Number of Comparisons");
 
         fb.finish_plot(plot, filename);
