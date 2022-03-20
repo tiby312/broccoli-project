@@ -25,20 +25,16 @@ fn handle_num(fb: &mut FigureBuilder) {
     }
 
     let canvas = fb.canvas().build();
-    let plot = canvas
-        .build_with(
-            poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64])),
-            [],
-            [0.0],
-        )
-        .plot(
-            format!(
-                "Number of Intersections with abspiral(num,0.{})",
-                DEFAULT_GROW
-            ),
-            "Number of Elements",
-            "Number of Intersections",
-        );
+    let plot = poloto::simple_fmt!(
+        canvas,
+        poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64])).markers([], [0.0]),
+        format!(
+            "Number of Intersections with abspiral(num,0.{})",
+            DEFAULT_GROW
+        ),
+        "Number of Elements",
+        "Number of Intersections"
+    );
 
     fb.finish_plot(poloto::disp(|w| plot.render(w)), "spiral_data_num");
 }
@@ -62,17 +58,13 @@ fn handle_grow(fb: &mut FigureBuilder) {
     }
 
     let canvas = fb.canvas().build();
-    let plot = canvas
-        .build_with(
-            poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64])),
-            [],
-            [0.0],
-        )
-        .plot(
-            "Number of Intersections with abspiral(20_000,grow)",
-            "Grow",
-            "Number of Intersections",
-        );
+    let plot = poloto::simple_fmt!(
+        canvas,
+        poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64])).markers([], [0.0]),
+        "Number of Intersections with abspiral(20_000,grow)",
+        "Grow",
+        "Number of Intersections"
+    );
 
     fb.finish_plot(poloto::disp(|w| plot.render(w)), "spiral_data_grow");
 }
@@ -91,14 +83,18 @@ fn handle_visualize(fb: &mut FigureBuilder) {
 
     let canvas = fb.canvas().preserve_aspect().build();
 
-    let plot = canvas
-        .build(poloto::build::scatter(
+    let plot = simple_fmt!(
+        canvas,
+        poloto::build::scatter(
             "",
             make(DEFAULT_GROW)
                 .into_iter()
                 .map(|v| [v.x as f64, v.y as f64]),
-        ))
-        .plot(&f, "x", "y");
+        ),
+        &f,
+        "x",
+        "y"
+    );
 
     fb.finish_plot(poloto::disp(|w| plot.render(w)), "spiral_visualize");
 }

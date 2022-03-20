@@ -45,14 +45,16 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
         );
 
         let canvas = fb.canvas().build();
-        let plot = canvas.build_with(data, [], [0.0]).plot(
+        let plot = poloto::simple_fmt!(
+            canvas,
+            data.markers([], [0.0]),
             formatm!(
                 "Complexity of query evenness with abspiral({},{})",
                 num_bots,
                 grow
             ),
             "DFS inorder iteration",
-            "Number of comparisons",
+            "Number of comparisons"
         );
 
         fb.finish_plot(
@@ -77,10 +79,12 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
     );
 
     let canvas = fb.canvas().build();
-    let plot = canvas.build_with(data, [], [0.0]).plot(
+    let plot = poloto::simple_fmt!(
+        canvas,
+        data.markers([], [0.0]),
         formatm!("Num per node with abspiral({},{})", num_bots, grow),
         "DFS inorder iteration",
-        "Number of comparisons",
+        "Number of comparisons"
     );
 
     fb.finish_plot(

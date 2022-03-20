@@ -44,6 +44,8 @@ mod inner_prelude {
     pub use tagger;
 }
 
+use inner_prelude::*;
+
 #[macro_use]
 mod support;
 mod colfind;
@@ -149,9 +151,8 @@ impl FigureBuilder {
             }
 
             let canvas = self.canvas().build();
-            let plot = canvas
-                .build_with(poloto::build::plots_dyn(data), [], [0.0])
-                .plot(title, xname, yname);
+            let data = poloto::build::plots_dyn(data).markers([], [0.0]);
+            let plot = poloto::simple_fmt!(canvas, data, title, xname, yname);
 
             self.finish_plot(poloto::disp(|w| plot.render(w)), filename);
         }
@@ -160,7 +161,6 @@ impl FigureBuilder {
 
 use std::io::Write;
 use std::path::Path;
-use std::time::*;
 
 fn into_secs(elapsed: std::time::Duration) -> f64 {
     (elapsed.as_secs() as f64) + (f64::from(elapsed.subsec_nanos()) / 1_000_000_000.0)

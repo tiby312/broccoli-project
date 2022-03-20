@@ -61,9 +61,13 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         }
 
         let canvas = fb.canvas().build();
-        let plot = canvas
-            .build_with(poloto::build::plots_dyn(data), [], [0.0])
-            .plot(title_name, "Spiral Grow", "Time taken in Seconds");
+        let plot = poloto::simple_fmt!(
+            canvas,
+            poloto::build::plots_dyn(data).markers([], [0.0]),
+            title_name,
+            "Spiral Grow",
+            "Time taken in Seconds"
+        );
 
         fb.finish_plot(poloto::disp(|w| plot.render(w)), filename);
     }

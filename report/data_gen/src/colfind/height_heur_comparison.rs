@@ -91,9 +91,13 @@ fn handle_lowest(fb: &mut FigureBuilder) {
     );
 
     let canvas = fb.canvas().build();
-    let plot = canvas
-        .build_with(data, [], [0.0])
-        .plot(&s, "Number of Elements", "Tree Height");
+    let plot = poloto::simple_fmt!(
+        canvas,
+        data.markers([], [0.0]),
+        &s,
+        "Number of Elements",
+        "Tree Height"
+    );
 
     fb.finish_plot(
         poloto::disp(|w| plot.render(w)),
@@ -147,9 +151,13 @@ fn handle2d(fb: &mut FigureBuilder) {
     );
 
     let canvas = fb.canvas().build();
-    let plot = canvas
-        .build_with(data, [], [0.0])
-        .plot(&s, "Tree Height", "Number of Comparisons");
+    let plot = poloto::simple_fmt!(
+        canvas,
+        data.markers([], [0.0]),
+        &s,
+        "Tree Height",
+        "Number of Comparisons"
+    );
 
     fb.finish_plot(poloto::disp(|w| plot.render(w)), "height_heuristic_theory");
 
@@ -161,9 +169,13 @@ fn handle2d(fb: &mut FigureBuilder) {
     let data = poloto::build::scatter("", bench_records.iter().map(|a| [a.height as f64, a.bench]));
 
     let canvas = fb.canvas().build();
-    let plot = canvas
-        .build_with(data, [], [0.0])
-        .plot(&s, "Tree Height", "Number of Comparisons");
+    let plot = poloto::simple_fmt!(
+        canvas,
+        data.markers([], [0.0]),
+        &s,
+        "Tree Height",
+        "Number of Comparisons"
+    );
 
     fb.finish_plot(poloto::disp(|w| plot.render(w)), "height_heuristic_bench");
 }

@@ -90,10 +90,12 @@ pub fn handle(fb: &mut FigureBuilder) {
     );
 
     let canvas = fb.canvas().build();
-    let plot = canvas.build_with(data, [], [0.0]).plot(
+    let plot = poloto::simple_fmt!(
+        canvas,
+        data.markers([], [0.0]),
         &s,
         "Height at which to switch to sequential",
-        "Time in Seconds",
+        "Time in Seconds"
     );
 
     fb.finish_plot(
