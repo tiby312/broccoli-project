@@ -73,8 +73,8 @@ impl FigureBuilder {
         FigureBuilder { folder }
     }
 
-    pub fn canvas(&self) -> poloto::render::CanvasBuilder {
-        poloto::render::canvas_builder()
+    pub fn canvas(&self) -> poloto::render::RenderOptionsBuilder {
+        poloto::render::render_opt_builder()
     }
 
     fn finish_plot(&self, plot: impl core::fmt::Display, filename: impl core::fmt::Display) {
