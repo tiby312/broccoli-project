@@ -26,12 +26,6 @@ pub fn combine_slice<'a, T>(a: &'a [T], b: &'a [T]) -> &'a [T] {
 }
 
 #[inline(always)]
-pub fn empty_slice_from_mut<'a, 'b, T>(a: &'a mut [T]) -> &'b mut [T] {
-    assert!(a.is_empty());
-    unsafe { core::slice::from_raw_parts_mut(a.as_mut_ptr(), 0) }
-}
-
-#[inline(always)]
 pub fn compare_bots<T: Aabb>(axis: impl Axis, a: &T, b: &T) -> core::cmp::Ordering {
     let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
     if p1 > p2 {

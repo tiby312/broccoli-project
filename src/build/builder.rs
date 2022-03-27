@@ -265,8 +265,8 @@ impl<'a, 'b, T: Aabb, S: Sorter, K: Splitter> Recurser<'a, 'b, T, S, K> {
                 right,
             ),
             ConstructResult::Empty(mid) => {
-                let mid1 = crate::util::empty_slice_from_mut(mid);
-                let mid2 = crate::util::empty_slice_from_mut(mid);
+                let mid1:&mut [T] = &mut [];
+                let mid2:&mut [T] = &mut [];
 
                 let node = NonLeafFinisher {
                     mid,
