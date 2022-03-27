@@ -54,7 +54,6 @@ pub use self::prevec::PreVec;
 mod prevec {
     use crate::pmut::PMut;
     use alloc::vec::Vec;
-    use twounordered::TwoUnorderedVecs;
 
     //The vec is guaranteed to be empty..
     unsafe impl<T: Send> core::marker::Send for PreVec<T> {}
@@ -62,7 +61,7 @@ mod prevec {
 
     ///An vec api to avoid excessive dynamic allocation by reusing a Vec
     pub struct PreVec<T> {
-        vec: TwoUnorderedVecs<*mut T>,
+        vec:Vec<*mut T>
     }
 
     impl<T> PreVec<T> {
@@ -70,77 +69,30 @@ mod prevec {
         #[inline(always)]
         pub fn new() -> PreVec<T> {
             PreVec {
-                vec: TwoUnorderedVecs::new(),
+                vec: Vec::new(),
             }
         }
         #[inline(always)]
         pub fn with_capacity(num: usize) -> PreVec<T> {
             PreVec {
-                vec: TwoUnorderedVecs::with_capacity(num),
+                vec: Vec::with_capacity(num),
             }
         }
 
-        ///Take advantage of the big capacity of the original vec.
-        pub fn extract_two_vec<'b>(&mut self) -> TwoUnorderedVecs<PMut<'b, T>> {
-            assert!(self.vec.as_vec().is_empty());
-            let mut v = TwoUnorderedVecs::new();
-            core::mem::swap(&mut v, &mut self.vec);
-            assert!(self.vec.as_vec().is_empty());
-            unsafe { v.convert() }
-        }
 
         ///Take advantage of the big capacity of the original vec.
         pub fn extract_vec<'a, 'b>(&'a mut self) -> Vec<PMut<'b, T>> {
-            assert!(self.vec.as_vec().is_empty());
-            self.extract_two_vec().replace_inner(Vec::new()).0
+            let mut v = Vec::new();
+            core::mem::swap(&mut v, &mut self.vec);
+            revec::convert_empty_vec(v)
         }
 
         ///Return the big capacity vec
         pub fn insert_vec(&mut self, vec: Vec<PMut<'_, T>>) {
-            assert!(self.vec.as_vec().is_empty());
-            let v = TwoUnorderedVecs::from_vec(vec);
-            let mut v = unsafe { v.convert() };
+            let mut v=revec::convert_empty_vec(vec);    
             core::mem::swap(&mut self.vec, &mut v)
         }
 
-        ///Return the big capacity vec
-        pub fn insert_two_vec(&mut self, v: TwoUnorderedVecs<PMut<'_, T>>) {
-            assert!(self.vec.as_vec().is_empty());
-            let mut v = unsafe { v.convert() };
-            core::mem::swap(&mut v, &mut self.vec);
-        }
     }
 
-    #[test]
-    fn test_prevec() {
-        use axgeom::*;
-        let mut rects = vec![rect(0usize, 0, 0, 0); 100];
-
-        let mut k = PreVec::with_capacity(0);
-        for (i, r) in rects.chunks_mut(2).enumerate() {
-            let (a, rest) = r.split_first_mut().unwrap();
-            let (b, _) = rest.split_first_mut().unwrap();
-
-            let mut j = k.extract_two_vec();
-            if i % 2 == 0 {
-                j.second().push(PMut::new(a));
-                j.first().push(PMut::new(b));
-            } else {
-                j.first().push(PMut::new(a));
-                j.second().push(PMut::new(b));
-            }
-            j.clear();
-            k.insert_two_vec(j);
-        }
-
-        {
-            let mut j = k.extract_vec();
-            for a in rects.iter_mut() {
-                j.push(PMut::new(a));
-            }
-            j.clear();
-            k.insert_vec(j);
-        }
-        assert_eq!(k.vec.as_vec().capacity(), 128);
-    }
 }
