@@ -30,7 +30,7 @@ impl<'a, A: Axis + 'a, F: CollisionHandler + 'a> CollisionHandler for OtherAxisC
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
 pub fn find_2d<A: Axis, F: CollisionHandler>(
-    prevec1: &mut PreVec<F::T>,
+    prevec1: &mut PreVec,
     axis: A,
     bots: PMut<[F::T]>,
     func: &mut F,
@@ -42,7 +42,7 @@ pub fn find_2d<A: Axis, F: CollisionHandler>(
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
 pub fn find_parallel_2d<A: Axis, F: CollisionHandler>(
-    prevec1: &mut PreVec<F::T>,
+    prevec1: &mut PreVec,
     axis: A,
     bots1: PMut<[F::T]>,
     bots2: PMut<[F::T]>,
@@ -138,7 +138,7 @@ pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
 #[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.
 fn find<'a, A: Axis, F: CollisionHandler>(
-    prevec1: &mut PreVec<F::T>,
+    prevec1: &mut PreVec,
     axis: A,
     collision_botids: PMut<'a, [F::T]>,
     func: &mut F,
@@ -158,7 +158,7 @@ fn find<'a, A: Axis, F: CollisionHandler>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let mut active = prevec1.extract_vec();
+    let mut active: Vec<PMut<F::T>> = prevec1.extract_vec();
 
     for mut curr_bot in collision_botids.iter_mut() {
         let crr = curr_bot.rect().get_range(axis);
@@ -188,7 +188,7 @@ fn find<'a, A: Axis, F: CollisionHandler>(
 #[inline(always)]
 //does less comparisons than option 2.
 fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
-    prevec1: &mut PreVec<F::T>,
+    prevec1: &mut PreVec,
     axis: A,
     cols: (
         impl IntoIterator<Item = PMut<'a, F::T>>,
@@ -202,7 +202,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
 
-    let mut active_lists = TwoUnorderedVecs::from(prevec1.extract_vec());
+    let mut active_lists = TwoUnorderedVecs::from(prevec1.extract_vec::<F::T>());
     loop {
         enum NextP {
             X,

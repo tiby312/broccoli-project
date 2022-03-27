@@ -55,44 +55,35 @@ mod prevec {
     use crate::pmut::PMut;
     use alloc::vec::Vec;
 
-    //The vec is guaranteed to be empty..
-    unsafe impl<T: Send> core::marker::Send for PreVec<T> {}
-    unsafe impl<T: Sync> core::marker::Sync for PreVec<T> {}
-
     ///An vec api to avoid excessive dynamic allocation by reusing a Vec
-    pub struct PreVec<T> {
-        vec:Vec<*mut T>
+    pub struct PreVec {
+        vec: Vec<usize>,
     }
 
-    impl<T> PreVec<T> {
+    impl PreVec {
         #[allow(dead_code)]
         #[inline(always)]
-        pub fn new() -> PreVec<T> {
-            PreVec {
-                vec: Vec::new(),
-            }
+        pub fn new() -> PreVec {
+            PreVec { vec: Vec::new() }
         }
         #[inline(always)]
-        pub fn with_capacity(num: usize) -> PreVec<T> {
+        pub fn with_capacity(num: usize) -> PreVec {
             PreVec {
                 vec: Vec::with_capacity(num),
             }
         }
 
-
         ///Take advantage of the big capacity of the original vec.
-        pub fn extract_vec<'a, 'b>(&'a mut self) -> Vec<PMut<'b, T>> {
+        pub fn extract_vec<'a, 'b, T>(&'a mut self) -> Vec<PMut<'b, T>> {
             let mut v = Vec::new();
             core::mem::swap(&mut v, &mut self.vec);
             revec::convert_empty_vec(v)
         }
 
         ///Return the big capacity vec
-        pub fn insert_vec(&mut self, vec: Vec<PMut<'_, T>>) {
-            let mut v=revec::convert_empty_vec(vec);    
+        pub fn insert_vec<T>(&mut self, vec: Vec<PMut<'_, T>>) {
+            let mut v = revec::convert_empty_vec(vec);
             core::mem::swap(&mut self.vec, &mut v)
         }
-
     }
-
 }

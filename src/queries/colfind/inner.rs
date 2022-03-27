@@ -6,7 +6,7 @@ struct InnerRecurser<'a, 'node, T: Aabb, NN, C, B: Axis> {
     anchor: NodeAxis<'a, 'node, T, B>,
     handler: &'a mut NN,
     sweeper: &'a mut C,
-    prevec: &'a mut PreVec<T>,
+    prevec: &'a mut PreVec,
 }
 
 impl<'a, 'node, T: Aabb, NN, C, B: Axis> InnerRecurser<'a, 'node, T, NN, C, B>
@@ -65,7 +65,7 @@ pub struct ParRecurser<'b, 'node, T: Aabb, NO, S, C, P, J> {
     pub vistr: SplitterVistr<C, SplitterVistr<S, VistrMut<'b, Node<'node, T>>>>,
     pub par: P,
     pub joiner: J,
-    pub prevec: PreVec<T>,
+    pub prevec: PreVec,
 }
 
 impl<'b, 'node, T: Aabb, NO, S, C, P, J> ParRecurser<'b, 'node, T, NO, S, C, P, J>
@@ -154,21 +154,21 @@ where
     }
 }
 
-pub struct Recurser<'a, T: Aabb, NO, C> {
+pub struct Recurser<'a, NO, C> {
     pub handler: &'a mut NO,
     pub sweeper: &'a mut C,
-    pub prevec: &'a mut PreVec<T>,
+    pub prevec: &'a mut PreVec,
 }
 
-impl<'a, T: Aabb, NO, C> Recurser<'a, T, NO, C>
+impl<'a, NO, C> Recurser<'a, NO, C>
 where
     NO: NodeHandler,
-    C: CollisionHandler<T = T>,
+    C: CollisionHandler,
 {
     pub fn recurse_seq<A: Axis, S: Splitter>(
         &mut self,
         this_axis: A,
-        vistr: SplitterVistr<S, VistrMut<Node<T>>>,
+        vistr: SplitterVistr<S, VistrMut<Node<C::T>>>,
     ) -> S {
         let ((finisher, mut nn), rest) = vistr.next();
 
