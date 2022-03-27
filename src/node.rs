@@ -163,6 +163,11 @@ mod vistr_mut {
         }
 
         #[inline(always)]
+        pub fn borrow(&self) -> Vistr<N> {
+            self.inner.borrow()
+        }
+
+        #[inline(always)]
         pub fn get_height(&self) -> usize {
             compt::FixedDepthVisitor::get_height(self)
         }
@@ -173,16 +178,7 @@ mod vistr_mut {
         }
     }
 
-    impl<'a, N> core::ops::Deref for VistrMut<'a, N> {
-        type Target = Vistr<'a, N>;
-
-        #[inline(always)]
-        fn deref(&self) -> &Vistr<'a, N> {
-            &self.inner
-        }
-    }
-
-    unsafe impl<'a, N> compt::FixedDepthVisitor for VistrMut<'a, N> {}
+    impl<'a, N> compt::FixedDepthVisitor for VistrMut<'a, N> {}
 
     impl<'a, N> Visitor for VistrMut<'a, N> {
         type Item = PMut<'a, N>;
@@ -233,4 +229,22 @@ pub struct Node<'a, T: Aabb> {
     // for leafs:
     //   value is none
     pub div: Option<T::Num>,
+}
+
+impl<'a, T: Aabb> Node<'a, T> {
+    pub(crate) fn into_ptr(self) -> NodePtr<T> {
+        NodePtr {
+            _range: self.range.into_ptr(),
+            _cont: self.cont,
+            _div: self.div,
+        }
+    }
+
+    pub(crate) unsafe fn into_x<K: Aabb<Num = T::Num>>(self) -> NodePtr<K> {
+        NodePtr {
+            _range: self.range.cast().into_ptr(),
+            _cont: self.cont,
+            _div: self.div,
+        }
+    }
 }

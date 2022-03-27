@@ -329,10 +329,21 @@ impl<'a, 'b, N: Num, T> core::ops::DerefMut for TreeInd<'a, 'b, N, T> {
 impl<'a, 'b, N: Num, T> TreeInd<'a, 'b, N, T> {
     #[inline(always)]
     pub(super) fn into_ptr(self) -> TreeIndPtr<N, T> {
+        let foo = unsafe {
+            compt::dfs_order::CompleteTreeContainer::from_preorder(
+                self.tree
+                    .inner
+                    .into_nodes()
+                    .into_vec()
+                    .into_iter()
+                    .map(|x| x.into_x())
+                    .collect(),
+            )
+            .unwrap()
+        };
+
         TreeIndPtr {
-            tree: TreePtr {
-                _inner: unsafe { self.tree.inner.convert() },
-            },
+            tree: TreePtr { _inner: foo },
             orig: self.orig,
         }
     }

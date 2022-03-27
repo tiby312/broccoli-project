@@ -311,13 +311,20 @@ where
     let mut newtree = convert_tree_into_wrapper(tree.into_inner());
 
     //calculate node masses of each node.
-    build_masses2(newtree.vistr_mut(), no);
+    build_masses2(newtree.as_tree_mut().vistr_mut(), no);
 
-    let par = parallel::ParallelBuilder::new().build_for_tree_of_height(newtree.get_height());
+    let par =
+        parallel::ParallelBuilder::new().build_for_tree_of_height(newtree.as_tree().get_height());
 
-    recc_par(joiner, default_axis(), par, newtree.vistr_mut(), no);
+    recc_par(
+        joiner,
+        default_axis(),
+        par,
+        newtree.as_tree_mut().vistr_mut(),
+        no,
+    );
 
-    apply_tree(newtree.vistr_mut(), no);
+    apply_tree(newtree.as_tree_mut().vistr_mut(), no);
 
     unsafe { crate::Tree::from_raw_parts(convert_wrapper_into_tree(newtree)) }
 }
@@ -328,10 +335,10 @@ pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate
     let mut newtree = convert_tree_into_wrapper(tree.into_inner());
 
     //calculate node masses of each node.
-    build_masses2(newtree.vistr_mut(), no);
+    build_masses2(newtree.as_tree_mut().vistr_mut(), no);
 
-    recc(default_axis(), newtree.vistr_mut(), no);
+    recc(default_axis(), newtree.as_tree_mut().vistr_mut(), no);
 
-    apply_tree(newtree.vistr_mut(), no);
+    apply_tree(newtree.as_tree_mut().vistr_mut(), no);
     unsafe { crate::Tree::from_raw_parts(convert_wrapper_into_tree(newtree)) }
 }

@@ -311,7 +311,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     #[must_use]
     #[inline(always)]
     pub fn get_height(&self) -> usize {
-        self.inner.get_height()
+        self.inner.as_tree().get_height()
     }
 
     /// # Examples
@@ -368,7 +368,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     #[warn(deprecated)]
     #[inline(always)]
     pub fn num_nodes(&self) -> usize {
-        self.inner.get_nodes().len()
+        self.inner.as_tree().get_nodes().len()
     }
 
     /// # Examples
@@ -382,7 +382,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///```
     #[must_use]
     pub fn get_nodes(&self) -> &[Node<'a, T>] {
-        self.inner.get_nodes()
+        self.inner.as_tree().get_nodes()
     }
 
     /// # Examples
@@ -396,7 +396,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///```
     #[must_use]
     pub fn get_nodes_mut(&mut self) -> PMut<[Node<'a, T>]> {
-        PMut::new(self.inner.get_nodes_mut())
+        PMut::new(self.inner.as_tree_mut().get_nodes_mut())
     }
 
     /// # Examples
@@ -414,7 +414,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///```
     #[inline(always)]
     pub fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
-        VistrMut::new(self.inner.vistr_mut())
+        VistrMut::new(self.inner.as_tree_mut().vistr_mut())
     }
 
     /// # Examples
@@ -433,7 +433,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///```
     #[inline(always)]
     pub fn vistr(&self) -> Vistr<Node<'a, T>> {
-        self.inner.vistr()
+        self.inner.as_tree().vistr()
     }
 
     /// Return the underlying slice of aabbs in the order sorted during tree construction.

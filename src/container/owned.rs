@@ -115,9 +115,17 @@ where
     pub fn new_par(joiner: impl crate::Joinable, mut bots: Box<[T]>) -> TreeOwned<T> {
         let tree = crate::new_par(joiner, &mut bots);
 
-        let inner = TreePtr {
-            _inner: unsafe { tree.inner.convert() },
-        };
+        let foo = compt::dfs_order::CompleteTreeContainer::from_preorder(
+            tree.inner
+                .into_nodes()
+                .into_vec()
+                .into_iter()
+                .map(|x| x.into_ptr())
+                .collect(),
+        )
+        .unwrap();
+
+        let inner = TreePtr { _inner: foo };
         TreeOwned { inner, _bots: bots }
     }
 }
@@ -126,9 +134,17 @@ impl<T: Aabb> TreeOwned<T> {
     pub fn new(mut bots: Box<[T]>) -> TreeOwned<T> {
         let tree = crate::new(&mut bots);
 
-        let inner = TreePtr {
-            _inner: unsafe { tree.inner.convert() },
-        };
+        let foo = compt::dfs_order::CompleteTreeContainer::from_preorder(
+            tree.inner
+                .into_nodes()
+                .into_vec()
+                .into_iter()
+                .map(|x| x.into_ptr())
+                .collect(),
+        )
+        .unwrap();
+
+        let inner = TreePtr { _inner: foo };
         TreeOwned { inner, _bots: bots }
     }
 }

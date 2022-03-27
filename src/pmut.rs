@@ -98,6 +98,12 @@ impl<'a, T: ?Sized> PMut<'a, T> {
         PMut { inner }
     }
 
+    pub(crate) fn into_ptr(self) -> PMutPtr<T> {
+        PMutPtr {
+            _inner: self.inner as *mut _,
+        }
+    }
+
     #[inline(always)]
     pub fn shorten<'c>(self) -> PMut<'c, T>
     where
@@ -192,6 +198,11 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
 }
 
 impl<'a, T> PMut<'a, [T]> {
+    pub unsafe fn cast<K>(self) -> PMut<'a, [K]> {
+        PMut {
+            inner: &mut *(self.inner as *mut _ as *mut _),
+        }
+    }
     /// Return the element at the specified index.
     /// We can't use the index trait because we don't want
     /// to return a mutable reference.
