@@ -1,4 +1,7 @@
 use broccoli::{bbox, rect};
+use broccoli::pmut::PMut;
+use broccoli::node::BBox;
+
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -17,13 +20,27 @@ fn main() {
     //populated it with mutable references.
     let mut tree = broccoli::new(&mut aabbs);
 
-    let mut prevec=broccoli::util::PreVec::new();
-    
-    //Find all colliding aabbs.
-    tree.colliding_pairs().recurse_seq(&mut prevec,|a, b| {
+    let func = |a: PMut<BBox<isize, &mut usize>>,
+                b: PMut<BBox<isize, &mut usize>>| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
-    });
+    };
+
+    //Find all colliding aabbs.
+    let col = tree.colliding_pairs();
+
+    let mut prevec = broccoli::util::PreVec::new();
+    let rest = col.next(&mut prevec, func);
+
+    if let Some([left, right]) = rest {
+        rayon::join(
+            || left.recurse_seq(&mut prevec, func),
+            || {
+                let mut prevec2 = broccoli::util::PreVec::new();
+                right.recurse_seq(&mut prevec2, func)
+            },
+        );
+    }
 
     assert_eq!(inner1, 1);
     assert_eq!(inner2, 0);

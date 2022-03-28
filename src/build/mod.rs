@@ -153,7 +153,6 @@ const fn log_2(x: u64) -> u64 {
     num_bits::<u64>() as u64 - x.leading_zeros() as u64 - 1
 }
 
-use crate::queries::colfind::builder::NotSortedQueryBuilder;
 ///A version of Tree where the elements are not sorted along each axis, like a KD Tree.
 /// For comparison, a normal kd-tree is provided by [`NotSorted`]. In this tree, the elements are not sorted
 /// along an axis at each level. Construction of [`NotSorted`] is faster than [`Tree`] since it does not have to
@@ -188,22 +187,9 @@ impl<'a, T: Aabb> NotSorted<'a, T> {
         self.0.get_height()
     }
 
-    pub fn new_colfind_builder<'c>(&'c mut self) -> NotSortedQueryBuilder<'c, 'a, T> {
-        NotSortedQueryBuilder::new(self.vistr_mut())
-    }
-
-    pub fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<T>, PMut<T>)) {
-        NotSortedQueryBuilder::new(self.vistr_mut()).query_seq(move |a, b| func(a, b));
-    }
-
-    pub fn find_colliding_pairs_mut_par(
-        &mut self,
-        joiner: impl crate::Joinable,
-        func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync,
-    ) where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        NotSortedQueryBuilder::new(self.vistr_mut()).query_par(joiner, move |a, b| func(a, b));
+    pub fn colliding_pairs<'b>(
+        &'b mut self,
+    ) -> queries::colfind::CollVis<'a, 'b, T, queries::colfind::HandleNoSorted> {
+        queries::colfind::CollVis::new(self.vistr_mut(), true, queries::colfind::HandleNoSorted)
     }
 }

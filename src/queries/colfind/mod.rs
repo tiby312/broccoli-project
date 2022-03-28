@@ -1,17 +1,21 @@
 //! Provides 2d broadphase collision detection.
 
-mod inner;
 mod node_handle;
 mod oned;
 
-use self::inner::*;
-use self::node_handle::*;
+pub use self::node_handle::*;
 use super::tools;
 use super::*;
-use crate::Joinable;
 
 pub mod builder;
-use self::builder::CollisionHandler;
+pub use builder::*;
+
+//TODO remove
+pub trait CollisionHandler {
+    type T: Aabb;
+
+    fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>);
+}
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_query<T: Aabb>(tree: &mut crate::Tree<T>) {
@@ -20,7 +24,8 @@ pub fn assert_query<T: Aabb>(tree: &mut crate::Tree<T>) {
         a as *const T as usize
     }
     let mut res_dino = Vec::new();
-    tree.find_colliding_pairs_mut(|a, b| {
+    let mut prevec = PreVec::new();
+    tree.colliding_pairs().recurse_seq(&mut prevec, |a, b| {
         let a = into_ptr_usize(a.deref());
         let b = into_ptr_usize(b.deref());
         let k = if a < b { (a, b) } else { (b, a) };

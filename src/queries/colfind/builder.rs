@@ -1,356 +1,205 @@
 //! Contains code to customize the colliding pair finding algorithm.
 
 use super::*;
-use parallel::ParallelBuilder;
 
-///Used for the advanced algorithms.
-///Trait that user implements to handling aabb collisions.
-///The user supplies a struct that implements this trait instead of just a closure
-///so that the user may also have the struct implement Splitter.
-pub trait CollisionHandler {
-    type T: Aabb;
-
-    fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>);
+pub struct CollVis<'a, 'b, T: Aabb, N> {
+    vistr: VistrMut<'b, Node<'a, T>>,
+    is_xaxis: bool,
+    handler: N,
 }
-
-use self::inner::SplitterVistr;
-
-///Builder for a query on a NotSorted Dinotree.
-pub struct NotSortedQueryBuilder<'a, 'node: 'a, T: Aabb> {
-    par_builder: ParallelBuilder,
-    vistr: VistrMut<'a, Node<'node, T>>,
-}
-
-impl<'a, 'node: 'a, T: Aabb> NotSortedQueryBuilder<'a, 'node, T> {
-    #[inline(always)]
-    pub fn new(vistr: VistrMut<'a, Node<'node, T>>) -> NotSortedQueryBuilder<'a, 'node, T> {
-        NotSortedQueryBuilder {
-            par_builder: ParallelBuilder::new(),
+impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
+    pub(crate) fn new(vistr: VistrMut<'b, Node<'a, T>>, is_xaxis: bool, handler: N) -> Self {
+        CollVis {
             vistr,
+            is_xaxis,
+            handler,
         }
     }
 
-    #[inline(always)]
-    pub fn query_with_splitter_seq<S: Splitter>(
-        self,
+    pub fn next(
+        mut self,
+        prevec: &mut PreVec,
         func: impl FnMut(PMut<T>, PMut<T>),
-        splitter: S,
+    ) -> Option<[Self; 2]> {
+        pub struct Recurser<'a, NO, C> {
+            pub handler: &'a mut NO,
+            pub sweeper: &'a mut C,
+            pub prevec: &'a mut PreVec,
+        }
+
+        struct QueryFnMut<T, F>(F, PhantomData<T>);
+        impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> QueryFnMut<T, F> {
+            #[inline(always)]
+            pub fn new(func: F) -> QueryFnMut<T, F> {
+                QueryFnMut(func, PhantomData)
+            }
+        }
+
+        impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler for QueryFnMut<T, F> {
+            type T = T;
+            #[inline(always)]
+            fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
+                self.0(a, b);
+            }
+        }
+
+        fn collide_self<A: axgeom::Axis, T: crate::Aabb>(
+            this_axis: A,
+            v: VistrMut<Node<T>>,
+            data: &mut Recurser<impl NodeHandler, impl CollisionHandler<T = T>>,
+        ) {
+            let (mut nn, rest) = v.next();
+
+            data.handler.handle_node(
+                data.sweeper,
+                data.prevec,
+                this_axis.next(),
+                nn.borrow_mut().into_range(),
+            );
+
+            if let Some([mut left, mut right]) = rest {
+                struct InnerRecurser<'a, 'node, T: Aabb, NN, C, B: Axis> {
+                    anchor: NodeAxis<'a, 'node, T, B>,
+                    handler: &'a mut NN,
+                    sweeper: &'a mut C,
+                    prevec: &'a mut PreVec,
+                }
+
+                impl<'a, 'node, T: Aabb, NN, C, B: Axis> InnerRecurser<'a, 'node, T, NN, C, B>
+                where
+                    NN: NodeHandler,
+                    C: CollisionHandler<T = T>,
+                {
+                    fn recurse<
+                        A: Axis, //this axis
+                    >(
+                        &mut self,
+                        this_axis: A,
+                        m: VistrMut<Node<T>>,
+                    ) {
+                        let anchor_axis = self.anchor.axis;
+                        let (mut nn, rest) = m.next();
+
+                        let current = NodeAxis {
+                            node: nn.borrow_mut(),
+                            axis: this_axis,
+                        };
+
+                        self.handler.handle_children(
+                            self.sweeper,
+                            self.prevec,
+                            self.anchor.borrow_mut(),
+                            current,
+                        );
+
+                        if let Some([left, right]) = rest {
+                            //Continue to recurse even if we know there are no more bots
+                            //This simplifies query algorithms that might be building up
+                            //a tree.
+                            if let Some(div) = nn.div {
+                                if anchor_axis.is_equal_to(this_axis) {
+                                    use core::cmp::Ordering::*;
+                                    match self.anchor.node.cont.contains_ext(div) {
+                                        Less => {
+                                            self.recurse(this_axis.next(), right);
+                                            return;
+                                        }
+                                        Greater => {
+                                            self.recurse(this_axis.next(), left);
+                                            return;
+                                        }
+                                        Equal => {}
+                                    }
+                                }
+                            }
+
+                            self.recurse(this_axis.next(), left);
+                            self.recurse(this_axis.next(), right);
+                        }
+                    }
+                }
+
+                {
+                    let mut g = InnerRecurser {
+                        anchor: NodeAxis {
+                            node: nn,
+                            axis: this_axis,
+                        },
+                        handler: data.handler,
+                        sweeper: data.sweeper,
+                        prevec: data.prevec,
+                    };
+
+                    g.recurse(this_axis.next(), left.borrow_mut());
+                    g.recurse(this_axis.next(), right.borrow_mut());
+                }
+            }
+        }
+
+        let mut g = QueryFnMut::new(func);
+        let mut data = Recurser {
+            handler: &mut self.handler,
+            sweeper: &mut g,
+            prevec,
+        };
+
+        if self.is_xaxis {
+            collide_self(axgeom::XAXIS, self.vistr.borrow_mut(), &mut data);
+        } else {
+            collide_self(axgeom::YAXIS, self.vistr.borrow_mut(), &mut data);
+        }
+
+        let (_, rest) = self.vistr.next();
+
+        if let Some([left, right]) = rest {
+            Some([
+                CollVis {
+                    vistr: left,
+                    is_xaxis: !self.is_xaxis,
+                    handler: self.handler.clone(),
+                },
+                CollVis {
+                    vistr: right,
+                    is_xaxis: !self.is_xaxis,
+                    handler: self.handler.clone(),
+                },
+            ])
+        } else {
+            None
+        }
+    }
+
+    pub fn recurse_seq(self, prevec: &mut PreVec, mut func: impl FnMut(PMut<T>, PMut<T>)) {
+        let mut stack = vec![];
+        stack.push(self);
+
+        while let Some(n) = stack.pop() {
+            if let Some([a, b]) = n.next(prevec, &mut func) {
+                stack.push(a);
+                stack.push(b);
+            }
+        }
+    }
+
+    pub fn recurse_seq_splitter<S: Splitter>(
+        self,
+        mut splitter: S,
+        prevec: &mut PreVec,
+        mut func: impl FnMut(PMut<T>, PMut<T>),
     ) -> S {
-        let mut sweeper = QueryFnMut::new(func);
-
-        let mut r = Recurser {
-            handler: &mut HandleNoSorted,
-            sweeper: &mut sweeper,
-            prevec: &mut PreVec::new(),
-        };
-
-        r.recurse_seq(default_axis(), SplitterVistr::new(splitter, self.vistr))
-    }
-
-    #[inline(always)]
-    pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        let mut sweeper = QueryFnMut::new(func);
-
-        let mut r = Recurser {
-            handler: &mut HandleNoSorted,
-            sweeper: &mut sweeper,
-            prevec: &mut PreVec::new(),
-        };
-
-        r.recurse_seq(
-            default_axis(),
-            SplitterVistr::new(SplitterEmpty, self.vistr),
-        );
-    }
-    #[inline(always)]
-    pub fn query_par(
-        self,
-        joiner: impl crate::Joinable,
-        func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync,
-    ) where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        let sweeper = QueryFn::new(func);
-
-        let par = self
-            .par_builder
-            .build_for_tree_of_height(self.vistr.get_height());
-
-        ParRecurser {
-            handler: HandleNoSorted,
-            vistr: SplitterVistr::new(sweeper, SplitterVistr::new(SplitterEmpty, self.vistr)),
-            par,
-            joiner,
-            prevec: PreVec::new(),
+        #[inline(always)]
+        fn finish_splitter<S: Splitter>(mut a: S, b: S, c: S) -> S {
+            a.add(b, c);
+            a
         }
-        .recurse_par(default_axis());
-    }
-}
 
-///Builder for a query on a DinoTree.
-pub struct QueryBuilder<'a, 'node: 'a, T: Aabb> {
-    par_builder: ParallelBuilder,
-    vistr: VistrMut<'a, Node<'node, T>>,
-}
-
-///Used to create an object that implements [`CollisionHandler`] and [`Splitter`] from closures.
-pub struct QueryParClosure<T, A, B, C, D> {
-    _p: PhantomData<T>,
-    pub acc: A,
-    pub split: B,
-    pub fold: C,
-    pub collision: D,
-}
-
-impl<
-        T: Aabb,
-        A: Send,
-        B: Fn(&mut A) -> (A, A) + Copy + Send,
-        C: Fn(&mut A, A, A) + Copy + Send,
-        D: Fn(&mut A, PMut<T>, PMut<T>) + Copy + Send,
-    > QueryParClosure<T, A, B, C, D>
-{
-    pub fn new(_tree: &crate::Tree<T>, acc: A, split: B, fold: C, collision: D) -> Self {
-        QueryParClosure {
-            _p: PhantomData,
-            acc,
-            split,
-            fold,
-            collision,
+        if let Some([left, right]) = self.next(prevec, &mut func) {
+            let (s1, s2) = splitter.div();
+            let al = left.recurse_seq_splitter(s1, prevec, &mut func);
+            let ar = right.recurse_seq_splitter(s2, prevec, &mut func);
+            finish_splitter(splitter, al, ar)
+        } else {
+            splitter
         }
     }
-}
-
-impl<T: Aabb, A, B, C, D> CollisionHandler for QueryParClosure<T, A, B, C, D>
-where
-    D: Fn(&mut A, PMut<T>, PMut<T>),
-{
-    type T = T;
-
-    #[inline(always)]
-    fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
-        (self.collision)(&mut self.acc, a, b)
-    }
-}
-
-impl<T, A, B, C, D> Splitter for QueryParClosure<T, A, B, C, D>
-where
-    B: Fn(&mut A) -> (A, A) + Copy,
-    C: Fn(&mut A, A, A) + Copy,
-    D: Copy,
-{
-    #[inline(always)]
-    fn div(&mut self) -> (Self, Self) {
-        let (acc1, acc2) = (self.split)(&mut self.acc);
-        (
-            QueryParClosure {
-                _p: PhantomData,
-                acc: acc1,
-                split: self.split,
-                fold: self.fold,
-                collision: self.collision,
-            },
-            QueryParClosure {
-                _p: PhantomData,
-                acc: acc2,
-                split: self.split,
-                fold: self.fold,
-                collision: self.collision,
-            },
-        )
-    }
-    #[inline(always)]
-    fn add(&mut self, a: Self, b: Self) {
-        (self.fold)(&mut self.acc, a.acc, b.acc)
-    }
-}
-
-impl<'a, 'node: 'a, T: Aabb> QueryBuilder<'a, 'node, T> {
-    ///Create the builder.
-    #[inline(always)]
-    #[must_use]
-    pub fn new(vistr: VistrMut<'a, Node<'node, T>>) -> QueryBuilder<'a, 'node, T> {
-        QueryBuilder {
-            par_builder: ParallelBuilder::new(),
-            vistr,
-        }
-    }
-
-    ///Choose a custom height at which to switch from parallel to sequential.
-    ///If you end up building sequentially, this option is ignored.
-    #[inline(always)]
-    #[must_use]
-    pub fn with_switch_height(mut self, height: usize) -> Self {
-        self.par_builder.with_switch_height(height);
-        self
-    }
-
-    ///Perform the query sequentially.
-    #[inline(always)]
-    pub fn query_seq(self, func: impl FnMut(PMut<T>, PMut<T>)) {
-        let mut sweeper = QueryFnMut::new(func);
-
-        let mut r = Recurser {
-            handler: &mut HandleSorted,
-            sweeper: &mut sweeper,
-            prevec: &mut PreVec::new(),
-        };
-
-        r.recurse_seq(
-            default_axis(),
-            SplitterVistr::new(SplitterEmpty, self.vistr),
-        );
-    }
-
-    ///Perform the query sequentially with splitter functions getting called at every level of
-    ///recursion.
-    #[inline(always)]
-    pub fn query_with_splitter_seq<S: Splitter>(
-        self,
-        func: impl FnMut(PMut<T>, PMut<T>),
-        splitter: S,
-    ) -> S {
-        let mut sweeper = QueryFnMut::new(func);
-
-        let mut r = Recurser {
-            handler: &mut HandleSorted,
-            sweeper: &mut sweeper,
-            prevec: &mut PreVec::new(),
-        };
-
-        r.recurse_seq(default_axis(), SplitterVistr::new(splitter, self.vistr))
-    }
-
-    /// An extended version of `find_colliding_pairs`. where the user can supply
-    /// callbacks to when new worker tasks are spawned and joined by `rayon`.
-    /// Allows the user to potentially collect some aspect of every aabb collision in parallel.
-    ///
-    /// `sweeper` : The splitter div/add functions will be called every time a new parallel recurse is started.
-    /// `splitter`: The splitter div/add will be called at every level of recursion.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{par::RayonJoin,rect,bbox};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),1u8)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// let mut handler=broccoli::helper::QueryParClosure::new(
-    ///     &tree,
-    ///     Vec::new(),
-    ///     |_|(Vec::new(),Vec::new()),        //Start a new thread
-    ///     |a,mut b,mut c|{a.append(&mut b);a.append(&mut c)}, //Combine two threads
-    ///     |v,a,b|v.push((*a.unpack_inner(),*b.unpack_inner())), //Handle a collision
-    /// );
-    ///
-    /// let (handler,_)=tree.new_colfind_builder().query_par_ext(
-    ///     RayonJoin,
-    ///     handler,
-    ///     broccoli::build::SplitterEmpty
-    /// );
-    ///
-    /// let intersections=handler.acc;
-    ///
-    /// assert_eq!(intersections.len(),1);
-    ///```
-    #[inline(always)]
-    pub fn query_par_ext<
-        S: Splitter + Send + Sync,
-        C: CollisionHandler<T = T> + Splitter + Send + Sync,
-    >(
-        self,
-        joiner: impl Joinable,
-        sweeper: C,
-        splitter: S,
-    ) -> (C, S)
-    where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        let par = self
-            .par_builder
-            .build_for_tree_of_height(self.vistr.get_height());
-
-        ParRecurser {
-            handler: HandleSorted,
-            vistr: SplitterVistr::new(sweeper, SplitterVistr::new(splitter, self.vistr)),
-            par,
-            joiner,
-            prevec: PreVec::new(),
-        }
-        .recurse_par(default_axis())
-    }
-
-    ///Perform the query in parallel, switching to sequential as specified
-    ///by the [`QueryBuilder::with_switch_height()`]
-    #[inline(always)]
-    pub fn query_par(
-        self,
-        joiner: impl Joinable,
-        func: impl Fn(PMut<T>, PMut<T>) + Clone + Send + Sync,
-    ) where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        let sweeper = QueryFn::new(func);
-
-        let par = self
-            .par_builder
-            .build_for_tree_of_height(self.vistr.get_height());
-
-        ParRecurser {
-            handler: HandleSorted,
-            vistr: SplitterVistr::new(sweeper, SplitterVistr::new(SplitterEmpty, self.vistr)),
-            par,
-            joiner,
-            prevec: PreVec::new(),
-        }
-        .recurse_par(default_axis());
-    }
-}
-
-struct QueryFnMut<T, F>(F, PhantomData<T>);
-impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> QueryFnMut<T, F> {
-    #[inline(always)]
-    pub fn new(func: F) -> QueryFnMut<T, F> {
-        QueryFnMut(func, PhantomData)
-    }
-}
-
-impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler for QueryFnMut<T, F> {
-    type T = T;
-    #[inline(always)]
-    fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
-        self.0(a, b);
-    }
-}
-
-struct QueryFn<T, F>(F, PhantomData<T>);
-
-impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> QueryFn<T, F> {
-    #[inline(always)]
-    pub fn new(func: F) -> QueryFn<T, F> {
-        QueryFn(func, PhantomData)
-    }
-}
-
-impl<T: Aabb, F: Fn(PMut<T>, PMut<T>)> CollisionHandler for QueryFn<T, F> {
-    type T = T;
-    #[inline(always)]
-    fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
-        self.0(a, b);
-    }
-}
-
-impl<T, F: Clone> Splitter for QueryFn<T, F> {
-    #[inline(always)]
-    fn div(&mut self) -> (Self, Self) {
-        (
-            QueryFn(self.0.clone(), PhantomData),
-            QueryFn(self.0.clone(), PhantomData),
-        )
-    }
-    #[inline(always)]
-    fn add(&mut self, _: Self, _: Self) {}
 }

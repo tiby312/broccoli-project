@@ -2,7 +2,6 @@
 
 use crate::build::default_axis;
 use crate::build::Splitter;
-use crate::build::SplitterEmpty;
 use crate::node::*;
 use crate::parallel;
 use crate::pmut::*;

@@ -120,7 +120,6 @@ pub mod naive {
 ///Helper functions to construct objects from closures that implement query traits.
 pub mod helper {
     use super::queries;
-    pub use queries::colfind::builder::QueryParClosure;
     pub use queries::knearest::{default_rect_knearest, from_closure as knearest_from_closure};
     pub use queries::raycast::{default_rect_raycast, from_closure as raycast_from_closure};
 }
@@ -128,8 +127,6 @@ pub mod helper {
 ///Items related to querying.
 pub mod query {
     use super::queries;
-    pub use queries::colfind::builder::CollisionHandler;
-    pub use queries::colfind::builder::{NotSortedQueryBuilder, QueryBuilder};
     pub use queries::draw::DividerDrawer;
     pub use queries::knearest::{KResult, Knearest, KnearestResult};
     pub use queries::nbody::GravEnum;
@@ -144,7 +141,7 @@ pub mod pmut;
 pub mod node;
 
 ///Generic slice utility functions.
-mod util;
+pub mod util;
 
 pub use axgeom::rect;
 
@@ -210,8 +207,6 @@ pub mod par {
 }
 
 use build::TreeBuilder;
-
-pub mod container;
 
 type TreeInner<N> = compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
 
@@ -486,78 +481,10 @@ impl<'a, T: Aabb> Tree<'a, T> {
         foo(self.vistr())
     }
 
-    /// Find all aabb intersections and visit every pair wrapped in [`PMut`].
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{bbox,rect};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// tree.find_colliding_pairs_mut(|a,b|{
-    ///    *a.unpack_inner()+=1;
-    ///    *b.unpack_inner()+=1;
-    /// });
-    ///
-    /// assert_eq!(bots[0].inner,1);
-    /// assert_eq!(bots[1].inner,1);
-    ///```
-    pub fn find_colliding_pairs_mut(&mut self, mut func: impl FnMut(PMut<T>, PMut<T>)) {
-        queries::colfind::builder::QueryBuilder::new(self.vistr_mut())
-            .query_seq(move |a, b| func(a, b));
-    }
-
-    /// The parallel version of [`Tree::find_colliding_pairs_mut`].
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{bbox,rect,par::RayonJoin};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// tree.find_colliding_pairs_mut_par(RayonJoin,|a,b|{
-    ///    *a.unpack_inner()+=1;
-    ///    *b.unpack_inner()+=1;
-    /// });
-    ///
-    /// assert_eq!(bots[0].inner,1);
-    /// assert_eq!(bots[1].inner,1);
-    ///```
-    pub fn find_colliding_pairs_mut_par(
-        &mut self,
-        joiner: impl crate::Joinable,
-        func: impl Fn(PMut<T>, PMut<T>) + Send + Sync + Clone,
-    ) where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        queries::colfind::builder::QueryBuilder::new(self.vistr_mut())
-            .query_par(joiner, move |a, b| func(a, b));
-    }
-
-    /// For analysis, allows the user to find all colliding pairs with custom settings
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{bbox,rect,par::RayonJoin};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8),bbox(rect(5,15,5,15),0u8)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// let builder=tree.new_colfind_builder();
-    /// let builder=builder.with_switch_height(4);
-    /// builder.query_par(RayonJoin,|a,b|{
-    ///    *a.unpack_inner()+=1;
-    ///    *b.unpack_inner()+=1;
-    /// });
-    ///
-    /// assert_eq!(bots[0].inner,1);
-    /// assert_eq!(bots[1].inner,1);
-    ///```
-    pub fn new_colfind_builder<'c>(
-        &'c mut self,
-    ) -> queries::colfind::builder::QueryBuilder<'c, 'a, T> {
-        queries::colfind::builder::QueryBuilder::new(self.vistr_mut())
+    pub fn colliding_pairs<'b>(
+        &'b mut self,
+    ) -> queries::colfind::CollVis<'a, 'b, T, queries::colfind::HandleSorted> {
+        queries::colfind::CollVis::new(self.vistr_mut(), true, queries::colfind::HandleSorted)
     }
 
     /// # Examples
