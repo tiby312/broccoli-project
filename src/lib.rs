@@ -92,38 +92,6 @@ pub mod build;
 
 pub mod queries;
 
-///Assertion functions to ensure correct results.
-pub mod assert {
-    use super::queries;
-    pub use queries::assert_tree_invariants;
-    pub use queries::colfind::assert_query;
-    pub use queries::knearest::assert_k_nearest_mut;
-    pub use queries::raycast::assert_raycast;
-    pub use queries::rect::assert_for_all_in_rect_mut;
-    pub use queries::rect::assert_for_all_intersect_rect_mut;
-    pub use queries::rect::assert_for_all_not_in_rect_mut;
-}
-
-///Naive query functions to compare against broccoli.
-pub mod naive {
-    use super::queries;
-    pub use queries::colfind::query_naive_mut;
-    pub use queries::colfind::query_sweep_mut;
-    pub use queries::knearest::naive_k_nearest_mut;
-    pub use queries::raycast::raycast_naive_mut;
-    pub use queries::rect::naive_for_all_in_rect_mut;
-    pub use queries::rect::naive_for_all_intersect_rect_mut;
-    pub use queries::rect::naive_for_all_not_in_rect_mut;
-}
-
-///Helper functions to construct objects from closures that implement query traits.
-pub mod helper {
-    use super::queries;
-    pub use queries::knearest::{default_rect_knearest, from_closure as knearest_from_closure};
-    pub use queries::raycast::{default_rect_raycast, from_closure as raycast_from_closure};
-}
-
-
 
 pub mod pmut;
 
@@ -142,59 +110,6 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
 
-mod parallel;
-use par::*;
-///Items     to parallel build/query functions.
-pub mod par {
-    #[cfg(feature = "use_rayon")]
-    pub use self::rayonjoin::*;
-    #[cfg(feature = "use_rayon")]
-    mod rayonjoin {
-        use super::*;
-        ///
-        /// An implementation of [`Joinable`] that uses rayon's `join`.
-        #[derive(Copy, Clone)]
-        pub struct RayonJoin;
-        impl Joinable for RayonJoin {
-            #[inline(always)]
-            fn join<A, B, RA, RB>(&self, oper_a: A, oper_b: B) -> (RA, RB)
-            where
-                A: FnOnce(&Self) -> RA + Send,
-                B: FnOnce(&Self) -> RB + Send,
-                RA: Send,
-                RB: Send,
-            {
-                rayon_core::join(|| oper_a(self), || oper_b(self))
-            }
-        }
-    }
-
-    ///
-    /// Trait defining the main primitive with which the `_par` functions
-    /// will be parallelized. The trait is based off of rayon's `join` function.
-    ///
-    pub trait Joinable: Clone + Send + Sync {
-        ///Execute both closures potentially in parallel.
-        fn join<A, B, RA, RB>(&self, oper_a: A, oper_b: B) -> (RA, RB)
-        where
-            A: FnOnce(&Self) -> RA + Send,
-            B: FnOnce(&Self) -> RB + Send,
-            RA: Send,
-            RB: Send;
-
-        ///Execute function F on each element in parallel
-        ///using `Self::join`.
-        fn for_every<T, F>(&self, arr: &mut [T], func: F)
-        where
-            T: Send,
-            F: Fn(&mut T) + Send + Copy,
-        {
-            if let Some((front, rest)) = arr.split_first_mut() {
-                self.join(move |_| func(front), move |_| self.for_every(rest, func));
-            }
-        }
-    }
-}
 
 use build::TreeBuilder;
 
