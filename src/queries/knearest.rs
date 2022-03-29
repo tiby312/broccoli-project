@@ -379,23 +379,23 @@ impl<'a, T: Aabb> KResult<'a, T> {
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_k_nearest_mut<T: Aabb>(
-    tree: &mut Tree<T>,
+    bots: &mut [T],
     point: Vec2<T::Num>,
     num: usize,
     knear: &mut impl Knearest<T = T, N = T::Num>,
 ) {
-    let bots = tree.get_elements_mut();
     use core::ops::Deref;
 
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
     }
-    let mut res_naive = naive_k_nearest_mut(bots, point, num, knear)
+    let mut res_naive = naive_k_nearest_mut(PMut::new(bots), point, num, knear)
         .into_vec()
         .drain(..)
         .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
         .collect::<Vec<_>>();
 
+    let mut tree = crate::new(bots);
     let r = tree.k_nearest_mut(point, num, knear);
     let mut res_dino: Vec<_> = r
         .into_vec()

@@ -90,7 +90,7 @@ mod tests;
 
 pub mod build;
 
-mod queries;
+pub mod queries;
 
 ///Assertion functions to ensure correct results.
 pub mod assert {
@@ -110,7 +110,6 @@ pub mod naive {
     pub use queries::colfind::query_naive_mut;
     pub use queries::colfind::query_sweep_mut;
     pub use queries::knearest::naive_k_nearest_mut;
-    pub use queries::nbody::naive_nbody_mut;
     pub use queries::raycast::raycast_naive_mut;
     pub use queries::rect::naive_for_all_in_rect_mut;
     pub use queries::rect::naive_for_all_intersect_rect_mut;
@@ -124,16 +123,7 @@ pub mod helper {
     pub use queries::raycast::{default_rect_raycast, from_closure as raycast_from_closure};
 }
 
-///Items related to querying.
-pub mod query {
-    use super::queries;
-    pub use queries::draw::DividerDrawer;
-    pub use queries::knearest::{KResult, Knearest, KnearestResult};
-    pub use queries::nbody::GravEnum;
-    pub use queries::nbody::Nbody;
-    pub use queries::raycast::{CastAnswer, RayCast};
-    pub use queries::rect::RectIntersectErr;
-}
+
 
 pub mod pmut;
 
@@ -419,68 +409,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
         self.inner.as_tree().vistr()
     }
 
-    /// Return the underlying slice of aabbs in the order sorted during tree construction.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// assert_eq!(*tree.get_elements_mut().get_index_mut(0), axgeom::rect(0,10,0,10));
-    ///
-    ///```
-    #[must_use]
-    pub fn get_elements_mut(&mut self) -> PMut<[T]> {
-        fn foo<'a, T: Aabb>(mut v: VistrMut<'a, Node<T>>) -> PMut<'a, [T]> {
-            let mut new_slice = None;
-
-            let mut siz = 0;
-            v.borrow_mut().dfs_preorder(|a| {
-                siz += a.range.len();
-            });
-            v.dfs_preorder(|a| {
-                if let Some(s) = new_slice.take() {
-                    new_slice = Some(crate::pmut::combine_slice(s, a.into_range()));
-                } else {
-                    new_slice = Some(a.into_range());
-                }
-            });
-            new_slice.unwrap()
-        }
-
-        foo(self.vistr_mut())
-    }
-
-    /// Return the underlying slice of aabbs in the order sorted during tree construction.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let tree = broccoli::new(&mut bots);
-    ///
-    /// assert_eq!(tree.get_elements()[0], axgeom::rect(0,10,0,10));
-    ///
-    ///```
-    #[must_use]
-    pub fn get_elements(&self) -> &[T] {
-        fn foo<'a, T: Aabb>(v: Vistr<'a, Node<T>>) -> &'a [T] {
-            let mut new_slice = None;
-
-            v.dfs_preorder(|a| {
-                if let Some(s) = new_slice.take() {
-                    new_slice = Some(crate::util::combine_slice(s, &a.range));
-                } else {
-                    new_slice = Some(&a.range);
-                }
-            });
-            new_slice.unwrap()
-        }
-
-        foo(self.vistr())
-    }
-
     pub fn colliding_pairs<'b>(
         &'b mut self,
     ) -> queries::colfind::CollVis<'a, 'b, T, queries::colfind::HandleSorted> {
@@ -641,28 +569,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
         queries::knearest::knearest_mut(self, point, num, ktrait)
     }
 
-    ///Perform nbody
-    ///The tree is taken by value so that its nodes can be expended to include more data.
-    pub fn nbody_mut_par<N: queries::nbody::Nbody<T = T, N = T::Num>>(
-        self,
-        joiner: impl crate::Joinable,
-        no: &mut N,
-    ) -> Self
-    where
-        N: Send + Sync + Splitter,
-        T: Send + Sync,
-        T::Num: Send + Sync,
-        N::Mass: Send + Sync,
-    {
-        queries::nbody::nbody_mut_par(self, joiner, no)
-    }
-
-    ///Perform nbody
-    ///The tree is taken by value so that its nodes can be expended to include more data.
-    pub fn nbody_mut<N: queries::nbody::Nbody<T = T, N = T::Num>>(self, no: &mut N) -> Self {
-        queries::nbody::nbody_mut(self, no)
-    }
-
     /// Find the elements that are hit by a ray.
     ///
     /// The result is returned as a `Vec`. In the event of a tie, multiple
@@ -809,35 +715,5 @@ impl<'a, T: Aabb> Tree<'a, T> {
         queries::rect::for_all_not_in_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| {
             (func)(a)
         });
-    }
-
-    /// If we have two non intersecting rectangles, it is safe to return to the user two sets of mutable references
-    /// of the bots strictly inside each rectangle since it is impossible for a bot to belong to both sets.
-    ///
-    /// # Safety
-    ///
-    /// Unsafe code is used.  We unsafely convert the references returned by the rect query
-    /// closure to have a longer lifetime.
-    /// This allows the user to store mutable references of non intersecting rectangles at the same time.
-    /// If two requested rectangles intersect, an error is returned.
-    ///
-    /// Handles a multi rect mut "sessions" within which
-    /// the user can query multiple non intersecting rectangles.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{bbox,rect};
-    /// let mut bots1 = [bbox(rect(0,10,0,10),0u8)];
-    /// let mut tree = broccoli::new(&mut bots1);
-    /// let mut multi = tree.multi_rect();
-    ///
-    /// multi.for_all_in_rect_mut(rect(0,10,0,10),|a|{}).unwrap();
-    /// let res = multi.for_all_in_rect_mut(rect(5,15,5,15),|a|{});
-    /// assert_eq!(res,Err(broccoli::query::RectIntersectErr));
-    ///```
-    #[must_use]
-    pub fn multi_rect<'c>(&'c mut self) -> queries::rect::MultiRect<'c, 'a, T> {
-        queries::rect::MultiRect::new(self.vistr_mut())
     }
 }

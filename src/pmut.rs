@@ -49,28 +49,17 @@ pub struct PMut<'a, T: ?Sized> {
     inner: &'a mut T,
 }
 
-/// Combine two adjacent `PMut` slices into one slice.
-pub fn combine_slice<'a, T>(a: PMut<'a, [T]>, b: PMut<'a, [T]>) -> PMut<'a, [T]> {
-    let alen = a.len();
-    let blen = b.len();
-    unsafe {
-        assert_eq!(
-            a.inner.as_ptr().add(a.len()),
-            b.inner.as_ptr(),
-            "Slices are not continuous"
-        );
-
-        PMut {
-            inner: core::slice::from_raw_parts_mut(a.inner.as_mut_ptr(), alen + blen),
-        }
-    }
-}
-
 impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
     type Target = T;
     #[inline(always)]
     fn deref(&self) -> &T {
         self.inner
+    }
+}
+
+impl<'a, T: ?Sized> From<&'a mut T> for PMut<'a, T> {
+    fn from(a: &'a mut T) -> Self {
+        PMut::new(a)
     }
 }
 
@@ -98,19 +87,6 @@ impl<'a, T: ?Sized> PMut<'a, T> {
         PMut { inner }
     }
 
-    pub(crate) fn into_ptr(self) -> PMutPtr<T> {
-        PMutPtr {
-            _inner: self.inner as *mut _,
-        }
-    }
-
-    #[inline(always)]
-    pub fn shorten<'c>(self) -> PMut<'c, T>
-    where
-        'a: 'c,
-    {
-        PMut { inner: self.inner }
-    }
     /// Start a new borrow lifetime
     #[inline(always)]
     pub fn borrow_mut(&mut self) -> PMut<T> {
@@ -198,11 +174,6 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
 }
 
 impl<'a, T> PMut<'a, [T]> {
-    pub unsafe fn cast<K>(self) -> PMut<'a, [K]> {
-        PMut {
-            inner: &mut *(self.inner as *mut _ as *mut _),
-        }
-    }
     /// Return the element at the specified index.
     /// We can't use the index trait because we don't want
     /// to return a mutable reference.

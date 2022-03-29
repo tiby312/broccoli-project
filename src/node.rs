@@ -230,21 +230,3 @@ pub struct Node<'a, T: Aabb> {
     //   value is none
     pub div: Option<T::Num>,
 }
-
-impl<'a, T: Aabb> Node<'a, T> {
-    pub(crate) fn into_ptr(self) -> NodePtr<T> {
-        NodePtr {
-            _range: self.range.into_ptr(),
-            _cont: self.cont,
-            _div: self.div,
-        }
-    }
-
-    pub(crate) unsafe fn into_x<K: Aabb<Num = T::Num>>(self) -> NodePtr<K> {
-        NodePtr {
-            _range: self.range.cast().into_ptr(),
-            _cont: self.cont,
-            _div: self.div,
-        }
-    }
-}

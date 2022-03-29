@@ -19,8 +19,6 @@ pub mod knearest;
 
 pub mod raycast;
 
-pub mod nbody;
-
 pub mod rect;
 
 mod tools;

@@ -17,10 +17,10 @@ fn main() {
     //populated it with mutable references.
     let mut tree = broccoli::new(&mut aabbs);
 
-    let mut prevec=broccoli::util::PreVec::new();
-    
+    let mut prevec = broccoli::util::PreVec::new();
+
     //Find all colliding aabbs.
-    tree.colliding_pairs().recurse_seq(&mut prevec,|a, b| {
+    tree.colliding_pairs().recurse_seq(&mut prevec, |a, b| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
     });

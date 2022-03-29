@@ -290,18 +290,17 @@ impl<'a, R: RayCast> Recurser<'a, R> {
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_raycast<T: Aabb>(
-    tree: &mut Tree<T>,
+    bots: &mut [T],
     ray: axgeom::Ray<T::Num>,
     rtrait: &mut impl RayCast<T = T, N = T::Num>,
 ) where
     T::Num: core::fmt::Debug,
 {
-    let bots = tree.get_elements_mut();
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
     }
     let mut res_naive = Vec::new();
-    match raycast_naive_mut(bots, ray, rtrait) {
+    match raycast_naive_mut(PMut::new(bots), ray, rtrait) {
         axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
             for a in elems.into_iter() {
                 let r = *a.rect();
@@ -314,6 +313,7 @@ pub fn assert_raycast<T: Aabb>(
         }
     }
 
+    let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     match tree.raycast_mut(ray, rtrait) {
         axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {

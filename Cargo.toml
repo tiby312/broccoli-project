@@ -11,14 +11,17 @@ edition = "2018"
 include = ["src/**/*", "LICENSE-MIT", "README.md"]
 
 
+
+
 [workspace]
 members = [ "demo_web","report/data_gen"]
 
 [dev-dependencies]
 dists = {git="https://github.com/tiby312/dists.git"}
-rayon = "*"
 
 [dependencies]
+crossbeam-queue = "0.3"
+rayon-core="*"
 itertools = "0.10"
 compt = "2.0"
 axgeom = {version="1.9",default-features = false}
