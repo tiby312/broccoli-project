@@ -11,7 +11,8 @@ edition = "2018"
 include = ["src/**/*", "LICENSE-MIT", "README.md"]
 
 
-
+[lib]
+doctest = false
 
 [workspace]
 members = [ "demo_web","report/data_gen"]

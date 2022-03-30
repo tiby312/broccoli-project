@@ -298,19 +298,7 @@ pub fn assert_raycast<T: Aabb>(
         a as *const T as usize
     }
     let mut res_naive = Vec::new();
-    match raycast_naive_mut(PMut::new(bots), ray, rtrait) {
-        axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
-            for a in elems.into_iter() {
-                let r = *a.rect();
-                let j = into_ptr_usize(a.into_ref());
-                res_naive.push((j, r, mag))
-            }
-        }
-        axgeom::CastResult::NoHit => {
-            //do nothing
-        }
-    }
-
+    
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     match tree.raycast_mut(ray, rtrait) {
@@ -319,6 +307,18 @@ pub fn assert_raycast<T: Aabb>(
                 let r = *a.rect();
                 let j = into_ptr_usize(a.into_ref());
                 res_dino.push((j, r, mag))
+            }
+        }
+        axgeom::CastResult::NoHit => {
+            //do nothing
+        }
+    }
+    match raycast_naive_mut(PMut::new(bots), ray, rtrait) {
+        axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
+            for a in elems.into_iter() {
+                let r = *a.rect();
+                let j = into_ptr_usize(a.into_ref());
+                res_naive.push((j, r, mag))
             }
         }
         axgeom::CastResult::NoHit => {

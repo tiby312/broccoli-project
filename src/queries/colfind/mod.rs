@@ -26,20 +26,21 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     let mut res_dino = Vec::new();
     let mut prevec = PreVec::new();
 
-    let mut res_naive = Vec::new();
-    query_naive_mut(PMut::new(bots), |a, b| {
-        let a = into_ptr_usize(a.deref());
-        let b = into_ptr_usize(b.deref());
-        let k = if a < b { (a, b) } else { (b, a) };
-        res_naive.push(k);
-    });
-
     let mut tree = crate::new(bots);
     tree.colliding_pairs().recurse_seq(&mut prevec, &mut |a, b| {
         let a = into_ptr_usize(a.deref());
         let b = into_ptr_usize(b.deref());
         let k = if a < b { (a, b) } else { (b, a) };
         res_dino.push(k);
+    });
+
+
+    let mut res_naive = Vec::new();
+    query_naive_mut(PMut::new(bots), |a, b| {
+        let a = into_ptr_usize(a.deref());
+        let b = into_ptr_usize(b.deref());
+        let k = if a < b { (a, b) } else { (b, a) };
+        res_naive.push(k);
     });
 
     res_naive.sort_unstable();
@@ -264,8 +265,8 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
 
     pub fn recurse_seq(self, prevec: &mut PreVec, func: &mut impl FnMut(PMut<T>, PMut<T>)) {
         
-
         if let Some([a,b])=self.collide_and_next(prevec,func){
+            dbg!("recursing!");
             a.recurse_seq(prevec,func);
             b.recurse_seq(prevec,func);
         }

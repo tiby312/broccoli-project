@@ -206,6 +206,7 @@ impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
 }
 
 pub fn start_build<T: Aabb>(num_levels: usize, bots: &mut [T]) -> TreeBister<T, DefaultSorter> {
+    dbg!(num_levels);
     assert!(num_levels>=1);
     TreeBister {
         bots,
@@ -231,7 +232,7 @@ pub struct TreeBister<'a, T, S> {
 }
 
 impl<'a, T: Aabb, S: Sorter> TreeBister<'a, T, S> {
-    pub fn get_height(&self) -> usize {
+    fn get_height(&self) -> usize {
         self.current_height
     }
     pub fn build_and_next(self) -> (NodeFinisher<'a, T, S>, Option<[TreeBister<'a, T, S>; 2]>) {
@@ -321,7 +322,6 @@ impl<'a, T: Aabb, S: Sorter> TreeBister<'a, T, S> {
     pub fn recurse_seq(self, res: &mut Vec<Node<'a, T>>) {
         
         let (n,rest)=self.build_and_next();
-        dbg!("hay");
         res.push(n.finish());
         if let Some([left,right])=rest{
             dbg!("yo");

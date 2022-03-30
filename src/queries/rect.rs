@@ -229,15 +229,16 @@ fn into_ptr_usize<T>(a: &T) -> usize {
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_for_all_not_in_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom::Rect<T::Num>) {
-    let mut res_naive = Vec::new();
-    naive_for_all_not_in_rect_mut(PMut::new(bots), rect, |a| {
-        res_naive.push(into_ptr_usize(a.deref()));
-    });
-
+    
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     tree.for_all_not_in_rect_mut(rect, |a| {
         res_dino.push(into_ptr_usize(a.deref()));
+    });
+
+    let mut res_naive = Vec::new();
+    naive_for_all_not_in_rect_mut(PMut::new(bots), rect, |a| {
+        res_naive.push(into_ptr_usize(a.deref()));
     });
 
     res_dino.sort_unstable();
@@ -249,15 +250,15 @@ pub fn assert_for_all_not_in_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom::Re
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_for_all_intersect_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom::Rect<T::Num>) {
-    let mut res_naive = Vec::new();
-    naive_for_all_intersect_rect_mut(PMut::new(bots), rect, |a| {
-        res_naive.push(into_ptr_usize(a.deref()));
-    });
-
+    
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     tree.for_all_intersect_rect_mut(rect, |a| {
         res_dino.push(into_ptr_usize(a.deref()));
+    });
+    let mut res_naive = Vec::new();
+    naive_for_all_intersect_rect_mut(PMut::new(bots), rect, |a| {
+        res_naive.push(into_ptr_usize(a.deref()));
     });
 
     res_dino.sort_unstable();
@@ -269,15 +270,15 @@ pub fn assert_for_all_intersect_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom:
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_for_all_in_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom::Rect<T::Num>) {
-    let mut res_naive = Vec::new();
-    naive_for_all_in_rect_mut(PMut::new(bots), rect, |a| {
-        res_naive.push(into_ptr_usize(a.deref()));
-    });
-
+    
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     tree.for_all_in_rect_mut(rect, |a| {
         res_dino.push(into_ptr_usize(a.deref()));
+    });
+    let mut res_naive = Vec::new();
+    naive_for_all_in_rect_mut(PMut::new(bots), rect, |a| {
+        res_naive.push(into_ptr_usize(a.deref()));
     });
 
     res_dino.sort_unstable();

@@ -3,7 +3,7 @@ use broccoli::*;
 #[test]
 fn test1() {
     //0, 20,/*  100, 200*/
-    for &num_bots in [10].iter() {
+    for &num_bots in [5].iter() {
         let s = dists::spiral_iter([400.0, 400.0], 12.0, 1.0);
 
         let mut bots: Vec<_> = s

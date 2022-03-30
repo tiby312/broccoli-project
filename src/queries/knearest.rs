@@ -424,12 +424,7 @@ pub fn assert_k_nearest_mut<T: Aabb>(
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
     }
-    let mut res_naive = naive_k_nearest_mut(PMut::new(bots), point, num, knear)
-        .into_vec()
-        .drain(..)
-        .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
-        .collect::<Vec<_>>();
-
+    
     let mut tree = crate::new(bots);
     let r = tree.k_nearest_mut(point, num, knear);
     let mut res_dino: Vec<_> = r
@@ -437,6 +432,12 @@ pub fn assert_k_nearest_mut<T: Aabb>(
         .drain(..)
         .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
         .collect();
+
+    let mut res_naive = naive_k_nearest_mut(PMut::new(bots), point, num, knear)
+    .into_vec()
+    .drain(..)
+    .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+    .collect::<Vec<_>>();
 
     res_naive.sort_by(|a, b| a.partial_cmp(b).unwrap());
     res_dino.sort_by(|a, b| a.partial_cmp(b).unwrap());
