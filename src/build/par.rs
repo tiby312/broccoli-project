@@ -8,6 +8,7 @@ pub fn recurse_par<'a, T: Aabb, S: Sorter>(
     T: Send + Sync,
     T::Num: Send + Sync,
 {
+    //TODO is the height of leafs zero???
     if vistr.get_height() <= height_seq_fallback {
         vistr.recurse_seq(foo);
     } else {
