@@ -1,5 +1,3 @@
-use broccoli::node::BBox;
-use broccoli::pmut::PMut;
 use broccoli::{bbox, rect};
 
 fn main() {
@@ -23,7 +21,9 @@ fn main() {
     //Find all colliding aabbs.
     let col = tree.colliding_pairs();
 
-    broccoli::queries::colfind::recurse_par(col, 3, |a, b| {
+    let mut prevec = broccoli::util::PreVec::new();
+
+    broccoli::queries::colfind::par::recurse_par(col, &mut prevec, 3, |a, b| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
     });

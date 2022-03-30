@@ -1,5 +1,4 @@
 use axgeom;
-use broccoli::par::*;
 use broccoli::*;
 #[test]
 fn test1() {

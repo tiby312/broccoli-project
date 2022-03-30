@@ -80,7 +80,6 @@ pub use compt;
 use crate::build::*;
 use crate::node::*;
 use crate::pmut::*;
-use crate::util::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use compt::Visitor;
@@ -110,11 +109,6 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
 }
 
 type TreeInner<N> = compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
-
-#[repr(transparent)]
-struct TreePtr<T: Aabb> {
-    _inner: TreeInner<NodePtr<T>>,
-}
 
 /// A space partitioning tree.
 #[repr(transparent)]
@@ -146,7 +140,11 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     ///```
     pub fn new(bots: &'a mut [T]) -> Tree<'a, T> {
-        unimplemented!();
+        let calc = build::HeightCalculator::new(bots.len());
+        let mut foo = Vec::with_capacity(calc.num_nodes());
+        let height = calc.build();
+        build::start_build(height, bots).recurse_seq(&mut foo);
+        build::into_tree(foo)
     }
 
     /// # Examples

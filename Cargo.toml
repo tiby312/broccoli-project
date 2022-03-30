@@ -20,7 +20,6 @@ members = [ "demo_web","report/data_gen"]
 dists = {git="https://github.com/tiby312/dists.git"}
 
 [dependencies]
-crossbeam-queue = "0.3"
 rayon-core="*"
 itertools = "0.10"
 compt = "2.0"

@@ -205,15 +205,6 @@ mod vistr_mut {
 }
 pub use vistr_mut::VistrMut;
 
-/// A Node in a Tree.
-#[repr(C)]
-pub(crate) struct NodePtr<T: Aabb> {
-    _range: PMutPtr<[T]>,
-
-    _cont: axgeom::Range<T::Num>,
-    _div: Option<T::Num>,
-}
-
 /// A node in [`Tree`].
 #[repr(C)]
 pub struct Node<'a, T: Aabb> {
