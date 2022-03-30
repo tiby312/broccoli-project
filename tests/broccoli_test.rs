@@ -20,7 +20,7 @@ fn test1() {
             })
             .collect();
 
-            let mut tree = broccoli::new(&mut bots);
+        let tree = broccoli::new(&mut bots);
         broccoli::queries::assert_tree_invariants(&tree);
         broccoli::queries::colfind::assert_query(&mut bots);
         
