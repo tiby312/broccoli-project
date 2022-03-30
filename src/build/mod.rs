@@ -66,23 +66,23 @@ pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 32;
 ///Using this struct the user can determine the height of a tree or the number of nodes
 ///that would exist if the tree were constructed with the specified number of elements.
 #[derive(Copy, Clone)]
-pub struct HeightCalculator {
+pub struct NumLevelCalculator {
     height: usize,
 }
 
-impl HeightCalculator {
+impl NumLevelCalculator {
     ///Create the builder object with default values.
-    pub const fn new(num_elements: usize) -> HeightCalculator {
+    pub const fn new(num_elements: usize) -> NumLevelCalculator {
         let height = compute_tree_height_heuristic(num_elements, DEFAULT_NUMBER_ELEM_PER_NODE);
-        HeightCalculator { height }
+        NumLevelCalculator { height }
     }
     ///Specify a custom default number of elements per leaf.
     pub const fn with_num_elem_in_leaf(
         num_elements: usize,
         num_elem_leaf: usize,
-    ) -> HeightCalculator {
+    ) -> NumLevelCalculator {
         let height = compute_tree_height_heuristic(num_elements, num_elem_leaf);
-        HeightCalculator { height }
+        NumLevelCalculator { height }
     }
 
     ///Compute the number of nodes in the tree based off of the height.
@@ -205,10 +205,11 @@ impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
     }
 }
 
-pub fn start_build<T: Aabb>(height: usize, bots: &mut [T]) -> TreeBister<T, DefaultSorter> {
+pub fn start_build<T: Aabb>(num_levels: usize, bots: &mut [T]) -> TreeBister<T, DefaultSorter> {
+    assert!(num_levels>=1);
     TreeBister {
         bots,
-        current_height: height,
+        current_height: num_levels-1,
         sorter: DefaultSorter,
         is_xaxis: true,
     }
@@ -235,7 +236,7 @@ impl<'a, T: Aabb, S: Sorter> TreeBister<'a, T, S> {
     }
     pub fn build_and_next(self) -> (NodeFinisher<'a, T, S>, Option<[TreeBister<'a, T, S>; 2]>) {
         //leaf case
-        if self.current_height == 1 {
+        if self.current_height == 0 {
             let n = NodeFinisher {
                 mid: self.bots,
                 div: None,
@@ -318,17 +319,16 @@ impl<'a, T: Aabb, S: Sorter> TreeBister<'a, T, S> {
     }
 
     pub fn recurse_seq(self, res: &mut Vec<Node<'a, T>>) {
-        let mut stack = vec![];
-        stack.push(self);
-
-        while let Some(s) = stack.pop() {
-            let (n, rest) = s.build_and_next();
-            res.push(n.finish());
-            if let Some([left, right]) = rest {
-                stack.push(left);
-                stack.push(right);
-            }
+        
+        let (n,rest)=self.build_and_next();
+        dbg!("hay");
+        res.push(n.finish());
+        if let Some([left,right])=rest{
+            dbg!("yo");
+            left.recurse_seq(res);
+            right.recurse_seq(res);
         }
+
     }
 }
 

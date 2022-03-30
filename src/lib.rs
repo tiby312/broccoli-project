@@ -147,7 +147,7 @@ pub struct Tree<'a, T: Aabb> {
 ///
 ///```
 pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
-    let calc = build::HeightCalculator::new(bots.len());
+    let calc = build::NumLevelCalculator::new(bots.len());
     let mut foo = Vec::with_capacity(calc.num_nodes());
     let height = calc.build();
     build::start_build(height, bots).recurse_seq(&mut foo);
@@ -159,7 +159,7 @@ where
     T: Send + Sync,
     T::Num: Send + Sync,
 {
-    let calc = build::HeightCalculator::new(bots.len());
+    let calc = build::NumLevelCalculator::new(bots.len());
     let mut foo = Vec::with_capacity(calc.num_nodes());
     let height = calc.build();
     let vistr = build::start_build(height, bots);
