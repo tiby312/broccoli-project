@@ -147,10 +147,10 @@ pub struct Tree<'a, T: Aabb> {
 ///
 ///```
 pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
-    let calc = build::NumLevelCalculator::new(bots.len());
-    let mut buffer = Vec::with_capacity(calc.num_nodes());
-    let height = calc.build();
-    build::start_build(height, bots).recurse_seq(&mut buffer);
+    let num_level = build::num_level::default(bots.len());
+    let mut buffer = Vec::with_capacity(build::num_level::num_nodes(num_level));
+    let vistr = build::start_build(num_level, bots);
+    vistr.recurse_seq(&mut buffer);
     build::into_tree(buffer)
 }
 
@@ -159,10 +159,9 @@ where
     T: Send + Sync,
     T::Num: Send + Sync,
 {
-    let calc = build::NumLevelCalculator::new(bots.len());
-    let mut buffer = Vec::with_capacity(calc.num_nodes());
-    let height = calc.build();
-    let vistr = build::start_build(height, bots);
+    let num_level = build::num_level::default(bots.len());
+    let mut buffer = Vec::with_capacity(build::num_level::num_nodes(num_level));
+    let vistr = build::start_build(num_level, bots);
     build::par::recurse_par(vistr, 5, &mut buffer);
     build::into_tree(buffer)
 }
