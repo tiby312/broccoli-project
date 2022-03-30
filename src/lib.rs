@@ -148,10 +148,10 @@ pub struct Tree<'a, T: Aabb> {
 ///```
 pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
     let calc = build::NumLevelCalculator::new(bots.len());
-    let mut foo = Vec::with_capacity(calc.num_nodes());
+    let mut buffer = Vec::with_capacity(calc.num_nodes());
     let height = calc.build();
-    build::start_build(height, bots).recurse_seq(&mut foo);
-    build::into_tree(foo)
+    build::start_build(height, bots).recurse_seq(&mut buffer);
+    build::into_tree(buffer)
 }
 
 pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
@@ -160,11 +160,11 @@ where
     T::Num: Send + Sync,
 {
     let calc = build::NumLevelCalculator::new(bots.len());
-    let mut foo = Vec::with_capacity(calc.num_nodes());
+    let mut buffer = Vec::with_capacity(calc.num_nodes());
     let height = calc.build();
     let vistr = build::start_build(height, bots);
-    build::par::recurse_par(vistr, 5, &mut foo);
-    build::into_tree(foo)
+    build::par::recurse_par(vistr, 5, &mut buffer);
+    build::into_tree(buffer)
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
@@ -447,9 +447,9 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// assert_eq!(res.len(),2);
     /// assert_eq!(res.total_len(),2);
     ///
-    /// let foo:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
+    /// let buffer:Vec<_>=res.iter().map(|a|*a[0].bot.inner).collect();
     ///
-    /// assert_eq!(foo,vec![vec2(7,7),vec2(5,5)]);
+    /// assert_eq!(buffer,vec![vec2(7,7),vec2(5,5)]);
     ///
     ///
     /// fn distance_squared(a:isize,b:isize)->isize{

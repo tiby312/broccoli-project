@@ -58,7 +58,6 @@ impl<'a, T: ?Sized> From<&'a mut T> for PMut<'a, T> {
     }
 }
 
-
 impl<'a, T> PMut<'a, T> {
     /// Convert a `PMut<T>` inside a `PMut<[T]>` of size one.
     #[inline(always)]
@@ -135,7 +134,7 @@ impl<'a, 'b: 'a, T: Aabb> PMut<'a, Node<'b, T>> {
     /// Return a mutable list of elements in this node.
     #[inline(always)]
     pub fn into_range(self) -> PMut<'a, [T]> {
-        unsafe { (&mut *self.inner).range.borrow_mut() }
+        unsafe { (*self.inner).range.borrow_mut() }
     }
 }
 

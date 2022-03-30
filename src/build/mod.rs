@@ -206,7 +206,6 @@ impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
 }
 
 pub fn start_build<T: Aabb>(num_levels: usize, bots: &mut [T]) -> TreeBister<T, DefaultSorter> {
-    dbg!(num_levels);
     assert!(num_levels >= 1);
     TreeBister {
         bots,
@@ -231,21 +230,26 @@ pub struct TreeBister<'a, T, S> {
     is_xaxis: bool,
 }
 
+pub struct Res<'a, T: Aabb, S> {
+    pub node: NodeFinisher<'a, T, S>,
+    pub rest: Option<[TreeBister<'a, T, S>; 2]>,
+}
+
 impl<'a, T: Aabb, S: Sorter> TreeBister<'a, T, S> {
     fn get_height(&self) -> usize {
         self.current_height
     }
-    pub fn build_and_next(self) -> (NodeFinisher<'a, T, S>, Option<[TreeBister<'a, T, S>; 2]>) {
+    pub fn build_and_next(self) -> Res<'a, T, S> {
         //leaf case
         if self.current_height == 0 {
-            let n = NodeFinisher {
+            let node = NodeFinisher {
                 mid: self.bots,
                 div: None,
                 is_xaxis: self.is_xaxis,
                 sorter: self.sorter,
             };
 
-            (n, None)
+            Res { node, rest: None }
         } else {
             fn construct_non_leaf<T: Aabb>(
                 div_axis: impl Axis,
@@ -299,9 +303,9 @@ impl<'a, T: Aabb, S: Sorter> TreeBister<'a, T, S> {
             let left = rr.left;
             let right = rr.right;
 
-            (
-                finish_node,
-                Some([
+            Res {
+                node: finish_node,
+                rest: Some([
                     TreeBister {
                         bots: left,
                         current_height: self.current_height.saturating_sub(1),
@@ -315,15 +319,14 @@ impl<'a, T: Aabb, S: Sorter> TreeBister<'a, T, S> {
                         is_xaxis: !self.is_xaxis,
                     },
                 ]),
-            )
+            }
         }
     }
 
     pub fn recurse_seq(self, res: &mut Vec<Node<'a, T>>) {
-        let (n, rest) = self.build_and_next();
-        res.push(n.finish());
+        let Res { node, rest } = self.build_and_next();
+        res.push(node.finish());
         if let Some([left, right]) = rest {
-            dbg!("yo");
             left.recurse_seq(res);
             right.recurse_seq(res);
         }

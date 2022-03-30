@@ -250,12 +250,12 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
                 CollVis {
                     vistr: left,
                     is_xaxis: !self.is_xaxis,
-                    handler: self.handler.clone(),
+                    handler: self.handler,
                 },
                 CollVis {
                     vistr: right,
                     is_xaxis: !self.is_xaxis,
-                    handler: self.handler.clone(),
+                    handler: self.handler,
                 },
             ])
         } else {
@@ -265,7 +265,6 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
 
     pub fn recurse_seq(self, prevec: &mut PreVec, func: &mut impl FnMut(PMut<T>, PMut<T>)) {
         if let Some([a, b]) = self.collide_and_next(prevec, func) {
-            dbg!("recursing!");
             a.recurse_seq(prevec, func);
             b.recurse_seq(prevec, func);
         }

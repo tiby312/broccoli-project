@@ -16,8 +16,8 @@ pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter, SS: Splitter>(
     res: &mut Vec<Node<'a, T>>,
     mut splitter: SS,
 ) -> SS {
-    let (n, rest) = vistr.build_and_next();
-    res.push(n.finish());
+    let Res { node, rest } = vistr.build_and_next();
+    res.push(node.finish());
     if let Some([left, right]) = rest {
         let (s1, s2) = splitter.div();
 
@@ -33,26 +33,25 @@ pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter, SS: Splitter>(
 pub fn recurse_par_splitter<'a, T: Aabb, S: Sorter, SS: Splitter + Send>(
     vistr: TreeBister<'a, T, S>,
     height_seq_fallback: usize,
-    foo: &mut Vec<Node<'a, T>>,
+    buffer: &mut Vec<Node<'a, T>>,
     mut splitter: SS,
 ) -> SS
 where
     T: Send,
     T::Num: Send,
 {
-    //TODO is the height of leafs zero???
     if vistr.get_height() <= height_seq_fallback {
-        vistr.recurse_seq(foo);
+        vistr.recurse_seq(buffer);
     } else {
-        let (n, rest) = vistr.build_and_next();
+        let Res { node, rest } = vistr.build_and_next();
 
         if let Some([left, right]) = rest {
             let (s1, s2) = splitter.div();
 
             let (s1, (mut a, s2)) = rayon_core::join(
                 || {
-                    foo.push(n.finish());
-                    recurse_par_splitter(left, height_seq_fallback, foo, s1)
+                    buffer.push(node.finish());
+                    recurse_par_splitter(left, height_seq_fallback, buffer, s1)
                 },
                 || {
                     let mut f = vec![];
@@ -62,7 +61,7 @@ where
             );
             splitter.add(s1, s2);
 
-            foo.append(&mut a);
+            buffer.append(&mut a);
         }
     }
 

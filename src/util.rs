@@ -54,6 +54,12 @@ mod prevec {
         vec: Vec<usize>,
     }
 
+    impl Default for PreVec {
+        fn default() -> Self {
+            PreVec::new()
+        }
+    }
+
     impl PreVec {
         #[allow(dead_code)]
         #[inline(always)]

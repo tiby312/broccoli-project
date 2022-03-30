@@ -3,22 +3,21 @@ use super::*;
 pub fn recurse_par<'a, T: Aabb, S: Sorter>(
     vistr: TreeBister<'a, T, S>,
     height_seq_fallback: usize,
-    foo: &mut Vec<Node<'a, T>>,
+    buffer: &mut Vec<Node<'a, T>>,
 ) where
     T: Send,
     T::Num: Send,
 {
-    //TODO is the height of leafs zero???
     if vistr.get_height() <= height_seq_fallback {
-        vistr.recurse_seq(foo);
+        vistr.recurse_seq(buffer);
     } else {
-        let (n, rest) = vistr.build_and_next();
+        let Res { node, rest } = vistr.build_and_next();
 
         if let Some([left, right]) = rest {
             let (_, mut a) = rayon_core::join(
                 || {
-                    foo.push(n.finish());
-                    recurse_par(left, height_seq_fallback, foo);
+                    buffer.push(node.finish());
+                    recurse_par(left, height_seq_fallback, buffer);
                 },
                 || {
                     let mut f = vec![];
@@ -27,7 +26,7 @@ pub fn recurse_par<'a, T: Aabb, S: Sorter>(
                 },
             );
 
-            foo.append(&mut a);
+            buffer.append(&mut a);
         }
     }
 }

@@ -50,8 +50,7 @@ pub fn bin_middle_left_right<'b, A: Axis, X: Aabb>(
 
     let (rest, right) = bots.split_at_mut(left_end);
     let (middle, left) = rest.split_at_mut(middle_end);
-    //println!("middile left right={:?}",(middle.len(),left.len(),right.len()));
-    debug_assert!(left.len() + right.len() + middle.len() == bot_len);
+    assert!(left.len() + right.len() + middle.len() == bot_len);
     Binned {
         middle,
         left,
