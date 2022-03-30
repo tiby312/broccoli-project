@@ -10,10 +10,11 @@ fn knearest_repro() {
 
     let mut tree = broccoli::new(&mut repro);
 
-    let mut handler = broccoli::helper::knearest_from_closure(
-        &tree,
+    use broccoli::pmut::PMut;
+    use broccoli::node::BBox;
+    let mut handler = broccoli::queries::knearest::from_closure(
         (),
-        |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0.)),
+        |_, point, a:PMut<BBox<f32,Vec2<f32>>>| Some(a.rect.distance_squared_to_point(point).unwrap_or(0.)),
         |_, point, a| a.inner.distance_squared_to_point(point),
         |_, point, a| (point.x - a).powi(2),
         |_, point, a| (point.y - a).powi(2),
@@ -24,7 +25,7 @@ fn knearest_repro() {
     assert_eq!(res.len(), 1);
     assert_eq!(res.total_len(), 1);
 
-    use broccoli::query::KnearestResult;
+    use broccoli::queries::knearest::KnearestResult;
     let r: &[KnearestResult<_>] = res.iter().next().unwrap();
     assert_eq!(r.len(), 1);
 }

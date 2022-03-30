@@ -35,7 +35,7 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     });
 
     let mut tree = crate::new(bots);
-    tree.colliding_pairs().recurse_seq(&mut prevec, |a, b| {
+    tree.colliding_pairs().recurse_seq(&mut prevec, &mut |a, b| {
         let a = into_ptr_usize(a.deref());
         let b = into_ptr_usize(b.deref());
         let k = if a < b { (a, b) } else { (b, a) };
@@ -46,7 +46,11 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     res_dino.sort_unstable();
 
     assert_eq!(res_naive.len(), res_dino.len());
-    assert!(res_naive.iter().eq(res_dino.iter()));
+
+    let a:Vec<_>=res_naive.iter().collect();
+    let b:Vec<_>=res_dino.iter().collect();
+    assert_eq!(a.len(),b.len());
+    assert_eq!(a,b);
 }
 
 ///Naive implementation
@@ -108,7 +112,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
     pub fn collide_and_next(
         mut self,
         prevec: &mut PreVec,
-        func: impl FnMut(PMut<T>, PMut<T>),
+        func: &mut impl FnMut(PMut<T>, PMut<T>),
     ) -> Option<[Self; 2]> {
         pub struct Recurser<'a, NO, C> {
             pub handler: &'a mut NO,
@@ -258,15 +262,14 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
         }
     }
 
-    pub fn recurse_seq(self, prevec: &mut PreVec, mut func: impl FnMut(PMut<T>, PMut<T>)) {
-        let mut stack = vec![];
-        stack.push(self);
+    pub fn recurse_seq(self, prevec: &mut PreVec, func: &mut impl FnMut(PMut<T>, PMut<T>)) {
+        
 
-        while let Some(n) = stack.pop() {
-            if let Some([a, b]) = n.collide_and_next(prevec, &mut func) {
-                stack.push(a);
-                stack.push(b);
-            }
+        if let Some([a,b])=self.collide_and_next(prevec,func){
+            a.recurse_seq(prevec,func);
+            b.recurse_seq(prevec,func);
         }
+
+
     }
 }

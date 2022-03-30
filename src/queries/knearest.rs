@@ -27,24 +27,53 @@ pub trait Knearest {
 }
 
 ///Create a handler that treats each object as its aabb rectangle shape.
-pub fn default_rect_knearest<T: Aabb>(tree: &Tree<T>) -> impl Knearest<T = T, N = T::Num>
+pub fn default_rect_knearest<T: Aabb>() -> DefaultKnearest<T>
 where
     T::Num: num_traits::Signed + num_traits::Zero,
 {
-    use num_traits::Signed;
-    use num_traits::Zero;
-    from_closure(
-        tree,
-        (),
-        |_, _, _| None,
-        |_, point, a| {
-            a.get()
-                .distance_squared_to_point(point)
+    DefaultKnearest{
+        _p:PhantomData
+    }
+}
+
+
+pub struct DefaultKnearest<T>{
+    _p:PhantomData<T>
+}
+
+impl<T:Aabb> Knearest for DefaultKnearest<T> where T::Num:num_traits::Signed + num_traits::Zero{
+    type T = T;
+    type N = T::Num;
+
+    fn distance_to_aaline<A: Axis>(
+        &mut self,
+        point: Vec2<Self::N>,
+        axis: A,
+        a: Self::N,
+    ) -> Self::N {
+        use num_traits::Signed;
+    
+        if axis.is_xaxis() {
+            (point.x - a).abs() * (point.x - a).abs()
+        } else {
+            (point.y - a).abs() * (point.y - a).abs()
+        }
+    }
+
+    fn distance_to_broad(
+        &mut self,
+        _point: Vec2<Self::N>,
+        _rect: PMut<Self::T>,
+    ) -> Option<Self::N> {
+        None
+    }
+
+    fn distance_to_fine(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N {
+        use num_traits::Zero;
+    
+        a.get().distance_squared_to_point(point)
                 .unwrap_or_else(T::Num::zero)
-        },
-        |_, point, a| (point.x - a).abs() * (point.x - a).abs(),
-        |_, point, a| (point.y - a).abs() * (point.y - a).abs(),
-    )
+    }
 }
 
 ///Hide the lifetime behind the RayCast trait
@@ -92,59 +121,18 @@ use crate::Tree;
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
 ///
-pub fn from_closure<Acc, T: Aabb>(
-    _tree: &Tree<T>,
+pub fn from_closure<Acc, T: Aabb,A,B,C,D>(
     acc: Acc,
-    broad: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
-    fine: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-    xline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    yline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-) -> impl Knearest<T = T, N = T::Num> {
-    ///Container of closures that implements [`Knearest`]
-    struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
-        pub _p: PhantomData<T>,
-        pub acc: Acc,
-        pub broad: B,
-        pub fine: C,
-        pub xline: D,
-        pub yline: E,
-    }
-
-    impl<'a, T: Aabb, Acc, B, C, D, E> Knearest for KnearestClosure<T, Acc, B, C, D, E>
-    where
-        B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
-        C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-        D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-        E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    {
-        type T = T;
-        type N = T::Num;
-
-        fn distance_to_aaline<A: Axis>(
-            &mut self,
-            point: Vec2<Self::N>,
-            axis: A,
-            val: Self::N,
-        ) -> Self::N {
-            if axis.is_xaxis() {
-                (self.xline)(&mut self.acc, point, val)
-            } else {
-                (self.yline)(&mut self.acc, point, val)
-            }
-        }
-
-        fn distance_to_broad(
-            &mut self,
-            point: Vec2<Self::N>,
-            rect: PMut<Self::T>,
-        ) -> Option<Self::N> {
-            (self.broad)(&mut self.acc, point, rect)
-        }
-
-        fn distance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
-            (self.fine)(&mut self.acc, point, bot)
-        }
-    }
+    broad: A ,
+    fine: B ,
+    xline: C ,
+    yline: D ,
+) -> KnearestClosure<T,Acc,A,B,C,D> 
+    where A: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
+          B:FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+          C:FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+          D:FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num{
+    
     KnearestClosure {
         _p: PhantomData,
         acc,
@@ -154,6 +142,53 @@ pub fn from_closure<Acc, T: Aabb>(
         yline,
     }
 }
+
+///Container of closures that implements [`Knearest`]
+pub struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
+    pub _p: PhantomData<T>,
+    pub acc: Acc,
+    pub broad: B,
+    pub fine: C,
+    pub xline: D,
+    pub yline: E,
+}
+
+impl<'a, T: Aabb, Acc, B, C, D, E> Knearest for KnearestClosure<T, Acc, B, C, D, E>
+where
+    B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
+    C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+    D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+    E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+{
+    type T = T;
+    type N = T::Num;
+
+    fn distance_to_aaline<A: Axis>(
+        &mut self,
+        point: Vec2<Self::N>,
+        axis: A,
+        val: Self::N,
+    ) -> Self::N {
+        if axis.is_xaxis() {
+            (self.xline)(&mut self.acc, point, val)
+        } else {
+            (self.yline)(&mut self.acc, point, val)
+        }
+    }
+
+    fn distance_to_broad(
+        &mut self,
+        point: Vec2<Self::N>,
+        rect: PMut<Self::T>,
+    ) -> Option<Self::N> {
+        (self.broad)(&mut self.acc, point, rect)
+    }
+
+    fn distance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
+        (self.fine)(&mut self.acc, point, bot)
+    }
+}
+
 
 /// Returned by k_nearest_mut
 #[derive(Debug)]

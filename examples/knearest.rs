@@ -1,4 +1,4 @@
-use axgeom::vec2;
+use axgeom::{vec2,Vec2};
 use broccoli::{bbox, rect};
 
 fn distance_squared(a: isize, b: isize) -> isize {
@@ -19,10 +19,13 @@ fn main() {
 
     let mut tree = broccoli::new(&mut bots);
 
+
+    use broccoli::pmut::PMut;
+    use broccoli::node::BBox;
+
     let mut handler = broccoli::queries::knearest::from_closure(
-        &tree,
         (),
-        |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),
+        |_, point, a:PMut<BBox<isize,&mut Vec2<isize>>>| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),
         |_, point, a| a.inner.distance_squared_to_point(point),
         |_, point, a| distance_squared(point.x, a),
         |_, point, a| distance_squared(point.y, a),

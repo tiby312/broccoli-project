@@ -5,8 +5,8 @@ pub fn recurse_par<'a, T: Aabb, S: Sorter>(
     height_seq_fallback: usize,
     foo: &mut Vec<Node<'a, T>>,
 ) where
-    T: Send + Sync,
-    T::Num: Send + Sync,
+    T: Send,
+    T::Num: Send,
 {
     //TODO is the height of leafs zero???
     if vistr.get_height() <= height_seq_fallback {

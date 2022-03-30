@@ -21,20 +21,22 @@ fn test_tie_knearest() {
         bbox(rect(6, 10, 0, 10), ()),
     ];
 
+
+    let mut handler = broccoli::queries::knearest::default_rect_knearest();
+    
+    broccoli::queries::knearest::assert_k_nearest_mut(&mut bots, vec2(15, 30), 2, &mut handler);
+
     let mut tree = broccoli::new(&mut bots);
 
-    let mut handler = broccoli::helper::default_rect_knearest(&tree);
     let mut res = tree.k_nearest_mut(vec2(15, 30), 2, &mut handler);
 
     assert_eq!(res.len(), 1);
     assert_eq!(res.total_len(), 2);
 
-    use broccoli::query::KnearestResult;
+    use broccoli::queries::knearest::KnearestResult;
     let r: &[KnearestResult<_>] = res.iter().next().unwrap();
     assert_eq!(r.len(), 2);
 
-    let handler = &mut broccoli::helper::default_rect_knearest(&tree);
-    broccoli::assert::assert_k_nearest_mut(&mut tree, vec2(15, 30), 2, handler);
 }
 
 #[test]
@@ -43,14 +45,20 @@ fn test_tie_raycast() {
     let mut bots: &mut [BBox<isize, ()>] =
         &mut [bbox(rect(0, 10, 0, 20), ()), bbox(rect(5, 10, 0, 20), ())];
 
-    let mut tree = broccoli::new(&mut bots);
+
+    let mut handler = broccoli::queries::raycast::default_rect_raycast();
 
     let ray = axgeom::Ray {
         point: vec2(15, 4),
         dir: vec2(-1, 0),
     };
 
-    let mut handler = broccoli::helper::default_rect_raycast(&tree);
+    broccoli::queries::raycast::assert_raycast(&mut bots, ray, &mut handler);
+    
+    
+    let mut tree = broccoli::new(&mut bots);
+
+
     let ans = tree.raycast_mut(ray, &mut handler);
 
     match ans {
@@ -63,8 +71,6 @@ fn test_tie_raycast() {
         }
     }
 
-    let mut handler = broccoli::helper::default_rect_raycast(&tree);
-    broccoli::assert::assert_raycast(&mut tree, ray, &mut handler);
 }
 
 #[test]

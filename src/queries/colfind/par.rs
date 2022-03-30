@@ -7,13 +7,13 @@ pub fn recurse_par<T: Aabb, N: NodeHandler>(
     vistr: CollVis<T, N>,
     prevec: &mut PreVec,
     height_seq_fallback: usize,
-    mut func: impl FnMut(PMut<T>, PMut<T>) + Clone + Send + Sync,
+    mut func: impl FnMut(PMut<T>, PMut<T>) + Clone + Send,
 ) where
-    T: Send + Sync,
-    T::Num: Send + Sync,
+    T: Send,
+    T::Num: Send,
 {
     if vistr.vistr.get_height() <= height_seq_fallback {
-        vistr.recurse_seq(prevec, func);
+        vistr.recurse_seq(prevec, &mut func);
     } else {
         let rest = vistr.collide_and_next(prevec, &mut func);
         let func2 = func.clone();

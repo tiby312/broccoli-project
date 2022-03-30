@@ -4,15 +4,14 @@ use super::*;
 use axgeom::Ray;
 
 ///Create a handler that just casts directly to the axis aligned rectangle
-pub fn default_rect_raycast<T: Aabb>(tree: &Tree<T>) -> impl RayCast<T = T, N = T::Num>
+pub fn default_rect_raycast<T: Aabb>() -> impl RayCast<T = T, N = T::Num>
 where
     T::Num: core::fmt::Debug + num_traits::Signed,
 {
     from_closure(
-        tree,
         (),
         |_, _, _| None,
-        |_, ray, a| ray.cast_to_rect(a.get()),
+        |_, ray, a:PMut<T>| ray.cast_to_rect(a.get()),
         |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
         |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
     )
@@ -72,7 +71,6 @@ use crate::Tree;
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
 pub fn from_closure<A, T: Aabb>(
-    _tree: &Tree<T>,
     acc: A,
     broad: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> Option<CastResult<T::Num>>,
     fine: impl FnMut(&mut A, &Ray<T::Num>, PMut<T>) -> CastResult<T::Num>,
