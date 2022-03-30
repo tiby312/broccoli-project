@@ -11,21 +11,20 @@ pub trait Splitter: Sized {
     fn add(&mut self, a: Self, b: Self);
 }
 
-pub fn recurse_seq<'a, T: Aabb, S: Sorter,SS:Splitter>(
+pub fn recurse_seq<'a, T: Aabb, S: Sorter, SS: Splitter>(
     vistr: TreeBister<'a, T, S>,
     res: &mut Vec<Node<'a, T>>,
-    mut splitter:SS
-)->SS {
-    
-    let (n,rest)=vistr.build_and_next();
+    mut splitter: SS,
+) -> SS {
+    let (n, rest) = vistr.build_and_next();
     res.push(n.finish());
-    if let Some([left, right]) = rest { 
-        let (s1,s2)=splitter.div();
+    if let Some([left, right]) = rest {
+        let (s1, s2) = splitter.div();
 
-        let s1=recurse_seq(left,res,s1);
-        let s2=recurse_seq(right,res,s2);
+        let s1 = recurse_seq(left, res, s1);
+        let s2 = recurse_seq(right, res, s2);
 
-        splitter.add(s1,s2);
+        splitter.add(s1, s2);
     }
 
     splitter

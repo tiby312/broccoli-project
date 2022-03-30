@@ -84,34 +84,26 @@ use alloc::vec::Vec;
 use axgeom::*;
 use compt::Visitor;
 
-
-
 //TODO use this thing!!!!
-pub struct Accumulator<T>{
-    expected_size:usize,
-    inner:Vec<T>
+pub struct Accumulator<T> {
+    expected_size: usize,
+    inner: Vec<T>,
 }
-impl<T> Accumulator<T>{
-    pub fn new(expected_size:usize)->Accumulator<T>{
-        Accumulator{
+impl<T> Accumulator<T> {
+    pub fn new(expected_size: usize) -> Accumulator<T> {
+        Accumulator {
             expected_size,
-            inner:Vec::with_capacity(expected_size)
+            inner: Vec::with_capacity(expected_size),
         }
     }
-    pub fn push(&mut self,a:T){
+    pub fn push(&mut self, a: T) {
         self.inner.push(a);
     }
-    pub fn build(self)->Vec<T>{
-        assert_eq!(self.expected_size,self.inner.len());
+    pub fn build(self) -> Vec<T> {
+        assert_eq!(self.expected_size, self.inner.len());
         self.inner
     }
 }
-
-
-
-
-
-
 
 #[cfg(test)]
 mod tests;
@@ -155,27 +147,27 @@ pub struct Tree<'a, T: Aabb> {
 ///
 ///```
 pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
-    Tree::new(bots)
+    let calc = build::HeightCalculator::new(bots.len());
+    let mut foo = Vec::with_capacity(calc.num_nodes());
+    let height = calc.build();
+    build::start_build(height, bots).recurse_seq(&mut foo);
+    build::into_tree(foo)
+}
+
+pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
+where
+    T: Send + Sync,
+    T::Num: Send + Sync,
+{
+    let calc = build::HeightCalculator::new(bots.len());
+    let mut foo = Vec::with_capacity(calc.num_nodes());
+    let height = calc.build();
+    let vistr = build::start_build(height, bots);
+    build::par::recurse_par(vistr, 5, &mut foo);
+    build::into_tree(foo)
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
-    ///Create a [`Tree`].
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let tree = broccoli::Tree::new(&mut bots);
-    ///
-    ///```
-    pub fn new(bots: &'a mut [T]) -> Tree<'a, T> {
-        let calc = build::HeightCalculator::new(bots.len());
-        let mut foo = Vec::with_capacity(calc.num_nodes());
-        let height = calc.build();
-        build::start_build(height, bots).recurse_seq(&mut foo);
-        build::into_tree(foo)
-    }
-
     /// # Examples
     ///
     ///```
