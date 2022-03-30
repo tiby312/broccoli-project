@@ -15,7 +15,6 @@ pub const fn default_axis() -> DefaultA {
 
 mod oned;
 
-pub use builder::TreeBuilder;
 mod builder;
 
 ///For cases where you don't care about any of the callbacks that Splitter provides, this implements them all to do nothing.
@@ -44,12 +43,12 @@ pub trait Splitter: Sized {
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one
 ///does nothing when sort() is called.
-trait Sorter: Copy + Clone + Send + Sync {
+pub trait Sorter: Copy + Clone + Send + Sync {
     fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]);
 }
 
 #[derive(Copy, Clone)]
-struct DefaultSorter;
+pub struct DefaultSorter;
 
 impl Sorter for DefaultSorter {
     fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]) {
@@ -113,11 +112,6 @@ impl TreePreBuilder {
         TreePreBuilder { height }
     }
 
-    ///Create a `TreeBuilder`
-    pub fn into_builder<T: Aabb>(self, bots: &mut [T]) -> TreeBuilder<T> {
-        TreeBuilder::from_prebuilder(bots, self)
-    }
-
     ///Compute the number of nodes in the tree based off of the height.
     pub const fn num_nodes(&self) -> usize {
         nodes_left(0, self.height)
@@ -161,18 +155,6 @@ const fn log_2(x: u64) -> u64 {
 pub struct NotSorted<'a, T: Aabb>(pub Tree<'a, T>);
 
 impl<'a, T: Aabb> NotSorted<'a, T> {
-    pub fn new(bots: &'a mut [T]) -> NotSorted<'a, T> {
-        TreeBuilder::new(bots).build_not_sorted_seq()
-    }
-
-    pub fn new_par(joiner: impl crate::Joinable, bots: &'a mut [T]) -> NotSorted<'a, T>
-    where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        TreeBuilder::new(bots).build_not_sorted_par(joiner)
-    }
-
     #[inline(always)]
     pub fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
         self.0.vistr_mut()

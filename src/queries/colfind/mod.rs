@@ -7,7 +7,6 @@ pub use self::node_handle::*;
 use super::tools;
 use super::*;
 
-
 //TODO remove
 pub trait CollisionHandler {
     type T: Aabb;
@@ -89,26 +88,39 @@ pub fn query_sweep_mut<T: Aabb>(
     );
 }
 
-
-
-pub fn recurse_par<T:Aabb,N:NodeHandler>(vistr:CollVis<T,N>,num_thread:usize,func: impl FnMut(PMut<T>, PMut<T>)+Clone+Send+Sync) where T:Send+Sync,T::Num:Send+Sync{
+///
+/// height_seq_fallback: if a subtree has this height, it will be processed as one unit sequentially.
+///
+pub fn recurse_par<T: Aabb, N: NodeHandler>(
+    vistr: CollVis<T, N>,
+    height_seq_fallback: usize,
+    func: impl FnMut(PMut<T>, PMut<T>) + Clone + Send + Sync,
+) where
+    T: Send + Sync,
+    T::Num: Send + Sync,
+{
     use crossbeam_queue::ArrayQueue;
 
-    let queue=ArrayQueue::<CollVis<T, N>>::new(2i32.pow(vistr.vistr.get_height() as u32) as usize);
-    queue.push(vistr).map_err(|_|()).unwrap();
-    
-    rayon_core::scope(|f|{
-        for _ in 0..num_thread{
-            f.spawn(|_|{
-                let mut func=func.clone();
-                let mut p=PreVec::new();
-                
-                
-                while let Some(a)=queue.pop(){
-                    let rest=a.collide_and_next(&mut p,&mut func);
-                    if let Some([left,right])=rest{
-                        queue.push(left).map_err(|_|()).unwrap();
-                        queue.push(right).map_err(|_|()).unwrap();
+    let k = vistr.vistr.get_height().saturating_sub(height_seq_fallback);
+
+    let queue = ArrayQueue::<CollVis<T, N>>::new(2i32.pow(k as u32) as usize);
+    queue.push(vistr).map_err(|_| ()).unwrap();
+
+    rayon_core::scope(|f| {
+        for _ in 0..rayon_core::current_num_threads() {
+            f.spawn(|_| {
+                let mut func = func.clone();
+                let mut p = PreVec::new();
+
+                while let Some(a) = queue.pop() {
+                    if a.vistr.get_height() <= height_seq_fallback {
+                        a.recurse_seq(&mut p, &mut func);
+                    } else {
+                        let rest = a.collide_and_next(&mut p, &mut func);
+                        if let Some([left, right]) = rest {
+                            queue.push(left).map_err(|_| ()).unwrap();
+                            queue.push(right).map_err(|_| ()).unwrap();
+                        }
                     }
                 }
             });
@@ -116,9 +128,20 @@ pub fn recurse_par<T:Aabb,N:NodeHandler>(vistr:CollVis<T,N>,num_thread:usize,fun
     });
 }
 
-
-
-
+pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler, SS: Splitter>(
+    mut vistr: CollVis<T, S>,
+    mut splitter: SS,
+    prevec: &mut PreVec,
+    mut func: impl FnMut(PMut<T>, PMut<T>),
+) -> SS {
+    if let Some([left, right]) = vistr.collide_and_next(prevec, &mut func) {
+        let (s1, s2) = splitter.div();
+        let al = recurse_seq_splitter(left, s1, prevec, &mut func);
+        let ar = recurse_seq_splitter(right, s2, prevec, &mut func);
+        splitter.add(al, ar);
+    }
+    splitter
+}
 
 pub struct CollVis<'a, 'b, T: Aabb, N> {
     vistr: VistrMut<'b, Node<'a, T>>,
@@ -298,29 +321,4 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
             }
         }
     }
-
-
-    pub fn recurse_seq_splitter<S: Splitter>(
-        self,
-        mut splitter: S,
-        prevec: &mut PreVec,
-        mut func: impl FnMut(PMut<T>, PMut<T>),
-    ) -> S {
-        #[inline(always)]
-        fn finish_splitter<S: Splitter>(mut a: S, b: S, c: S) -> S {
-            a.add(b, c);
-            a
-        }
-
-        if let Some([left, right]) = self.collide_and_next(prevec, &mut func) {
-            let (s1, s2) = splitter.div();
-            let al = left.recurse_seq_splitter(s1, prevec, &mut func);
-            let ar = right.recurse_seq_splitter(s2, prevec, &mut func);
-            finish_splitter(splitter, al, ar)
-        } else {
-            splitter
-        }
-    }
 }
-
-

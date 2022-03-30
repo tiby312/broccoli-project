@@ -92,7 +92,6 @@ pub mod build;
 
 pub mod queries;
 
-
 pub mod pmut;
 
 ///Contains node-level building block structs and visitors used for a [`Tree`].
@@ -109,9 +108,6 @@ pub use axgeom::rect;
 pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
-
-
-use build::TreeBuilder;
 
 type TreeInner<N> = compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
 
@@ -139,22 +135,6 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
     Tree::new(bots)
 }
 
-///Create a [`Tree`] in parallel.
-///
-/// # Examples
-///
-///```
-/// let mut bots = [axgeom::rect(0,10,0,10)];
-/// let tree = broccoli::new_par(broccoli::par::RayonJoin,&mut bots);
-///
-///```
-pub fn new_par<T: Aabb + Send + Sync>(joiner: impl crate::Joinable, bots: &mut [T]) -> Tree<T>
-where
-    T::Num: Send + Sync,
-{
-    Tree::new_par(joiner, bots)
-}
-
 impl<'a, T: Aabb> Tree<'a, T> {
     ///Create a [`Tree`].
     ///
@@ -166,23 +146,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     ///```
     pub fn new(bots: &'a mut [T]) -> Tree<'a, T> {
-        TreeBuilder::new(bots).build_seq()
-    }
-    ///Create a [`Tree`] in parallel.
-    ///
-    /// # Examples
-    ///
-    ///```
-    /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let tree = broccoli::Tree::new_par(broccoli::par::RayonJoin,&mut bots);
-    ///
-    ///```
-    pub fn new_par(joiner: impl crate::Joinable, bots: &'a mut [T]) -> Tree<'a, T>
-    where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        TreeBuilder::new(bots).build_par(joiner)
+        unimplemented!();
     }
 
     /// # Examples

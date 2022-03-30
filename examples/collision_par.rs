@@ -23,8 +23,7 @@ fn main() {
     //Find all colliding aabbs.
     let col = tree.colliding_pairs();
 
-
-    broccoli::queries::colfind::recurse_par(col,10, |a,b|{
+    broccoli::queries::colfind::recurse_par(col, 3, |a, b| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
     });
