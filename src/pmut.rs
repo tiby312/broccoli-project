@@ -33,15 +33,6 @@ pub trait HasInner: Aabb {
     fn get_inner_mut(&mut self) -> &mut Self::Inner;
 }
 
-/// See the pmut module documentation for more explanation.
-#[repr(transparent)]
-pub(crate) struct PMutPtr<T: ?Sized> {
-    _inner: *mut T,
-}
-
-unsafe impl<T: ?Sized> Send for PMutPtr<T> {}
-unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
-
 /// A protected mutable reference that derefs to `&T`.
 /// See the pmut module documentation for more explanation.
 #[repr(transparent)]
@@ -66,15 +57,7 @@ impl<'a, T: ?Sized> From<&'a mut T> for PMut<'a, T> {
         PMut::new(a)
     }
 }
-/*
-impl<'a, 'b: 'a, T> PMut<'a, PMut<'b, T>> {
-    /// Flatten a double pointer
-    #[inline(always)]
-    pub fn flatten(self) -> PMut<'a, T> {
-        PMut::new(self.inner.inner)
-    }
-}
-*/
+
 
 impl<'a, T> PMut<'a, T> {
     /// Convert a `PMut<T>` inside a `PMut<[T]>` of size one.
