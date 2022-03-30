@@ -84,6 +84,35 @@ use alloc::vec::Vec;
 use axgeom::*;
 use compt::Visitor;
 
+
+
+//TODO use this thing!!!!
+pub struct Accumulator<T>{
+    expected_size:usize,
+    inner:Vec<T>
+}
+impl<T> Accumulator<T>{
+    pub fn new(expected_size:usize)->Accumulator<T>{
+        Accumulator{
+            expected_size,
+            inner:Vec::with_capacity(expected_size)
+        }
+    }
+    pub fn push(&mut self,a:T){
+        self.inner.push(a);
+    }
+    pub fn build(self)->Vec<T>{
+        assert_eq!(self.expected_size,self.inner.len());
+        self.inner
+    }
+}
+
+
+
+
+
+
+
 #[cfg(test)]
 mod tests;
 
