@@ -207,10 +207,10 @@ impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
 
 pub fn start_build<T: Aabb>(num_levels: usize, bots: &mut [T]) -> TreeBister<T, DefaultSorter> {
     dbg!(num_levels);
-    assert!(num_levels>=1);
+    assert!(num_levels >= 1);
     TreeBister {
         bots,
-        current_height: num_levels-1,
+        current_height: num_levels - 1,
         sorter: DefaultSorter,
         is_xaxis: true,
     }
@@ -320,15 +320,13 @@ impl<'a, T: Aabb, S: Sorter> TreeBister<'a, T, S> {
     }
 
     pub fn recurse_seq(self, res: &mut Vec<Node<'a, T>>) {
-        
-        let (n,rest)=self.build_and_next();
+        let (n, rest) = self.build_and_next();
         res.push(n.finish());
-        if let Some([left,right])=rest{
+        if let Some([left, right]) = rest {
             dbg!("yo");
             left.recurse_seq(res);
             right.recurse_seq(res);
         }
-
     }
 }
 

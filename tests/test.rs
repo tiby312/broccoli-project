@@ -21,9 +21,8 @@ fn test_tie_knearest() {
         bbox(rect(6, 10, 0, 10), ()),
     ];
 
-
     let mut handler = broccoli::queries::knearest::default_rect_knearest();
-    
+
     broccoli::queries::knearest::assert_k_nearest_mut(&mut bots, vec2(15, 30), 2, &mut handler);
 
     let mut tree = broccoli::new(&mut bots);
@@ -36,16 +35,13 @@ fn test_tie_knearest() {
     use broccoli::queries::knearest::KnearestResult;
     let r: &[KnearestResult<_>] = res.iter().next().unwrap();
     assert_eq!(r.len(), 2);
-
 }
-
 
 #[test]
 fn test_tie_raycast() {
     use broccoli::*;
     let mut bots: &mut [BBox<isize, ()>] =
         &mut [bbox(rect(0, 10, 0, 20), ()), bbox(rect(5, 10, 0, 20), ())];
-
 
     let mut handler = broccoli::queries::raycast::default_rect_raycast();
 
@@ -55,10 +51,8 @@ fn test_tie_raycast() {
     };
 
     broccoli::queries::raycast::assert_raycast(&mut bots, ray, &mut handler);
-    
-    
-    let mut tree = broccoli::new(&mut bots);
 
+    let mut tree = broccoli::new(&mut bots);
 
     let ans = tree.raycast_mut(ray, &mut handler);
 
@@ -71,9 +65,7 @@ fn test_tie_raycast() {
             panic!("should have hit");
         }
     }
-
 }
-
 
 #[test]
 fn test_zero_sized() {

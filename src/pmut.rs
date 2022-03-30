@@ -24,6 +24,7 @@
 //! ```
 
 use crate::*;
+use core::marker::PhantomData;
 
 /// Trait exposes an api where you can return a read-only reference to the axis-aligned bounding box
 /// and at the same time return a mutable reference to a separate inner section.
@@ -46,14 +47,17 @@ unsafe impl<T: ?Sized> Sync for PMutPtr<T> {}
 #[repr(transparent)]
 #[derive(Debug)]
 pub struct PMut<'a, T: ?Sized> {
-    inner: &'a mut T,
+    inner: *mut T,
+    _p: PhantomData<&'a mut T>,
 }
+unsafe impl<T: ?Sized> Send for PMut<'_, T> {}
+unsafe impl<T: ?Sized> Sync for PMut<'_, T> {}
 
 impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
     type Target = T;
     #[inline(always)]
     fn deref(&self) -> &T {
-        self.inner
+        unsafe { &*self.inner }
     }
 }
 
@@ -62,7 +66,7 @@ impl<'a, T: ?Sized> From<&'a mut T> for PMut<'a, T> {
         PMut::new(a)
     }
 }
-
+/*
 impl<'a, 'b: 'a, T> PMut<'a, PMut<'b, T>> {
     /// Flatten a double pointer
     #[inline(always)]
@@ -70,13 +74,15 @@ impl<'a, 'b: 'a, T> PMut<'a, PMut<'b, T>> {
         PMut::new(self.inner.inner)
     }
 }
+*/
 
 impl<'a, T> PMut<'a, T> {
     /// Convert a `PMut<T>` inside a `PMut<[T]>` of size one.
     #[inline(always)]
     pub fn into_slice(self) -> PMut<'a, [T]> {
         PMut {
-            inner: core::slice::from_mut(self.inner),
+            inner: unsafe { core::slice::from_raw_parts_mut(self.inner, 1) as *mut _ },
+            _p: PhantomData,
         }
     }
 }
@@ -84,18 +90,24 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     /// Create a protected pointer.
     #[inline(always)]
     pub fn new(inner: &'a mut T) -> PMut<'a, T> {
-        PMut { inner }
+        PMut {
+            inner: inner as *mut _,
+            _p: PhantomData,
+        }
     }
 
     /// Start a new borrow lifetime
     #[inline(always)]
     pub fn borrow_mut(&mut self) -> PMut<T> {
-        PMut { inner: self.inner }
+        PMut {
+            inner: self.inner as *mut _,
+            _p: PhantomData,
+        }
     }
 
     #[inline(always)]
     pub fn into_ref(self) -> &'a T {
-        self.inner
+        unsafe { &*self.inner }
     }
 
     /// If this function were safe, it would
@@ -108,7 +120,7 @@ impl<'a, T: ?Sized> PMut<'a, T> {
     /// point of this struct.
     #[inline(always)]
     pub unsafe fn into_inner(self) -> &'a mut T {
-        self.inner
+        &mut *self.inner
     }
 }
 
@@ -123,22 +135,24 @@ impl<'a, 'b: 'a, T: Aabb> PMut<'a, Node<'b, T>> {
     /// Destructure a node into its three parts.
     #[inline(always)]
     pub fn into_node_ref(self) -> NodeRef<'a, T> {
-        NodeRef {
-            div: &self.inner.div,
-            cont: &self.inner.cont,
-            range: self.inner.range.borrow_mut(),
+        unsafe {
+            NodeRef {
+                div: &(*self.inner).div,
+                cont: &(*self.inner).cont,
+                range: (*self.inner).range.borrow_mut(),
+            }
         }
     }
 
     #[inline(always)]
-    pub fn get_cont(&self) -> &'a Range<T::Num> {
+    pub fn get_cont(&self) -> &Range<T::Num> {
         unsafe { &*(&self.cont as *const _) }
     }
 
     /// Return a mutable list of elements in this node.
     #[inline(always)]
     pub fn into_range(self) -> PMut<'a, [T]> {
-        self.inner.range.borrow_mut()
+        unsafe { (&mut *self.inner).range.borrow_mut() }
     }
 }
 
@@ -153,7 +167,7 @@ impl<'a, T: Aabb> PMut<'a, T> {
     }
     #[inline(always)]
     pub fn unpack_rect(self) -> &'a Rect<T::Num> {
-        self.inner.get()
+        unsafe { { &(*self.inner) }.get() }
     }
 }
 
@@ -161,7 +175,7 @@ impl<'a, T: HasInner> PMut<'a, T> {
     /// Unpack only the mutable innner component
     #[inline(always)]
     pub fn unpack_inner(self) -> &'a mut T::Inner {
-        self.inner.get_inner_mut()
+        unsafe { (&mut *self.inner).get_inner_mut() }
     }
 }
 
@@ -169,7 +183,7 @@ unsafe impl<'a, T: Aabb> Aabb for PMut<'a, T> {
     type Num = T::Num;
     #[inline(always)]
     fn get(&self) -> &Rect<Self::Num> {
-        self.inner.get()
+        unsafe { &*self.inner }.get()
     }
 }
 
@@ -179,46 +193,68 @@ impl<'a, T> PMut<'a, [T]> {
     /// to return a mutable reference.
     #[inline(always)]
     pub fn get_index_mut(self, ind: usize) -> PMut<'a, T> {
-        PMut::new(&mut self.inner[ind])
+        PMut::new(unsafe { &mut (*self.inner)[ind] })
     }
 
     /// Split off the first element.
     #[inline(always)]
     pub fn split_first_mut(self) -> Option<(PMut<'a, T>, PMut<'a, [T]>)> {
-        self.inner
-            .split_first_mut()
-            .map(|(first, inner)| (PMut { inner: first }, PMut { inner }))
+        unsafe {
+            self.into_inner().split_first_mut().map(|(first, inner)| {
+                (
+                    PMut {
+                        inner: first as *mut _,
+                        _p: PhantomData,
+                    },
+                    PMut {
+                        inner: inner as *mut _,
+                        _p: PhantomData,
+                    },
+                )
+            })
+        }
     }
 
     /// Return a smaller slice that ends with the specified index.
     #[inline(always)]
     pub fn truncate_to(self, a: core::ops::RangeTo<usize>) -> Self {
-        PMut {
-            inner: &mut self.inner[a],
+        unsafe {
+            PMut {
+                inner: &mut (*self.inner)[a],
+                _p: PhantomData,
+            }
         }
     }
 
     /// Return a smaller slice that starts at the specified index.
     #[inline(always)]
     pub fn truncate_from(self, a: core::ops::RangeFrom<usize>) -> Self {
-        PMut {
-            inner: &mut self.inner[a],
+        unsafe {
+            PMut {
+                inner: &mut (*self.inner)[a],
+                _p: PhantomData,
+            }
         }
     }
 
     /// Return a smaller slice that starts and ends with the specified range.
     #[inline(always)]
     pub fn truncate(self, a: core::ops::Range<usize>) -> Self {
-        PMut {
-            inner: &mut self.inner[a],
+        unsafe {
+            PMut {
+                inner: &mut (*self.inner)[a],
+                _p: PhantomData,
+            }
         }
     }
 
     /// Return a mutable iterator.
     #[inline(always)]
     pub fn iter_mut(self) -> PMutIter<'a, T> {
-        PMutIter {
-            inner: self.inner.iter_mut(),
+        unsafe {
+            PMutIter {
+                inner: (*self.inner).iter_mut(),
+            }
         }
     }
 }
@@ -242,7 +278,10 @@ impl<'a, T> Iterator for PMutIter<'a, T> {
 
     #[inline(always)]
     fn next(&mut self) -> Option<PMut<'a, T>> {
-        self.inner.next().map(|inner| PMut { inner })
+        self.inner.next().map(|inner| PMut {
+            inner,
+            _p: PhantomData,
+        })
     }
 
     #[inline(always)]
@@ -257,6 +296,9 @@ impl<'a, T> core::iter::ExactSizeIterator for PMutIter<'a, T> {}
 impl<'a, T> DoubleEndedIterator for PMutIter<'a, T> {
     #[inline(always)]
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.inner.next_back().map(|inner| PMut { inner })
+        self.inner.next_back().map(|inner| PMut {
+            inner,
+            _p: PhantomData,
+        })
     }
 }

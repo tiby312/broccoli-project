@@ -31,17 +31,17 @@ pub fn default_rect_knearest<T: Aabb>() -> DefaultKnearest<T>
 where
     T::Num: num_traits::Signed + num_traits::Zero,
 {
-    DefaultKnearest{
-        _p:PhantomData
-    }
+    DefaultKnearest { _p: PhantomData }
 }
 
-
-pub struct DefaultKnearest<T>{
-    _p:PhantomData<T>
+pub struct DefaultKnearest<T> {
+    _p: PhantomData<T>,
 }
 
-impl<T:Aabb> Knearest for DefaultKnearest<T> where T::Num:num_traits::Signed + num_traits::Zero{
+impl<T: Aabb> Knearest for DefaultKnearest<T>
+where
+    T::Num: num_traits::Signed + num_traits::Zero,
+{
     type T = T;
     type N = T::Num;
 
@@ -52,7 +52,7 @@ impl<T:Aabb> Knearest for DefaultKnearest<T> where T::Num:num_traits::Signed + n
         a: Self::N,
     ) -> Self::N {
         use num_traits::Signed;
-    
+
         if axis.is_xaxis() {
             (point.x - a).abs() * (point.x - a).abs()
         } else {
@@ -70,9 +70,10 @@ impl<T:Aabb> Knearest for DefaultKnearest<T> where T::Num:num_traits::Signed + n
 
     fn distance_to_fine(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N {
         use num_traits::Zero;
-    
-        a.get().distance_squared_to_point(point)
-                .unwrap_or_else(T::Num::zero)
+
+        a.get()
+            .distance_squared_to_point(point)
+            .unwrap_or_else(T::Num::zero)
     }
 }
 
@@ -121,18 +122,19 @@ use crate::Tree;
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
 ///
-pub fn from_closure<Acc, T: Aabb,A,B,C,D>(
+pub fn from_closure<Acc, T: Aabb, A, B, C, D>(
     acc: Acc,
-    broad: A ,
-    fine: B ,
-    xline: C ,
-    yline: D ,
-) -> KnearestClosure<T,Acc,A,B,C,D> 
-    where A: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
-          B:FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-          C:FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-          D:FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num{
-    
+    broad: A,
+    fine: B,
+    xline: C,
+    yline: D,
+) -> KnearestClosure<T, Acc, A, B, C, D>
+where
+    A: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
+    B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
+    C: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+    D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+{
     KnearestClosure {
         _p: PhantomData,
         acc,
@@ -176,11 +178,7 @@ where
         }
     }
 
-    fn distance_to_broad(
-        &mut self,
-        point: Vec2<Self::N>,
-        rect: PMut<Self::T>,
-    ) -> Option<Self::N> {
+    fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Option<Self::N> {
         (self.broad)(&mut self.acc, point, rect)
     }
 
@@ -188,7 +186,6 @@ where
         (self.fine)(&mut self.acc, point, bot)
     }
 }
-
 
 /// Returned by k_nearest_mut
 #[derive(Debug)]
@@ -424,7 +421,7 @@ pub fn assert_k_nearest_mut<T: Aabb>(
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
     }
-    
+
     let mut tree = crate::new(bots);
     let r = tree.k_nearest_mut(point, num, knear);
     let mut res_dino: Vec<_> = r
@@ -434,10 +431,10 @@ pub fn assert_k_nearest_mut<T: Aabb>(
         .collect();
 
     let mut res_naive = naive_k_nearest_mut(PMut::new(bots), point, num, knear)
-    .into_vec()
-    .drain(..)
-    .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
-    .collect::<Vec<_>>();
+        .into_vec()
+        .drain(..)
+        .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+        .collect::<Vec<_>>();
 
     res_naive.sort_by(|a, b| a.partial_cmp(b).unwrap());
     res_dino.sort_by(|a, b| a.partial_cmp(b).unwrap());

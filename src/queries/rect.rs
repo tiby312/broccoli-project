@@ -229,7 +229,6 @@ fn into_ptr_usize<T>(a: &T) -> usize {
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_for_all_not_in_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom::Rect<T::Num>) {
-    
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     tree.for_all_not_in_rect_mut(rect, |a| {
@@ -250,7 +249,6 @@ pub fn assert_for_all_not_in_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom::Re
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_for_all_intersect_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom::Rect<T::Num>) {
-    
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     tree.for_all_intersect_rect_mut(rect, |a| {
@@ -270,7 +268,6 @@ pub fn assert_for_all_intersect_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom:
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_for_all_in_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom::Rect<T::Num>) {
-    
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     tree.for_all_in_rect_mut(rect, |a| {

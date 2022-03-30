@@ -20,10 +20,11 @@ fn main() {
     let mut prevec = broccoli::util::PreVec::new();
 
     //Find all colliding aabbs.
-    tree.colliding_pairs().recurse_seq(&mut prevec, &mut |a, b| {
-        **a.unpack_inner() += 1;
-        **b.unpack_inner() += 1;
-    });
+    tree.colliding_pairs()
+        .recurse_seq(&mut prevec, &mut |a, b| {
+            **a.unpack_inner() += 1;
+            **b.unpack_inner() += 1;
+        });
 
     assert_eq!(inner1, 1);
     assert_eq!(inner2, 0);

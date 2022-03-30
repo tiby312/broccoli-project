@@ -11,7 +11,7 @@ where
     from_closure(
         (),
         |_, _, _| None,
-        |_, ray, a:PMut<T>| ray.cast_to_rect(a.get()),
+        |_, ray, a: PMut<T>| ray.cast_to_rect(a.get()),
         |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
         |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
     )
@@ -298,7 +298,7 @@ pub fn assert_raycast<T: Aabb>(
         a as *const T as usize
     }
     let mut res_naive = Vec::new();
-    
+
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     match tree.raycast_mut(ray, rtrait) {

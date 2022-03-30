@@ -107,14 +107,16 @@ impl NodeHandler for HandleSorted {
     ) {
         if !current.axis.is_equal_to(anchor.axis) {
             let cc1 = anchor.node.get_cont();
-            let cc2 = current.node.get_cont();
 
-            let r1 = super::tools::get_section_mut(anchor.axis, current.node.into_range(), cc1);
+            //let cc2 = current.node.get_cont();
+            let cc2 = current.node.into_node_ref();
+
+            let r1 = super::tools::get_section_mut(anchor.axis, cc2.range, cc1);
 
             let r2 = super::tools::get_section_mut(
                 current.axis,
                 anchor.node.borrow_mut().into_range(),
-                cc2,
+                cc2.cont,
             );
 
             oned::find_perp_2d1(current.axis, r1, r2, func);

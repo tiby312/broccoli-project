@@ -27,13 +27,13 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     let mut prevec = PreVec::new();
 
     let mut tree = crate::new(bots);
-    tree.colliding_pairs().recurse_seq(&mut prevec, &mut |a, b| {
-        let a = into_ptr_usize(a.deref());
-        let b = into_ptr_usize(b.deref());
-        let k = if a < b { (a, b) } else { (b, a) };
-        res_dino.push(k);
-    });
-
+    tree.colliding_pairs()
+        .recurse_seq(&mut prevec, &mut |a, b| {
+            let a = into_ptr_usize(a.deref());
+            let b = into_ptr_usize(b.deref());
+            let k = if a < b { (a, b) } else { (b, a) };
+            res_dino.push(k);
+        });
 
     let mut res_naive = Vec::new();
     query_naive_mut(PMut::new(bots), |a, b| {
@@ -48,10 +48,10 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
 
     assert_eq!(res_naive.len(), res_dino.len());
 
-    let a:Vec<_>=res_naive.iter().collect();
-    let b:Vec<_>=res_dino.iter().collect();
-    assert_eq!(a.len(),b.len());
-    assert_eq!(a,b);
+    let a: Vec<_> = res_naive.iter().collect();
+    let b: Vec<_> = res_dino.iter().collect();
+    assert_eq!(a.len(), b.len());
+    assert_eq!(a, b);
 }
 
 ///Naive implementation
@@ -264,13 +264,10 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
     }
 
     pub fn recurse_seq(self, prevec: &mut PreVec, func: &mut impl FnMut(PMut<T>, PMut<T>)) {
-        
-        if let Some([a,b])=self.collide_and_next(prevec,func){
+        if let Some([a, b]) = self.collide_and_next(prevec, func) {
             dbg!("recursing!");
-            a.recurse_seq(prevec,func);
-            b.recurse_seq(prevec,func);
+            a.recurse_seq(prevec, func);
+            b.recurse_seq(prevec, func);
         }
-
-
     }
 }

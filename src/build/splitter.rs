@@ -30,12 +30,13 @@ pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter, SS: Splitter>(
     splitter
 }
 
-pub fn recurse_par_splitter<'a, T: Aabb, S: Sorter,SS:Splitter+Send>(
+pub fn recurse_par_splitter<'a, T: Aabb, S: Sorter, SS: Splitter + Send>(
     vistr: TreeBister<'a, T, S>,
     height_seq_fallback: usize,
     foo: &mut Vec<Node<'a, T>>,
-    mut splitter:SS
-)->SS where
+    mut splitter: SS,
+) -> SS
+where
     T: Send,
     T::Num: Send,
 {
@@ -48,18 +49,18 @@ pub fn recurse_par_splitter<'a, T: Aabb, S: Sorter,SS:Splitter+Send>(
         if let Some([left, right]) = rest {
             let (s1, s2) = splitter.div();
 
-            let (s1, (mut a,s2)) = rayon_core::join(
+            let (s1, (mut a, s2)) = rayon_core::join(
                 || {
                     foo.push(n.finish());
-                    recurse_par_splitter(left, height_seq_fallback, foo,s1)
+                    recurse_par_splitter(left, height_seq_fallback, foo, s1)
                 },
                 || {
                     let mut f = vec![];
-                    let v=recurse_par_splitter(right, height_seq_fallback, &mut f,s2);
-                    (f,v)
+                    let v = recurse_par_splitter(right, height_seq_fallback, &mut f, s2);
+                    (f, v)
                 },
             );
-            splitter.add(s1,s2);
+            splitter.add(s1, s2);
 
             foo.append(&mut a);
         }

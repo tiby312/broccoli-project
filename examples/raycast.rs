@@ -19,13 +19,13 @@ fn main() {
         dir: vec2(1, 0),
     };
 
-    use broccoli::pmut::PMut;
     use broccoli::node::BBox;
+    use broccoli::pmut::PMut;
 
     let mut handler = broccoli::queries::raycast::from_closure(
         (),
         |_, _, _| None,
-        |_, ray, a:PMut<BBox<isize,&mut isize>>| ray.cast_to_rect(&a.rect),
+        |_, ray, a: PMut<BBox<isize, &mut isize>>| ray.cast_to_rect(&a.rect),
         |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
         |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
     );
