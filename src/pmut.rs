@@ -48,7 +48,6 @@ impl<T: std::ops::Deref> core::ops::Deref for PMut<T> {
     }
 }
 
-
 impl<'a, T> From<&'a mut T> for PMut<&'a mut T> {
     fn from(a: &'a mut T) -> Self {
         PMut::new(a)
@@ -104,8 +103,6 @@ impl<'a, 'b: 'a, T: Aabb> PMut<&'a mut Node<'b, T>> {
     }
 }
 
-
-
 impl<'a, T: HasInner> PMut<&'a mut T> {
     /// Unpack only the mutable innner component
     #[inline(always)]
@@ -113,7 +110,6 @@ impl<'a, T: HasInner> PMut<&'a mut T> {
         self.inner.get_inner_mut()
     }
 }
-
 
 impl<'a, T> PMut<&'a mut [T]> {
     /// Return the element at the specified index.

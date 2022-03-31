@@ -166,11 +166,16 @@ where
     build::into_tree(buffer)
 }
 
+pub struct NodeDataCollection<N: Num> {
+    inner: Vec<NodeData<N>>,
+}
+
 impl<'a, T: Aabb> Tree<'a, T> {
-    pub fn from_node_data(data: Vec<NodeData<T::Num>>, bots: PMut<&'a mut [T]>) -> Self {
+    pub fn from_node_data(data: NodeDataCollection<T::Num>, bots: PMut<&'a mut [T]>) -> Self {
         let mut last = Some(bots);
 
         let a: Vec<_> = data
+            .inner
             .into_iter()
             .map(move |x| {
                 let (range, rest) = last.take().unwrap().split_at_mut(x.range);
@@ -187,17 +192,20 @@ impl<'a, T: Aabb> Tree<'a, T> {
         }
     }
 
-    pub fn into_node_data(self) -> Vec<NodeData<T::Num>> {
-        self.inner
-            .into_nodes()
-            .into_vec()
-            .into_iter()
-            .map(|x| NodeData {
-                range: x.range.len(),
-                cont: x.cont,
-                div: x.div,
-            })
-            .collect()
+    pub fn into_node_data(self) -> NodeDataCollection<T::Num> {
+        NodeDataCollection {
+            inner: self
+                .inner
+                .into_nodes()
+                .into_vec()
+                .into_iter()
+                .map(|x| NodeData {
+                    range: x.range.len(),
+                    cont: x.cont,
+                    div: x.div,
+                })
+                .collect(),
+        }
     }
 
     /// # Examples
