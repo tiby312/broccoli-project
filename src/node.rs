@@ -25,12 +25,12 @@ impl<T> Num for T where T: PartialOrd + Copy + Default + std::fmt::Debug {}
 /// See [`PMut::rect`]
 ///
 ///
-pub unsafe trait Aabb {
+pub trait Aabb {
     type Num: Num;
     fn get(&self) -> &Rect<Self::Num>;
 }
 
-unsafe impl<N: Num> Aabb for Rect<N> {
+impl<N: Num> Aabb for Rect<N> {
     type Num = N;
     #[inline(always)]
     fn get(&self) -> &Rect<Self::Num> {
@@ -98,11 +98,26 @@ impl<N: Copy, T> BBox<N, T> {
     }
 }
 
-unsafe impl<N: Num, T> Aabb for BBox<N, T> {
+impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;
     #[inline(always)]
     fn get(&self) -> &Rect<Self::Num> {
         &self.rect
+    }
+}
+
+impl<T: Aabb> Aabb for &T {
+    type Num = T::Num;
+    #[inline(always)]
+    fn get(&self) -> &Rect<Self::Num> {
+        T::get(self)
+    }
+}
+impl<T: Aabb> Aabb for &mut T {
+    type Num = T::Num;
+    #[inline(always)]
+    fn get(&self) -> &Rect<Self::Num> {
+        T::get(self)
     }
 }
 
@@ -112,14 +127,6 @@ impl<N: Num, T> HasInner for BBox<N, T> {
     #[inline(always)]
     fn get_inner_mut(&mut self) -> &mut Self::Inner {
         &mut self.inner
-    }
-}
-
-unsafe impl<N: Num, T> Aabb for &mut BBox<N, T> {
-    type Num = N;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        &self.rect
     }
 }
 

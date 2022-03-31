@@ -2,42 +2,6 @@
 
 use super::*;
 
-//this can have some false positives.
-//but it will still prune a lot of bots.
-#[inline(always)]
-pub fn get_section<'a, I: Aabb, A: Axis>(axis: A, arr: &'a [I], range: &Range<I::Num>) -> &'a [I] {
-    let mut start = None;
-    let mut ii = arr.iter().enumerate();
-    for (e, i) in &mut ii {
-        let rr = i.get().get_range(axis);
-        if rr.end >= range.start {
-            start = Some(e);
-            break;
-        }
-    }
-
-    let start = if let Some(start) = start {
-        start
-    } else {
-        return &[];
-    };
-
-    let mut end = None;
-    for (e, i) in ii {
-        let rr = i.get().get_range(axis);
-        if rr.start > range.end {
-            end = Some(e);
-            break;
-        }
-    }
-
-    if let Some(end) = end {
-        &arr[start..end]
-    } else {
-        &arr[start..]
-    }
-}
-
 #[test]
 fn test_section() {
     use axgeom::rect;

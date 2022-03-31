@@ -11,12 +11,12 @@ fn main() {
         bbox(rect(5, 15, 5, 15), &mut inner3),
     ];
 
-    let tree = broccoli::new(&mut bots);
+    let mut tree = broccoli::new(&mut bots);
 
     //Here we query for read-only references so we can pull
     //them out of the closure.
     let mut rect_collisions = Vec::new();
-    tree.for_all_intersect_rect(&rect(-5, 1, -5, 1), |a| {
+    tree.for_all_intersect_rect_mut(&rect(-5, 1, -5, 1), |_, a| {
         rect_collisions.push(a);
     });
 

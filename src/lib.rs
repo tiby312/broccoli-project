@@ -201,28 +201,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
         self.inner
     }
 
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::build;
-    /// const NUM_ELEMENT:usize=7;
-    /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// let inner =tree.into_inner();
-    /// let tree=unsafe{broccoli::Tree::from_raw_parts(inner)};
-    ///```
-    ///
-    /// # Safety
-    ///
-    /// Unsafe, since the user may pass in nodes
-    /// in an arrangement that violates the invariants
-    /// of the tree.
-    ///
-    pub unsafe fn from_raw_parts(
-        inner: compt::dfs_order::CompleteTreeContainer<Node<'a, T>, compt::dfs_order::PreOrder>,
-    ) -> Self {
-        Tree { inner }
-    }
 
     /// # Examples
     ///
@@ -395,11 +373,13 @@ impl<'a, T: Aabb> Tree<'a, T> {
         //to exploit the divide and conquer properties of this problem.
         //The two trees could be recursed at the same time to break up the problem.
 
-        for mut i in PMut::new(other).iter_mut() {
-            let rect = i.rect();
-            self.for_all_intersect_rect_mut(rect, |a| {
-                func(a, i.borrow_mut());
-            });
+        for i in other.iter_mut() {
+            queries::rect::for_all_intersect_rect_mut(
+                default_axis(),
+                self.vistr_mut(),
+                i,
+                |r, a| func(a, PMut::new(*r)),
+            );
         }
     }
 
@@ -516,24 +496,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     ///```
     /// use broccoli::{bbox,rect};
-    /// let mut bots = [rect(0,10,0,10),rect(20,30,20,30)];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// let mut test = Vec::new();
-    /// tree.for_all_intersect_rect(&rect(9,20,9,20),|a|{
-    ///    test.push(a);
-    /// });
-    ///
-    /// assert_eq!(test[0],&rect(0,10,0,10));
-    ///
-    ///```
-    pub fn for_all_intersect_rect<'b>(&'b self, rect: &Rect<T::Num>, func: impl FnMut(&'b T)) {
-        queries::rect::for_all_intersect_rect(default_axis(), self.vistr(), rect, func);
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{bbox,rect};
     /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// tree.for_all_intersect_rect_mut(&rect(9,20,9,20),|a|{
@@ -543,10 +505,10 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// assert_eq!(bots[0].inner,1);
     ///
     ///```
-    pub fn for_all_intersect_rect_mut<'b>(
+    pub fn for_all_intersect_rect_mut<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
-        rect: &Rect<T::Num>,
-        func: impl FnMut(PMut<'b, T>),
+        rect: K,
+        func: impl FnMut(&mut K, PMut<'b, T>),
     ) {
         queries::rect::for_all_intersect_rect_mut(default_axis(), self.vistr_mut(), rect, func);
     }
@@ -564,31 +526,12 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     /// assert_eq!(test[0],&rect(0,10,0,10));
     ///
-    pub fn for_all_in_rect<'b>(&'b self, rect: &Rect<T::Num>, func: impl FnMut(&'b T)) {
-        queries::rect::for_all_in_rect(default_axis(), self.vistr(), rect, func);
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{bbox,rect};
-    /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// tree.for_all_in_rect_mut(&rect(0,10,0,10),|a|{
-    ///    *a.unpack_inner()+=1;    
-    /// });
-    ///
-    /// assert_eq!(bots[0].inner,1);
-    ///
-    ///```
-    pub fn for_all_in_rect_mut<'b>(
+    pub fn for_all_in_rect_mut<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
-        rect: &Rect<T::Num>,
-        mut func: impl FnMut(PMut<'b, T>),
+        rect: K,
+        func: impl FnMut(&mut K, PMut<'b, T>),
     ) {
-        queries::rect::for_all_in_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| {
-            (func)(a)
-        });
+        queries::rect::for_all_in_rect_mut(default_axis(), self.vistr_mut(), rect, func);
     }
 
     /// # Examples
@@ -604,13 +547,16 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// assert_eq!(bots[0].inner,1);
     ///
     ///```
-    pub fn for_all_not_in_rect_mut<'b>(
+    pub fn for_all_not_in_rect_mut<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
-        rect: &Rect<T::Num>,
-        mut func: impl FnMut(PMut<'b, T>),
+        rect: K,
+        mut func: impl FnMut(&mut K, PMut<'b, T>),
     ) {
-        queries::rect::for_all_not_in_rect_mut(default_axis(), self.vistr_mut(), rect, move |a| {
-            (func)(a)
-        });
+        queries::rect::for_all_not_in_rect_mut(
+            default_axis(),
+            self.vistr_mut(),
+            rect,
+            move |r, a| (func)(r, a),
+        );
     }
 }
