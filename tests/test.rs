@@ -37,8 +37,6 @@ fn test_tie_knearest() {
     assert_eq!(r.len(), 2);
 }
 
-
-
 #[test]
 fn test_zero_sized() {
     let mut bots = vec![(); 1];
@@ -133,7 +131,6 @@ fn test_send_sync_tree() {
     let (p1, p2) = (&t1, &t2);
     rayon_core::join(|| p1, || p2);
 }
-
 
 /* TODO add back
 #[test]

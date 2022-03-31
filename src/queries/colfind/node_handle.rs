@@ -4,7 +4,7 @@ use super::CollisionHandler;
 use super::*;
 
 pub struct NodeAxis<'a, 'node, T: Aabb, A: Axis> {
-    pub node: PMut<'a, Node<'node, T>>,
+    pub node: PMut<&'a mut Node<'node, T>>,
     pub axis: A,
 }
 
@@ -27,7 +27,7 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
         func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
         axis: impl Axis,
-        bots: PMut<[T]>,
+        bots: PMut<&mut [T]>,
     );
 
     fn handle_children<A: Axis, B: Axis, T: Aabb>(
@@ -48,7 +48,7 @@ impl NodeHandler for HandleNoSorted {
         func: &mut impl CollisionHandler<T>,
         _: &mut PreVec,
         _axis: impl Axis,
-        bots: PMut<[T]>,
+        bots: PMut<&mut [T]>,
     ) {
         tools::for_every_pair(bots, move |a, b| {
             if a.get().intersects_rect(b.get()) {
@@ -93,7 +93,7 @@ impl NodeHandler for HandleSorted {
         func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
         axis: impl Axis,
-        bots: PMut<[T]>,
+        bots: PMut<&mut [T]>,
     ) {
         oned::find_2d(prevec, axis, bots, func);
     }

@@ -7,7 +7,7 @@ pub fn recurse_par<T: Aabb, N: NodeHandler>(
     vistr: CollVis<T, N>,
     prevec: &mut PreVec,
     height_seq_fallback: usize,
-    mut func: impl FnMut(PMut<T>, PMut<T>) + Clone + Send,
+    mut func: impl FnMut(PMut<&mut T>, PMut<&mut T>) + Clone + Send,
 ) where
     T: Send,
     T::Num: Send,

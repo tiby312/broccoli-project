@@ -180,7 +180,7 @@ mod vistr_mut {
         }
 
         #[inline(always)]
-        pub fn into_slice(self) -> PMut<'a, [N]> {
+        pub fn into_slice(self) -> PMut<&'a mut [N]> {
             PMut::new(self.inner.into_slice())
         }
     }
@@ -188,7 +188,7 @@ mod vistr_mut {
     impl<'a, N> compt::FixedDepthVisitor for VistrMut<'a, N> {}
 
     impl<'a, N> Visitor for VistrMut<'a, N> {
-        type Item = PMut<'a, N>;
+        type Item = PMut<&'a mut N>;
 
         #[inline(always)]
         fn next(self) -> (Self::Item, Option<[Self; 2]>) {
@@ -215,7 +215,7 @@ pub use vistr_mut::VistrMut;
 /// A node in [`Tree`].
 #[repr(C)]
 pub struct Node<'a, T: Aabb> {
-    pub range: PMut<'a, [T]>,
+    pub range: PMut<&'a mut [T]>,
 
     // if range is empty, then value is unspecified.
     // if range is not empty, then cont can be read.
@@ -229,10 +229,8 @@ pub struct Node<'a, T: Aabb> {
     pub div: Option<T::Num>,
 }
 
-
-
 pub struct NodeData<N: Num> {
-    pub range:usize,
-    pub cont:axgeom::Range<N>,
-    pub div:Option<N>
+    pub range: usize,
+    pub cont: axgeom::Range<N>,
+    pub div: Option<N>,
 }

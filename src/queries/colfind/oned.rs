@@ -17,7 +17,7 @@ impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
     for OtherAxisCollider<'a, A, F>
 {
     #[inline(always)]
-    fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
+    fn collide(&mut self, a: PMut<&mut T>, b: PMut<&mut T>) {
         //only check if the opoosite axis intersects.
         //already know they intersect
         let a2 = self.axis.next();
@@ -32,7 +32,7 @@ impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
 pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    bots: PMut<[T]>,
+    bots: PMut<&mut [T]>,
     func: &mut F,
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
@@ -44,8 +44,8 @@ pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
 pub fn find_parallel_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    bots1: PMut<[T]>,
-    bots2: PMut<[T]>,
+    bots1: PMut<&mut [T]>,
+    bots2: PMut<&mut [T]>,
     func: &mut F,
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
@@ -57,8 +57,8 @@ pub fn find_parallel_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
 //that intsect.
 pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     axis: A, //the axis of r1.
-    r1: PMut<[T]>,
-    mut r2: PMut<[T]>,
+    r1: PMut<&mut [T]>,
+    mut r2: PMut<&mut [T]>,
     func: &mut F,
 ) {
     //OPTION 1
@@ -140,7 +140,7 @@ pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
 fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    collision_botids: PMut<'a, [T]>,
+    collision_botids: PMut<&'a mut [T]>,
     func: &mut F,
 ) {
     use twounordered::RetainMutUnordered;
@@ -158,7 +158,7 @@ fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let mut active: Vec<PMut<T>> = prevec1.extract_vec();
+    let mut active: Vec<PMut<&mut T>> = prevec1.extract_vec();
 
     for mut curr_bot in collision_botids.iter_mut() {
         active.retain_mut_unordered(|that_bot| {
@@ -191,8 +191,8 @@ fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
     cols: (
-        impl IntoIterator<Item = PMut<'a, T>>,
-        impl IntoIterator<Item = PMut<'b, T>>,
+        impl IntoIterator<Item = PMut<&'a mut T>>,
+        impl IntoIterator<Item = PMut<&'b mut T>>,
     ),
     func: &mut F,
 ) where
@@ -333,7 +333,7 @@ fn test_parallel() {
         set: BTreeSet<[usize; 2]>,
     }
     impl CollisionHandler<BBox<isize, Bot>> for Test {
-        fn collide(&mut self, a: PMut<BBox<isize, Bot>>, b: PMut<BBox<isize, Bot>>) {
+        fn collide(&mut self, a: PMut<&mut BBox<isize, Bot>>, b: PMut<&mut BBox<isize, Bot>>) {
             let [a, b] = [a.unpack_inner().id, b.unpack_inner().id];
 
             let fin = if a < b { [a, b] } else { [b, a] };
@@ -377,16 +377,16 @@ fn test_parallel() {
         set: BTreeSet::new(),
     };
 
-    let j1: PMut<[BBox<_, _>]> = PMut::new(&mut left);
-    let j2: PMut<[BBox<_, _>]> = PMut::new(&mut right);
+    let j1: PMut<&mut [BBox<_, _>]> = PMut::new(&mut left);
+    let j2: PMut<&mut [BBox<_, _>]> = PMut::new(&mut right);
 
     self::find_other_parallel3(&mut p1, axgeom::XAXIS, (j1, j2), &mut test1);
 
     let mut test2 = Test {
         set: BTreeSet::new(),
     };
-    let j1: PMut<[BBox<_, _>]> = PMut::new(&mut right);
-    let j2: PMut<[BBox<_, _>]> = PMut::new(&mut left);
+    let j1: PMut<&mut [BBox<_, _>]> = PMut::new(&mut right);
+    let j2: PMut<&mut [BBox<_, _>]> = PMut::new(&mut left);
 
     self::find_other_parallel3(&mut p1, axgeom::XAXIS, (j1, j2), &mut test2);
 

@@ -27,9 +27,9 @@ fn test_section() {
 #[inline(always)]
 pub fn get_section_mut<'a, I: Aabb, A: Axis>(
     axis: A,
-    arr: PMut<'a, [I]>,
+    arr: PMut<&'a mut [I]>,
     range: &Range<I::Num>,
-) -> PMut<'a, [I]> {
+) -> PMut<&'a mut [I]> {
     let mut start = None;
     let mut ii = arr.iter().enumerate();
     for (e, i) in &mut ii {
@@ -62,7 +62,10 @@ pub fn get_section_mut<'a, I: Aabb, A: Axis>(
     }
 }
 
-pub fn for_every_pair<T: Aabb>(mut arr: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {
+pub fn for_every_pair<T: Aabb>(
+    mut arr: PMut<&mut [T]>,
+    mut func: impl FnMut(PMut<&mut T>, PMut<&mut T>),
+) {
     loop {
         let temp = arr;
         match temp.split_first_mut() {

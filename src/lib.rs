@@ -167,32 +167,37 @@ where
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
+    pub fn from_node_data(data: Vec<NodeData<T::Num>>, bots: PMut<&'a mut [T]>) -> Self {
+        let mut last = Some(bots);
 
-    pub fn from_node_data(data:Vec<NodeData<T::Num>>,foo:PMut<'a,[T]>)->Self{
-        let mut last=Some(foo);
-        
-        let a:Vec<_>=data.into_iter().map(move |x|{
-            let (range,rest)=last.take().unwrap().split_at_mut(x.range);
-            last=Some(rest);
-            Node{
-                range,
-                cont:x.cont,
-                div:x.div
-            }
-        }).collect();
-        Tree{
-            inner:compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap()
+        let a: Vec<_> = data
+            .into_iter()
+            .map(move |x| {
+                let (range, rest) = last.take().unwrap().split_at_mut(x.range);
+                last = Some(rest);
+                Node {
+                    range,
+                    cont: x.cont,
+                    div: x.div,
+                }
+            })
+            .collect();
+        Tree {
+            inner: compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap(),
         }
     }
 
-    pub fn into_node_data(self)->Vec<NodeData<T::Num>>{
-        self.inner.into_nodes().into_vec().into_iter().map(|x|{
-            NodeData{
-                range:x.range.len(),
-                cont:x.cont,
-                div:x.div
-            }
-        }).collect()
+    pub fn into_node_data(self) -> Vec<NodeData<T::Num>> {
+        self.inner
+            .into_nodes()
+            .into_vec()
+            .into_iter()
+            .map(|x| NodeData {
+                range: x.range.len(),
+                cont: x.cont,
+                div: x.div,
+            })
+            .collect()
     }
 
     /// # Examples
@@ -270,7 +275,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     ///```
     #[must_use]
-    pub fn get_nodes_mut(&mut self) -> PMut<[Node<'a, T>]> {
+    pub fn get_nodes_mut(&mut self) -> PMut<&mut [Node<'a, T>]> {
         PMut::new(self.inner.as_tree_mut().get_nodes_mut())
     }
 
@@ -380,7 +385,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn intersect_with_mut<X: Aabb<Num = T::Num>>(
         &mut self,
         other: &mut [X],
-        mut func: impl FnMut(PMut<T>, PMut<X>),
+        mut func: impl FnMut(PMut<&mut T>, PMut<&mut X>),
     ) {
         //TODO instead of create just a list of BBox, construct a tree using the dividers of the current tree.
         //This way we can parallelize this function.
@@ -531,7 +536,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn for_all_intersect_rect_mut<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: K,
-        func: impl FnMut(&mut K, PMut<'b, T>),
+        func: impl FnMut(&mut K, PMut<&'b mut T>),
     ) {
         queries::rect::for_all_intersect_rect_mut(default_axis(), self.vistr_mut(), rect, func);
     }
@@ -552,7 +557,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn for_all_in_rect_mut<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: K,
-        func: impl FnMut(&mut K, PMut<'b, T>),
+        func: impl FnMut(&mut K, PMut<&'b mut T>),
     ) {
         queries::rect::for_all_in_rect_mut(default_axis(), self.vistr_mut(), rect, func);
     }
@@ -573,7 +578,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn for_all_not_in_rect_mut<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: K,
-        mut func: impl FnMut(&mut K, PMut<'b, T>),
+        mut func: impl FnMut(&mut K, PMut<&'b mut T>),
     ) {
         queries::rect::for_all_not_in_rect_mut(
             default_axis(),

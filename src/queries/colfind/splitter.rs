@@ -15,7 +15,7 @@ pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler, SS: Splitter>(
     vistr: CollVis<T, S>,
     mut splitter: SS,
     prevec: &mut PreVec,
-    mut func: impl FnMut(PMut<T>, PMut<T>),
+    mut func: impl FnMut(PMut<&mut T>, PMut<&mut T>),
 ) -> SS {
     if let Some([left, right]) = vistr.collide_and_next(prevec, &mut func) {
         let (s1, s2) = splitter.div();
@@ -33,7 +33,7 @@ pub fn recurse_par_splitter<T: Aabb, N: NodeHandler, S: Splitter + Send>(
     vistr: CollVis<T, N>,
     prevec: &mut PreVec,
     height_seq_fallback: usize,
-    mut func: impl FnMut(PMut<T>, PMut<T>) + Clone + Send,
+    mut func: impl FnMut(PMut<&mut T>, PMut<&mut T>) + Clone + Send,
     mut splitter: S,
 ) -> S
 where

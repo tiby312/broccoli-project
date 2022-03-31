@@ -36,51 +36,43 @@ pub trait HasInner: Aabb {
 /// See the pmut module documentation for more explanation.
 #[repr(transparent)]
 #[derive(Debug)]
-pub struct PMut<'a, T: ?Sized> {
-    inner: &'a mut T,
+pub struct PMut<T: ?Sized> {
+    inner: T,
 }
 
-impl<'a, T: ?Sized> core::ops::Deref for PMut<'a, T> {
-    type Target = T;
+impl<'a, T: std::ops::Deref> core::ops::Deref for PMut<T> {
+    type Target = T::Target;
     #[inline(always)]
-    fn deref(&self) -> &T {
-        self.inner
+    fn deref(&self) -> &T::Target {
+        &self.inner
     }
 }
 
-impl<'a, T: ?Sized> From<&'a mut T> for PMut<'a, T> {
+impl<'a, T> From<&'a mut T> for PMut<&'a mut T> {
     fn from(a: &'a mut T) -> Self {
         PMut::new(a)
     }
 }
 
-impl<'a, 'b: 'a, T> PMut<'a, PMut<'b, T>> {
-    /// Flatten a double pointer
-    #[inline(always)]
-    pub fn flatten(self) -> PMut<'a, T> {
-        PMut::new(self.inner.inner)
-    }
-}
-
-impl<'a, T> PMut<'a, T> {
+impl<'a, T> PMut<&'a mut T> {
     /// Convert a `PMut<T>` inside a `PMut<[T]>` of size one.
     #[inline(always)]
-    pub fn into_slice(self) -> PMut<'a, [T]> {
+    pub fn into_slice(self) -> PMut<&'a mut [T]> {
         PMut {
             inner: core::slice::from_mut(self.inner),
         }
     }
 }
-impl<'a, T: ?Sized> PMut<'a, T> {
+impl<'a, T: ?Sized> PMut<&'a mut T> {
     /// Create a protected pointer.
     #[inline(always)]
-    pub fn new(inner: &'a mut T) -> PMut<'a, T> {
+    pub fn new(inner: &'a mut T) -> PMut<&'a mut T> {
         PMut { inner }
     }
 
     /// Start a new borrow lifetime
     #[inline(always)]
-    pub fn borrow_mut(&mut self) -> PMut<T> {
+    pub fn borrow_mut(&mut self) -> PMut<&mut T> {
         PMut { inner: self.inner }
     }
 
@@ -94,10 +86,10 @@ impl<'a, T: ?Sized> PMut<'a, T> {
 pub struct NodeRef<'a, T: Aabb> {
     pub div: &'a Option<T::Num>,
     pub cont: &'a Range<T::Num>,
-    pub range: PMut<'a, [T]>,
+    pub range: PMut<&'a mut [T]>,
 }
 
-impl<'a, 'b: 'a, T: Aabb> PMut<'a, Node<'b, T>> {
+impl<'a, 'b: 'a, T: Aabb> PMut<&'a mut Node<'b, T>> {
     /// Destructure a node into its three parts.
     #[inline(always)]
     pub fn into_node_ref(self) -> NodeRef<'a, T> {
@@ -115,12 +107,12 @@ impl<'a, 'b: 'a, T: Aabb> PMut<'a, Node<'b, T>> {
 
     /// Return a mutable list of elements in this node.
     #[inline(always)]
-    pub fn into_range(self) -> PMut<'a, [T]> {
+    pub fn into_range(self) -> PMut<&'a mut [T]> {
         self.inner.range.borrow_mut()
     }
 }
 
-impl<'a, T: Aabb> PMut<'a, T> {
+impl<'a, T: Aabb> PMut<&'a mut T> {
     ///
     /// Return a read-only reference to the aabb.
     /// Note the lifetime.
@@ -131,7 +123,7 @@ impl<'a, T: Aabb> PMut<'a, T> {
     }
 }
 
-impl<'a, T: HasInner> PMut<'a, T> {
+impl<'a, T: HasInner> PMut<&'a mut T> {
     /// Unpack only the mutable innner component
     #[inline(always)]
     pub fn unpack_inner(self) -> &'a mut T::Inner {
@@ -139,7 +131,7 @@ impl<'a, T: HasInner> PMut<'a, T> {
     }
 }
 
-impl<'a, T: Aabb> Aabb for PMut<'a, T> {
+impl<'a, T: Aabb> Aabb for PMut<&'a mut T> {
     type Num = T::Num;
     #[inline(always)]
     fn get(&self) -> &Rect<Self::Num> {
@@ -147,30 +139,28 @@ impl<'a, T: Aabb> Aabb for PMut<'a, T> {
     }
 }
 
-impl<'a, T> PMut<'a, [T]> {
+impl<'a, T> PMut<&'a mut [T]> {
     /// Return the element at the specified index.
     /// We can't use the index trait because we don't want
     /// to return a mutable reference.
     #[inline(always)]
-    pub fn get_index_mut(self, ind: usize) -> PMut<'a, T> {
+    pub fn get_index_mut(self, ind: usize) -> PMut<&'a mut T> {
         PMut::new(&mut self.inner[ind])
     }
 
     /// Split off the first element.
     #[inline(always)]
-    pub fn split_at_mut(self,va:usize) -> (PMut<'a, [T]>, PMut<'a, [T]>) {
-        let (left,right)=self.inner.split_at_mut(va);
-        (PMut::new(left),PMut::new(right))
-
+    pub fn split_at_mut(self, va: usize) -> (PMut<&'a mut [T]>, PMut<&'a mut [T]>) {
+        let (left, right) = self.inner.split_at_mut(va);
+        (PMut::new(left), PMut::new(right))
     }
-
 
     /// Split off the first element.
     #[inline(always)]
-    pub fn split_first_mut(self) -> Option<(PMut<'a, T>, PMut<'a, [T]>)> {
+    pub fn split_first_mut(self) -> Option<(PMut<&'a mut T>, PMut<&'a mut [T]>)> {
         self.inner
             .split_first_mut()
-            .map(|(first, inner)| (PMut { inner: first }, PMut { inner: inner }))
+            .map(|(first, inner)| (PMut { inner: first }, PMut { inner }))
     }
 
     /// Return a smaller slice that ends with the specified index.
@@ -206,8 +196,8 @@ impl<'a, T> PMut<'a, [T]> {
     }
 }
 
-impl<'a, T> core::iter::IntoIterator for PMut<'a, [T]> {
-    type Item = PMut<'a, T>;
+impl<'a, T> core::iter::IntoIterator for PMut<&'a mut [T]> {
+    type Item = PMut<&'a mut T>;
     type IntoIter = PMutIter<'a, T>;
 
     #[inline(always)]
@@ -221,10 +211,10 @@ pub struct PMutIter<'a, T> {
     inner: core::slice::IterMut<'a, T>,
 }
 impl<'a, T> Iterator for PMutIter<'a, T> {
-    type Item = PMut<'a, T>;
+    type Item = PMut<&'a mut T>;
 
     #[inline(always)]
-    fn next(&mut self) -> Option<PMut<'a, T>> {
+    fn next(&mut self) -> Option<PMut<&'a mut T>> {
         self.inner.next().map(|inner| PMut { inner })
     }
 

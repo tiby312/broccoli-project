@@ -12,7 +12,7 @@ use super::*;
 
 //TODO remove
 pub trait CollisionHandler<T: Aabb> {
-    fn collide(&mut self, a: PMut<T>, b: PMut<T>);
+    fn collide(&mut self, a: PMut<&mut T>, b: PMut<&mut T>);
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.
@@ -53,7 +53,10 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
 }
 
 ///Naive implementation
-pub fn query_naive_mut<T: Aabb>(bots: PMut<[T]>, mut func: impl FnMut(PMut<T>, PMut<T>)) {
+pub fn query_naive_mut<T: Aabb>(
+    bots: PMut<&mut [T]>,
+    mut func: impl FnMut(PMut<&mut T>, PMut<&mut T>),
+) {
     tools::for_every_pair(bots, move |a, b| {
         if a.get().intersects_rect(b.get()) {
             func(a, b);
@@ -65,7 +68,7 @@ pub fn query_naive_mut<T: Aabb>(bots: PMut<[T]>, mut func: impl FnMut(PMut<T>, P
 pub fn query_sweep_mut<T: Aabb>(
     axis: impl Axis,
     bots: &mut [T],
-    func: impl FnMut(PMut<T>, PMut<T>),
+    func: impl FnMut(PMut<&mut T>, PMut<&mut T>),
 ) {
     crate::util::sweeper_update(axis, bots);
 
@@ -73,9 +76,9 @@ pub fn query_sweep_mut<T: Aabb>(
         func: F,
     }
 
-    impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler<T> for Bl<F> {
+    impl<T: Aabb, F: FnMut(PMut<&mut T>, PMut<&mut T>)> CollisionHandler<T> for Bl<F> {
         #[inline(always)]
-        fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
+        fn collide(&mut self, a: PMut<&mut T>, b: PMut<&mut T>) {
             (self.func)(a, b);
         }
     }
@@ -101,7 +104,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
     pub fn collide_and_next(
         mut self,
         prevec: &mut PreVec,
-        func: &mut impl FnMut(PMut<T>, PMut<T>),
+        func: &mut impl FnMut(PMut<&mut T>, PMut<&mut T>),
     ) -> Option<[Self; 2]> {
         pub struct Recurser<'a, NO, C> {
             pub handler: &'a mut NO,
@@ -117,9 +120,9 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
             }
         }
 
-        impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler<T> for QueryFnMut<F> {
+        impl<T: Aabb, F: FnMut(PMut<&mut T>, PMut<&mut T>)> CollisionHandler<T> for QueryFnMut<F> {
             #[inline(always)]
-            fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
+            fn collide(&mut self, a: PMut<&mut T>, b: PMut<&mut T>) {
                 self.0(a, b);
             }
         }
@@ -250,7 +253,11 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
         }
     }
 
-    pub fn recurse_seq(self, prevec: &mut PreVec, func: &mut impl FnMut(PMut<T>, PMut<T>)) {
+    pub fn recurse_seq(
+        self,
+        prevec: &mut PreVec,
+        func: &mut impl FnMut(PMut<&mut T>, PMut<&mut T>),
+    ) {
         if let Some([a, b]) = self.collide_and_next(prevec, func) {
             a.recurse_seq(prevec, func);
             b.recurse_seq(prevec, func);
