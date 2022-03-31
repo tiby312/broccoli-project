@@ -166,6 +166,28 @@ where
     build::into_tree(buffer)
 }
 
+
+
+
+
+
+pub trait EveryPair<T>{
+    fn every_pair(foo:PMut<&mut Self>,func:impl FnMut(PMut<&mut T>,PMut<&mut T>));
+}
+
+
+pub struct PairCollector<'a,T,S:EveryPair<T>>{
+    inner:PMut<&'a mut S>,
+    cached:Vec<[*mut T;2]>
+}
+impl<'a,T,S:EveryPair<T>> EveryPair<T> for PairCollector<'a,T,S>{
+    fn every_pair(foo:PMut<&mut Self>,func:impl FnMut(PMut<&mut T>,PMut<&mut T>)){
+        //cache results
+    }
+
+}
+
+
 pub struct NodeDataCollection<N: Num> {
     inner: Vec<NodeData<N>>,
 }
