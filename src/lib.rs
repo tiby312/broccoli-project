@@ -167,6 +167,34 @@ where
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
+
+    pub fn from_node_data(data:Vec<NodeData<T::Num>>,foo:PMut<'a,[T]>)->Self{
+        let mut last=Some(foo);
+        
+        let a:Vec<_>=data.into_iter().map(move |x|{
+            let (range,rest)=last.take().unwrap().split_at_mut(x.range);
+            last=Some(rest);
+            Node{
+                range,
+                cont:x.cont,
+                div:x.div
+            }
+        }).collect();
+        Tree{
+            inner:compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap()
+        }
+    }
+
+    pub fn into_node_data(self)->Vec<NodeData<T::Num>>{
+        self.inner.into_nodes().into_vec().into_iter().map(|x|{
+            NodeData{
+                range:x.range.len(),
+                cont:x.cont,
+                div:x.div
+            }
+        }).collect()
+    }
+
     /// # Examples
     ///
     ///```

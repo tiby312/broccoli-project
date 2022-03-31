@@ -37,35 +37,7 @@ fn test_tie_knearest() {
     assert_eq!(r.len(), 2);
 }
 
-#[test]
-fn test_tie_raycast() {
-    use broccoli::*;
-    let mut bots: &mut [BBox<isize, ()>] =
-        &mut [bbox(rect(0, 10, 0, 20), ()), bbox(rect(5, 10, 0, 20), ())];
 
-    let mut handler = broccoli::queries::raycast::default_rect_raycast();
-
-    let ray = axgeom::Ray {
-        point: vec2(15, 4),
-        dir: vec2(-1, 0),
-    };
-
-    broccoli::queries::raycast::assert_raycast(&mut bots, ray, &mut handler);
-
-    let mut tree = broccoli::new(&mut bots);
-
-    let ans = tree.raycast_mut(ray, &mut handler);
-
-    match ans {
-        CastResult::Hit(res) => {
-            assert_eq!(res.mag, 5);
-            assert_eq!(res.elems.len(), 2);
-        }
-        CastResult::NoHit => {
-            panic!("should have hit");
-        }
-    }
-}
 
 #[test]
 fn test_zero_sized() {
@@ -161,3 +133,36 @@ fn test_send_sync_tree() {
     let (p1, p2) = (&t1, &t2);
     rayon_core::join(|| p1, || p2);
 }
+
+
+/* TODO add back
+#[test]
+fn test_tie_raycast() {
+    use broccoli::*;
+    let mut bots: &mut [BBox<isize, ()>] =
+        &mut [bbox(rect(0, 10, 0, 20), ()), bbox(rect(5, 10, 0, 20), ())];
+
+    let mut handler = broccoli::queries::raycast::default_rect_raycast();
+
+    let ray = axgeom::Ray {
+        point: vec2(15, 4),
+        dir: vec2(-1, 0),
+    };
+
+    broccoli::queries::raycast::assert_raycast(&mut bots, ray, &mut handler);
+
+    let mut tree = broccoli::new(&mut bots);
+
+    let ans = tree.raycast_mut(ray, &mut handler);
+
+    match ans {
+        CastResult::Hit(res) => {
+            assert_eq!(res.mag, 5);
+            assert_eq!(res.elems.len(), 2);
+        }
+        CastResult::NoHit => {
+            panic!("should have hit");
+        }
+    }
+}
+*/

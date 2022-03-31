@@ -158,6 +158,15 @@ impl<'a, T> PMut<'a, [T]> {
 
     /// Split off the first element.
     #[inline(always)]
+    pub fn split_at_mut(self,va:usize) -> (PMut<'a, [T]>, PMut<'a, [T]>) {
+        let (left,right)=self.inner.split_at_mut(va);
+        (PMut::new(left),PMut::new(right))
+
+    }
+
+
+    /// Split off the first element.
+    #[inline(always)]
     pub fn split_first_mut(self) -> Option<(PMut<'a, T>, PMut<'a, [T]>)> {
         self.inner
             .split_first_mut()

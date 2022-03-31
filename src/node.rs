@@ -228,3 +228,11 @@ pub struct Node<'a, T: Aabb> {
     //   value is none
     pub div: Option<T::Num>,
 }
+
+
+
+pub struct NodeData<N: Num> {
+    pub range:usize,
+    pub cont:axgeom::Range<N>,
+    pub div:Option<N>
+}
