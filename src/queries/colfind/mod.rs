@@ -10,11 +10,8 @@ pub use self::node_handle::*;
 use super::tools;
 use super::*;
 
-
-
-
 //TODO remove
-pub trait CollisionHandler<T:Aabb> {
+pub trait CollisionHandler<T: Aabb> {
     fn collide(&mut self, a: PMut<T>, b: PMut<T>);
 }
 
@@ -73,11 +70,10 @@ pub fn query_sweep_mut<T: Aabb>(
     crate::util::sweeper_update(axis, bots);
 
     struct Bl<F> {
-        func: F
+        func: F,
     }
 
     impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler<T> for Bl<F> {
-        
         #[inline(always)]
         fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
             (self.func)(a, b);
@@ -85,16 +81,8 @@ pub fn query_sweep_mut<T: Aabb>(
     }
     let mut prevec = crate::util::PreVec::with_capacity(2048);
     let bots = PMut::new(bots);
-    oned::find_2d(
-        &mut prevec,
-        axis,
-        bots,
-        &mut Bl {
-            func
-        },
-    );
+    oned::find_2d(&mut prevec, axis, bots, &mut Bl { func });
 }
-
 
 pub struct CollVis<'a, 'b, T: Aabb, N> {
     vistr: VistrMut<'b, Node<'a, T>>,

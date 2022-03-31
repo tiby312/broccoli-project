@@ -7,7 +7,6 @@ use crate::util::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use compt::*;
-use core::marker::PhantomData;
 
 pub mod colfind;
 

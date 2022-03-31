@@ -3,15 +3,9 @@
 use super::*;
 
 ///The geometric functions that the user must provide.
-pub trait Knearest<T:Aabb> {
-
+pub trait Knearest<T: Aabb> {
     ///User define distance function from a point to an axis aligned line of infinite length.
-    fn distance_to_aaline<A: Axis>(
-        &mut self,
-        point: Vec2<T::Num>,
-        axis: A,
-        val: T::Num,
-    ) -> T::Num;
+    fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num;
 
     ///User defined inexpensive distance function that that can be overly conservative.
     ///It may be that the precise distance function is fast enough, in which case you can simply
@@ -25,9 +19,8 @@ pub trait Knearest<T:Aabb> {
 }
 
 ///Create a handler that treats each object as its aabb rectangle shape.
-pub fn default_rect_knearest() -> DefaultKnearest
-{
-    DefaultKnearest { }
+pub fn default_rect_knearest() -> DefaultKnearest {
+    DefaultKnearest {}
 }
 
 pub struct DefaultKnearest {}
@@ -36,13 +29,7 @@ impl<T: Aabb> Knearest<T> for DefaultKnearest
 where
     T::Num: num_traits::Signed + num_traits::Zero,
 {
-    
-    fn distance_to_aaline<A: Axis>(
-        &mut self,
-        point: Vec2<T::Num>,
-        axis: A,
-        a: T::Num,
-    ) -> T::Num {
+    fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, a: T::Num) -> T::Num {
         use num_traits::Signed;
 
         if axis.is_xaxis() {
@@ -52,11 +39,7 @@ where
         }
     }
 
-    fn distance_to_broad(
-        &mut self,
-        _point: Vec2<T::Num>,
-        _rect: PMut<T>,
-    ) -> Option<T::Num> {
+    fn distance_to_broad(&mut self, _point: Vec2<T::Num>, _rect: PMut<T>) -> Option<T::Num> {
         None
     }
 
@@ -69,17 +52,11 @@ where
     }
 }
 
-
 ///Hide the lifetime behind the RayCast trait
 ///to make things simpler
 struct KnearestBorrow<'a, K>(&'a mut K);
-impl<'a,T:Aabb, K: Knearest<T>> Knearest<T> for KnearestBorrow<'a, K> {
-    fn distance_to_aaline<A: Axis>(
-        &mut self,
-        point: Vec2<T::Num>,
-        axis: A,
-        val: T::Num,
-    ) -> T::Num {
+impl<'a, T: Aabb, K: Knearest<T>> Knearest<T> for KnearestBorrow<'a, K> {
+    fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num {
         self.0.distance_to_aaline(point, axis, val)
     }
 
@@ -151,13 +128,7 @@ where
     D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
     E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
 {
-    
-    fn distance_to_aaline<A: Axis>(
-        &mut self,
-        point: Vec2<T::Num>,
-        axis: A,
-        val: T::Num,
-    ) -> T::Num {
+    fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num {
         if axis.is_xaxis() {
             (self.xline)(&mut self.acc, point, val)
         } else {
@@ -292,13 +263,13 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
     }
 }
 
-struct Recurser<'a, T:Aabb,K: Knearest<T>> {
+struct Recurser<'a, T: Aabb, K: Knearest<T>> {
     knear: K,
     point: Vec2<T::Num>,
     closest: ClosestCand<'a, T>,
 }
 
-impl<'a, T:Aabb,K: Knearest<T>> Recurser<'a,T, K> {
+impl<'a, T: Aabb, K: Knearest<T>> Recurser<'a, T, K> {
     fn should_recurse<A: Axis>(&mut self, line: (A, T::Num)) -> bool {
         if let Some(m) = self.closest.full_and_max_distance() {
             let dis = self.knear.distance_to_aaline(self.point, line.0, line.1);
@@ -450,7 +421,7 @@ pub fn naive_k_nearest_mut<'a, T: Aabb>(
     }
 }
 
-pub fn knearest_mut<'a, T:Aabb,K: Knearest<T>>(
+pub fn knearest_mut<'a, T: Aabb, K: Knearest<T>>(
     tree: &'a mut Tree<T>,
     point: Vec2<T::Num>,
     num: usize,

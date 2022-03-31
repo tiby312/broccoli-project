@@ -201,7 +201,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
         self.inner
     }
 
-
     /// # Examples
     ///
     ///```
@@ -326,11 +325,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         line: impl FnMut(AxisDyn, &Node<T>, &Rect<T::Num>, usize),
         rect: Rect<T::Num>,
     ) {
-        use core::marker::PhantomData;
-        let mut d = queries::draw::DrawClosure {
-            _p: PhantomData,
-            line,
-        };
+        let mut d = queries::draw::DrawClosure { line };
 
         queries::draw::draw(default_axis(), self.vistr(), &mut d, rect)
     }
@@ -484,7 +479,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// assert_eq!(res.elems.len(),1);
     /// assert_eq!(res.elems[0].inner,vec2(5,5));
     ///```
-    pub fn raycast_mut<'b, R: queries::raycast::RayCast<T = T, N = T::Num>>(
+    pub fn raycast_mut<'b, R: queries::raycast::RayCast<T>>(
         &'b mut self,
         ray: axgeom::Ray<T::Num>,
         rtrait: &mut R,

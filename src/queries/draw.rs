@@ -3,18 +3,14 @@
 use super::*;
 use axgeom::AxisDyn;
 
-pub struct DrawClosure<T, A> {
-    pub _p: PhantomData<T>,
+pub struct DrawClosure<A> {
     pub line: A,
 }
 
-impl<T: Aabb, A> DividerDrawer for DrawClosure<T, A>
+impl<T: Aabb, A> DividerDrawer<T> for DrawClosure<A>
 where
     A: FnMut(AxisDyn, &Node<T>, &Rect<T::Num>, usize),
 {
-    type T = T;
-    type N = T::Num;
-
     #[inline(always)]
     fn draw_divider<AA: Axis>(
         &mut self,
@@ -28,27 +24,19 @@ where
 }
 
 ///Trait user must implement.
-pub trait DividerDrawer {
-    type T: Aabb<Num = Self::N>;
-    type N: Num;
-    fn draw_divider<A: Axis>(
-        &mut self,
-        axis: A,
-        node: &Node<Self::T>,
-        rect: &Rect<Self::N>,
-        depth: usize,
-    );
+pub trait DividerDrawer<T: Aabb> {
+    fn draw_divider<A: Axis>(&mut self, axis: A, node: &Node<T>, rect: &Rect<T::Num>, depth: usize);
 }
 
 ///Calls the user supplied function on each divider.
 ///Since the leaves do not have dividers, it is not called for the leaves.
-pub fn draw<A: Axis, T: Aabb, D: DividerDrawer<T = T, N = T::Num>>(
+pub fn draw<A: Axis, T: Aabb, D: DividerDrawer<T>>(
     axis: A,
     vistr: Vistr<Node<T>>,
     dr: &mut D,
     rect: Rect<T::Num>,
 ) {
-    fn recc<A: Axis, T: Aabb, D: DividerDrawer<T = T, N = T::Num>>(
+    fn recc<A: Axis, T: Aabb, D: DividerDrawer<T>>(
         axis: A,
         stuff: LevelIter<Vistr<Node<T>>>,
         dr: &mut D,
