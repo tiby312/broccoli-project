@@ -40,7 +40,7 @@ pub struct PMut<T: ?Sized> {
     inner: T,
 }
 
-impl<'a, T: std::ops::Deref> core::ops::Deref for PMut<T> {
+impl<T: std::ops::Deref> core::ops::Deref for PMut<T> {
     type Target = T::Target;
     #[inline(always)]
     fn deref(&self) -> &T::Target {
@@ -48,21 +48,13 @@ impl<'a, T: std::ops::Deref> core::ops::Deref for PMut<T> {
     }
 }
 
+
 impl<'a, T> From<&'a mut T> for PMut<&'a mut T> {
     fn from(a: &'a mut T) -> Self {
         PMut::new(a)
     }
 }
 
-impl<'a, T> PMut<&'a mut T> {
-    /// Convert a `PMut<T>` inside a `PMut<[T]>` of size one.
-    #[inline(always)]
-    pub fn into_slice(self) -> PMut<&'a mut [T]> {
-        PMut {
-            inner: core::slice::from_mut(self.inner),
-        }
-    }
-}
 impl<'a, T: ?Sized> PMut<&'a mut T> {
     /// Create a protected pointer.
     #[inline(always)]
@@ -112,16 +104,7 @@ impl<'a, 'b: 'a, T: Aabb> PMut<&'a mut Node<'b, T>> {
     }
 }
 
-impl<'a, T: Aabb> PMut<&'a mut T> {
-    ///
-    /// Return a read-only reference to the aabb.
-    /// Note the lifetime.
-    /// Given the guarantees of the [`Aabb`] trait, we can have this extended lifetime.
-    ///
-    pub fn rect(&self) -> &Rect<T::Num> {
-        self.inner.get()
-    }
-}
+
 
 impl<'a, T: HasInner> PMut<&'a mut T> {
     /// Unpack only the mutable innner component
@@ -131,13 +114,6 @@ impl<'a, T: HasInner> PMut<&'a mut T> {
     }
 }
 
-impl<'a, T: Aabb> Aabb for PMut<&'a mut T> {
-    type Num = T::Num;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        self.inner.get()
-    }
-}
 
 impl<'a, T> PMut<&'a mut [T]> {
     /// Return the element at the specified index.
