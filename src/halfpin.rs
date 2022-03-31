@@ -27,7 +27,7 @@ use crate::*;
 
 /// Trait exposes an api where you can return a read-only reference to the axis-aligned bounding box
 /// and at the same time return a mutable reference to a separate inner section.
-pub trait HasInner: Aabb {
+pub trait HasInner {
     type Inner;
     fn get_inner_mut(&mut self) -> &mut Self::Inner;
 }
