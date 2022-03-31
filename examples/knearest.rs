@@ -20,11 +20,11 @@ fn main() {
     let mut tree = broccoli::new(&mut bots);
 
     use broccoli::node::BBox;
-    use broccoli::pmut::PMut;
+    use broccoli::halfpin::HalfPin;
 
     let mut handler = broccoli::queries::knearest::from_closure(
         (),
-        |_, point, a: PMut<&mut BBox<isize, &mut Vec2<isize>>>| {
+        |_, point, a: HalfPin<&mut BBox<isize, &mut Vec2<isize>>>| {
             Some(a.rect.distance_squared_to_point(point).unwrap_or(0))
         },
         |_, point, a| a.inner.distance_squared_to_point(point),

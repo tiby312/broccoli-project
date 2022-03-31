@@ -33,7 +33,7 @@ mod inner_prelude {
     pub use broccoli::build::*;
     pub use broccoli::node::*;
     pub use broccoli::par::*;
-    pub use broccoli::pmut::PMut;
+    pub use broccoli::halfpin::PMut;
     pub use broccoli::query::*;
     pub use broccoli::*;
     pub use poloto::prelude::*;

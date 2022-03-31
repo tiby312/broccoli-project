@@ -42,7 +42,7 @@ impl Default for NodeMass {
     }
 }
 
-use broccoli::pmut::*;
+use broccoli::halfpin::*;
 use core::marker::PhantomData;
 
 #[derive(Clone, Copy)]

@@ -1,5 +1,5 @@
 use crate::inner_prelude::*;
-use broccoli::pmut::PMut;
+use broccoli::halfpin::PMut;
 
 mod bench;
 mod theory;

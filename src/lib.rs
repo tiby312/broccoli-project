@@ -41,7 +41,7 @@
 //!
 //! A lot is done to forbid the user from violating the invariants of the tree once constructed
 //! while still allowing them to mutate parts of each element of the tree. The user can mutably traverse
-//! the tree but the mutable references returns are hidden behind the `PMut<T>` type that forbids
+//! the tree but the mutable references returns are hidden behind the `HalfPin<T>` type that forbids
 //! mutating the aabbs.
 //!
 //! ### Unsafety
@@ -79,7 +79,7 @@ pub use compt;
 
 use crate::build::*;
 use crate::node::*;
-use crate::pmut::*;
+use crate::halfpin::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use compt::Visitor;
@@ -112,7 +112,7 @@ pub mod build;
 
 pub mod queries;
 
-pub mod pmut;
+pub mod halfpin;
 
 ///Contains node-level building block structs and visitors used for a [`Tree`].
 pub mod node;
@@ -172,16 +172,16 @@ where
 
 
 pub trait EveryPair<T>{
-    fn every_pair(foo:PMut<&mut Self>,func:impl FnMut(PMut<&mut T>,PMut<&mut T>));
+    fn every_pair(foo:HalfPin<&mut Self>,func:impl FnMut(HalfPin<&mut T>,HalfPin<&mut T>));
 }
 
 
 pub struct PairCollector<'a,T,S:EveryPair<T>>{
-    inner:PMut<&'a mut S>,
+    inner:HalfPin<&'a mut S>,
     cached:Vec<[*mut T;2]>
 }
 impl<'a,T,S:EveryPair<T>> EveryPair<T> for PairCollector<'a,T,S>{
-    fn every_pair(foo:PMut<&mut Self>,func:impl FnMut(PMut<&mut T>,PMut<&mut T>)){
+    fn every_pair(foo:HalfPin<&mut Self>,func:impl FnMut(HalfPin<&mut T>,HalfPin<&mut T>)){
         //cache results
     }
 
@@ -193,7 +193,7 @@ pub struct NodeDataCollection<N: Num> {
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
-    pub fn from_node_data(data: NodeDataCollection<T::Num>, bots: PMut<&'a mut [T]>) -> Self {
+    pub fn from_node_data(data: NodeDataCollection<T::Num>, bots: HalfPin<&'a mut [T]>) -> Self {
         let mut last = Some(bots);
 
         let a: Vec<_> = data
@@ -305,8 +305,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
     ///
     ///```
     #[must_use]
-    pub fn get_nodes_mut(&mut self) -> PMut<&mut [Node<'a, T>]> {
-        PMut::new(self.inner.as_tree_mut().get_nodes_mut())
+    pub fn get_nodes_mut(&mut self) -> HalfPin<&mut [Node<'a, T>]> {
+        HalfPin::new(self.inner.as_tree_mut().get_nodes_mut())
     }
 
     /// # Examples
@@ -415,7 +415,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn intersect_with_mut<X: Aabb<Num = T::Num>>(
         &mut self,
         other: &mut [X],
-        mut func: impl FnMut(PMut<&mut T>, PMut<&mut X>),
+        mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut X>),
     ) {
         //TODO instead of create just a list of BBox, construct a tree using the dividers of the current tree.
         //This way we can parallelize this function.
@@ -436,7 +436,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
                 default_axis(),
                 self.vistr_mut(),
                 i,
-                |r, a| func(a, PMut::new(*r)),
+                |r, a| func(a, HalfPin::new(*r)),
             );
         }
     }
@@ -566,7 +566,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn for_all_intersect_rect_mut<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: K,
-        func: impl FnMut(&mut K, PMut<&'b mut T>),
+        func: impl FnMut(&mut K, HalfPin<&'b mut T>),
     ) {
         queries::rect::for_all_intersect_rect_mut(default_axis(), self.vistr_mut(), rect, func);
     }
@@ -587,7 +587,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn for_all_in_rect_mut<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: K,
-        func: impl FnMut(&mut K, PMut<&'b mut T>),
+        func: impl FnMut(&mut K, HalfPin<&'b mut T>),
     ) {
         queries::rect::for_all_in_rect_mut(default_axis(), self.vistr_mut(), rect, func);
     }
@@ -608,7 +608,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn for_all_not_in_rect_mut<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: K,
-        mut func: impl FnMut(&mut K, PMut<&'b mut T>),
+        mut func: impl FnMut(&mut K, HalfPin<&'b mut T>),
     ) {
         queries::rect::for_all_not_in_rect_mut(
             default_axis(),

@@ -1,5 +1,5 @@
 use crate::inner_prelude::*;
-use broccoli::pmut::PMut;
+use broccoli::halfpin::PMut;
 
 pub trait TestTrait: Copy + Send + Sync {}
 impl<T: Copy + Send + Sync> TestTrait for T {}

@@ -175,7 +175,7 @@ impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
         };
 
         Node {
-            range: PMut::new(self.mid),
+            range: HalfPin::new(self.mid),
             cont,
             div: self.div,
         }

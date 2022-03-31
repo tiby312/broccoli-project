@@ -14,7 +14,7 @@ where
         tree,
         (),
         |_, _, _| None,
-        |_, ray, a: PMut<&mut T>| ray.cast_to_rect(a.get()),
+        |_, ray, a: HalfPin<&mut T>| ray.cast_to_rect(a.get()),
         |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
         |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
     )
@@ -42,11 +42,11 @@ pub trait RayCast<T: Aabb> {
     fn cast_broad(
         &mut self,
         ray: &Ray<T::Num>,
-        a: PMut<&mut T>,
+        a: HalfPin<&mut T>,
     ) -> Option<axgeom::CastResult<T::Num>>;
 
     ///Return the exact cast result.
-    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: PMut<&mut T>) -> axgeom::CastResult<T::Num>;
+    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: HalfPin<&mut T>) -> axgeom::CastResult<T::Num>;
 }
 
 use crate::Tree;
@@ -73,8 +73,8 @@ use crate::Tree;
 pub fn from_closure<'a, 'b, T: Aabb, A>(
     tree: &'a mut Tree<'b, T>,
     acc: A,
-    broad: impl FnMut(&mut A, &Ray<T::Num>, PMut<&mut T>) -> Option<CastResult<T::Num>>,
-    fine: impl FnMut(&mut A, &Ray<T::Num>, PMut<&mut T>) -> CastResult<T::Num>,
+    broad: impl FnMut(&mut A, &Ray<T::Num>, HalfPin<&mut T>) -> Option<CastResult<T::Num>>,
+    fine: impl FnMut(&mut A, &Ray<T::Num>, HalfPin<&mut T>) -> CastResult<T::Num>,
     xline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     yline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
 ) -> Raycaster<'a, 'b, T, impl RayCast<T>> {
@@ -88,8 +88,8 @@ pub fn from_closure<'a, 'b, T: Aabb, A>(
 
     impl<T: Aabb, A, B, C, D, E> RayCast<T> for RayCastClosure<A, B, C, D, E>
     where
-        B: FnMut(&mut A, &Ray<T::Num>, PMut<&mut T>) -> Option<CastResult<T::Num>>,
-        C: FnMut(&mut A, &Ray<T::Num>, PMut<&mut T>) -> CastResult<T::Num>,
+        B: FnMut(&mut A, &Ray<T::Num>, HalfPin<&mut T>) -> Option<CastResult<T::Num>>,
+        C: FnMut(&mut A, &Ray<T::Num>, HalfPin<&mut T>) -> CastResult<T::Num>,
         D: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         E: FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     {
@@ -105,11 +105,11 @@ pub fn from_closure<'a, 'b, T: Aabb, A>(
                 (self.yline)(&mut self.acc, ray, val)
             }
         }
-        fn cast_broad(&mut self, ray: &Ray<T::Num>, a: PMut<&mut T>) -> Option<CastResult<T::Num>> {
+        fn cast_broad(&mut self, ray: &Ray<T::Num>, a: HalfPin<&mut T>) -> Option<CastResult<T::Num>> {
             (self.broad)(&mut self.acc, ray, a)
         }
 
-        fn cast_fine(&mut self, ray: &Ray<T::Num>, a: PMut<&mut T>) -> CastResult<T::Num> {
+        fn cast_fine(&mut self, ray: &Ray<T::Num>, a: HalfPin<&mut T>) -> CastResult<T::Num> {
             (self.fine)(&mut self.acc, ray, a)
         }
     }
@@ -143,24 +143,24 @@ impl<'a, T: Aabb, R: RayCast<T>> RayCast<T> for RayCastBorrow<'a, R> {
     fn cast_broad(
         &mut self,
         ray: &Ray<T::Num>,
-        a: PMut<&mut T>,
+        a: HalfPin<&mut T>,
     ) -> Option<axgeom::CastResult<T::Num>> {
         self.0.cast_broad(ray, a)
     }
 
-    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: PMut<&mut T>) -> axgeom::CastResult<T::Num> {
+    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: HalfPin<&mut T>) -> axgeom::CastResult<T::Num> {
         self.0.cast_fine(ray, a)
     }
 }
 
 struct Closest<'a, T: Aabb> {
-    closest: Option<(Vec<PMut<&'a mut T>>, T::Num)>,
+    closest: Option<(Vec<HalfPin<&'a mut T>>, T::Num)>,
 }
 impl<'a, T: Aabb> Closest<'a, T> {
     fn consider<R: RayCast<T>>(
         &mut self,
         ray: &Ray<T::Num>,
-        mut b: PMut<&'a mut T>,
+        mut b: HalfPin<&'a mut T>,
         raytrait: &mut R,
     ) {
         //first check if bounding box could possibly be a candidate.
@@ -306,7 +306,7 @@ pub fn assert_raycast<T: Aabb>(
             //do nothing
         }
     }
-    match raycast_naive_mut(PMut::new(bots), ray, rtrait) {
+    match raycast_naive_mut(HalfPin::new(bots), ray, rtrait) {
         axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
             for a in elems.into_iter() {
                 let r = *a.get();
@@ -338,7 +338,7 @@ pub fn assert_raycast<T: Aabb>(
 
 ///Naive implementation
 pub fn raycast_naive_mut<'a, T: Aabb>(
-    bots: PMut<&'a mut [T]>,
+    bots: HalfPin<&'a mut [T]>,
     ray: Ray<T::Num>,
     rtrait: &mut impl RayCast<T>,
 ) -> axgeom::CastResult<CastAnswer<'a, T>> {
@@ -385,7 +385,7 @@ impl<'a, 'b, T: Aabb, R: RayCast<T>> Raycaster<'a, 'b, T, R> {
 ///It provides the length of the ray,
 ///as well as all solutions in a unspecified order.
 pub struct CastAnswer<'a, T: Aabb> {
-    pub elems: Vec<PMut<&'a mut T>>,
+    pub elems: Vec<HalfPin<&'a mut T>>,
     pub mag: T::Num,
 }
 

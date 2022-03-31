@@ -4,9 +4,9 @@ use super::*;
 
 ///Naive implementation
 pub fn naive_for_all_not_in_rect_mut<'a, T: Aabb, K: Aabb<Num = T::Num>>(
-    bots: PMut<&'a mut [T]>,
+    bots: HalfPin<&'a mut [T]>,
     rect: &K,
-    mut closure: impl FnMut(PMut<&'a mut T>, &K),
+    mut closure: impl FnMut(HalfPin<&'a mut T>, &K),
 ) {
     for b in bots.iter_mut() {
         if !rect.get().contains_rect(b.get()) {
@@ -19,7 +19,7 @@ pub fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb, K: Aabb<Num = T::Nu
     axis: A,
     vistr: VistrMut<'a, Node<'b, T>>,
     mut rect: K,
-    closure: impl FnMut(&mut K, PMut<&'a mut T>),
+    closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
 ) {
     fn rect_recurse<
         'a,
@@ -27,7 +27,7 @@ pub fn for_all_not_in_rect_mut<'a, 'b: 'a, A: Axis, T: Aabb, K: Aabb<Num = T::Nu
         A: Axis,
         T: Aabb,
         K: Aabb<Num = T::Num>,
-        F: FnMut(&mut K, PMut<&'a mut T>),
+        F: FnMut(&mut K, HalfPin<&'a mut T>),
     >(
         axis: A,
         it: VistrMut<'a, Node<'b, T>>,
@@ -85,14 +85,14 @@ pub use mutable::*;
 mod mutable {
     use super::tools::get_section_mut;
     use super::*;
-    fn foo<'a, 'b: 'a, T: Aabb>(node: PMut<&'a mut Node<'b, T>>) -> PMut<&'a mut [T]> {
+    fn foo<'a, 'b: 'a, T: Aabb>(node: HalfPin<&'a mut Node<'b, T>>) -> HalfPin<&'a mut [T]> {
         node.into_range()
     }
     fn rect_recurse<
         'a,
         A: Axis,
         T: Aabb,
-        F: FnMut(PMut<&'a mut T>, &mut K),
+        F: FnMut(HalfPin<&'a mut T>, &mut K),
         K: Aabb<Num = T::Num>,
     >(
         this_axis: A,
@@ -144,7 +144,7 @@ mod mutable {
         axis: A,
         vistr: VistrMut<'a, Node<'b, T>>,
         mut rect: K,
-        mut closure: impl FnMut(&mut K, PMut<&'a mut T>),
+        mut closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
     ) {
         self::rect_recurse(axis, vistr, &mut rect, &mut |a, r| {
             if r.get().get_intersect_rect(a.get()).is_some() {
@@ -157,7 +157,7 @@ mod mutable {
         axis: A,
         vistr: VistrMut<'a, Node<'b, T>>,
         mut rect: K,
-        mut closure: impl FnMut(&mut K, PMut<&'a mut T>),
+        mut closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
     ) {
         self::rect_recurse(axis, vistr, &mut rect, &mut |a, r| {
             if r.get().contains_rect(a.get()) {
@@ -168,9 +168,9 @@ mod mutable {
 
     ///Naive implementation
     pub fn naive_for_all_in_rect_mut<'a, T: Aabb>(
-        bots: PMut<&'a mut [T]>,
+        bots: HalfPin<&'a mut [T]>,
         rect: &Rect<T::Num>,
-        mut closure: impl FnMut(PMut<&'a mut T>),
+        mut closure: impl FnMut(HalfPin<&'a mut T>),
     ) {
         for b in bots.iter_mut() {
             if rect.contains_rect(b.get()) {
@@ -181,9 +181,9 @@ mod mutable {
 
     ///Naive implementation
     pub fn naive_for_all_intersect_rect_mut<'a, T: Aabb>(
-        bots: PMut<&'a mut [T]>,
+        bots: HalfPin<&'a mut [T]>,
         rect: &Rect<T::Num>,
-        mut closure: impl FnMut(PMut<&'a mut T>),
+        mut closure: impl FnMut(HalfPin<&'a mut T>),
     ) {
         for b in bots.iter_mut() {
             if rect.get_intersect_rect(b.get()).is_some() {
@@ -207,7 +207,7 @@ pub fn assert_for_all_not_in_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom::Re
     });
 
     let mut res_naive = Vec::new();
-    naive_for_all_not_in_rect_mut(PMut::new(bots), rect, |_, a| {
+    naive_for_all_not_in_rect_mut(HalfPin::new(bots), rect, |_, a| {
         res_naive.push(into_ptr_usize(a.deref()));
     });
 
@@ -226,7 +226,7 @@ pub fn assert_for_all_intersect_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom:
         res_dino.push(into_ptr_usize(a.deref()));
     });
     let mut res_naive = Vec::new();
-    naive_for_all_intersect_rect_mut(PMut::new(bots), rect, |a| {
+    naive_for_all_intersect_rect_mut(HalfPin::new(bots), rect, |a| {
         res_naive.push(into_ptr_usize(a.deref()));
     });
 
@@ -245,7 +245,7 @@ pub fn assert_for_all_in_rect_mut<T: Aabb>(bots: &mut [T], rect: &axgeom::Rect<T
         res_dino.push(into_ptr_usize(a.deref()));
     });
     let mut res_naive = Vec::new();
-    naive_for_all_in_rect_mut(PMut::new(bots), rect, |a| {
+    naive_for_all_in_rect_mut(HalfPin::new(bots), rect, |a| {
         res_naive.push(into_ptr_usize(a.deref()));
     });
 

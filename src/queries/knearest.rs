@@ -11,11 +11,11 @@ pub trait Knearest<T: Aabb> {
     ///It may be that the precise distance function is fast enough, in which case you can simply
     ///return None. If None is desired, every call to this function for a particular element must
     ///always return None.
-    fn distance_to_broad(&mut self, point: Vec2<T::Num>, a: PMut<&mut T>) -> Option<T::Num>;
+    fn distance_to_broad(&mut self, point: Vec2<T::Num>, a: HalfPin<&mut T>) -> Option<T::Num>;
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
-    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: PMut<&mut T>) -> T::Num;
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: HalfPin<&mut T>) -> T::Num;
 }
 
 ///Create a handler that treats each object as its aabb rectangle shape.
@@ -39,11 +39,11 @@ where
         }
     }
 
-    fn distance_to_broad(&mut self, _point: Vec2<T::Num>, _rect: PMut<&mut T>) -> Option<T::Num> {
+    fn distance_to_broad(&mut self, _point: Vec2<T::Num>, _rect: HalfPin<&mut T>) -> Option<T::Num> {
         None
     }
 
-    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: PMut<&mut T>) -> T::Num {
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: HalfPin<&mut T>) -> T::Num {
         use num_traits::Zero;
 
         a.get()
@@ -60,11 +60,11 @@ impl<'a, T: Aabb, K: Knearest<T>> Knearest<T> for KnearestBorrow<'a, K> {
         self.0.distance_to_aaline(point, axis, val)
     }
 
-    fn distance_to_broad(&mut self, point: Vec2<T::Num>, rect: PMut<&mut T>) -> Option<T::Num> {
+    fn distance_to_broad(&mut self, point: Vec2<T::Num>, rect: HalfPin<&mut T>) -> Option<T::Num> {
         self.0.distance_to_broad(point, rect)
     }
 
-    fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: PMut<&mut T>) -> T::Num {
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: HalfPin<&mut T>) -> T::Num {
         self.0.distance_to_fine(point, bot)
     }
 }
@@ -98,8 +98,8 @@ pub fn from_closure<Acc, T: Aabb, A, B, C, D>(
     yline: D,
 ) -> KnearestClosure<Acc, A, B, C, D>
 where
-    A: FnMut(&mut Acc, Vec2<T::Num>, PMut<&mut T>) -> Option<T::Num>,
-    B: FnMut(&mut Acc, Vec2<T::Num>, PMut<&mut T>) -> T::Num,
+    A: FnMut(&mut Acc, Vec2<T::Num>, HalfPin<&mut T>) -> Option<T::Num>,
+    B: FnMut(&mut Acc, Vec2<T::Num>, HalfPin<&mut T>) -> T::Num,
     C: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
     D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
 {
@@ -123,8 +123,8 @@ pub struct KnearestClosure<Acc, B, C, D, E> {
 
 impl<'a, T: Aabb, Acc, B, C, D, E> Knearest<T> for KnearestClosure<Acc, B, C, D, E>
 where
-    B: FnMut(&mut Acc, Vec2<T::Num>, PMut<&mut T>) -> Option<T::Num>,
-    C: FnMut(&mut Acc, Vec2<T::Num>, PMut<&mut T>) -> T::Num,
+    B: FnMut(&mut Acc, Vec2<T::Num>, HalfPin<&mut T>) -> Option<T::Num>,
+    C: FnMut(&mut Acc, Vec2<T::Num>, HalfPin<&mut T>) -> T::Num,
     D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
     E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
 {
@@ -136,11 +136,11 @@ where
         }
     }
 
-    fn distance_to_broad(&mut self, point: Vec2<T::Num>, rect: PMut<&mut T>) -> Option<T::Num> {
+    fn distance_to_broad(&mut self, point: Vec2<T::Num>, rect: HalfPin<&mut T>) -> Option<T::Num> {
         (self.broad)(&mut self.acc, point, rect)
     }
 
-    fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: PMut<&mut T>) -> T::Num {
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: HalfPin<&mut T>) -> T::Num {
         (self.fine)(&mut self.acc, point, bot)
     }
 }
@@ -148,7 +148,7 @@ where
 /// Returned by k_nearest_mut
 #[derive(Debug)]
 pub struct KnearestResult<'a, T: Aabb> {
-    pub bot: PMut<&'a mut T>,
+    pub bot: HalfPin<&'a mut T>,
     pub mag: T::Num,
 }
 
@@ -178,7 +178,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         &mut self,
         point: &Vec2<T::Num>,
         knear: &mut K,
-        mut curr_bot: PMut<&'a mut T>,
+        mut curr_bot: HalfPin<&'a mut T>,
     ) {
         if let Some(long_dis) = knear.distance_to_broad(*point, curr_bot.borrow_mut()) {
             if self.curr_num == self.num {
@@ -388,7 +388,7 @@ pub fn assert_k_nearest_mut<T: Aabb>(
         .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
         .collect();
 
-    let mut res_naive = naive_k_nearest_mut(PMut::new(bots), point, num, knear)
+    let mut res_naive = naive_k_nearest_mut(HalfPin::new(bots), point, num, knear)
         .into_vec()
         .drain(..)
         .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
@@ -403,7 +403,7 @@ pub fn assert_k_nearest_mut<T: Aabb>(
 
 ///Naive implementation
 pub fn naive_k_nearest_mut<'a, T: Aabb>(
-    elems: PMut<&'a mut [T]>,
+    elems: HalfPin<&'a mut [T]>,
     point: Vec2<T::Num>,
     num: usize,
     k: &mut impl Knearest<T>,

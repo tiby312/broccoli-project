@@ -22,7 +22,7 @@ impl<T> Num for T where T: PartialOrd + Copy + Default + std::fmt::Debug {}
 /// return different aabbs.
 /// This is unsafe since we allow query algorithms to assume the following:
 /// If two object's aabb's don't intersect, then they can be mutated at the same time.
-/// See [`PMut::rect`]
+/// See [`HalfPin::rect`]
 ///
 ///
 pub trait Aabb {
@@ -180,15 +180,15 @@ mod vistr_mut {
         }
 
         #[inline(always)]
-        pub fn into_slice(self) -> PMut<&'a mut [N]> {
-            PMut::new(self.inner.into_slice())
+        pub fn into_slice(self) -> HalfPin<&'a mut [N]> {
+            HalfPin::new(self.inner.into_slice())
         }
     }
 
     impl<'a, N> compt::FixedDepthVisitor for VistrMut<'a, N> {}
 
     impl<'a, N> Visitor for VistrMut<'a, N> {
-        type Item = PMut<&'a mut N>;
+        type Item = HalfPin<&'a mut N>;
 
         #[inline(always)]
         fn next(self) -> (Self::Item, Option<[Self; 2]>) {
@@ -196,7 +196,7 @@ mod vistr_mut {
 
             let k = rest.map(|[left, right]| [VistrMut { inner: left }, VistrMut { inner: right }]);
 
-            (PMut::new(nn), k)
+            (HalfPin::new(nn), k)
         }
 
         #[inline(always)]
@@ -206,7 +206,7 @@ mod vistr_mut {
 
         #[inline(always)]
         fn dfs_preorder(self, mut func: impl FnMut(Self::Item)) {
-            self.inner.dfs_preorder(move |a| func(PMut::new(a)));
+            self.inner.dfs_preorder(move |a| func(HalfPin::new(a)));
         }
     }
 }
@@ -215,7 +215,7 @@ pub use vistr_mut::VistrMut;
 /// A node in [`Tree`].
 #[repr(C)]
 pub struct Node<'a, T: Aabb> {
-    pub range: PMut<&'a mut [T]>,
+    pub range: HalfPin<&'a mut [T]>,
 
     // if range is empty, then value is unspecified.
     // if range is not empty, then cont can be read.
