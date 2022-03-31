@@ -437,7 +437,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     /// }
     ///```
     #[must_use]
-    pub fn k_nearest_mut<'b, K: queries::knearest::Knearest<T = T, N = T::Num>>(
+    pub fn k_nearest_mut<'b, K: queries::knearest::Knearest<T>>(
         &'b mut self,
         point: Vec2<T::Num>,
         num: usize,

@@ -8,16 +8,15 @@ use crate::util::PreVec;
 //intersection in one dimension. We also need to check the other direction
 //because we know for sure they are colliding. That is the purpose of
 //this object.
-struct OtherAxisCollider<'a, A: Axis + 'a, F: CollisionHandler + 'a> {
+struct OtherAxisCollider<'a, A: Axis + 'a, F : 'a> {
     a: &'a mut F,
     axis: A,
 }
 
-impl<'a, A: Axis + 'a, F: CollisionHandler + 'a> CollisionHandler for OtherAxisCollider<'a, A, F> {
-    type T = F::T;
+impl<'a, A: Axis + 'a,T:Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T> for OtherAxisCollider<'a, A, F> {
 
     #[inline(always)]
-    fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
+    fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
         //only check if the opoosite axis intersects.
         //already know they intersect
         let a2 = self.axis.next();
@@ -29,10 +28,10 @@ impl<'a, A: Axis + 'a, F: CollisionHandler + 'a> CollisionHandler for OtherAxisC
 
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
-pub fn find_2d<A: Axis, F: CollisionHandler>(
+pub fn find_2d<A: Axis, T:Aabb,F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    bots: PMut<[F::T]>,
+    bots: PMut<[T]>,
     func: &mut F,
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
@@ -41,11 +40,11 @@ pub fn find_2d<A: Axis, F: CollisionHandler>(
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
-pub fn find_parallel_2d<A: Axis, F: CollisionHandler>(
+pub fn find_parallel_2d<A: Axis, T:Aabb,F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    bots1: PMut<[F::T]>,
-    bots2: PMut<[F::T]>,
+    bots1: PMut<[T]>,
+    bots2: PMut<[T]>,
     func: &mut F,
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
@@ -55,10 +54,10 @@ pub fn find_parallel_2d<A: Axis, F: CollisionHandler>(
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
-pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
+pub fn find_perp_2d1<A: Axis,T:Aabb, F: CollisionHandler<T>>(
     axis: A, //the axis of r1.
-    r1: PMut<[F::T]>,
-    mut r2: PMut<[F::T]>,
+    r1: PMut<[T]>,
+    mut r2: PMut<[T]>,
     func: &mut F,
 ) {
     //OPTION 1
@@ -137,10 +136,10 @@ pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
 
 #[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.
-fn find<'a, A: Axis, F: CollisionHandler>(
+fn find<'a, A: Axis, T:Aabb,F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    collision_botids: PMut<'a, [F::T]>,
+    collision_botids: PMut<'a, [T]>,
     func: &mut F,
 ) {
     use twounordered::RetainMutUnordered;
@@ -158,7 +157,7 @@ fn find<'a, A: Axis, F: CollisionHandler>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let mut active: Vec<PMut<F::T>> = prevec1.extract_vec();
+    let mut active: Vec<PMut<T>> = prevec1.extract_vec();
 
     for mut curr_bot in collision_botids.iter_mut() {
         active.retain_mut_unordered(|that_bot| {
@@ -187,22 +186,22 @@ fn find<'a, A: Axis, F: CollisionHandler>(
 
 #[inline(always)]
 //does less comparisons than option 2.
-fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
+fn find_other_parallel3<'a, 'b, A: Axis, T:Aabb,F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
     cols: (
-        impl IntoIterator<Item = PMut<'a, F::T>>,
-        impl IntoIterator<Item = PMut<'b, F::T>>,
+        impl IntoIterator<Item = PMut<'a, T>>,
+        impl IntoIterator<Item = PMut<'b, T>>,
     ),
     func: &mut F,
 ) where
-    F::T: 'a + 'b,
+    T: 'a + 'b,
 {
     use twounordered::RetainMutUnordered;
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
 
-    let mut active_lists = TwoUnorderedVecs::from(prevec1.extract_vec::<F::T>());
+    let mut active_lists = TwoUnorderedVecs::from(prevec1.extract_vec::<T>());
     loop {
         enum NextP {
             X,
@@ -332,8 +331,7 @@ fn test_parallel() {
     struct Test {
         set: BTreeSet<[usize; 2]>,
     }
-    impl CollisionHandler for Test {
-        type T = BBox<isize, Bot>;
+    impl CollisionHandler<BBox<isize,Bot>> for Test {
         fn collide(&mut self, a: PMut<BBox<isize, Bot>>, b: PMut<BBox<isize, Bot>>) {
             let [a, b] = [a.unpack_inner().id, b.unpack_inner().id];
 

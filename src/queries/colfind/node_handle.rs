@@ -24,7 +24,7 @@ impl<'a, 'node, T: Aabb, A: Axis> NodeAxis<'a, 'node, T, A> {
 pub trait NodeHandler: Copy + Clone + Send + Sync {
     fn handle_node<T: Aabb>(
         self,
-        func: &mut impl CollisionHandler<T = T>,
+        func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
         axis: impl Axis,
         bots: PMut<[T]>,
@@ -32,7 +32,7 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
 
     fn handle_children<A: Axis, B: Axis, T: Aabb>(
         self,
-        func: &mut impl CollisionHandler<T = T>,
+        func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
         anchor: NodeAxis<T, A>,
         current: NodeAxis<T, B>,
@@ -45,7 +45,7 @@ pub struct HandleNoSorted;
 impl NodeHandler for HandleNoSorted {
     fn handle_node<T: Aabb>(
         self,
-        func: &mut impl CollisionHandler<T = T>,
+        func: &mut impl CollisionHandler<T>,
         _: &mut PreVec,
         _axis: impl Axis,
         bots: PMut<[T]>,
@@ -59,7 +59,7 @@ impl NodeHandler for HandleNoSorted {
 
     fn handle_children<A: Axis, B: Axis, T: Aabb>(
         self,
-        func: &mut impl CollisionHandler<T = T>,
+        func: &mut impl CollisionHandler<T>,
         _: &mut PreVec,
         mut anchor: NodeAxis<T, A>,
         current: NodeAxis<T, B>,
@@ -90,7 +90,7 @@ impl NodeHandler for HandleSorted {
     #[inline(always)]
     fn handle_node<T: Aabb>(
         self,
-        func: &mut impl CollisionHandler<T = T>,
+        func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
         axis: impl Axis,
         bots: PMut<[T]>,
@@ -100,7 +100,7 @@ impl NodeHandler for HandleSorted {
     #[inline(always)]
     fn handle_children<A: Axis, B: Axis, T: Aabb>(
         self,
-        func: &mut impl CollisionHandler<T = T>,
+        func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
         mut anchor: NodeAxis<T, A>,
         current: NodeAxis<T, B>,

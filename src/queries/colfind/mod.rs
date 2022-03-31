@@ -10,11 +10,12 @@ pub use self::node_handle::*;
 use super::tools;
 use super::*;
 
-//TODO remove
-pub trait CollisionHandler {
-    type T: Aabb;
 
-    fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>);
+
+
+//TODO remove
+pub trait CollisionHandler<T:Aabb> {
+    fn collide(&mut self, a: PMut<T>, b: PMut<T>);
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.
@@ -71,13 +72,12 @@ pub fn query_sweep_mut<T: Aabb>(
 ) {
     crate::util::sweeper_update(axis, bots);
 
-    struct Bl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> {
-        func: F,
-        _p: PhantomData<T>,
+    struct Bl<F> {
+        func: F
     }
 
-    impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler for Bl<T, F> {
-        type T = T;
+    impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler<T> for Bl<F> {
+        
         #[inline(always)]
         fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
             (self.func)(a, b);
@@ -90,11 +90,11 @@ pub fn query_sweep_mut<T: Aabb>(
         axis,
         bots,
         &mut Bl {
-            func,
-            _p: PhantomData,
+            func
         },
     );
 }
+
 
 pub struct CollVis<'a, 'b, T: Aabb, N> {
     vistr: VistrMut<'b, Node<'a, T>>,
@@ -121,16 +121,15 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
             pub prevec: &'a mut PreVec,
         }
 
-        struct QueryFnMut<T, F>(F, PhantomData<T>);
-        impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> QueryFnMut<T, F> {
+        struct QueryFnMut<F>(F);
+        impl<F> QueryFnMut<F> {
             #[inline(always)]
-            pub fn new(func: F) -> QueryFnMut<T, F> {
-                QueryFnMut(func, PhantomData)
+            pub fn new(func: F) -> QueryFnMut<F> {
+                QueryFnMut(func)
             }
         }
 
-        impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler for QueryFnMut<T, F> {
-            type T = T;
+        impl<T: Aabb, F: FnMut(PMut<T>, PMut<T>)> CollisionHandler<T> for QueryFnMut<F> {
             #[inline(always)]
             fn collide(&mut self, a: PMut<T>, b: PMut<T>) {
                 self.0(a, b);
@@ -140,7 +139,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
         fn collide_self<A: axgeom::Axis, T: crate::Aabb>(
             this_axis: A,
             v: VistrMut<Node<T>>,
-            data: &mut Recurser<impl NodeHandler, impl CollisionHandler<T = T>>,
+            data: &mut Recurser<impl NodeHandler, impl CollisionHandler<T>>,
         ) {
             let (mut nn, rest) = v.next();
 
@@ -162,7 +161,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
                 impl<'a, 'node, T: Aabb, NN, C, B: Axis> InnerRecurser<'a, 'node, T, NN, C, B>
                 where
                     NN: NodeHandler,
-                    C: CollisionHandler<T = T>,
+                    C: CollisionHandler<T>,
                 {
                     fn recurse<
                         A: Axis, //this axis
