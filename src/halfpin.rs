@@ -55,12 +55,12 @@ impl<'a, T> From<&'a mut T> for HalfPin<&'a mut T> {
 }
 
 impl<'a, T: ?Sized> Clone for HalfPin<*mut T> {
-    fn clone(&self)->Self{
+    fn clone(&self) -> Self {
         HalfPin { inner: self.inner }
     }
 }
 impl<'a, T: ?Sized> HalfPin<*mut T> {
-    pub fn into_raw(self)->*mut T{
+    pub fn into_raw(self) -> *mut T {
         self.inner
     }
 }
@@ -72,11 +72,11 @@ impl<'a, T: ?Sized> HalfPin<&'a mut T> {
         HalfPin { inner: self.inner }
     }
 
-    pub fn into_ptr(self)->HalfPin<*mut T>{
-        HalfPin { inner: self.inner as *mut _ }
+    pub fn into_ptr(self) -> HalfPin<*mut T> {
+        HalfPin {
+            inner: self.inner as *mut _,
+        }
     }
-
-
 
     #[inline(always)]
     pub fn into_ref(self) -> &'a T {
@@ -84,14 +84,12 @@ impl<'a, T: ?Sized> HalfPin<&'a mut T> {
     }
 }
 
-impl<'a,T> HalfPin<T>{
-
+impl<'a, T> HalfPin<T> {
     /// Create a protected pointer.
     #[inline(always)]
     pub fn new(inner: T) -> HalfPin<T> {
         HalfPin { inner }
     }
-
 }
 
 /// A destructured [`Node`]

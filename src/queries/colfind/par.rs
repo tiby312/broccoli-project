@@ -15,12 +15,14 @@ pub fn recurse_par<T: Aabb, N: NodeHandler>(
     if vistr.vistr.get_height() <= height_seq_fallback {
         vistr.recurse_seq(prevec, &mut func);
     } else {
-        let rest = vistr.collide_and_next(prevec, &mut func);
+        let func1 = func.clone();
         let func2 = func.clone();
+        let (n, rest) = vistr.collide_and_next(prevec, &mut func);
         if let Some([left, right]) = rest {
             rayon_core::join(
                 || {
-                    recurse_par(left, prevec, height_seq_fallback, func);
+                    let prevec = n.finish();
+                    recurse_par(left, prevec, height_seq_fallback, func1);
                 },
                 || {
                     let mut prevec = PreVec::new();

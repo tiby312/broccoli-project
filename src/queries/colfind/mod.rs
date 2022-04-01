@@ -87,6 +87,51 @@ pub fn query_sweep_mut<T: Aabb>(
     oned::find_2d(&mut prevec, axis, bots, &mut Bl { func });
 }
 
+pub struct NodeFinisher<'a, 'b, T, F, H> {
+    func: &'a mut F,
+    prevec: &'a mut PreVec,
+    is_xaxis: bool,
+    bots: HalfPin<&'b mut [T]>,
+    handler: H,
+}
+impl<'a, 'b, T: Aabb, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>), H: NodeHandler>
+    NodeFinisher<'a, 'b, T, F, H>
+{
+    pub fn finish(self) -> &'a mut PreVec {
+        if self.is_xaxis {
+            self.handler.handle_node(
+                &mut QueryFnMut(self.func),
+                self.prevec,
+                axgeom::XAXIS.next(),
+                self.bots,
+            );
+        } else {
+            self.handler.handle_node(
+                &mut QueryFnMut(self.func),
+                self.prevec,
+                axgeom::YAXIS.next(),
+                self.bots,
+            );
+        }
+        self.prevec
+    }
+}
+
+struct QueryFnMut<F>(F);
+impl<F> QueryFnMut<F> {
+    #[inline(always)]
+    pub fn new(func: F) -> QueryFnMut<F> {
+        QueryFnMut(func)
+    }
+}
+
+impl<T: Aabb, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>)> CollisionHandler<T> for QueryFnMut<F> {
+    #[inline(always)]
+    fn collide(&mut self, a: HalfPin<&mut T>, b: HalfPin<&mut T>) {
+        self.0(a, b);
+    }
+}
+
 pub struct CollVis<'a, 'b, T: Aabb, N> {
     vistr: VistrMut<'b, Node<'a, T>>,
     is_xaxis: bool,
@@ -101,30 +146,15 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
         }
     }
 
-    pub fn collide_and_next(
+    pub fn collide_and_next<'x, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>)>(
         mut self,
-        prevec: &mut PreVec,
-        func: &mut impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
-    ) -> Option<[Self; 2]> {
+        prevec: &'x mut PreVec,
+        mut func: &'x mut F,
+    ) -> (NodeFinisher<'x, 'b, T, F, N>, Option<[Self; 2]>) {
         pub struct Recurser<'a, NO, C> {
             pub handler: &'a mut NO,
             pub sweeper: &'a mut C,
             pub prevec: &'a mut PreVec,
-        }
-
-        struct QueryFnMut<F>(F);
-        impl<F> QueryFnMut<F> {
-            #[inline(always)]
-            pub fn new(func: F) -> QueryFnMut<F> {
-                QueryFnMut(func)
-            }
-        }
-
-        impl<T: Aabb, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>)> CollisionHandler<T> for QueryFnMut<F> {
-            #[inline(always)]
-            fn collide(&mut self, a: HalfPin<&mut T>, b: HalfPin<&mut T>) {
-                self.0(a, b);
-            }
         }
 
         fn collide_self<A: axgeom::Axis, T: crate::Aabb>(
@@ -134,12 +164,14 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
         ) {
             let (mut nn, rest) = v.next();
 
+            /*
             data.handler.handle_node(
                 data.sweeper,
                 data.prevec,
                 this_axis.next(),
                 nn.borrow_mut().into_range(),
             );
+            */
 
             if let Some([mut left, mut right]) = rest {
                 struct InnerRecurser<'a, 'node, T: Aabb, NN, C, B: Axis> {
@@ -220,37 +252,51 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
             }
         }
 
-        let mut g = QueryFnMut::new(func);
-        let mut data = Recurser {
-            handler: &mut self.handler,
-            sweeper: &mut g,
+        {
+            let mut g = QueryFnMut::new(&mut func);
+            let mut data = Recurser {
+                handler: &mut self.handler,
+                sweeper: &mut g,
+                prevec,
+            };
+
+            if self.is_xaxis {
+                collide_self(axgeom::XAXIS, self.vistr.borrow_mut(), &mut data);
+            } else {
+                collide_self(axgeom::YAXIS, self.vistr.borrow_mut(), &mut data);
+            }
+        }
+
+        let (n, rest) = self.vistr.next();
+        let fin = NodeFinisher {
+            func,
             prevec,
+            is_xaxis: self.is_xaxis,
+            bots: n.into_range(),
+            handler: self.handler,
         };
 
-        if self.is_xaxis {
-            collide_self(axgeom::XAXIS, self.vistr.borrow_mut(), &mut data);
-        } else {
-            collide_self(axgeom::YAXIS, self.vistr.borrow_mut(), &mut data);
-        }
+        //let (_, rest) = self.vistr.next();
 
-        let (_, rest) = self.vistr.next();
-
-        if let Some([left, right]) = rest {
-            Some([
-                CollVis {
-                    vistr: left,
-                    is_xaxis: !self.is_xaxis,
-                    handler: self.handler,
-                },
-                CollVis {
-                    vistr: right,
-                    is_xaxis: !self.is_xaxis,
-                    handler: self.handler,
-                },
-            ])
-        } else {
-            None
-        }
+        (
+            fin,
+            if let Some([left, right]) = rest {
+                Some([
+                    CollVis {
+                        vistr: left,
+                        is_xaxis: !self.is_xaxis,
+                        handler: self.handler,
+                    },
+                    CollVis {
+                        vistr: right,
+                        is_xaxis: !self.is_xaxis,
+                        handler: self.handler,
+                    },
+                ])
+            } else {
+                None
+            },
+        )
     }
 
     pub fn recurse_seq(
@@ -258,7 +304,10 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
         prevec: &mut PreVec,
         func: &mut impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
     ) {
-        if let Some([a, b]) = self.collide_and_next(prevec, func) {
+        let (n, rest) = self.collide_and_next(prevec, func);
+
+        n.finish();
+        if let Some([a, b]) = rest {
             a.recurse_seq(prevec, func);
             b.recurse_seq(prevec, func);
         }

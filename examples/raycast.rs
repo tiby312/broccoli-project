@@ -19,15 +19,13 @@ fn main() {
         dir: vec2(1, 0),
     };
 
-
-    let res = broccoli::queries::raycast::RayCastBuilder::new(&mut tree,ray)
-        .with_closure(
-            (),
-            |_, _, _| None,
-            |_, ray, a| ray.cast_to_rect(&a.rect),
-            |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
-            |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
-        );
+    let res = broccoli::queries::raycast::RayCastBuilder::new(&mut tree, ray).with_closure(
+        (),
+        |_, _, _| None,
+        |_, ray, a| ray.cast_to_rect(&a.rect),
+        |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
+        |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
+    );
 
     assert_eq!(*res.unwrap().elems[0].inner, 4);
 }

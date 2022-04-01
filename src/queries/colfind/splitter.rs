@@ -17,8 +17,11 @@ pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler, SS: Splitter>(
     prevec: &mut PreVec,
     mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
 ) -> SS {
-    if let Some([left, right]) = vistr.collide_and_next(prevec, &mut func) {
+    let (n, rest) = vistr.collide_and_next(prevec, &mut func);
+
+    if let Some([left, right]) = rest {
         let (s1, s2) = splitter.div();
+        n.finish();
         let al = recurse_seq_splitter(left, s1, prevec, &mut func);
         let ar = recurse_seq_splitter(right, s2, prevec, &mut func);
         splitter.add(al, ar);
@@ -43,13 +46,18 @@ where
     if vistr.vistr.get_height() <= height_seq_fallback {
         vistr.recurse_seq(prevec, &mut func);
     } else {
-        let rest = vistr.collide_and_next(prevec, &mut func);
+        let func1 = func.clone();
+
         let func2 = func.clone();
+        let (n, rest) = vistr.collide_and_next(prevec, &mut func);
         if let Some([left, right]) = rest {
             let (s1, s2) = splitter.div();
 
             let (s1, s2) = rayon_core::join(
-                || recurse_par_splitter(left, prevec, height_seq_fallback, func, s1),
+                || {
+                    let prevec = n.finish();
+                    recurse_par_splitter(left, prevec, height_seq_fallback, func1, s1)
+                },
                 || {
                     let mut prevec = PreVec::new();
                     recurse_par_splitter(right, &mut prevec, height_seq_fallback, func2, s2)
