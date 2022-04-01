@@ -74,14 +74,14 @@ mod test_readme {
 #[macro_use]
 extern crate alloc;
 
-use broccoli_tree::*;
 pub use axgeom;
+use broccoli_tree::*;
 pub use compt;
 
-use broccoli_tree::halfpin::*;
-use broccoli_tree::node::*;
 use alloc::vec::Vec;
 use axgeom::*;
+use broccoli_tree::halfpin::*;
+use broccoli_tree::node::*;
 
 //TODO use this thing!!!!
 pub struct Accumulator<T> {
@@ -112,18 +112,11 @@ pub mod queries;
 ///Generic slice utility functions.
 pub mod util;
 
-
-
-
 //Implement for NotSortedTree, Tree, and NaiveSlice
-trait QueriesHalfPin<T:Aabb>{
+trait QueriesHalfPin<T: Aabb> {
+    fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>));
 
-    fn colliding_pairs(
-        &mut self,
-        func:impl FnMut(HalfPin<&mut T>,HalfPin<&mut T>)
-    );
-
-/*
+    /*
     /// # Examples
     ///
     /// ```
@@ -138,12 +131,12 @@ trait QueriesHalfPin<T:Aabb>{
     /// tree.draw_divider(
     ///     |axis,node,rect,_|
     ///     {
-    ///         if !node.range.is_empty(){    
+    ///         if !node.range.is_empty(){
     ///             rects.push(
     ///                 axis.map_val(
     ///                     Rect {x: node.cont.into(),y: rect.y.into()},
     ///                     Rect {x: rect.x.into(),y: node.cont.into()}
-    ///                 )   
+    ///                 )
     ///             );
     ///         }
     ///     },
@@ -178,7 +171,7 @@ trait QueriesHalfPin<T:Aabb>{
     ///
     /// tree.intersect_with_mut(&mut bots2,|a,b|{
     ///    *a.unpack_inner()+=1;
-    ///    *b.unpack_inner()+=2;    
+    ///    *b.unpack_inner()+=2;
     /// });
     ///
     /// assert_eq!(bots1[0].inner,1);
@@ -329,7 +322,7 @@ trait QueriesHalfPin<T:Aabb>{
     /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// tree.for_all_intersect_rect_mut(&rect(9,20,9,20),|a|{
-    ///    *a.unpack_inner()+=1;    
+    ///    *a.unpack_inner()+=1;
     /// });
     ///
     /// assert_eq!(bots[0].inner,1);
@@ -371,7 +364,7 @@ trait QueriesHalfPin<T:Aabb>{
     /// let mut bots = [bbox(rect(0,10,0,10),0u8)];
     /// let mut tree = broccoli::new(&mut bots);
     /// tree.for_all_not_in_rect_mut(&rect(10,20,10,20),|a|{
-    ///    *a.unpack_inner()+=1;    
+    ///    *a.unpack_inner()+=1;
     /// });
     ///
     /// assert_eq!(bots[0].inner,1);

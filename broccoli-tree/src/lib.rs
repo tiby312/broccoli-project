@@ -1,20 +1,18 @@
 //! Contains code to help build the [`Tree`] structure with more options than
 //! just using [`broccoli::new`](crate::new).
 
-
+pub mod assert;
 pub mod halfpin;
 pub mod node;
 mod oned;
 pub mod par;
 pub mod splitter;
 pub mod util;
-pub mod assert;
 
 use axgeom::*;
-use node::*;
-use halfpin::*;
 use compt::Visitor;
-
+use halfpin::*;
+use node::*;
 
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
 ///This means that the first divider is a 'vertical' line since it is
@@ -320,8 +318,6 @@ struct ConstructResult<'a, T: Aabb> {
     left: &'a mut [T],
 }
 
-
-
 pub use axgeom::rect;
 
 ///Shorthand constructor of [`node::BBox`]
@@ -525,5 +521,4 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn vistr(&self) -> Vistr<Node<'a, T>> {
         self.inner.as_tree().vistr()
     }
-
 }

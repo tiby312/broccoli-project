@@ -1,7 +1,5 @@
 use crate::*;
 
-
-
 pub use self::prevec::PreVec;
 
 mod prevec {

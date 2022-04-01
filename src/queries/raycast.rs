@@ -3,6 +3,7 @@
 use super::*;
 use axgeom::Ray;
 
+/*
 pub struct RayCastBuilder<'a, N, F> {
     ray: Ray<N>,
     floop: &'a mut F,
@@ -24,9 +25,10 @@ impl<'a, T: Aabb, F: Floop<'a, T = T>> RayCastBuilder<'a, T::Num, F> {
         unimplemented!()
     }
 }
+*/
 
 ///Create a handler that just casts directly to the axis aligned rectangle
-pub fn default_rect_raycast<'a, F: Floop<'a, T = T>, T: Aabb>(
+pub fn default_rect_raycast<'a, F: Floop<'a, T>, T: Aabb>(
     ray: Ray<T::Num>,
     tree: &'a mut F,
 ) -> axgeom::CastResult<CastAnswer<'a, T>>
@@ -75,18 +77,36 @@ pub trait RayCast<T: Aabb> {
 
 use crate::Tree;
 
-pub trait Floop<'a> {
-    type T: Aabb;
-    fn build<R: RayCast<Self::T>>(
+pub trait Floop<'a, T: Aabb> {
+    fn build<R: RayCast<T>>(
         &mut self,
-        ray: Ray<<Self::T as Aabb>::Num>,
+        ray: Ray<T::Num>,
         a: R,
-    ) -> axgeom::CastResult<CastAnswer<'a, Self::T>>;
+    ) -> axgeom::CastResult<CastAnswer<'a, T>>;
+
+    fn build_from_closure<A>(
+        &mut self,
+        ray: Ray<T::Num>,
+        acc: A,
+        broad: impl FnMut(&mut A, &Ray<T::Num>, HalfPin<&mut T>) -> Option<CastResult<T::Num>>,
+        fine: impl FnMut(&mut A, &Ray<T::Num>, HalfPin<&mut T>) -> CastResult<T::Num>,
+        xline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+        yline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+    ) -> axgeom::CastResult<CastAnswer<'a, T>> {
+        from_closure(
+            self,
+            ray,
+            acc,
+            |a, b, c| broad(a, b, c),
+            |a, b, c| fine(a, b, c),
+            |a, b, c| xline(a, b, c),
+            |a, b, c| yline(a, b, c),
+        )
+    }
 }
 
-impl<'a, T: Aabb> Floop<'a> for HalfPin<&'a mut [T]> {
-    type T = T;
-    fn build<R: RayCast<Self::T>>(
+impl<'a, T: Aabb> Floop<'a, T> for HalfPin<&'a mut [T]> {
+    fn build<R: RayCast<T>>(
         &mut self,
         ray: Ray<T::Num>,
         a: R,
@@ -94,9 +114,9 @@ impl<'a, T: Aabb> Floop<'a> for HalfPin<&'a mut [T]> {
         unimplemented!();
     }
 }
-impl<'a, T: Aabb> Floop<'a> for Tree<'a, T> {
-    type T = T;
-    fn build<R: RayCast<Self::T>>(
+
+impl<'a, T: Aabb> Floop<'a, T> for Tree<'a, T> {
+    fn build<R: RayCast<T>>(
         &mut self,
         ray: Ray<T::Num>,
         a: R,
@@ -124,7 +144,7 @@ impl<'a, T: Aabb> Floop<'a> for Tree<'a, T> {
 ///
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
-pub fn from_closure<'a, F: Floop<'a, T = T>, T: Aabb, A>(
+pub fn from_closure<'a, F: Floop<'a, T> + ?Sized, T: Aabb, A>(
     tree: &mut F,
     ray: Ray<T::Num>,
     acc: A,
