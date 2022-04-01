@@ -49,22 +49,33 @@ impl<T: std::ops::Deref> core::ops::Deref for HalfPin<T> {
 }
 
 impl<'a, T> From<&'a mut T> for HalfPin<&'a mut T> {
+    #[inline(always)]
     fn from(a: &'a mut T) -> Self {
         HalfPin::new(a)
     }
 }
 
 impl<'a, T: ?Sized> Clone for HalfPin<*mut T> {
+    #[inline(always)]
     fn clone(&self) -> Self {
         HalfPin { inner: self.inner }
     }
 }
 impl<'a, T: ?Sized> HalfPin<*mut T> {
+    #[inline(always)]
     pub fn into_raw(self) -> *mut T {
         self.inner
     }
 }
 
+impl<'a,'b, T: ?Sized> HalfPin<&'a mut HalfPin<&'b mut T>> {
+    #[inline(always)]
+    pub fn flatten(self)->HalfPin<&'a mut T>{
+        HalfPin{
+            inner:self.inner.inner
+        }
+    }
+}
 impl<'a, T: ?Sized> HalfPin<&'a mut T> {
     /// Start a new borrow lifetime
     #[inline(always)]
@@ -72,6 +83,7 @@ impl<'a, T: ?Sized> HalfPin<&'a mut T> {
         HalfPin { inner: self.inner }
     }
 
+    #[inline(always)]
     pub fn into_ptr(self) -> HalfPin<*mut T> {
         HalfPin {
             inner: self.inner as *mut _,

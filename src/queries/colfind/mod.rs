@@ -22,9 +22,9 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
         a as *const T as usize
     }
     let mut res_dino = Vec::new();
-    let mut prevec = PreVec::new();
-
+    
     let mut tree = crate::new(bots);
+    
     tree.colliding_pairs(&mut |a: HalfPin<&mut T>, b: HalfPin<&mut T>| {
         let a = into_ptr_usize(a.deref());
         let b = into_ptr_usize(b.deref());
@@ -55,8 +55,8 @@ pub trait CollisionApi<T: Aabb> {
     fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>));
 }
 impl<'a, T: Aabb> CollisionApi<T> for HalfPin<&'a mut [T]> {
-    fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
-        tools::for_every_pair(HalfPin::new(self), move |a, b| {
+    fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
+        tools::for_every_pair(HalfPin::new(self).flatten(), move |a, b| {
             if a.get().intersects_rect(b.get()) {
                 func(a, b);
             }
@@ -65,7 +65,7 @@ impl<'a, T: Aabb> CollisionApi<T> for HalfPin<&'a mut [T]> {
 }
 
 impl<'a, T: Aabb> CollisionApi<T> for crate::Tree<'a, T> {
-    fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
+    fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
         let mut prevec = crate::util::PreVec::new();
         CollVis::new(self.vistr_mut(), true, HandleSorted).recurse_seq(&mut prevec, &mut func);
     }

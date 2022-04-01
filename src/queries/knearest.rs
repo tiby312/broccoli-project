@@ -23,11 +23,11 @@ impl<'a, T: Aabb> KnearestApi<'a, T> for Tree<'a, T> {
         &'a mut self,
         point: Vec2<T::Num>,
         num: usize,
-        ktrait: impl Knearest<T>,
+        mut ktrait: impl Knearest<T>,
     ) -> KResult<'a, T> {
         let dt = self.vistr_mut().with_depth(Depth(0));
 
-        let knear = KnearestBorrow(&mut ktrait);
+        let knear = &mut ktrait;
 
         let closest = ClosestCand::new(num);
 
@@ -51,11 +51,11 @@ impl<'a, T: Aabb> KnearestApi<'a, T> for HalfPin<&'a mut [T]> {
         &'a mut self,
         point: Vec2<T::Num>,
         num: usize,
-        ktrait: impl Knearest<T>,
+        mut ktrait: impl Knearest<T>,
     ) -> KResult<'a, T> {
         let mut closest = ClosestCand::new(num);
 
-        for b in self.iter_mut() {
+        for b in self.borrow_mut().iter_mut() {
             closest.consider(&point, &mut ktrait, b);
         }
 
@@ -203,20 +203,19 @@ pub trait KnearestApi<'a, T: Aabb> {
     }
 }
 
-///Hide the lifetime behind the RayCast trait
-///to make things simpler
-struct KnearestBorrow<'a, K>(&'a mut K);
-impl<'a, T: Aabb, K: Knearest<T>> Knearest<T> for KnearestBorrow<'a, K> {
+
+
+impl<'a, T: Aabb, K: Knearest<T>> Knearest<T> for &mut K {
     fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num {
-        self.0.distance_to_aaline(point, axis, val)
+        (*self).distance_to_aaline(point, axis, val)
     }
 
     fn distance_to_broad(&mut self, point: Vec2<T::Num>, rect: HalfPin<&mut T>) -> Option<T::Num> {
-        self.0.distance_to_broad(point, rect)
+        (*self).distance_to_broad(point, rect)
     }
 
     fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: HalfPin<&mut T>) -> T::Num {
-        self.0.distance_to_fine(point, bot)
+        (*self).distance_to_fine(point, bot)
     }
 }
 
@@ -449,7 +448,7 @@ pub fn assert_k_nearest_mut<T: Aabb>(
     bots: &mut [T],
     point: Vec2<T::Num>,
     num: usize,
-    knear: impl Knearest<T>,
+    mut knear: impl Knearest<T>,
 ) {
     use core::ops::Deref;
 
@@ -458,7 +457,7 @@ pub fn assert_k_nearest_mut<T: Aabb>(
     }
 
     let mut tree = crate::new(bots);
-    let r = tree.k_nearest_mut(point, num, knear);
+    let r = tree.k_nearest_mut(point, num, &mut knear);
     let mut res_dino: Vec<_> = r
         .into_vec()
         .drain(..)
