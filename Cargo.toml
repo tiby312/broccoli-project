@@ -15,12 +15,13 @@ include = ["src/**/*", "LICENSE-MIT", "README.md"]
 doctest = false
 
 [workspace]
-members = [ "demo_web","report/data_gen"]
+members = [ "broccoli-tree","demo_web","report/data_gen"]
 
 [dev-dependencies]
 dists = {git="https://github.com/tiby312/dists.git"}
 
 [dependencies]
+broccoli-tree={path="broccoli-tree"}
 rayon-core="*"
 itertools = "0.10"
 compt = "2.0"

@@ -70,7 +70,7 @@ pub fn query_sweep_mut<T: Aabb>(
     bots: &mut [T],
     func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
 ) {
-    crate::util::sweeper_update(axis, bots);
+    broccoli_tree::util::sweeper_update(axis, bots);
 
     struct Bl<F> {
         func: F,

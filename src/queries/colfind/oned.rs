@@ -373,8 +373,8 @@ fn test_parallel() {
         b.make(6, 7),
     ];
 
-    crate::util::sweeper_update(axgeom::XAXIS, &mut left);
-    crate::util::sweeper_update(axgeom::XAXIS, &mut right);
+    broccoli_tree::util::sweeper_update(axgeom::XAXIS, &mut left);
+    broccoli_tree::util::sweeper_update(axgeom::XAXIS, &mut right);
 
     let mut p1 = PreVec::new();
     let mut test1 = Test {

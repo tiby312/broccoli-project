@@ -74,15 +74,14 @@ mod test_readme {
 #[macro_use]
 extern crate alloc;
 
+use broccoli_tree::*;
 pub use axgeom;
 pub use compt;
 
-use crate::build::*;
-use crate::halfpin::*;
-use crate::node::*;
+use broccoli_tree::halfpin::*;
+use broccoli_tree::node::*;
 use alloc::vec::Vec;
 use axgeom::*;
-use compt::Visitor;
 
 //TODO use this thing!!!!
 pub struct Accumulator<T> {
@@ -108,228 +107,23 @@ impl<T> Accumulator<T> {
 #[cfg(test)]
 mod tests;
 
-pub mod build;
-
 pub mod queries;
-
-pub mod halfpin;
-
-///Contains node-level building block structs and visitors used for a [`Tree`].
-pub mod node;
 
 ///Generic slice utility functions.
 pub mod util;
 
-pub use axgeom::rect;
 
-///Shorthand constructor of [`node::BBox`]
-#[inline(always)]
-#[must_use]
-pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
-    node::BBox::new(rect, inner)
-}
 
-type TreeInner<N> = compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
 
-/// A space partitioning tree.
-#[repr(transparent)]
-pub struct Tree<'a, T: Aabb> {
-    inner: TreeInner<Node<'a, T>>,
-}
+//Implement for NotSortedTree, Tree, and NaiveSlice
+trait QueriesHalfPin<T:Aabb>{
 
-///Create a [`Tree`].
-///
-/// # Examples
-///
-///```
-/// let mut bots = [axgeom::rect(0,10,0,10)];
-/// let tree = broccoli::new(&mut bots);
-///
-///```
-pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
-    let num_level = build::num_level::default(bots.len());
-    let mut buffer = Vec::with_capacity(build::num_level::num_nodes(num_level));
-    let vistr = build::start_build(num_level, bots);
-    vistr.recurse_seq(&mut buffer);
-    build::into_tree(buffer)
-}
+    fn colliding_pairs(
+        &mut self,
+        func:impl FnMut(HalfPin<&mut T>,HalfPin<&mut T>)
+    );
 
-pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
-where
-    T: Send + Sync,
-    T::Num: Send + Sync,
-{
-    let num_level = build::num_level::default(bots.len());
-    let mut buffer = Vec::with_capacity(build::num_level::num_nodes(num_level));
-    let vistr = build::start_build(num_level, bots);
-    build::par::recurse_par(vistr, 5, &mut buffer);
-    build::into_tree(buffer)
-}
-
-pub struct NodeDataCollection<N: Num> {
-    inner: Vec<NodeData<N>>,
-}
-
-impl<'a, T: Aabb> Tree<'a, T> {
-    pub fn from_node_data(data: NodeDataCollection<T::Num>, bots: HalfPin<&'a mut [T]>) -> Self {
-        let mut last = Some(bots);
-
-        let a: Vec<_> = data
-            .inner
-            .into_iter()
-            .map(move |x| {
-                let (range, rest) = last.take().unwrap().split_at_mut(x.range);
-                last = Some(rest);
-                Node {
-                    range,
-                    cont: x.cont,
-                    div: x.div,
-                }
-            })
-            .collect();
-        Tree {
-            inner: compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap(),
-        }
-    }
-
-    pub fn into_node_data(self) -> NodeDataCollection<T::Num> {
-        NodeDataCollection {
-            inner: self
-                .inner
-                .into_nodes()
-                .into_vec()
-                .into_iter()
-                .map(|x| NodeData {
-                    range: x.range.len(),
-                    cont: x.cont,
-                    div: x.div,
-                })
-                .collect(),
-        }
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::build;
-    /// const NUM_ELEMENT:usize=40;
-    /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// assert_eq!(tree.get_height(),build::TreePreBuilder::new(NUM_ELEMENT).get_height());
-    ///```
-    ///
-    #[must_use]
-    #[inline(always)]
-    pub fn get_height(&self) -> usize {
-        self.inner.as_tree().get_height()
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::build;
-    /// const NUM_ELEMENT:usize=7;
-    /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// let inner =tree.into_inner();
-    /// assert_eq!(inner.into_nodes().len(),1);
-    ///```
-    #[must_use]
-    pub fn into_inner(
-        self,
-    ) -> compt::dfs_order::CompleteTreeContainer<Node<'a, T>, compt::dfs_order::PreOrder> {
-        self.inner
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::build;
-    /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// assert_eq!(tree.num_nodes(),build::TreePreBuilder::new(1).num_nodes());
-    ///
-    ///```
-    #[must_use]
-    #[warn(deprecated)]
-    #[inline(always)]
-    pub fn num_nodes(&self) -> usize {
-        self.inner.as_tree().get_nodes().len()
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// assert_eq!(tree.get_nodes()[0].range[0], axgeom::rect(0,10,0,10));
-    ///
-    ///```
-    #[must_use]
-    pub fn get_nodes(&self) -> &[Node<'a, T>] {
-        self.inner.as_tree().get_nodes()
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// assert_eq!(tree.get_nodes_mut().get_index_mut(0).range[0], axgeom::rect(0,10,0,10));
-    ///
-    ///```
-    #[must_use]
-    pub fn get_nodes_mut(&mut self) -> HalfPin<&mut [Node<'a, T>]> {
-        HalfPin::new(self.inner.as_tree_mut().get_nodes_mut())
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{bbox,rect};
-    /// let mut bots = [bbox(rect(0,10,0,10),0)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// use compt::Visitor;
-    /// for b in tree.vistr_mut().dfs_preorder_iter().flat_map(|n|n.into_range().iter_mut()){
-    ///    *b.unpack_inner()+=1;    
-    /// }
-    /// assert_eq!(bots[0].inner,1);
-    ///```
-    #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
-        VistrMut::new(self.inner.as_tree_mut().vistr_mut())
-    }
-
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::{bbox,rect};
-    /// let mut bots = [rect(0,10,0,10)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// use compt::Visitor;
-    /// let mut test = Vec::new();
-    /// for b in tree.vistr().dfs_preorder_iter().flat_map(|n|n.range.iter()){
-    ///    test.push(b);
-    /// }
-    /// assert_eq!(test[0],&axgeom::rect(0,10,0,10));
-    ///```
-    #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
-        self.inner.as_tree().vistr()
-    }
-
-    pub fn colliding_pairs<'b>(
-        &'b mut self,
-    ) -> queries::colfind::CollVis<'a, 'b, T, queries::colfind::HandleSorted> {
-        queries::colfind::CollVis::new(self.vistr_mut(), true, queries::colfind::HandleSorted)
-    }
-
+/*
     /// # Examples
     ///
     /// ```
@@ -595,4 +389,5 @@ impl<'a, T: Aabb> Tree<'a, T> {
             move |r, a| (func)(r, a),
         );
     }
+    */
 }

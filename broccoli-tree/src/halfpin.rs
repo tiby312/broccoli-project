@@ -23,7 +23,7 @@
 //!
 //! ```
 
-use crate::*;
+use super::*;
 
 /// Trait exposes an api where you can return a read-only reference to the axis-aligned bounding box
 /// and at the same time return a mutable reference to a separate inner section.
