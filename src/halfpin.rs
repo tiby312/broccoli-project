@@ -54,23 +54,44 @@ impl<'a, T> From<&'a mut T> for HalfPin<&'a mut T> {
     }
 }
 
-impl<'a, T: ?Sized> HalfPin<&'a mut T> {
-    /// Create a protected pointer.
-    #[inline(always)]
-    pub fn new(inner: &'a mut T) -> HalfPin<&'a mut T> {
-        HalfPin { inner }
+impl<'a, T: ?Sized> Clone for HalfPin<*mut T> {
+    fn clone(&self)->Self{
+        HalfPin { inner: self.inner }
     }
+}
+impl<'a, T: ?Sized> HalfPin<*mut T> {
+    pub fn into_raw(self)->*mut T{
+        self.inner
+    }
+}
 
+impl<'a, T: ?Sized> HalfPin<&'a mut T> {
     /// Start a new borrow lifetime
     #[inline(always)]
     pub fn borrow_mut(&mut self) -> HalfPin<&mut T> {
         HalfPin { inner: self.inner }
     }
 
+    pub fn into_ptr(self)->HalfPin<*mut T>{
+        HalfPin { inner: self.inner as *mut _ }
+    }
+
+
+
     #[inline(always)]
     pub fn into_ref(self) -> &'a T {
         self.inner
     }
+}
+
+impl<'a,T> HalfPin<T>{
+
+    /// Create a protected pointer.
+    #[inline(always)]
+    pub fn new(inner: T) -> HalfPin<T> {
+        HalfPin { inner }
+    }
+
 }
 
 /// A destructured [`Node`]

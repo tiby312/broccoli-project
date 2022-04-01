@@ -166,20 +166,6 @@ where
     build::into_tree(buffer)
 }
 
-pub trait EveryPair<T> {
-    fn every_pair(foo: HalfPin<&mut Self>, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>));
-}
-
-pub struct PairCollector<'a, T, S: EveryPair<T>> {
-    inner: HalfPin<&'a mut S>,
-    cached: Vec<[*mut T; 2]>,
-}
-impl<'a, T, S: EveryPair<T>> EveryPair<T> for PairCollector<'a, T, S> {
-    fn every_pair(foo: HalfPin<&mut Self>, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
-        //cache results
-    }
-}
-
 pub struct NodeDataCollection<N: Num> {
     inner: Vec<NodeData<N>>,
 }
