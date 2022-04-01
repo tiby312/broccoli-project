@@ -105,7 +105,11 @@ pub fn from_closure<'a, 'b, T: Aabb, A>(
                 (self.yline)(&mut self.acc, ray, val)
             }
         }
-        fn cast_broad(&mut self, ray: &Ray<T::Num>, a: HalfPin<&mut T>) -> Option<CastResult<T::Num>> {
+        fn cast_broad(
+            &mut self,
+            ray: &Ray<T::Num>,
+            a: HalfPin<&mut T>,
+        ) -> Option<CastResult<T::Num>> {
             (self.broad)(&mut self.acc, ray, a)
         }
 

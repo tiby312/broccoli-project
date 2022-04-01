@@ -27,7 +27,8 @@ fn test1() {
         let tree = broccoli::new(&mut bots);
 
         let nodes = tree.into_node_data();
-        let mut tree = broccoli::Tree::from_node_data(nodes, broccoli::halfpin::HalfPin::new(&mut bots));
+        let mut tree =
+            broccoli::Tree::from_node_data(nodes, broccoli::halfpin::HalfPin::new(&mut bots));
 
         let mut prevec = broccoli::util::PreVec::new();
 

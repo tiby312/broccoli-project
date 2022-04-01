@@ -1,8 +1,8 @@
 //! Contains query modules for each query algorithm.
 
 use crate::build::default_axis;
-use crate::node::*;
 use crate::halfpin::*;
+use crate::node::*;
 use crate::util::*;
 use alloc::vec::Vec;
 use axgeom::*;

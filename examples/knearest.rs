@@ -19,8 +19,8 @@ fn main() {
 
     let mut tree = broccoli::new(&mut bots);
 
-    use broccoli::node::BBox;
     use broccoli::halfpin::HalfPin;
+    use broccoli::node::BBox;
 
     let mut handler = broccoli::queries::knearest::from_closure(
         (),

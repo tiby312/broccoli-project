@@ -333,7 +333,11 @@ fn test_parallel() {
         set: BTreeSet<[usize; 2]>,
     }
     impl CollisionHandler<BBox<isize, Bot>> for Test {
-        fn collide(&mut self, a: HalfPin<&mut BBox<isize, Bot>>, b: HalfPin<&mut BBox<isize, Bot>>) {
+        fn collide(
+            &mut self,
+            a: HalfPin<&mut BBox<isize, Bot>>,
+            b: HalfPin<&mut BBox<isize, Bot>>,
+        ) {
             let [a, b] = [a.unpack_inner().id, b.unpack_inner().id];
 
             let fin = if a < b { [a, b] } else { [b, a] };

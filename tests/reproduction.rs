@@ -10,8 +10,8 @@ fn knearest_repro() {
 
     let mut tree = broccoli::new(&mut repro);
 
-    use broccoli::node::BBox;
     use broccoli::halfpin::HalfPin;
+    use broccoli::node::BBox;
     let mut handler = broccoli::queries::knearest::from_closure(
         (),
         |_, point, a: HalfPin<&mut BBox<f32, Vec2<f32>>>| {

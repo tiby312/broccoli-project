@@ -31,9 +31,9 @@ mod inner_prelude {
     pub use axgeom::Rect;
     pub use axgeom::Vec2;
     pub use broccoli::build::*;
+    pub use broccoli::halfpin::PMut;
     pub use broccoli::node::*;
     pub use broccoli::par::*;
-    pub use broccoli::halfpin::PMut;
     pub use broccoli::query::*;
     pub use broccoli::*;
     pub use poloto::prelude::*;

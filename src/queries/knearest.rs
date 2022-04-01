@@ -39,7 +39,11 @@ where
         }
     }
 
-    fn distance_to_broad(&mut self, _point: Vec2<T::Num>, _rect: HalfPin<&mut T>) -> Option<T::Num> {
+    fn distance_to_broad(
+        &mut self,
+        _point: Vec2<T::Num>,
+        _rect: HalfPin<&mut T>,
+    ) -> Option<T::Num> {
         None
     }
 

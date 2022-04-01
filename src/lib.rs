@@ -78,8 +78,8 @@ pub use axgeom;
 pub use compt;
 
 use crate::build::*;
-use crate::node::*;
 use crate::halfpin::*;
+use crate::node::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use compt::Visitor;
@@ -166,27 +166,19 @@ where
     build::into_tree(buffer)
 }
 
-
-
-
-
-
-pub trait EveryPair<T>{
-    fn every_pair(foo:HalfPin<&mut Self>,func:impl FnMut(HalfPin<&mut T>,HalfPin<&mut T>));
+pub trait EveryPair<T> {
+    fn every_pair(foo: HalfPin<&mut Self>, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>));
 }
 
-
-pub struct PairCollector<'a,T,S:EveryPair<T>>{
-    inner:HalfPin<&'a mut S>,
-    cached:Vec<[*mut T;2]>
+pub struct PairCollector<'a, T, S: EveryPair<T>> {
+    inner: HalfPin<&'a mut S>,
+    cached: Vec<[*mut T; 2]>,
 }
-impl<'a,T,S:EveryPair<T>> EveryPair<T> for PairCollector<'a,T,S>{
-    fn every_pair(foo:HalfPin<&mut Self>,func:impl FnMut(HalfPin<&mut T>,HalfPin<&mut T>)){
+impl<'a, T, S: EveryPair<T>> EveryPair<T> for PairCollector<'a, T, S> {
+    fn every_pair(foo: HalfPin<&mut Self>, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
         //cache results
     }
-
 }
-
 
 pub struct NodeDataCollection<N: Num> {
     inner: Vec<NodeData<N>>,
