@@ -7,8 +7,6 @@ pub mod prelude {
     pub use broccoli::build::*;
     pub use broccoli::compt;
     pub use broccoli::node::*;
-    pub use broccoli::par::RayonJoin;
-    pub use broccoli::query::*;
     //pub use broccoli::rayon;
     pub use crate::demos::Demo;
     pub use crate::demos::DemoData;

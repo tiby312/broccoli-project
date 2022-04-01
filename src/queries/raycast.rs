@@ -3,15 +3,45 @@
 use super::*;
 use axgeom::Ray;
 
+
+
+pub struct RayCastBuilder<'a,N,F>{
+    ray:Ray<N>,
+    floop:&'a mut F
+}
+impl<'a,T:Aabb,F:Floop<'a,T=T>> RayCastBuilder<'a,T::Num,F>{
+    pub fn new(a:&'a mut F,ray:Ray<T::Num>)->Self{
+        unimplemented!()
+    }
+
+    pub fn default(self)->axgeom::CastResult<CastAnswer<'a, T>>{
+        unimplemented!()
+    }
+
+    pub fn with_closure(self)->axgeom::CastResult<CastAnswer<'a,T>>{
+        unimplemented!();
+    }
+
+    pub fn from_trait(self)->axgeom::CastResult<CastAnswer<'a,T>>{
+        unimplemented!()
+    }
+}
+
+
+
+
+
 ///Create a handler that just casts directly to the axis aligned rectangle
-pub fn default_rect_raycast<'a, 'b, T: Aabb>(
-    tree: &'a mut Tree<'b, T>,
-) -> Raycaster<'a, 'b, T, impl RayCast<T>>
+pub fn default_rect_raycast<'a,F:Floop<'a,T=T>, T: Aabb>(
+    ray:Ray<T::Num>,
+    tree: &'a mut F,
+) -> axgeom::CastResult<CastAnswer<'a, T>>
 where
     T::Num: core::fmt::Debug + num_traits::Signed,
 {
     from_closure(
         tree,
+        ray,
         (),
         |_, _, _| None,
         |_, ray, a: HalfPin<&mut T>| ray.cast_to_rect(a.get()),
@@ -51,6 +81,28 @@ pub trait RayCast<T: Aabb> {
 
 use crate::Tree;
 
+
+
+pub trait Floop<'a>{
+    type T:Aabb;
+    fn build<R:RayCast<Self::T>>(&mut self,ray:Ray<<Self::T as Aabb>::Num>,a:R)->axgeom::CastResult<CastAnswer<'a, Self::T>>;
+}
+
+
+impl<'a,T:Aabb> Floop<'a> for HalfPin<&'a mut [T]>{
+    type T=T;
+    fn build<R:RayCast<Self::T>>(&mut self,ray:Ray<T::Num>,a:R)->axgeom::CastResult<CastAnswer<'a, T>>{
+        unimplemented!();
+    }
+}
+impl<'a,T:Aabb> Floop<'a> for Tree<'a,T>{
+    type T=T;
+    fn build<R:RayCast<Self::T>>(&mut self,ray:Ray<T::Num>,a:R)->axgeom::CastResult<CastAnswer<'a, T>>{
+        unimplemented!();
+    }
+}
+
+
 ///Construct an object that implements [`RayCast`] from closures.
 ///We pass the tree so that we can infer the type of `T`.
 ///
@@ -70,14 +122,15 @@ use crate::Tree;
 ///
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
-pub fn from_closure<'a, 'b, T: Aabb, A>(
-    tree: &'a mut Tree<'b, T>,
+pub fn from_closure<'a,F:Floop<'a,T=T>, T: Aabb, A>(
+    tree: &mut F,
+    ray:Ray<T::Num>,
     acc: A,
     broad: impl FnMut(&mut A, &Ray<T::Num>, HalfPin<&mut T>) -> Option<CastResult<T::Num>>,
     fine: impl FnMut(&mut A, &Ray<T::Num>, HalfPin<&mut T>) -> CastResult<T::Num>,
     xline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     yline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-) -> Raycaster<'a, 'b, T, impl RayCast<T>> {
+) -> axgeom::CastResult<CastAnswer<'a, T>>{
     struct RayCastClosure<A, B, C, D, E> {
         acc: A,
         broad: B,
@@ -118,16 +171,15 @@ pub fn from_closure<'a, 'b, T: Aabb, A>(
         }
     }
 
-    Raycaster::new(
-        tree,
-        RayCastClosure {
+    let r=RayCastClosure {
             acc,
             broad,
             fine,
             xline,
             yline,
-        },
-    )
+        };
+
+    tree.build(ray,r)
 }
 
 ///Hide the lifetime behind the RayCast trait
@@ -310,6 +362,8 @@ pub fn assert_raycast<T: Aabb>(
             //do nothing
         }
     }
+
+
     match raycast_naive_mut(HalfPin::new(bots), ray, rtrait) {
         axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
             for a in elems.into_iter() {
