@@ -87,6 +87,7 @@ pub fn query_sweep_mut<T: Aabb>(
     oned::find_2d(&mut prevec, axis, bots, &mut Bl { func });
 }
 
+#[must_use]
 pub struct NodeFinisher<'a, 'b, T, F, H> {
     func: &'a mut F,
     prevec: &'a mut PreVec,

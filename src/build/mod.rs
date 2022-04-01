@@ -126,6 +126,7 @@ impl<'a, T: Aabb> NotSorted<'a, T> {
     }
 }
 
+#[must_use]
 pub struct NodeFinisher<'a, T: Aabb, S> {
     is_xaxis: bool,
     div: Option<T::Num>, //This can be null if there are no bots left at all

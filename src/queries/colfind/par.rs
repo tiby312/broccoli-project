@@ -15,6 +15,7 @@ pub fn recurse_par<T: Aabb, N: NodeHandler>(
     if vistr.vistr.get_height() <= height_seq_fallback {
         vistr.recurse_seq(prevec, &mut func);
     } else {
+        //TODO reduce number of clones.
         let func1 = func.clone();
         let func2 = func.clone();
         let (n, rest) = vistr.collide_and_next(prevec, &mut func);
