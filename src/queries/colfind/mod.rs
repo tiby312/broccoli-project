@@ -22,9 +22,9 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
         a as *const T as usize
     }
     let mut res_dino = Vec::new();
-    
+
     let mut tree = crate::new(bots);
-    
+
     tree.colliding_pairs(&mut |a: HalfPin<&mut T>, b: HalfPin<&mut T>| {
         let a = into_ptr_usize(a.deref());
         let b = into_ptr_usize(b.deref());

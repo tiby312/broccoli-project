@@ -2,16 +2,30 @@
 
 use super::*;
 
-
-
-pub trait RectApi<'a,T:Aabb>{
-    fn for_all_not_in_rect_mut<K:Aabb<Num=T::Num>>(&'a mut self,rect:&mut K,foo:impl FnMut(&mut K,HalfPin<&'a mut T>));
-    fn for_all_in_rect_mut<K:Aabb<Num=T::Num>>(&'a mut self,rect:&mut K,foo:impl FnMut(&mut K,HalfPin<&'a mut T>));
-    fn for_all_intersect_rect_mut<K:Aabb<Num=T::Num>>(&'a mut self,rect:&mut K,foo:impl FnMut(&mut K,HalfPin<&'a mut T>));
+pub trait RectApi<'a, T: Aabb> {
+    fn for_all_not_in_rect_mut<K: Aabb<Num = T::Num>>(
+        &'a mut self,
+        rect: &mut K,
+        foo: impl FnMut(&mut K, HalfPin<&'a mut T>),
+    );
+    fn for_all_in_rect_mut<K: Aabb<Num = T::Num>>(
+        &'a mut self,
+        rect: &mut K,
+        foo: impl FnMut(&mut K, HalfPin<&'a mut T>),
+    );
+    fn for_all_intersect_rect_mut<K: Aabb<Num = T::Num>>(
+        &'a mut self,
+        rect: &mut K,
+        foo: impl FnMut(&mut K, HalfPin<&'a mut T>),
+    );
 }
 
-impl<'a,T:Aabb> RectApi<'a,T> for crate::Tree<'a,T>{
-    fn for_all_not_in_rect_mut<K:Aabb<Num=T::Num>>(&'a mut self,rect:&mut K,mut closure:impl FnMut(&mut K,HalfPin<&'a mut T>)) {
+impl<'a, T: Aabb> RectApi<'a, T> for crate::Tree<'a, T> {
+    fn for_all_not_in_rect_mut<K: Aabb<Num = T::Num>>(
+        &'a mut self,
+        rect: &mut K,
+        mut closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
+    ) {
         fn rect_recurse<
             'a,
             'b: 'a,
@@ -71,110 +85,122 @@ impl<'a,T:Aabb> RectApi<'a,T> for crate::Tree<'a,T>{
         rect_recurse(axgeom::XAXIS, self.vistr_mut(), rect, closure);
     }
 
-    fn for_all_in_rect_mut<K:Aabb<Num=T::Num>>(&'a mut self,rect:&mut K,mut closure:impl FnMut(&mut K,HalfPin<&'a mut T>)) {
-        rect_recurse(axgeom::XAXIS, self.vistr_mut(), rect, &mut |r,a| {
+    fn for_all_in_rect_mut<K: Aabb<Num = T::Num>>(
+        &'a mut self,
+        rect: &mut K,
+        mut closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
+    ) {
+        rect_recurse(axgeom::XAXIS, self.vistr_mut(), rect, &mut |r, a| {
             if r.get().contains_rect(a.get()) {
                 closure(r, a);
             }
         });
     }
 
-    fn for_all_intersect_rect_mut<K:Aabb<Num=T::Num>>(&'a mut self,rect:&mut K,mut closure:impl FnMut(&mut K,HalfPin<&'a mut T>)) {
-        rect_recurse(axgeom::XAXIS,self.vistr_mut(), rect, &mut |r,a| {
+    fn for_all_intersect_rect_mut<K: Aabb<Num = T::Num>>(
+        &'a mut self,
+        rect: &mut K,
+        mut closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
+    ) {
+        rect_recurse(axgeom::XAXIS, self.vistr_mut(), rect, &mut |r, a| {
             if r.get().get_intersect_rect(a.get()).is_some() {
                 closure(r, a);
             }
         });
     }
 }
-impl<'a,T:Aabb> RectApi<'a,T> for HalfPin<&'a mut [T]>{
-    fn for_all_not_in_rect_mut<K:Aabb<Num=T::Num>>(&'a mut self,rect:&mut K,mut closure:impl FnMut(&mut K,HalfPin<&'a mut T>)){
+impl<'a, T: Aabb> RectApi<'a, T> for HalfPin<&'a mut [T]> {
+    fn for_all_not_in_rect_mut<K: Aabb<Num = T::Num>>(
+        &'a mut self,
+        rect: &mut K,
+        mut closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
+    ) {
         for b in self.borrow_mut().iter_mut() {
             if !rect.get().contains_rect(b.get()) {
-                closure(rect,b );
+                closure(rect, b);
             }
         }
     }
-    fn for_all_in_rect_mut<K:Aabb<Num=T::Num>>(&'a mut self,rect:&mut K,mut closure:impl FnMut(&mut K,HalfPin<&'a mut T>)){
+    fn for_all_in_rect_mut<K: Aabb<Num = T::Num>>(
+        &'a mut self,
+        rect: &mut K,
+        mut closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
+    ) {
         for b in self.borrow_mut().iter_mut() {
             if rect.get().contains_rect(b.get()) {
-                closure(rect,b);
+                closure(rect, b);
             }
         }
     }
-    fn for_all_intersect_rect_mut<K:Aabb<Num=T::Num>>(&'a mut self,rect:&mut K,mut closure:impl FnMut(&mut K,HalfPin<&'a mut T>)){
+    fn for_all_intersect_rect_mut<K: Aabb<Num = T::Num>>(
+        &'a mut self,
+        rect: &mut K,
+        mut closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
+    ) {
         for b in self.borrow_mut().iter_mut() {
             if rect.get().get_intersect_rect(b.get()).is_some() {
-                closure(rect,b);
+                closure(rect, b);
             }
         }
     }
 }
 
+use super::tools::get_section_mut;
+use super::*;
+fn foo<'a, 'b: 'a, T: Aabb>(node: HalfPin<&'a mut Node<'b, T>>) -> HalfPin<&'a mut [T]> {
+    node.into_range()
+}
+fn rect_recurse<
+    'a,
+    A: Axis,
+    T: Aabb,
+    F: FnMut(&mut K, HalfPin<&'a mut T>),
+    K: Aabb<Num = T::Num>,
+>(
+    this_axis: A,
+    m: VistrMut<'a, Node<T>>,
+    rect: &mut K,
+    func: &mut F,
+) {
+    let (nn, rest) = m.next();
+    //let nn = nn.$get_node();
+    match rest {
+        Some([left, right]) => {
+            let div = match nn.div {
+                Some(b) => b,
+                None => return,
+            };
 
+            let sl = get_section_mut(
+                this_axis.next(),
+                foo(nn),
+                rect.get().get_range(this_axis.next()),
+            );
 
-
-
-    use super::tools::get_section_mut;
-    use super::*;
-    fn foo<'a, 'b: 'a, T: Aabb>(node: HalfPin<&'a mut Node<'b, T>>) -> HalfPin<&'a mut [T]> {
-        node.into_range()
-    }
-    fn rect_recurse<
-        'a,
-        A: Axis,
-        T: Aabb,
-        F: FnMut(&mut K,HalfPin<&'a mut T>),
-        K: Aabb<Num = T::Num>,
-    >(
-        this_axis: A,
-        m: VistrMut<'a, Node<T>>,
-        rect: &mut K,
-        func: &mut F,
-    ) {
-        let (nn, rest) = m.next();
-        //let nn = nn.$get_node();
-        match rest {
-            Some([left, right]) => {
-                let div = match nn.div {
-                    Some(b) => b,
-                    None => return,
-                };
-
-                let sl = get_section_mut(
-                    this_axis.next(),
-                    foo(nn),
-                    rect.get().get_range(this_axis.next()),
-                );
-
-                for i in sl {
-                    func(rect,i);
-                }
-
-                if div >= rect.get().get_range(this_axis).start {
-                    self::rect_recurse(this_axis.next(), left, rect, func);
-                }
-                if div <= rect.get().get_range(this_axis).end {
-                    self::rect_recurse(this_axis.next(), right, rect, func);
-                }
+            for i in sl {
+                func(rect, i);
             }
-            None => {
-                let sl = get_section_mut(
-                    this_axis.next(),
-                    foo(nn),
-                    rect.get().get_range(this_axis.next()),
-                );
 
-                for i in sl {
-                    func(rect,i);
-                }
+            if div >= rect.get().get_range(this_axis).start {
+                self::rect_recurse(this_axis.next(), left, rect, func);
+            }
+            if div <= rect.get().get_range(this_axis).end {
+                self::rect_recurse(this_axis.next(), right, rect, func);
+            }
+        }
+        None => {
+            let sl = get_section_mut(
+                this_axis.next(),
+                foo(nn),
+                rect.get().get_range(this_axis.next()),
+            );
+
+            for i in sl {
+                func(rect, i);
             }
         }
     }
-
-
-
-
+}
 
 use core::ops::Deref;
 fn into_ptr_usize<T>(a: &T) -> usize {
@@ -209,7 +235,7 @@ pub fn assert_for_all_intersect_rect_mut<T: Aabb>(bots: &mut [T], mut rect: &axg
         res_dino.push(into_ptr_usize(a.deref()));
     });
     let mut res_naive = Vec::new();
-    HalfPin::new(bots).for_all_intersect_rect_mut(&mut rect, |_,a| {
+    HalfPin::new(bots).for_all_intersect_rect_mut(&mut rect, |_, a| {
         res_naive.push(into_ptr_usize(a.deref()));
     });
 
@@ -228,7 +254,7 @@ pub fn assert_for_all_in_rect_mut<T: Aabb>(bots: &mut [T], mut rect: &axgeom::Re
         res_dino.push(into_ptr_usize(a.deref()));
     });
     let mut res_naive = Vec::new();
-    HalfPin::new(bots).for_all_in_rect_mut(&mut rect, |_,a| {
+    HalfPin::new(bots).for_all_in_rect_mut(&mut rect, |_, a| {
         res_naive.push(into_ptr_usize(a.deref()));
     });
 

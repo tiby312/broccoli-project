@@ -1,5 +1,5 @@
 use axgeom::vec2;
-use broccoli::{bbox, rect};
+use broccoli::{bbox, prelude::RaycastApi, rect};
 
 fn main() {
     let mut inner1 = 4;
@@ -19,7 +19,8 @@ fn main() {
         dir: vec2(1, 0),
     };
 
-    let res = broccoli::queries::raycast::RayCastBuilder::new(&mut tree, ray).with_closure(
+    let res = tree.raycast_mut_closure(
+        ray,
         (),
         |_, _, _| None,
         |_, ray, a| ray.cast_to_rect(&a.rect),

@@ -68,11 +68,11 @@ impl<'a, T: ?Sized> HalfPin<*mut T> {
     }
 }
 
-impl<'a,'b, T: ?Sized> HalfPin<&'a mut HalfPin<&'b mut T>> {
+impl<'a, 'b, T: ?Sized> HalfPin<&'a mut HalfPin<&'b mut T>> {
     #[inline(always)]
-    pub fn flatten(self)->HalfPin<&'a mut T>{
-        HalfPin{
-            inner:self.inner.inner
+    pub fn flatten(self) -> HalfPin<&'a mut T> {
+        HalfPin {
+            inner: self.inner.inner,
         }
     }
 }

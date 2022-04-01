@@ -1,5 +1,5 @@
 use axgeom::{vec2, Vec2};
-use broccoli::{bbox, rect};
+use broccoli::{bbox, prelude::KnearestApi, rect};
 
 fn distance_squared(a: isize, b: isize) -> isize {
     let a = (a - b).abs();
@@ -19,20 +19,16 @@ fn main() {
 
     let mut tree = broccoli::new(&mut bots);
 
-    use broccoli::halfpin::HalfPin;
-    use broccoli::node::BBox;
-
-    let mut handler = broccoli::queries::knearest::from_closure(
+    let mut res = tree.k_nearest_mut_closure(
+        vec2(30, 30),
+        2,
         (),
-        |_, point, a: HalfPin<&mut BBox<isize, &mut Vec2<isize>>>| {
-            Some(a.rect.distance_squared_to_point(point).unwrap_or(0))
-        },
+        |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),
         |_, point, a| a.inner.distance_squared_to_point(point),
         |_, point, a| distance_squared(point.x, a),
         |_, point, a| distance_squared(point.y, a),
     );
 
-    let mut res = tree.k_nearest_mut(vec2(30, 30), 2, &mut handler);
     assert_eq!(res.len(), 2);
     assert_eq!(res.total_len(), 2);
 

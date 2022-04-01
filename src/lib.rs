@@ -75,7 +75,7 @@ mod test_readme {
 extern crate alloc;
 
 pub use axgeom;
-use broccoli_tree::*;
+pub use broccoli_tree::*;
 pub use compt;
 
 use alloc::vec::Vec;
@@ -104,11 +104,10 @@ impl<T> Accumulator<T> {
     }
 }
 
-
-pub mod prelude{
-    pub use super::queries::knearest::KnearestApi;
+pub mod prelude {
     pub use super::queries::colfind::CollisionApi;
-    pub use  super::queries::raycast::RaycastApi;
+    pub use super::queries::knearest::KnearestApi;
+    pub use super::queries::raycast::RaycastApi;
     pub use super::queries::rect::RectApi;
 }
 #[cfg(test)]

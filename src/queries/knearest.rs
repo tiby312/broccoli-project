@@ -203,8 +203,6 @@ pub trait KnearestApi<'a, T: Aabb> {
     }
 }
 
-
-
 impl<'a, T: Aabb, K: Knearest<T>> Knearest<T> for &mut K {
     fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num {
         (*self).distance_to_aaline(point, axis, val)

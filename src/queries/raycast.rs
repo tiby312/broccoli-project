@@ -251,7 +251,6 @@ impl<'a, T: Aabb> RaycastApi<'a, T> for Tree<'a, T> {
     }
 }
 
-
 impl<'a, T: Aabb, R: RayCast<T>> RayCast<T> for &mut R {
     fn cast_to_aaline<A: Axis>(
         &mut self,
@@ -270,16 +269,10 @@ impl<'a, T: Aabb, R: RayCast<T>> RayCast<T> for &mut R {
         (*self).cast_broad(ray, a)
     }
 
-    fn cast_fine(
-        &mut self,
-        ray: &Ray<T::Num>,
-        a: HalfPin<&mut T>,
-    ) -> axgeom::CastResult<T::Num> {
+    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: HalfPin<&mut T>) -> axgeom::CastResult<T::Num> {
         (*self).cast_fine(ray, a)
     }
 }
-
-
 
 struct Closest<'a, T: Aabb> {
     closest: Option<(Vec<HalfPin<&'a mut T>>, T::Num)>,
@@ -340,8 +333,11 @@ impl<'a, T: Aabb> Closest<'a, T> {
     }
 }
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_raycast<T: Aabb>(bots: &mut [T], ray: axgeom::Ray<T::Num>, mut rtrait: impl RayCast<T>)
-where
+pub fn assert_raycast<T: Aabb>(
+    bots: &mut [T],
+    ray: axgeom::Ray<T::Num>,
+    mut rtrait: impl RayCast<T>,
+) where
     T::Num: core::fmt::Debug,
 {
     fn into_ptr_usize<T>(a: &T) -> usize {

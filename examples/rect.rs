@@ -1,5 +1,5 @@
+use broccoli::prelude::*;
 use broccoli::{bbox, rect};
-
 fn main() {
     let mut inner1 = 4;
     let mut inner2 = 5;
