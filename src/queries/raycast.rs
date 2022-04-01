@@ -34,7 +34,7 @@ pub trait RayCast<T: Aabb> {
 
 use crate::Tree;
 
-pub trait Floop<'a, T: Aabb> {
+pub trait RaycastApi<'a, T: Aabb> {
     fn raycast_mut<R: RayCast<T>>(
         &'a mut self,
         ray: Ray<T::Num>,
@@ -135,7 +135,7 @@ pub trait Floop<'a, T: Aabb> {
     }
 }
 
-impl<'a, T: Aabb> Floop<'a, T> for HalfPin<&'a mut [T]> {
+impl<'a, T: Aabb> RaycastApi<'a, T> for HalfPin<&'a mut [T]> {
     fn raycast_mut<R: RayCast<T>>(
         &'a mut self,
         ray: Ray<T::Num>,
@@ -154,7 +154,7 @@ impl<'a, T: Aabb> Floop<'a, T> for HalfPin<&'a mut [T]> {
     }
 }
 
-impl<'a, T: Aabb> Floop<'a, T> for Tree<'a, T> {
+impl<'a, T: Aabb> RaycastApi<'a, T> for Tree<'a, T> {
     fn raycast_mut<R: RayCast<T>>(
         &'a mut self,
         ray: Ray<T::Num>,
