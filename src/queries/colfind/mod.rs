@@ -89,7 +89,7 @@ pub fn query_sweep_mut<T: Aabb>(
 
 #[must_use]
 pub struct NodeFinisher<'a, 'b, T, F, H> {
-    func: &'a mut F,
+    func: F,
     prevec: &'a mut PreVec,
     is_xaxis: bool,
     bots: HalfPin<&'b mut [T]>,
@@ -98,23 +98,23 @@ pub struct NodeFinisher<'a, 'b, T, F, H> {
 impl<'a, 'b, T: Aabb, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>), H: NodeHandler>
     NodeFinisher<'a, 'b, T, F, H>
 {
-    pub fn finish(self) -> &'a mut PreVec {
+    pub fn finish(mut self) -> (&'a mut PreVec, F) {
         if self.is_xaxis {
             self.handler.handle_node(
-                &mut QueryFnMut(self.func),
+                &mut QueryFnMut(&mut self.func),
                 self.prevec,
                 axgeom::XAXIS.next(),
                 self.bots,
             );
         } else {
             self.handler.handle_node(
-                &mut QueryFnMut(self.func),
+                &mut QueryFnMut(&mut self.func),
                 self.prevec,
                 axgeom::YAXIS.next(),
                 self.bots,
             );
         }
-        self.prevec
+        (self.prevec, self.func)
     }
 }
 
@@ -150,7 +150,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
     pub fn collide_and_next<'x, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>)>(
         mut self,
         prevec: &'x mut PreVec,
-        mut func: &'x mut F,
+        mut func: F,
     ) -> (NodeFinisher<'x, 'b, T, F, N>, Option<[Self; 2]>) {
         pub struct Recurser<'a, NO, C> {
             pub handler: &'a mut NO,
@@ -163,7 +163,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
             v: VistrMut<Node<T>>,
             data: &mut Recurser<impl NodeHandler, impl CollisionHandler<T>>,
         ) {
-            let (mut nn, rest) = v.next();
+            let (nn, rest) = v.next();
 
             /*
             data.handler.handle_node(
@@ -307,7 +307,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
     ) {
         let (n, rest) = self.collide_and_next(prevec, func);
 
-        n.finish();
+        let (_, func) = n.finish();
         if let Some([a, b]) = rest {
             a.recurse_seq(prevec, func);
             b.recurse_seq(prevec, func);

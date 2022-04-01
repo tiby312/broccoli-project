@@ -46,17 +46,15 @@ where
     if vistr.vistr.get_height() <= height_seq_fallback {
         vistr.recurse_seq(prevec, &mut func);
     } else {
-        let func1 = func.clone();
-
         let func2 = func.clone();
-        let (n, rest) = vistr.collide_and_next(prevec, &mut func);
+        let (n, rest) = vistr.collide_and_next(prevec, func);
         if let Some([left, right]) = rest {
             let (s1, s2) = splitter.div();
 
             let (s1, s2) = rayon_core::join(
                 || {
-                    let prevec = n.finish();
-                    recurse_par_splitter(left, prevec, height_seq_fallback, func1, s1)
+                    let (prevec, func) = n.finish();
+                    recurse_par_splitter(left, prevec, height_seq_fallback, func, s1)
                 },
                 || {
                     let mut prevec = PreVec::new();
