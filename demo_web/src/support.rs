@@ -3,11 +3,14 @@ pub mod prelude {
     pub use crate::*;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
-    pub use broccoli::bbox;
-    pub use broccoli::build::*;
+    pub use broccoli::tree::bbox;
+    pub use broccoli::tree::*;
     pub use broccoli::compt;
-    pub use broccoli::node::*;
+    pub use broccoli::tree::node::*;
     //pub use broccoli::rayon;
+
+    pub use broccoli::prelude::*;
+
     pub use crate::demos::Demo;
     pub use crate::demos::DemoData;
     pub use dists::uniform_rand::UniformRandGen;
@@ -17,13 +20,23 @@ pub mod prelude {
     pub use shogo::simple2d::Shapes;
 }
 
+use broccoli::tree::bbox;
 use axgeom::*;
-use broccoli::node::*;
+use broccoli::tree::node::*;
+
+
+
+fn rand()->f32{
+    unsafe{
+        js_sys::Math::random() as f32
+    }
+}
+
 
 pub fn make_rand(border: Rect<f32>) -> impl Iterator<Item = [f32; 2]> + Clone + Send + Sync {
     std::iter::repeat_with(move || {
-        let randx = js_sys::Math::random() as f32;
-        let randy = js_sys::Math::random() as f32;
+        let randx = rand();
+        let randy = rand();
 
         let xx = border.x.start + randx * border.x.end;
         let yy = border.y.start + randy * border.y.end;
@@ -36,9 +49,9 @@ pub fn make_rand_rect(
     radius: [f32; 2],
 ) -> impl Iterator<Item = Rect<f32>> + Clone + Send + Sync {
     std::iter::repeat_with(move || {
-        let randx = js_sys::Math::random() as f32;
-        let randy = js_sys::Math::random() as f32;
-        let radiusr = js_sys::Math::random() as f32;
+        let randx = rand();
+        let randy = rand();
+        let radiusr = rand();
 
         let xx = border.x.start + randx * border.x.end;
         let yy = border.y.start + randy * border.y.end;

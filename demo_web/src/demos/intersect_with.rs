@@ -77,7 +77,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut k = support::distribute(&mut bots, |b| support::point_to_rect_f32(b.pos, radius));
 
         {
-            let mut tree = broccoli::new_par(RayonJoin, &mut k);
+            let mut tree = broccoli::tree::new_par(&mut k);
 
             tree.intersect_with_mut(&mut walls, |bot2, wall| {
                 let rect = bot2.rect();
@@ -112,7 +112,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
             });
 
-            tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
+            tree.colliding_pairs_par(|a, b| {
                 let a = a.unpack_inner();
                 let b = b.unpack_inner();
                 let _ =

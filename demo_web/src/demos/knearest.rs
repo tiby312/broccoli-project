@@ -46,7 +46,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         ctx.buffer_static(&verts)
     };
 
-    let mut tree = broccoli::container::TreeOwned::new(bots);
+    let mut tree = broccoli::tree::TreeOwned::new(bots);
 
     let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
@@ -68,20 +68,32 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         //let mut rects = canvas.rects();
         let tree = tree.as_tree_mut();
         verts.clear();
-        let mut handler = broccoli::helper::knearest_from_closure(
-            tree,
-            (),
-            |_, _, _| None,
-            |_, point, a| {
-                verts.rect(a.rect);
+
+
+        struct MyKnearest<N:Num>{
+            verts:Vec<axgeom::Rect<N>>
+        }
+        impl<T:Aabb> broccoli::queries::knearest::Knearest<T> for MyKnearest<T::Num>{
+            fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num {
+                distance_to_line(point,axis,val)
+            }
+
+            fn distance_to_broad(&mut self, point: Vec2<T::Num>, a: halfpin::HalfPin<&mut T>) -> Option<T::Num> {
+                None
+            }
+
+            fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: halfpin::HalfPin<&mut T>) -> T::Num {
+                self.verts.rect(a.rect);
                 distance_to_rect(&a.rect, point)
-            },
-            |_, point, val| distance_to_line(point, axgeom::XAXIS, val),
-            |_, point, val| distance_to_line(point, axgeom::YAXIS, val),
-        );
+            }
+        }
+        let mut handler=MyKnearest{
+            verts:vec!()
+        };
 
         if check_naive {
-            broccoli::assert::assert_k_nearest_mut(tree, cursor, 3, &mut handler);
+            broccoli::queries::knearest::assert_k_nearest_mut(tree, cursor, 3, &mut handler);
+            handler.verts.clear();
         }
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);

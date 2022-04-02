@@ -381,6 +381,13 @@ impl<T> Container for Vec<T> {
         self
     }
 }
+impl<T> Container for Box<[T]> {
+    type T = T;
+    fn as_mut(&mut self) -> &mut [Self::T] {
+        self
+    }
+}
+
 
 pub struct TreeOwned<C: Container>
 where

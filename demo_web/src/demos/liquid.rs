@@ -24,7 +24,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             Rect::new(p.x - r, p.x + r, p.y - r, p.y + r)
         });
 
-        let mut tree = broccoli::new(&mut k);
+        let mut tree = broccoli::tree::new(&mut k);
 
         /*
         broccoli::naive::query_naive_mut(broccoli::pmut::PMut::new(&mut k),

@@ -63,7 +63,17 @@ impl<'a, T: ?Sized> Clone for HalfPin<*mut T> {
 }
 impl<'a, T: ?Sized> HalfPin<*mut T> {
     #[inline(always)]
-    pub fn into_raw(self) -> *mut T {
+    pub fn as_raw(&self) -> *mut T {
+        self.inner
+    }
+}
+
+pub struct Escapable<'a, T> {
+    pub inner: &'a mut T,
+}
+impl<'a, T> HasInner for Escapable<'a, T> {
+    type Inner = T;
+    fn get_inner_mut(&mut self) -> &mut Self::Inner {
         self.inner
     }
 }
@@ -84,7 +94,7 @@ impl<'a, T: ?Sized> HalfPin<&'a mut T> {
     }
 
     #[inline(always)]
-    pub fn into_ptr(self) -> HalfPin<*mut T> {
+    pub fn as_ptr_mut(&mut self) -> HalfPin<*mut T> {
         HalfPin {
             inner: self.inner as *mut _,
         }

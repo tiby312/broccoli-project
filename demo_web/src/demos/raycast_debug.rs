@@ -10,7 +10,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .into_boxed_slice();
 
     let mut counter: f32 = 0.0;
-    let mut tree = broccoli::container::TreeOwned::new(walls);
+    let mut tree = broccoli::tree::TreeOwned::new(walls);
 
     let rect_save = {
         let mut verts = vec![];
@@ -50,20 +50,41 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         cam.draw_triangles(&rect_save, &[0.0, 0.0, 0.0, 0.3]);
 
-        let mut handler = broccoli::helper::raycast_from_closure(
-            tree,
-            (),
-            |_, _, _| None,
-            |_, ray, a| {
-                verts.rect(a.rect);
+
+        struct MyRaycast<N:Num>{
+            verts:Vec<Rect<N>>
+        }
+        impl<T:Aabb> broccoli::queries::raycast::RayCast<T> for MyRaycast<T::Num>{
+            fn cast_to_aaline<A: Axis>(
+                &mut self,
+                ray: &Ray<T::Num>,
+                line: A,
+                val: T::Num,
+            ) -> axgeom::CastResult<T::Num> {
+                
+                ray.cast_to_aaline(line,val)
+            }
+
+            fn cast_broad(
+                &mut self,
+                ray: &Ray<T::Num>,
+                a: halfpin::HalfPin<&mut T>,
+            ) -> Option<axgeom::CastResult<T::Num>> {
+                None
+            }
+
+            fn cast_fine(&mut self, ray: &Ray<T::Num>, a: halfpin::HalfPin<&mut T>) -> axgeom::CastResult<T::Num> {
+                self.verts.rect(a.rect);
                 ray.cast_to_rect(&a.rect)
-            },
-            |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
-            |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
-        );
+            }
+        }
+
+        let mut handler=MyRaycast{
+            verts:vec!()
+        };
 
         if check_naive {
-            broccoli::assert::assert_raycast(tree, ray, &mut handler);
+            broccoli::queries::raycast::assert_raycast(tree, ray, &mut handler);
         }
 
         let test = {
