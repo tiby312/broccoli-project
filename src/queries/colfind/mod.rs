@@ -152,7 +152,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a> {
     fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, Self::SO>;
 
     //TODO add splitter versions!
-    
+
     fn colliding_pairs_par(
         &mut self,
         func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,

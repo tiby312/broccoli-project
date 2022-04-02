@@ -76,7 +76,10 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 pub use axgeom;
+
+#[doc(inline)]
 pub use broccoli_tree as tree;
+
 use broccoli_tree::node::*;
 pub use compt;
 use tree::*;
