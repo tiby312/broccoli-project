@@ -79,8 +79,15 @@ mod levelcounter {
             let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
 
             use compt::Visitor;
-            let mut times: Vec<_> = core::iter::repeat(0).take(tree.get_height()).collect();
-            for (depth, a) in tree.vistr().with_depth(compt::Depth(0)).dfs_preorder_iter() {
+            let mut times: Vec<_> = core::iter::repeat(0)
+                .take(tree.as_tree().get_height())
+                .collect();
+            for (depth, a) in tree
+                .as_tree()
+                .vistr()
+                .with_depth(compt::Depth(0))
+                .dfs_preorder_iter()
+            {
                 times[depth.0] += a;
             }
 
@@ -146,9 +153,16 @@ mod leveltimer {
             let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
 
             use compt::Visitor;
-            let mut times: Vec<_> = core::iter::repeat(0.0).take(tree.get_height()).collect();
-            for (depth, a) in tree.vistr().with_depth(compt::Depth(0)).dfs_preorder_iter() {
-                if depth.0 < tree.get_height() {
+            let mut times: Vec<_> = core::iter::repeat(0.0)
+                .take(tree.as_tree().get_height())
+                .collect();
+            for (depth, a) in tree
+                .as_tree()
+                .vistr()
+                .with_depth(compt::Depth(0))
+                .dfs_preorder_iter()
+            {
+                if depth.0 < tree.as_tree().get_height() {
                     times[depth.0] += a;
                 }
             }
@@ -261,11 +275,11 @@ fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
     })
 }
 
-pub fn make_tree_ref_ind<'a,  N: Num, T>(
+pub fn make_tree_ref_ind<'a, N: Num, T>(
     bots: &'a mut [T],
     grow: f64,
     mut func: impl FnMut(RectConv) -> Rect<N>,
-) -> Box<[BBox<N,&'a mut T>]> {
+) -> Box<[BBox<N, &'a mut T>]> {
     let mut k = abspiral_f64(grow);
     broccoli::tree::create_ind(bots, |_| func(RectConv(k.next().unwrap())))
 }

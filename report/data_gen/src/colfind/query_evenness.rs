@@ -38,6 +38,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
         let data = poloto::build::histogram(
             "",
             res.query
+                .as_tree()
                 .vistr()
                 .dfs_inorder_iter()
                 .enumerate()
@@ -67,7 +68,7 @@ pub fn handle2(fb: &mut FigureBuilder, prefix: &str, grow: f64, num_bots: usize)
 
     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
-    let tree = broccoli::new(&mut bots);
+    let tree = broccoli::tree::new(&mut bots);
 
     use broccoli::compt::Visitor;
     let data = poloto::build::histogram(

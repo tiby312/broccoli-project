@@ -2,7 +2,6 @@ use super::*;
 
 use crate::tree::splitter::Splitter;
 
-
 pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler, SS: Splitter>(
     vistr: CollVis<T, S>,
     mut splitter: SS,

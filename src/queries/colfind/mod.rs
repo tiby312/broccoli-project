@@ -78,10 +78,8 @@ impl<'a, T: Aabb> CollisionApi<T> for crate::NotSorted<'a, T> {
     }
 }
 
-
 impl<'a, T: Aabb> CollisionApi<T> for SweepAndPrune<'a, T> {
     fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
-
         ///Sweep and prune algorithm.
         fn query_sweep_mut<T: Aabb>(
             axis: impl Axis,
@@ -104,22 +102,19 @@ impl<'a, T: Aabb> CollisionApi<T> for SweepAndPrune<'a, T> {
             let bots = HalfPin::new(bots);
             oned::find_2d(&mut prevec, axis, bots, &mut Bl { func });
         }
-        query_sweep_mut(axgeom::XAXIS,self.inner,func)
+        query_sweep_mut(axgeom::XAXIS, self.inner, func)
     }
 }
 
-pub struct SweepAndPrune<'a,T>{
-    inner:&'a mut [T]
+pub struct SweepAndPrune<'a, T> {
+    inner: &'a mut [T],
 }
 
-impl<'a,T> SweepAndPrune<'a,T>{
-    pub fn new(inner:&'a mut [T])->Self{
-        SweepAndPrune{
-            inner
-        }
+impl<'a, T> SweepAndPrune<'a, T> {
+    pub fn new(inner: &'a mut [T]) -> Self {
+        SweepAndPrune { inner }
     }
 }
-
 
 #[must_use]
 pub struct NodeFinisher<'a, 'b, T, F, H> {

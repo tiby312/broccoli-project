@@ -1,4 +1,4 @@
-use crate::inner_prelude::*;
+use super::*;
 
 fn test1(bots: &mut [BBox<f64, &mut isize>]) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(bots).build_seq());

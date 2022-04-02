@@ -1,4 +1,4 @@
-use crate::inner_prelude::*;
+use super::*;
 
 mod bench;
 mod theory;

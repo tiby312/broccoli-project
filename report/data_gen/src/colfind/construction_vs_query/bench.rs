@@ -88,7 +88,7 @@ impl Record {
 
             let (mut tree, t1) = bench_closure_ret(|| not_sorted_new_par(&mut bots));
             let t2 = bench_closure(|| {
-                tree.colliding_pairs( |a, b| {
+                tree.colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());

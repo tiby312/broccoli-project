@@ -193,7 +193,11 @@ impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
     }
 }
 
-pub fn start_build<T: Aabb,N:Sorter>(num_levels: usize, bots: &mut [T],sorter:N) -> TreeBister<T, N> {
+pub fn start_build<T: Aabb, N: Sorter>(
+    num_levels: usize,
+    bots: &mut [T],
+    sorter: N,
+) -> TreeBister<T, N> {
     assert!(num_levels >= 1);
     TreeBister {
         bots,
@@ -357,7 +361,7 @@ pub struct Tree<'a, T: Aabb> {
 pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
     let num_level = num_level::default(bots.len());
     let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-    let vistr = start_build(num_level, bots,DefaultSorter);
+    let vistr = start_build(num_level, bots, DefaultSorter);
     vistr.recurse_seq(&mut buffer);
     into_tree(buffer)
 }
@@ -369,14 +373,14 @@ where
 {
     let num_level = num_level::default(bots.len());
     let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-    let vistr = start_build(num_level, bots,DefaultSorter);
+    let vistr = start_build(num_level, bots, DefaultSorter);
     par::recurse_par(vistr, 5, &mut buffer);
     into_tree(buffer)
 }
 pub fn not_sorted_new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
     let num_level = num_level::default(bots.len());
     let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-    let vistr = start_build(num_level, bots,NoSorter);
+    let vistr = start_build(num_level, bots, NoSorter);
     vistr.recurse_seq(&mut buffer);
     into_tree(buffer)
 }
@@ -388,7 +392,7 @@ where
 {
     let num_level = num_level::default(bots.len());
     let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-    let vistr = start_build(num_level, bots,NoSorter);
+    let vistr = start_build(num_level, bots, NoSorter);
     par::recurse_par(vistr, 5, &mut buffer);
     into_tree(buffer)
 }

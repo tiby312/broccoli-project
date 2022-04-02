@@ -16,7 +16,10 @@ struct TestResult {
     query: f64,
 }
 
-fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(HalfPin<&mut T>, HalfPin<&mut T>)) -> TestResult {
+fn test_seq<T: Aabb>(
+    bots: &mut [T],
+    func: impl Fn(HalfPin<&mut T>, HalfPin<&mut T>),
+) -> TestResult {
     let (mut tree, construct_time) = bench_closure_ret(|| broccoli::tree::new(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {

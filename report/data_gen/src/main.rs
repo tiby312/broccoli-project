@@ -1,23 +1,23 @@
-pub use broccoli::axgeom;
 pub use crate::support::*;
 pub use axgeom::vec2;
 pub use axgeom::vec2same;
 pub use axgeom::Rect;
 pub use axgeom::Vec2;
-pub use broccoli::tree::*;
+pub use broccoli::axgeom;
+use broccoli::prelude::*;
+pub use broccoli::queries::*;
 pub use broccoli::tree::halfpin::HalfPin;
 pub use broccoli::tree::node::*;
 pub use broccoli::tree::par::*;
-pub use broccoli::queries::*;
+use broccoli::tree::splitter::Splitter;
+pub use broccoli::tree::*;
 pub use broccoli::*;
-use broccoli::prelude::*;
 pub use poloto::prelude::*;
 pub use poloto::*;
 pub use serde::Serialize;
 pub use std::time::Duration;
 pub use std::time::Instant;
 pub use tagger;
-use broccoli::tree::splitter::Splitter;
 
 pub fn black_box<T>(dummy: T) -> T {
     unsafe {
@@ -37,8 +37,6 @@ pub mod bbox_helper {
         arr.iter_mut().map(|a| bbox(func(a), a)).collect()
     }
 }
-
-
 
 #[macro_use]
 mod support;
