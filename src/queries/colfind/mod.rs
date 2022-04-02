@@ -310,14 +310,23 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
     pub fn recurse_seq(
         self,
         prevec: &mut PreVec,
+        mut func:impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
+    ) {
+        self.recurse_seq_inner(prevec,&mut func)
+    }
+
+    fn recurse_seq_inner(
+        self,
+        prevec: &mut PreVec,
         func: &mut impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
     ) {
+        
         let (n, rest) = self.collide_and_next(prevec, func);
 
         let (_, func) = n.finish();
         if let Some([a, b]) = rest {
-            a.recurse_seq(prevec, func);
-            b.recurse_seq(prevec, func);
+            a.recurse_seq_inner(prevec, func);
+            b.recurse_seq_inner(prevec, func);
         }
     }
 }
