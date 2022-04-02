@@ -74,12 +74,12 @@ mod test_readme {
 #[macro_use]
 extern crate alloc;
 
-pub use axgeom;
-pub use broccoli_tree::*;
-pub use compt;
-
 use alloc::vec::Vec;
+pub use axgeom;
+pub use broccoli_tree as tree;
 use broccoli_tree::node::*;
+pub use compt;
+use tree::*;
 
 //TODO use this thing!!!!
 pub struct Accumulator<T> {

@@ -1,6 +1,6 @@
 use axgeom;
 use broccoli::prelude::*;
-use broccoli::*;
+use broccoli::tree::*;
 #[test]
 fn test1() {
     for &num_bots in [0, 20, 100, 200].iter() {
@@ -25,11 +25,13 @@ fn test1() {
 
         let mut bots: Vec<_> = bots.iter_mut().collect();
 
-        let tree = broccoli::new(&mut bots);
+        let tree = broccoli::tree::new(&mut bots);
 
         let nodes = tree.into_node_data();
-        let mut tree =
-            broccoli::Tree::from_node_data(&nodes, broccoli::halfpin::HalfPin::new(&mut bots));
+        let mut tree = broccoli::tree::Tree::from_node_data(
+            &nodes,
+            broccoli::tree::halfpin::HalfPin::new(&mut bots),
+        );
 
         tree.colliding_pairs(|a, b| {
             let a = a.unpack_inner();

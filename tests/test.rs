@@ -1,8 +1,9 @@
 use axgeom::*;
-use broccoli::node::*;
 use broccoli::prelude::*;
+use broccoli::tree::node::*;
 use compt::*;
 
+use broccoli::tree::*;
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.
 fn create_bbox_mut<'a, N: Num, T>(
     bots: &'a mut [T],
@@ -15,8 +16,6 @@ fn create_bbox_mut<'a, N: Num, T>(
 
 #[test]
 fn test_tie_knearest() {
-    use broccoli::*;
-
     let mut bots = [
         bbox(rect(5isize, 10, 0, 10), ()),
         bbox(rect(6, 10, 0, 10), ()),
@@ -26,7 +25,7 @@ fn test_tie_knearest() {
 
     broccoli::queries::knearest::assert_k_nearest_mut(&mut bots, vec2(15, 30), 2, &mut handler);
 
-    let mut tree = broccoli::new(&mut bots);
+    let mut tree = broccoli::tree::new(&mut bots);
 
     let mut res = tree.k_nearest_mut(vec2(15, 30), 2, &mut handler);
 
@@ -44,7 +43,7 @@ fn test_zero_sized() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
-    let tree = broccoli::new(&mut bots);
+    let tree = broccoli::tree::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
     assert_eq!(n.div.is_none(), true);
@@ -57,7 +56,7 @@ fn test_zero_sized2() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
-    let tree = broccoli::new(&mut bots);
+    let tree = broccoli::tree::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
     assert_eq!(n.div.is_none(), true);
@@ -69,7 +68,7 @@ fn test_one() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
-    let tree = broccoli::new(&mut bots);
+    let tree = broccoli::tree::new(&mut bots);
     assert_eq!(tree.get_height(), 1);
     let (n, _) = tree.vistr().next();
     assert!(n.div.is_none());
@@ -80,7 +79,7 @@ fn test_one() {
 fn test_empty() {
     let mut bots: Vec<()> = Vec::new();
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
-    let tree = broccoli::new(&mut bots);
+    let tree = broccoli::tree::new(&mut bots);
 
     assert_eq!(tree.get_height(), 1);
 
@@ -95,7 +94,7 @@ fn test_many() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
-    let tree = broccoli::new(&mut bots);
+    let tree = broccoli::tree::new(&mut bots);
 
     assert_eq!(
         tree.vistr()
@@ -126,7 +125,10 @@ fn test_send_sync_tree() {
     let mut bots2 = create_bbox_mut(&mut bots2, |_| rect(0, 0, 0, 0));
 
     //Check that its send
-    let (t1, t2) = rayon_core::join(|| broccoli::new(&mut bots1), || broccoli::new(&mut bots2));
+    let (t1, t2) = rayon_core::join(
+        || broccoli::tree::new(&mut bots1),
+        || broccoli::tree::new(&mut bots2),
+    );
 
     //Check that its sync
     let (p1, p2) = (&t1, &t2);
@@ -135,7 +137,6 @@ fn test_send_sync_tree() {
 
 #[test]
 fn test_tie_raycast() {
-    use broccoli::*;
     let mut bots: &mut [BBox<isize, ()>] =
         &mut [bbox(rect(0, 10, 0, 20), ()), bbox(rect(5, 10, 0, 20), ())];
 
@@ -148,7 +149,7 @@ fn test_tie_raycast() {
 
     broccoli::queries::raycast::assert_raycast(&mut bots, ray, &mut handler);
 
-    let mut tree = broccoli::new(&mut bots);
+    let mut tree = broccoli::tree::new(&mut bots);
 
     let ans = tree.raycast_mut(ray, &mut handler);
 

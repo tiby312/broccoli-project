@@ -1,5 +1,6 @@
 use axgeom::vec2;
-use broccoli::{bbox, prelude::RaycastApi, rect};
+use broccoli::prelude::*;
+use broccoli::tree::{bbox, rect};
 
 fn main() {
     let mut inner1 = 4;
@@ -12,7 +13,7 @@ fn main() {
         bbox(rect(5, 15, 5, 15), &mut inner3),
     ];
 
-    let mut tree = broccoli::new(&mut aabbs);
+    let mut tree = broccoli::tree::new(&mut aabbs);
 
     let ray = axgeom::Ray {
         point: vec2(-10, 1),

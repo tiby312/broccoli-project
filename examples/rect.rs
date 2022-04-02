@@ -1,5 +1,5 @@
 use broccoli::prelude::*;
-use broccoli::{bbox, rect};
+use broccoli::tree::{bbox, rect};
 fn main() {
     let inner1 = 4;
     let inner2 = 5;
@@ -11,7 +11,7 @@ fn main() {
         bbox(rect(5, 15, 5, 15), &inner3),
     ];
 
-    let mut tree = broccoli::new(&mut bots);
+    let mut tree = broccoli::tree::new(&mut bots);
 
     let mut rect_collisions = Vec::new();
     tree.for_all_intersect_rect_mut(&mut rect(-5, 1, -5, 1), |_, a| {
