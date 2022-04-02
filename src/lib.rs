@@ -120,8 +120,7 @@ pub mod util;
 
 //Implement for NotSortedTree, Tree, and NaiveSlice
 trait QueriesHalfPin<T: Aabb> {
-    fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>));
-
+    
     /*
     /// # Examples
     ///
