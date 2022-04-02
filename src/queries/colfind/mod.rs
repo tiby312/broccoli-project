@@ -147,9 +147,23 @@ impl<T: Aabb, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>)> CollisionHandler<T> fo
     }
 }
 
-pub trait CollidingPairsBuilder<'a, T: Aabb> {
+pub trait CollidingPairsBuilder<'a, T: Aabb + 'a> {
     type SO: NodeHandler;
     fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, Self::SO>;
+
+    //TODO add splitter versions!
+    
+    fn colliding_pairs_par(
+        &mut self,
+        func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,
+    ) where
+        T: Send,
+        T::Num: Send,
+    {
+        let mut prevec = PreVec::new();
+        //TODO best level define somewhere?
+        par::recurse_par(self.colliding_pairs_builder(), &mut prevec, 10, func)
+    }
 }
 
 impl<'a, T: Aabb> CollidingPairsBuilder<'a, T> for crate::Tree<'a, T> {
