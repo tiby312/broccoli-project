@@ -34,37 +34,57 @@ pub trait RayCast<T: Aabb> {
 
 use crate::Tree;
 
-pub trait RaycastApi<'a, T: Aabb> {
+pub struct DefaultRaycast;
+
+impl<T: Aabb> RayCast<T> for DefaultRaycast
+where
+    T::Num: core::fmt::Debug + num_traits::Signed,
+{
+    fn cast_to_aaline<A: Axis>(
+        &mut self,
+        ray: &Ray<T::Num>,
+        line: A,
+        val: T::Num,
+    ) -> axgeom::CastResult<T::Num> {
+        ray.cast_to_aaline(line, val)
+    }
+
+    fn cast_broad(
+        &mut self,
+        _ray: &Ray<T::Num>,
+        _a: HalfPin<&mut T>,
+    ) -> Option<axgeom::CastResult<T::Num>> {
+        None
+    }
+
+    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: HalfPin<&mut T>) -> axgeom::CastResult<T::Num> {
+        ray.cast_to_rect(a.get())
+    }
+}
+pub trait RaycastApi<T: Aabb> {
     fn raycast_mut<R: RayCast<T>>(
-        &'a mut self,
+        &mut self,
         ray: Ray<T::Num>,
         a: R,
-    ) -> axgeom::CastResult<CastAnswer<'a, T>>;
+    ) -> axgeom::CastResult<CastAnswer<T>>;
 
     ///Create a handler that just casts directly to the axis aligned rectangle
-    fn raycast_mut_default(&'a mut self, ray: Ray<T::Num>) -> axgeom::CastResult<CastAnswer<'a, T>>
+    fn raycast_mut_default(&mut self, ray: Ray<T::Num>) -> axgeom::CastResult<CastAnswer<T>>
     where
         T::Num: core::fmt::Debug + num_traits::Signed,
     {
-        self.raycast_mut_closure(
-            ray,
-            (),
-            |_, _, _| None,
-            |_, ray, a| ray.cast_to_rect(a.get()),
-            |_, ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
-            |_, ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
-        )
+        self.raycast_mut(ray, DefaultRaycast)
     }
 
     fn raycast_mut_closure<A>(
-        &'a mut self,
+        &mut self,
         ray: Ray<T::Num>,
         acc: A,
         broad: impl FnMut(&mut A, &Ray<T::Num>, HalfPin<&mut T>) -> Option<CastResult<T::Num>>,
         fine: impl FnMut(&mut A, &Ray<T::Num>, HalfPin<&mut T>) -> CastResult<T::Num>,
         xline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         yline: impl FnMut(&mut A, &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-    ) -> axgeom::CastResult<CastAnswer<'a, T>> {
+    ) -> axgeom::CastResult<CastAnswer<T>> {
         ///Construct an object that implements [`RayCast`] from closures.
         ///We pass the tree so that we can infer the type of `T`.
         ///
@@ -135,12 +155,12 @@ pub trait RaycastApi<'a, T: Aabb> {
     }
 }
 
-impl<'a, T: Aabb> RaycastApi<'a, T> for HalfPin<&'a mut [T]> {
+impl<'a, T: Aabb> RaycastApi<T> for HalfPin<&'a mut [T]> {
     fn raycast_mut<R: RayCast<T>>(
-        &'a mut self,
+        &mut self,
         ray: Ray<T::Num>,
         mut ar: R,
-    ) -> axgeom::CastResult<CastAnswer<'a, T>> {
+    ) -> axgeom::CastResult<CastAnswer<T>> {
         let mut closest = Closest { closest: None };
 
         for b in self.borrow_mut().iter_mut() {
@@ -154,12 +174,12 @@ impl<'a, T: Aabb> RaycastApi<'a, T> for HalfPin<&'a mut [T]> {
     }
 }
 
-impl<'a, T: Aabb> RaycastApi<'a, T> for Tree<'a, T> {
+impl<'a, T: Aabb> RaycastApi<T> for Tree<'a, T> {
     fn raycast_mut<R: RayCast<T>>(
-        &'a mut self,
+        &mut self,
         ray: Ray<T::Num>,
         mut rtrait: R,
-    ) -> axgeom::CastResult<CastAnswer<'a, T>> {
+    ) -> axgeom::CastResult<CastAnswer<T>> {
         struct Recurser<'a, T: Aabb, R: RayCast<T>> {
             rtrait: R,
             ray: Ray<T::Num>,

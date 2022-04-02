@@ -1,4 +1,5 @@
 use axgeom;
+use broccoli::prelude::*;
 use broccoli::*;
 #[test]
 fn test1() {
@@ -28,19 +29,17 @@ fn test1() {
 
         let nodes = tree.into_node_data();
         let mut tree =
-            broccoli::Tree::from_node_data(nodes, broccoli::halfpin::HalfPin::new(&mut bots));
+            broccoli::Tree::from_node_data(&nodes, broccoli::halfpin::HalfPin::new(&mut bots));
 
-        let mut prevec = broccoli::util::PreVec::new();
+        tree.colliding_pairs(|a, b| {
+            let a = a.unpack_inner();
+            let b = b.unpack_inner();
+            let sum = **a + **b;
+            **a ^= sum;
+            **b ^= sum;
+        });
 
-        tree.colliding_pairs()
-            .recurse_seq(&mut prevec, &mut |a, b| {
-                let a = a.unpack_inner();
-                let b = b.unpack_inner();
-                let sum = **a + **b;
-                **a ^= sum;
-                **b ^= sum;
-            });
-        broccoli::queries::assert_tree_invariants(&tree);
+        tree.assert_tree_invariants();
         broccoli::queries::colfind::assert_query(&mut bots);
     }
 }

@@ -1,5 +1,6 @@
 use super::*;
 
+use compt::Visitor;
 fn assert_length<I: core::iter::ExactSizeIterator>(it: I) {
     let len = it.size_hint().0;
     assert_eq!(it.count(), len);
@@ -16,7 +17,7 @@ fn test() {
 
     let mut tree = crate::new(&mut bots);
 
-    queries::assert_tree_invariants(&tree);
+    tree.assert_tree_invariants();
 
     assert_length(tree.vistr_mut().dfs_preorder_iter());
     assert_length(tree.vistr().dfs_preorder_iter());

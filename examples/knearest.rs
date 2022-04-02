@@ -1,4 +1,4 @@
-use axgeom::{vec2, Vec2};
+use axgeom::vec2;
 use broccoli::{bbox, prelude::KnearestApi, rect};
 
 fn distance_squared(a: isize, b: isize) -> isize {
@@ -33,6 +33,8 @@ fn main() {
     assert_eq!(res.total_len(), 2);
 
     let foo: Vec<_> = res.iter().map(|a| *a[0].bot.inner).collect();
+
+    tree.assert_tree_invariants();
 
     assert_eq!(foo, vec![vec2(7, 7), vec2(5, 5)])
 }

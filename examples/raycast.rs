@@ -29,4 +29,6 @@ fn main() {
     );
 
     assert_eq!(*res.unwrap().elems[0].inner, 4);
+
+    tree.assert_tree_invariants();
 }

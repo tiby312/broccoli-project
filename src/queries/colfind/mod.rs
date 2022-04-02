@@ -51,11 +51,11 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     assert_eq!(a, b);
 }
 
-pub trait CollisionApi<'a,T: Aabb> {
-    fn colliding_pairs(&'a mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>));
+pub trait CollisionApi<T: Aabb> {
+    fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>));
 }
-impl<'a, T: Aabb> CollisionApi<'a,T> for HalfPin<&'a mut [T]> {
-    fn colliding_pairs(&'a mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
+impl<'a, T: Aabb> CollisionApi<T> for HalfPin<&'a mut [T]> {
+    fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
         tools::for_every_pair(HalfPin::new(self).flatten(), move |a, b| {
             if a.get().intersects_rect(b.get()) {
                 func(a, b);
@@ -64,10 +64,17 @@ impl<'a, T: Aabb> CollisionApi<'a,T> for HalfPin<&'a mut [T]> {
     }
 }
 
-impl<'a, T: Aabb> CollisionApi<'a,T> for crate::Tree<'a, T> {
-    fn colliding_pairs(&'a mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
+impl<'a, T: Aabb> CollisionApi<T> for crate::Tree<'a, T> {
+    fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
         let mut prevec = crate::util::PreVec::new();
         CollVis::new(self.vistr_mut(), true, HandleSorted).recurse_seq(&mut prevec, &mut func);
+    }
+}
+
+impl<'a, T: Aabb> CollisionApi<T> for crate::NotSorted<'a, T> {
+    fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
+        let mut prevec = crate::util::PreVec::new();
+        CollVis::new(self.vistr_mut(), true, HandleNoSorted).recurse_seq(&mut prevec, &mut func);
     }
 }
 
@@ -137,6 +144,24 @@ impl<T: Aabb, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>)> CollisionHandler<T> fo
     #[inline(always)]
     fn collide(&mut self, a: HalfPin<&mut T>, b: HalfPin<&mut T>) {
         self.0(a, b);
+    }
+}
+
+pub trait CollidingPairsBuilder<'a, T: Aabb> {
+    type SO: NodeHandler;
+    fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, Self::SO>;
+}
+
+impl<'a, T: Aabb> CollidingPairsBuilder<'a, T> for crate::Tree<'a, T> {
+    type SO = HandleSorted;
+    fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, HandleSorted> {
+        CollVis::new(self.vistr_mut(), true, HandleSorted)
+    }
+}
+impl<'a, T: Aabb> CollidingPairsBuilder<'a, T> for crate::NotSorted<'a, T> {
+    type SO = HandleNoSorted;
+    fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, HandleNoSorted> {
+        CollVis::new(self.vistr_mut(), true, HandleNoSorted)
     }
 }
 
@@ -310,9 +335,9 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
     pub fn recurse_seq(
         self,
         prevec: &mut PreVec,
-        mut func:impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
+        mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
     ) {
-        self.recurse_seq_inner(prevec,&mut func)
+        self.recurse_seq_inner(prevec, &mut func)
     }
 
     fn recurse_seq_inner(
@@ -320,7 +345,6 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
         prevec: &mut PreVec,
         func: &mut impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
     ) {
-        
         let (n, rest) = self.collide_and_next(prevec, func);
 
         let (_, func) = n.finish();

@@ -40,8 +40,6 @@ impl Sorter for DefaultSorter {
     }
 }
 
-
-
 #[derive(Copy, Clone)]
 struct NoSorter;
 
@@ -331,13 +329,6 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
 
 type TreeInner<N> = compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>;
 
-
-
-
-
-
-
-
 /// A space partitioning tree.
 #[repr(transparent)]
 pub struct Tree<'a, T: Aabb> {
@@ -373,42 +364,51 @@ where
     into_tree(buffer)
 }
 
-
-
-pub trait Container{
+pub trait Container {
     type T;
-    fn as_mut(&mut self)->&mut [Self::T];
+    fn as_mut(&mut self) -> &mut [Self::T];
 }
 
-impl<T,const N:usize> Container for [T;N]{
-    type T=T;
-    fn as_mut(&mut self)->&mut [T]{
+impl<T, const N: usize> Container for [T; N] {
+    type T = T;
+    fn as_mut(&mut self) -> &mut [T] {
         self
     }
 }
-impl<T> Container for Vec<T>{
-    type T=T;
-    fn as_mut(&mut self)->&mut [Self::T]{
+impl<T> Container for Vec<T> {
+    type T = T;
+    fn as_mut(&mut self) -> &mut [Self::T] {
         self
     }
 }
 
-pub struct TreeOwned<C:Container> where C::T:Aabb{
-    inner:C,
-    nodes:NodeDataCollection<<C::T as Aabb>::Num>,
+pub struct TreeOwned<C: Container>
+where
+    C::T: Aabb,
+{
+    inner: C,
+    nodes: NodeDataCollection<<C::T as Aabb>::Num>,
 }
 
-impl<C:Container> TreeOwned<C> where C::T:Aabb{
-    pub fn new(mut a:C)->Self{
-        let t=crate::new(a.as_mut());
-        let data=t.into_node_data();
-        TreeOwned { inner: a, nodes: data }
+impl<C: Container> TreeOwned<C>
+where
+    C::T: Aabb,
+{
+    pub fn new(mut a: C) -> Self {
+        let t = crate::new(a.as_mut());
+        let data = t.into_node_data();
+        TreeOwned {
+            inner: a,
+            nodes: data,
+        }
     }
-    pub fn as_tree(&mut self)->Tree<C::T>{
+    pub fn as_tree(&mut self) -> Tree<C::T> {
         Tree::from_node_data(&self.nodes, HalfPin::new(self.inner.as_mut()))
     }
+    pub fn as_slice_mut(&mut self) -> HalfPin<&mut [C::T]> {
+        HalfPin::new(self.inner.as_mut())
+    }
 }
-
 
 pub struct NodeDataCollection<N: Num> {
     inner: Vec<NodeData<N>>,
@@ -568,4 +568,3 @@ impl<'a, T: Aabb> Tree<'a, T> {
         self.inner.as_tree().vistr()
     }
 }
-

@@ -1,5 +1,5 @@
+use broccoli::prelude::*;
 use broccoli::{bbox, rect};
-
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -19,7 +19,7 @@ fn main() {
     let mut tree = broccoli::new(&mut aabbs);
 
     //Find all colliding aabbs.
-    let col = tree.colliding_pairs();
+    let col = tree.colliding_pairs_builder();
 
     let mut prevec = broccoli::util::PreVec::new();
 

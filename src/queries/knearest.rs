@@ -18,13 +18,13 @@ pub trait Knearest<T: Aabb> {
     fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: HalfPin<&mut T>) -> T::Num;
 }
 
-impl<'a, T: Aabb> KnearestApi<'a, T> for Tree<'a, T> {
+impl<'a, T: Aabb> KnearestApi<T> for Tree<'a, T> {
     fn k_nearest_mut(
-        &'a mut self,
+        &mut self,
         point: Vec2<T::Num>,
         num: usize,
         mut ktrait: impl Knearest<T>,
-    ) -> KResult<'a, T> {
+    ) -> KResult<T> {
         let dt = self.vistr_mut().with_depth(Depth(0));
 
         let knear = &mut ktrait;
@@ -46,13 +46,13 @@ impl<'a, T: Aabb> KnearestApi<'a, T> for Tree<'a, T> {
         }
     }
 }
-impl<'a, T: Aabb> KnearestApi<'a, T> for HalfPin<&'a mut [T]> {
+impl<'a, T: Aabb> KnearestApi<T> for HalfPin<&'a mut [T]> {
     fn k_nearest_mut(
-        &'a mut self,
+        &mut self,
         point: Vec2<T::Num>,
         num: usize,
         mut ktrait: impl Knearest<T>,
-    ) -> KResult<'a, T> {
+    ) -> KResult<T> {
         let mut closest = ClosestCand::new(num);
 
         for b in self.borrow_mut().iter_mut() {
@@ -67,61 +67,56 @@ impl<'a, T: Aabb> KnearestApi<'a, T> for HalfPin<&'a mut [T]> {
     }
 }
 
-pub trait KnearestApi<'a, T: Aabb> {
+pub struct DefaultKnearest;
+
+impl<T: Aabb> Knearest<T> for DefaultKnearest
+where
+    T::Num: num_traits::Signed + num_traits::Zero,
+{
+    fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, a: T::Num) -> T::Num {
+        use num_traits::Signed;
+
+        if axis.is_xaxis() {
+            (point.x - a).abs() * (point.x - a).abs()
+        } else {
+            (point.y - a).abs() * (point.y - a).abs()
+        }
+    }
+
+    fn distance_to_broad(
+        &mut self,
+        _point: Vec2<T::Num>,
+        _rect: HalfPin<&mut T>,
+    ) -> Option<T::Num> {
+        None
+    }
+
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: HalfPin<&mut T>) -> T::Num {
+        use num_traits::Zero;
+
+        a.get()
+            .distance_squared_to_point(point)
+            .unwrap_or_else(T::Num::zero)
+    }
+}
+
+pub trait KnearestApi<T: Aabb> {
     fn k_nearest_mut(
-        &'a mut self,
+        &mut self,
         point: Vec2<T::Num>,
         num: usize,
         ktrait: impl Knearest<T>,
-    ) -> KResult<'a, T>;
+    ) -> KResult<T>;
 
-    fn k_nearest_mut_default(&'a mut self, point: Vec2<T::Num>, num: usize) -> KResult<'a, T>
+    fn k_nearest_mut_default(&mut self, point: Vec2<T::Num>, num: usize) -> KResult<T>
     where
         T::Num: num_traits::Signed + num_traits::Zero,
     {
-        pub struct DefaultKnearest {}
-
-        impl<T: Aabb> Knearest<T> for DefaultKnearest
-        where
-            T::Num: num_traits::Signed + num_traits::Zero,
-        {
-            fn distance_to_aaline<A: Axis>(
-                &mut self,
-                point: Vec2<T::Num>,
-                axis: A,
-                a: T::Num,
-            ) -> T::Num {
-                use num_traits::Signed;
-
-                if axis.is_xaxis() {
-                    (point.x - a).abs() * (point.x - a).abs()
-                } else {
-                    (point.y - a).abs() * (point.y - a).abs()
-                }
-            }
-
-            fn distance_to_broad(
-                &mut self,
-                _point: Vec2<T::Num>,
-                _rect: HalfPin<&mut T>,
-            ) -> Option<T::Num> {
-                None
-            }
-
-            fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: HalfPin<&mut T>) -> T::Num {
-                use num_traits::Zero;
-
-                a.get()
-                    .distance_squared_to_point(point)
-                    .unwrap_or_else(T::Num::zero)
-            }
-        }
-
-        self.k_nearest_mut(point, num, DefaultKnearest {})
+        self.k_nearest_mut(point, num, DefaultKnearest)
     }
 
     fn k_nearest_mut_closure<Acc>(
-        &'a mut self,
+        &mut self,
         point: Vec2<T::Num>,
         num: usize,
         acc: Acc,
@@ -129,7 +124,7 @@ pub trait KnearestApi<'a, T: Aabb> {
         fine: impl FnMut(&mut Acc, Vec2<T::Num>, HalfPin<&mut T>) -> T::Num,
         xline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
         yline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    ) -> KResult<'a, T> {
+    ) -> KResult<T> {
         ///Construct an object that implements [`Knearest`] from closures.
         ///We pass the tree so that we can infer the type of `T`.
         ///

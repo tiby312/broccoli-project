@@ -103,6 +103,7 @@ impl<T> Accumulator<T> {
 }
 
 pub mod prelude {
+    pub use super::queries::colfind::CollidingPairsBuilder;
     pub use super::queries::colfind::CollisionApi;
     pub use super::queries::knearest::KnearestApi;
     pub use super::queries::raycast::RaycastApi;
@@ -118,7 +119,6 @@ pub mod util;
 
 //Implement for NotSortedTree, Tree, and NaiveSlice
 trait QueriesHalfPin<T: Aabb> {
-    
     /*
     /// # Examples
     ///

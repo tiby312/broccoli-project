@@ -1,5 +1,5 @@
-use broccoli::{bbox, rect};
 use broccoli::prelude::*;
+use broccoli::{bbox, rect};
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -20,9 +20,9 @@ fn main() {
 
     //Find all colliding aabbs.
     tree.as_tree().colliding_pairs(|a, b| {
-            **a.unpack_inner() += 1;
-            **b.unpack_inner() += 1;
-        });
+        **a.unpack_inner() += 1;
+        **b.unpack_inner() += 1;
+    });
 
     assert_eq!(inner1, 1);
     assert_eq!(inner2, 0);

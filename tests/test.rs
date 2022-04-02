@@ -1,5 +1,6 @@
 use axgeom::*;
 use broccoli::node::*;
+use broccoli::prelude::*;
 use compt::*;
 
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.
@@ -21,7 +22,7 @@ fn test_tie_knearest() {
         bbox(rect(6, 10, 0, 10), ()),
     ];
 
-    let mut handler = broccoli::queries::knearest::default_rect_knearest();
+    let mut handler = broccoli::queries::knearest::DefaultKnearest;
 
     broccoli::queries::knearest::assert_k_nearest_mut(&mut bots, vec2(15, 30), 2, &mut handler);
 
@@ -132,14 +133,13 @@ fn test_send_sync_tree() {
     rayon_core::join(|| p1, || p2);
 }
 
-/* TODO add back
 #[test]
 fn test_tie_raycast() {
     use broccoli::*;
     let mut bots: &mut [BBox<isize, ()>] =
         &mut [bbox(rect(0, 10, 0, 20), ()), bbox(rect(5, 10, 0, 20), ())];
 
-    let mut handler = broccoli::queries::raycast::default_rect_raycast();
+    let mut handler = broccoli::queries::raycast::DefaultRaycast;
 
     let ray = axgeom::Ray {
         point: vec2(15, 4),
@@ -162,4 +162,3 @@ fn test_tie_raycast() {
         }
     }
 }
-*/
