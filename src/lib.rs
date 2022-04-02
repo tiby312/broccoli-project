@@ -74,7 +74,6 @@ mod test_readme {
 #[macro_use]
 extern crate alloc;
 
-use alloc::vec::Vec;
 pub use axgeom;
 
 #[doc(inline)]
@@ -84,26 +83,7 @@ use broccoli_tree::node::*;
 pub use compt;
 use tree::*;
 
-//TODO use this thing!!!!
-pub struct Accumulator<T> {
-    expected_size: usize,
-    inner: Vec<T>,
-}
-impl<T> Accumulator<T> {
-    pub fn new(expected_size: usize) -> Accumulator<T> {
-        Accumulator {
-            expected_size,
-            inner: Vec::with_capacity(expected_size),
-        }
-    }
-    pub fn push(&mut self, a: T) {
-        self.inner.push(a);
-    }
-    pub fn build(self) -> Vec<T> {
-        assert_eq!(self.expected_size, self.inner.len());
-        self.inner
-    }
-}
+
 
 pub mod prelude {
     pub use super::queries::colfind::CollidingPairsBuilder;
@@ -120,8 +100,8 @@ pub mod queries;
 ///Generic slice utility functions.
 pub mod util;
 
-//Implement for NotSortedTree, Tree, and NaiveSlice
-trait QueriesHalfPin<T: Aabb> {
+
+//TODO pull out documentation
     /*
     /// # Examples
     ///
@@ -389,4 +369,4 @@ trait QueriesHalfPin<T: Aabb> {
         );
     }
     */
-}
+
