@@ -17,7 +17,7 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c0 = bench_closure(|| {
-            let mut tree = broccoli::tree::new_par(R&mut bots);
+            let mut tree = broccoli::tree::new_par(&mut bots);
             tree.colliding_pairs_par(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
@@ -38,7 +38,8 @@ impl Record {
 
         let c3 = if sweep_bench {
             bench_closure(|| {
-                broccoli::naive::query_sweep_mut(axgeom::XAXIS, &mut bots, |a, b| {
+                let mut s=broccoli::queries::colfind::SweepAndPrune::new(&mut bots);
+                s.colliding_pairs(|a, b| {
                     **a.unpack_inner() -= 2;
                     **b.unpack_inner() -= 2;
                 });
@@ -51,7 +52,7 @@ impl Record {
 
         let c4 = if naive_bench {
             bench_closure(|| {
-                broccoli::naive::query_naive_mut(PMut::new(&mut bots), |a, b| {
+                let mut n=HalfPin::new(bots.as_mut_slice()).colliding_pairs(|a, b| {
                     **a.unpack_inner() += 2;
                     **b.unpack_inner() += 2;
                 });
@@ -63,8 +64,8 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c5 = bench_closure(|| {
-            let mut tree = NotSorted::new_par(RayonJoin, &mut bots);
-            tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
+            let mut tree = not_sorted_new_par(&mut bots);
+            tree.colliding_pairs_par(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
             });
@@ -73,8 +74,8 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c6 = bench_closure(|| {
-            let mut tree = NotSorted::new(&mut bots);
-            tree.find_colliding_pairs_mut(|a, b| {
+            let mut tree = not_sorted_new(&mut bots);
+            tree.colliding_pairs(|a, b| {
                 **a.unpack_inner() -= 1;
                 **b.unpack_inner() -= 1;
             });

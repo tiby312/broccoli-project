@@ -1,4 +1,4 @@
-use crate::inner_prelude::*;
+use super::*;
 
 pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> f64 {
     let mut bots = distribute(grow, bot_inner, |a| a.to_f64n());

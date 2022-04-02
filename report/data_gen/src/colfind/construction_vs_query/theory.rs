@@ -14,11 +14,11 @@ impl Record {
         let theory = datanum::datanum_test2(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
-            let mut tree = broccoli::new(&mut bots);
+            let mut tree = broccoli::tree::new(&mut bots);
 
             let count = maker.count();
 
-            tree.find_colliding_pairs_mut(|a, b| {
+            tree.colliding_pairs(|a, b| {
                 let aa = vec2(a.get().x.start.0, a.get().y.start.0).inner_as();
                 let bb = vec2(b.get().x.start.0, b.get().y.start.0).inner_as();
                 repel(aa, bb, a.unpack_inner(), b.unpack_inner());
@@ -31,11 +31,11 @@ impl Record {
         let nosort_theory = datanum::datanum_test2(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
-            let mut tree = NotSorted::new(&mut bots);
+            let mut tree = not_sorted_new(&mut bots);
 
             let count = maker.count();
 
-            tree.find_colliding_pairs_mut(|a, b| {
+            tree.colliding_pairs(|a, b| {
                 let aa = vec2(a.get().x.start.0, a.get().y.start.0).inner_as();
                 let bb = vec2(b.get().x.start.0, b.get().y.start.0).inner_as();
                 repel(aa, bb, a.unpack_inner(), b.unpack_inner());

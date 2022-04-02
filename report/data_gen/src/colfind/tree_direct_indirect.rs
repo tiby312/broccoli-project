@@ -1,5 +1,4 @@
-use crate::inner_prelude::*;
-use broccoli::halfpin::PMut;
+use super::*;
 
 pub trait TestTrait: Copy + Send + Sync {}
 impl<T: Copy + Send + Sync> TestTrait for T {}
@@ -17,11 +16,11 @@ struct TestResult {
     query: f64,
 }
 
-fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(PMut<T>, PMut<T>)) -> TestResult {
-    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::new(bots));
+fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(HalfPin<&mut T>, HalfPin<&mut T>)) -> TestResult {
+    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::tree::new(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {
-        tree.find_colliding_pairs_mut(|a, b| {
+        tree.colliding_pairs(|a, b| {
             func(a, b);
         });
         tree
@@ -36,15 +35,15 @@ fn test_seq<T: Aabb>(bots: &mut [T], func: impl Fn(PMut<T>, PMut<T>)) -> TestRes
 }
 fn test_par<T: Aabb + Send + Sync>(
     bots: &mut [T],
-    func: impl Fn(PMut<T>, PMut<T>) + Send + Sync,
+    func: impl Fn(HalfPin<&mut T>, HalfPin<&mut T>) + Send + Sync,
 ) -> TestResult
 where
     T::Num: Send + Sync,
 {
-    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::new_par(RayonJoin, bots));
+    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::tree::new_par(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {
-        tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
+        tree.colliding_pairs_par(|a, b| {
             func(a, b);
         });
         tree

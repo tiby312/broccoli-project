@@ -1,4 +1,4 @@
-use crate::inner_prelude::*;
+use super::*;
 
 type LTree = compt::dfs_order::CompleteTreeContainer<usize, compt::dfs_order::PreOrder>;
 

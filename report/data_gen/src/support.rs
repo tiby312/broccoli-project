@@ -1,7 +1,6 @@
+use super::*;
 use std;
 use std::time::Duration;
-
-use crate::inner_prelude::*;
 use std::time::Instant;
 
 pub mod convert {
@@ -262,14 +261,13 @@ fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
     })
 }
 
-use broccoli::container::*;
-pub fn make_tree_ref_ind<'a, 'b, N: Num, T>(
+pub fn make_tree_ref_ind<'a,  N: Num, T>(
     bots: &'a mut [T],
     grow: f64,
     mut func: impl FnMut(RectConv) -> Rect<N>,
-) -> TreeIndBase<'a, N, T> {
+) -> Box<[BBox<N,&'a mut T>]> {
     let mut k = abspiral_f64(grow);
-    TreeIndBase::new(bots, |_| func(RectConv(k.next().unwrap())))
+    broccoli::tree::create_ind(bots, |_| func(RectConv(k.next().unwrap())))
 }
 
 pub struct RectConv(pub Rect<f64>);
