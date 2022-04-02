@@ -18,4 +18,6 @@ pub mod raycast;
 
 pub mod rect;
 
+pub mod intersect_with;
+
 mod tools;

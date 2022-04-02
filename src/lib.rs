@@ -86,6 +86,7 @@ use tree::*;
 pub mod prelude {
     pub use super::queries::colfind::CollidingPairsBuilder;
     pub use super::queries::colfind::CollisionApi;
+    pub use super::queries::intersect_with::IntersectWithApi;
     pub use super::queries::knearest::KnearestApi;
     pub use super::queries::raycast::RaycastApi;
     pub use super::queries::rect::RectApi;

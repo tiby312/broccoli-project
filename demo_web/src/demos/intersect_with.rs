@@ -80,9 +80,10 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             let mut tree = broccoli::tree::new_par(&mut k);
 
             tree.intersect_with_mut(&mut walls, |bot2, wall| {
-                let rect = bot2.rect();
+                //TODO borrow instead
+                let rect = bot2.rect;
                 let bot = bot2.unpack_inner();
-                let wall = wall.unpack_rect();
+                let wall = wall;
 
                 let fric = 0.8;
 
@@ -107,10 +108,13 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 bot.wall_move = ret;
             });
 
-            tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vec2same(100.0)), |b| {
-                let b = b.unpack_inner();
-                let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
-            });
+            tree.for_all_in_rect_mut(
+                &mut axgeom::Rect::from_point(cursor, vec2same(100.0)),
+                |_, b| {
+                    let b = b.unpack_inner();
+                    let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
+                },
+            );
 
             tree.colliding_pairs_par(|a, b| {
                 let a = a.unpack_inner();
