@@ -7,7 +7,7 @@ fn main() {
 
     //Rect is stored directly in tree,
     //but inner is not.
-    let mut aabbs = vec![
+    let aabbs = [
         bbox(rect(0isize, 10, 0, 10), &mut inner1),
         bbox(rect(15, 20, 15, 20), &mut inner2),
         bbox(rect(5, 15, 5, 15), &mut inner3),
@@ -19,7 +19,7 @@ fn main() {
     let mut tree = broccoli::TreeOwned::new(aabbs);
 
     //Find all colliding aabbs.
-    tree.as_tree().colliding_pairs(&mut |a, b| {
+    tree.as_tree().colliding_pairs(|a, b| {
             **a.unpack_inner() += 1;
             **b.unpack_inner() += 1;
         });

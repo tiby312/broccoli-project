@@ -79,8 +79,6 @@ pub use broccoli_tree::*;
 pub use compt;
 
 use alloc::vec::Vec;
-use axgeom::*;
-use broccoli_tree::halfpin::*;
 use broccoli_tree::node::*;
 
 //TODO use this thing!!!!

@@ -24,7 +24,7 @@ impl<'a, T: Aabb> RectApi<'a, T> for crate::Tree<'a, T> {
     fn for_all_not_in_rect_mut<K: Aabb<Num = T::Num>>(
         &'a mut self,
         rect: &mut K,
-        mut closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
+        closure: impl FnMut(&mut K, HalfPin<&'a mut T>),
     ) {
         fn rect_recurse<
             'a,
@@ -146,7 +146,6 @@ impl<'a, T: Aabb> RectApi<'a, T> for HalfPin<&'a mut [T]> {
 }
 
 use super::tools::get_section_mut;
-use super::*;
 fn foo<'a, 'b: 'a, T: Aabb>(node: HalfPin<&'a mut Node<'b, T>>) -> HalfPin<&'a mut [T]> {
     node.into_range()
 }
