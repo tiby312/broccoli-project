@@ -103,16 +103,15 @@ pub mod num_level {
     }
 }
 
-
-pub fn create_ind<T,N:Num>(bots:&mut [T],mut func:impl FnMut(&T)->Rect<N>)->Box<[BBox<N,&mut T>]>{
-    bots
-    .iter_mut()
-    .map(|a| crate::bbox(func(a), a))
-    .collect::<Vec<_>>()
-    .into_boxed_slice()
+pub fn create_ind<T, N: Num>(
+    bots: &mut [T],
+    mut func: impl FnMut(&T) -> Rect<N>,
+) -> Box<[BBox<N, &mut T>]> {
+    bots.iter_mut()
+        .map(|a| crate::bbox(func(a), a))
+        .collect::<Vec<_>>()
+        .into_boxed_slice()
 }
-
-
 
 ///A version of Tree where the elements are not sorted along each axis, like a KD Tree.
 /// For comparison, a normal kd-tree is provided by [`NotSorted`]. In this tree, the elements are not sorted

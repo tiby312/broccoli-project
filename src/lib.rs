@@ -44,15 +44,6 @@
 //! the tree but the mutable references returns are hidden behind the `HalfPin<T>` type that forbids
 //! mutating the aabbs.
 //!
-//! ### Unsafety
-//!
-//! Raw pointers are used for the container types in the container module
-//! and for caching the results of finding colliding pairs.
-//!
-//! [`multi_rect`](Tree::multi_rect) uses unsafety to allow the user to have mutable references to elements
-//! that belong to rectangle regions that don't intersect at the same time. This is why
-//! the [`node::Aabb`] trait is unsafe.
-
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
