@@ -31,6 +31,32 @@ fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
     dis
 }
 
+struct MyKnearest {
+    verts: Vec<axgeom::Rect<f32>>,
+}
+impl broccoli::queries::knearest::Knearest<BBox<f32, ()>> for MyKnearest {
+    fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<f32>, axis: A, val: f32) -> f32 {
+        distance_to_line(point, axis, val)
+    }
+
+    fn distance_to_broad(
+        &mut self,
+        point: Vec2<f32>,
+        a: halfpin::HalfPin<&mut BBox<f32, ()>>,
+    ) -> Option<f32> {
+        None
+    }
+
+    fn distance_to_fine(
+        &mut self,
+        point: Vec2<f32>,
+        a: halfpin::HalfPin<&mut BBox<f32, ()>>,
+    ) -> f32 {
+        self.verts.push(a.rect);
+        distance_to_rect(&a.rect, point)
+    }
+}
+
 pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let bots = support::make_rand_rect(dim, [1.0, 8.0])
         .take(500)
@@ -65,36 +91,20 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             [0.0, 0.0, 1.0, 0.3], //blue third closets
         ];
 
-        //let mut rects = canvas.rects();
-        let tree = tree.as_tree_mut();
-        verts.clear();
-
-
-        struct MyKnearest<N:Num>{
-            verts:Vec<axgeom::Rect<N>>
-        }
-        impl<T:Aabb> broccoli::queries::knearest::Knearest<T> for MyKnearest<T::Num>{
-            fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num {
-                distance_to_line(point,axis,val)
-            }
-
-            fn distance_to_broad(&mut self, point: Vec2<T::Num>, a: halfpin::HalfPin<&mut T>) -> Option<T::Num> {
-                None
-            }
-
-            fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: halfpin::HalfPin<&mut T>) -> T::Num {
-                self.verts.rect(a.rect);
-                distance_to_rect(&a.rect, point)
-            }
-        }
-        let mut handler=MyKnearest{
-            verts:vec!()
-        };
+        let mut handler = MyKnearest { verts: vec![] };
 
         if check_naive {
-            broccoli::queries::knearest::assert_k_nearest_mut(tree, cursor, 3, &mut handler);
+            broccoli::queries::knearest::assert_k_nearest_mut(
+                &mut tree.clone_inner(),
+                cursor,
+                3,
+                &mut handler,
+            );
             handler.verts.clear();
         }
+
+        let mut tree = tree.as_tree();
+        verts.clear();
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 

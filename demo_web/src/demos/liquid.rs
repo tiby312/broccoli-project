@@ -2,7 +2,7 @@ use crate::support::prelude::*;
 
 use axgeom::Rect;
 
-pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
+pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 50.0;
 
     let mut bots: Vec<_> = dists::grid_rect_iter(1000, dim)
@@ -35,21 +35,21 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         );
         */
 
-        tree.find_colliding_pairs_mut(move |a, b| {
+        tree.colliding_pairs(move |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = a.solve(b, radius);
         });
 
         let vv = vec2same(100.0);
 
-        tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), move |b| {
+        tree.for_all_in_rect_mut(&mut axgeom::Rect::from_point(cursor, vv), move |_, b| {
             let b = b.unpack_inner();
             let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cursor, 0.001, 100.0);
         });
 
-        tree.for_all_not_in_rect_mut(&dim, move |a| {
+        tree.for_all_not_in_rect_mut(&mut dim, move |dim, a| {
             let a = a.unpack_inner();
-            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
+            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, dim, 0.5);
         });
 
         for b in bots.iter_mut() {

@@ -50,19 +50,17 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         cam.draw_triangles(&rect_save, &[0.0, 0.0, 0.0, 0.3]);
 
-
-        struct MyRaycast<N:Num>{
-            verts:Vec<Rect<N>>
+        struct MyRaycast<N: Num> {
+            verts: Vec<Rect<N>>,
         }
-        impl<T:Aabb> broccoli::queries::raycast::RayCast<T> for MyRaycast<T::Num>{
+        impl<T: Aabb> broccoli::queries::raycast::RayCast<T> for MyRaycast<T::Num> {
             fn cast_to_aaline<A: Axis>(
                 &mut self,
                 ray: &Ray<T::Num>,
                 line: A,
                 val: T::Num,
             ) -> axgeom::CastResult<T::Num> {
-                
-                ray.cast_to_aaline(line,val)
+                ray.cast_to_aaline(line, val)
             }
 
             fn cast_broad(
@@ -73,15 +71,17 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 None
             }
 
-            fn cast_fine(&mut self, ray: &Ray<T::Num>, a: halfpin::HalfPin<&mut T>) -> axgeom::CastResult<T::Num> {
+            fn cast_fine(
+                &mut self,
+                ray: &Ray<T::Num>,
+                a: halfpin::HalfPin<&mut T>,
+            ) -> axgeom::CastResult<T::Num> {
                 self.verts.rect(a.rect);
                 ray.cast_to_rect(&a.rect)
             }
         }
 
-        let mut handler=MyRaycast{
-            verts:vec!()
-        };
+        let mut handler = MyRaycast { verts: vec![] };
 
         if check_naive {
             broccoli::queries::raycast::assert_raycast(tree, ray, &mut handler);

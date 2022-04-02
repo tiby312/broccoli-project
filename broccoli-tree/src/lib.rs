@@ -388,7 +388,6 @@ impl<T> Container for Box<[T]> {
     }
 }
 
-
 pub struct TreeOwned<C: Container>
 where
     C::T: Aabb,
@@ -414,6 +413,17 @@ where
     }
     pub fn as_slice_mut(&mut self) -> HalfPin<&mut [C::T]> {
         HalfPin::new(self.inner.as_mut())
+    }
+    pub fn into_inner(self) -> C {
+        self.inner
+    }
+}
+impl<C: Container + Clone> TreeOwned<C>
+where
+    C::T: Aabb,
+{
+    pub fn clone_inner(&self) -> C {
+        self.inner.clone()
     }
 }
 

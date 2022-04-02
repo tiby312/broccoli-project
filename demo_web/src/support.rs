@@ -3,10 +3,10 @@ pub mod prelude {
     pub use crate::*;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
-    pub use broccoli::tree::bbox;
-    pub use broccoli::tree::*;
     pub use broccoli::compt;
+    pub use broccoli::tree::bbox;
     pub use broccoli::tree::node::*;
+    pub use broccoli::tree::*;
     //pub use broccoli::rayon;
 
     pub use broccoli::prelude::*;
@@ -20,18 +20,13 @@ pub mod prelude {
     pub use shogo::simple2d::Shapes;
 }
 
-use broccoli::tree::bbox;
 use axgeom::*;
+use broccoli::tree::bbox;
 use broccoli::tree::node::*;
 
-
-
-fn rand()->f32{
-    unsafe{
-        js_sys::Math::random() as f32
-    }
+fn rand() -> f32 {
+    unsafe { js_sys::Math::random() as f32 }
 }
-
 
 pub fn make_rand(border: Rect<f32>) -> impl Iterator<Item = [f32; 2]> + Clone + Send + Sync {
     std::iter::repeat_with(move || {
