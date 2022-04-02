@@ -17,8 +17,8 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c0 = bench_closure(|| {
-            let mut tree = broccoli::new_par(RayonJoin, &mut bots);
-            tree.find_colliding_pairs_mut_par(RayonJoin, |a, b| {
+            let mut tree = broccoli::tree::new_par(R&mut bots);
+            tree.colliding_pairs_par(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
             });
@@ -27,8 +27,8 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c1 = bench_closure(|| {
-            let mut tree = broccoli::new(&mut bots);
-            tree.find_colliding_pairs_mut(|a, b| {
+            let mut tree = broccoli::tree::new(&mut bots);
+            tree.colliding_pairs(|a, b| {
                 **a.unpack_inner() -= 1;
                 **b.unpack_inner() -= 1;
             });

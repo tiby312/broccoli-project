@@ -25,7 +25,7 @@ use broccoli::tree::bbox;
 use broccoli::tree::node::*;
 
 fn rand() -> f32 {
-    unsafe { js_sys::Math::random() as f32 }
+    js_sys::Math::random() as f32
 }
 
 pub fn make_rand(border: Rect<f32>) -> impl Iterator<Item = [f32; 2]> + Clone + Send + Sync {
