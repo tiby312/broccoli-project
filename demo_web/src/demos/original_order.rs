@@ -20,7 +20,7 @@ impl Bot {
     }
 }
 
-pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
+pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 5.0;
 
     let mut bots = {
@@ -58,23 +58,28 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             b.update();
         }
 
-        let mut base = broccoli::container::TreeIndBase::new(&mut bots, |a| {
-            Rect::from_point(a.pos, vec2same(radius))
-        });
-        let mut tree = base.build();
+        let mut tree_bots =
+            broccoli::tree::create_ind(&mut bots, |a| Rect::from_point(a.pos, vec2same(radius)));
 
-        tree.for_all_not_in_rect_mut(&dim, |a| {
+        if check_naive {
+            broccoli::queries::colfind::assert_query(&mut tree_bots);
+        }
+
+        let mut tree = broccoli::tree::new(&mut tree_bots);
+
+        tree.for_all_not_in_rect_mut(&mut dim, |dim, a| {
             let a = a.unpack_inner();
-            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &dim, 0.5);
+            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, dim, 0.5);
         });
 
         let vv = vec2same(100.0);
-        tree.for_all_in_rect_mut(&axgeom::Rect::from_point(cursor, vv), |b| {
+        tree.for_all_in_rect_mut(&mut axgeom::Rect::from_point(cursor, vv), |_, b| {
             let b = b.unpack_inner();
             let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
         });
 
         let mut verts2 = vec![];
+        /* TODO add back
         tree.draw_divider(
             |axis, node, rect, _| {
                 if !node.range.is_empty() {
@@ -105,6 +110,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             },
             dim,
         );
+        */
 
         buffer.update(&verts);
 
@@ -117,14 +123,10 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         buffer.update(&verts2);
         camera.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.3]);
 
-        tree.find_colliding_pairs_par(|a, b| {
+        tree.colliding_pairs_par(|a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = duckduckgeo::repel([(a.pos, &mut a.force), (b.pos, &mut b.force)], 0.001, 2.0);
         });
-
-        if check_naive {
-            broccoli::assert::assert_query(&mut tree);
-        }
 
         verts.clear();
         for bot in bots.iter() {
