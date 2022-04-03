@@ -56,26 +56,42 @@ pub use self::levelcounter::LevelCounter;
 mod levelcounter {
     use super::*;
 
+    #[derive(Debug)]
     pub struct LevelCounter {
-        stuff: Vec<usize>,
-        start: Option<usize>,
+        level:usize,
+        stuff: Vec<(usize,usize)>,
+        start: usize,
     }
     impl LevelCounter {
-        pub fn new() -> LevelCounter {
+        pub fn new(level:usize,buffer:Vec<(usize,usize)>) -> LevelCounter {
+            let now = unsafe { datanum::COUNTER };
             LevelCounter {
-                stuff: Vec::new(),
-                start: None,
+                level:0,
+                stuff:buffer,
+                start:now
             }
         }
 
+        pub fn level(&self)->usize{
+            self.level
+        }
+
+        pub fn consume(self)->Vec<(usize,usize)>{
+            self.stuff.push((self.level,unsafe { datanum::COUNTER - self.start }));
+            self.stuff
+        }
         pub fn into_tree(
             self,
         ) -> compt::dfs_order::CompleteTreeContainer<usize, compt::dfs_order::PreOrder> {
-            let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
-            tree
+            unimplemented!()
+            //let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
+            //tree
         }
 
         pub fn into_levels(self) -> Vec<usize> {
+            dbg!(self);
+            unimplemented!();
+            /*
             let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
 
             use compt::Visitor;
@@ -92,31 +108,31 @@ mod levelcounter {
             }
 
             times
+            */
         }
     }
     impl Splitter for LevelCounter {
         #[inline]
-        fn div(&mut self) -> (Self, Self) {
-            assert!(self.start.is_none());
-            let now = unsafe { datanum::COUNTER };
-            self.start = Some(now);
+        fn div(mut self) -> (Self, Self) {
+
+            let level=self.level();
+            let v=self.consume();
+            
             (
-                LevelCounter {
-                    stuff: Vec::new(),
-                    start: None,
-                },
-                LevelCounter {
-                    stuff: Vec::new(),
-                    start: None,
-                },
+                LevelCounter::new(level+1,v),
+                LevelCounter::new(level+1,vec!()),
             )
         }
         #[inline]
-        fn add(&mut self, mut a: Self, mut b: Self) {
-            let inst = self.start.take().unwrap();
-            self.stuff.push(unsafe { datanum::COUNTER - inst });
-            self.stuff.append(&mut a.stuff);
-            self.stuff.append(&mut b.stuff);
+        fn add( self, mut b: Self)->Self {
+            let l1=self.level();
+            let l2=b.level();
+            assert_eq!(l1,l2);
+
+            let v1=self.consume();
+            let v2=self.consume();
+            v1.append(&mut v2);
+            LevelCounter::new(l1-1,v1)
         }
 
         /*
@@ -137,19 +153,30 @@ pub use self::leveltimer::LevelTimer;
 mod leveltimer {
     use super::*;
     use std::time::Instant;
+    #[derive(Debug)]
     pub struct LevelTimer {
-        stuff: Vec<f64>,
-        start: Option<Instant>,
+        level:usize,
+        stuff: Vec<(usize,f64)>,
+        start: Instant,
     }
 
     impl LevelTimer {
-        pub fn new() -> LevelTimer {
+        
+        pub fn level(&self)->usize{
+            self.level
+        }
+        pub fn new(level:usize,data:Vec<(usize,f64)>) -> LevelTimer {
             LevelTimer {
-                stuff: Vec::new(),
-                start: None,
+                level,
+                stuff: data,
+                start: Instant::now(),
             }
         }
+        
         pub fn into_levels(self) -> Vec<f64> {
+            dbg!(self);
+            unimplemented!();
+            /*
             let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
 
             use compt::Visitor;
@@ -168,45 +195,40 @@ mod leveltimer {
             }
 
             times
+            */
+        }
+
+        pub fn consume(self)->Vec<(usize,f64)>{
+            let dur=into_secs(self.start.elapsed());
+            //stop self timer.
+            self.stuff.push((self.level,dur));
+            self.stuff
         }
     }
+
     impl Splitter for LevelTimer {
         #[inline]
-        fn div(&mut self) -> (Self, Self) {
-            assert!(self.start.is_none());
-            let now = Instant::now();
+        fn div(mut self) -> (Self, Self) {
+            let level=self.level();
+            
+            let data=self.consume();
 
-            //self.stuff.push(0.0);
-            self.start = Some(now);
             (
-                LevelTimer {
-                    stuff: Vec::new(),
-                    start: None,
-                },
-                LevelTimer {
-                    stuff: Vec::new(),
-                    start: None,
-                },
+                LevelTimer::new(level+1,data),
+                LevelTimer::new(level+1,vec!()),
             )
         }
         #[inline]
-        fn add(&mut self, mut a: Self, mut b: Self) {
-            let inst = self.start.take().unwrap();
-            self.stuff.push(into_secs(inst.elapsed()));
-            self.stuff.append(&mut a.stuff);
-            self.stuff.append(&mut b.stuff);
+        fn add(self, mut b: Self)->Self {
+            let l1=self.level();
+            let l2=b.level();
+            assert_eq!(l1,l2);
+
+            let v1=self.consume();
+            let mut v2=b.consume();
+            v1.append(&mut v2);
+            LevelTimer::new(l1-1,v1)
         }
-        /*
-        fn leaf_start(&mut self) {
-            assert!(self.start.is_none());
-            let now = Instant::now();
-            self.start = Some(now);
-        }
-        fn leaf_end(&mut self) {
-            let inst = self.start.take().unwrap();
-            self.stuff.push(into_secs(inst.elapsed()));
-        }
-        */
     }
 }
 

@@ -12,15 +12,12 @@ impl Res {
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
-            let (mut tree, times1) =
-                TreeBuilder::new(&mut bots).build_with_splitter_seq(LevelTimer::new());
+            let (mut tree,times1) = DefaultSorter.build_splitter(&mut bots, LevelTimer::new(0,vec!()));
 
-            let times2 = tree.new_colfind_builder().query_with_splitter_seq(
-                |a, b| {
+            let times2 = tree.colliding_pairs_splitter(LevelTimer::new(0,vec!()),|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1
-                },
-                LevelTimer::new(),
+                }
             );
 
             let t = Res {
