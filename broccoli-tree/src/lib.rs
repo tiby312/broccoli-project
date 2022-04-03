@@ -114,7 +114,6 @@ pub fn create_ind<T, N: Num>(
         .into_boxed_slice()
 }
 
-
 #[must_use]
 pub struct NodeFinisher<'a, T: Aabb, S> {
     is_xaxis: bool,
@@ -332,13 +331,11 @@ pub type Tree<'a, T> = TreeInner<'a, T, DefaultSorter>;
 pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     fn sorter(&self) -> S;
 
-
-    
     fn num_level(&self, num_bots: usize) -> usize {
         num_level::default(num_bots)
     }
     fn height_seq_fallback(&self) -> usize {
-        10
+        5
     }
 
     fn build_owned<C: Container<T = T>>(self, mut bots: C) -> TreeOwned<C, S> {
@@ -377,7 +374,6 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         T: Send + Sync,
         T::Num: Send + Sync,
     {
-
         pub fn recurse_par<'a, T: Aabb, S: Sorter>(
             vistr: TreeBister<'a, T, S>,
             height_seq_fallback: usize,
@@ -408,7 +404,6 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
                 }
             }
         }
-
 
         let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
@@ -659,14 +654,14 @@ impl<'a, T: Aabb, S: Sorter> TreeInner<'a, T, S> {
     ///
     #[must_use]
     #[inline(always)]
-    #[deprecated(note=" use num_levels()")]
+    #[deprecated(note = " use num_levels()")]
     pub fn get_height(&self) -> usize {
         self.nodes.as_tree().get_height()
     }
 
     #[must_use]
     #[inline(always)]
-    pub fn num_levels(&self)->usize{
+    pub fn num_levels(&self) -> usize {
         //TODO update compt.get_height to be num_levles as well.
         self.nodes.as_tree().get_height()
     }

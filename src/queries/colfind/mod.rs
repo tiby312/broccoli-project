@@ -7,7 +7,6 @@ pub use self::node_handle::*;
 use super::tools;
 use super::*;
 
-
 pub trait CollisionHandler<T: Aabb> {
     fn collide(&mut self, a: HalfPin<&mut T>, b: HalfPin<&mut T>);
 }
@@ -144,7 +143,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
     fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, SO>;
 
     fn height_seq_fallback(&self) -> usize {
-        10
+        5
     }
 
     fn colliding_pairs_splitter<SS: Splitter>(
@@ -158,7 +157,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
             prevec: &mut PreVec,
             mut func: &mut impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
         ) -> SS {
-            let (n, rest) = vistr.collide_and_next(prevec,  func);
+            let (n, rest) = vistr.collide_and_next(prevec, func);
 
             if let Some([left, right]) = rest {
                 let (s1, s2) = splitter.div();
@@ -171,7 +170,12 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
             }
         }
         let mut prevec = PreVec::new();
-        recurse_seq_splitter(self.colliding_pairs_builder(), splitter, &mut prevec, &mut func)
+        recurse_seq_splitter(
+            self.colliding_pairs_builder(),
+            splitter,
+            &mut prevec,
+            &mut func,
+        )
     }
 
     //TODO make these splitters api go behind a feature

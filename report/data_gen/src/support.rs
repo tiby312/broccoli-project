@@ -92,7 +92,7 @@ mod levelcounter {
 
         pub fn into_levels(self) -> Vec<usize> {
             dbg!(&self);
-            self.stuff.into_iter().map(|x|x.1).collect()
+            self.stuff.into_iter().map(|x| x.1).collect()
             /*
             let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
 
@@ -133,11 +133,10 @@ mod levelcounter {
             let mut v1 = self.consume();
             let mut v2 = b.consume();
 
-
             //the left vec is bigger
-            for a in v2.into_iter(){
-                let b=v1.iter_mut().find(|x|x.0==a.0).unwrap();
-                b.1+=a.1;
+            for a in v2.into_iter() {
+                let b = v1.iter_mut().find(|x| x.0 == a.0).unwrap();
+                b.1 += a.1;
             }
 
             LevelCounter::new(l1 - 1, v1)
@@ -182,7 +181,7 @@ mod leveltimer {
 
         pub fn into_levels(self) -> Vec<f64> {
             dbg!(&self);
-            self.stuff.into_iter().map(|x|x.1).collect()
+            self.stuff.into_iter().map(|x| x.1).collect()
             /*
             let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
 
@@ -238,11 +237,11 @@ mod leveltimer {
 
             let mut v1 = self.consume();
             let v2 = b.consume();
-            
+
             //the left vec is bigger
-            for a in v2.into_iter(){
-                let b=v1.iter_mut().find(|x|x.0==a.0).unwrap();
-                b.1+=a.1;
+            for a in v2.into_iter() {
+                let b = v1.iter_mut().find(|x| x.0 == a.0).unwrap();
+                b.1 += a.1;
             }
 
             LevelTimer::new(l1 - 1, v1)
