@@ -26,9 +26,9 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     let nosort_res = NoSorter.build(bots).collect_ptr();
     let sweep_res = SweepAndPrune::new(bots).collect_ptr();
 
-    assert_eq!(tree_res, naive_res);
-    assert_eq!(sweep_res, tree_res);
-    assert_eq!(nosort_res, sweep_res);
+    assert_eq!(naive_res,tree_res);
+    assert_eq!(naive_res,sweep_res);
+    assert_eq!(naive_res,nosort_res);
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
