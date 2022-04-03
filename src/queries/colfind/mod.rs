@@ -3,6 +3,9 @@
 mod node_handle;
 mod oned;
 
+pub use prevec::PreVec;
+mod prevec;
+
 pub use self::node_handle::*;
 use super::tools;
 use super::*;
@@ -76,14 +79,14 @@ use crate::tree::TreeInner;
 
 impl<'a, T: Aabb> CollisionApi<T> for TreeInner<'a, T, DefaultSorter> {
     fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
-        let mut prevec = crate::util::PreVec::new();
+        let mut prevec = PreVec::new();
         CollVis::new(self.vistr_mut(), true, HandleSorted).recurse_seq(&mut prevec, &mut func);
     }
 }
 
 impl<'a, T: Aabb> CollisionApi<T> for TreeInner<'a, T, NoSorter> {
     fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
-        let mut prevec = crate::util::PreVec::new();
+        let mut prevec = PreVec::new();
         CollVis::new(self.vistr_mut(), true, HandleNoSorted).recurse_seq(&mut prevec, &mut func);
     }
 }
@@ -98,7 +101,7 @@ impl<'a, T: Aabb> CollisionApi<T> for SweepAndPrune<'a, T> {
         ) {
             broccoli_tree::util::sweeper_update(axis, bots);
 
-            let mut prevec = crate::util::PreVec::with_capacity(2048);
+            let mut prevec = PreVec::with_capacity(2048);
             let bots = HalfPin::new(bots);
             oned::find_2d(&mut prevec, axis, bots, &mut func);
         }

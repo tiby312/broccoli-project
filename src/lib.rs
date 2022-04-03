@@ -87,9 +87,6 @@ mod tests;
 
 pub mod queries;
 
-///Generic slice utility functions.
-pub mod util;
-
 //TODO pull out documentation
 /*
 /// # Examples

@@ -82,7 +82,6 @@ impl NodeHandler for HandleNoSorted {
     }
 }
 
-use crate::util::PreVec;
 #[derive(Copy, Clone)]
 pub struct HandleSorted;
 

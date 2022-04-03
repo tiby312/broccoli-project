@@ -2,7 +2,6 @@ use twounordered::TwoUnorderedVecs;
 
 use super::CollisionHandler;
 use super::*;
-use crate::util::PreVec;
 
 //For sweep and prune type algorithms, we can narrow down which bots
 //intersection in one dimension. We also need to check the other direction
