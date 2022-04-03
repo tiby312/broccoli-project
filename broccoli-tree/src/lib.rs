@@ -6,7 +6,6 @@ pub mod halfpin;
 pub mod node;
 mod oned;
 pub mod par;
-pub mod splitter;
 pub mod util;
 
 use axgeom::*;
@@ -355,53 +354,148 @@ pub struct TreeInner<'a, T: Aabb, S> {
 
 pub type Tree<'a, T> = TreeInner<'a, T, DefaultSorter>;
 
-pub trait TreeBuild<T: Aabb>: Sorter {
-    fn build_owned<C: Container<T = T>>(self, mut bots: C) -> TreeOwned<C, Self> {
+pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
+    fn sorter(&self) -> S;
+    
+    fn num_level(&self, num_bots: usize) -> usize{
+        num_level::default(num_bots)
+    }
+    fn height_seq_fallback(&self)->usize{
+        10
+    }
+
+    fn build_owned<C: Container<T = T>>(self, mut bots: C) -> TreeOwned<C, S> {
         let t = self.build(bots.as_mut());
+        let sorter = t.sorter();
         let data = t.into_node_data();
         TreeOwned {
             inner: bots,
             nodes: data,
-            sorter: self,
+            sorter,
         }
     }
-    fn build_owned_par<C: Container<T = T>>(self, mut bots: C) -> TreeOwned<C, Self>
+    fn build_owned_par<C: Container<T = T>>(self, mut bots: C) -> TreeOwned<C, S>
     where
         T: Send + Sync,
         T::Num: Send + Sync,
     {
         let t = self.build_par(bots.as_mut());
+        let sorter = t.sorter();
         let data = t.into_node_data();
         TreeOwned {
             inner: bots,
             nodes: data,
-            sorter: self,
+            sorter,
         }
     }
-    fn build(self, bots: &mut [T]) -> TreeInner<T, Self> {
-        let num_level = num_level::default(bots.len());
+    fn build(self, bots: &mut [T]) -> TreeInner<T, S> {
+        let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = start_build(num_level, bots, self);
+        let vistr = start_build(num_level, bots, self.sorter());
         vistr.recurse_seq(&mut buffer);
-        into_tree_inner(self, buffer)
+        into_tree_inner(self.sorter(), buffer)
     }
-    fn build_par(self, bots: &mut [T]) -> TreeInner<T, Self>
+    fn build_par(self, bots: &mut [T]) -> TreeInner<T, S>
     where
         T: Send + Sync,
         T::Num: Send + Sync,
     {
-        let num_level = num_level::default(bots.len());
+        let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = start_build(num_level, bots, self);
-        par::recurse_par(vistr, 5, &mut buffer);
-        into_tree_inner(self, buffer)
+        let vistr = start_build(num_level, bots, self.sorter());
+        par::recurse_par(vistr, self.height_seq_fallback(), &mut buffer);
+        into_tree_inner(self.sorter(), buffer)
     }
 
+    fn build_splitter<'a, SS: Splitter>(
+        self,
+        bots: &'a mut [T],
+        splitter: SS,
+    ) -> (TreeInner<'a, T, S>, SS) {
+        pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter, SS: Splitter>(
+            vistr: TreeBister<'a, T, S>,
+            res: &mut Vec<Node<'a, T>>,
+            mut splitter: SS,
+        ) -> SS {
+            let Res { node, rest } = vistr.build_and_next();
+            res.push(node.finish());
+            if let Some([left, right]) = rest {
+                let (s1, s2) = splitter.div();
+
+                let s1 = recurse_seq_splitter(left, res, s1);
+                let s2 = recurse_seq_splitter(right, res, s2);
+
+                splitter.add(s1, s2);
+            }
+
+            splitter
+        }
+        let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
+        let vistr = start_build(num_level, bots, self.sorter());
+
+        let splitter = recurse_seq_splitter(vistr, &mut buffer, splitter);
+        (into_tree_inner(self.sorter(), buffer), splitter)
+    }
+
+    fn build_splitter_par<'a, SS: Splitter + Send>(
+        self,
+        bots: &'a mut [T],
+        splitter: SS,
+    ) -> (TreeInner<'a, T, S>, SS)
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        pub fn recurse_par_splitter<'a, T: Aabb, S: Sorter, SS: Splitter + Send>(
+            vistr: TreeBister<'a, T, S>,
+            height_seq_fallback: usize,
+            buffer: &mut Vec<Node<'a, T>>,
+            mut splitter: SS,
+        ) -> SS
+        where
+            T: Send,
+            T::Num: Send,
+        {
+            if vistr.get_height() <= height_seq_fallback {
+                vistr.recurse_seq(buffer);
+            } else {
+                let Res { node, rest } = vistr.build_and_next();
+
+                if let Some([left, right]) = rest {
+                    let (s1, s2) = splitter.div();
+
+                    let (s1, (mut a, s2)) = rayon_core::join(
+                        || {
+                            buffer.push(node.finish());
+                            recurse_par_splitter(left, height_seq_fallback, buffer, s1)
+                        },
+                        || {
+                            let mut f = vec![];
+                            let v = recurse_par_splitter(right, height_seq_fallback, &mut f, s2);
+                            (f, v)
+                        },
+                    );
+                    splitter.add(s1, s2);
+
+                    buffer.append(&mut a);
+                }
+            }
+
+            splitter
+        }
+        let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
+        let vistr = start_build(num_level, bots, self.sorter());
+
+        let splitter = recurse_par_splitter(vistr, self.height_seq_fallback(), &mut buffer, splitter);
+        (into_tree_inner(self.sorter(), buffer), splitter)
+    }
     fn build_from_node_data<'a>(
         self,
         data: &NodeDataCollection<T::Num>,
         bots: HalfPin<&'a mut [T]>,
-    ) -> TreeInner<'a, T, Self> {
+    ) -> TreeInner<'a, T, S> {
         let mut last = Some(bots);
 
         let a: Vec<_> = data
@@ -418,13 +512,17 @@ pub trait TreeBuild<T: Aabb>: Sorter {
             })
             .collect();
         TreeInner {
-            sorter: self,
+            sorter: self.sorter(),
             nodes: compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap(),
         }
     }
 }
 
-impl<T: Aabb, S: Sorter> TreeBuild<T> for S {}
+impl<T: Aabb, S: Sorter> TreeBuild<T, S> for S {
+    fn sorter(&self) -> S {
+        *self
+    }
+}
 
 ///Create a [`Tree`].
 ///
@@ -659,4 +757,15 @@ impl<'a, T: Aabb, S: Sorter> TreeInner<'a, T, S> {
     pub fn sorter(&self) -> S {
         self.sorter
     }
+}
+
+///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
+///The main motivation behind this trait was to track the time spent taken at each level of the tree
+///during construction.
+pub trait Splitter: Sized {
+    ///Called to split this into two to be passed to the children.
+    fn div(&mut self) -> (Self, Self);
+
+    ///Called to add the results of the recursive calls on the children.
+    fn add(&mut self, a: Self, b: Self);
 }

@@ -163,10 +163,14 @@ impl<T: Aabb, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>)> CollisionHandler<T> fo
     }
 }
 
-use crate::tree::splitter::Splitter;
+use crate::tree::Splitter;
 
 pub trait CollidingPairsBuilder<'a, T: Aabb + 'a> {
     type SO: NodeHandler;
+    fn height_seq_fallback(&self)->usize{
+        10
+    }
+
     fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, Self::SO>;
 
     fn colliding_pairs_splitter<SS: Splitter>(
@@ -195,22 +199,9 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a> {
         recurse_seq_splitter(self.colliding_pairs_builder(), splitter, &mut prevec, func)
     }
 
+
     fn colliding_pairs_splitter_par<SS: Splitter + Send>(
         &mut self,
-        func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,
-        splitter: SS,
-    ) -> SS
-    where
-        T: Send,
-        T::Num: Send,
-    {
-        //TODO dont
-        self.colliding_pairs_splitter_par_ext(10, func, splitter)
-    }
-
-    fn colliding_pairs_splitter_par_ext<SS: Splitter + Send>(
-        &mut self,
-        height_seq_fallback: usize,
         func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,
         splitter: SS,
     ) -> SS
@@ -257,29 +248,19 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a> {
             splitter
         }
         let mut prevec = PreVec::new();
+        let h=self.height_seq_fallback();
         recurse_par_splitter(
             self.colliding_pairs_builder(),
             &mut prevec,
-            height_seq_fallback,
+            h,
             func,
             splitter,
         )
     }
 
-    //TODO add splitter versions!
+
     fn colliding_pairs_par(
         &mut self,
-        func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,
-    ) where
-        T: Send,
-        T::Num: Send,
-    {
-        self.colliding_pairs_par_ext(10, func)
-    }
-
-    fn colliding_pairs_par_ext(
-        &mut self,
-        height_seq_fallback: usize,
         func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,
     ) where
         T: Send,
@@ -318,11 +299,13 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a> {
         }
 
         let mut prevec = PreVec::new();
+        let h=self.height_seq_fallback();
+
         //TODO best level define somewhere?
         recurse_par(
             self.colliding_pairs_builder(),
             &mut prevec,
-            height_seq_fallback,
+            h,
             func,
         )
     }

@@ -12,11 +12,10 @@ impl TheoryRes {
         let query = datanum::datanum_test2(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
-            let mut tree = TreeBuilder::new(&mut bots).build_seq();
-
+            let mut tree = broccoli::tree::new(&mut bots);
             maker.reset();
 
-            let levelc2 = tree.new_colfind_builder().query_with_splitter_seq(
+            tree.colliding_pairs_splitter(
                 |a, b| {
                     a.unpack_inner().x += 1.0;
                     b.unpack_inner().y += 1.0;
