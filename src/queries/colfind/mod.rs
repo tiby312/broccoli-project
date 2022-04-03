@@ -169,6 +169,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
         recurse_seq_splitter(self.colliding_pairs_builder(), splitter, &mut prevec, func)
     }
 
+    //TODO make these splitters api go behind a feature
     fn colliding_pairs_splitter_par<SS: Splitter + Send>(
         &mut self,
         func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,

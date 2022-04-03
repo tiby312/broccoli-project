@@ -9,7 +9,7 @@ pub use broccoli::queries::*;
 pub use broccoli::tree::halfpin::HalfPin;
 pub use broccoli::tree::node::*;
 pub use broccoli::tree::par::*;
-use broccoli::tree::splitter::Splitter;
+use broccoli::tree::Splitter;
 pub use broccoli::tree::*;
 pub use broccoli::*;
 pub use poloto::prelude::*;
