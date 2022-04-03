@@ -356,11 +356,11 @@ pub type Tree<'a, T> = TreeInner<'a, T, DefaultSorter>;
 
 pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     fn sorter(&self) -> S;
-    
-    fn num_level(&self, num_bots: usize) -> usize{
+
+    fn num_level(&self, num_bots: usize) -> usize {
         num_level::default(num_bots)
     }
-    fn height_seq_fallback(&self)->usize{
+    fn height_seq_fallback(&self) -> usize {
         10
     }
 
@@ -407,11 +407,7 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         into_tree_inner(self.sorter(), buffer)
     }
 
-    fn build_splitter<'a, SS: Splitter>(
-        self,
-        bots: &'a mut [T],
-        splitter: SS,
-    ) -> (TreeInner<'a, T, S>, SS) {
+    fn build_splitter<SS: Splitter>(self, bots: &mut [T], splitter: SS) -> (TreeInner<T, S>, SS) {
         pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter, SS: Splitter>(
             vistr: TreeBister<'a, T, S>,
             res: &mut Vec<Node<'a, T>>,
@@ -438,11 +434,11 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         (into_tree_inner(self.sorter(), buffer), splitter)
     }
 
-    fn build_splitter_par<'a, SS: Splitter + Send>(
+    fn build_splitter_par<SS: Splitter + Send>(
         self,
-        bots: &'a mut [T],
+        bots: &mut [T],
         splitter: SS,
-    ) -> (TreeInner<'a, T, S>, SS)
+    ) -> (TreeInner<T, S>, SS)
     where
         T: Send + Sync,
         T::Num: Send + Sync,
@@ -488,7 +484,8 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         let vistr = start_build(num_level, bots, self.sorter());
 
-        let splitter = recurse_par_splitter(vistr, self.height_seq_fallback(), &mut buffer, splitter);
+        let splitter =
+            recurse_par_splitter(vistr, self.height_seq_fallback(), &mut buffer, splitter);
         (into_tree_inner(self.sorter(), buffer), splitter)
     }
     fn build_from_node_data<'a>(
