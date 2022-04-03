@@ -26,9 +26,9 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     let nosort_res = NoSorter.build(bots).collect_ptr();
     let sweep_res = SweepAndPrune::new(bots).collect_ptr();
 
-    assert_eq!(naive_res,tree_res);
-    assert_eq!(naive_res,sweep_res);
-    assert_eq!(naive_res,nosort_res);
+    assert_eq!(naive_res, tree_res);
+    assert_eq!(naive_res, sweep_res);
+    assert_eq!(naive_res, nosort_res);
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
@@ -41,11 +41,10 @@ pub trait CollisionApi<T: Aabb> {
 
     fn collect_ptr(&mut self) -> CollisionPtr {
         let mut res = vec![];
-        self.colliding_pairs(&mut |a: HalfPin<&mut T>, b: HalfPin<&mut T>| {
-            let a = &*a;
-            let b = &*b;
-            let a = a as *const T as usize;
-            let b = b as *const T as usize;
+        self.colliding_pairs(&mut |mut a: HalfPin<&mut T>, mut b: HalfPin<&mut T>| {
+            let a = a.as_ptr_mut().as_raw() as usize;
+            let b = b.as_ptr_mut().as_raw() as usize;
+
             let k = if a < b { (a, b) } else { (b, a) };
             res.push(k);
         });
