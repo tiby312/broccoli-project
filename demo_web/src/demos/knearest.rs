@@ -41,8 +41,8 @@ impl broccoli::queries::knearest::Knearest<BBox<f32, ()>> for MyKnearest {
 
     fn distance_to_broad(
         &mut self,
-        point: Vec2<f32>,
-        a: halfpin::HalfPin<&mut BBox<f32, ()>>,
+        _point: Vec2<f32>,
+        _a: halfpin::HalfPin<&mut BBox<f32, ()>>,
     ) -> Option<f32> {
         None
     }

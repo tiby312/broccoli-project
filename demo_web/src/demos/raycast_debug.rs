@@ -17,8 +17,8 @@ impl broccoli::queries::raycast::RayCast<BBox<f32, ()>> for MyRaycast {
 
     fn cast_broad(
         &mut self,
-        ray: &Ray<f32>,
-        a: halfpin::HalfPin<&mut BBox<f32, ()>>,
+        _ray: &Ray<f32>,
+        _a: halfpin::HalfPin<&mut BBox<f32, ()>>,
     ) -> Option<axgeom::CastResult<f32>> {
         None
     }

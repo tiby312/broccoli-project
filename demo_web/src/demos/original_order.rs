@@ -78,7 +78,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
         });
 
-        let mut verts2 = vec![];
+        let verts2 = vec![];
         /* TODO add back
         tree.draw_divider(
             |axis, node, rect, _| {
