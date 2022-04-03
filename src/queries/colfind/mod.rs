@@ -155,7 +155,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
             vistr: CollVis<T, S>,
             splitter: SS,
             prevec: &mut PreVec,
-            mut func: &mut impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
+            func: &mut impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
         ) -> SS {
             let (n, rest) = vistr.collide_and_next(prevec, func);
 
