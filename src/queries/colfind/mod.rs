@@ -293,6 +293,8 @@ impl<'a, T: Aabb> CollidingPairsBuilder<'a, T, HandleNoSorted> for TreeInner<'a,
     }
 }
 
+
+/// The main primitive
 pub struct CollVis<'a, 'b, T: Aabb, N> {
     vistr: VistrMut<'b, Node<'a, T>>,
     is_xaxis: bool,

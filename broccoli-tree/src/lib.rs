@@ -357,6 +357,7 @@ pub type Tree<'a, T> = TreeInner<'a, T, DefaultSorter>;
 pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     fn sorter(&self) -> S;
 
+
     fn num_level(&self, num_bots: usize) -> usize {
         num_level::default(num_bots)
     }
@@ -411,7 +412,7 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter, SS: Splitter>(
             vistr: TreeBister<'a, T, S>,
             res: &mut Vec<Node<'a, T>>,
-            mut splitter: SS,
+            splitter: SS,
         ) -> SS {
             let Res { node, rest } = vistr.build_and_next();
             res.push(node.finish());
@@ -421,10 +422,10 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
                 let s1 = recurse_seq_splitter(left, res, s1);
                 let s2 = recurse_seq_splitter(right, res, s2);
 
-                splitter.add(s1, s2);
+                s1.add(s2)
+            }else{
+                splitter
             }
-
-            splitter
         }
         let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
@@ -447,7 +448,7 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
             vistr: TreeBister<'a, T, S>,
             height_seq_fallback: usize,
             buffer: &mut Vec<Node<'a, T>>,
-            mut splitter: SS,
+            splitter: SS,
         ) -> SS
         where
             T: Send,
@@ -455,6 +456,7 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         {
             if vistr.get_height() <= height_seq_fallback {
                 vistr.recurse_seq(buffer);
+                splitter
             } else {
                 let Res { node, rest } = vistr.build_and_next();
 
@@ -472,13 +474,14 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
                             (f, v)
                         },
                     );
-                    splitter.add(s1, s2);
-
+                    
                     buffer.append(&mut a);
+                    s1.add(s2)
+                }else{
+                    splitter
                 }
             }
 
-            splitter
         }
         let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
@@ -761,8 +764,8 @@ impl<'a, T: Aabb, S: Sorter> TreeInner<'a, T, S> {
 ///during construction.
 pub trait Splitter: Sized {
     ///Called to split this into two to be passed to the children.
-    fn div(&mut self) -> (Self, Self);
+    fn div(self) -> (Self, Self);
 
     ///Called to add the results of the recursive calls on the children.
-    fn add(&mut self, a: Self, b: Self);
+    fn add(self, b: Self)->Self;
 }
