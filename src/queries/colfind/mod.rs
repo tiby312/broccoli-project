@@ -150,7 +150,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
     ) -> SS {
         pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler, SS: Splitter>(
             vistr: CollVis<T, S>,
-            mut splitter: SS,
+            splitter: SS,
             prevec: &mut PreVec,
             mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
         ) -> SS {
@@ -161,9 +161,10 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
                 n.finish();
                 let al = recurse_seq_splitter(left, s1, prevec, &mut func);
                 let ar = recurse_seq_splitter(right, s2, prevec, &mut func);
-                splitter.add(al, ar);
+                al.add(ar)
+            } else {
+                splitter
             }
-            splitter
         }
         let mut prevec = PreVec::new();
         recurse_seq_splitter(self.colliding_pairs_builder(), splitter, &mut prevec, func)
@@ -187,7 +188,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
             prevec: &mut PreVec,
             height_seq_fallback: usize,
             mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,
-            mut splitter: S,
+            splitter: S,
         ) -> S
         where
             T: Send,
@@ -195,6 +196,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
         {
             if vistr.vistr.get_height() <= height_seq_fallback {
                 vistr.recurse_seq(prevec, &mut func);
+                splitter
             } else {
                 let func2 = func.clone();
                 let (n, rest) = vistr.collide_and_next(prevec, &mut func);
@@ -218,10 +220,11 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
                         },
                     );
 
-                    splitter.add(s1, s2);
+                    s1.add(s2)
+                } else {
+                    splitter
                 }
             }
-            splitter
         }
         let mut prevec = PreVec::new();
         let h = self.height_seq_fallback();
@@ -292,7 +295,6 @@ impl<'a, T: Aabb> CollidingPairsBuilder<'a, T, HandleNoSorted> for TreeInner<'a,
         CollVis::new(self.vistr_mut(), true, HandleNoSorted)
     }
 }
-
 
 /// The main primitive
 pub struct CollVis<'a, 'b, T: Aabb, N> {

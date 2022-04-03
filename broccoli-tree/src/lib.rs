@@ -357,7 +357,6 @@ pub type Tree<'a, T> = TreeInner<'a, T, DefaultSorter>;
 pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     fn sorter(&self) -> S;
 
-
     fn num_level(&self, num_bots: usize) -> usize {
         num_level::default(num_bots)
     }
@@ -423,7 +422,7 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
                 let s2 = recurse_seq_splitter(right, res, s2);
 
                 s1.add(s2)
-            }else{
+            } else {
                 splitter
             }
         }
@@ -474,14 +473,13 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
                             (f, v)
                         },
                     );
-                    
+
                     buffer.append(&mut a);
                     s1.add(s2)
-                }else{
+                } else {
                     splitter
                 }
             }
-
         }
         let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
@@ -767,5 +765,5 @@ pub trait Splitter: Sized {
     fn div(self) -> (Self, Self);
 
     ///Called to add the results of the recursive calls on the children.
-    fn add(self, b: Self)->Self;
+    fn add(self, b: Self) -> Self;
 }
