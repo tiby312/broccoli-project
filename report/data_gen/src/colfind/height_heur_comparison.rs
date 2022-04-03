@@ -4,7 +4,7 @@ struct MyBuild {
     num_level: usize,
 }
 impl<T: Aabb> TreeBuild<T, DefaultSorter> for MyBuild {
-    fn num_level(&self, num_bots: usize) -> usize {
+    fn num_level(&self, _num_bots: usize) -> usize {
         self.num_level
     }
     fn sorter(&self) -> DefaultSorter {

@@ -63,7 +63,7 @@ mod levelcounter {
         start: usize,
     }
     impl LevelCounter {
-        pub fn new(level: usize, buffer: Vec<(usize, usize)>) -> LevelCounter {
+        pub fn new(_level: usize, buffer: Vec<(usize, usize)>) -> LevelCounter {
             let now = unsafe { datanum::COUNTER };
             LevelCounter {
                 level: 0,
@@ -131,7 +131,7 @@ mod levelcounter {
             assert_eq!(l1, l2);
 
             let mut v1 = self.consume();
-            let mut v2 = b.consume();
+            let v2 = b.consume();
 
             //the left vec is bigger
             for a in v2.into_iter() {
