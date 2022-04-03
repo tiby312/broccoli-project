@@ -18,12 +18,7 @@ fn main() {
     //populated it with mutable references.
     let mut tree = broccoli::tree::new(&mut aabbs);
 
-    //Find all colliding aabbs.
-    let col = tree.colliding_pairs_builder();
-
-    let mut prevec = broccoli::util::PreVec::new();
-
-    broccoli::queries::colfind::par::recurse_par(col, &mut prevec, 3, |a, b| {
+    tree.colliding_pairs_par(|a, b| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
     });
