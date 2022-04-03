@@ -18,39 +18,48 @@ impl<T: Aabb, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>)> CollisionHandler<T> fo
     }
 }
 
-///Panics if a disconnect is detected between tree and naive queries.
+///Panics if a disconnect is detected between all colfind methods.
 pub fn assert_query<T: Aabb>(bots: &mut [T]) {
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
+    pub struct CollisionPtr {
+        inner: Vec<(usize, usize)>,
+    }
+
+    pub fn collect_pairs<N: Num, T>(
+        func: &mut impl CollisionApi<BBox<N, (usize, T)>>,
+    ) -> CollisionPtr {
+        let mut res = vec![];
+        func.colliding_pairs(|a, b| {
+            let a = a.inner.0;
+            let b = b.inner.0;
+            let (a, b) = if a < b { (a, b) } else { (b, a) };
+
+            res.push((a, b));
+        });
+
+        res.sort_unstable();
+        CollisionPtr { inner: res }
+    }
+
+    let mut bots: Vec<_> = bots
+        .iter_mut()
+        .enumerate()
+        .map(|(i, x)| crate::bbox(*x.get(), (i, x)))
+        .collect();
+    let bots = bots.as_mut_slice();
     use crate::tree::TreeBuild;
-    let tree_res = crate::new(bots).collect_ptr();
-    let naive_res = HalfPin::from_mut(bots).collect_ptr();
-    let nosort_res = NoSorter.build(bots).collect_ptr();
-    let sweep_res = SweepAndPrune::new(bots).collect_ptr();
+    let nosort_res = collect_pairs(&mut NoSorter.build(bots));
+    let sweep_res = collect_pairs(&mut SweepAndPrune::new(bots));
+    let tree_res = collect_pairs(&mut crate::new(bots));
+    let naive_res = collect_pairs(&mut HalfPin::from_mut(bots));
 
     assert_eq!(naive_res, tree_res);
     assert_eq!(naive_res, sweep_res);
     assert_eq!(naive_res, nosort_res);
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub struct CollisionPtr {
-    inner: Vec<(usize, usize)>,
-}
-
 pub trait CollisionApi<T: Aabb> {
     fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>));
-
-    fn collect_ptr(&mut self) -> CollisionPtr {
-        let mut res = vec![];
-        self.colliding_pairs(&mut |mut a: HalfPin<&mut T>, mut b: HalfPin<&mut T>| {
-            let a = a.as_ptr_mut().as_raw() as usize;
-            let b = b.as_ptr_mut().as_raw() as usize;
-
-            let k = if a < b { (a, b) } else { (b, a) };
-            res.push(k);
-        });
-        res.sort_unstable();
-        CollisionPtr { inner: res }
-    }
 }
 impl<'a, T: Aabb> CollisionApi<T> for HalfPin<&'a mut [T]> {
     fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
