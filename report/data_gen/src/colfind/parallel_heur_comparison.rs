@@ -1,10 +1,39 @@
+use broccoli::queries::colfind::HandleSorted;
+
 use super::*;
 
+struct MyBuild{
+    height_seq_fallback:usize
+}
+impl<T:Aabb> TreeBuild<T,DefaultSorter> for MyBuild{
+    fn height_seq_fallback(&self) -> usize {
+        self.height_seq_fallback
+    }
+    fn sorter(&self) -> DefaultSorter {
+        DefaultSorter
+    }
+}
+
+struct MyQuery<'a,T:Aabb>{
+    tree:Tree<'a,T>,
+    height_seq_fallback:usize
+}
+
+impl<'a,T:Aabb+'a> broccoli::queries::colfind::CollidingPairsBuilder<'a,T,HandleSorted> for MyQuery<'a,T>{
+    fn height_seq_fallback(&self)->usize{
+        self.height_seq_fallback
+    }
+    fn colliding_pairs_builder<'b>(&'b mut self) -> queries::colfind::CollVis<'a, 'b, T, HandleSorted> {
+        self.tree.colliding_pairs_builder()
+    }
+}
+
+
 fn test1(bots: &mut [BBox<f64, &mut isize>]) -> (f64, f64) {
-    let (mut tree, construction_time) = bench_closure_ret(|| TreeBuilder::new(bots).build_seq());
+    let (mut tree, construction_time) = bench_closure_ret(|| broccoli::tree::new(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {
-        tree.find_colliding_pairs_mut(|a, b| {
+        tree.colliding_pairs(|a, b| {
             **a.unpack_inner() += 2;
             **b.unpack_inner() += 2;
         });
@@ -16,21 +45,19 @@ fn test1(bots: &mut [BBox<f64, &mut isize>]) -> (f64, f64) {
     (construction_time, query_time)
 }
 
+
 fn test3(
     bots: &mut [BBox<f64, &mut isize>],
     rebal_height: usize,
     query_height: usize,
 ) -> (f64, f64) {
-    let (mut tree, construction_time) = bench_closure_ret(|| {
-        TreeBuilder::new(bots)
-            .with_height_switch_seq(rebal_height)
-            .build_par(RayonJoin)
+    let (tree, construction_time) = bench_closure_ret(|| {
+        MyBuild{height_seq_fallback:rebal_height}.build_par(bots)
     });
 
     let (tree, query_time) = bench_closure_ret(|| {
-        tree.new_colfind_builder()
-            .with_switch_height(query_height)
-            .query_par(RayonJoin, |a, b| {
+        let mut tree=MyQuery{tree,height_seq_fallback:query_height};
+        tree.colliding_pairs_par(|a, b| {
                 **a.unpack_inner() += 2;
                 **b.unpack_inner() += 2;
             });
@@ -47,7 +74,7 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
-    let height = TreePreBuilder::new(num_bots).get_height();
+    let height=tree::num_level::num_nodes(num_bots);
 
     let mut rebals = Vec::new();
     for rebal_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {

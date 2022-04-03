@@ -76,7 +76,7 @@ mod levelcounter {
             self.level
         }
 
-        pub fn consume(self) -> Vec<(usize, usize)> {
+        pub fn consume(mut self) -> Vec<(usize, usize)> {
             let dur = unsafe { datanum::COUNTER - self.start };
 
             //stop self timer.
@@ -89,17 +89,10 @@ mod levelcounter {
 
             self.stuff
         }
-        pub fn into_tree(
-            self,
-        ) -> compt::dfs_order::CompleteTreeContainer<usize, compt::dfs_order::PreOrder> {
-            unimplemented!()
-            //let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
-            //tree
-        }
 
         pub fn into_levels(self) -> Vec<usize> {
-            dbg!(self);
-            unimplemented!();
+            dbg!(&self);
+            self.stuff.into_iter().map(|x|x.1).collect()
             /*
             let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
 
@@ -122,7 +115,7 @@ mod levelcounter {
     }
     impl Splitter for LevelCounter {
         #[inline]
-        fn div(mut self) -> (Self, Self) {
+        fn div(self) -> (Self, Self) {
             let level = self.level();
             let v = self.consume();
 
@@ -132,14 +125,21 @@ mod levelcounter {
             )
         }
         #[inline]
-        fn add(self, mut b: Self) -> Self {
+        fn add(self, b: Self) -> Self {
             let l1 = self.level();
             let l2 = b.level();
             assert_eq!(l1, l2);
 
-            let v1 = self.consume();
-            let v2 = self.consume();
-            v1.append(&mut v2);
+            let mut v1 = self.consume();
+            let mut v2 = b.consume();
+
+
+            //the left vec is bigger
+            for a in v2.into_iter(){
+                let b=v1.iter_mut().find(|x|x.0==a.0).unwrap();
+                b.1+=a.1;
+            }
+
             LevelCounter::new(l1 - 1, v1)
         }
 
@@ -181,8 +181,8 @@ mod leveltimer {
         }
 
         pub fn into_levels(self) -> Vec<f64> {
-            dbg!(self);
-            unimplemented!();
+            dbg!(&self);
+            self.stuff.into_iter().map(|x|x.1).collect()
             /*
             let tree = compt::dfs_order::CompleteTreeContainer::from_preorder(self.stuff).unwrap();
 
@@ -205,7 +205,7 @@ mod leveltimer {
             */
         }
 
-        pub fn consume(self) -> Vec<(usize, f64)> {
+        pub fn consume(mut self) -> Vec<(usize, f64)> {
             let dur = into_secs(self.start.elapsed());
             //stop self timer.
             let level = self.level();
@@ -220,7 +220,7 @@ mod leveltimer {
 
     impl Splitter for LevelTimer {
         #[inline]
-        fn div(mut self) -> (Self, Self) {
+        fn div(self) -> (Self, Self) {
             let level = self.level();
 
             let data = self.consume();
@@ -231,14 +231,20 @@ mod leveltimer {
             )
         }
         #[inline]
-        fn add(self, mut b: Self) -> Self {
+        fn add(self, b: Self) -> Self {
             let l1 = self.level();
             let l2 = b.level();
             assert_eq!(l1, l2);
 
-            let v1 = self.consume();
-            let mut v2 = b.consume();
-            v1.append(&mut v2);
+            let mut v1 = self.consume();
+            let v2 = b.consume();
+            
+            //the left vec is bigger
+            for a in v2.into_iter(){
+                let b=v1.iter_mut().find(|x|x.0==a.0).unwrap();
+                b.1+=a.1;
+            }
+
             LevelTimer::new(l1 - 1, v1)
         }
     }

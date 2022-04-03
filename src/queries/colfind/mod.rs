@@ -7,7 +7,7 @@ pub use self::node_handle::*;
 use super::tools;
 use super::*;
 
-//TODO remove
+
 pub trait CollisionHandler<T: Aabb> {
     fn collide(&mut self, a: HalfPin<&mut T>, b: HalfPin<&mut T>);
 }
@@ -150,28 +150,28 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
     fn colliding_pairs_splitter<SS: Splitter>(
         &mut self,
         splitter: SS,
-        func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
+        mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
     ) -> SS {
         pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler, SS: Splitter>(
             vistr: CollVis<T, S>,
             splitter: SS,
             prevec: &mut PreVec,
-            mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
+            mut func: &mut impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
         ) -> SS {
-            let (n, rest) = vistr.collide_and_next(prevec, &mut func);
+            let (n, rest) = vistr.collide_and_next(prevec,  func);
 
             if let Some([left, right]) = rest {
                 let (s1, s2) = splitter.div();
                 n.finish();
-                let al = recurse_seq_splitter(left, s1, prevec, &mut func);
-                let ar = recurse_seq_splitter(right, s2, prevec, &mut func);
+                let al = recurse_seq_splitter(left, s1, prevec, func);
+                let ar = recurse_seq_splitter(right, s2, prevec, func);
                 al.add(ar)
             } else {
                 splitter
             }
         }
         let mut prevec = PreVec::new();
-        recurse_seq_splitter(self.colliding_pairs_builder(), splitter, &mut prevec, func)
+        recurse_seq_splitter(self.colliding_pairs_builder(), splitter, &mut prevec, &mut func)
     }
 
     //TODO make these splitters api go behind a feature

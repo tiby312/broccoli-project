@@ -5,7 +5,6 @@ pub mod assert;
 pub mod halfpin;
 pub mod node;
 mod oned;
-pub mod par;
 pub mod util;
 
 use axgeom::*;
@@ -115,30 +114,6 @@ pub fn create_ind<T, N: Num>(
         .into_boxed_slice()
 }
 
-/*
-///A version of Tree where the elements are not sorted along each axis, like a KD Tree.
-/// For comparison, a normal kd-tree is provided by [`NotSorted`]. In this tree, the elements are not sorted
-/// along an axis at each level. Construction of [`NotSorted`] is faster than [`Tree`] since it does not have to
-/// sort bots that belong to each node along an axis. But most query algorithms can usually take advantage of this
-/// extra property to be faster.
-pub struct NotSorted<'a, T: Aabb>(pub Tree<'a, T>);
-
-impl<'a, T: Aabb> NotSorted<'a, T> {
-    #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
-        self.0.vistr_mut()
-    }
-
-    #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
-        self.0.vistr()
-    }
-    #[inline(always)]
-    pub fn get_height(&self) -> usize {
-        self.0.get_height()
-    }
-}
-*/
 
 #[must_use]
 pub struct NodeFinisher<'a, T: Aabb, S> {
@@ -357,6 +332,8 @@ pub type Tree<'a, T> = TreeInner<'a, T, DefaultSorter>;
 pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     fn sorter(&self) -> S;
 
+
+    
     fn num_level(&self, num_bots: usize) -> usize {
         num_level::default(num_bots)
     }
@@ -400,10 +377,43 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         T: Send + Sync,
         T::Num: Send + Sync,
     {
+
+        pub fn recurse_par<'a, T: Aabb, S: Sorter>(
+            vistr: TreeBister<'a, T, S>,
+            height_seq_fallback: usize,
+            buffer: &mut Vec<Node<'a, T>>,
+        ) where
+            T: Send,
+            T::Num: Send,
+        {
+            if vistr.get_height() <= height_seq_fallback {
+                vistr.recurse_seq(buffer);
+            } else {
+                let Res { node, rest } = vistr.build_and_next();
+
+                if let Some([left, right]) = rest {
+                    let (_, mut a) = rayon_core::join(
+                        || {
+                            buffer.push(node.finish());
+                            recurse_par(left, height_seq_fallback, buffer);
+                        },
+                        || {
+                            let mut f = vec![];
+                            recurse_par(right, height_seq_fallback, &mut f);
+                            f
+                        },
+                    );
+
+                    buffer.append(&mut a);
+                }
+            }
+        }
+
+
         let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         let vistr = start_build(num_level, bots, self.sorter());
-        par::recurse_par(vistr, self.height_seq_fallback(), &mut buffer);
+        recurse_par(vistr, self.height_seq_fallback(), &mut buffer);
         into_tree_inner(self.sorter(), buffer)
     }
 
@@ -649,7 +659,15 @@ impl<'a, T: Aabb, S: Sorter> TreeInner<'a, T, S> {
     ///
     #[must_use]
     #[inline(always)]
+    #[deprecated(note=" use num_levels()")]
     pub fn get_height(&self) -> usize {
+        self.nodes.as_tree().get_height()
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn num_levels(&self)->usize{
+        //TODO update compt.get_height to be num_levles as well.
         self.nodes.as_tree().get_height()
     }
 
