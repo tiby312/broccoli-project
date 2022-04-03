@@ -106,7 +106,15 @@ impl<'a, T: ?Sized> HalfPin<&'a mut T> {
     }
 }
 
-impl<'a, T> HalfPin<T> {
+impl<'a, T: ?Sized> HalfPin<&'a mut T> {
+    /// Create a protected pointer.
+    #[inline(always)]
+    pub fn from_mut(inner: &'a mut T) -> HalfPin<&'a mut T> {
+        HalfPin { inner }
+    }
+}
+
+impl<T> HalfPin<T> {
     /// Create a protected pointer.
     #[inline(always)]
     pub fn new(inner: T) -> HalfPin<T> {

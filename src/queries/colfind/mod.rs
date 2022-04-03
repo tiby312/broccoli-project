@@ -20,42 +20,38 @@ impl<T: Aabb, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>)> CollisionHandler<T> fo
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_query<T: Aabb>(bots: &mut [T]) {
-    use core::ops::Deref;
-    fn into_ptr_usize<T>(a: &T) -> usize {
-        a as *const T as usize
-    }
-    let mut res_dino = Vec::new();
+    use crate::tree::TreeBuild;
+    let tree_res = crate::new(bots).collect_ptr();
+    let naive_res = HalfPin::from_mut(bots).collect_ptr();
+    let nosort_res = NoSorter.build(bots).collect_ptr();
+    let sweep_res = SweepAndPrune::new(bots).collect_ptr();
 
-    let mut tree = crate::new(bots);
+    assert_eq!(tree_res, naive_res);
+    assert_eq!(sweep_res, tree_res);
+    assert_eq!(nosort_res, sweep_res);
+}
 
-    tree.colliding_pairs(&mut |a: HalfPin<&mut T>, b: HalfPin<&mut T>| {
-        let a = into_ptr_usize(a.deref());
-        let b = into_ptr_usize(b.deref());
-        let k = if a < b { (a, b) } else { (b, a) };
-        res_dino.push(k);
-    });
-
-    let mut res_naive = Vec::new();
-    HalfPin::new(bots).colliding_pairs(|a, b| {
-        let a = into_ptr_usize(a.deref());
-        let b = into_ptr_usize(b.deref());
-        let k = if a < b { (a, b) } else { (b, a) };
-        res_naive.push(k);
-    });
-
-    res_naive.sort_unstable();
-    res_dino.sort_unstable();
-
-    assert_eq!(res_naive.len(), res_dino.len());
-
-    let a: Vec<_> = res_naive.iter().collect();
-    let b: Vec<_> = res_dino.iter().collect();
-    assert_eq!(a.len(), b.len());
-    assert_eq!(a, b);
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
+pub struct CollisionPtr {
+    inner: Vec<(usize, usize)>,
 }
 
 pub trait CollisionApi<T: Aabb> {
     fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>));
+
+    fn collect_ptr(&mut self) -> CollisionPtr {
+        let mut res = vec![];
+        self.colliding_pairs(&mut |a: HalfPin<&mut T>, b: HalfPin<&mut T>| {
+            let a = &*a;
+            let b = &*b;
+            let a = a as *const T as usize;
+            let b = b as *const T as usize;
+            let k = if a < b { (a, b) } else { (b, a) };
+            res.push(k);
+        });
+        res.sort_unstable();
+        CollisionPtr { inner: res }
+    }
 }
 impl<'a, T: Aabb> CollisionApi<T> for HalfPin<&'a mut [T]> {
     fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
