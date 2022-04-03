@@ -77,7 +77,16 @@ mod levelcounter {
         }
 
         pub fn consume(self)->Vec<(usize,usize)>{
-            self.stuff.push((self.level,unsafe { datanum::COUNTER - self.start }));
+            let dur=unsafe { datanum::COUNTER - self.start };
+
+            //stop self timer.
+            let level=self.level();
+            if let Some(a)=self.stuff.iter_mut().find(|x|x.0==level){
+                a.1+=dur;
+            }else{
+                self.stuff.push((self.level,dur));
+            }
+
             self.stuff
         }
         pub fn into_tree(
@@ -201,7 +210,12 @@ mod leveltimer {
         pub fn consume(self)->Vec<(usize,f64)>{
             let dur=into_secs(self.start.elapsed());
             //stop self timer.
-            self.stuff.push((self.level,dur));
+            let level=self.level();
+            if let Some(a)=self.stuff.iter_mut().find(|x|x.0==level){
+                a.1+=dur;
+            }else{
+                self.stuff.push((self.level,dur));
+            }
             self.stuff
         }
     }
