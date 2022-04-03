@@ -64,7 +64,7 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c5 = bench_closure(|| {
-            let mut tree = not_sorted_new_par(&mut bots);
+            let mut tree = NoSorter.build_par(&mut bots);
             tree.colliding_pairs_par(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
@@ -74,7 +74,7 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c6 = bench_closure(|| {
-            let mut tree = not_sorted_new(&mut bots);
+            let mut tree = NoSorter.build(&mut bots);
             tree.colliding_pairs(|a, b| {
                 **a.unpack_inner() -= 1;
                 **b.unpack_inner() -= 1;

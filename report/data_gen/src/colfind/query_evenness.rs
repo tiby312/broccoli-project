@@ -15,13 +15,10 @@ impl TheoryRes {
             let mut tree = broccoli::tree::new(&mut bots);
             maker.reset();
 
-            tree.colliding_pairs_splitter(
-                |a, b| {
-                    a.unpack_inner().x += 1.0;
-                    b.unpack_inner().y += 1.0;
-                },
-                LevelCounter::new(),
-            );
+            let levelc2 = tree.colliding_pairs_splitter(LevelCounter::new(0, vec![]), |a, b| {
+                a.unpack_inner().x += 1.0;
+                b.unpack_inner().y += 1.0;
+            });
 
             levelc2.into_tree()
         });

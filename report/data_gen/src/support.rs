@@ -58,33 +58,33 @@ mod levelcounter {
 
     #[derive(Debug)]
     pub struct LevelCounter {
-        level:usize,
-        stuff: Vec<(usize,usize)>,
+        level: usize,
+        stuff: Vec<(usize, usize)>,
         start: usize,
     }
     impl LevelCounter {
-        pub fn new(level:usize,buffer:Vec<(usize,usize)>) -> LevelCounter {
+        pub fn new(level: usize, buffer: Vec<(usize, usize)>) -> LevelCounter {
             let now = unsafe { datanum::COUNTER };
             LevelCounter {
-                level:0,
-                stuff:buffer,
-                start:now
+                level: 0,
+                stuff: buffer,
+                start: now,
             }
         }
 
-        pub fn level(&self)->usize{
+        pub fn level(&self) -> usize {
             self.level
         }
 
-        pub fn consume(self)->Vec<(usize,usize)>{
-            let dur=unsafe { datanum::COUNTER - self.start };
+        pub fn consume(self) -> Vec<(usize, usize)> {
+            let dur = unsafe { datanum::COUNTER - self.start };
 
             //stop self timer.
-            let level=self.level();
-            if let Some(a)=self.stuff.iter_mut().find(|x|x.0==level){
-                a.1+=dur;
-            }else{
-                self.stuff.push((self.level,dur));
+            let level = self.level();
+            if let Some(a) = self.stuff.iter_mut().find(|x| x.0 == level) {
+                a.1 += dur;
+            } else {
+                self.stuff.push((self.level, dur));
             }
 
             self.stuff
@@ -123,25 +123,24 @@ mod levelcounter {
     impl Splitter for LevelCounter {
         #[inline]
         fn div(mut self) -> (Self, Self) {
+            let level = self.level();
+            let v = self.consume();
 
-            let level=self.level();
-            let v=self.consume();
-            
             (
-                LevelCounter::new(level+1,v),
-                LevelCounter::new(level+1,vec!()),
+                LevelCounter::new(level + 1, v),
+                LevelCounter::new(level + 1, vec![]),
             )
         }
         #[inline]
-        fn add( self, mut b: Self)->Self {
-            let l1=self.level();
-            let l2=b.level();
-            assert_eq!(l1,l2);
+        fn add(self, mut b: Self) -> Self {
+            let l1 = self.level();
+            let l2 = b.level();
+            assert_eq!(l1, l2);
 
-            let v1=self.consume();
-            let v2=self.consume();
+            let v1 = self.consume();
+            let v2 = self.consume();
             v1.append(&mut v2);
-            LevelCounter::new(l1-1,v1)
+            LevelCounter::new(l1 - 1, v1)
         }
 
         /*
@@ -164,24 +163,23 @@ mod leveltimer {
     use std::time::Instant;
     #[derive(Debug)]
     pub struct LevelTimer {
-        level:usize,
-        stuff: Vec<(usize,f64)>,
+        level: usize,
+        stuff: Vec<(usize, f64)>,
         start: Instant,
     }
 
     impl LevelTimer {
-        
-        pub fn level(&self)->usize{
+        pub fn level(&self) -> usize {
             self.level
         }
-        pub fn new(level:usize,data:Vec<(usize,f64)>) -> LevelTimer {
+        pub fn new(level: usize, data: Vec<(usize, f64)>) -> LevelTimer {
             LevelTimer {
                 level,
                 stuff: data,
                 start: Instant::now(),
             }
         }
-        
+
         pub fn into_levels(self) -> Vec<f64> {
             dbg!(self);
             unimplemented!();
@@ -207,14 +205,14 @@ mod leveltimer {
             */
         }
 
-        pub fn consume(self)->Vec<(usize,f64)>{
-            let dur=into_secs(self.start.elapsed());
+        pub fn consume(self) -> Vec<(usize, f64)> {
+            let dur = into_secs(self.start.elapsed());
             //stop self timer.
-            let level=self.level();
-            if let Some(a)=self.stuff.iter_mut().find(|x|x.0==level){
-                a.1+=dur;
-            }else{
-                self.stuff.push((self.level,dur));
+            let level = self.level();
+            if let Some(a) = self.stuff.iter_mut().find(|x| x.0 == level) {
+                a.1 += dur;
+            } else {
+                self.stuff.push((self.level, dur));
             }
             self.stuff
         }
@@ -223,25 +221,25 @@ mod leveltimer {
     impl Splitter for LevelTimer {
         #[inline]
         fn div(mut self) -> (Self, Self) {
-            let level=self.level();
-            
-            let data=self.consume();
+            let level = self.level();
+
+            let data = self.consume();
 
             (
-                LevelTimer::new(level+1,data),
-                LevelTimer::new(level+1,vec!()),
+                LevelTimer::new(level + 1, data),
+                LevelTimer::new(level + 1, vec![]),
             )
         }
         #[inline]
-        fn add(self, mut b: Self)->Self {
-            let l1=self.level();
-            let l2=b.level();
-            assert_eq!(l1,l2);
+        fn add(self, mut b: Self) -> Self {
+            let l1 = self.level();
+            let l2 = b.level();
+            assert_eq!(l1, l2);
 
-            let v1=self.consume();
-            let mut v2=b.consume();
+            let v1 = self.consume();
+            let mut v2 = b.consume();
             v1.append(&mut v2);
-            LevelTimer::new(l1-1,v1)
+            LevelTimer::new(l1 - 1, v1)
         }
     }
 }

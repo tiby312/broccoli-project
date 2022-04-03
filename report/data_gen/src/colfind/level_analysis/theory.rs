@@ -14,17 +14,16 @@ impl Res {
             let (rebal, query) = datanum::datanum_test2(|maker| {
                 let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
+                let (mut tree, levelc) =
+                    DefaultSorter.build_splitter(&mut bots, LevelCounter::new(0, vec![]));
 
-                let (mut tree,levelc)=DefaultSorter.build_splitter(&mut bots, LevelCounter::new(0,vec!()));
-                
                 maker.reset();
 
-                let levelc2=tree.colliding_pairs_splitter(LevelCounter::new(0,vec!()),
-                    |a, b| {
+                let levelc2 =
+                    tree.colliding_pairs_splitter(LevelCounter::new(0, vec![]), |a, b| {
                         a.unpack_inner().x += 1.0;
                         b.unpack_inner().y += 1.0;
-                    }
-                );
+                    });
 
                 (
                     levelc.into_levels().into_iter().map(|x| x as f64).collect(),
