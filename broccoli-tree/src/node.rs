@@ -224,6 +224,17 @@ pub struct Node<'a, T: Aabb> {
     pub div: Option<T::Num>,
 }
 
+impl<'a, T: Aabb> HasElem for Node<'a, T> {
+    type T = T;
+    fn get_elems(&mut self) -> HalfPin<&mut [T]> {
+        self.range.borrow_mut()
+    }
+}
+pub trait HasElem {
+    type T;
+    fn get_elems(&mut self) -> HalfPin<&mut [Self::T]>;
+}
+
 pub struct NodeData<N: Num> {
     pub range: usize,
     pub cont: axgeom::Range<N>,

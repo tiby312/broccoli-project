@@ -141,7 +141,7 @@ impl FigureBuilder {
             }
 
             let canvas = self.canvas().build();
-            let data = poloto::build::plots_dyn(data).markers([], [0.0]);
+            let data = poloto::build::plots_dyn(data).chain(poloto::build::markers([],[0.0]));
             let plot = poloto::simple_fmt!(canvas, data, title, xname, yname);
 
             self.finish_plot(poloto::disp(|w| plot.render(w)), filename);

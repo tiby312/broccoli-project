@@ -45,7 +45,7 @@ impl Res {
 }
 
 pub fn handle_theory(fb: &mut FigureBuilder) {
-    let num_bots = 3000;
+    let num_bots = 5000;
 
     let res2 = Res::new(num_bots, grow_iter(DENSE_GROW, DEFAULT_GROW));
 
@@ -70,7 +70,7 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         let canvas = fb.canvas().build();
         let plot = poloto::simple_fmt!(
             canvas,
-            poloto::build::plots_dyn(data).markers([], [0.0]),
+            poloto::build::plots_dyn(data).chain(poloto::build::markers([],[0.0])),
             title_name,
             "Spiral Grow",
             "Number of Comparisons"

@@ -184,16 +184,6 @@ pub fn start_build<T: Aabb, N: Sorter>(
         is_xaxis: true,
     }
 }
-pub fn into_tree_inner<T: Aabb, S: Sorter>(sorter: S, a: Vec<Node<T>>) -> TreeInner<T, S> {
-    //TODO get rid of tree container type. it doesnt serve any purpose.
-
-    let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap();
-
-    TreeInner {
-        nodes: inner,
-        sorter,
-    }
-}
 
 pub struct TreeBister<'a, T, S> {
     bots: &'a mut [T],
@@ -321,13 +311,6 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
 
-pub struct TreeInner<'a, T: Aabb, S> {
-    nodes: compt::dfs_order::CompleteTreeContainer<Node<'a, T>, compt::dfs_order::PreOrder>,
-    sorter: S,
-}
-
-pub type Tree<'a, T> = TreeInner<'a, T, DefaultSorter>;
-
 pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     fn sorter(&self) -> S;
 
@@ -362,14 +345,14 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
             sorter,
         }
     }
-    fn build(self, bots: &mut [T]) -> TreeInner<T, S> {
+    fn build(self, bots: &mut [T]) -> TreeInner<Node<T>, S> {
         let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         let vistr = start_build(num_level, bots, self.sorter());
         vistr.recurse_seq(&mut buffer);
-        into_tree_inner(self.sorter(), buffer)
+        TreeInner::new(self.sorter(), buffer)
     }
-    fn build_par(self, bots: &mut [T]) -> TreeInner<T, S>
+    fn build_par(self, bots: &mut [T]) -> TreeInner<Node<T>, S>
     where
         T: Send + Sync,
         T::Num: Send + Sync,
@@ -409,10 +392,14 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         let vistr = start_build(num_level, bots, self.sorter());
         recurse_par(vistr, self.height_seq_fallback(), &mut buffer);
-        into_tree_inner(self.sorter(), buffer)
+        TreeInner::new(self.sorter(), buffer)
     }
 
-    fn build_splitter<SS: Splitter>(self, bots: &mut [T], splitter: SS) -> (TreeInner<T, S>, SS) {
+    fn build_splitter<SS: Splitter>(
+        self,
+        bots: &mut [T],
+        splitter: SS,
+    ) -> (TreeInner<Node<T>, S>, SS) {
         pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter, SS: Splitter>(
             vistr: TreeBister<'a, T, S>,
             res: &mut Vec<Node<'a, T>>,
@@ -436,14 +423,14 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         let vistr = start_build(num_level, bots, self.sorter());
 
         let splitter = recurse_seq_splitter(vistr, &mut buffer, splitter);
-        (into_tree_inner(self.sorter(), buffer), splitter)
+        (TreeInner::new(self.sorter(), buffer), splitter)
     }
 
     fn build_splitter_par<SS: Splitter + Send>(
         self,
         bots: &mut [T],
         splitter: SS,
-    ) -> (TreeInner<T, S>, SS)
+    ) -> (TreeInner<Node<T>, S>, SS)
     where
         T: Send + Sync,
         T::Num: Send + Sync,
@@ -492,13 +479,13 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
 
         let splitter =
             recurse_par_splitter(vistr, self.height_seq_fallback(), &mut buffer, splitter);
-        (into_tree_inner(self.sorter(), buffer), splitter)
+        (TreeInner::new(self.sorter(), buffer), splitter)
     }
     fn build_from_node_data<'a>(
         self,
         data: &NodeDataCollection<T::Num>,
         bots: HalfPin<&'a mut [T]>,
-    ) -> TreeInner<'a, T, S> {
+    ) -> TreeInner<Node<'a, T>, S> {
         let mut last = Some(bots);
 
         let a: Vec<_> = data
@@ -594,7 +581,7 @@ impl<C: Container, S: Sorter> TreeOwned<C, S>
 where
     C::T: Aabb,
 {
-    pub fn as_tree(&mut self) -> TreeInner<C::T, S> {
+    pub fn as_tree(&mut self) -> TreeInner<Node<C::T>, S> {
         self.sorter
             .build_from_node_data(&self.nodes, HalfPin::new(self.inner.as_mut()))
     }
@@ -619,28 +606,23 @@ pub struct NodeDataCollection<N: Num> {
     inner: Vec<NodeData<N>>,
 }
 
-impl<'a, T: Aabb> TreeInner<'a, T, DefaultSorter> {
-    pub fn new(bots: &'a mut [T]) -> Self {
-        DefaultSorter.build(bots)
+pub struct TreeInner<N, S> {
+    nodes: compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>,
+    sorter: S,
+}
+
+pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
+
+impl<S: Sorter, H: node::HasElem> TreeInner<H, S> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = HalfPin<&mut H::T>> {
+        self.nodes
+            .as_tree_mut()
+            .get_nodes_mut()
+            .iter_mut()
+            .flat_map(|x| x.get_elems().iter_mut())
     }
 }
-impl<'a, T: Aabb, S: Sorter> TreeInner<'a, T, S> {
-    pub fn into_node_data(self) -> NodeDataCollection<T::Num> {
-        NodeDataCollection {
-            inner: self
-                .nodes
-                .into_nodes()
-                .into_vec()
-                .into_iter()
-                .map(|x| NodeData {
-                    range: x.range.len(),
-                    cont: x.cont,
-                    div: x.div,
-                })
-                .collect(),
-        }
-    }
-
+impl<S: Sorter, H> TreeInner<H, S> {
     /// # Examples
     ///
     ///```
@@ -679,7 +661,7 @@ impl<'a, T: Aabb, S: Sorter> TreeInner<'a, T, S> {
     #[must_use]
     pub fn into_inner(
         self,
-    ) -> compt::dfs_order::CompleteTreeContainer<Node<'a, T>, compt::dfs_order::PreOrder> {
+    ) -> compt::dfs_order::CompleteTreeContainer<H, compt::dfs_order::PreOrder> {
         self.nodes
     }
 
@@ -710,7 +692,7 @@ impl<'a, T: Aabb, S: Sorter> TreeInner<'a, T, S> {
     ///
     ///```
     #[must_use]
-    pub fn get_nodes(&self) -> &[Node<'a, T>] {
+    pub fn get_nodes(&self) -> &[H] {
         self.nodes.as_tree().get_nodes()
     }
 
@@ -724,7 +706,7 @@ impl<'a, T: Aabb, S: Sorter> TreeInner<'a, T, S> {
     ///
     ///```
     #[must_use]
-    pub fn get_nodes_mut(&mut self) -> HalfPin<&mut [Node<'a, T>]> {
+    pub fn get_nodes_mut(&mut self) -> HalfPin<&mut [H]> {
         HalfPin::new(self.nodes.as_tree_mut().get_nodes_mut())
     }
 
@@ -742,7 +724,7 @@ impl<'a, T: Aabb, S: Sorter> TreeInner<'a, T, S> {
     /// assert_eq!(bots[0].inner,1);
     ///```
     #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMut<Node<'a, T>> {
+    pub fn vistr_mut(&mut self) -> VistrMut<H> {
         VistrMut::new(self.nodes.as_tree_mut().vistr_mut())
     }
 
@@ -761,12 +743,43 @@ impl<'a, T: Aabb, S: Sorter> TreeInner<'a, T, S> {
     /// assert_eq!(test[0],&axgeom::rect(0,10,0,10));
     ///```
     #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
+    pub fn vistr(&self) -> Vistr<H> {
         self.nodes.as_tree().vistr()
     }
 
     pub fn sorter(&self) -> S {
         self.sorter
+    }
+
+    pub fn new(sorter: S, a: Vec<H>) -> TreeInner<H, S> {
+        //TODO get rid of tree container type. it doesnt serve any purpose.
+
+        let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap();
+
+        TreeInner {
+            nodes: inner,
+            sorter,
+        }
+    }
+
+}
+
+impl<'a, T: Aabb + 'a, S: Sorter> TreeInner<Node<'a, T>, S> {
+    
+    pub fn into_node_data(self) -> NodeDataCollection<T::Num> {
+        NodeDataCollection {
+            inner: self
+                .nodes
+                .into_nodes()
+                .into_vec()
+                .into_iter()
+                .map(|x| NodeData {
+                    range: x.range.len(),
+                    cont: x.cont,
+                    div: x.div,
+                })
+                .collect(),
+        }
     }
 }
 

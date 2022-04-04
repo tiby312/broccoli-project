@@ -2,7 +2,6 @@
 
 use crate::halfpin::*;
 use crate::node::*;
-use crate::util::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use broccoli_tree::default_axis;
