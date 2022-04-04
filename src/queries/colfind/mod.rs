@@ -85,7 +85,7 @@ impl<'a, T: Aabb, S: NodeHandler> CollisionApi<T> for TreeInner<Node<'a, T>, S> 
 }
 
 impl<'a, T: Aabb> CollisionApi<T> for SweepAndPrune<'a, T> {
-    fn colliding_pairs(&mut self, func: impl CollisionHandler<T>) {
+    fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
         ///Sweep and prune algorithm.
         fn query_sweep_mut<T: Aabb>(
             axis: impl Axis,

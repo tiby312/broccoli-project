@@ -1,7 +1,7 @@
 //! Contains code to help build the [`Tree`] structure with more options than
 //! just using [`broccoli::new`](crate::new).
 
-pub mod assert;
+mod assert;
 pub mod halfpin;
 pub mod node;
 mod oned;
@@ -322,13 +322,17 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     }
 
     fn build_owned<C: Container<T = T>>(self, mut bots: C) -> TreeOwned<C, S> {
-        let t = self.build(bots.as_mut());
+        let j=bots.as_mut();
+        let length=j.len();
+        
+        let t = self.build(j);
         let sorter = t.sorter();
         let data = t.into_node_data();
         TreeOwned {
             inner: bots,
             nodes: data,
             sorter,
+            length,
         }
     }
     fn build_owned_par<C: Container<T = T>>(self, mut bots: C) -> TreeOwned<C, S>
@@ -336,13 +340,17 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         T: Send + Sync,
         T::Num: Send + Sync,
     {
-        let t = self.build_par(bots.as_mut());
+        let j=bots.as_mut();
+        let length=j.len();
+
+        let t = self.build_par(j);
         let sorter = t.sorter();
         let data = t.into_node_data();
         TreeOwned {
             inner: bots,
             nodes: data,
             sorter,
+            length,
         }
     }
     fn build(self, bots: &mut [T]) -> TreeInner<Node<T>, S> {
@@ -566,6 +574,7 @@ where
     inner: C,
     sorter: S,
     nodes: NodeDataCollection<<C::T as Aabb>::Num>,
+    length:usize
 }
 
 impl<C: Container> TreeOwned<C, DefaultSorter>
@@ -582,11 +591,17 @@ where
     C::T: Aabb,
 {
     pub fn as_tree(&mut self) -> TreeInner<Node<C::T>, S> {
+        let j=self.inner.as_mut();
+        assert_eq!(j.len(),self.length);
+        
         self.sorter
-            .build_from_node_data(&self.nodes, HalfPin::new(self.inner.as_mut()))
+            .build_from_node_data(&self.nodes, HalfPin::new(j))
     }
     pub fn as_slice_mut(&mut self) -> HalfPin<&mut [C::T]> {
-        HalfPin::new(self.inner.as_mut())
+        let j=self.inner.as_mut();
+        assert_eq!(j.len(),self.length);
+        
+        HalfPin::new(j)
     }
     pub fn into_inner(self) -> C {
         self.inner
