@@ -31,9 +31,14 @@ pub trait Nbody {
 
     fn gravitate(&mut self, a: GravEnum<Self::T, Self::Mass>, b: GravEnum<Self::T, Self::Mass>);
 
-    fn gravitate_self(&mut self, a: HalfPin<& mut [Self::T]>);
+    fn gravitate_self(&mut self, a: HalfPin<&mut [Self::T]>);
 
-    fn apply_a_mass<'a>(&'a mut self, mass: Self::Mass, i: impl Iterator<Item=HalfPin<&'a mut Self::T>>,len:usize);
+    fn apply_a_mass<'a>(
+        &'a mut self,
+        mass: Self::Mass,
+        i: impl Iterator<Item = HalfPin<&'a mut Self::T>>,
+        len: usize,
+    );
 
     fn combine_two_masses(&mut self, a: &Self::Mass, b: &Self::Mass) -> Self::Mass;
 }
@@ -48,7 +53,10 @@ struct NodeWrapper<'a, T: Aabb, M> {
 }
 
 ///Naive version simply visits every pair.
-pub fn naive_nbody_mut<T: Aabb>(bots: HalfPin<&mut [T]>, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
+pub fn naive_nbody_mut<T: Aabb>(
+    bots: HalfPin<&mut [T]>,
+    func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
+) {
     tools::for_every_pair(bots, func);
 }
 
@@ -190,7 +198,6 @@ fn recc_common<'a, 'b, N: Nbody>(
     }
 }
 
-
 fn recc<N: Nbody>(
     axis: impl Axis,
     vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
@@ -208,13 +215,18 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
     {
         let mass = vistr.borrow_mut().next().0.mass;
 
-        let len=vistr.borrow_mut().dfs_preorder_iter().map(|x|x.node.range.borrow_mut().len()).sum();
+        let len = vistr
+            .borrow_mut()
+            .dfs_preorder_iter()
+            .map(|x| x.node.range.borrow_mut().len())
+            .sum();
 
+        let it = vistr
+            .borrow_mut()
+            .dfs_preorder_iter()
+            .flat_map(|x| x.node.range.borrow_mut().iter_mut());
 
-        let it=vistr.borrow_mut().dfs_preorder_iter().flat_map(|x|x.node.range.borrow_mut().iter_mut());
-
-
-        no.apply_a_mass(mass, it,len);
+        no.apply_a_mass(mass, it, len);
     }
 
     let (_, rest) = vistr.next();
@@ -255,7 +267,6 @@ fn convert_wrapper_into_tree<T: Aabb, M: Default>(
     CompleteTreeContainer::from_preorder(nt).unwrap()
 }
 
-
 ///Perform nbody
 ///The tree is taken by value so that its nodes can be expended to include more data.
 pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
@@ -268,6 +279,6 @@ pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate
 
     apply_tree(newtree.as_tree_mut().vistr_mut(), no);
 
-    let tree=convert_wrapper_into_tree(newtree);
-    crate::TreeInner::new(DefaultSorter,tree.into_nodes().into_vec())
+    let tree = convert_wrapper_into_tree(newtree);
+    crate::TreeInner::new(DefaultSorter, tree.into_nodes().into_vec())
 }

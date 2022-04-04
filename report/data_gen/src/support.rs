@@ -222,7 +222,6 @@ pub fn instant_to_sec(elapsed: Duration) -> f64 {
     secs + nano / 1_000_000_000.0
 }
 
-
 pub fn n_iter(start: usize, end: usize) -> core::iter::StepBy<std::ops::Range<usize>> {
     assert!(end > start);
     //hardcode the number of samples

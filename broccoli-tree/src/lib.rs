@@ -32,7 +32,6 @@ pub trait Sorter: Copy + Clone + Send + Sync + Default {
 #[derive(Copy, Clone, Default)]
 pub struct DefaultSorter;
 
-
 impl Sorter for DefaultSorter {
     fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]) {
         crate::util::sweeper_update(axis, bots);
@@ -320,9 +319,9 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     }
 
     fn build_owned<C: Container<T = T>>(self, mut bots: C) -> TreeOwned<C, S> {
-        let j=bots.as_mut();
-        let length=j.len();
-        
+        let j = bots.as_mut();
+        let length = j.len();
+
         let t = self.build(j);
         let sorter = t.sorter();
         let data = t.into_node_data();
@@ -338,8 +337,8 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         T: Send + Sync,
         T::Num: Send + Sync,
     {
-        let j=bots.as_mut();
-        let length=j.len();
+        let j = bots.as_mut();
+        let length = j.len();
 
         let t = self.build_par(j);
         let sorter = t.sorter();
@@ -572,7 +571,7 @@ where
     inner: C,
     sorter: S,
     nodes: NodeDataCollection<<C::T as Aabb>::Num>,
-    length:usize
+    length: usize,
 }
 
 impl<C: Container> TreeOwned<C, DefaultSorter>
@@ -589,16 +588,16 @@ where
     C::T: Aabb,
 {
     pub fn as_tree(&mut self) -> TreeInner<Node<C::T>, S> {
-        let j=self.inner.as_mut();
-        assert_eq!(j.len(),self.length);
-        
+        let j = self.inner.as_mut();
+        assert_eq!(j.len(), self.length);
+
         self.sorter
             .build_from_node_data(&self.nodes, HalfPin::new(j))
     }
     pub fn as_slice_mut(&mut self) -> HalfPin<&mut [C::T]> {
-        let j=self.inner.as_mut();
-        assert_eq!(j.len(),self.length);
-        
+        let j = self.inner.as_mut();
+        assert_eq!(j.len(), self.length);
+
         HalfPin::new(j)
     }
     pub fn into_inner(self) -> C {

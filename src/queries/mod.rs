@@ -1,12 +1,12 @@
 //! Contains query modules for each query algorithm.
 
+use super::*;
 use crate::halfpin::*;
 use crate::node::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use broccoli_tree::default_axis;
 use compt::*;
-use super::*;
 
 pub mod colfind;
 
