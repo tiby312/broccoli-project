@@ -1,6 +1,7 @@
 use crate::support::prelude::*;
 
 use axgeom::Rect;
+use broccoli::tree::halfpin::HalfPin;
 
 pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 50.0;
@@ -42,14 +43,17 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         let vv = vec2same(100.0);
 
-        tree.for_all_in_rect_mut(&mut axgeom::Rect::from_point(cursor, vv), move |_, b| {
-            let b = b.unpack_inner();
-            let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cursor, 0.001, 100.0);
-        });
+        tree.for_all_in_rect_mut(
+            HalfPin::new(&mut axgeom::Rect::from_point(cursor, vv)),
+            move |_, b| {
+                let b = b.unpack_inner();
+                let _ = duckduckgeo::repel_one(b.pos, &mut b.acc, cursor, 0.001, 100.0);
+            },
+        );
 
-        tree.for_all_not_in_rect_mut(&mut dim, move |dim, a| {
+        tree.for_all_not_in_rect_mut(HalfPin::new(&mut dim), move |dim, a| {
             let a = a.unpack_inner();
-            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, dim, 0.5);
+            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &*dim, 0.5);
         });
 
         for b in bots.iter_mut() {

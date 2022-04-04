@@ -1,5 +1,6 @@
 use crate::support::prelude::*;
 
+use broccoli::tree::halfpin::HalfPin;
 use duckduckgeo;
 
 #[derive(Copy, Clone)]
@@ -67,16 +68,19 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         let mut tree = broccoli::tree::new(&mut tree_bots);
 
-        tree.for_all_not_in_rect_mut(&mut dim, |dim, a| {
+        tree.for_all_not_in_rect_mut(HalfPin::new(&mut dim), |dim, a| {
             let a = a.unpack_inner();
-            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, dim, 0.5);
+            duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &*dim, 0.5);
         });
 
         let vv = vec2same(100.0);
-        tree.for_all_in_rect_mut(&mut axgeom::Rect::from_point(cursor, vv), |_, b| {
-            let b = b.unpack_inner();
-            let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
-        });
+        tree.for_all_in_rect_mut(
+            HalfPin::new(&mut axgeom::Rect::from_point(cursor, vv)),
+            |_, b| {
+                let b = b.unpack_inner();
+                let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
+            },
+        );
 
         let verts2 = vec![];
         /* TODO add back

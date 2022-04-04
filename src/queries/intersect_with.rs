@@ -1,17 +1,25 @@
 use super::{rect::RectApi, *};
 
 pub trait IntersectWithApi<T: Aabb> {
-    fn intersect_with_mut<X: Aabb<Num = T::Num>>(
+    fn intersect_with_iter_mut<'a, X: Aabb<Num = T::Num> + 'a>(
         &mut self,
-        other: &mut [X],
+        other: impl Iterator<Item = HalfPin<&'a mut X>>,
         func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut X>),
     );
+
+    fn intersect_with_tree_mut<'a, X: Aabb<Num = T::Num> + 'a>(
+        &mut self,
+        other: &mut crate::Tree<'a, X>,
+        func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut X>),
+    ) {
+        self.intersect_with_iter_mut(other.iter_mut(), func)
+    }
 }
 
 impl<'a, T: Aabb> IntersectWithApi<T> for crate::tree::Tree<'a, T> {
-    fn intersect_with_mut<X: Aabb<Num = T::Num>>(
+    fn intersect_with_iter_mut<'x, X: Aabb<Num = T::Num> + 'x>(
         &mut self,
-        other: &mut [X],
+        other: impl Iterator<Item = HalfPin<&'x mut X>>,
         mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut X>),
     ) {
         //TODO instead of create just a list of BBox, construct a tree using the dividers of the current tree.
@@ -28,8 +36,8 @@ impl<'a, T: Aabb> IntersectWithApi<T> for crate::tree::Tree<'a, T> {
         //to exploit the divide and conquer properties of this problem.
         //The two trees could be recursed at the same time to break up the problem.
 
-        for i in other.iter_mut() {
-            self.for_all_in_rect_mut(i, |r, a| func(a, HalfPin::new(r)))
+        for i in other {
+            self.for_all_in_rect_mut(i, |r, a| func(a, r))
         }
     }
 }

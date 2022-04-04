@@ -1,4 +1,5 @@
 use crate::support::prelude::*;
+use broccoli::tree::halfpin::HalfPin;
 use duckduckgeo;
 
 #[derive(Copy, Clone)]
@@ -79,37 +80,40 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         {
             let mut tree = broccoli::tree::new_par(&mut k);
 
-            tree.intersect_with_mut(&mut walls, |bot2, wall| {
-                //TODO borrow instead
-                let rect = bot2.rect;
-                let bot = bot2.unpack_inner();
-                let wall = wall;
+            tree.intersect_with_iter_mut(
+                HalfPin::new(walls.as_mut_slice()).iter_mut(),
+                |bot2, wall| {
+                    //TODO borrow instead
+                    let rect = bot2.rect;
+                    let bot = bot2.unpack_inner();
+                    let wall = wall;
 
-                let fric = 0.8;
+                    let fric = 0.8;
 
-                let wallx = &wall.x;
-                let wally = &wall.y;
-                let vel = bot.vel;
+                    let wallx = &wall.x;
+                    let wally = &wall.y;
+                    let vel = bot.vel;
 
-                let ret = match duckduckgeo::collide_with_rect(&rect, &wall).unwrap() {
-                    duckduckgeo::WallSide::Above => {
-                        [None, Some((wally.start - radius, -vel.y * fric))]
-                    }
-                    duckduckgeo::WallSide::Below => {
-                        [None, Some((wally.end + radius, -vel.y * fric))]
-                    }
-                    duckduckgeo::WallSide::LeftOf => {
-                        [Some((wallx.start - radius, -vel.x * fric)), None]
-                    }
-                    duckduckgeo::WallSide::RightOf => {
-                        [Some((wallx.end + radius, -vel.x * fric)), None]
-                    }
-                };
-                bot.wall_move = ret;
-            });
+                    let ret = match duckduckgeo::collide_with_rect(&rect, &wall).unwrap() {
+                        duckduckgeo::WallSide::Above => {
+                            [None, Some((wally.start - radius, -vel.y * fric))]
+                        }
+                        duckduckgeo::WallSide::Below => {
+                            [None, Some((wally.end + radius, -vel.y * fric))]
+                        }
+                        duckduckgeo::WallSide::LeftOf => {
+                            [Some((wallx.start - radius, -vel.x * fric)), None]
+                        }
+                        duckduckgeo::WallSide::RightOf => {
+                            [Some((wallx.end + radius, -vel.x * fric)), None]
+                        }
+                    };
+                    bot.wall_move = ret;
+                },
+            );
 
             tree.for_all_in_rect_mut(
-                &mut axgeom::Rect::from_point(cursor, vec2same(100.0)),
+                HalfPin::new(&mut axgeom::Rect::from_point(cursor, vec2same(100.0))),
                 |_, b| {
                     let b = b.unpack_inner();
                     let _ = duckduckgeo::repel_one(b.pos, &mut b.force, cursor, 0.001, 20.0);
