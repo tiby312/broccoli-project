@@ -761,11 +761,9 @@ impl<S: Sorter, H> TreeInner<H, S> {
             sorter,
         }
     }
-
 }
 
 impl<'a, T: Aabb + 'a, S: Sorter> TreeInner<Node<'a, T>, S> {
-    
     pub fn into_node_data(self) -> NodeDataCollection<T::Num> {
         NodeDataCollection {
             inner: self

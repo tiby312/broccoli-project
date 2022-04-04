@@ -57,9 +57,9 @@ mod levelcounter {
     use super::*;
 
     #[derive(Debug)]
-    pub struct Single{
-        level:usize,
-        dur:usize
+    pub struct Single {
+        level: usize,
+        dur: usize,
     }
     #[derive(Debug)]
     pub struct LevelCounter {
@@ -89,7 +89,10 @@ mod levelcounter {
             if let Some(a) = self.stuff.iter_mut().find(|x| x.level == level) {
                 a.dur += dur;
             } else {
-                self.stuff.push(Single{level:self.level,dur});
+                self.stuff.push(Single {
+                    level: self.level,
+                    dur,
+                });
             }
 
             self.stuff
@@ -97,7 +100,6 @@ mod levelcounter {
 
         pub fn into_levels(self) -> Vec<usize> {
             self.consume().into_iter().map(|x| x.dur).collect()
-            
         }
     }
     impl Splitter for LevelCounter {
@@ -128,7 +130,6 @@ mod levelcounter {
 
             LevelCounter::new(l1 - 1, v1)
         }
-
     }
 }
 
@@ -157,7 +158,6 @@ mod leveltimer {
 
         pub fn into_levels(self) -> Vec<f64> {
             self.consume().into_iter().map(|x| x.1).collect()
-        
         }
 
         pub fn consume(mut self) -> Vec<(usize, f64)> {

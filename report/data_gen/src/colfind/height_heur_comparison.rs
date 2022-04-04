@@ -106,7 +106,7 @@ fn handle_lowest(fb: &mut FigureBuilder) {
     let canvas = fb.canvas().build();
     let plot = poloto::simple_fmt!(
         canvas,
-        data.chain(poloto::build::markers([],[0.0])),
+        data.chain(poloto::build::markers([], [0.0])),
         &s,
         "Number of Elements",
         "Tree Height"
@@ -166,7 +166,7 @@ fn handle2d(fb: &mut FigureBuilder) {
     let canvas = fb.canvas().build();
     let plot = poloto::simple_fmt!(
         canvas,
-        data.chain(poloto::build::markers([],[0.0])),
+        data.chain(poloto::build::markers([], [0.0])),
         &s,
         "Tree Height",
         "Number of Comparisons"
@@ -184,7 +184,7 @@ fn handle2d(fb: &mut FigureBuilder) {
     let canvas = fb.canvas().build();
     let plot = poloto::simple_fmt!(
         canvas,
-        data.chain(poloto::build::markers([],[0.0])),
+        data.chain(poloto::build::markers([], [0.0])),
         &s,
         "Tree Height",
         "Number of Comparisons"
