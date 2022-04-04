@@ -32,8 +32,6 @@ pub trait Sorter: Copy + Clone + Send + Sync + Default {
 #[derive(Copy, Clone, Default)]
 pub struct DefaultSorter;
 
-//TODO replace
-pub type TreeBuilder = DefaultSorter;
 
 impl Sorter for DefaultSorter {
     fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]) {
@@ -659,7 +657,6 @@ impl<S, H> TreeInner<H, S> {
     #[must_use]
     #[inline(always)]
     pub fn num_levels(&self) -> usize {
-        //TODO update compt.get_height to be num_levles as well.
         self.nodes.as_tree().get_height()
     }
 
@@ -770,8 +767,6 @@ impl<S, H> TreeInner<H, S> {
     }
 
     pub fn new(sorter: S, a: Vec<H>) -> TreeInner<H, S> {
-        //TODO get rid of tree container type. it doesnt serve any purpose.
-
         let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap();
 
         TreeInner {

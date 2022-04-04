@@ -10,6 +10,5 @@ pub mod level_analysis;
 //pub mod optimal_query;
 
 pub mod parallel_heur_comparison;
-//TODO add back. need special splitter impl
 //pub mod query_evenness;
 pub mod tree_direct_indirect;

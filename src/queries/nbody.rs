@@ -13,7 +13,7 @@ type NodeWrapperVistr<'a, 'b, T, M> = VistrMut<'a, NodeWrapper<'b, T, M>, PreOrd
 ///Helper enum indicating whether or not to gravitate a node as a whole, or as its individual parts.
 pub enum GravEnum<'a, T: Aabb, M> {
     Mass(&'a mut M),
-    Bot(PMut<'a, [T]>),
+    Bot(HalfPin<&'a mut [T]>),
 }
 
 ///User defined functions for nbody
@@ -31,9 +31,9 @@ pub trait Nbody {
 
     fn gravitate(&mut self, a: GravEnum<Self::T, Self::Mass>, b: GravEnum<Self::T, Self::Mass>);
 
-    fn gravitate_self(&mut self, a: PMut<[Self::T]>);
+    fn gravitate_self(&mut self, a: HalfPin<& mut [Self::T]>);
 
-    fn apply_a_mass(&mut self, mass: Self::Mass, i: PMut<[Self::T]>);
+    fn apply_a_mass<'a>(&'a mut self, mass: Self::Mass, i: impl Iterator<Item=HalfPin<&'a mut Self::T>>,len:usize);
 
     fn combine_two_masses(&mut self, a: &Self::Mass, b: &Self::Mass) -> Self::Mass;
 }
@@ -48,7 +48,7 @@ struct NodeWrapper<'a, T: Aabb, M> {
 }
 
 ///Naive version simply visits every pair.
-pub fn naive_nbody_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
+pub fn naive_nbody_mut<T: Aabb>(bots: HalfPin<&mut [T]>, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
     tools::for_every_pair(bots, func);
 }
 
@@ -74,7 +74,7 @@ fn collect_masses<'a, 'b, N: Nbody>(
     vistr: NodeWrapperVistr<'b, 'a, N::T, N::Mass>,
     no: &mut N,
     func1: &mut impl FnMut(&'b mut NodeWrapper<'a, N::T, N::Mass>, &mut N),
-    func2: &mut impl FnMut(&'b mut PMut<'a, [N::T]>, &mut N),
+    func2: &mut impl FnMut(&'b mut HalfPin<&'a mut [N::T]>, &mut N),
 ) {
     let (nn, rest) = vistr.next();
 
@@ -190,38 +190,6 @@ fn recc_common<'a, 'b, N: Nbody>(
     }
 }
 
-fn recc_par<N: Nbody, JJ: parallel::Joiner>(
-    joiner: impl crate::Joinable,
-    axis: impl Axis,
-    par: JJ,
-    vistr: NodeWrapperVistr<N::T, N::Mass>,
-    no: &mut N,
-) where
-    N::T: Send,
-    N::N: Send,
-    N::Mass: Send,
-    N: Splitter + Send + Sync,
-{
-    let keep_going = recc_common(axis, vistr, no);
-
-    if let Some([left, right]) = keep_going {
-        match par.next() {
-            parallel::ParResult::Parallel([dleft, dright]) => {
-                let (mut no1, mut no2) = no.div();
-
-                joiner.join(
-                    |joiner| recc_par(joiner.clone(), axis.next(), dleft, left, &mut no1),
-                    |joiner| recc_par(joiner.clone(), axis.next(), dright, right, &mut no2),
-                );
-                no.add(no1, no2);
-            }
-            parallel::ParResult::Sequential(_) => {
-                recc(axis.next(), left, no);
-                recc(axis.next(), right, no);
-            }
-        }
-    }
-}
 
 fn recc<N: Nbody>(
     axis: impl Axis,
@@ -236,25 +204,17 @@ fn recc<N: Nbody>(
     }
 }
 
-fn get_bots_from_vistr<'a, T: Aabb, N>(vistr: NodeWrapperVistr<'a, '_, T, N>) -> PMut<'a, [T]> {
-    let mut new_slice = None;
-
-    vistr.dfs_preorder(|a| {
-        if let Some(s) = new_slice.take() {
-            new_slice = Some(crate::pmut::combine_slice(s, a.node.range.borrow_mut()));
-        } else {
-            new_slice = Some(a.node.range.borrow_mut());
-        }
-    });
-    new_slice.unwrap()
-}
 fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) {
     {
         let mass = vistr.borrow_mut().next().0.mass;
 
-        let new_slice = get_bots_from_vistr(vistr.borrow_mut());
+        let len=vistr.borrow_mut().dfs_preorder_iter().map(|x|x.node.range.borrow_mut().len()).sum();
 
-        no.apply_a_mass(mass, new_slice);
+
+        let it=vistr.borrow_mut().dfs_preorder_iter().flat_map(|x|x.node.range.borrow_mut().iter_mut());
+
+
+        no.apply_a_mass(mass, it,len);
     }
 
     let (_, rest) = vistr.next();
@@ -295,39 +255,6 @@ fn convert_wrapper_into_tree<T: Aabb, M: Default>(
     CompleteTreeContainer::from_preorder(nt).unwrap()
 }
 
-///Perform nbody
-///The tree is taken by value so that its nodes can be expended to include more data.
-pub fn nbody_mut_par<'a, N: Nbody>(
-    tree: crate::Tree<'a, N::T>,
-    joiner: impl crate::Joinable,
-    no: &mut N,
-) -> crate::Tree<'a, N::T>
-where
-    N: Send + Sync + Splitter,
-    N::T: Send + Sync,
-    <N::T as Aabb>::Num: Send + Sync,
-    N::Mass: Send + Sync,
-{
-    let mut newtree = convert_tree_into_wrapper(tree.into_inner());
-
-    //calculate node masses of each node.
-    build_masses2(newtree.as_tree_mut().vistr_mut(), no);
-
-    let par =
-        parallel::ParallelBuilder::new().build_for_tree_of_height(newtree.as_tree().get_height());
-
-    recc_par(
-        joiner,
-        default_axis(),
-        par,
-        newtree.as_tree_mut().vistr_mut(),
-        no,
-    );
-
-    apply_tree(newtree.as_tree_mut().vistr_mut(), no);
-
-    unsafe { crate::Tree::from_raw_parts(convert_wrapper_into_tree(newtree)) }
-}
 
 ///Perform nbody
 ///The tree is taken by value so that its nodes can be expended to include more data.
@@ -340,5 +267,7 @@ pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate
     recc(default_axis(), newtree.as_tree_mut().vistr_mut(), no);
 
     apply_tree(newtree.as_tree_mut().vistr_mut(), no);
-    unsafe { crate::Tree::from_raw_parts(convert_wrapper_into_tree(newtree)) }
+
+    let tree=convert_wrapper_into_tree(newtree);
+    crate::TreeInner::new(DefaultSorter,tree.into_nodes().into_vec())
 }

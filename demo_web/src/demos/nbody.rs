@@ -42,16 +42,16 @@ impl Default for NodeMass {
     }
 }
 
-use broccoli::halfpin::*;
+use broccoli::queries::nbody::*;
+use broccoli::tree::halfpin::*;
 use core::marker::PhantomData;
-
 #[derive(Clone, Copy)]
 struct Bla<'a> {
     _num_pairs_checked: usize,
     _p: PhantomData<&'a usize>,
 }
-impl<'a> broccoli::build::Splitter for Bla<'a> {
-    fn div(&mut self) -> (Self, Self) {
+impl<'a> broccoli::tree::Splitter for Bla<'a> {
+    fn div(self) -> (Self, Self) {
         (
             Bla {
                 _p: PhantomData,
@@ -63,11 +63,12 @@ impl<'a> broccoli::build::Splitter for Bla<'a> {
             },
         )
     }
-    fn add(&mut self, _: Self, _: Self) {
+    fn add(self, _: Self) -> Self {
+        self
         //do nothing
     }
 }
-impl<'b> broccoli::query::Nbody for Bla<'b> {
+impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
     type Mass = NodeMass;
     type T = BBox<f32, &'b mut Bot>;
     type N = f32;
@@ -156,8 +157,8 @@ impl<'b> broccoli::query::Nbody for Bla<'b> {
         }
     }
 
-    fn gravitate_self(&mut self, a: PMut<[Self::T]>) {
-        broccoli::naive::naive_nbody_mut(a, |a, b| {
+    fn gravitate_self(&mut self, a: HalfPin<&mut [Self::T]>) {
+        broccoli::queries::nbody::naive_nbody_mut(a, |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
 
             let _ = duckduckgeo::gravitate(
@@ -168,13 +169,18 @@ impl<'b> broccoli::query::Nbody for Bla<'b> {
         })
     }
 
-    fn apply_a_mass<'a>(&mut self, a: Self::Mass, b: PMut<[Self::T]>) {
+    fn apply_a_mass<'a>(
+        &'a mut self,
+        a: Self::Mass,
+        b: impl Iterator<Item = HalfPin<&'a mut Self::T>>,
+        len: usize,
+    ) {
         if a.mass > 0.000_000_1 {
-            let indforce = vec2(a.force.x / b.len() as f32, a.force.y / b.len() as f32);
+            let indforce = vec2(a.force.x / len as f32, a.force.y / len as f32);
 
             //TODO counteract the added fudge here, but dividing by 3 on bot on bot cases
             let fudge = 3.0;
-            for i in b.iter_mut() {
+            for i in b {
                 let i = i.unpack_inner();
                 let forcex = indforce.x * fudge;
                 let forcey = indforce.y * fudge;
@@ -195,7 +201,7 @@ impl<'b> broccoli::query::Nbody for Bla<'b> {
 
 pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let mut bots: Vec<_> = support::make_rand(dim)
-        .take(4000)
+        .take(1000)
         .map(|pos| Bot {
             mass: 100.0,
             pos: pos.into(),
@@ -243,12 +249,15 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
             //use std::time::{Duration, Instant};
             //let now = Instant::now();
-            let tree = broccoli::new(&mut k);
+            let tree = broccoli::tree::new(&mut k);
 
-            let mut tree = tree.nbody_mut(&mut Bla {
-                _num_pairs_checked: 0,
-                _p: PhantomData,
-            });
+            let mut tree = broccoli::queries::nbody::nbody_mut(
+                tree,
+                &mut Bla {
+                    _num_pairs_checked: 0,
+                    _p: PhantomData,
+                },
+            );
 
             //println!("{}", now.elapsed().as_millis());
             //panic!();
@@ -312,7 +321,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 */
             }
 
-            tree.find_colliding_pairs_mut(|a, b| {
+            tree.colliding_pairs(|a, b| {
                 let (a, b) = (a.unpack_inner(), b.unpack_inner());
                 let (a, b) = if a.mass > b.mass { (a, b) } else { (b, a) };
 

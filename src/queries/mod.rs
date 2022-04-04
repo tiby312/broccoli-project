@@ -6,6 +6,7 @@ use alloc::vec::Vec;
 use axgeom::*;
 use broccoli_tree::default_axis;
 use compt::*;
+use super::*;
 
 pub mod colfind;
 
@@ -20,3 +21,5 @@ pub mod rect;
 pub mod intersect_with;
 
 mod tools;
+
+pub mod nbody;
