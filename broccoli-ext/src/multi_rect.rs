@@ -16,7 +16,9 @@ pub struct MultiRect<'a, 'b: 'a, T: Aabb> {
 }
 
 impl<'a, 'b: 'a, T: Aabb> MultiRect<'a, 'b, T> {
-    pub fn new(tree: &'a mut Tree<'b, T>) -> Self {
+    ///Unsafe because this api relies on the fact that
+    ///every call to AAbb::get() returns the same aabb.
+    pub unsafe fn new(tree: &'a mut Tree<'b, T>) -> Self {
         MultiRect {
             tree,
             rects: Vec::new(),
