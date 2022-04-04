@@ -27,7 +27,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let mut bots = {
         let mut idcounter = 0;
         support::make_rand(dim)
-            .take(2000)
+            .take(1000)
             .map(|pos| {
                 let b = Bot {
                     id: idcounter,
@@ -82,9 +82,10 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             },
         );
 
-        let verts2 = vec![];
-        /* TODO add back
-        tree.draw_divider(
+        let mut verts2 = vec![];
+
+        broccoli::queries::draw::draw_divider(
+            &mut tree,
             |axis, node, rect, _| {
                 if !node.range.is_empty() {
                     verts.rect(axis.map_val(
@@ -114,7 +115,6 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             },
             dim,
         );
-        */
 
         buffer.update(&verts);
 

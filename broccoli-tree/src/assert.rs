@@ -3,7 +3,7 @@ use super::*;
 impl<'a, T: Aabb> Tree<'a, T> {
     ///panics if a broken broccoli tree invariant is detected.
     ///For debugging purposes only.
-    pub fn assert_tree_invariants(&mut self)
+    pub fn assert_tree_invariants(&self)
     where
         T::Num: core::fmt::Debug,
     {
