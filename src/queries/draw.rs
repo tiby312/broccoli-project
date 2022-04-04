@@ -28,8 +28,8 @@ pub trait DividerDrawer<T: Aabb> {
     fn draw_divider<A: Axis>(&mut self, axis: A, node: &Node<T>, rect: &Rect<T::Num>, depth: usize);
 }
 
-pub fn draw_divider<T:Aabb>(
-    tree:&mut crate::Tree<T>,
+pub fn draw_divider<T: Aabb>(
+    tree: &mut crate::Tree<T>,
     line: impl FnMut(AxisDyn, &Node<T>, &Rect<T::Num>, usize),
     rect: Rect<T::Num>,
 ) {
@@ -37,7 +37,6 @@ pub fn draw_divider<T:Aabb>(
 
     draw(default_axis(), tree.vistr(), &mut d, rect)
 }
-
 
 ///Calls the user supplied function on each divider.
 ///Since the leaves do not have dividers, it is not called for the leaves.

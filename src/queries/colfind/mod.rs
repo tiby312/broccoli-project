@@ -1,12 +1,12 @@
 //! Provides 2d broadphase collision detection.
 
-mod node_handle;
+pub mod node_handle;
+use node_handle::*;
 mod oned;
 
 pub use prevec::PreVec;
 mod prevec;
 
-pub use self::node_handle::*;
 use super::tools;
 use super::*;
 
@@ -50,6 +50,7 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
         .collect();
     let bots = bots.as_mut_slice();
     use crate::tree::TreeBuild;
+    use crate::NoSorter;
     let nosort_res = collect_pairs(&mut NoSorter.build(bots));
     let sweep_res = collect_pairs(&mut SweepAndPrune::new(bots));
     let tree_res = collect_pairs(&mut crate::new(bots));
@@ -73,21 +74,13 @@ impl<'a, T: Aabb> CollisionApi<T> for HalfPin<&'a mut [T]> {
     }
 }
 
-use crate::tree::DefaultSorter;
-use crate::tree::NoSorter;
 use crate::tree::TreeInner;
 
-impl<'a, T: Aabb> CollisionApi<T> for TreeInner<Node<'a, T>, DefaultSorter> {
+impl<'a, T: Aabb, S: NodeHandler> CollisionApi<T> for TreeInner<Node<'a, T>, S> {
     fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
         let mut prevec = PreVec::new();
-        CollVis::new(self.vistr_mut(), true, HandleSorted).recurse_seq(&mut prevec, &mut func);
-    }
-}
-
-impl<'a, T: Aabb> CollisionApi<T> for TreeInner<Node<'a, T>, NoSorter> {
-    fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
-        let mut prevec = PreVec::new();
-        CollVis::new(self.vistr_mut(), true, HandleNoSorted).recurse_seq(&mut prevec, &mut func);
+        let sorter = self.sorter();
+        CollVis::new(self.vistr_mut(), true, sorter).recurse_seq(&mut prevec, &mut func);
     }
 }
 
@@ -295,19 +288,10 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
     }
 }
 
-impl<'a, T: Aabb> CollidingPairsBuilder<'a, T, HandleSorted>
-    for TreeInner<Node<'a, T>, DefaultSorter>
-{
-    fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, HandleSorted> {
-        CollVis::new(self.vistr_mut(), true, HandleSorted)
-    }
-}
-
-impl<'a, T: Aabb> CollidingPairsBuilder<'a, T, HandleNoSorted>
-    for TreeInner<Node<'a, T>, NoSorter>
-{
-    fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, HandleNoSorted> {
-        CollVis::new(self.vistr_mut(), true, HandleNoSorted)
+impl<'a, T: Aabb, S: NodeHandler> CollidingPairsBuilder<'a, T, S> for TreeInner<Node<'a, T>, S> {
+    fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, S> {
+        let sorter = self.sorter();
+        CollVis::new(self.vistr_mut(), true, sorter)
     }
 }
 

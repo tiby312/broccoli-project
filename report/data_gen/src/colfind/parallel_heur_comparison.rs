@@ -1,5 +1,3 @@
-use broccoli::queries::colfind::HandleSorted;
-
 use super::*;
 
 struct MyBuild {
@@ -19,7 +17,7 @@ struct MyQuery<'a, T: Aabb> {
     height_seq_fallback: usize,
 }
 
-impl<'a, T: Aabb + 'a> broccoli::queries::colfind::CollidingPairsBuilder<'a, T, HandleSorted>
+impl<'a, T: Aabb + 'a> broccoli::queries::colfind::CollidingPairsBuilder<'a, T, DefaultSorter>
     for MyQuery<'a, T>
 {
     fn height_seq_fallback(&self) -> usize {
@@ -27,7 +25,7 @@ impl<'a, T: Aabb + 'a> broccoli::queries::colfind::CollidingPairsBuilder<'a, T, 
     }
     fn colliding_pairs_builder<'b>(
         &'b mut self,
-    ) -> queries::colfind::CollVis<'a, 'b, T, HandleSorted> {
+    ) -> queries::colfind::CollVis<'a, 'b, T, DefaultSorter> {
         self.tree.colliding_pairs_builder()
     }
 }

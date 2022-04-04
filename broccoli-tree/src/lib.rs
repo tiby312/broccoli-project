@@ -622,7 +622,7 @@ impl<S: Sorter, H: node::HasElem> TreeInner<H, S> {
             .flat_map(|x| x.get_elems().iter_mut())
     }
 }
-impl<S: Sorter, H> TreeInner<H, S> {
+impl<S, H> TreeInner<H, S> {
     /// # Examples
     ///
     ///```
@@ -747,7 +747,10 @@ impl<S: Sorter, H> TreeInner<H, S> {
         self.nodes.as_tree().vistr()
     }
 
-    pub fn sorter(&self) -> S {
+    pub fn sorter(&self) -> S
+    where
+        S: Copy,
+    {
         self.sorter
     }
 

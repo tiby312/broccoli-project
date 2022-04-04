@@ -39,10 +39,7 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
     );
 }
 
-#[derive(Copy, Clone)]
-pub struct HandleNoSorted;
-
-impl NodeHandler for HandleNoSorted {
+impl NodeHandler for crate::tree::NoSorter {
     fn handle_node<T: Aabb>(
         self,
         func: &mut impl CollisionHandler<T>,
@@ -82,10 +79,7 @@ impl NodeHandler for HandleNoSorted {
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct HandleSorted;
-
-impl NodeHandler for HandleSorted {
+impl NodeHandler for crate::tree::DefaultSorter {
     #[inline(always)]
     fn handle_node<T: Aabb>(
         self,
