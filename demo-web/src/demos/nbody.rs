@@ -1,4 +1,4 @@
-use crate::support::prelude::*;
+use super::*;
 
 #[derive(Copy, Clone)]
 pub struct Bot {
@@ -43,8 +43,9 @@ impl Default for NodeMass {
 }
 
 use broccoli::queries::nbody::*;
-use broccoli::tree::halfpin::*;
 use core::marker::PhantomData;
+
+//TODO remove?
 #[derive(Clone, Copy)]
 struct Bla<'a> {
     _num_pairs_checked: usize,
@@ -157,7 +158,7 @@ impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
         }
     }
 
-    fn gravitate_self(&mut self, a: HalfPin<&mut [Self::T]>) {
+    fn gravitate_self(&mut self, a: TreePin<&mut [Self::T]>) {
         broccoli::queries::nbody::naive_nbody_mut(a, |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
 
@@ -172,7 +173,7 @@ impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
     fn apply_a_mass<'a>(
         &'a mut self,
         a: Self::Mass,
-        b: impl Iterator<Item = HalfPin<&'a mut Self::T>>,
+        b: impl Iterator<Item = TreePin<&'a mut Self::T>>,
         len: usize,
     ) {
         if a.mass > 0.000_000_1 {

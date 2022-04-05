@@ -41,7 +41,7 @@
 //!
 //! A lot is done to forbid the user from violating the invariants of the tree once constructed
 //! while still allowing them to mutate parts of each element of the tree. The user can mutably traverse
-//! the tree but the mutable references returns are hidden behind the `HalfPin<T>` type that forbids
+//! the tree but the mutable references returns are hidden behind the `TreePin<T>` type that forbids
 //! mutating the aabbs.
 //!
 #![doc(
@@ -152,7 +152,7 @@ pub fn draw_divider(
 pub fn intersect_with_mut<X: Aabb<Num = T::Num>>(
     &mut self,
     other: &mut [X],
-    mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut X>),
+    mut func: impl FnMut(TreePin<&mut T>, TreePin<&mut X>),
 ) {
     //TODO instead of create just a list of BBox, construct a tree using the dividers of the current tree.
     //This way we can parallelize this function.
@@ -173,7 +173,7 @@ pub fn intersect_with_mut<X: Aabb<Num = T::Num>>(
             default_axis(),
             self.vistr_mut(),
             i,
-            |r, a| func(a, HalfPin::new(*r)),
+            |r, a| func(a, TreePin::new(*r)),
         );
     }
 }
@@ -303,7 +303,7 @@ pub fn raycast_mut<'b, R: queries::raycast::RayCast<T>>(
 pub fn for_all_intersect_rect_mut<'b, K: Aabb<Num = T::Num>>(
     &'b mut self,
     rect: K,
-    func: impl FnMut(&mut K, HalfPin<&'b mut T>),
+    func: impl FnMut(&mut K, TreePin<&'b mut T>),
 ) {
     queries::rect::for_all_intersect_rect_mut(default_axis(), self.vistr_mut(), rect, func);
 }
@@ -324,7 +324,7 @@ pub fn for_all_intersect_rect_mut<'b, K: Aabb<Num = T::Num>>(
 pub fn for_all_in_rect_mut<'b, K: Aabb<Num = T::Num>>(
     &'b mut self,
     rect: K,
-    func: impl FnMut(&mut K, HalfPin<&'b mut T>),
+    func: impl FnMut(&mut K, TreePin<&'b mut T>),
 ) {
     queries::rect::for_all_in_rect_mut(default_axis(), self.vistr_mut(), rect, func);
 }
@@ -345,7 +345,7 @@ pub fn for_all_in_rect_mut<'b, K: Aabb<Num = T::Num>>(
 pub fn for_all_not_in_rect_mut<'b, K: Aabb<Num = T::Num>>(
     &'b mut self,
     rect: K,
-    mut func: impl FnMut(&mut K, HalfPin<&'b mut T>),
+    mut func: impl FnMut(&mut K, TreePin<&'b mut T>),
 ) {
     queries::rect::for_all_not_in_rect_mut(
         default_axis(),

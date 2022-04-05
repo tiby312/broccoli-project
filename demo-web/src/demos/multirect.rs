@@ -1,4 +1,4 @@
-use crate::support::prelude::*;
+use super::*;
 
 pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let bots = support::make_rand_rect(dim, [5.0, 20.0])

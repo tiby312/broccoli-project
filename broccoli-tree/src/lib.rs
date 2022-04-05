@@ -2,14 +2,14 @@
 //! just using [`broccoli::new`](crate::new).
 
 mod assert;
-pub mod halfpin;
+pub mod treepin;
 pub mod node;
 mod oned;
 pub mod util;
 
 use axgeom::*;
 use compt::Visitor;
-use halfpin::*;
+use treepin::*;
 use node::*;
 
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
@@ -161,7 +161,7 @@ impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
         };
 
         Node {
-            range: HalfPin::new(self.mid),
+            range: TreePin::new(self.mid),
             cont,
             div: self.div,
         }
@@ -489,7 +489,7 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     fn build_from_node_data<'a>(
         self,
         data: &NodeDataCollection<T::Num>,
-        bots: HalfPin<&'a mut [T]>,
+        bots: TreePin<&'a mut [T]>,
     ) -> TreeInner<Node<'a, T>, S> {
         let mut last = Some(bots);
 
@@ -592,13 +592,13 @@ where
         assert_eq!(j.len(), self.length);
 
         self.sorter
-            .build_from_node_data(&self.nodes, HalfPin::new(j))
+            .build_from_node_data(&self.nodes, TreePin::new(j))
     }
-    pub fn as_slice_mut(&mut self) -> HalfPin<&mut [C::T]> {
+    pub fn as_slice_mut(&mut self) -> TreePin<&mut [C::T]> {
         let j = self.inner.as_mut();
         assert_eq!(j.len(), self.length);
 
-        HalfPin::new(j)
+        TreePin::new(j)
     }
     pub fn into_inner(self) -> C {
         self.inner
@@ -626,7 +626,7 @@ pub struct TreeInner<N, S> {
 pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
 
 impl<S: Sorter, H: node::HasElem> TreeInner<H, S> {
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = HalfPin<&mut H::T>> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = TreePin<&mut H::T>> {
         self.nodes
             .as_tree_mut()
             .get_nodes_mut()
@@ -717,8 +717,8 @@ impl<S, H> TreeInner<H, S> {
     ///
     ///```
     #[must_use]
-    pub fn get_nodes_mut(&mut self) -> HalfPin<&mut [H]> {
-        HalfPin::new(self.nodes.as_tree_mut().get_nodes_mut())
+    pub fn get_nodes_mut(&mut self) -> TreePin<&mut [H]> {
+        TreePin::new(self.nodes.as_tree_mut().get_nodes_mut())
     }
 
     /// # Examples

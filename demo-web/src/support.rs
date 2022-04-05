@@ -1,24 +1,5 @@
-pub mod prelude {
-    pub use crate::dists::*;
-    pub use crate::*;
-    pub use broccoli::axgeom;
-    pub use broccoli::axgeom::*;
-    pub use broccoli::compt;
-    pub use broccoli::tree::bbox;
-    pub use broccoli::tree::node::*;
-    pub use broccoli::tree::*;
-    //pub use broccoli::rayon;
 
-    pub use broccoli::prelude::*;
-
-    pub use crate::demos::Demo;
-    pub use crate::demos::DemoData;
-    pub use dists::uniform_rand::UniformRandGen;
-    pub use duckduckgeo::array2_inner_into;
-    pub use duckduckgeo::*;
-    pub use shogo::simple2d::CtxWrap;
-    pub use shogo::simple2d::Shapes;
-}
+use super::*;
 
 use axgeom::*;
 use broccoli::tree::bbox;

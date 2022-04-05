@@ -6,7 +6,7 @@ pub use axgeom::Vec2;
 pub use broccoli::axgeom;
 use broccoli::prelude::*;
 pub use broccoli::queries::*;
-pub use broccoli::tree::halfpin::HalfPin;
+pub use broccoli::tree::treepin::TreePin;
 pub use broccoli::tree::node::*;
 use broccoli::tree::Splitter;
 pub use broccoli::tree::*;

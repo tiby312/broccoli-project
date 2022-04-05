@@ -11,11 +11,11 @@ use super::tools;
 use super::*;
 
 pub trait CollisionHandler<T: Aabb> {
-    fn collide(&mut self, a: HalfPin<&mut T>, b: HalfPin<&mut T>);
+    fn collide(&mut self, a: TreePin<&mut T>, b: TreePin<&mut T>);
 }
-impl<T: Aabb, F: FnMut(HalfPin<&mut T>, HalfPin<&mut T>)> CollisionHandler<T> for F {
+impl<T: Aabb, F: FnMut(TreePin<&mut T>, TreePin<&mut T>)> CollisionHandler<T> for F {
     #[inline(always)]
-    fn collide(&mut self, a: HalfPin<&mut T>, b: HalfPin<&mut T>) {
+    fn collide(&mut self, a: TreePin<&mut T>, b: TreePin<&mut T>) {
         self(a, b);
     }
 }
@@ -53,7 +53,7 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     let nosort_res = collect_pairs(&mut NoSorter.build(bots));
     let sweep_res = collect_pairs(&mut SweepAndPrune::new(bots));
     let tree_res = collect_pairs(&mut crate::new(bots));
-    let naive_res = collect_pairs(&mut HalfPin::from_mut(bots));
+    let naive_res = collect_pairs(&mut TreePin::from_mut(bots));
 
     assert_eq!(naive_res, tree_res);
     assert_eq!(naive_res, sweep_res);
@@ -61,11 +61,11 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
 }
 
 pub trait CollisionApi<T: Aabb> {
-    fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>));
+    fn colliding_pairs(&mut self, func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>));
 }
-impl<'a, T: Aabb> CollisionApi<T> for HalfPin<&'a mut [T]> {
-    fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
-        tools::for_every_pair(HalfPin::new(self).flatten(), move |a, b| {
+impl<'a, T: Aabb> CollisionApi<T> for TreePin<&'a mut [T]> {
+    fn colliding_pairs(&mut self, mut func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>)) {
+        tools::for_every_pair(TreePin::new(self).flatten(), move |a, b| {
             if a.get().intersects_rect(b.get()) {
                 func(a, b);
             }
@@ -76,7 +76,7 @@ impl<'a, T: Aabb> CollisionApi<T> for HalfPin<&'a mut [T]> {
 use crate::tree::TreeInner;
 
 impl<'a, T: Aabb, S: NodeHandler> CollisionApi<T> for TreeInner<Node<'a, T>, S> {
-    fn colliding_pairs(&mut self, mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
+    fn colliding_pairs(&mut self, mut func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>)) {
         let mut prevec = PreVec::new();
         let sorter = self.sorter();
         CollVis::new(self.vistr_mut(), true, sorter).recurse_seq(&mut prevec, &mut func);
@@ -84,7 +84,7 @@ impl<'a, T: Aabb, S: NodeHandler> CollisionApi<T> for TreeInner<Node<'a, T>, S> 
 }
 
 impl<'a, T: Aabb> CollisionApi<T> for SweepAndPrune<'a, T> {
-    fn colliding_pairs(&mut self, func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>)) {
+    fn colliding_pairs(&mut self, func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>)) {
         ///Sweep and prune algorithm.
         fn query_sweep_mut<T: Aabb>(
             axis: impl Axis,
@@ -94,7 +94,7 @@ impl<'a, T: Aabb> CollisionApi<T> for SweepAndPrune<'a, T> {
             broccoli_tree::util::sweeper_update(axis, bots);
 
             let mut prevec = PreVec::with_capacity(2048);
-            let bots = HalfPin::new(bots);
+            let bots = TreePin::new(bots);
             oned::find_2d(&mut prevec, axis, bots, &mut func);
         }
         query_sweep_mut(axgeom::XAXIS, self.inner, func)
@@ -116,7 +116,7 @@ pub struct NodeFinisher<'a, 'b, T, F, H> {
     func: &'a mut F,
     prevec: &'a mut PreVec,
     is_xaxis: bool,
-    bots: HalfPin<&'b mut [T]>,
+    bots: TreePin<&'b mut [T]>,
     handler: H,
 }
 impl<'a, 'b, T: Aabb, F: CollisionHandler<T>, H: NodeHandler> NodeFinisher<'a, 'b, T, F, H> {
@@ -144,13 +144,13 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
     fn colliding_pairs_splitter<SS: Splitter>(
         &mut self,
         splitter: SS,
-        mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
+        mut func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>),
     ) -> SS {
         pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler, SS: Splitter>(
             vistr: CollVis<T, S>,
             splitter: SS,
             prevec: &mut PreVec,
-            func: &mut impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>),
+            func: &mut impl FnMut(TreePin<&mut T>, TreePin<&mut T>),
         ) -> SS {
             let (n, rest) = vistr.collide_and_next(prevec, func);
 
@@ -176,7 +176,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
     //TODO make these splitters api go behind a feature
     fn colliding_pairs_splitter_par<SS: Splitter + Send>(
         &mut self,
-        func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,
+        func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>) + Clone + Send,
         splitter: SS,
     ) -> SS
     where
@@ -190,7 +190,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
             vistr: CollVis<T, N>,
             prevec: &mut PreVec,
             height_seq_fallback: usize,
-            mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,
+            mut func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>) + Clone + Send,
             splitter: S,
         ) -> S
         where
@@ -242,7 +242,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
 
     fn colliding_pairs_par(
         &mut self,
-        func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,
+        func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>) + Clone + Send,
     ) where
         T: Send,
         T::Num: Send,
@@ -254,7 +254,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
             vistr: CollVis<T, N>,
             prevec: &mut PreVec,
             height_seq_fallback: usize,
-            mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut T>) + Clone + Send,
+            mut func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>) + Clone + Send,
         ) where
             T: Send,
             T::Num: Send,

@@ -1,6 +1,6 @@
 use broccoli::prelude::*;
-use broccoli::tree::{bbox, rect};
-use broccoli_tree::halfpin::HalfPin;
+use broccoli::tree::{bbox, rect,treepin::TreePin};
+
 fn main() {
     let inner1 = 4;
     let inner2 = 5;
@@ -15,7 +15,7 @@ fn main() {
     let mut tree = broccoli::tree::new(&mut bots);
 
     let mut rect_collisions = Vec::new();
-    tree.for_all_intersect_rect_mut(HalfPin::new(&mut rect(-5, 1, -5, 1)), |_, a| {
+    tree.for_all_intersect_rect_mut(TreePin::new(&mut rect(-5, 1, -5, 1)), |_, a| {
         rect_collisions.push(a.clone());
     });
 

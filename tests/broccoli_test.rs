@@ -29,7 +29,7 @@ fn test1() {
 
         let nodes = tree.into_node_data();
         let mut tree = broccoli::tree::DefaultSorter
-            .build_from_node_data(&nodes, broccoli::tree::halfpin::HalfPin::new(&mut bots));
+            .build_from_node_data(&nodes, broccoli::tree::treepin::TreePin::new(&mut bots));
 
         tree.colliding_pairs(|a, b| {
             let a = a.unpack_inner();

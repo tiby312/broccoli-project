@@ -3,14 +3,14 @@ use super::{rect::RectApi, *};
 pub trait IntersectWithApi<T: Aabb> {
     fn intersect_with_iter_mut<'a, X: Aabb<Num = T::Num> + 'a>(
         &mut self,
-        other: impl Iterator<Item = HalfPin<&'a mut X>>,
-        func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut X>),
+        other: impl Iterator<Item = TreePin<&'a mut X>>,
+        func: impl FnMut(TreePin<&mut T>, TreePin<&mut X>),
     );
 
     fn intersect_with_tree_mut<'a, X: Aabb<Num = T::Num> + 'a>(
         &mut self,
         other: &mut crate::Tree<'a, X>,
-        func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut X>),
+        func: impl FnMut(TreePin<&mut T>, TreePin<&mut X>),
     ) {
         self.intersect_with_iter_mut(other.iter_mut(), func)
     }
@@ -19,8 +19,8 @@ pub trait IntersectWithApi<T: Aabb> {
 impl<'a, T: Aabb> IntersectWithApi<T> for crate::tree::Tree<'a, T> {
     fn intersect_with_iter_mut<'x, X: Aabb<Num = T::Num> + 'x>(
         &mut self,
-        other: impl Iterator<Item = HalfPin<&'x mut X>>,
-        mut func: impl FnMut(HalfPin<&mut T>, HalfPin<&mut X>),
+        other: impl Iterator<Item = TreePin<&'x mut X>>,
+        mut func: impl FnMut(TreePin<&mut T>, TreePin<&mut X>),
     ) {
         //TODO instead of create just a list of BBox, construct a tree using the dividers of the current tree.
         //This way we can parallelize this function.

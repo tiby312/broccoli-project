@@ -1,4 +1,4 @@
-use crate::support::prelude::*;
+use super::*;
 
 fn distance_to_line(point: Vec2<f32>, axis: impl Axis, val: f32) -> f32 {
     let dis = (val - *point.get_axis(axis)).abs();
@@ -42,7 +42,7 @@ impl broccoli::queries::knearest::Knearest<BBox<f32, ()>> for MyKnearest {
     fn distance_to_broad(
         &mut self,
         _point: Vec2<f32>,
-        _a: halfpin::HalfPin<&mut BBox<f32, ()>>,
+        _a: TreePin<&mut BBox<f32, ()>>,
     ) -> Option<f32> {
         None
     }
@@ -50,7 +50,7 @@ impl broccoli::queries::knearest::Knearest<BBox<f32, ()>> for MyKnearest {
     fn distance_to_fine(
         &mut self,
         point: Vec2<f32>,
-        a: halfpin::HalfPin<&mut BBox<f32, ()>>,
+        a: TreePin<&mut BBox<f32, ()>>,
     ) -> f32 {
         self.verts.push(a.rect);
         distance_to_rect(&a.rect, point)

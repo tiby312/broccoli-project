@@ -16,7 +16,7 @@ impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
     for OtherAxisCollider<'a, A, F>
 {
     #[inline(always)]
-    fn collide(&mut self, a: HalfPin<&mut T>, b: HalfPin<&mut T>) {
+    fn collide(&mut self, a: TreePin<&mut T>, b: TreePin<&mut T>) {
         //only check if the opoosite axis intersects.
         //already know they intersect
         let a2 = self.axis.next();
@@ -31,7 +31,7 @@ impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
 pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    bots: HalfPin<&mut [T]>,
+    bots: TreePin<&mut [T]>,
     func: &mut F,
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
@@ -43,8 +43,8 @@ pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
 pub fn find_parallel_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    bots1: HalfPin<&mut [T]>,
-    bots2: HalfPin<&mut [T]>,
+    bots1: TreePin<&mut [T]>,
+    bots2: TreePin<&mut [T]>,
     func: &mut F,
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
@@ -56,8 +56,8 @@ pub fn find_parallel_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
 //that intsect.
 pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     axis: A, //the axis of r1.
-    r1: HalfPin<&mut [T]>,
-    mut r2: HalfPin<&mut [T]>,
+    r1: TreePin<&mut [T]>,
+    mut r2: TreePin<&mut [T]>,
     func: &mut F,
 ) {
     //OPTION 1
@@ -79,18 +79,18 @@ pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
 
     let mut rr1=prevec3.get_empty_vec_mut();
     rr1.extend(r1);
-    //let mut rr1: Vec<HalfPin<F::T>> = r1.iter_mut().collect();
+    //let mut rr1: Vec<TreePin<F::T>> = r1.iter_mut().collect();
 
     rr1.sort_unstable_by(|a, b| compare_bots(axis, a, b));
 
-    let rrr:&mut [HalfPin<F::T>]=(&mut rr1) as &mut [HalfPin<F::T>];
+    let rrr:&mut [TreePin<F::T>]=(&mut rr1) as &mut [TreePin<F::T>];
     self::find_other_parallel3(
         prevec1,
         prevec2,
         axis,
         (
             r2,
-            rrr.iter_mut().map(|a|HalfPin::new(a).flatten())
+            rrr.iter_mut().map(|a|TreePin::new(a).flatten())
         ),
         &mut b);
     */
@@ -139,7 +139,7 @@ pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
 fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    collision_botids: HalfPin<&'a mut [T]>,
+    collision_botids: TreePin<&'a mut [T]>,
     func: &mut F,
 ) {
     use twounordered::RetainMutUnordered;
@@ -157,7 +157,7 @@ fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let mut active: Vec<HalfPin<&mut T>> = prevec1.extract_vec();
+    let mut active: Vec<TreePin<&mut T>> = prevec1.extract_vec();
 
     for mut curr_bot in collision_botids.iter_mut() {
         active.retain_mut_unordered(|that_bot| {
@@ -190,8 +190,8 @@ fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
     cols: (
-        impl IntoIterator<Item = HalfPin<&'a mut T>>,
-        impl IntoIterator<Item = HalfPin<&'b mut T>>,
+        impl IntoIterator<Item = TreePin<&'a mut T>>,
+        impl IntoIterator<Item = TreePin<&'b mut T>>,
     ),
     func: &mut F,
 ) where
@@ -276,8 +276,8 @@ fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
 fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
     axis: A,
     cols: (
-        impl IntoIterator<Item = HalfPin<'a, F::T>>,
-        impl IntoIterator<Item = HalfPin<'b, F::T>>,
+        impl IntoIterator<Item = TreePin<'a, F::T>>,
+        impl IntoIterator<Item = TreePin<'b, F::T>>,
     ),
     func: &mut F,
 ) where
@@ -287,7 +287,7 @@ fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
     let ys = cols.1.into_iter();
 
     //let active_x = self.helper.get_empty_vec_mut();
-    let mut active_x: Vec<HalfPin<F::T>> = Vec::new();
+    let mut active_x: Vec<TreePin<F::T>> = Vec::new();
     for mut y in ys {
         let yr = *y.get().get_range(axis);
 
@@ -334,8 +334,8 @@ fn test_parallel() {
     impl CollisionHandler<BBox<isize, Bot>> for Test {
         fn collide(
             &mut self,
-            a: HalfPin<&mut BBox<isize, Bot>>,
-            b: HalfPin<&mut BBox<isize, Bot>>,
+            a: TreePin<&mut BBox<isize, Bot>>,
+            b: TreePin<&mut BBox<isize, Bot>>,
         ) {
             let [a, b] = [a.unpack_inner().id, b.unpack_inner().id];
 
@@ -380,16 +380,16 @@ fn test_parallel() {
         set: BTreeSet::new(),
     };
 
-    let j1: HalfPin<&mut [BBox<_, _>]> = HalfPin::new(&mut left);
-    let j2: HalfPin<&mut [BBox<_, _>]> = HalfPin::new(&mut right);
+    let j1: TreePin<&mut [BBox<_, _>]> = TreePin::new(&mut left);
+    let j2: TreePin<&mut [BBox<_, _>]> = TreePin::new(&mut right);
 
     self::find_other_parallel3(&mut p1, axgeom::XAXIS, (j1, j2), &mut test1);
 
     let mut test2 = Test {
         set: BTreeSet::new(),
     };
-    let j1: HalfPin<&mut [BBox<_, _>]> = HalfPin::new(&mut right);
-    let j2: HalfPin<&mut [BBox<_, _>]> = HalfPin::new(&mut left);
+    let j1: TreePin<&mut [BBox<_, _>]> = TreePin::new(&mut right);
+    let j2: TreePin<&mut [BBox<_, _>]> = TreePin::new(&mut left);
 
     self::find_other_parallel3(&mut p1, axgeom::XAXIS, (j1, j2), &mut test2);
 

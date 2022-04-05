@@ -4,7 +4,7 @@ use super::CollisionHandler;
 use super::*;
 
 pub struct NodeAxis<'a, 'node, T: Aabb, A: Axis> {
-    pub node: HalfPin<&'a mut Node<'node, T>>,
+    pub node: TreePin<&'a mut Node<'node, T>>,
     pub axis: A,
 }
 
@@ -27,7 +27,7 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
         func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
         axis: impl Axis,
-        bots: HalfPin<&mut [T]>,
+        bots: TreePin<&mut [T]>,
     );
 
     fn handle_children<A: Axis, B: Axis, T: Aabb>(
@@ -45,7 +45,7 @@ impl NodeHandler for crate::tree::NoSorter {
         func: &mut impl CollisionHandler<T>,
         _: &mut PreVec,
         _axis: impl Axis,
-        bots: HalfPin<&mut [T]>,
+        bots: TreePin<&mut [T]>,
     ) {
         tools::for_every_pair(bots, move |a, b| {
             if a.get().intersects_rect(b.get()) {
@@ -86,7 +86,7 @@ impl NodeHandler for crate::tree::DefaultSorter {
         func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
         axis: impl Axis,
-        bots: HalfPin<&mut [T]>,
+        bots: TreePin<&mut [T]>,
     ) {
         oned::find_2d(prevec, axis, bots, func);
     }

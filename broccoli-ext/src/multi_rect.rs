@@ -1,5 +1,5 @@
 use broccoli::prelude::*;
-use broccoli::tree::halfpin::HalfPin;
+use broccoli::tree::treepin::TreePin;
 use broccoli::tree::node::*;
 use broccoli::tree::Tree;
 
@@ -10,7 +10,7 @@ use broccoli::tree::Tree;
 pub struct RectIntersectErr;
 
 ///
-/// Aabb::get() guarenteed to return the same value while pinned by `HalfPin`.
+/// Aabb::get() guarenteed to return the same value while pinned by `TreePin`.
 ///
 pub unsafe trait TrustedAabb: Aabb {}
 
@@ -42,7 +42,7 @@ impl<'a, 'b, T: TrustedAabb> MultiRect<'a, 'b, T> {
     pub fn for_all_in_rect_mut(
         &mut self,
         mut rect: Rect<T::Num>,
-        mut func: impl FnMut(HalfPin<&'a mut T>),
+        mut func: impl FnMut(TreePin<&'a mut T>),
     ) -> Result<(), RectIntersectErr> {
         for r in self.rects.iter() {
             if rect.intersects_rect(r) {
@@ -51,12 +51,12 @@ impl<'a, 'b, T: TrustedAabb> MultiRect<'a, 'b, T> {
         }
 
         self.tree.for_all_in_rect_mut(
-            HalfPin::from_mut(&mut rect),
-            |_rect, mut bbox: HalfPin<&mut T>| {
+            TreePin::from_mut(&mut rect),
+            |_rect, mut bbox: TreePin<&mut T>| {
                 //This is only safe to do because the user is unable to mutate the bounding box,
                 //and we have checked that the query rectangles don't intersect.
-                let bbox: HalfPin<&'a mut T> =
-                    HalfPin::from_mut(unsafe { &mut *(bbox.as_ptr_mut().as_raw() as *mut _) });
+                let bbox: TreePin<&'a mut T> =
+                    TreePin::from_mut(unsafe { &mut *(bbox.as_ptr_mut().as_raw() as *mut _) });
                 func(bbox);
             },
         );

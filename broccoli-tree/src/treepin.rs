@@ -1,6 +1,6 @@
 //! Provides a mutable pointer type that is more restrictive that `&mut T`, in order
 //! to protect tree invariants.
-//! [`HalfPin`] is short for protected mutable reference.
+//! [`TreePin`] is short for protected mutable reference.
 //!
 //! ```rust
 //! use broccoli::{bbox,rect};
@@ -33,14 +33,14 @@ pub trait HasInner {
 }
 
 /// A protected mutable reference that derefs to `&T`.
-/// See the HalfPin module documentation for more explanation.
+/// See the TreePin module documentation for more explanation.
 #[repr(transparent)]
 #[derive(Debug)]
-pub struct HalfPin<T: ?Sized> {
+pub struct TreePin<T: ?Sized> {
     inner: T,
 }
 
-impl<T: std::ops::Deref> core::ops::Deref for HalfPin<T> {
+impl<T: std::ops::Deref> core::ops::Deref for TreePin<T> {
     type Target = T::Target;
     #[inline(always)]
     fn deref(&self) -> &T::Target {
@@ -48,20 +48,20 @@ impl<T: std::ops::Deref> core::ops::Deref for HalfPin<T> {
     }
 }
 
-impl<'a, T> From<&'a mut T> for HalfPin<&'a mut T> {
+impl<'a, T> From<&'a mut T> for TreePin<&'a mut T> {
     #[inline(always)]
     fn from(a: &'a mut T) -> Self {
-        HalfPin::new(a)
+        TreePin::new(a)
     }
 }
 
-impl<'a, T: ?Sized> Clone for HalfPin<*mut T> {
+impl<'a, T: ?Sized> Clone for TreePin<*mut T> {
     #[inline(always)]
     fn clone(&self) -> Self {
-        HalfPin { inner: self.inner }
+        TreePin { inner: self.inner }
     }
 }
-impl<'a, T: ?Sized> HalfPin<*mut T> {
+impl<'a, T: ?Sized> TreePin<*mut T> {
     #[inline(always)]
     pub fn as_raw(&self) -> *mut T {
         self.inner
@@ -78,24 +78,24 @@ impl<'a, T> HasInner for Escapable<'a, T> {
     }
 }
 
-impl<'a, 'b, T: ?Sized> HalfPin<&'a mut HalfPin<&'b mut T>> {
+impl<'a, 'b, T: ?Sized> TreePin<&'a mut TreePin<&'b mut T>> {
     #[inline(always)]
-    pub fn flatten(self) -> HalfPin<&'a mut T> {
-        HalfPin {
+    pub fn flatten(self) -> TreePin<&'a mut T> {
+        TreePin {
             inner: self.inner.inner,
         }
     }
 }
-impl<'a, T: ?Sized> HalfPin<&'a mut T> {
+impl<'a, T: ?Sized> TreePin<&'a mut T> {
     /// Start a new borrow lifetime
     #[inline(always)]
-    pub fn borrow_mut(&mut self) -> HalfPin<&mut T> {
-        HalfPin { inner: self.inner }
+    pub fn borrow_mut(&mut self) -> TreePin<&mut T> {
+        TreePin { inner: self.inner }
     }
 
     #[inline(always)]
-    pub fn as_ptr_mut(&mut self) -> HalfPin<*mut T> {
-        HalfPin {
+    pub fn as_ptr_mut(&mut self) -> TreePin<*mut T> {
+        TreePin {
             inner: self.inner as *mut _,
         }
     }
@@ -106,19 +106,19 @@ impl<'a, T: ?Sized> HalfPin<&'a mut T> {
     }
 }
 
-impl<'a, T: ?Sized> HalfPin<&'a mut T> {
+impl<'a, T: ?Sized> TreePin<&'a mut T> {
     /// Create a protected pointer.
     #[inline(always)]
-    pub fn from_mut(inner: &'a mut T) -> HalfPin<&'a mut T> {
-        HalfPin { inner }
+    pub fn from_mut(inner: &'a mut T) -> TreePin<&'a mut T> {
+        TreePin { inner }
     }
 }
 
-impl<T> HalfPin<T> {
+impl<T> TreePin<T> {
     /// Create a protected pointer.
     #[inline(always)]
-    pub fn new(inner: T) -> HalfPin<T> {
-        HalfPin { inner }
+    pub fn new(inner: T) -> TreePin<T> {
+        TreePin { inner }
     }
 }
 
@@ -126,10 +126,10 @@ impl<T> HalfPin<T> {
 pub struct NodeRef<'a, T: Aabb> {
     pub div: &'a Option<T::Num>,
     pub cont: &'a Range<T::Num>,
-    pub range: HalfPin<&'a mut [T]>,
+    pub range: TreePin<&'a mut [T]>,
 }
 
-impl<'a, 'b: 'a, T: Aabb> HalfPin<&'a mut Node<'b, T>> {
+impl<'a, 'b: 'a, T: Aabb> TreePin<&'a mut Node<'b, T>> {
     /// Destructure a node into its three parts.
     #[inline(always)]
     pub fn into_node_ref(self) -> NodeRef<'a, T> {
@@ -147,12 +147,12 @@ impl<'a, 'b: 'a, T: Aabb> HalfPin<&'a mut Node<'b, T>> {
 
     /// Return a mutable list of elements in this node.
     #[inline(always)]
-    pub fn into_range(self) -> HalfPin<&'a mut [T]> {
+    pub fn into_range(self) -> TreePin<&'a mut [T]> {
         self.inner.range.borrow_mut()
     }
 }
 
-impl<'a, T: HasInner> HalfPin<&'a mut T> {
+impl<'a, T: HasInner> TreePin<&'a mut T> {
     /// Unpack only the mutable innner component
     #[inline(always)]
     pub fn unpack_inner(self) -> &'a mut T::Inner {
@@ -160,34 +160,34 @@ impl<'a, T: HasInner> HalfPin<&'a mut T> {
     }
 }
 
-impl<'a, T> HalfPin<&'a mut [T]> {
+impl<'a, T> TreePin<&'a mut [T]> {
     /// Return the element at the specified index.
     /// We can't use the index trait because we don't want
     /// to return a mutable reference.
     #[inline(always)]
-    pub fn get_index_mut(self, ind: usize) -> HalfPin<&'a mut T> {
-        HalfPin::new(&mut self.inner[ind])
+    pub fn get_index_mut(self, ind: usize) -> TreePin<&'a mut T> {
+        TreePin::new(&mut self.inner[ind])
     }
 
     /// Split off the first element.
     #[inline(always)]
-    pub fn split_at_mut(self, va: usize) -> (HalfPin<&'a mut [T]>, HalfPin<&'a mut [T]>) {
+    pub fn split_at_mut(self, va: usize) -> (TreePin<&'a mut [T]>, TreePin<&'a mut [T]>) {
         let (left, right) = self.inner.split_at_mut(va);
-        (HalfPin::new(left), HalfPin::new(right))
+        (TreePin::new(left), TreePin::new(right))
     }
 
     /// Split off the first element.
     #[inline(always)]
-    pub fn split_first_mut(self) -> Option<(HalfPin<&'a mut T>, HalfPin<&'a mut [T]>)> {
+    pub fn split_first_mut(self) -> Option<(TreePin<&'a mut T>, TreePin<&'a mut [T]>)> {
         self.inner
             .split_first_mut()
-            .map(|(first, inner)| (HalfPin { inner: first }, HalfPin { inner }))
+            .map(|(first, inner)| (TreePin { inner: first }, TreePin { inner }))
     }
 
     /// Return a smaller slice that ends with the specified index.
     #[inline(always)]
     pub fn truncate_to(self, a: core::ops::RangeTo<usize>) -> Self {
-        HalfPin {
+        TreePin {
             inner: &mut self.inner[a],
         }
     }
@@ -195,7 +195,7 @@ impl<'a, T> HalfPin<&'a mut [T]> {
     /// Return a smaller slice that starts at the specified index.
     #[inline(always)]
     pub fn truncate_from(self, a: core::ops::RangeFrom<usize>) -> Self {
-        HalfPin {
+        TreePin {
             inner: &mut self.inner[a],
         }
     }
@@ -203,23 +203,23 @@ impl<'a, T> HalfPin<&'a mut [T]> {
     /// Return a smaller slice that starts and ends with the specified range.
     #[inline(always)]
     pub fn truncate(self, a: core::ops::Range<usize>) -> Self {
-        HalfPin {
+        TreePin {
             inner: &mut self.inner[a],
         }
     }
 
     /// Return a mutable iterator.
     #[inline(always)]
-    pub fn iter_mut(self) -> HalfPinIter<'a, T> {
-        HalfPinIter {
+    pub fn iter_mut(self) -> TreePinIter<'a, T> {
+        TreePinIter {
             inner: self.inner.iter_mut(),
         }
     }
 }
 
-impl<'a, T> core::iter::IntoIterator for HalfPin<&'a mut [T]> {
-    type Item = HalfPin<&'a mut T>;
-    type IntoIter = HalfPinIter<'a, T>;
+impl<'a, T> core::iter::IntoIterator for TreePin<&'a mut [T]> {
+    type Item = TreePin<&'a mut T>;
+    type IntoIter = TreePinIter<'a, T>;
 
     #[inline(always)]
     fn into_iter(self) -> Self::IntoIter {
@@ -227,16 +227,16 @@ impl<'a, T> core::iter::IntoIterator for HalfPin<&'a mut [T]> {
     }
 }
 
-/// Iterator produced by `HalfPin<[T]>` that generates `HalfPin<T>`
-pub struct HalfPinIter<'a, T> {
+/// Iterator produced by `TreePin<[T]>` that generates `TreePin<T>`
+pub struct TreePinIter<'a, T> {
     inner: core::slice::IterMut<'a, T>,
 }
-impl<'a, T> Iterator for HalfPinIter<'a, T> {
-    type Item = HalfPin<&'a mut T>;
+impl<'a, T> Iterator for TreePinIter<'a, T> {
+    type Item = TreePin<&'a mut T>;
 
     #[inline(always)]
-    fn next(&mut self) -> Option<HalfPin<&'a mut T>> {
-        self.inner.next().map(|inner| HalfPin { inner })
+    fn next(&mut self) -> Option<TreePin<&'a mut T>> {
+        self.inner.next().map(|inner| TreePin { inner })
     }
 
     #[inline(always)]
@@ -245,12 +245,12 @@ impl<'a, T> Iterator for HalfPinIter<'a, T> {
     }
 }
 
-impl<'a, T> core::iter::FusedIterator for HalfPinIter<'a, T> {}
-impl<'a, T> core::iter::ExactSizeIterator for HalfPinIter<'a, T> {}
+impl<'a, T> core::iter::FusedIterator for TreePinIter<'a, T> {}
+impl<'a, T> core::iter::ExactSizeIterator for TreePinIter<'a, T> {}
 
-impl<'a, T> DoubleEndedIterator for HalfPinIter<'a, T> {
+impl<'a, T> DoubleEndedIterator for TreePinIter<'a, T> {
     #[inline(always)]
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.inner.next_back().map(|inner| HalfPin { inner })
+        self.inner.next_back().map(|inner| TreePin { inner })
     }
 }

@@ -1,7 +1,7 @@
 //! Contains query modules for each query algorithm.
 
 use super::*;
-use crate::halfpin::*;
+use crate::treepin::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use broccoli_tree::default_axis;

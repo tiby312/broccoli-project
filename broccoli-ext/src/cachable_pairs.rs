@@ -2,10 +2,9 @@ use std::ops::DerefMut;
 
 use broccoli::{
     prelude::CollisionApi,
-    tree::{halfpin::HasInner, node::Aabb, Tree},
+    tree::{treepin::HasInner, node::Aabb, Tree},
 };
 
-//TODO rename HalfPin as TreePin
 
 pub unsafe trait TrustedCollisionPairs<T> {
     fn for_every_pair(&mut self, func: impl FnMut(&mut T, &mut T));

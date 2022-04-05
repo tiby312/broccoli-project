@@ -52,7 +52,7 @@ impl Record {
 
         let c4 = if naive_bench {
             bench_closure(|| {
-                HalfPin::new(bots.as_mut_slice()).colliding_pairs(|a, b| {
+                TreePin::new(bots.as_mut_slice()).colliding_pairs(|a, b| {
                     **a.unpack_inner() += 2;
                     **b.unpack_inner() += 2;
                 });

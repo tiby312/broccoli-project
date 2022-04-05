@@ -18,7 +18,7 @@ struct TestResult {
 
 fn test_seq<T: Aabb>(
     bots: &mut [T],
-    func: impl Fn(HalfPin<&mut T>, HalfPin<&mut T>),
+    func: impl Fn(TreePin<&mut T>, TreePin<&mut T>),
 ) -> TestResult {
     let (mut tree, construct_time) = bench_closure_ret(|| broccoli::tree::new(bots));
 
@@ -38,7 +38,7 @@ fn test_seq<T: Aabb>(
 }
 fn test_par<T: Aabb + Send + Sync>(
     bots: &mut [T],
-    func: impl Fn(HalfPin<&mut T>, HalfPin<&mut T>) + Send + Sync,
+    func: impl Fn(TreePin<&mut T>, TreePin<&mut T>) + Send + Sync,
 ) -> TestResult
 where
     T::Num: Send + Sync,
