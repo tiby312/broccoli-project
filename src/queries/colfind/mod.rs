@@ -49,8 +49,7 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
         .map(|(i, x)| crate::bbox(*x.get(), (i, x)))
         .collect();
     let bots = bots.as_mut_slice();
-    use crate::tree::TreeBuild;
-    use crate::NoSorter;
+
     let nosort_res = collect_pairs(&mut NoSorter.build(bots));
     let sweep_res = collect_pairs(&mut SweepAndPrune::new(bots));
     let tree_res = collect_pairs(&mut crate::new(bots));

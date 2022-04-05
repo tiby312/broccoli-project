@@ -1,4 +1,4 @@
-use broccoli::{bbox, rect};
+use broccoli::tree::{bbox, rect};
 
 fn main() {
     let mut inner1 = 4;
@@ -11,9 +11,9 @@ fn main() {
         bbox(rect(4, 7, 4, 7), &mut inner3),
     ];
 
-    let mut tree = broccoli::new(&mut bots);
+    let mut tree = broccoli::tree::new(&mut bots);
 
-    let mut m = tree.multi_rect();
+    let mut m = broccoli_ext::multi_rect::multi_rect(&mut tree);
 
     let mut zone1 = Vec::new();
     m.for_all_in_rect_mut(rect(0, 5, 0, 5), |a| {

@@ -3,7 +3,7 @@ use super::*;
 mod intersect_with;
 mod knearest;
 mod liquid;
-//mod multirect;
+mod multirect;
 mod nbody;
 mod original_order;
 mod raycast;
@@ -51,14 +51,14 @@ impl DemoIter {
         let area = Rect::new(0.0, area.x as f32, 0.0, area.y as f32);
 
         let k: Demo = match curr {
-            0 => Demo::new(nbody::make_demo(area, ctx)),
+            0 => Demo::new(multirect::make_demo(area, ctx)),
             1 => Demo::new(raycast::make_demo(area, ctx)),
-            //3 => Demo::new(multirect::make_demo(area, ctx)),
             2 => Demo::new(knearest::make_demo(area, ctx)),
             3 => Demo::new(original_order::make_demo(area, ctx)),
             4 => Demo::new(raycast_debug::make_demo(area, ctx)),
             5 => Demo::new(intersect_with::make_demo(area, ctx)),
             6 => Demo::new(liquid::make_demo(area, ctx)),
+            7 => Demo::new(nbody::make_demo(area, ctx)),
 
             _ => unreachable!(),
         };

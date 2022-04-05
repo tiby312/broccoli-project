@@ -25,9 +25,9 @@ pub trait Nbody {
     //return the position of the center of mass
     fn compute_center_of_mass(&mut self, a: &[Self::T]) -> Self::Mass;
 
-    fn is_close(&mut self, a: &Self::Mass, line: Self::N, a: impl Axis) -> bool;
+    fn is_close(&self, a: &Self::Mass, line: Self::N, a: impl Axis) -> bool;
 
-    fn is_close_half(&mut self, a: &Self::Mass, line: Self::N, a: impl Axis) -> bool;
+    fn is_close_half(&self, a: &Self::Mass, line: Self::N, a: impl Axis) -> bool;
 
     fn gravitate(&mut self, a: GravEnum<Self::T, Self::Mass>, b: GravEnum<Self::T, Self::Mass>);
 
@@ -78,7 +78,6 @@ fn build_masses2<N: Nbody>(vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) -
 fn collect_masses<'a, 'b, N: Nbody>(
     root_div: N::N,
     root_axis: impl Axis,
-    root: &N::Mass,
     vistr: NodeWrapperVistr<'b, 'a, N::T, N::Mass>,
     no: &mut N,
     func1: &mut impl FnMut(&'b mut NodeWrapper<'a, N::T, N::Mass>, &mut N),
@@ -94,8 +93,8 @@ fn collect_masses<'a, 'b, N: Nbody>(
     func2(&mut nn.node.range, no);
 
     if let Some([left, right]) = rest {
-        collect_masses(root_div, root_axis, root, left, no, func1, func2);
-        collect_masses(root_div, root_axis, root, right, no, func1, func2);
+        collect_masses(root_div, root_axis, left, no, func1, func2);
+        collect_masses(root_div, root_axis, right, no, func1, func2);
     }
 }
 
@@ -147,7 +146,6 @@ fn recc_common<'a, 'b, N: Nbody>(
             collect_masses(
                 div,
                 axis,
-                &nn.mass,
                 left.borrow_mut(),
                 no,
                 &mut |a, _| finished_masses.push(a),
@@ -160,7 +158,6 @@ fn recc_common<'a, 'b, N: Nbody>(
             collect_masses(
                 div,
                 axis,
-                &nn.mass,
                 right.borrow_mut(),
                 no,
                 &mut |a, _| finished_masses2.push(a),

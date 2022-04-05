@@ -9,16 +9,31 @@ use broccoli::tree::Tree;
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
 pub struct RectIntersectErr;
 
+///
+/// Aabb::get() guarenteed to return the same value while pinned by `HalfPin`.
+///
+pub unsafe trait TrustedAabb: Aabb {}
+
+unsafe impl<N: Num, T> TrustedAabb for BBox<N, T> {}
+unsafe impl<N: Num> TrustedAabb for Rect<N> {}
+unsafe impl<T: TrustedAabb> TrustedAabb for &T {}
+unsafe impl<T: TrustedAabb> TrustedAabb for &mut T {}
+
+pub fn multi_rect<'a, 'b, T: TrustedAabb>(tree: &'a mut Tree<'b, T>) -> MultiRect<'a, 'b, T> {
+    MultiRect::new(tree)
+}
+
 ///See the [`Queries::multi_rect`](crate::query::rect::RectQuery::multi_rect) function.
-pub struct MultiRect<'a, 'b: 'a, T: Aabb> {
+pub struct MultiRect<'a, 'b, T: Aabb> {
     tree: &'a mut Tree<'b, T>,
     rects: Vec<Rect<T::Num>>,
 }
 
-impl<'a, 'b: 'a, T: Aabb> MultiRect<'a, 'b, T> {
+impl<'a, 'b, T: TrustedAabb> MultiRect<'a, 'b, T> {
     ///Unsafe because this api relies on the fact that
     ///every call to AAbb::get() returns the same aabb.
-    pub unsafe fn new(tree: &'a mut Tree<'b, T>) -> Self {
+    ///Before making this, ensure that the above is true
+    pub fn new(tree: &'a mut Tree<'b, T>) -> Self {
         MultiRect {
             tree,
             rects: Vec::new(),

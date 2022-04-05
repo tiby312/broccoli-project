@@ -98,7 +98,7 @@ impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
         }
     }
 
-    fn is_close_half(&mut self, m: &Self::Mass, line: Self::N, a: impl Axis) -> bool {
+    fn is_close_half(&self, m: &Self::Mass, line: Self::N, a: impl Axis) -> bool {
         if a.is_xaxis() {
             (m.center.x - line).abs() < 200.0
         } else {
@@ -106,7 +106,7 @@ impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
         }
     }
 
-    fn is_close(&mut self, m: &Self::Mass, line: Self::N, a: impl Axis) -> bool {
+    fn is_close(&self, m: &Self::Mass, line: Self::N, a: impl Axis) -> bool {
         if a.is_xaxis() {
             (m.center.x - line).abs() < 400.0
         } else {

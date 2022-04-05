@@ -17,7 +17,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
     let mut buffer = ctx.buffer_dynamic();
 
-    let mut tree = broccoli::container::TreeOwned::new(bots);
+    let mut tree = broccoli::tree::TreeOwned::new(bots);
 
     move |data| {
         let DemoData {
@@ -27,25 +27,26 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             check_naive,
         } = data;
 
-        let tree = tree.as_tree_mut();
+        let mut tree = tree.as_tree();
 
         let cc: Vec2<i32> = cursor.inner_as();
         let r1 = axgeom::Rect::new(cc.x - 100, cc.x + 100, cc.y - 100, cc.y + 100);
         let r2 = axgeom::Rect::new(100, 400, 100, 400);
 
+        /*
         if check_naive {
-            use broccoli::assert::*;
+            use broccoli::queries::rect::*;
 
             assert_for_all_in_rect_mut(tree, &r1);
             assert_for_all_in_rect_mut(tree, &r2);
             assert_for_all_intersect_rect_mut(tree, &r1);
             assert_for_all_intersect_rect_mut(tree, &r2);
             assert_for_all_not_in_rect_mut(tree, &r1);
-        }
+        }*/
 
         //test MultiRect
 
-        let mut rects = tree.multi_rect();
+        let mut rects = unsafe { broccoli_ext::multi_rect::MultiRect::new(&mut tree) };
 
         let mut to_draw = Vec::new();
         rects
