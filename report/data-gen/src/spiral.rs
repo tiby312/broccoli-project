@@ -27,7 +27,7 @@ fn handle_num(fb: &mut FigureBuilder) {
     let canvas = fb.canvas().build();
     let plot = poloto::simple_fmt!(
         canvas,
-        poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]))
+        poloto::build::scatter("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]))
             .chain(poloto::build::markers([], [0.0])),
         format!(
             "Number of Intersections with abspiral(num,0.{})",
@@ -61,7 +61,7 @@ fn handle_grow(fb: &mut FigureBuilder) {
     let canvas = fb.canvas().build();
     let plot = poloto::simple_fmt!(
         canvas,
-        poloto::build::line("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]))
+        poloto::build::scatter("", rects.iter().map(|x| [x.0 as f64, x.1 as f64]))
             .chain(poloto::build::markers([], [0.0])),
         "Number of Intersections with abspiral(20_000,grow)",
         "Grow",

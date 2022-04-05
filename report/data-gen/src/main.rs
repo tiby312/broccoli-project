@@ -115,7 +115,7 @@ impl FigureBuilder {
             for (plot_name, _) in names.iter() {
                 let k = ii.clone();
                 let stop_val = stop_values.iter().find(|a| a.0.eq(plot_name)).map(|a| a.1);
-                data.push(poloto::build::line(
+                data.push(poloto::build::scatter(
                     plot_name,
                     core::iter::once(ff)
                         .chain(k)
