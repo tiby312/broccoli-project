@@ -2,21 +2,24 @@ use std::ops::DerefMut;
 
 use broccoli::{
     prelude::CollisionApi,
-    tree::{treepin::HasInner, node::Aabb, Tree},
+    tree::{node::Aabb, treepin::HasInner, Tree},
 };
-
 
 pub unsafe trait TrustedCollisionPairs {
     type T;
     fn for_every_pair(&mut self, func: impl FnMut(&mut Self::T, &mut Self::T));
 }
 
-unsafe impl<'a, T: Aabb + HasInner<Inner = K>, K: DerefMut> TrustedCollisionPairs
-    for Tree<'a, T>
+pub unsafe trait TrustedIterAll {
+    type T;
+    fn for_every(&mut self, func: impl FnMut(&mut Self::T));
+}
+
+unsafe impl<'a, T: Aabb + HasInner<Inner = K>, K: DerefMut> TrustedCollisionPairs for Tree<'a, T>
 where
     K::Target: Sized,
 {
-    type T=K::Target;
+    type T = K::Target;
     fn for_every_pair(&mut self, mut func: impl FnMut(&mut K::Target, &mut K::Target)) {
         self.colliding_pairs(|a, b| {
             func(a.unpack_inner(), b.unpack_inner());
@@ -24,7 +27,17 @@ where
     }
 }
 
-
+unsafe impl<'a, T: Aabb + HasInner<Inner = K>, K: DerefMut> TrustedIterAll for Tree<'a, T>
+where
+    K::Target: Sized,
+{
+    type T = K::Target;
+    fn for_every(&mut self, mut func: impl FnMut(&mut K::Target)) {
+        for a in self.iter_mut() {
+            func(a.unpack_inner());
+        }
+    }
+}
 
 pub struct Cacheable<'a, C> {
     inner: &'a mut C,
@@ -32,28 +45,38 @@ pub struct Cacheable<'a, C> {
 
 impl<'a, C> Cacheable<'a, C> {
     pub fn new(a: &'a mut C) -> Self {
-        Cacheable{
-            inner:a
-        }
+        Cacheable { inner: a }
     }
 }
 
-
-pub struct RectCache<'a,C:TrustedCollisionPairs,D>{
-    inner: *mut Cacheable<'a,C>,
-    _p:std::marker::PhantomData<&'a C>,
-    pairs:Vec<(*mut C::T,D)>
+pub struct FilterCache<'a, C: TrustedIterAll, D> {
+    inner: *const Cacheable<'a, C>,
+    _p: std::marker::PhantomData<&'a C>,
+    data: Vec<(*mut C::T, D)>,
 }
 
-pub struct CollidingPairsCache<'a,C:TrustedCollisionPairs,D>{
-    inner: *mut Cacheable<'a,C>,
-    _p:std::marker::PhantomData<&'a C>,
-    pairs:Vec<(*mut C::T,*mut C::T,D)>
+impl<'a, C: TrustedIterAll, D> FilterCache<'a, C, D> {
+    pub fn get_elems(&mut self, c: &mut Cacheable<'a, C>) -> &mut [(&mut C::T, D)] {
+        assert_eq!(c as *const _, self.inner);
+
+        let data = self.data.as_mut_slice();
+        unsafe { &mut *(data as *mut _ as *mut _) }
+    }
 }
 
-impl<'a,C:TrustedCollisionPairs,D> CollidingPairsCache<'a,C,D>{
-    pub fn colliding_pairs(&mut self,c:&mut Cacheable<'a,C>, mut func: impl FnMut(&mut C::T, &mut C::T, &mut D)) {
-        assert_eq!(c as *mut _,self.inner);
+pub struct CollidingPairsCache<'a, C: TrustedCollisionPairs, D> {
+    inner: *const Cacheable<'a, C>,
+    _p: std::marker::PhantomData<&'a C>,
+    pairs: Vec<(*mut C::T, *mut C::T, D)>,
+}
+
+impl<'a, C: TrustedCollisionPairs, D> CollidingPairsCache<'a, C, D> {
+    pub fn colliding_pairs(
+        &mut self,
+        c: &mut Cacheable<'a, C>,
+        mut func: impl FnMut(&mut C::T, &mut C::T, &mut D),
+    ) {
+        assert_eq!(c as *const _, self.inner);
 
         for (a, b, c) in self.pairs.iter_mut() {
             let a = unsafe { &mut **a };
@@ -64,9 +87,30 @@ impl<'a,C:TrustedCollisionPairs,D> CollidingPairsCache<'a,C,D>{
 }
 use std::marker::PhantomData;
 
+impl<'a, C: TrustedIterAll> Cacheable<'a, C> {
+    pub fn cache_elems<D>(
+        &mut self,
+        mut func: impl FnMut(&mut C::T) -> Option<D>,
+    ) -> FilterCache<'a, C, D> {
+        let mut data = vec![];
+        self.inner.for_every(|a| {
+            if let Some(d) = func(a) {
+                data.push((a as *mut _, d));
+            }
+        });
+        FilterCache {
+            inner: self as *const _,
+            _p: PhantomData,
+            data,
+        }
+    }
+}
 
 impl<'a, C: TrustedCollisionPairs> Cacheable<'a, C> {
-    pub fn cache_colliding_pairs<D>(&mut self, mut func: impl FnMut(&mut C::T, &mut C::T) -> Option<D>) -> CollidingPairsCache<'a,C,D> {
+    pub fn cache_colliding_pairs<D>(
+        &mut self,
+        mut func: impl FnMut(&mut C::T, &mut C::T) -> Option<D>,
+    ) -> CollidingPairsCache<'a, C, D> {
         let mut pairs = vec![];
         self.inner.for_every_pair(|a, b| {
             if let Some(res) = func(a, b) {
@@ -74,14 +118,12 @@ impl<'a, C: TrustedCollisionPairs> Cacheable<'a, C> {
             }
         });
 
-        CollidingPairsCache { inner: self as *mut _, _p: PhantomData, pairs }
+        CollidingPairsCache {
+            inner: self as *mut _,
+            _p: PhantomData,
+            pairs,
+        }
     }
-
-    pub fn cache_rect<D>(&mut self,mut func:impl FnMut(&mut C::T,&mut C::T)->Option<D>)->RectCache<'a,C,D>{
-        unimplemented!();
-    }
-
-    
 
     pub fn finish(self) -> &'a mut C {
         self.inner

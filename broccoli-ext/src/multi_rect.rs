@@ -1,6 +1,6 @@
 use broccoli::prelude::*;
-use broccoli::tree::treepin::TreePin;
 use broccoli::tree::node::*;
+use broccoli::tree::treepin::TreePin;
 use broccoli::tree::Tree;
 
 ///Indicates that the user supplied a rectangle

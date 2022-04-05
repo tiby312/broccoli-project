@@ -18,17 +18,23 @@ fn main() {
 
     let mut ctree = broccoli_ext::cachable_pairs::Cacheable::new(&mut tree);
 
-    let mut k=ctree.cache_colliding_pairs(|_,_|{Some(())});
+    let mut pairs = ctree.cache_colliding_pairs(|_, _| Some(()));
+
+    let mut filtered = ctree.cache_elems(|_| Some(()));
 
     for _ in 0..100 {
         //Find all colliding aabbs.
-        k.colliding_pairs(&mut ctree,|a, b, _| {
+        pairs.colliding_pairs(&mut ctree, |a, b, _| {
             a.0 += 1;
             b.0 += 1;
         });
+
+        for (a, _) in filtered.get_elems(&mut ctree) {
+            a.0 += 1;
+        }
     }
 
-    assert_eq!(a.0, 100);
-    assert_eq!(b.0, 201);
-    assert_eq!(c.0, 102);
+    assert_eq!(a.0, 200);
+    assert_eq!(b.0, 301);
+    assert_eq!(c.0, 202);
 }
