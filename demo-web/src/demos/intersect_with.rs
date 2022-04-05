@@ -78,7 +78,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut k = support::distribute(&mut bots, |b| support::point_to_rect_f32(b.pos, radius));
 
         {
-            let mut tree = broccoli::tree::new_par(&mut k);
+            let mut tree = broccoli::tree::new(&mut k);
 
             tree.intersect_with_iter_mut(
                 HalfPin::new(walls.as_mut_slice()).iter_mut(),
@@ -120,7 +120,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 },
             );
 
-            tree.colliding_pairs_par(|a, b| {
+            tree.colliding_pairs(|a, b| {
                 let a = a.unpack_inner();
                 let b = b.unpack_inner();
                 let _ =

@@ -15,7 +15,7 @@ include = ["src/**/*", "LICENSE-MIT", "README.md"]
 doctest = false
 
 [workspace]
-members = [ "broccoli-tree","demo_web","report/data_gen","broccoli-ext"]
+members = [ "broccoli-tree","demo-web","report/data_gen","broccoli-ext"]
 
 [dev-dependencies]
 dists = {git="https://github.com/tiby312/dists.git"}

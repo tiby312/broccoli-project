@@ -1,5 +1,5 @@
 [package]
-name = "demo_web"
+name = "demo-web"
 version = "0.1.0"
 edition = "2021"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
