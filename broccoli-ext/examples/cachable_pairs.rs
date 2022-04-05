@@ -1,20 +1,4 @@
-use broccoli::prelude::CollisionApi;
-use broccoli::tree::node::BBox;
-use broccoli::tree::Tree;
 use broccoli::tree::*;
-use broccoli_ext::cachable_pairs::TrustedCollisionPairs;
-
-type MyBBox<'a> = BBox<isize, &'a mut TestNum>;
-
-struct MyTree<'a, 'b>(Tree<'a, MyBBox<'b>>);
-
-unsafe impl<'a, 'b> TrustedCollisionPairs<TestNum> for MyTree<'a, 'b> {
-    fn for_every_pair(&mut self, mut func: impl FnMut(&mut TestNum, &mut TestNum)) {
-        self.0.colliding_pairs(|a, b| {
-            func(a.unpack_inner(), b.unpack_inner());
-        })
-    }
-}
 
 #[derive(Debug, Copy, Clone)]
 struct TestNum(usize);
@@ -30,13 +14,13 @@ fn main() {
         bbox(rect(0isize, 10, 12, 15), &mut c),
     ];
 
-    let mut tree = MyTree(broccoli::tree::new(&mut aabbs));
+    let mut tree = broccoli::tree::new(&mut aabbs);
 
     let mut ctree = broccoli_ext::cachable_pairs::Cacheable::new(&mut tree);
 
     for _ in 0..100 {
         //Find all colliding aabbs.
-        ctree.again(|a, b| {
+        ctree.colliding_pairs(|a, b, _| {
             a.0 += 1;
             b.0 += 1;
         });

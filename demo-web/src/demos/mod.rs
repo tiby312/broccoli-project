@@ -37,7 +37,6 @@ impl Demo {
     }
 }
 
-use crate::*;
 pub struct DemoIter(usize);
 
 impl DemoIter {

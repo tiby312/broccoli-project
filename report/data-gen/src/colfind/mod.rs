@@ -6,8 +6,7 @@ pub mod float_vs_integer;
 pub mod height_heur_comparison;
 pub mod level_analysis;
 
-//TODO add back
-//pub mod optimal_query;
+pub mod optimal_query;
 
 pub mod parallel_heur_comparison;
 //pub mod query_evenness;
