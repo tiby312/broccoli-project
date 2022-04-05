@@ -256,7 +256,6 @@ fn main() {
             run_test!(&mut fb, colfind::colfind::handle_theory);
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
-            //run_test!(&mut fb, colfind::query_evenness::handle_theory);
         }
         "bench" => {
             let folder = args[2].clone();
