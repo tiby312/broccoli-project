@@ -15,6 +15,7 @@ fn main() {
     ];
 
     let mut tree = broccoli::tree::new(&mut aabbs);
+    let mut tree = broccoli_ext::cachable_pairs::IndTree(&mut tree);
 
     let mut ctree = broccoli_ext::cachable_pairs::Cacheable::new(&mut tree);
 

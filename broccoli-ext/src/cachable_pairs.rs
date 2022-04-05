@@ -15,25 +15,27 @@ pub unsafe trait TrustedIterAll {
     fn for_every(&mut self, func: impl FnMut(&mut Self::T));
 }
 
-unsafe impl<'a, T: Aabb + HasInner<Inner = K>, K: DerefMut> TrustedCollisionPairs for Tree<'a, T>
+pub struct IndTree<'a, 'b, T: Aabb>(pub &'b mut Tree<'a, T>);
+
+unsafe impl<T: Aabb + HasInner<Inner = K>, K: DerefMut> TrustedCollisionPairs for IndTree<'_, '_, T>
 where
     K::Target: Sized,
 {
     type T = K::Target;
     fn for_every_pair(&mut self, mut func: impl FnMut(&mut K::Target, &mut K::Target)) {
-        self.colliding_pairs(|a, b| {
+        self.0.colliding_pairs(|a, b| {
             func(a.unpack_inner(), b.unpack_inner());
         })
     }
 }
 
-unsafe impl<'a, T: Aabb + HasInner<Inner = K>, K: DerefMut> TrustedIterAll for Tree<'a, T>
+unsafe impl<T: Aabb + HasInner<Inner = K>, K: DerefMut> TrustedIterAll for IndTree<'_, '_, T>
 where
     K::Target: Sized,
 {
     type T = K::Target;
     fn for_every(&mut self, mut func: impl FnMut(&mut K::Target)) {
-        for a in self.iter_mut() {
+        for a in self.0.iter_mut() {
             func(a.unpack_inner());
         }
     }
