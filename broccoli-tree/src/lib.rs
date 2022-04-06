@@ -2,15 +2,15 @@
 //! just using [`broccoli::new`](crate::new).
 
 mod assert;
-pub mod treepin;
 pub mod node;
 mod oned;
+pub mod treepin;
 pub mod util;
 
 use axgeom::*;
 use compt::Visitor;
-use treepin::*;
 use node::*;
+use treepin::*;
 
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
 ///This means that the first divider is a 'vertical' line since it is
@@ -634,7 +634,19 @@ impl<S: Sorter, H: node::HasElem> TreeInner<H, S> {
             .flat_map(|x| x.get_elems().iter_mut())
     }
 }
+
+impl<S: Sorter, H> TreeInner<H, S> {
+    pub fn node_map<K>(self,mut func:impl FnMut(H)->K) ->TreeInner<K,S> {
+        let sorter=self.sorter;
+        let nodes=self.nodes.into_nodes().into_vec().into_iter().map(|x|func(x)).collect();
+        let nodes=compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
+        TreeInner { nodes, sorter }
+    }
+}
+
+
 impl<S, H> TreeInner<H, S> {
+    
     /// # Examples
     ///
     ///```

@@ -1,5 +1,5 @@
 use broccoli::prelude::*;
-use broccoli::tree::{bbox, rect,treepin::TreePin};
+use broccoli::tree::{bbox, rect, treepin::TreePin};
 
 fn main() {
     let inner1 = 4;

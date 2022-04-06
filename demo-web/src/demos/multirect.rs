@@ -46,7 +46,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         //test MultiRect
 
-        let mut rects = broccoli_ext::multi_rect::MultiRect::new(&mut tree);
+        let mut rects = broccoli_ext::trusted_aabb::MultiRect::new(&mut tree);
 
         let mut to_draw = Vec::new();
         rects

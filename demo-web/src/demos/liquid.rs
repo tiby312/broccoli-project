@@ -1,6 +1,5 @@
 use super::*;
 
-
 pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 50.0;
 

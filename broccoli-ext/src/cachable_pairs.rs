@@ -56,6 +56,8 @@ pub struct FilterCache<'a, C: TrustedIterAll, D> {
     _p: std::marker::PhantomData<&'a C>,
     data: Vec<(*mut C::T, D)>,
 }
+unsafe impl<'a, C: TrustedIterAll, D> Send for FilterCache<'a, C, D> {}
+unsafe impl<'a, C: TrustedIterAll, D> Sync for FilterCache<'a, C, D> {}
 
 impl<'a, C: TrustedIterAll, D> FilterCache<'a, C, D> {
     pub fn get_elems(&mut self, c: &mut Cacheable<'a, C>) -> &mut [(&mut C::T, D)] {
@@ -65,6 +67,9 @@ impl<'a, C: TrustedIterAll, D> FilterCache<'a, C, D> {
         unsafe { &mut *(data as *mut _ as *mut _) }
     }
 }
+
+unsafe impl<'a, C: TrustedCollisionPairs, D> Send for CollidingPairsCache<'a, C, D> {}
+unsafe impl<'a, C: TrustedCollisionPairs, D> Sync for CollidingPairsCache<'a, C, D> {}
 
 pub struct CollidingPairsCache<'a, C: TrustedCollisionPairs, D> {
     inner: *const Cacheable<'a, C>,

@@ -8,13 +8,13 @@ use axgeom::*;
 mod demos;
 mod support;
 
-use broccoli::tree::treepin::TreePin;
 pub use crate::dists::*;
 pub use broccoli::axgeom;
 pub use broccoli::axgeom::*;
 pub use broccoli::compt;
 pub use broccoli::tree::bbox;
 pub use broccoli::tree::node::*;
+use broccoli::tree::treepin::TreePin;
 pub use broccoli::tree::*;
 //pub use broccoli::rayon;
 
@@ -27,8 +27,6 @@ pub use duckduckgeo::array2_inner_into;
 pub use duckduckgeo::*;
 pub use shogo::simple2d::CtxWrap;
 pub use shogo::simple2d::Shapes;
-
-
 
 ///Common data sent from the main thread to the worker.
 #[derive(Serialize, Deserialize, Debug, Clone)]
