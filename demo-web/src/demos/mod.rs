@@ -3,12 +3,11 @@ use super::*;
 mod intersect_with;
 mod knearest;
 mod liquid;
-//TODO delete?
-//mod multirect;
 mod nbody;
 mod original_order;
 mod raycast;
 mod raycast_debug;
+mod rect;
 
 pub struct DemoData<'a> {
     cursor: Vec2<f32>,
@@ -58,12 +57,13 @@ impl DemoIter {
             4 => Demo::new(knearest::make_demo(area, ctx)),
             5 => Demo::new(original_order::make_demo(area, ctx)),
             6 => Demo::new(raycast_debug::make_demo(area, ctx)),
+            7 => Demo::new(rect::make_demo(area, ctx)),
 
             _ => unreachable!(),
         };
         self.0 += 1;
 
-        if self.0 == 7 {
+        if self.0 == 8 {
             self.0 = 0
         }
         k

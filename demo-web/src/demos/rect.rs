@@ -30,8 +30,8 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut tree = tree.as_tree();
 
         let cc: Vec2<i32> = cursor.inner_as();
-        let r1 = axgeom::Rect::new(cc.x - 100, cc.x + 100, cc.y - 100, cc.y + 100);
-        let r2 = axgeom::Rect::new(100, 400, 100, 400);
+        let mut r1 = axgeom::Rect::new(cc.x - 100, cc.x + 100, cc.y - 100, cc.y + 100);
+        let mut r2 = axgeom::Rect::new(100, 400, 100, 400);
 
         /*
         if check_naive {
@@ -46,32 +46,32 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         //test MultiRect
 
-        let mut rects = broccoli_ext::trusted_aabb::MultiRect::new(&mut tree);
-
         let mut to_draw = Vec::new();
-        rects
-            .for_all_in_rect_mut(r1, |a| to_draw.rect(a.rect.inner_as()))
-            .unwrap();
-
-        let res = rects.for_all_in_rect_mut(r2, |a| {
-            to_draw.rect(a.rect.inner_as());
+        tree.for_all_in_rect_mut(TreePin::new(&mut r1), |_, a| {
+            to_draw.rect(a.rect.inner_as())
         });
+
+        let res = if !r1.intersects_rect(&r2) {
+            tree.for_all_in_rect_mut(TreePin::new(&mut r2), |_, a| {
+                to_draw.rect(a.rect.inner_as());
+            });
+            true
+        } else {
+            false
+        };
 
         let mut cam = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
 
-        let col = match res {
-            Ok(()) => {
-                to_draw.rect(r1.inner_as());
-                to_draw.rect(r2.inner_as());
-                &[0.0, 1.0, 0.0, 0.5]
-            }
-            Err(_) => {
-                to_draw.clear();
-                to_draw.rect(r1.inner_as());
-                to_draw.rect(r2.inner_as());
-                buffer.update(&to_draw);
-                &[1.0, 0.0, 0.0, 0.5]
-            }
+        let col = if res {
+            to_draw.rect(r1.inner_as());
+            to_draw.rect(r2.inner_as());
+            &[0.0, 1.0, 0.0, 0.5]
+        } else {
+            to_draw.clear();
+            to_draw.rect(r1.inner_as());
+            to_draw.rect(r2.inner_as());
+            buffer.update(&to_draw);
+            &[1.0, 0.0, 0.0, 0.5]
         };
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
