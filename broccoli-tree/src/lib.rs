@@ -758,6 +758,10 @@ impl<S, H> TreeInner<H, S> {
 }
 
 impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
+    pub fn subdivide<T:Aabb<Num=N>>(self,bots:&mut [T])->(TreeInner<NodeData<N>,S>,TreeInner<NodeData<N>,S>){
+        unimplemented!();
+    }
+    
     pub fn into_tree<T: Aabb<Num = N>>(self, bots: TreePin<&mut [T]>) -> TreeInner<Node<T>, S> {
         let mut last = Some(bots);
         self.node_map(|x| {
