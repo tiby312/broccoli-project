@@ -235,6 +235,7 @@ pub trait HasElem {
     fn get_elems(&mut self) -> TreePin<&mut [Self::T]>;
 }
 
+#[derive(Debug, Clone)]
 pub struct NodeData<N: Num> {
     pub range: usize,
     pub cont: axgeom::Range<N>,

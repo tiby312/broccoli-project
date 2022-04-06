@@ -323,12 +323,10 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         let length = j.len();
 
         let t = self.build(j);
-        let sorter = t.sorter();
-        let data = t.into_node_data();
+        let data = t.into_node_data_tree();
         TreeOwned {
             inner: bots,
             nodes: data,
-            sorter,
             length,
         }
     }
@@ -341,12 +339,10 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         let length = j.len();
 
         let t = self.build_par(j);
-        let sorter = t.sorter();
-        let data = t.into_node_data();
+        let data = t.into_node_data_tree();
         TreeOwned {
             inner: bots,
             nodes: data,
-            sorter,
             length,
         }
     }
@@ -486,31 +482,6 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
             recurse_par_splitter(vistr, self.height_seq_fallback(), &mut buffer, splitter);
         (TreeInner::new(self.sorter(), buffer), splitter)
     }
-    fn build_from_node_data<'a>(
-        self,
-        data: &NodeDataCollection<T::Num>,
-        bots: TreePin<&'a mut [T]>,
-    ) -> TreeInner<Node<'a, T>, S> {
-        let mut last = Some(bots);
-
-        let a: Vec<_> = data
-            .inner
-            .iter()
-            .map(move |x| {
-                let (range, rest) = last.take().unwrap().split_at_mut(x.range);
-                last = Some(rest);
-                Node {
-                    range,
-                    cont: x.cont,
-                    div: x.div,
-                }
-            })
-            .collect();
-        TreeInner {
-            sorter: self.sorter(),
-            nodes: compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap(),
-        }
-    }
 }
 
 impl<T: Aabb, S: Sorter> TreeBuild<T, S> for S {
@@ -569,8 +540,7 @@ where
     C::T: Aabb,
 {
     inner: C,
-    sorter: S,
-    nodes: NodeDataCollection<<C::T as Aabb>::Num>,
+    nodes: TreeInner<NodeData<<C::T as Aabb>::Num>, S>,
     length: usize,
 }
 
@@ -591,8 +561,7 @@ where
         let j = self.inner.as_mut();
         assert_eq!(j.len(), self.length);
 
-        self.sorter
-            .build_from_node_data(&self.nodes, TreePin::new(j))
+        self.nodes.clone().into_tree(TreePin::from_mut(j))
     }
     pub fn as_slice_mut(&mut self) -> TreePin<&mut [C::T]> {
         let j = self.inner.as_mut();
@@ -614,10 +583,7 @@ where
     }
 }
 
-pub struct NodeDataCollection<N: Num> {
-    inner: Vec<NodeData<N>>,
-}
-
+#[derive(Clone)]
 pub struct TreeInner<N, S> {
     nodes: compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>,
     sorter: S,
@@ -636,17 +602,21 @@ impl<S: Sorter, H: node::HasElem> TreeInner<H, S> {
 }
 
 impl<S: Sorter, H> TreeInner<H, S> {
-    pub fn node_map<K>(self,mut func:impl FnMut(H)->K) ->TreeInner<K,S> {
-        let sorter=self.sorter;
-        let nodes=self.nodes.into_nodes().into_vec().into_iter().map(|x|func(x)).collect();
-        let nodes=compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
+    pub fn node_map<K>(self, func: impl FnMut(H) -> K) -> TreeInner<K, S> {
+        let sorter = self.sorter;
+        let nodes = self
+            .nodes
+            .into_nodes()
+            .into_vec()
+            .into_iter()
+            .map(func)
+            .collect();
+        let nodes = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
         TreeInner { nodes, sorter }
     }
 }
 
-
 impl<S, H> TreeInner<H, S> {
-    
     /// # Examples
     ///
     ///```
@@ -787,21 +757,27 @@ impl<S, H> TreeInner<H, S> {
     }
 }
 
+impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
+    pub fn into_tree<T: Aabb<Num = N>>(self, bots: TreePin<&mut [T]>) -> TreeInner<Node<T>, S> {
+        let mut last = Some(bots);
+        self.node_map(|x| {
+            let (range, rest) = last.take().unwrap().split_at_mut(x.range);
+            last = Some(rest);
+            Node {
+                range,
+                cont: x.cont,
+                div: x.div,
+            }
+        })
+    }
+}
 impl<'a, T: Aabb + 'a, S: Sorter> TreeInner<Node<'a, T>, S> {
-    pub fn into_node_data(self) -> NodeDataCollection<T::Num> {
-        NodeDataCollection {
-            inner: self
-                .nodes
-                .into_nodes()
-                .into_vec()
-                .into_iter()
-                .map(|x| NodeData {
-                    range: x.range.len(),
-                    cont: x.cont,
-                    div: x.div,
-                })
-                .collect(),
-        }
+    pub fn into_node_data_tree(self) -> TreeInner<NodeData<T::Num>, S> {
+        self.node_map(|x| NodeData {
+            range: x.range.len(),
+            cont: x.cont,
+            div: x.div,
+        })
     }
 }
 

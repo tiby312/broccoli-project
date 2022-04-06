@@ -15,4 +15,3 @@ unsafe impl<N: Num, T> TrustedAabb for BBox<N, T> {}
 unsafe impl<N: Num> TrustedAabb for Rect<N> {}
 unsafe impl<T: TrustedAabb> TrustedAabb for &T {}
 unsafe impl<T: TrustedAabb> TrustedAabb for &mut T {}
-
