@@ -3,8 +3,6 @@ use serde::{Deserialize, Serialize};
 use shogo::utils;
 use wasm_bindgen::{prelude::*, JsCast};
 
-use axgeom::*;
-
 mod demos;
 mod support;
 
