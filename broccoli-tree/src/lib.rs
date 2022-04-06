@@ -757,11 +757,27 @@ impl<S, H> TreeInner<H, S> {
     }
 }
 
-impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
-    pub fn subdivide<T:Aabb<Num=N>>(self,bots:&mut [T])->(TreeInner<NodeData<N>,S>,TreeInner<NodeData<N>,S>){
-        unimplemented!();
+impl<N: Num> TreeInner<NodeData<N>, DefaultSorter> {
+    //TODO use this in multirect demo
+    pub fn subdivide<T:Aabb<Num=N>,A:Axis>(self,bots:&mut [T],div:N,axis:A)->[(&mut [T],TreeInner<NodeData<N>,DefaultSorter>);3]
+    {
+        
+        let binned=oned::bin_middle_left_right(axis, &div, bots);
+
+        let tree_left=crate::new(binned.left).into_node_data_tree();
+        let tree_mid=crate::new(binned.middle).into_node_data_tree();
+        let tree_right=crate::new(binned.right).into_node_data_tree();
+        
+        [
+            (binned.left,tree_left),
+            (binned.middle,tree_mid),
+            (binned.right,tree_right) 
+        ]
     }
+}
+impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
     
+
     pub fn into_tree<T: Aabb<Num = N>>(self, bots: TreePin<&mut [T]>) -> TreeInner<Node<T>, S> {
         let mut last = Some(bots);
         self.node_map(|x| {
