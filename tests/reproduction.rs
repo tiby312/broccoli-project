@@ -13,11 +13,10 @@ fn knearest_repro() {
     let mut res = tree.k_nearest_mut_closure(
         vec2(627.0, 727.5),
         1,
-        (),
-        |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0.)),
-        |_, point, a| a.inner.distance_squared_to_point(point),
-        |_, point, a| (point.x - a).powi(2),
-        |_, point, a| (point.y - a).powi(2),
+        |point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0.)),
+        |point, a| a.inner.distance_squared_to_point(point),
+        |point, a| (point.x - a).powi(2),
+        |point, a| (point.y - a).powi(2),
     );
 
     assert_eq!(res.len(), 1);

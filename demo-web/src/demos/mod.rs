@@ -58,7 +58,7 @@ impl DemoIter {
             4 => Demo::new(knearest::make_demo(area, ctx)),
             5 => Demo::new(original_order::make_demo(area, ctx)),
             6 => Demo::new(raycast_debug::make_demo(area, ctx)),
-            
+
             _ => unreachable!(),
         };
         self.0 += 1;

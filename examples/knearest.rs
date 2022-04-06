@@ -23,11 +23,10 @@ fn main() {
     let mut res = tree.k_nearest_mut_closure(
         vec2(30, 30),
         2,
-        (),
-        |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),
-        |_, point, a| a.inner.distance_squared_to_point(point),
-        |_, point, a| distance_squared(point.x, a),
-        |_, point, a| distance_squared(point.y, a),
+        |point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),
+        |point, a| a.inner.distance_squared_to_point(point),
+        |point, a| distance_squared(point.x, a),
+        |point, a| distance_squared(point.y, a),
     );
 
     assert_eq!(res.len(), 2);

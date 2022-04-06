@@ -16,7 +16,7 @@ fn main() {
 
     let mut rect_collisions = Vec::new();
     tree.for_all_intersect_rect_mut(TreePin::new(&mut rect(-5, 1, -5, 1)), |_, a| {
-        rect_collisions.push(a.clone());
+        rect_collisions.push(a);
     });
 
     assert_eq!(rect_collisions.len(), 1);

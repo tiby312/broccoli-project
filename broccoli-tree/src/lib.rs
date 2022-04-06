@@ -757,61 +757,68 @@ impl<S, H> TreeInner<H, S> {
     }
 }
 
-
-
-impl<N: Num,S:Sorter> TreeInner<NodeData<N>, S> {
-
-
+impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
     ///
     /// The first tree has all elements for which the predicate returned true.
-    /// 
-    pub fn subdivide_by_fn<T:Aabb<Num=N>>(self,bots:&mut [T],func:impl Fn(&T)->bool)->[(&mut [T],TreeInner<NodeData<N>,S>);2]{
+    ///
+    pub fn subdivide_by_fn<T: Aabb<Num = N>>(
+        self,
+        bots: &mut [T],
+        func: impl Fn(&T) -> bool,
+    ) -> [(&mut [T], TreeInner<NodeData<N>, S>); 2] {
         pub fn partition_index<T, P>(data: &mut [T], predicate: P) -> usize
-        where P: Fn(&T) -> bool {
+        where
+            P: Fn(&T) -> bool,
+        {
             let len = data.len();
-            if len == 0 { return 0; }
+            if len == 0 {
+                return 0;
+            }
             let (mut l, mut r) = (0, len - 1);
             loop {
-                while l < len && predicate(&data[l]) { l += 1; }
-                while r > 0 && !predicate(&data[r]) { r -= 1; }
-                if l >= r { return l; }
+                while l < len && predicate(&data[l]) {
+                    l += 1;
+                }
+                while r > 0 && !predicate(&data[r]) {
+                    r -= 1;
+                }
+                if l >= r {
+                    return l;
+                }
                 data.swap(l, r);
             }
         }
 
-        let idx=partition_index(bots,func);
-        let (left,right)=bots.split_at_mut(idx);
+        let idx = partition_index(bots, func);
+        let (left, right) = bots.split_at_mut(idx);
 
-        let tree_left=self.sorter.build(left).into_node_data_tree();
-        let tree_right=self.sorter.build(right).into_node_data_tree();
-        
-        [
-            (left,tree_left),
-            (right,tree_right)
-        ]
+        let tree_left = self.sorter.build(left).into_node_data_tree();
+        let tree_right = self.sorter.build(right).into_node_data_tree();
 
+        [(left, tree_left), (right, tree_right)]
     }
 
     //TODO use this in multirect demo
-    pub fn subdivide_by_line<T:Aabb<Num=N>,A:Axis>(self,bots:&mut [T],div:N,axis:A)->[(&mut [T],TreeInner<NodeData<N>,S>);3]
-    {
-        
-        let binned=oned::bin_middle_left_right(axis, &div, bots);
+    pub fn subdivide_by_line<T: Aabb<Num = N>, A: Axis>(
+        self,
+        bots: &mut [T],
+        div: N,
+        axis: A,
+    ) -> [(&mut [T], TreeInner<NodeData<N>, S>); 3] {
+        let binned = oned::bin_middle_left_right(axis, &div, bots);
 
-        let tree_left=self.sorter.build(binned.left).into_node_data_tree();
-        let tree_mid=self.sorter.build(binned.middle).into_node_data_tree();
-        let tree_right=self.sorter.build(binned.right).into_node_data_tree();
-        
+        let tree_left = self.sorter.build(binned.left).into_node_data_tree();
+        let tree_mid = self.sorter.build(binned.middle).into_node_data_tree();
+        let tree_right = self.sorter.build(binned.right).into_node_data_tree();
+
         [
-            (binned.left,tree_left),
-            (binned.middle,tree_mid),
-            (binned.right,tree_right) 
+            (binned.left, tree_left),
+            (binned.middle, tree_mid),
+            (binned.right, tree_right),
         ]
     }
 }
 impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
-    
-
     pub fn into_tree<T: Aabb<Num = N>>(self, bots: TreePin<&mut [T]>) -> TreeInner<Node<T>, S> {
         let mut last = Some(bots);
         self.node_map(|x| {

@@ -115,15 +115,14 @@ pub trait KnearestApi<T: Aabb> {
         self.k_nearest_mut(point, num, DefaultKnearest)
     }
 
-    fn k_nearest_mut_closure<Acc>(
+    fn k_nearest_mut_closure(
         &mut self,
         point: Vec2<T::Num>,
         num: usize,
-        acc: Acc,
-        broad: impl FnMut(&mut Acc, Vec2<T::Num>, TreePin<&mut T>) -> Option<T::Num>,
-        fine: impl FnMut(&mut Acc, Vec2<T::Num>, TreePin<&mut T>) -> T::Num,
-        xline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-        yline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+        broad: impl FnMut(Vec2<T::Num>, TreePin<&mut T>) -> Option<T::Num>,
+        fine: impl FnMut(Vec2<T::Num>, TreePin<&mut T>) -> T::Num,
+        xline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
+        yline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
     ) -> KResult<T> {
         ///Construct an object that implements [`Knearest`] from closures.
         ///We pass the tree so that we can infer the type of `T`.
@@ -146,20 +145,19 @@ pub trait KnearestApi<T: Aabb> {
         /// the `fine` or `broad` functions.
         ///
         ///Container of closures that implements [`Knearest`]
-        pub struct KnearestClosure<Acc, B, C, D, E> {
-            pub acc: Acc,
+        pub struct KnearestClosure<B, C, D, E> {
             pub broad: B,
             pub fine: C,
             pub xline: D,
             pub yline: E,
         }
 
-        impl<'a, T: Aabb, Acc, B, C, D, E> Knearest<T> for KnearestClosure<Acc, B, C, D, E>
+        impl<'a, T: Aabb, B, C, D, E> Knearest<T> for KnearestClosure< B, C, D, E>
         where
-            B: FnMut(&mut Acc, Vec2<T::Num>, TreePin<&mut T>) -> Option<T::Num>,
-            C: FnMut(&mut Acc, Vec2<T::Num>, TreePin<&mut T>) -> T::Num,
-            D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-            E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
+            B: FnMut( Vec2<T::Num>, TreePin<&mut T>) -> Option<T::Num>,
+            C: FnMut( Vec2<T::Num>, TreePin<&mut T>) -> T::Num,
+            D: FnMut( Vec2<T::Num>, T::Num) -> T::Num,
+            E: FnMut( Vec2<T::Num>, T::Num) -> T::Num,
         {
             fn distance_to_aaline<A: Axis>(
                 &mut self,
@@ -168,9 +166,9 @@ pub trait KnearestApi<T: Aabb> {
                 val: T::Num,
             ) -> T::Num {
                 if axis.is_xaxis() {
-                    (self.xline)(&mut self.acc, point, val)
+                    (self.xline)(point, val)
                 } else {
-                    (self.yline)(&mut self.acc, point, val)
+                    (self.yline)( point, val)
                 }
             }
 
@@ -179,16 +177,15 @@ pub trait KnearestApi<T: Aabb> {
                 point: Vec2<T::Num>,
                 rect: TreePin<&mut T>,
             ) -> Option<T::Num> {
-                (self.broad)(&mut self.acc, point, rect)
+                (self.broad)( point, rect)
             }
 
             fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: TreePin<&mut T>) -> T::Num {
-                (self.fine)(&mut self.acc, point, bot)
+                (self.fine)( point, bot)
             }
         }
 
         let a = KnearestClosure {
-            acc,
             broad,
             fine,
             xline,
