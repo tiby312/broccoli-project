@@ -344,6 +344,9 @@ where
     TreeInner::build_par(DefaultSorter, bots)
 }
 
+///
+/// Abstract over containers that produce `&mut [T]`
+///
 pub trait Container {
     type T;
     fn as_mut(&mut self) -> &mut [Self::T];
@@ -368,6 +371,9 @@ impl<T> Container for Box<[T]> {
     }
 }
 
+///
+/// Owned version of [`Tree`]
+///
 pub struct TreeOwned<C: Container, S>
 where
     C::T: Aabb,
@@ -446,6 +452,9 @@ where
     }
 }
 
+///
+/// The main tree struct
+///
 #[derive(Clone)]
 pub struct TreeInner<N, S> {
     total_num_elem: usize,

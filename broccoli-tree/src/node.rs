@@ -1,7 +1,6 @@
-///
-/// Tree Build blocks
-///
-///
+//!
+//! Tree Build blocks
+//!
 use crate::*;
 
 pub use axgeom::Range;

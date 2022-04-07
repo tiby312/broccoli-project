@@ -10,12 +10,6 @@
 //! - `(Rect<N>,T)` Direct
 //! - `&mut (Rect<N>,T)` Indirect
 //!
-//! ### There are so many Tree types which one do I use?
-//!
-//! The [`container`] module lists the tree types and they are all described there, but in general
-//! use [`Tree`] unless you want
-//! to use functions like [`collect_colliding_pairs`](crate::container::TreeInd::collect_colliding_pairs).
-//! In which case use [`TreeInd`](crate::container::TreeInd).
 //!
 //! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
 //!

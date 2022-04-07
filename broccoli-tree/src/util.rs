@@ -1,6 +1,6 @@
-///
-/// Utility functions
-///
+//!
+//! Utility functions
+//!
 use super::*;
 
 use core::cmp::Ordering;
