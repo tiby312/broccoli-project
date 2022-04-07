@@ -1,3 +1,7 @@
+///
+/// Tree Build blocks
+///
+///
 use crate::*;
 
 pub use axgeom::Range;
@@ -10,16 +14,9 @@ pub use axgeom::Rect;
 pub trait Num: PartialOrd + Copy + Default + std::fmt::Debug {}
 impl<T> Num for T where T: PartialOrd + Copy + Default + std::fmt::Debug {}
 
+///
 /// Trait to signify that this object has an axis aligned bounding box.
 ///
-/// # Safety
-///
-/// Multiple calls to [`Aabb::get()`] must return a aabb with the same value.
-/// This is hard for the user not to do since the user
-/// does not have `&mut self`,
-/// but it is still possible through the use of static objects or `RefCell` / `Mutex`, etc.
-/// Using these type of methods the user could make different calls to get()
-/// return different aabbs.
 pub trait Aabb {
     type Num: Num;
     fn get(&self) -> &Rect<Self::Num>;

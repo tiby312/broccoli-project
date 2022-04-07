@@ -82,7 +82,7 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
                 None => {}
             }
         }
-        rect_recurse(axgeom::XAXIS, self.vistr_mut(), rect, &mut closure);
+        rect_recurse(default_axis(), self.vistr_mut(), rect, &mut closure);
     }
 
     fn for_all_in_rect_mut<K: Aabb<Num = T::Num>>(
@@ -90,7 +90,7 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
         rect: TreePin<&mut K>,
         mut closure: impl FnMut(TreePin<&mut K>, TreePin<&'b mut T>),
     ) {
-        rect_recurse(axgeom::XAXIS, self.vistr_mut(), rect, &mut |r, a| {
+        rect_recurse(default_axis(), self.vistr_mut(), rect, &mut |r, a| {
             if r.get().contains_rect(a.get()) {
                 closure(r, a);
             }
@@ -102,7 +102,7 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
         rect: TreePin<&mut K>,
         mut closure: impl FnMut(TreePin<&mut K>, TreePin<&'b mut T>),
     ) {
-        rect_recurse(axgeom::XAXIS, self.vistr_mut(), rect, &mut |r, a| {
+        rect_recurse(default_axis(), self.vistr_mut(), rect, &mut |r, a| {
             if r.get().get_intersect_rect(a.get()).is_some() {
                 closure(r, a);
             }

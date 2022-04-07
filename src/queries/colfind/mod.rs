@@ -97,7 +97,7 @@ impl<'a, T: Aabb> CollisionApi<T> for SweepAndPrune<'a, T> {
             let bots = TreePin::new(bots);
             oned::find_2d(&mut prevec, axis, bots, &mut func);
         }
-        query_sweep_mut(axgeom::XAXIS, self.inner, func)
+        query_sweep_mut(default_axis(), self.inner, func)
     }
 }
 
