@@ -70,7 +70,7 @@ impl Record {
         let nosort = if do_all || num_bots <= NO_SORT_MAX {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| NoSorter.build(&mut bots));
+            let (mut tree, t1) = bench_closure_ret(|| TreeInner::build(NoSorter, &mut bots));
             let t2 = bench_closure(|| {
                 tree.colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
@@ -86,7 +86,7 @@ impl Record {
         let nosort_par = if do_all || num_bots <= NO_SORT_PAR_MAX {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| NoSorter.build_par(&mut bots));
+            let (mut tree, t1) = bench_closure_ret(|| TreeInner::build_par(NoSorter, &mut bots));
             let t2 = bench_closure(|| {
                 tree.colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();

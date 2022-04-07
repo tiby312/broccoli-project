@@ -174,7 +174,7 @@ fn handle_num_bots<T: TestTrait>(fb: &mut FigureBuilder, prefix: &str, grow: f64
     let mut rects = Vec::new();
 
     for num_bots in n_iter(0, 30_000).rev() {
-        let r = CompleteTestResult::new(num_bots, grow, val.clone());
+        let r = CompleteTestResult::new(num_bots, grow, val);
         rects.push((num_bots as f64, r));
     }
 

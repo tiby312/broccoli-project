@@ -53,7 +53,7 @@ impl Record {
         let c4 = datanum::datanum_test(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
-            let _tree = NoSorter.build(&mut bots).colliding_pairs(|a, b| {
+            let _tree = TreeInner::build(NoSorter, &mut bots).colliding_pairs(|a, b| {
                 **a.unpack_inner() += 2;
                 **b.unpack_inner() += 2;
             });
@@ -144,7 +144,6 @@ pub fn handle_theory(fb: &mut FigureBuilder) {
         xname: "Grow",
         yname: "Number of Comparisons",
         plots: grow_iter(MEGA_DENSE_GROW, DENSE_GROW)
-            .map(|x| x)
             .map(|grow| (grow as f64, Record::new(grow, 3000, false, true))),
         stop_values: &[],
     });

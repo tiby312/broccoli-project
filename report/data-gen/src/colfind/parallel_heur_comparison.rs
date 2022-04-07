@@ -52,10 +52,12 @@ fn test3(
     query_height: usize,
 ) -> (f64, f64) {
     let (tree, construction_time) = bench_closure_ret(|| {
-        MyBuild {
-            height_seq_fallback: rebal_height,
-        }
-        .build_par(bots)
+        TreeInner::build_par(
+            MyBuild {
+                height_seq_fallback: rebal_height,
+            },
+            bots,
+        )
     });
 
     let (tree, query_time) = bench_closure_ret(|| {

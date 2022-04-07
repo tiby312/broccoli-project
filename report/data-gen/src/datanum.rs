@@ -68,7 +68,7 @@ impl Maker {
     pub fn reset(&self) {
         unsafe { COUNTER = 0 }
     }
-    pub fn from_rect<I: Num>(&self, rect: Rect<I>) -> Rect<Dnum<I>> {
+    pub fn build_from_rect<I: Num>(&self, rect: Rect<I>) -> Rect<Dnum<I>> {
         let ((a, b), (c, d)) = rect.get();
         Rect::new(
             Dnum(a, PhantomData),

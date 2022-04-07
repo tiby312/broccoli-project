@@ -5,11 +5,21 @@ use broccoli::{
     tree::{node::Aabb, treepin::HasInner, Tree},
 };
 
+///
+/// # Safety
+///
+/// Multiple calls must return the same results
+///
 pub unsafe trait TrustedCollisionPairs {
     type T;
     fn for_every_pair(&mut self, func: impl FnMut(&mut Self::T, &mut Self::T));
 }
 
+///
+/// # Safety
+///
+/// Multiple calls must return the same results
+///
 pub unsafe trait TrustedIterAll {
     type T;
     fn for_every(&mut self, func: impl FnMut(&mut Self::T));

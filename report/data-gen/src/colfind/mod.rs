@@ -1,6 +1,6 @@
 use super::*;
 
-pub mod colfind;
+pub mod colfind_plot;
 pub mod construction_vs_query;
 pub mod float_vs_integer;
 pub mod height_heur_comparison;

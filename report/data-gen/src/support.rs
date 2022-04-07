@@ -1,5 +1,4 @@
 use super::*;
-use std;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -262,17 +261,14 @@ fn abspiral_f64(grow: f64) -> impl Iterator<Item = Rect<f64>> {
     let s = dists::fib_iter([0.0, 0.0], grow);
 
     //let s = dists::spiral_iter([0.0, 0.0], 17.0, grow);
-    s.map(move |a| {
-        let r = axgeom::Rect::from_point(a.into(), vec2same(RADIUS as f64));
-        r
-    })
+    s.map(move |a| axgeom::Rect::from_point(a.into(), vec2same(RADIUS as f64)))
 }
 
-pub fn make_tree_ref_ind<'a, N: Num, T>(
-    bots: &'a mut [T],
+pub fn make_tree_ref_ind<N: Num, T>(
+    bots: &mut [T],
     grow: f64,
     mut func: impl FnMut(RectConv) -> Rect<N>,
-) -> Box<[BBox<N, &'a mut T>]> {
+) -> Box<[BBox<N, &mut T>]> {
     let mut k = abspiral_f64(grow);
     broccoli::tree::create_ind(bots, |_| func(RectConv(k.next().unwrap())))
 }
@@ -287,10 +283,10 @@ impl RectConv {
         self.0
     }
     pub fn to_isize_dnum(self, maker: &datanum::Maker) -> Rect<datanum::Dnum<isize>> {
-        maker.from_rect(self.0.inner_as())
+        maker.build_from_rect(self.0.inner_as())
     }
     pub fn to_f32dnum(self, maker: &datanum::Maker) -> Rect<datanum::Dnum<f32>> {
-        maker.from_rect(self.0.inner_as())
+        maker.build_from_rect(self.0.inner_as())
     }
 
     pub fn to_i32(self) -> Rect<i32> {
@@ -306,7 +302,7 @@ pub fn compute_border<T: Aabb>(bb: &[T]) -> Option<Rect<T::Num>> {
     let (first, rest) = bb.split_first()?;
     let mut r = *first.get();
     for a in rest.iter() {
-        r.grow_to_fit(&a.get());
+        r.grow_to_fit(a.get());
     }
     Some(r)
 }
@@ -317,7 +313,7 @@ pub fn convert_dist<T, T2, X>(
     a.into_iter().map(|a| bbox(func(a.rect), a.inner)).collect()
 }
 
-pub fn distribute_iter<'a, T, X>(
+pub fn distribute_iter<T, X>(
     grow: f64,
     i: impl ExactSizeIterator<Item = T> + core::iter::FusedIterator,
     mut func: impl FnMut(RectConv) -> Rect<X>,
@@ -328,11 +324,11 @@ pub fn distribute_iter<'a, T, X>(
         .collect()
 }
 
-pub fn distribute<'a, T, X>(
+pub fn distribute<T, X>(
     grow: f64,
-    inner: &'a mut [T],
+    inner: &mut [T],
     mut func: impl FnMut(RectConv) -> Rect<X>,
-) -> Vec<BBox<X, &'a mut T>> {
+) -> Vec<BBox<X, &mut T>> {
     abspiral_f64(grow)
         .zip(inner.iter_mut())
         .map(|(a, b)| bbox(func(RectConv(a)), b))

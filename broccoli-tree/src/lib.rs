@@ -317,196 +317,6 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     fn height_seq_fallback(&self) -> usize {
         5
     }
-
-    fn build_owned<C: Container<T = T>>(self, mut bots: C) -> TreeOwned<C, S> {
-        let j = bots.as_mut();
-        let length = j.len();
-
-        let t = self.build(j);
-        let data = t.into_node_data_tree();
-        TreeOwned {
-            inner: bots,
-            nodes: data,
-            length,
-        }
-    }
-    fn build_owned_par<C: Container<T = T>>(self, mut bots: C) -> TreeOwned<C, S>
-    where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        let j = bots.as_mut();
-        let length = j.len();
-
-        let t = self.build_par(j);
-        let data = t.into_node_data_tree();
-        TreeOwned {
-            inner: bots,
-            nodes: data,
-            length,
-        }
-    }
-    fn build(self, bots: &mut [T]) -> TreeInner<Node<T>, S> {
-        let total_num_elem = bots.len();
-        let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = start_build(num_level, bots, self.sorter());
-        vistr.recurse_seq(&mut buffer);
-        TreeInner {
-            nodes: buffer,
-            sorter: self.sorter(),
-            total_num_elem,
-        }
-    }
-    fn build_par(self, bots: &mut [T]) -> TreeInner<Node<T>, S>
-    where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        pub fn recurse_par<'a, T: Aabb, S: Sorter>(
-            vistr: TreeBister<'a, T, S>,
-            height_seq_fallback: usize,
-            buffer: &mut Vec<Node<'a, T>>,
-        ) where
-            T: Send,
-            T::Num: Send,
-        {
-            if vistr.get_height() <= height_seq_fallback {
-                vistr.recurse_seq(buffer);
-            } else {
-                let Res { node, rest } = vistr.build_and_next();
-
-                if let Some([left, right]) = rest {
-                    let (_, mut a) = rayon_core::join(
-                        || {
-                            buffer.push(node.finish());
-                            recurse_par(left, height_seq_fallback, buffer);
-                        },
-                        || {
-                            let mut f = vec![];
-                            recurse_par(right, height_seq_fallback, &mut f);
-                            f
-                        },
-                    );
-
-                    buffer.append(&mut a);
-                }
-            }
-        }
-
-        let total_num_elem = bots.len();
-        let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = start_build(num_level, bots, self.sorter());
-        recurse_par(vistr, self.height_seq_fallback(), &mut buffer);
-
-        TreeInner {
-            nodes: buffer,
-            sorter: self.sorter(),
-            total_num_elem,
-        }
-    }
-
-    fn build_splitter<SS: Splitter>(
-        self,
-        bots: &mut [T],
-        splitter: SS,
-    ) -> (TreeInner<Node<T>, S>, SS) {
-        pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter, SS: Splitter>(
-            vistr: TreeBister<'a, T, S>,
-            res: &mut Vec<Node<'a, T>>,
-            splitter: SS,
-        ) -> SS {
-            let Res { node, rest } = vistr.build_and_next();
-            res.push(node.finish());
-            if let Some([left, right]) = rest {
-                let (s1, s2) = splitter.div();
-
-                let s1 = recurse_seq_splitter(left, res, s1);
-                let s2 = recurse_seq_splitter(right, res, s2);
-
-                s1.add(s2)
-            } else {
-                splitter
-            }
-        }
-        let total_num_elem = bots.len();
-        let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = start_build(num_level, bots, self.sorter());
-
-        let splitter = recurse_seq_splitter(vistr, &mut buffer, splitter);
-
-        let t = TreeInner {
-            nodes: buffer,
-            sorter: self.sorter(),
-            total_num_elem,
-        };
-        (t, splitter)
-    }
-
-    fn build_splitter_par<SS: Splitter + Send>(
-        self,
-        bots: &mut [T],
-        splitter: SS,
-    ) -> (TreeInner<Node<T>, S>, SS)
-    where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        pub fn recurse_par_splitter<'a, T: Aabb, S: Sorter, SS: Splitter + Send>(
-            vistr: TreeBister<'a, T, S>,
-            height_seq_fallback: usize,
-            buffer: &mut Vec<Node<'a, T>>,
-            splitter: SS,
-        ) -> SS
-        where
-            T: Send,
-            T::Num: Send,
-        {
-            if vistr.get_height() <= height_seq_fallback {
-                vistr.recurse_seq(buffer);
-                splitter
-            } else {
-                let Res { node, rest } = vistr.build_and_next();
-
-                if let Some([left, right]) = rest {
-                    let (s1, s2) = splitter.div();
-
-                    let (s1, (mut a, s2)) = rayon_core::join(
-                        || {
-                            buffer.push(node.finish());
-                            recurse_par_splitter(left, height_seq_fallback, buffer, s1)
-                        },
-                        || {
-                            let mut f = vec![];
-                            let v = recurse_par_splitter(right, height_seq_fallback, &mut f, s2);
-                            (f, v)
-                        },
-                    );
-
-                    buffer.append(&mut a);
-                    s1.add(s2)
-                } else {
-                    splitter
-                }
-            }
-        }
-        let total_num_elem = bots.len();
-        let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = start_build(num_level, bots, self.sorter());
-
-        let splitter =
-            recurse_par_splitter(vistr, self.height_seq_fallback(), &mut buffer, splitter);
-
-        let t = TreeInner {
-            nodes: buffer,
-            sorter: self.sorter(),
-            total_num_elem,
-        };
-        (t, splitter)
-    }
 }
 
 impl<T: Aabb, S: Sorter> TreeBuild<T, S> for S {
@@ -525,7 +335,7 @@ impl<T: Aabb, S: Sorter> TreeBuild<T, S> for S {
 ///
 ///```
 pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
-    DefaultSorter.build(bots)
+    TreeInner::build(DefaultSorter, bots)
 }
 
 pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
@@ -533,7 +343,7 @@ where
     T: Send + Sync,
     T::Num: Send + Sync,
 {
-    DefaultSorter.build_par(bots)
+    TreeInner::build_par(DefaultSorter, bots)
 }
 
 pub trait Container {
@@ -574,7 +384,7 @@ where
     C::T: Aabb,
 {
     pub fn new(bots: C) -> Self {
-        DefaultSorter.build_owned(bots)
+        TreeOwned::build_owned(DefaultSorter, bots)
     }
 }
 
@@ -582,6 +392,36 @@ impl<C: Container, S: Sorter> TreeOwned<C, S>
 where
     C::T: Aabb,
 {
+    pub fn build_owned(sorter: S, mut bots: C) -> TreeOwned<C, S> {
+        let j = bots.as_mut();
+        let length = j.len();
+
+        let t = TreeInner::build(sorter, j);
+        let data = t.into_node_data_tree();
+        TreeOwned {
+            inner: bots,
+            nodes: data,
+            length,
+        }
+    }
+
+    pub fn build_owned_par(sorter: S, mut bots: C) -> TreeOwned<C, S>
+    where
+        C::T: Send + Sync,
+        <C::T as Aabb>::Num: Send + Sync,
+    {
+        let j = bots.as_mut();
+        let length = j.len();
+
+        let t = TreeInner::build_par(sorter, j);
+        let data = t.into_node_data_tree();
+        TreeOwned {
+            inner: bots,
+            nodes: data,
+            length,
+        }
+    }
+
     pub fn as_tree(&mut self) -> TreeInner<Node<C::T>, S> {
         let j = self.inner.as_mut();
         assert_eq!(j.len(), self.length);
@@ -623,11 +463,11 @@ impl<S, H: node::HasElem> TreeInner<H, S> {
     }
 }
 
-fn as_node_tree<N>(vec: &Vec<N>) -> compt::dfs_order::CompleteTree<N, compt::dfs_order::PreOrder> {
+fn as_node_tree<N>(vec: &[N]) -> compt::dfs_order::CompleteTree<N, compt::dfs_order::PreOrder> {
     compt::dfs_order::CompleteTree::from_preorder(vec).unwrap()
 }
 fn as_node_tree_mut<N>(
-    vec: &mut Vec<N>,
+    vec: &mut [N],
 ) -> compt::dfs_order::CompleteTreeMut<N, compt::dfs_order::PreOrder> {
     compt::dfs_order::CompleteTreeMut::from_preorder_mut(vec).unwrap()
 }
@@ -784,16 +624,6 @@ impl<S, H> TreeInner<H, S> {
     {
         self.sorter
     }
-    /*
-    pub fn new(sorter: S, a: Vec<H>) -> TreeInner<H, S> {
-        let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap();
-
-        TreeInner {
-            nodes: inner,
-            sorter,
-        }
-    }
-    */
 }
 
 impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
@@ -814,6 +644,167 @@ impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
     }
 }
 impl<'a, T: Aabb + 'a, S: Sorter> TreeInner<Node<'a, T>, S> {
+    pub fn build(tb: impl TreeBuild<T, S>, bots: &'a mut [T]) -> TreeInner<Node<'a, T>, S> {
+        let total_num_elem = bots.len();
+        let num_level = tb.num_level(bots.len()); //num_level::default(bots.len());
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
+        let vistr = start_build(num_level, bots, tb.sorter());
+        vistr.recurse_seq(&mut buffer);
+        TreeInner {
+            nodes: buffer,
+            sorter: tb.sorter(),
+            total_num_elem,
+        }
+    }
+    pub fn build_par(tb: impl TreeBuild<T, S>, bots: &'a mut [T]) -> TreeInner<Node<'a, T>, S>
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        pub fn recurse_par<'a, T: Aabb, S: Sorter>(
+            vistr: TreeBister<'a, T, S>,
+            height_seq_fallback: usize,
+            buffer: &mut Vec<Node<'a, T>>,
+        ) where
+            T: Send,
+            T::Num: Send,
+        {
+            if vistr.get_height() <= height_seq_fallback {
+                vistr.recurse_seq(buffer);
+            } else {
+                let Res { node, rest } = vistr.build_and_next();
+
+                if let Some([left, right]) = rest {
+                    let (_, mut a) = rayon_core::join(
+                        || {
+                            buffer.push(node.finish());
+                            recurse_par(left, height_seq_fallback, buffer);
+                        },
+                        || {
+                            let mut f = vec![];
+                            recurse_par(right, height_seq_fallback, &mut f);
+                            f
+                        },
+                    );
+
+                    buffer.append(&mut a);
+                }
+            }
+        }
+
+        let total_num_elem = bots.len();
+        let num_level = tb.num_level(bots.len()); //num_level::default(bots.len());
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
+        let vistr = start_build(num_level, bots, tb.sorter());
+        recurse_par(vistr, tb.height_seq_fallback(), &mut buffer);
+
+        TreeInner {
+            nodes: buffer,
+            sorter: tb.sorter(),
+            total_num_elem,
+        }
+    }
+
+    pub fn build_splitter<SS: Splitter>(
+        tb: impl TreeBuild<T, S>,
+        bots: &'a mut [T],
+        splitter: SS,
+    ) -> (TreeInner<Node<'a, T>, S>, SS) {
+        pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter, SS: Splitter>(
+            vistr: TreeBister<'a, T, S>,
+            res: &mut Vec<Node<'a, T>>,
+            splitter: SS,
+        ) -> SS {
+            let Res { node, rest } = vistr.build_and_next();
+            res.push(node.finish());
+            if let Some([left, right]) = rest {
+                let (s1, s2) = splitter.div();
+
+                let s1 = recurse_seq_splitter(left, res, s1);
+                let s2 = recurse_seq_splitter(right, res, s2);
+
+                s1.add(s2)
+            } else {
+                splitter
+            }
+        }
+        let total_num_elem = bots.len();
+        let num_level = tb.num_level(bots.len()); //num_level::default(bots.len());
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
+        let vistr = start_build(num_level, bots, tb.sorter());
+
+        let splitter = recurse_seq_splitter(vistr, &mut buffer, splitter);
+
+        let t = TreeInner {
+            nodes: buffer,
+            sorter: tb.sorter(),
+            total_num_elem,
+        };
+        (t, splitter)
+    }
+
+    pub fn build_splitter_par<SS: Splitter + Send>(
+        tb: impl TreeBuild<T, S>,
+        bots: &'a mut [T],
+        splitter: SS,
+    ) -> (TreeInner<Node<'a, T>, S>, SS)
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        pub fn recurse_par_splitter<'a, T: Aabb, S: Sorter, SS: Splitter + Send>(
+            vistr: TreeBister<'a, T, S>,
+            height_seq_fallback: usize,
+            buffer: &mut Vec<Node<'a, T>>,
+            splitter: SS,
+        ) -> SS
+        where
+            T: Send,
+            T::Num: Send,
+        {
+            if vistr.get_height() <= height_seq_fallback {
+                vistr.recurse_seq(buffer);
+                splitter
+            } else {
+                let Res { node, rest } = vistr.build_and_next();
+
+                if let Some([left, right]) = rest {
+                    let (s1, s2) = splitter.div();
+
+                    let (s1, (mut a, s2)) = rayon_core::join(
+                        || {
+                            buffer.push(node.finish());
+                            recurse_par_splitter(left, height_seq_fallback, buffer, s1)
+                        },
+                        || {
+                            let mut f = vec![];
+                            let v = recurse_par_splitter(right, height_seq_fallback, &mut f, s2);
+                            (f, v)
+                        },
+                    );
+
+                    buffer.append(&mut a);
+                    s1.add(s2)
+                } else {
+                    splitter
+                }
+            }
+        }
+        let total_num_elem = bots.len();
+        let num_level = tb.num_level(bots.len()); //num_level::default(bots.len());
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
+        let vistr = start_build(num_level, bots, tb.sorter());
+
+        let splitter = recurse_par_splitter(vistr, tb.height_seq_fallback(), &mut buffer, splitter);
+
+        let t = TreeInner {
+            nodes: buffer,
+            sorter: tb.sorter(),
+            total_num_elem,
+        };
+        (t, splitter)
+    }
+
     pub fn into_node_data_tree(self) -> TreeInner<NodeData<T::Num>, S> {
         self.node_map(|x| NodeData {
             range: x.range.len(),

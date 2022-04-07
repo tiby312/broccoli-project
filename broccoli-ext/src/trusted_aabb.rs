@@ -7,7 +7,11 @@ use broccoli::tree::node::*;
 pub struct RectIntersectErr;
 
 ///
+///
+/// # Safety
+///
 /// Aabb::get() guarenteed to return the same value while pinned by `TreePin`.
+///
 ///
 pub unsafe trait TrustedAabb: Aabb {}
 

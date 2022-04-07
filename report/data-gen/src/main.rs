@@ -126,8 +126,8 @@ impl FigureBuilder {
                                 true
                             }
                         })
-                        .map(move |(secondx, foo)| {
-                            let map = MySerialize::new(foo);
+                        .map(move |(secondx, ba)| {
+                            let map = MySerialize::new(ba);
                             let num: f64 = match &map.as_object()[plot_name] {
                                 serde_json::Value::Number(val) => val.as_f64().unwrap(),
                                 _ => {
@@ -253,7 +253,7 @@ fn main() {
             let mut fb = FigureBuilder::new(folder);
 
             run_test!(&mut fb, spiral::handle);
-            run_test!(&mut fb, colfind::colfind::handle_theory);
+            run_test!(&mut fb, colfind::colfind_plot::handle_theory);
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
         }
@@ -268,7 +268,7 @@ fn main() {
 
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
 
-            run_test!(&mut fb, colfind::colfind::handle_bench);
+            run_test!(&mut fb, colfind::colfind_plot::handle_bench);
             run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
             run_test!(&mut fb, colfind::float_vs_integer::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
