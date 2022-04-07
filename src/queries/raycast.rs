@@ -198,7 +198,7 @@ impl<'a, T: Aabb> RaycastApi<T> for Tree<'a, T> {
             fn recc<'b: 'a, A: Axis>(
                 &mut self,
                 axis: A,
-                stuff: LevelIter<VistrMut<'a, Node<'b, T>>>,
+                stuff: LevelIter<VistrMutPin<'a, Node<'b, T>>>,
             ) {
                 let ((_depth, nn), rest) = stuff.next();
                 let handle_curr = if let Some([left, right]) = rest {

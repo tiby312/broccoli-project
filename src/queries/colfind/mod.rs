@@ -296,12 +296,12 @@ impl<'a, T: Aabb, S: NodeHandler> CollidingPairsBuilder<'a, T, S> for TreeInner<
 
 /// The main primitive
 pub struct CollVis<'a, 'b, T: Aabb, N> {
-    vistr: VistrMut<'b, Node<'a, T>>,
+    vistr: VistrMutPin<'b, Node<'a, T>>,
     is_xaxis: bool,
     handler: N,
 }
 impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
-    pub(crate) fn new(vistr: VistrMut<'b, Node<'a, T>>, is_xaxis: bool, handler: N) -> Self {
+    pub(crate) fn new(vistr: VistrMutPin<'b, Node<'a, T>>, is_xaxis: bool, handler: N) -> Self {
         CollVis {
             vistr,
             is_xaxis,
@@ -322,7 +322,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
 
         fn collide_self<A: axgeom::Axis, T: crate::Aabb>(
             this_axis: A,
-            v: VistrMut<Node<T>>,
+            v: VistrMutPin<Node<T>>,
             data: &mut Recurser<impl NodeHandler, impl CollisionHandler<T>>,
         ) {
             let (nn, rest) = v.next();
@@ -354,7 +354,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
                     >(
                         &mut self,
                         this_axis: A,
-                        m: VistrMut<Node<T>>,
+                        m: VistrMutPin<Node<T>>,
                     ) {
                         let anchor_axis = self.anchor.axis;
                         let (mut nn, rest) = m.next();

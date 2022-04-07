@@ -144,22 +144,22 @@ mod vistr_mut {
 
     /// Tree Iterator that returns a protected mutable reference to each node.
     #[repr(transparent)]
-    pub struct VistrMut<'a, N> {
+    pub struct VistrMutPin<'a, N> {
         inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
     }
 
-    impl<'a, N> VistrMut<'a, N> {
+    impl<'a, N> VistrMutPin<'a, N> {
         #[inline(always)]
         pub(crate) fn new(
             inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
         ) -> Self {
-            VistrMut { inner }
+            VistrMutPin { inner }
         }
         /// It is safe to borrow the iterator and then produce mutable references from that
         /// as long as by the time the borrow ends, all the produced references also go away.
         #[inline(always)]
-        pub fn borrow_mut(&mut self) -> VistrMut<N> {
-            VistrMut {
+        pub fn borrow_mut(&mut self) -> VistrMutPin<N> {
+            VistrMutPin {
                 inner: self.inner.borrow_mut(),
             }
         }
@@ -180,16 +180,17 @@ mod vistr_mut {
         }
     }
 
-    impl<'a, N> compt::FixedDepthVisitor for VistrMut<'a, N> {}
+    impl<'a, N> compt::FixedDepthVisitor for VistrMutPin<'a, N> {}
 
-    impl<'a, N> Visitor for VistrMut<'a, N> {
+    impl<'a, N> Visitor for VistrMutPin<'a, N> {
         type Item = TreePin<&'a mut N>;
 
         #[inline(always)]
         fn next(self) -> (Self::Item, Option<[Self; 2]>) {
             let (nn, rest) = self.inner.next();
 
-            let k = rest.map(|[left, right]| [VistrMut { inner: left }, VistrMut { inner: right }]);
+            let k = rest
+                .map(|[left, right]| [VistrMutPin { inner: left }, VistrMutPin { inner: right }]);
 
             (TreePin::new(nn), k)
         }
@@ -205,7 +206,7 @@ mod vistr_mut {
         }
     }
 }
-pub use vistr_mut::VistrMut;
+pub use vistr_mut::VistrMutPin;
 
 /// A node in [`Tree`].
 #[repr(C)]

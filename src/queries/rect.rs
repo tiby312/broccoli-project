@@ -24,7 +24,7 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
     fn for_all_not_in_rect_mut<K: Aabb<Num = T::Num>>(
         self,
         rect: TreePin<&mut K>,
-        closure: impl FnMut(TreePin<&mut K>, TreePin<&'b mut T>),
+        mut closure: impl FnMut(TreePin<&mut K>, TreePin<&'b mut T>),
     ) {
         fn rect_recurse<
             'a,
@@ -35,10 +35,10 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
             F: FnMut(TreePin<&mut K>, TreePin<&'a mut T>),
         >(
             axis: A,
-            it: VistrMut<'a, Node<'b, T>>,
+            it: VistrMutPin<'a, Node<'b, T>>,
             mut rect: TreePin<&mut K>,
-            mut closure: F,
-        ) -> F {
+            closure: &mut F,
+        ) {
             let (nn, rest) = it.next();
 
             let NodeRef { div, range, .. } = nn.into_node_ref();
@@ -53,7 +53,7 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
                 Some([left, right]) => {
                     let div = match div {
                         Some(b) => b,
-                        None => return closure,
+                        None => return,
                     };
 
                     match rect.get().get_range(axis).contains_ext(*div) {
@@ -74,16 +74,15 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
                             rect_recurse(axis.next(), right, rect, closure)
                         }
                         core::cmp::Ordering::Equal => {
-                            let closure =
-                                rect_recurse(axis.next(), left, rect.borrow_mut(), closure);
+                            rect_recurse(axis.next(), left, rect.borrow_mut(), closure);
                             rect_recurse(axis.next(), right, rect.borrow_mut(), closure)
                         }
                     }
                 }
-                None => closure,
+                None => {}
             }
         }
-        rect_recurse(axgeom::XAXIS, self.vistr_mut(), rect, closure);
+        rect_recurse(axgeom::XAXIS, self.vistr_mut(), rect, &mut closure);
     }
 
     fn for_all_in_rect_mut<K: Aabb<Num = T::Num>>(
@@ -158,7 +157,7 @@ fn rect_recurse<
     K: Aabb<Num = T::Num>,
 >(
     this_axis: A,
-    m: VistrMut<'a, Node<T>>,
+    m: VistrMutPin<'a, Node<T>>,
     mut rect: TreePin<&mut K>,
     func: &mut F,
 ) {

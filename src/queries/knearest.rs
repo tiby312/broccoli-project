@@ -345,7 +345,7 @@ impl<'a, T: Aabb, K: Knearest<T>> Recurser<'a, T, K> {
         }
     }
 
-    fn recc<'b: 'a, A: Axis>(&mut self, axis: A, stuff: LevelIter<VistrMut<'a, Node<'b, T>>>) {
+    fn recc<'b: 'a, A: Axis>(&mut self, axis: A, stuff: LevelIter<VistrMutPin<'a, Node<'b, T>>>) {
         let ((_depth, nn), rest) = stuff.next();
         //let nn = nn.get_mut();
         let handle_node = match rest {

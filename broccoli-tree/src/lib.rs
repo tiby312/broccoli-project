@@ -617,13 +617,22 @@ pub struct TreeInner<N, S> {
 
 pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
 
-impl<S: Sorter, H: node::HasElem> TreeInner<H, S> {
+impl<S, H: node::HasElem> TreeInner<H, S> {
     pub fn iter_mut(&mut self) -> impl Iterator<Item = TreePin<&mut H::T>> {
         self.nodes.iter_mut().flat_map(|x| x.get_elems().iter_mut())
     }
 }
 
-impl<S: Sorter, H> TreeInner<H, S> {
+fn as_node_tree<N>(vec: &Vec<N>) -> compt::dfs_order::CompleteTree<N, compt::dfs_order::PreOrder> {
+    compt::dfs_order::CompleteTree::from_preorder(vec).unwrap()
+}
+fn as_node_tree_mut<N>(
+    vec: &mut Vec<N>,
+) -> compt::dfs_order::CompleteTreeMut<N, compt::dfs_order::PreOrder> {
+    compt::dfs_order::CompleteTreeMut::from_preorder_mut(vec).unwrap()
+}
+
+impl<S, H> TreeInner<H, S> {
     pub fn node_map<K>(self, func: impl FnMut(H) -> K) -> TreeInner<K, S> {
         let sorter = self.sorter;
         let nodes = self.nodes.into_iter().map(func).collect();
@@ -633,20 +642,7 @@ impl<S: Sorter, H> TreeInner<H, S> {
             total_num_elem: self.total_num_elem,
         }
     }
-}
 
-pub fn as_node_tree<N>(
-    vec: &Vec<N>,
-) -> compt::dfs_order::CompleteTree<N, compt::dfs_order::PreOrder> {
-    compt::dfs_order::CompleteTree::from_preorder(vec).unwrap()
-}
-pub fn as_node_tree_mut<N>(
-    vec: &mut Vec<N>,
-) -> compt::dfs_order::CompleteTreeMut<N, compt::dfs_order::PreOrder> {
-    compt::dfs_order::CompleteTreeMut::from_preorder_mut(vec).unwrap()
-}
-
-impl<S, H> TreeInner<H, S> {
     /// # Examples
     ///
     ///```
@@ -750,9 +746,9 @@ impl<S, H> TreeInner<H, S> {
     /// assert_eq!(bots[0].inner,1);
     ///```
     #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMut<H> {
+    pub fn vistr_mut(&mut self) -> VistrMutPin<H> {
         let tree = as_node_tree_mut(&mut self.nodes);
-        VistrMut::new(tree.vistr_mut())
+        VistrMutPin::new(tree.vistr_mut())
     }
 
     #[inline(always)]
@@ -800,67 +796,6 @@ impl<S, H> TreeInner<H, S> {
     */
 }
 
-impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
-    ///
-    /// The first tree has all elements for which the predicate returned true.
-    ///
-    pub fn subdivide_by_fn<T: Aabb<Num = N>>(
-        self,
-        bots: &mut [T],
-        func: impl Fn(&T) -> bool,
-    ) -> [(&mut [T], TreeInner<NodeData<N>, S>); 2] {
-        pub fn partition_index<T, P>(data: &mut [T], predicate: P) -> usize
-        where
-            P: Fn(&T) -> bool,
-        {
-            let len = data.len();
-            if len == 0 {
-                return 0;
-            }
-            let (mut l, mut r) = (0, len - 1);
-            loop {
-                while l < len && predicate(&data[l]) {
-                    l += 1;
-                }
-                while r > 0 && !predicate(&data[r]) {
-                    r -= 1;
-                }
-                if l >= r {
-                    return l;
-                }
-                data.swap(l, r);
-            }
-        }
-
-        let idx = partition_index(bots, func);
-        let (left, right) = bots.split_at_mut(idx);
-
-        let tree_left = self.sorter.build(left).into_node_data_tree();
-        let tree_right = self.sorter.build(right).into_node_data_tree();
-
-        [(left, tree_left), (right, tree_right)]
-    }
-
-    //TODO use this in multirect demo
-    pub fn subdivide_by_line<T: Aabb<Num = N>, A: Axis>(
-        self,
-        bots: &mut [T],
-        div: N,
-        axis: A,
-    ) -> [(&mut [T], TreeInner<NodeData<N>, S>); 3] {
-        let binned = oned::bin_middle_left_right(axis, &div, bots);
-
-        let tree_left = self.sorter.build(binned.left).into_node_data_tree();
-        let tree_mid = self.sorter.build(binned.middle).into_node_data_tree();
-        let tree_right = self.sorter.build(binned.right).into_node_data_tree();
-
-        [
-            (binned.left, tree_left),
-            (binned.middle, tree_mid),
-            (binned.right, tree_right),
-        ]
-    }
-}
 impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
     pub fn into_tree<T: Aabb<Num = N>>(self, bots: TreePin<&mut [T]>) -> TreeInner<Node<T>, S> {
         assert_eq!(bots.len(), self.total_num_elem);
