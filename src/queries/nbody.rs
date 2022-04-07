@@ -43,7 +43,6 @@ pub trait Nbody {
     fn combine_two_masses(&mut self, a: &Self::Mass, b: &Self::Mass) -> Self::Mass;
 }
 
-use compt::dfs_order::CompleteTreeContainer;
 use compt::dfs_order::PreOrder;
 use compt::dfs_order::VistrMut;
 
@@ -234,48 +233,20 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
     }
 }
 
-type TreeInner<T> = CompleteTreeContainer<T, PreOrder>;
-
-fn convert_tree_into_wrapper<T: Aabb, M: Default>(
-    tree: TreeInner<Node<T>>,
-) -> TreeInner<NodeWrapper<T, M>> {
-    let k = tree
-        .into_nodes()
-        .into_vec()
-        .into_iter()
-        .map(|node| NodeWrapper {
-            node,
-            mass: Default::default(),
-        })
-        .collect();
-
-    CompleteTreeContainer::from_preorder(k).unwrap()
-}
-fn convert_wrapper_into_tree<T: Aabb, M: Default>(
-    tree: TreeInner<NodeWrapper<T, M>>,
-) -> TreeInner<Node<T>> {
-    let nt: Vec<_> = tree
-        .into_nodes()
-        .into_vec()
-        .into_iter()
-        .map(|node| node.node)
-        .collect();
-
-    CompleteTreeContainer::from_preorder(nt).unwrap()
-}
-
 ///Perform nbody
 ///The tree is taken by value so that its nodes can be expended to include more data.
 pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
-    let mut newtree = convert_tree_into_wrapper(tree.into_inner());
+    let mut newtree = tree.node_map(|x| NodeWrapper {
+        node: x,
+        mass: Default::default(),
+    });
 
     //calculate node masses of each node.
-    build_masses2(newtree.as_tree_mut().vistr_mut(), no);
+    build_masses2(newtree.vistr_mut_raw(), no);
 
-    recc(default_axis(), newtree.as_tree_mut().vistr_mut(), no);
+    recc(default_axis(), newtree.vistr_mut_raw(), no);
 
-    apply_tree(newtree.as_tree_mut().vistr_mut(), no);
+    apply_tree(newtree.vistr_mut_raw(), no);
 
-    let tree = convert_wrapper_into_tree(newtree);
-    crate::TreeInner::new(DefaultSorter, tree.into_nodes().into_vec())
+    newtree.node_map(|x| x.node)
 }

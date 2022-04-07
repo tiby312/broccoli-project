@@ -81,7 +81,7 @@ pub trait RaycastApi<T: Aabb> {
         ray: Ray<T::Num>,
         broad: impl FnMut(&Ray<T::Num>, TreePin<&mut T>) -> Option<CastResult<T::Num>>,
         fine: impl FnMut(&Ray<T::Num>, TreePin<&mut T>) -> CastResult<T::Num>,
-        xline: impl FnMut( &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+        xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     ) -> axgeom::CastResult<CastAnswer<T>> {
         ///Construct an object that implements [`RayCast`] from closures.
@@ -110,12 +110,12 @@ pub trait RaycastApi<T: Aabb> {
             yline: E,
         }
 
-        impl<T: Aabb, B, C, D, E> RayCast<T> for RayCastClosure< B, C, D, E>
+        impl<T: Aabb, B, C, D, E> RayCast<T> for RayCastClosure<B, C, D, E>
         where
-            B: FnMut( &Ray<T::Num>, TreePin<&mut T>) -> Option<CastResult<T::Num>>,
-            C: FnMut( &Ray<T::Num>, TreePin<&mut T>) -> CastResult<T::Num>,
-            D: FnMut( &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-            E: FnMut( &Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+            B: FnMut(&Ray<T::Num>, TreePin<&mut T>) -> Option<CastResult<T::Num>>,
+            C: FnMut(&Ray<T::Num>, TreePin<&mut T>) -> CastResult<T::Num>,
+            D: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+            E: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         {
             fn cast_to_aaline<X: Axis>(
                 &mut self,

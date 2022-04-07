@@ -347,11 +347,16 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
         }
     }
     fn build(self, bots: &mut [T]) -> TreeInner<Node<T>, S> {
+        let total_num_elem = bots.len();
         let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         let vistr = start_build(num_level, bots, self.sorter());
         vistr.recurse_seq(&mut buffer);
-        TreeInner::new(self.sorter(), buffer)
+        TreeInner {
+            nodes: buffer,
+            sorter: self.sorter(),
+            total_num_elem,
+        }
     }
     fn build_par(self, bots: &mut [T]) -> TreeInner<Node<T>, S>
     where
@@ -389,11 +394,17 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
             }
         }
 
+        let total_num_elem = bots.len();
         let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         let vistr = start_build(num_level, bots, self.sorter());
         recurse_par(vistr, self.height_seq_fallback(), &mut buffer);
-        TreeInner::new(self.sorter(), buffer)
+
+        TreeInner {
+            nodes: buffer,
+            sorter: self.sorter(),
+            total_num_elem,
+        }
     }
 
     fn build_splitter<SS: Splitter>(
@@ -419,12 +430,19 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
                 splitter
             }
         }
+        let total_num_elem = bots.len();
         let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         let vistr = start_build(num_level, bots, self.sorter());
 
         let splitter = recurse_seq_splitter(vistr, &mut buffer, splitter);
-        (TreeInner::new(self.sorter(), buffer), splitter)
+
+        let t = TreeInner {
+            nodes: buffer,
+            sorter: self.sorter(),
+            total_num_elem,
+        };
+        (t, splitter)
     }
 
     fn build_splitter_par<SS: Splitter + Send>(
@@ -474,13 +492,20 @@ pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
                 }
             }
         }
+        let total_num_elem = bots.len();
         let num_level = self.num_level(bots.len()); //num_level::default(bots.len());
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         let vistr = start_build(num_level, bots, self.sorter());
 
         let splitter =
             recurse_par_splitter(vistr, self.height_seq_fallback(), &mut buffer, splitter);
-        (TreeInner::new(self.sorter(), buffer), splitter)
+
+        let t = TreeInner {
+            nodes: buffer,
+            sorter: self.sorter(),
+            total_num_elem,
+        };
+        (t, splitter)
     }
 }
 
@@ -585,7 +610,8 @@ where
 
 #[derive(Clone)]
 pub struct TreeInner<N, S> {
-    nodes: compt::dfs_order::CompleteTreeContainer<N, compt::dfs_order::PreOrder>,
+    total_num_elem: usize,
+    nodes: Vec<N>,
     sorter: S,
 }
 
@@ -593,27 +619,31 @@ pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
 
 impl<S: Sorter, H: node::HasElem> TreeInner<H, S> {
     pub fn iter_mut(&mut self) -> impl Iterator<Item = TreePin<&mut H::T>> {
-        self.nodes
-            .as_tree_mut()
-            .get_nodes_mut()
-            .iter_mut()
-            .flat_map(|x| x.get_elems().iter_mut())
+        self.nodes.iter_mut().flat_map(|x| x.get_elems().iter_mut())
     }
 }
 
 impl<S: Sorter, H> TreeInner<H, S> {
     pub fn node_map<K>(self, func: impl FnMut(H) -> K) -> TreeInner<K, S> {
         let sorter = self.sorter;
-        let nodes = self
-            .nodes
-            .into_nodes()
-            .into_vec()
-            .into_iter()
-            .map(func)
-            .collect();
-        let nodes = compt::dfs_order::CompleteTreeContainer::from_preorder(nodes).unwrap();
-        TreeInner { nodes, sorter }
+        let nodes = self.nodes.into_iter().map(func).collect();
+        TreeInner {
+            nodes,
+            sorter,
+            total_num_elem: self.total_num_elem,
+        }
     }
+}
+
+pub fn as_node_tree<N>(
+    vec: &Vec<N>,
+) -> compt::dfs_order::CompleteTree<N, compt::dfs_order::PreOrder> {
+    compt::dfs_order::CompleteTree::from_preorder(vec).unwrap()
+}
+pub fn as_node_tree_mut<N>(
+    vec: &mut Vec<N>,
+) -> compt::dfs_order::CompleteTreeMut<N, compt::dfs_order::PreOrder> {
+    compt::dfs_order::CompleteTreeMut::from_preorder_mut(vec).unwrap()
 }
 
 impl<S, H> TreeInner<H, S> {
@@ -632,13 +662,13 @@ impl<S, H> TreeInner<H, S> {
     #[inline(always)]
     #[deprecated(note = " use num_levels()")]
     pub fn get_height(&self) -> usize {
-        self.nodes.as_tree().get_height()
+        as_node_tree(&self.nodes).get_height()
     }
 
     #[must_use]
     #[inline(always)]
     pub fn num_levels(&self) -> usize {
-        self.nodes.as_tree().get_height()
+        as_node_tree(&self.nodes).get_height()
     }
 
     /// # Examples
@@ -652,9 +682,7 @@ impl<S, H> TreeInner<H, S> {
     /// assert_eq!(inner.into_nodes().len(),1);
     ///```
     #[must_use]
-    pub fn into_inner(
-        self,
-    ) -> compt::dfs_order::CompleteTreeContainer<H, compt::dfs_order::PreOrder> {
+    pub fn into_nodes(self) -> Vec<H> {
         self.nodes
     }
 
@@ -672,7 +700,12 @@ impl<S, H> TreeInner<H, S> {
     #[warn(deprecated)]
     #[inline(always)]
     pub fn num_nodes(&self) -> usize {
-        self.nodes.as_tree().get_nodes().len()
+        self.nodes.len()
+    }
+
+    #[must_use]
+    pub fn total_num_elem(&self) -> usize {
+        self.total_num_elem
     }
 
     /// # Examples
@@ -686,7 +719,7 @@ impl<S, H> TreeInner<H, S> {
     ///```
     #[must_use]
     pub fn get_nodes(&self) -> &[H] {
-        self.nodes.as_tree().get_nodes()
+        &self.nodes
     }
 
     /// # Examples
@@ -700,7 +733,7 @@ impl<S, H> TreeInner<H, S> {
     ///```
     #[must_use]
     pub fn get_nodes_mut(&mut self) -> TreePin<&mut [H]> {
-        TreePin::new(self.nodes.as_tree_mut().get_nodes_mut())
+        TreePin::from_mut(&mut self.nodes)
     }
 
     /// # Examples
@@ -718,7 +751,14 @@ impl<S, H> TreeInner<H, S> {
     ///```
     #[inline(always)]
     pub fn vistr_mut(&mut self) -> VistrMut<H> {
-        VistrMut::new(self.nodes.as_tree_mut().vistr_mut())
+        let tree = as_node_tree_mut(&mut self.nodes);
+        VistrMut::new(tree.vistr_mut())
+    }
+
+    #[inline(always)]
+    pub fn vistr_mut_raw(&mut self) -> compt::dfs_order::VistrMut<H, compt::dfs_order::PreOrder> {
+        let tree = as_node_tree_mut(&mut self.nodes);
+        tree.vistr_mut()
     }
 
     /// # Examples
@@ -737,7 +777,9 @@ impl<S, H> TreeInner<H, S> {
     ///```
     #[inline(always)]
     pub fn vistr(&self) -> Vistr<H> {
-        self.nodes.as_tree().vistr()
+        let tree = as_node_tree(&self.nodes);
+
+        tree.vistr()
     }
 
     pub fn sorter(&self) -> S
@@ -746,7 +788,7 @@ impl<S, H> TreeInner<H, S> {
     {
         self.sorter
     }
-
+    /*
     pub fn new(sorter: S, a: Vec<H>) -> TreeInner<H, S> {
         let inner = compt::dfs_order::CompleteTreeContainer::from_preorder(a).unwrap();
 
@@ -755,6 +797,7 @@ impl<S, H> TreeInner<H, S> {
             sorter,
         }
     }
+    */
 }
 
 impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
@@ -820,8 +863,9 @@ impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
 }
 impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
     pub fn into_tree<T: Aabb<Num = N>>(self, bots: TreePin<&mut [T]>) -> TreeInner<Node<T>, S> {
+        assert_eq!(bots.len(), self.total_num_elem);
         let mut last = Some(bots);
-        self.node_map(|x| {
+        let n = self.node_map(|x| {
             let (range, rest) = last.take().unwrap().split_at_mut(x.range);
             last = Some(rest);
             Node {
@@ -829,7 +873,9 @@ impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
                 cont: x.cont,
                 div: x.div,
             }
-        })
+        });
+        assert!(last.unwrap().is_empty());
+        n
     }
 }
 impl<'a, T: Aabb + 'a, S: Sorter> TreeInner<Node<'a, T>, S> {

@@ -22,7 +22,7 @@ fn main() {
 
     let res = tree.raycast_mut_closure(
         ray,
-        | _, _| None,
+        |_, _| None,
         |ray, a| ray.cast_to_rect(&a.rect),
         |ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
         |ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
