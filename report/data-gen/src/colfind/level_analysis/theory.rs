@@ -14,7 +14,7 @@ impl Res {
             let (rebal, query) = datanum::datanum_test2(|maker| {
                 let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
-                let (mut tree, levelc) = TreeInner::build_splitter(
+                let (mut tree, levelc) = tree::splitter::build_from_splitter(
                     DefaultSorter,
                     &mut bots,
                     LevelCounter::new(0, vec![]),

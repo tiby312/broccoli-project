@@ -12,8 +12,11 @@ impl Res {
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
-            let (mut tree, times1) =
-                TreeInner::build_splitter(DefaultSorter, &mut bots, LevelTimer::new(0, vec![]));
+            let (mut tree, times1) = tree::splitter::build_from_splitter(
+                DefaultSorter,
+                &mut bots,
+                LevelTimer::new(0, vec![]),
+            );
 
             let times2 = tree.colliding_pairs_splitter(LevelTimer::new(0, vec![]), |a, b| {
                 **a.unpack_inner() += 1;

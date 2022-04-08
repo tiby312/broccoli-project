@@ -132,7 +132,7 @@ impl<'a, 'b, T: Aabb, F: CollisionHandler<T>, H: NodeHandler> NodeFinisher<'a, '
     }
 }
 
-use crate::tree::Splitter;
+use crate::tree::splitter::Splitter;
 
 pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
     fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, SO>;

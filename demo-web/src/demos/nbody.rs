@@ -51,7 +51,7 @@ struct Bla<'a> {
     _num_pairs_checked: usize,
     _p: PhantomData<&'a usize>,
 }
-impl<'a> broccoli::tree::Splitter for Bla<'a> {
+impl<'a> broccoli::tree::splitter::Splitter for Bla<'a> {
     fn div(self) -> (Self, Self) {
         (
             Bla {
