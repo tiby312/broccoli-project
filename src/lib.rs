@@ -35,7 +35,7 @@
 //!
 //! A lot is done to forbid the user from violating the invariants of the tree once constructed
 //! while still allowing them to mutate parts of each element of the tree. The user can mutably traverse
-//! the tree but the mutable references returns are hidden behind the `TreePin<T>` type that forbids
+//! the tree but the mutable references returns are hidden behind the `AabbPin<T>` type that forbids
 //! mutating the aabbs.
 //!
 #![doc(

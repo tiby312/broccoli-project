@@ -13,7 +13,7 @@ type NodeWrapperVistr<'a, 'b, T, M> = VistrMut<'a, NodeWrapper<'b, T, M>, PreOrd
 ///Helper enum indicating whether or not to gravitate a node as a whole, or as its individual parts.
 pub enum GravEnum<'a, T: Aabb, M> {
     Mass(&'a mut M),
-    Bot(TreePin<&'a mut [T]>),
+    Bot(AabbPin<&'a mut [T]>),
 }
 
 ///User defined functions for nbody
@@ -31,12 +31,12 @@ pub trait Nbody {
 
     fn gravitate(&mut self, a: GravEnum<Self::T, Self::Mass>, b: GravEnum<Self::T, Self::Mass>);
 
-    fn gravitate_self(&mut self, a: TreePin<&mut [Self::T]>);
+    fn gravitate_self(&mut self, a: AabbPin<&mut [Self::T]>);
 
     fn apply_a_mass<'a>(
         &'a mut self,
         mass: Self::Mass,
-        i: impl Iterator<Item = TreePin<&'a mut Self::T>>,
+        i: impl Iterator<Item = AabbPin<&'a mut Self::T>>,
         len: usize,
     );
 
@@ -53,8 +53,8 @@ struct NodeWrapper<'a, T: Aabb, M> {
 
 ///Naive version simply visits every pair.
 pub fn naive_nbody_mut<T: Aabb>(
-    bots: TreePin<&mut [T]>,
-    func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>),
+    bots: AabbPin<&mut [T]>,
+    func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
 ) {
     tools::for_every_pair(bots, func);
 }
@@ -80,7 +80,7 @@ fn collect_masses<'a, 'b, N: Nbody>(
     vistr: NodeWrapperVistr<'b, 'a, N::T, N::Mass>,
     no: &mut N,
     func1: &mut impl FnMut(&'b mut NodeWrapper<'a, N::T, N::Mass>, &mut N),
-    func2: &mut impl FnMut(&'b mut TreePin<&'a mut [N::T]>, &mut N),
+    func2: &mut impl FnMut(&'b mut AabbPin<&'a mut [N::T]>, &mut N),
 ) {
     let (nn, rest) = vistr.next();
 

@@ -1,4 +1,4 @@
-use crate::treepin::TreePin;
+use crate::aabb_pin::AabbPin;
 use alloc::vec::Vec;
 
 ///An vec api to avoid excessive dynamic allocation by reusing a Vec
@@ -26,14 +26,14 @@ impl PreVec {
     }
 
     ///Take advantage of the big capacity of the original vec.
-    pub fn extract_vec<'a, 'b, T>(&'a mut self) -> Vec<TreePin<&'b mut T>> {
+    pub fn extract_vec<'a, 'b, T>(&'a mut self) -> Vec<AabbPin<&'b mut T>> {
         let mut v = Vec::new();
         core::mem::swap(&mut v, &mut self.vec);
         revec::convert_empty_vec(v)
     }
 
     ///Return the big capacity vec
-    pub fn insert_vec<T>(&mut self, vec: Vec<TreePin<&'_ mut T>>) {
+    pub fn insert_vec<T>(&mut self, vec: Vec<AabbPin<&'_ mut T>>) {
         let mut v = revec::convert_empty_vec(vec);
         core::mem::swap(&mut self.vec, &mut v)
     }

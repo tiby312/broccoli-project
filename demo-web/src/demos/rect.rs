@@ -47,12 +47,12 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         //test MultiRect
 
         let mut to_draw = Vec::new();
-        tree.for_all_in_rect_mut(TreePin::new(&mut r1), |_, a| {
+        tree.for_all_in_rect_mut(AabbPin::new(&mut r1), |_, a| {
             to_draw.rect(a.rect.inner_as())
         });
 
         let res = if !r1.intersects_rect(&r2) {
-            tree.for_all_in_rect_mut(TreePin::new(&mut r2), |_, a| {
+            tree.for_all_in_rect_mut(AabbPin::new(&mut r2), |_, a| {
                 to_draw.rect(a.rect.inner_as());
             });
             true

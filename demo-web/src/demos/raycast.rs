@@ -22,7 +22,7 @@ impl broccoli::queries::raycast::RayCast<BBox<f32, Bot>> for MyRaycast {
     fn cast_broad(
         &mut self,
         ray: &Ray<f32>,
-        a: TreePin<&mut BBox<f32, Bot>>,
+        a: AabbPin<&mut BBox<f32, Bot>>,
     ) -> Option<axgeom::CastResult<f32>> {
         Some(ray.cast_to_rect(a.get()))
     }
@@ -30,7 +30,7 @@ impl broccoli::queries::raycast::RayCast<BBox<f32, Bot>> for MyRaycast {
     fn cast_fine(
         &mut self,
         ray: &Ray<f32>,
-        a: TreePin<&mut BBox<f32, Bot>>,
+        a: AabbPin<&mut BBox<f32, Bot>>,
     ) -> axgeom::CastResult<f32> {
         ray.cast_to_circle(a.inner.center, self.radius)
     }

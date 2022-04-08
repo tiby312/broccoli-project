@@ -28,8 +28,8 @@ fn test1() {
         let tree = broccoli::tree::new(&mut bots);
 
         let nodes = tree.into_node_data_tree();
-        use broccoli::tree::treepin::TreePin;
-        let mut tree = nodes.into_tree(TreePin::from_mut(&mut bots));
+        use broccoli::tree::aabb_pin::AabbPin;
+        let mut tree = nodes.into_tree(AabbPin::from_mut(&mut bots));
 
         tree.colliding_pairs(|a, b| {
             let a = a.unpack_inner();

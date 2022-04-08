@@ -42,12 +42,12 @@ impl broccoli::queries::knearest::Knearest<BBox<f32, ()>> for MyKnearest {
     fn distance_to_broad(
         &mut self,
         _point: Vec2<f32>,
-        _a: TreePin<&mut BBox<f32, ()>>,
+        _a: AabbPin<&mut BBox<f32, ()>>,
     ) -> Option<f32> {
         None
     }
 
-    fn distance_to_fine(&mut self, point: Vec2<f32>, a: TreePin<&mut BBox<f32, ()>>) -> f32 {
+    fn distance_to_fine(&mut self, point: Vec2<f32>, a: AabbPin<&mut BBox<f32, ()>>) -> f32 {
         self.verts.push(a.rect);
         distance_to_rect(&a.rect, point)
     }

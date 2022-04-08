@@ -158,7 +158,7 @@ impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
         }
     }
 
-    fn gravitate_self(&mut self, a: TreePin<&mut [Self::T]>) {
+    fn gravitate_self(&mut self, a: AabbPin<&mut [Self::T]>) {
         broccoli::queries::nbody::naive_nbody_mut(a, |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
 
@@ -173,7 +173,7 @@ impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
     fn apply_a_mass<'a>(
         &'a mut self,
         a: Self::Mass,
-        b: impl Iterator<Item = TreePin<&'a mut Self::T>>,
+        b: impl Iterator<Item = AabbPin<&'a mut Self::T>>,
         len: usize,
     ) {
         if a.mass > 0.000_000_1 {

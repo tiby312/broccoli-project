@@ -171,15 +171,15 @@ mod vistr_mut {
         }
 
         #[inline(always)]
-        pub fn into_slice(self) -> TreePin<&'a mut [N]> {
-            TreePin::new(self.inner.into_slice())
+        pub fn into_slice(self) -> AabbPin<&'a mut [N]> {
+            AabbPin::new(self.inner.into_slice())
         }
     }
 
     impl<'a, N> compt::FixedDepthVisitor for VistrMutPin<'a, N> {}
 
     impl<'a, N> Visitor for VistrMutPin<'a, N> {
-        type Item = TreePin<&'a mut N>;
+        type Item = AabbPin<&'a mut N>;
 
         #[inline(always)]
         fn next(self) -> (Self::Item, Option<[Self; 2]>) {
@@ -188,7 +188,7 @@ mod vistr_mut {
             let k = rest
                 .map(|[left, right]| [VistrMutPin { inner: left }, VistrMutPin { inner: right }]);
 
-            (TreePin::new(nn), k)
+            (AabbPin::new(nn), k)
         }
 
         #[inline(always)]
@@ -198,7 +198,7 @@ mod vistr_mut {
 
         #[inline(always)]
         fn dfs_preorder(self, mut func: impl FnMut(Self::Item)) {
-            self.inner.dfs_preorder(move |a| func(TreePin::new(a)));
+            self.inner.dfs_preorder(move |a| func(AabbPin::new(a)));
         }
     }
 }
@@ -207,7 +207,7 @@ pub use vistr_mut::VistrMutPin;
 /// A node in [`Tree`].
 #[repr(C)]
 pub struct Node<'a, T: Aabb> {
-    pub range: TreePin<&'a mut [T]>,
+    pub range: AabbPin<&'a mut [T]>,
 
     // if range is empty, then value is unspecified.
     // if range is not empty, then cont can be read.
@@ -223,13 +223,13 @@ pub struct Node<'a, T: Aabb> {
 
 impl<'a, T: Aabb> HasElem for Node<'a, T> {
     type T = T;
-    fn get_elems(&mut self) -> TreePin<&mut [T]> {
+    fn get_elems(&mut self) -> AabbPin<&mut [T]> {
         self.range.borrow_mut()
     }
 }
 pub trait HasElem {
     type T;
-    fn get_elems(&mut self) -> TreePin<&mut [Self::T]>;
+    fn get_elems(&mut self) -> AabbPin<&mut [Self::T]>;
 }
 
 #[derive(Debug, Clone)]

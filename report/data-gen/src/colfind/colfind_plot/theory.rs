@@ -26,7 +26,7 @@ impl Record {
             datanum::datanum_test(|maker| {
                 let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
-                TreePin::new(bots.as_mut_slice()).colliding_pairs(|a, b| {
+                AabbPin::new(bots.as_mut_slice()).colliding_pairs(|a, b| {
                     **a.unpack_inner() -= 1;
                     **b.unpack_inner() -= 1;
                 });

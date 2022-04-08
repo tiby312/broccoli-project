@@ -5,14 +5,14 @@ pub mod build;
 pub mod node;
 mod oned;
 pub mod splitter;
-pub mod treepin;
+pub mod aabb_pin;
 pub mod util;
 
 use axgeom::*;
 use build::*;
 use compt::Visitor;
 use node::*;
-use treepin::*;
+use aabb_pin::*;
 
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
 ///This means that the first divider is a 'vertical' line since it is
@@ -163,7 +163,7 @@ impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
         };
 
         Node {
-            range: TreePin::new(self.mid),
+            range: AabbPin::new(self.mid),
             cont,
             div: self.div,
         }
@@ -303,13 +303,13 @@ where
         let j = self.inner.as_mut();
         assert_eq!(j.len(), self.length);
 
-        self.nodes.clone().into_tree(TreePin::from_mut(j))
+        self.nodes.clone().into_tree(AabbPin::from_mut(j))
     }
-    pub fn as_slice_mut(&mut self) -> TreePin<&mut [C::T]> {
+    pub fn as_slice_mut(&mut self) -> AabbPin<&mut [C::T]> {
         let j = self.inner.as_mut();
         assert_eq!(j.len(), self.length);
 
-        TreePin::new(j)
+        AabbPin::new(j)
     }
     pub fn into_inner(self) -> C {
         self.inner
@@ -338,7 +338,7 @@ pub struct TreeInner<N, S> {
 pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
 
 impl<S, H: node::HasElem> TreeInner<H, S> {
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = TreePin<&mut H::T>> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = AabbPin<&mut H::T>> {
         self.nodes.iter_mut().flat_map(|x| x.get_elems().iter_mut())
     }
 }
@@ -418,8 +418,8 @@ impl<S, H> TreeInner<H, S> {
 
     #[must_use]
     #[inline(always)]
-    pub fn get_nodes_mut(&mut self) -> TreePin<&mut [H]> {
-        TreePin::from_mut(&mut self.nodes)
+    pub fn get_nodes_mut(&mut self) -> AabbPin<&mut [H]> {
+        AabbPin::from_mut(&mut self.nodes)
     }
 
     #[must_use]
@@ -456,7 +456,7 @@ impl<S, H> TreeInner<H, S> {
 
 impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
     #[must_use]
-    pub fn into_tree<T: Aabb<Num = N>>(self, bots: TreePin<&mut [T]>) -> TreeInner<Node<T>, S> {
+    pub fn into_tree<T: Aabb<Num = N>>(self, bots: AabbPin<&mut [T]>) -> TreeInner<Node<T>, S> {
         assert_eq!(bots.len(), self.total_num_elem);
         let mut last = Some(bots);
         let n = self.node_map(|x| {

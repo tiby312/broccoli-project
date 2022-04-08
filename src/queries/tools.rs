@@ -15,7 +15,7 @@ fn test_section() {
 
     let k = get_section_mut(
         axgeom::XAXIS,
-        TreePin::new(&mut aabbs),
+        AabbPin::new(&mut aabbs),
         &axgeom::Range::new(5, 10),
     );
     let k: &[axgeom::Rect<isize>] = &k;
@@ -27,9 +27,9 @@ fn test_section() {
 #[inline(always)]
 pub fn get_section_mut<'a, I: Aabb, A: Axis>(
     axis: A,
-    arr: TreePin<&'a mut [I]>,
+    arr: AabbPin<&'a mut [I]>,
     range: &Range<I::Num>,
-) -> TreePin<&'a mut [I]> {
+) -> AabbPin<&'a mut [I]> {
     let mut start = None;
     let mut ii = arr.iter().enumerate();
     for (e, i) in &mut ii {
@@ -43,7 +43,7 @@ pub fn get_section_mut<'a, I: Aabb, A: Axis>(
     let start = if let Some(start) = start {
         start
     } else {
-        return TreePin::new(&mut []);
+        return AabbPin::new(&mut []);
     };
 
     let mut end = None;
@@ -63,8 +63,8 @@ pub fn get_section_mut<'a, I: Aabb, A: Axis>(
 }
 
 pub fn for_every_pair<T: Aabb>(
-    mut arr: TreePin<&mut [T]>,
-    mut func: impl FnMut(TreePin<&mut T>, TreePin<&mut T>),
+    mut arr: AabbPin<&mut [T]>,
+    mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
 ) {
     loop {
         let temp = arr;

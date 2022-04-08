@@ -11,11 +11,11 @@ pub trait Knearest<T: Aabb> {
     ///It may be that the precise distance function is fast enough, in which case you can simply
     ///return None. If None is desired, every call to this function for a particular element must
     ///always return None.
-    fn distance_to_broad(&mut self, point: Vec2<T::Num>, a: TreePin<&mut T>) -> Option<T::Num>;
+    fn distance_to_broad(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> Option<T::Num>;
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
-    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: TreePin<&mut T>) -> T::Num;
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> T::Num;
 }
 
 impl<'a, T: Aabb> KnearestApi<T> for Tree<'a, T> {
@@ -46,7 +46,7 @@ impl<'a, T: Aabb> KnearestApi<T> for Tree<'a, T> {
         }
     }
 }
-impl<'a, T: Aabb> KnearestApi<T> for TreePin<&'a mut [T]> {
+impl<'a, T: Aabb> KnearestApi<T> for AabbPin<&'a mut [T]> {
     fn k_nearest_mut(
         &mut self,
         point: Vec2<T::Num>,
@@ -86,12 +86,12 @@ where
     fn distance_to_broad(
         &mut self,
         _point: Vec2<T::Num>,
-        _rect: TreePin<&mut T>,
+        _rect: AabbPin<&mut T>,
     ) -> Option<T::Num> {
         None
     }
 
-    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: TreePin<&mut T>) -> T::Num {
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> T::Num {
         use num_traits::Zero;
 
         a.get()
@@ -119,8 +119,8 @@ pub trait KnearestApi<T: Aabb> {
         &mut self,
         point: Vec2<T::Num>,
         num: usize,
-        broad: impl FnMut(Vec2<T::Num>, TreePin<&mut T>) -> Option<T::Num>,
-        fine: impl FnMut(Vec2<T::Num>, TreePin<&mut T>) -> T::Num,
+        broad: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
+        fine: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
         xline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
         yline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
     ) -> KResult<T> {
@@ -154,8 +154,8 @@ pub trait KnearestApi<T: Aabb> {
 
         impl<'a, T: Aabb, B, C, D, E> Knearest<T> for KnearestClosure<B, C, D, E>
         where
-            B: FnMut(Vec2<T::Num>, TreePin<&mut T>) -> Option<T::Num>,
-            C: FnMut(Vec2<T::Num>, TreePin<&mut T>) -> T::Num,
+            B: FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
+            C: FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
             D: FnMut(Vec2<T::Num>, T::Num) -> T::Num,
             E: FnMut(Vec2<T::Num>, T::Num) -> T::Num,
         {
@@ -175,12 +175,12 @@ pub trait KnearestApi<T: Aabb> {
             fn distance_to_broad(
                 &mut self,
                 point: Vec2<T::Num>,
-                rect: TreePin<&mut T>,
+                rect: AabbPin<&mut T>,
             ) -> Option<T::Num> {
                 (self.broad)(point, rect)
             }
 
-            fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: TreePin<&mut T>) -> T::Num {
+            fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: AabbPin<&mut T>) -> T::Num {
                 (self.fine)(point, bot)
             }
         }
@@ -200,11 +200,11 @@ impl<'a, T: Aabb, K: Knearest<T>> Knearest<T> for &mut K {
         (*self).distance_to_aaline(point, axis, val)
     }
 
-    fn distance_to_broad(&mut self, point: Vec2<T::Num>, rect: TreePin<&mut T>) -> Option<T::Num> {
+    fn distance_to_broad(&mut self, point: Vec2<T::Num>, rect: AabbPin<&mut T>) -> Option<T::Num> {
         (*self).distance_to_broad(point, rect)
     }
 
-    fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: TreePin<&mut T>) -> T::Num {
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: AabbPin<&mut T>) -> T::Num {
         (*self).distance_to_fine(point, bot)
     }
 }
@@ -214,7 +214,7 @@ use crate::Tree;
 /// Returned by k_nearest_mut
 #[derive(Debug)]
 pub struct KnearestResult<'a, T: Aabb> {
-    pub bot: TreePin<&'a mut T>,
+    pub bot: AabbPin<&'a mut T>,
     pub mag: T::Num,
 }
 
@@ -244,7 +244,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         &mut self,
         point: &Vec2<T::Num>,
         knear: &mut K,
-        mut curr_bot: TreePin<&'a mut T>,
+        mut curr_bot: AabbPin<&'a mut T>,
     ) {
         if let Some(long_dis) = knear.distance_to_broad(*point, curr_bot.borrow_mut()) {
             if self.curr_num == self.num {
@@ -454,7 +454,7 @@ pub fn assert_k_nearest_mut<T: Aabb>(
         .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
         .collect();
 
-    let mut res_naive = TreePin::new(bots)
+    let mut res_naive = AabbPin::new(bots)
         .k_nearest_mut(point, num, knear)
         .into_vec()
         .drain(..)

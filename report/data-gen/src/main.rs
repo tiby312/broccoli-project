@@ -8,7 +8,7 @@ use broccoli::prelude::*;
 pub use broccoli::queries::*;
 pub use broccoli::tree::node::*;
 use broccoli::tree::splitter::Splitter;
-pub use broccoli::tree::treepin::TreePin;
+pub use broccoli::tree::aabb_pin::AabbPin;
 pub use broccoli::tree::*;
 pub use broccoli::*;
 pub use poloto::prelude::*;
