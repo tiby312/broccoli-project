@@ -1,18 +1,18 @@
 //! Contains code to help build the [`Tree`] structure with more options than
 
+pub mod aabb_pin;
 mod assert;
 pub mod build;
 pub mod node;
 mod oned;
 pub mod splitter;
-pub mod aabb_pin;
 pub mod util;
 
+use aabb_pin::*;
 use axgeom::*;
 use build::*;
 use compt::Visitor;
 use node::*;
-use aabb_pin::*;
 
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
 ///This means that the first divider is a 'vertical' line since it is

@@ -25,7 +25,7 @@ impl<'a, T: Aabb + 'a> broccoli::queries::colfind::CollidingPairsBuilder<'a, T, 
     }
     fn colliding_pairs_builder<'b>(
         &'b mut self,
-    ) -> queries::colfind::CollVis<'a, 'b, T, DefaultSorter> {
+    ) -> queries::colfind::build::CollVis<'a, 'b, T, DefaultSorter> {
         self.tree.colliding_pairs_builder()
     }
 }
@@ -65,7 +65,7 @@ fn test3(
             tree,
             height_seq_fallback: query_height,
         };
-        tree.colliding_pairs_par(|a, b| {
+        broccoli::queries::colfind::colliding_pairs_par(&mut tree, |a, b| {
             **a.unpack_inner() += 2;
             **b.unpack_inner() += 2;
         });

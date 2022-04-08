@@ -125,7 +125,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         buffer.update(&verts2);
         camera.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.3]);
 
-        tree.colliding_pairs_par(|a, b| {
+        tree.colliding_pairs(|a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = duckduckgeo::repel([(a.pos, &mut a.force), (b.pos, &mut b.force)], 0.001, 2.0);
         });

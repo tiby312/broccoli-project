@@ -22,11 +22,14 @@ impl Res {
 
                 maker.reset();
 
-                let levelc2 =
-                    tree.colliding_pairs_splitter(LevelCounter::new(0, vec![]), |a, b| {
+                let levelc2 = broccoli::queries::colfind::splitter::colliding_pairs_splitter(
+                    &mut tree,
+                    LevelCounter::new(0, vec![]),
+                    |a, b| {
                         a.unpack_inner().x += 1.0;
                         b.unpack_inner().y += 1.0;
-                    });
+                    },
+                );
 
                 (
                     levelc.into_levels().into_iter().map(|x| x as f64).collect(),

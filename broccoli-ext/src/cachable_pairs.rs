@@ -2,7 +2,7 @@ use std::ops::DerefMut;
 
 use broccoli::{
     prelude::CollisionApi,
-    tree::{node::Aabb, aabb_pin::HasInner, Tree},
+    tree::{aabb_pin::HasInner, node::Aabb, Tree},
 };
 
 ///
