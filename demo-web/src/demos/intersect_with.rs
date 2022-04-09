@@ -82,7 +82,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             tree.intersect_with_iter_mut(
                 AabbPin::new(walls.as_mut_slice()).iter_mut(),
                 |mut bot, wall| {
-                    let (rect, bot) = bot.destructure();
+                    let (rect, bot) = bot.destruct_mut();
 
                     //TODO borrow instead
                     let wallx = &wall.x;

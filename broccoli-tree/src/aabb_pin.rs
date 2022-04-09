@@ -34,7 +34,7 @@ pub trait HasInner:Aabb {
     fn get_inner_mut(&mut self) -> &mut Self::Inner{
         self.destruct_mut().1
     }
-    
+
     fn destruct_mut(&mut self) -> (&Rect<Self::Num>,&mut Self::Inner);
     
 }
@@ -149,23 +149,13 @@ impl<'a, 'b: 'a, T: Aabb> AabbPin<&'a mut Node<'b, T>> {
     }
 }
 
-impl<'a, N: Num, T> AabbPin<&'a mut BBox<N, T>> {
-    /// Unpack only the mutable innner component
-    #[inline(always)]
-    pub fn destructure(&mut self) -> (&Rect<N>, &mut T) {
-        let r = &self.inner.rect;
-        let a = &mut self.inner.inner;
-        (r, a)
-    }
-}
 
-impl<'a, N: Num, T> AabbPin<&'a mut BBoxMut<'_, N, T>> {
-    /// Unpack only the mutable innner component
+impl<'a, T:HasInner> AabbPin<&'a mut T> {
     #[inline(always)]
-    pub fn destructure(&mut self) -> (&Rect<N>, &mut T) {
-        let r = &self.inner.rect;
-        (r, self.inner.inner)
+    pub fn destruct_mut(&mut self)->(&Rect<T::Num>,&mut T::Inner){
+        self.inner.destruct_mut()
     }
+
 }
 
 impl<'a, T: HasInner> AabbPin<&'a mut T> {
