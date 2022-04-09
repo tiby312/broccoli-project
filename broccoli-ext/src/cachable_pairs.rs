@@ -4,9 +4,11 @@ use broccoli::{
 };
 
 ///
+/// Used by [`CacheSession::cache_colliding_pairs()`]
+///
 /// # Safety
 ///
-/// Multiple calls must return the same results
+/// Multiple calls must return the same results while contained in [`CacheSession`]
 ///
 pub unsafe trait TrustedCollisionPairs {
     type T;
@@ -14,15 +16,20 @@ pub unsafe trait TrustedCollisionPairs {
 }
 
 ///
+/// Used by [`CacheSession::cache_elems()`]
+///
 /// # Safety
 ///
-/// Multiple calls must return the same results
+/// Multiple calls must return the same results while contained in [`CacheSession`]
 ///
 pub unsafe trait TrustedIterAll {
     type T;
     fn for_every(&mut self, func: impl FnMut(&mut Self::T));
 }
 
+///
+/// Wrapper around a [`Tree`] that is ready to cache pairs.
+///
 pub struct IndTree<'a, 'b, T: Aabb>(pub &'b mut Tree<'a, T>);
 
 unsafe impl<T: Aabb + HasInner> TrustedCollisionPairs for IndTree<'_, '_, T> {
@@ -43,18 +50,24 @@ unsafe impl<T: Aabb + HasInner> TrustedIterAll for IndTree<'_, '_, T> {
     }
 }
 
-pub struct Cacheable<'a, C> {
+///
+/// Start a caching session.
+///
+pub struct CacheSession<'a, C> {
     inner: &'a mut C,
 }
 
-impl<'a, C> Cacheable<'a, C> {
+impl<'a, C> CacheSession<'a, C> {
     pub fn new(a: &'a mut C) -> Self {
-        Cacheable { inner: a }
+        CacheSession { inner: a }
     }
 }
 
+///
+/// A set of cached elements
+///
 pub struct FilterCache<'a, C: TrustedIterAll, D> {
-    inner: *const Cacheable<'a, C>,
+    inner: *const CacheSession<'a, C>,
     _p: std::marker::PhantomData<&'a C>,
     data: Vec<(*mut C::T, D)>,
 }
@@ -62,7 +75,7 @@ unsafe impl<'a, C: TrustedIterAll, D> Send for FilterCache<'a, C, D> {}
 unsafe impl<'a, C: TrustedIterAll, D> Sync for FilterCache<'a, C, D> {}
 
 impl<'a, C: TrustedIterAll, D> FilterCache<'a, C, D> {
-    pub fn get_elems(&mut self, c: &mut Cacheable<'a, C>) -> &mut [(&mut C::T, D)] {
+    pub fn handle(&mut self, c: &mut CacheSession<'a, C>) -> &mut [(&mut C::T, D)] {
         assert_eq!(c as *const _, self.inner);
 
         let data = self.data.as_mut_slice();
@@ -73,16 +86,19 @@ impl<'a, C: TrustedIterAll, D> FilterCache<'a, C, D> {
 unsafe impl<'a, C: TrustedCollisionPairs, D> Send for CollidingPairsCache<'a, C, D> {}
 unsafe impl<'a, C: TrustedCollisionPairs, D> Sync for CollidingPairsCache<'a, C, D> {}
 
+///
+/// A set of cached colliding pairs
+///
 pub struct CollidingPairsCache<'a, C: TrustedCollisionPairs, D> {
-    inner: *const Cacheable<'a, C>,
+    inner: *const CacheSession<'a, C>,
     _p: std::marker::PhantomData<&'a C>,
     pairs: Vec<(*mut C::T, *mut C::T, D)>,
 }
 
 impl<'a, C: TrustedCollisionPairs, D> CollidingPairsCache<'a, C, D> {
-    pub fn colliding_pairs(
+    pub fn handle(
         &mut self,
-        c: &mut Cacheable<'a, C>,
+        c: &mut CacheSession<'a, C>,
         mut func: impl FnMut(&mut C::T, &mut C::T, &mut D),
     ) {
         assert_eq!(c as *const _, self.inner);
@@ -96,7 +112,7 @@ impl<'a, C: TrustedCollisionPairs, D> CollidingPairsCache<'a, C, D> {
 }
 use std::marker::PhantomData;
 
-impl<'a, C: TrustedIterAll> Cacheable<'a, C> {
+impl<'a, C: TrustedIterAll> CacheSession<'a, C> {
     pub fn cache_elems<D>(
         &mut self,
         mut func: impl FnMut(&mut C::T) -> Option<D>,
@@ -115,7 +131,7 @@ impl<'a, C: TrustedIterAll> Cacheable<'a, C> {
     }
 }
 
-impl<'a, C: TrustedCollisionPairs> Cacheable<'a, C> {
+impl<'a, C: TrustedCollisionPairs> CacheSession<'a, C> {
     pub fn cache_colliding_pairs<D>(
         &mut self,
         mut func: impl FnMut(&mut C::T, &mut C::T) -> Option<D>,

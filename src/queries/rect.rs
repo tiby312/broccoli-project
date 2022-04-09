@@ -207,7 +207,13 @@ fn into_ptr_usize<T>(a: &T) -> usize {
 }
 
 ///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_not_in_rect_mut<T: Aabb>(bots: &mut [T], mut rect: &axgeom::Rect<T::Num>) {
+pub fn assert_rect<T: Aabb>(bots: &mut [T], rect: &axgeom::Rect<T::Num>) {
+    assert_for_all_not_in_rect_mut(bots, rect);
+    assert_for_all_intersect_rect_mut(bots, rect);
+    assert_for_all_in_rect_mut(bots, rect)
+}
+
+fn assert_for_all_not_in_rect_mut<T: Aabb>(bots: &mut [T], mut rect: &axgeom::Rect<T::Num>) {
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     tree.for_all_not_in_rect_mut(AabbPin::new(&mut rect), |_, a| {
@@ -226,8 +232,7 @@ pub fn assert_for_all_not_in_rect_mut<T: Aabb>(bots: &mut [T], mut rect: &axgeom
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
-///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_intersect_rect_mut<T: Aabb>(bots: &mut [T], mut rect: &axgeom::Rect<T::Num>) {
+fn assert_for_all_intersect_rect_mut<T: Aabb>(bots: &mut [T], mut rect: &axgeom::Rect<T::Num>) {
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     tree.for_all_intersect_rect_mut(AabbPin::new(&mut rect), |_, a| {
@@ -245,8 +250,7 @@ pub fn assert_for_all_intersect_rect_mut<T: Aabb>(bots: &mut [T], mut rect: &axg
     assert!(res_naive.iter().eq(res_dino.iter()));
 }
 
-///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_for_all_in_rect_mut<T: Aabb>(bots: &mut [T], mut rect: &axgeom::Rect<T::Num>) {
+fn assert_for_all_in_rect_mut<T: Aabb>(bots: &mut [T], mut rect: &axgeom::Rect<T::Num>) {
     let mut tree = crate::new(bots);
     let mut res_dino = Vec::new();
     tree.for_all_in_rect_mut(AabbPin::new(&mut rect), |_, a| {

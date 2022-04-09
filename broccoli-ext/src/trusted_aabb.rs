@@ -1,11 +1,5 @@
 use broccoli::tree::build::*;
 
-///Indicates that the user supplied a rectangle
-///that intersects with a another one previously queries
-///in the session.
-#[derive(Eq, PartialEq, Copy, Clone, Debug)]
-pub struct RectIntersectErr;
-
 ///
 ///
 /// # Safety
@@ -16,6 +10,7 @@ pub struct RectIntersectErr;
 pub unsafe trait TrustedAabb: Aabb {}
 
 unsafe impl<N: Num, T> TrustedAabb for BBox<N, T> {}
+unsafe impl<N: Num, T> TrustedAabb for BBoxMut<'_, N, T> {}
 unsafe impl<N: Num> TrustedAabb for Rect<N> {}
 unsafe impl<T: TrustedAabb> TrustedAabb for &T {}
 unsafe impl<T: TrustedAabb> TrustedAabb for &mut T {}

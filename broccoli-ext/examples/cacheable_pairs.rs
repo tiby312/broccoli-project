@@ -17,7 +17,7 @@ fn main() {
     let mut tree = broccoli::tree::new(&mut aabbs);
     let mut tree = broccoli_ext::cachable_pairs::IndTree(&mut tree);
 
-    let mut ctree = broccoli_ext::cachable_pairs::Cacheable::new(&mut tree);
+    let mut ctree = broccoli_ext::cachable_pairs::CacheSession::new(&mut tree);
 
     let mut pairs = ctree.cache_colliding_pairs(|_, _| Some(()));
 
@@ -25,12 +25,12 @@ fn main() {
 
     for _ in 0..100 {
         //Find all colliding aabbs.
-        pairs.colliding_pairs(&mut ctree, |a, b, _| {
+        pairs.handle(&mut ctree, |a, b, _| {
             a.0 += 1;
             b.0 += 1;
         });
 
-        for (a, _) in filtered.get_elems(&mut ctree) {
+        for (a, _) in filtered.handle(&mut ctree) {
             a.0 += 1;
         }
     }
