@@ -79,16 +79,16 @@ impl<N: Num, T> Aabb for BBox<N, T> {
 impl<N: Num, T> HasInner for BBox<N, T> {
     type Inner = T;
     #[inline(always)]
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>,&mut Self::Inner){
-        (&self.rect,&mut self.inner)
+    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        (&self.rect, &mut self.inner)
     }
 }
 
 impl<N: Num, T> HasInner for &mut BBox<N, T> {
     type Inner = T;
     #[inline(always)]
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>,&mut Self::Inner){
-        (&self.rect,&mut self.inner)
+    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        (&self.rect, &mut self.inner)
     }
 }
 
@@ -119,11 +119,11 @@ impl<N: Num, T> Aabb for BBoxMut<'_, N, T> {
         &self.rect
     }
 }
-impl<N:Num, T> HasInner for BBoxMut<'_, N, T> {
+impl<N: Num, T> HasInner for BBoxMut<'_, N, T> {
     type Inner = T;
     #[inline(always)]
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>,&mut Self::Inner){
-        (&self.rect,self.inner)
+    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        (&self.rect, self.inner)
     }
 }
 
