@@ -1,7 +1,5 @@
 //! Provides 2d broadphase collision detection.
 
-pub mod node_handle;
-use node_handle::*;
 mod oned;
 
 pub mod splitter;

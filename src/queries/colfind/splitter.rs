@@ -1,3 +1,8 @@
+//!
+//! colliding pair finding functions that allow arbitrary code to be run every time the problem
+//! is split into two and built back together. Useful for debuging/measuring performance.
+//!
+
 use super::*;
 
 use crate::tree::splitter::Splitter;

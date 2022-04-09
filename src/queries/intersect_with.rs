@@ -1,3 +1,7 @@
+//!
+//! Find colliding pairs between two independant sets
+//!
+
 use super::{rect::RectApi, *};
 
 pub fn intersect_with_tree_mut<'a, T: Aabb, X: Aabb<Num = T::Num> + 'a>(
