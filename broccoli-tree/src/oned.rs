@@ -1,4 +1,3 @@
-use crate::node::Aabb;
 use crate::*;
 
 ///The results of the binning process.

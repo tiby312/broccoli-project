@@ -1,3 +1,8 @@
+//!
+//! Tree building functions that allow arbitrary code to be run every time the problem
+//! is split into two and built back together. Useful for debuging/measuring performance.
+//! 
+
 use super::*;
 
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.

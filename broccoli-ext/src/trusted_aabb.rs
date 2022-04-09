@@ -1,4 +1,4 @@
-use broccoli::tree::node::*;
+use broccoli::tree::build::*;
 
 ///Indicates that the user supplied a rectangle
 ///that intersects with a another one previously queries

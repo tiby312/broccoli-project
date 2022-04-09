@@ -3,7 +3,6 @@
 pub mod aabb_pin;
 mod assert;
 pub mod build;
-pub mod node;
 mod oned;
 pub mod splitter;
 pub mod util;
@@ -12,7 +11,7 @@ use aabb_pin::*;
 use axgeom::*;
 use build::*;
 use compt::Visitor;
-use node::*;
+
 
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
 ///This means that the first divider is a 'vertical' line since it is
@@ -103,77 +102,20 @@ pub mod num_level {
     }
 }
 
-#[must_use]
-pub struct NodeFinisher<'a, T: Aabb, S> {
-    is_xaxis: bool,
-    div: Option<T::Num>, //This can be null if there are no bots left at all
-    mid: &'a mut [T],
-    sorter: S,
-}
-impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
-    #[inline(always)]
-    fn finish(self) -> Node<'a, T> {
-        fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
-            match middle.split_first() {
-                Some((first, rest)) => {
-                    let mut min = first.get().get_range(axis).start;
-                    let mut max = first.get().get_range(axis).end;
-
-                    for a in rest.iter() {
-                        let start = &a.get().get_range(axis).start;
-                        let end = &a.get().get_range(axis).end;
-
-                        if *start < min {
-                            min = *start;
-                        }
-
-                        if *end > max {
-                            max = *end;
-                        }
-                    }
-
-                    axgeom::Range {
-                        start: min,
-                        end: max,
-                    }
-                }
-                None => axgeom::Range {
-                    start: Default::default(),
-                    end: Default::default(),
-                },
-            }
-        }
-
-        let cont = if self.is_xaxis {
-            self.sorter.sort(axgeom::XAXIS.next(), self.mid);
-            create_cont(axgeom::XAXIS, self.mid)
-        } else {
-            self.sorter.sort(axgeom::YAXIS.next(), self.mid);
-            create_cont(axgeom::YAXIS, self.mid)
-        };
-
-        Node {
-            range: AabbPin::new(self.mid),
-            cont,
-            div: self.div,
-        }
-    }
-}
-
 pub use axgeom::rect;
 
-///Shorthand constructor of [`node::BBox`]
+///Shorthand constructor of [`BBox`]
 #[inline(always)]
 #[must_use]
-pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
-    node::BBox::new(rect, inner)
+pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
+    BBox::new(rect, inner)
 }
 
-///Shorthand constructor of [`node::BBoxMut`]
+///Shorthand constructor of [`BBoxMut`]
 #[inline(always)]
 #[must_use]
-pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> node::BBoxMut<N, T> {
-    node::BBoxMut::new(rect, inner)
+pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
+    BBoxMut::new(rect, inner)
 }
 
 ///
@@ -209,6 +151,9 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
     TreeInner::build(DefaultSorter, bots)
 }
 
+///
+/// Create a [`Tree`] using rayon.
+/// 
 #[cfg(feature = "rayon")]
 pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
 where
@@ -337,9 +282,13 @@ pub struct TreeInner<N, S> {
     sorter: S,
 }
 
+
+///
+/// [`TreeInner`] type with default node and sorter.
+/// 
 pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
 
-impl<S, H: node::HasElem> TreeInner<H, S> {
+impl<S, H: HasElem> TreeInner<H, S> {
     pub fn iter_mut(&mut self) -> impl Iterator<Item = AabbPin<&mut H::T>> {
         self.nodes.iter_mut().flat_map(|x| x.get_elems().iter_mut())
     }

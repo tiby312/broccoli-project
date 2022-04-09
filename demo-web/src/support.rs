@@ -1,6 +1,6 @@
 use axgeom::*;
 use broccoli::tree::bbox;
-use broccoli::tree::node::*;
+use broccoli::tree::build::*;
 
 fn rand() -> f32 {
     js_sys::Math::random() as f32

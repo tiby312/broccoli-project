@@ -1,6 +1,6 @@
 use axgeom::*;
 use broccoli::prelude::*;
-use broccoli::tree::node::*;
+use broccoli::tree::build::*;
 use compt::*;
 
 use broccoli::tree::*;

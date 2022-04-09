@@ -7,7 +7,7 @@ pub use broccoli::axgeom;
 use broccoli::prelude::*;
 pub use broccoli::queries::*;
 pub use broccoli::tree::aabb_pin::AabbPin;
-pub use broccoli::tree::node::*;
+pub use broccoli::tree::build::*;
 use broccoli::tree::splitter::Splitter;
 pub use broccoli::tree::*;
 pub use broccoli::*;
@@ -28,7 +28,7 @@ pub fn black_box<T>(dummy: T) -> T {
 
 pub mod bbox_helper {
     use broccoli::axgeom::Rect;
-    use broccoli::tree::{bbox, node::*};
+    use broccoli::tree::{bbox, build::*};
     pub fn create_bbox_mut<T, N: Num>(
         arr: &mut [T],
         mut func: impl FnMut(&T) -> Rect<N>,

@@ -63,7 +63,7 @@ pub use axgeom;
 #[doc(inline)]
 pub use broccoli_tree as tree;
 
-use broccoli_tree::node::*;
+use broccoli_tree::build::*;
 use compt;
 use tree::*;
 
