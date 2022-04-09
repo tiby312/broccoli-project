@@ -3,23 +3,21 @@
 //! [`AabbPin`] is short for protected mutable reference.
 //!
 //! ```rust
-//! use broccoli::{bbox,rect};
+//! use broccoli_tree::{bbox,rect,aabb_pin::AabbPin};
 //!
 //!
-//! let mut bots=[bbox(rect(0,10,0,10),0)];
-//! let mut tree=broccoli::new(&mut bots);
+//! let mut a=bbox(rect(0,10,0,10),0);
+//! let mut b=bbox(rect(0,10,0,10),0);
 //!
-//! tree.find_colliding_pairs_mut(|a,b|{
-//!    //We cannot allow the user to swap these two
-//!    //bots. They should be allowed to mutate
-//!    //whats inside each of them (aside from their aabb),
-//!    //but not swap.
+//! let ap=AabbPin::new(&mut a);
+//! let bp=AabbPin::new(&mut b);
 //!
-//!    //core::mem::swap(a,b); // We cannot allow this!!!!
+//! //This is not allowed
+//! //core::mem::swap(ap,bb);
 //!
-//!    //This is allowed.
-//!    core::mem::swap(a.unpack_inner(),b.unpack_inner());
-//! })
+//! //This is allowed.
+//! core::mem::swap(ap.unpack_inner(),bp.unpack_inner());
+//!
 //!
 //! ```
 

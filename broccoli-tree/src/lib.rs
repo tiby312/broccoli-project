@@ -131,7 +131,7 @@ impl<T: Aabb, S: Sorter> TreeBuild<T, S> for S {
 ///
 ///```
 /// let mut bots = [axgeom::rect(0,10,0,10)];
-/// let tree = broccoli::new(&mut bots);
+/// let tree = broccoli_tree::new(&mut bots);
 ///
 ///```
 #[must_use]
@@ -313,32 +313,12 @@ impl<S, H> TreeInner<H, S> {
         as_node_tree(&self.nodes).get_height()
     }
 
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::build;
-    /// const NUM_ELEMENT:usize=7;
-    /// let mut bots = [axgeom::rect(0,10,0,10);NUM_ELEMENT];
-    /// let mut tree = broccoli::new(&mut bots);
-    /// let inner =tree.into_inner();
-    /// assert_eq!(inner.into_nodes().len(),1);
-    ///```
     #[must_use]
     #[inline(always)]
     pub fn into_nodes(self) -> Vec<H> {
         self.nodes
     }
 
-    /// # Examples
-    ///
-    ///```
-    /// use broccoli::build;
-    /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// assert_eq!(tree.num_nodes(),build::TreePreBuilder::new(1).num_nodes());
-    ///
-    ///```
     #[must_use]
     #[inline(always)]
     pub fn num_nodes(&self) -> usize {
@@ -351,15 +331,6 @@ impl<S, H> TreeInner<H, S> {
         self.total_num_elem
     }
 
-    /// # Examples
-    ///
-    ///```
-    /// let mut bots = [axgeom::rect(0,10,0,10)];
-    /// let mut tree = broccoli::new(&mut bots);
-    ///
-    /// assert_eq!(tree.get_nodes()[0].range[0], axgeom::rect(0,10,0,10));
-    ///
-    ///```
     #[must_use]
     #[inline(always)]
     pub fn get_nodes(&self) -> &[H] {
@@ -404,12 +375,14 @@ impl<S, H> TreeInner<H, S> {
     }
 }
 
-
-
 impl<N> TreeInner<N, DefaultSorter> {
     #[must_use]
-    pub fn into_no_sort(self)->TreeInner<N,NoSorter>{
-        TreeInner { total_num_elem: self.total_num_elem, nodes: self.nodes, sorter: NoSorter }
+    pub fn into_no_sort(self) -> TreeInner<N, NoSorter> {
+        TreeInner {
+            total_num_elem: self.total_num_elem,
+            nodes: self.nodes,
+            sorter: NoSorter,
+        }
     }
 }
 

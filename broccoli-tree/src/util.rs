@@ -3,7 +3,6 @@
 //!
 use super::*;
 
-
 use core::cmp::Ordering;
 
 #[must_use]
