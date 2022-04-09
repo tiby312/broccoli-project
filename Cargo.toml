@@ -21,8 +21,8 @@ members = [ "broccoli-tree","demo-web","report/data-gen","broccoli-ext"]
 dists = {git="https://github.com/tiby312/dists.git"}
 
 [dependencies]
-broccoli-tree={path="broccoli-tree"}
-rayon="1.5"
+broccoli-tree={path="broccoli-tree",default-features=false}
+rayon={version="1.5",optional=true}
 itertools = "0.10"
 compt = "2.0"
 axgeom = {version="1.9",default-features = false}
@@ -38,4 +38,11 @@ targets = ["x86_64-unknown-linux-gnu"]
 #  when using flamegraph
 # [profile.release]
 # debug = true
+
+
+
+
+[features]
+default=["rayon"]
+rayon = ["dep:rayon","broccoli-tree/rayon"]
 

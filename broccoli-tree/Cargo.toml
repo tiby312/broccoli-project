@@ -6,7 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rayon="1.5"
+rayon={version="1.5",optional = true}
 itertools = "0.10"
 compt = "2.0"
 axgeom = {version="1.9",default-features = false}
+
+[features]
+default = ["rayon"]

@@ -34,3 +34,4 @@ features=[
 
 [dependencies.broccoli]
 path = ".."
+default-features=false

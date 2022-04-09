@@ -34,7 +34,7 @@ pub fn colliding_pairs_splitter<'a, T: Aabb + 'a, SO: NodeHandler, SS: Splitter>
     )
 }
 
-//TODO make these splitters api go behind a feature
+#[cfg(feature = "rayon")]
 pub fn colliding_pairs_splitter_par<'a, T: Aabb + 'a, SO: NodeHandler, SS: Splitter + Send>(
     bu: &mut impl CollidingPairsBuilder<'a, T, SO>,
     func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,

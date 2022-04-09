@@ -270,7 +270,10 @@ pub fn make_tree_ref_ind<N: Num, T>(
     mut func: impl FnMut(RectConv) -> Rect<N>,
 ) -> Box<[BBox<N, &mut T>]> {
     let mut k = abspiral_f64(grow);
-    broccoli::tree::create_ind(bots, |_| func(RectConv(k.next().unwrap())))
+    bots.iter_mut()
+        .map(|a| BBox::new(func(RectConv(k.next().unwrap())), a))
+        .collect::<Vec<_>>()
+        .into_boxed_slice()
 }
 
 pub struct RectConv(pub Rect<f64>);

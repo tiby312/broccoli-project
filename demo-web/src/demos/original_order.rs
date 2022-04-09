@@ -57,8 +57,10 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             b.update();
         }
 
-        let mut tree_bots =
-            broccoli::tree::create_ind(&mut bots, |a| Rect::from_point(a.pos, vec2same(radius)));
+        let mut tree_bots: Vec<_> = bots
+            .iter_mut()
+            .map(|a| bbox(Rect::from_point(a.pos, vec2same(radius)), a))
+            .collect();
 
         if check_naive {
             broccoli::queries::colfind::assert_query(&mut tree_bots);

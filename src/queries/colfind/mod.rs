@@ -112,6 +112,7 @@ pub trait CollidingPairsBuilder<'a, T: Aabb + 'a, SO: NodeHandler> {
     }
 }
 
+#[cfg(feature = "rayon")]
 pub fn colliding_pairs_par<'a, T: Aabb + 'a, SO: NodeHandler>(
     bu: &mut impl CollidingPairsBuilder<'a, T, SO>,
     func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,

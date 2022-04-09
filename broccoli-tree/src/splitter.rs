@@ -49,6 +49,8 @@ pub fn build_from_splitter<T: Aabb, S: Sorter, SS: Splitter>(
     };
     (t, splitter)
 }
+
+#[cfg(feature = "rayon")]
 #[must_use]
 pub fn build_from_splitter_par<T: Aabb, S: Sorter, SS: Splitter + Send>(
     tb: impl TreeBuild<T, S>,

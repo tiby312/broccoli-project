@@ -103,16 +103,6 @@ pub mod num_level {
     }
 }
 
-pub fn create_ind<T, N: Num>(
-    bots: &mut [T],
-    mut func: impl FnMut(&T) -> Rect<N>,
-) -> Box<[BBox<N, &mut T>]> {
-    bots.iter_mut()
-        .map(|a| crate::bbox(func(a), a))
-        .collect::<Vec<_>>()
-        .into_boxed_slice()
-}
-
 #[must_use]
 pub struct NodeFinisher<'a, T: Aabb, S> {
     is_xaxis: bool,
@@ -219,6 +209,7 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
     TreeInner::build(DefaultSorter, bots)
 }
 
+#[cfg(feature = "rayon")]
 pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
 where
     T: Send + Sync,
@@ -292,6 +283,7 @@ where
         }
     }
 
+    #[cfg(feature = "rayon")]
     pub fn build_owned_par(sorter: S, mut bots: C) -> TreeOwned<C, S>
     where
         C::T: Send + Sync,
@@ -496,6 +488,8 @@ impl<'a, T: Aabb + 'a, S: Sorter> TreeInner<Node<'a, T>, S> {
             total_num_elem,
         }
     }
+
+    #[cfg(feature = "rayon")]
     #[must_use]
     pub fn build_par(tb: impl TreeBuild<T, S>, bots: &'a mut [T]) -> TreeInner<Node<'a, T>, S>
     where
