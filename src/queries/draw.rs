@@ -3,7 +3,7 @@
 use super::*;
 use axgeom::AxisDyn;
 
-pub struct DrawClosure<A> {
+struct DrawClosure<A> {
     pub line: A,
 }
 
@@ -40,7 +40,7 @@ pub fn draw_divider<T: Aabb>(
 
 ///Calls the user supplied function on each divider.
 ///Since the leaves do not have dividers, it is not called for the leaves.
-pub fn draw<A: Axis, T: Aabb, D: DividerDrawer<T>>(
+fn draw<A: Axis, T: Aabb, D: DividerDrawer<T>>(
     axis: A,
     vistr: Vistr<Node<T>>,
     dr: &mut D,

@@ -34,9 +34,12 @@ pub trait RayCast<T: Aabb> {
 
 use crate::Tree;
 
-pub struct DefaultRaycast;
+///
+/// No fine-grained just cast to aabb
+///
+pub struct AabbRaycast;
 
-impl<T: Aabb> RayCast<T> for DefaultRaycast
+impl<T: Aabb> RayCast<T> for AabbRaycast
 where
     T::Num: core::fmt::Debug + num_traits::Signed,
 {
@@ -69,11 +72,11 @@ pub trait RaycastApi<T: Aabb> {
     ) -> axgeom::CastResult<CastAnswer<T>>;
 
     ///Create a handler that just casts directly to the axis aligned rectangle
-    fn raycast_mut_default(&mut self, ray: Ray<T::Num>) -> axgeom::CastResult<CastAnswer<T>>
+    fn raycast_mut_aabb(&mut self, ray: Ray<T::Num>) -> axgeom::CastResult<CastAnswer<T>>
     where
         T::Num: core::fmt::Debug + num_traits::Signed,
     {
-        self.raycast_mut(ray, DefaultRaycast)
+        self.raycast_mut(ray, AabbRaycast)
     }
 
     fn raycast_mut_closure(

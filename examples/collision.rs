@@ -1,4 +1,4 @@
-use broccoli::prelude::CollisionApi;
+use broccoli::prelude::*;
 use broccoli::tree::{bbox, rect};
 fn main() {
     let mut inner1 = 0;

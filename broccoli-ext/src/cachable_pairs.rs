@@ -1,5 +1,5 @@
 use broccoli::{
-    prelude::CollisionApi,
+    prelude::CollidingPairsApi,
     tree::{aabb_pin::HasInner, build::Aabb, Tree},
 };
 

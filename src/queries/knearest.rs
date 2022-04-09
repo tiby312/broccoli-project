@@ -67,9 +67,12 @@ impl<'a, T: Aabb> KnearestApi<T> for AabbPin<&'a mut [T]> {
     }
 }
 
-pub struct DefaultKnearest;
+///
+/// Find nearest using just axis alined bounding boxes. No fine-grained.
+///
+pub struct AabbKnearest;
 
-impl<T: Aabb> Knearest<T> for DefaultKnearest
+impl<T: Aabb> Knearest<T> for AabbKnearest
 where
     T::Num: num_traits::Signed + num_traits::Zero,
 {
@@ -108,11 +111,12 @@ pub trait KnearestApi<T: Aabb> {
         ktrait: impl Knearest<T>,
     ) -> KResult<T>;
 
-    fn k_nearest_mut_default(&mut self, point: Vec2<T::Num>, num: usize) -> KResult<T>
+    /// Find knearest using aabb only.
+    fn k_nearest_mut_aabb(&mut self, point: Vec2<T::Num>, num: usize) -> KResult<T>
     where
         T::Num: num_traits::Signed + num_traits::Zero,
     {
-        self.k_nearest_mut(point, num, DefaultKnearest)
+        self.k_nearest_mut(point, num, AabbKnearest)
     }
 
     fn k_nearest_mut_closure(
