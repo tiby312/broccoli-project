@@ -64,6 +64,10 @@ where
         ray.cast_to_rect(a.get())
     }
 }
+
+///
+/// Make raycast queries
+///
 pub trait RaycastApi<T: Aabb> {
     fn raycast_mut<R: RayCast<T>>(
         &mut self,

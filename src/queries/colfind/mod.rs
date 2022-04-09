@@ -47,6 +47,9 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     assert_eq!(naive_res, nosort_res);
 }
 
+///
+/// Make colliding pair queries
+///
 pub trait CollidingPairsApi<T: Aabb> {
     fn colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>));
 }
@@ -88,6 +91,9 @@ impl<'a, T: Aabb> CollidingPairsApi<T> for SweepAndPrune<'a, T> {
     }
 }
 
+///
+/// Sweep and prune collision finding algorithm
+///
 pub struct SweepAndPrune<'a, T> {
     inner: &'a mut [T],
 }

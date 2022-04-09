@@ -225,6 +225,9 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
     }
 }
 
+///
+/// Make nbody queries
+///
 pub trait NbodyApi<N: Nbody> {
     fn nbody(self, no: &mut N) -> Self;
 }

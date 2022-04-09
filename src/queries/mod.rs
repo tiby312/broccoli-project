@@ -23,6 +23,9 @@ mod tools;
 
 pub mod nbody;
 
+///
+/// Iterate over every pair regardless if colliding or not.
+///
 pub fn for_every_pair<T: Aabb>(
     mut arr: AabbPin<&mut [T]>,
     mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),

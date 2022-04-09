@@ -103,6 +103,9 @@ where
     }
 }
 
+///
+/// Make k_nearest queries
+///
 pub trait KnearestApi<T: Aabb> {
     fn k_nearest_mut(
         &mut self,

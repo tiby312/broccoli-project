@@ -2,6 +2,9 @@
 
 use super::*;
 
+///
+/// Make rect queries
+///
 pub trait RectApi<'a, T: Aabb>: Sized {
     fn for_all_not_in_rect_mut<K: Aabb<Num = T::Num>>(
         self,

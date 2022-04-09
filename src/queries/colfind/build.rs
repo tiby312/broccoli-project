@@ -1,9 +1,12 @@
 //!
-//! Building blocks to find colliding pairs
+//! Building blocks to find colliding pairs with trees
 //!
 
 use super::*;
 
+///
+/// Shorthand for `FnMut(AabbPin<&mut T>, AabbPin<&mut T>)` trait bound
+///
 pub trait CollisionHandler<T: Aabb> {
     fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>);
 }
@@ -14,6 +17,9 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> CollisionHandler<T> fo
     }
 }
 
+///
+/// Finish handling a node by calling finish()
+///
 #[must_use]
 pub struct NodeFinisher<'a, 'b, T, F, H> {
     func: &'a mut F,
@@ -35,7 +41,7 @@ impl<'a, 'b, T: Aabb, F: CollisionHandler<T>, H: NodeHandler> NodeFinisher<'a, '
     }
 }
 
-/// The main primitive
+/// The main primitive to visit each node and find colliding pairs
 pub struct CollVis<'a, 'b, T: Aabb, N> {
     vistr: VistrMutPin<'b, Node<'a, T>>,
     is_xaxis: bool,
@@ -220,6 +226,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
     }
 }
 
+/// Used by [`NodeHandler`]
 pub struct NodeAxis<'a, 'node, T: Aabb, A: Axis> {
     pub node: AabbPin<&'a mut Node<'node, T>>,
     pub axis: A,
@@ -238,6 +245,9 @@ impl<'a, 'node, T: Aabb, A: Axis> NodeAxis<'a, 'node, T, A> {
     }
 }
 
+///
+/// Abstract over sorted and non sorted trees
+///
 pub trait NodeHandler: Copy + Clone + Send + Sync {
     fn handle_node<T: Aabb>(
         self,
