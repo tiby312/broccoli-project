@@ -3,8 +3,10 @@
 //!
 use super::*;
 
+
 use core::cmp::Ordering;
 
+#[must_use]
 pub fn is_sorted_by<I, F>(arr: &[I], mut compare: F) -> bool
 where
     F: FnMut(&I, &I) -> Option<Ordering>,
@@ -14,6 +16,7 @@ where
 }
 
 #[inline(always)]
+#[must_use]
 pub fn compare_bots<T: Aabb>(axis: impl Axis, a: &T, b: &T) -> core::cmp::Ordering {
     let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
     if p1 > p2 {

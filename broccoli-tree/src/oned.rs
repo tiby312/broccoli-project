@@ -9,6 +9,7 @@ pub struct Binned<'a, T: 'a> {
 
 /// Sorts the bots into three bins. Those to the left of the divider, those that intersect with the divider, and those to the right.
 /// They will be laid out in memory s.t.  middile < left < right
+#[must_use]
 pub fn bin_middle_left_right<'b, A: Axis, X: Aabb>(
     axis: A,
     med: &X::Num,

@@ -18,6 +18,7 @@ use compt::Visitor;
 pub type DefaultA = XAXIS;
 
 ///Returns the default axis type.
+#[must_use]
 pub const fn default_axis() -> DefaultA {
     XAXIS
 }
@@ -55,6 +56,7 @@ pub mod num_level {
 
     ///Outputs the height given an desirned number of bots per node.
     #[inline]
+    #[must_use]
     const fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> usize {
         //we want each node to have space for around 300 bots.
         //there are 2^h nodes.
@@ -69,17 +71,19 @@ pub mod num_level {
             (a + 1) as usize
         }
     }
-
+    #[must_use]
     const fn log_2(x: u64) -> u64 {
         const fn num_bits<T>() -> usize {
             core::mem::size_of::<T>() * 8
         }
         num_bits::<u64>() as u64 - x.leading_zeros() as u64 - 1
     }
+    #[must_use]
     pub fn default(num_elements: usize) -> usize {
         compute_tree_height_heuristic(num_elements, DEFAULT_NUMBER_ELEM_PER_NODE)
     }
-    ///Specify a custom default number of elements per leaf.
+    ///Specify a custom default number of elements per leaf
+    #[must_use]
     pub const fn with_num_elem_in_leaf(num_elements: usize, num_elem_leaf: usize) -> usize {
         compute_tree_height_heuristic(num_elements, num_elem_leaf)
     }
@@ -130,6 +134,7 @@ impl<T: Aabb, S: Sorter> TreeBuild<T, S> for S {
 /// let tree = broccoli::new(&mut bots);
 ///
 ///```
+#[must_use]
 pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
     TreeInner::build(DefaultSorter, bots)
 }
@@ -138,6 +143,7 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
 /// Create a [`Tree`] using rayon.
 ///
 #[cfg(feature = "rayon")]
+#[must_use]
 pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
 where
     T: Send + Sync,
@@ -189,6 +195,7 @@ impl<C: Container> TreeOwned<C, DefaultSorter>
 where
     C::T: Aabb,
 {
+    #[must_use]
     pub fn new(bots: C) -> Self {
         TreeOwned::build_owned(DefaultSorter, bots)
     }
@@ -198,6 +205,7 @@ impl<C: Container, S: Sorter> TreeOwned<C, S>
 where
     C::T: Aabb,
 {
+    #[must_use]
     pub fn build_owned(sorter: S, mut bots: C) -> TreeOwned<C, S> {
         let j = bots.as_mut();
         let length = j.len();
@@ -212,6 +220,7 @@ where
     }
 
     #[cfg(feature = "rayon")]
+    #[must_use]
     pub fn build_owned_par(sorter: S, mut bots: C) -> TreeOwned<C, S>
     where
         C::T: Send + Sync,
@@ -229,18 +238,21 @@ where
         }
     }
 
+    #[must_use]
     pub fn as_tree(&mut self) -> TreeInner<Node<C::T>, S> {
         let j = self.inner.as_mut();
         assert_eq!(j.len(), self.length);
 
         self.nodes.clone().into_tree(AabbPin::from_mut(j))
     }
+    #[must_use]
     pub fn as_slice_mut(&mut self) -> AabbPin<&mut [C::T]> {
         let j = self.inner.as_mut();
         assert_eq!(j.len(), self.length);
 
         AabbPin::new(j)
     }
+    #[must_use]
     pub fn into_inner(self) -> C {
         self.inner
     }
@@ -250,6 +262,7 @@ impl<C: Container + Clone, S> TreeOwned<C, S>
 where
     C::T: Aabb,
 {
+    #[must_use]
     pub fn clone_inner(&self) -> C {
         self.inner.clone()
     }
@@ -276,12 +289,14 @@ impl<S, H: HasElem> TreeInner<H, S> {
     }
 }
 
+#[must_use]
 fn as_node_tree<N>(vec: &[N]) -> compt::dfs_order::CompleteTree<N, compt::dfs_order::PreOrder> {
     compt::dfs_order::CompleteTree::from_preorder(vec).unwrap()
 }
 
 impl<S, H> TreeInner<H, S> {
     #[must_use]
+    #[inline(always)]
     pub fn node_map<K>(self, func: impl FnMut(H) -> K) -> TreeInner<K, S> {
         let sorter = self.sorter;
         let nodes = self.nodes.into_iter().map(func).collect();
@@ -309,6 +324,7 @@ impl<S, H> TreeInner<H, S> {
     /// assert_eq!(inner.into_nodes().len(),1);
     ///```
     #[must_use]
+    #[inline(always)]
     pub fn into_nodes(self) -> Vec<H> {
         self.nodes
     }
@@ -330,6 +346,7 @@ impl<S, H> TreeInner<H, S> {
     }
 
     #[must_use]
+    #[inline(always)]
     pub fn total_num_elem(&self) -> usize {
         self.total_num_elem
     }
@@ -384,6 +401,15 @@ impl<S, H> TreeInner<H, S> {
         S: Copy,
     {
         self.sorter
+    }
+}
+
+
+
+impl<N> TreeInner<N, DefaultSorter> {
+    #[must_use]
+    pub fn into_no_sort(self)->TreeInner<N,NoSorter>{
+        TreeInner { total_num_elem: self.total_num_elem, nodes: self.nodes, sorter: NoSorter }
     }
 }
 

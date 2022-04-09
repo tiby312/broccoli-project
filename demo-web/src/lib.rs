@@ -13,7 +13,6 @@ use broccoli::tree::aabb_pin::AabbPin;
 pub use broccoli::tree::bbox;
 pub use broccoli::tree::build::*;
 pub use broccoli::tree::*;
-//pub use broccoli::rayon;
 
 pub use broccoli::prelude::*;
 

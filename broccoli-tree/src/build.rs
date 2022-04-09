@@ -13,6 +13,7 @@ pub struct NodeFinisher<'a, T: Aabb, S> {
 }
 impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
     #[inline(always)]
+    #[must_use]
     pub fn finish(self) -> Node<'a, T> {
         fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
             match middle.split_first() {
@@ -77,6 +78,7 @@ pub struct NodeBuildResult<'a, T: Aabb, S> {
 }
 
 impl<'a, T: Aabb, S: Sorter> TreeBuildVisitor<'a, T, S> {
+    #[must_use]
     pub fn new(num_levels: usize, bots: &'a mut [T], sorter: S) -> TreeBuildVisitor<'a, T, S> {
         assert!(num_levels >= 1);
         TreeBuildVisitor {
@@ -86,10 +88,11 @@ impl<'a, T: Aabb, S: Sorter> TreeBuildVisitor<'a, T, S> {
             is_xaxis: true,
         }
     }
-
+    #[must_use]
     pub fn get_height(&self) -> usize {
         self.current_height
     }
+    #[must_use]
     pub fn build_and_next(self) -> NodeBuildResult<'a, T, S> {
         //leaf case
         if self.current_height == 0 {
