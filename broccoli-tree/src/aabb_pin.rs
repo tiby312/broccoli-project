@@ -27,9 +27,16 @@ use super::*;
 
 /// Trait exposes an api where you can return a read-only reference to the axis-aligned bounding box
 /// and at the same time return a mutable reference to a separate inner section.
-pub trait HasInner {
+pub trait HasInner:Aabb {
     type Inner;
-    fn get_inner_mut(&mut self) -> &mut Self::Inner;
+
+    #[inline(always)]
+    fn get_inner_mut(&mut self) -> &mut Self::Inner{
+        self.destruct_mut().1
+    }
+    
+    fn destruct_mut(&mut self) -> (&Rect<Self::Num>,&mut Self::Inner);
+    
 }
 
 /// A protected mutable reference that derefs to `&T`.
