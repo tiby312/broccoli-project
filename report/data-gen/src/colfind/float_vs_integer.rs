@@ -78,7 +78,7 @@ impl Record {
             bench_closure(|| {
                 let mut tree = broccoli::tree::new_par(&mut bb);
 
-                broccoli::queries::colfind::colliding_pairs_par(&mut tree, |a, b| {
+                tree.colliding_pairs_par(|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
@@ -91,7 +91,7 @@ impl Record {
             bench_closure(|| {
                 let mut tree = broccoli::tree::new_par(&mut bb);
 
-                broccoli::queries::colfind::colliding_pairs_par(&mut tree, |a, b| {
+                tree.colliding_pairs_par(|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
@@ -104,7 +104,7 @@ impl Record {
             bench_closure(|| {
                 let mut tree = broccoli::tree::new_par(&mut bb);
 
-                broccoli::queries::colfind::colliding_pairs_par(&mut tree, |a, b| {
+                tree.colliding_pairs_par(|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });

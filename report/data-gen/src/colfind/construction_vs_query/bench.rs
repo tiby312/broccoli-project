@@ -58,7 +58,7 @@ impl Record {
 
             let (mut tree, t1) = bench_closure_ret(|| broccoli::tree::new_par(&mut bots));
             let t2 = bench_closure(|| {
-                broccoli::queries::colfind::colliding_pairs_par(&mut tree, |a, b| {
+                tree.colliding_pairs_par(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());

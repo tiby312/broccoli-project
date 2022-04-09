@@ -46,7 +46,7 @@ where
     let (mut tree, construct_time) = bench_closure_ret(|| broccoli::tree::new_par(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {
-        broccoli::queries::colfind::colliding_pairs_par(&mut tree, |a, b| {
+        tree.colliding_pairs_par(|a, b| {
             func(a, b);
         });
         tree

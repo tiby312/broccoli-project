@@ -17,7 +17,7 @@ struct MyQuery<'a, T: Aabb> {
     height_seq_fallback: usize,
 }
 
-impl<'a, T: Aabb + 'a> broccoli::queries::colfind::CollidingPairsBuilder<'a, T, DefaultSorter>
+impl<'a, T: Aabb + 'a> broccoli::queries::colfind::CollidingPairsApiExt<'a, T, DefaultSorter>
     for MyQuery<'a, T>
 {
     fn height_seq_fallback(&self) -> usize {
@@ -65,7 +65,7 @@ fn test3(
             tree,
             height_seq_fallback: query_height,
         };
-        broccoli::queries::colfind::colliding_pairs_par(&mut tree, |a, b| {
+        tree.colliding_pairs_par(|a, b| {
             **a.unpack_inner() += 2;
             **b.unpack_inner() += 2;
         });
