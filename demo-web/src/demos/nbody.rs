@@ -159,7 +159,7 @@ impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
     }
 
     fn gravitate_self(&mut self, a: AabbPin<&mut [Self::T]>) {
-        broccoli::queries::nbody::naive_nbody_mut(a, |a, b| {
+        broccoli::queries::for_every_pair(a, |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
 
             let _ = duckduckgeo::gravitate(
@@ -252,13 +252,10 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             //let now = Instant::now();
             let tree = broccoli::tree::new(&mut k);
 
-            let mut tree = broccoli::queries::nbody::nbody_mut(
-                tree,
-                &mut Bla {
-                    _num_pairs_checked: 0,
-                    _p: PhantomData,
-                },
-            );
+            let mut tree = tree.nbody(&mut Bla {
+                _num_pairs_checked: 0,
+                _p: PhantomData,
+            });
 
             //println!("{}", now.elapsed().as_millis());
             //panic!();

@@ -58,7 +58,7 @@ pub trait CollisionApi<T: Aabb> {
 }
 impl<'a, T: Aabb> CollisionApi<T> for AabbPin<&'a mut [T]> {
     fn colliding_pairs(&mut self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        tools::for_every_pair(AabbPin::new(self).flatten(), move |a, b| {
+        queries::for_every_pair(AabbPin::new(self).flatten(), move |a, b| {
             if a.get().intersects_rect(b.get()) {
                 func(a, b);
             }

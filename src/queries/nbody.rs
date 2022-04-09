@@ -51,14 +51,6 @@ struct NodeWrapper<'a, T: Aabb, M> {
     mass: M,
 }
 
-///Naive version simply visits every pair.
-pub fn naive_nbody_mut<T: Aabb>(
-    bots: AabbPin<&mut [T]>,
-    func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-) {
-    tools::for_every_pair(bots, func);
-}
-
 fn build_masses2<N: Nbody>(vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) -> N::Mass {
     let (nn, rest) = vistr.next();
     let mass = no.compute_center_of_mass(&nn.node.range);
@@ -233,20 +225,50 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
     }
 }
 
-///Perform nbody
-///The tree is taken by value so that its nodes can be expended to include more data.
-pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
-    let mut newtree = tree.node_map(|x| NodeWrapper {
-        node: x,
-        mass: Default::default(),
-    });
+pub trait NbodyApi<N: Nbody> {
+    fn nbody(self, no: &mut N) -> Self;
+}
 
-    //calculate node masses of each node.
-    build_masses2(newtree.vistr_mut_raw(), no);
+impl<'a, N: Nbody> NbodyApi<N> for crate::Tree<'a, N::T> {
+    fn nbody(self, no: &mut N) -> Self {
+        ///Perform nbody
+        ///The tree is taken by value so that its nodes can be expended to include more data.
+        pub fn nbody_mut<'a, N: Nbody>(
+            tree: crate::Tree<'a, N::T>,
+            no: &mut N,
+        ) -> crate::Tree<'a, N::T> {
+            let mut newtree = tree.node_map(|x| NodeWrapper {
+                node: x,
+                mass: Default::default(),
+            });
 
-    recc(default_axis(), newtree.vistr_mut_raw(), no);
+            //calculate node masses of each node.
+            build_masses2(newtree.vistr_mut_raw(), no);
 
-    apply_tree(newtree.vistr_mut_raw(), no);
+            recc(default_axis(), newtree.vistr_mut_raw(), no);
 
-    newtree.node_map(|x| x.node)
+            apply_tree(newtree.vistr_mut_raw(), no);
+
+            newtree.node_map(|x| x.node)
+        }
+
+        nbody_mut(self, no)
+    }
+}
+
+impl<'a, N: Nbody> NbodyApi<N> for AabbPin<&mut [N::T]> {
+    fn nbody(mut self, no: &mut N) -> Self {
+        ///Naive version simply visits every pair.
+        pub fn naive_nbody_mut<T: Aabb>(
+            bots: AabbPin<&mut [T]>,
+            func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+        ) {
+            queries::for_every_pair(bots, func);
+        }
+
+        naive_nbody_mut(self.borrow_mut(), |a, b| {
+            no.gravitate(GravEnum::Bot(a.into_slice()), GravEnum::Bot(b.into_slice()));
+        });
+        self
+    }
 }

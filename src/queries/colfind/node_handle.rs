@@ -1,4 +1,3 @@
-use super::super::tools;
 use super::oned;
 use super::CollisionHandler;
 use super::*;
@@ -47,7 +46,7 @@ impl NodeHandler for crate::tree::build::NoSorter {
         _axis: impl Axis,
         bots: AabbPin<&mut [T]>,
     ) {
-        tools::for_every_pair(bots, move |a, b| {
+        queries::for_every_pair(bots, move |a, b| {
             if a.get().intersects_rect(b.get()) {
                 func.collide(a, b);
             }

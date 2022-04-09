@@ -80,6 +80,14 @@ impl<'a, 'b, T: ?Sized> AabbPin<&'a mut AabbPin<&'b mut T>> {
         }
     }
 }
+
+impl<'a, T> AabbPin<&'a mut T> {
+    pub fn into_slice(self) -> AabbPin<&'a mut [T]> {
+        AabbPin {
+            inner: std::slice::from_mut(self.inner),
+        }
+    }
+}
 impl<'a, T: ?Sized> AabbPin<&'a mut T> {
     /// Start a new borrow lifetime
     #[inline(always)]
