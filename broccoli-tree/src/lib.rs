@@ -12,7 +12,6 @@ use axgeom::*;
 use build::*;
 use compt::Visitor;
 
-
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
 ///This means that the first divider is a 'vertical' line since it is
 ///partitioning space based off of the aabb's `X` value.
@@ -28,22 +27,6 @@ pub const fn default_axis() -> DefaultA {
 ///does nothing when sort() is called.
 pub trait Sorter: Copy + Clone + Send + Sync + Default {
     fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]);
-}
-
-#[derive(Copy, Clone, Default)]
-pub struct DefaultSorter;
-
-impl Sorter for DefaultSorter {
-    fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]) {
-        crate::util::sweeper_update(axis, bots);
-    }
-}
-
-#[derive(Copy, Clone, Default)]
-pub struct NoSorter;
-
-impl Sorter for NoSorter {
-    fn sort(&self, _axis: impl Axis, _bots: &mut [impl Aabb]) {}
 }
 
 ///Using this struct the user can determine the height of a tree or the number of nodes
@@ -153,7 +136,7 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
 
 ///
 /// Create a [`Tree`] using rayon.
-/// 
+///
 #[cfg(feature = "rayon")]
 pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
 where
@@ -282,10 +265,9 @@ pub struct TreeInner<N, S> {
     sorter: S,
 }
 
-
 ///
 /// [`TreeInner`] type with default node and sorter.
-/// 
+///
 pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
 
 impl<S, H: HasElem> TreeInner<H, S> {

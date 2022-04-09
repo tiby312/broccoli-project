@@ -39,7 +39,7 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
     );
 }
 
-impl NodeHandler for crate::tree::NoSorter {
+impl NodeHandler for crate::tree::build::NoSorter {
     fn handle_node<T: Aabb>(
         self,
         func: &mut impl CollisionHandler<T>,
@@ -79,7 +79,7 @@ impl NodeHandler for crate::tree::NoSorter {
     }
 }
 
-impl NodeHandler for crate::tree::DefaultSorter {
+impl NodeHandler for crate::tree::build::DefaultSorter {
     #[inline(always)]
     fn handle_node<T: Aabb>(
         self,

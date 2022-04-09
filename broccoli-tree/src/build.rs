@@ -1,9 +1,8 @@
 //!
 //! Tree building blocks
-//! 
+//!
 
 use super::*;
-
 
 #[must_use]
 pub struct NodeFinisher<'a, T: Aabb, S> {
@@ -61,7 +60,6 @@ impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
         }
     }
 }
-
 
 ///
 /// The main primitive to build a tree.
@@ -193,8 +191,21 @@ struct ConstructResult<'a, T: Aabb> {
     left: &'a mut [T],
 }
 
+#[derive(Copy, Clone, Default)]
+pub struct DefaultSorter;
 
+impl Sorter for DefaultSorter {
+    fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]) {
+        crate::util::sweeper_update(axis, bots);
+    }
+}
 
+#[derive(Copy, Clone, Default)]
+pub struct NoSorter;
+
+impl Sorter for NoSorter {
+    fn sort(&self, _axis: impl Axis, _bots: &mut [impl Aabb]) {}
+}
 
 pub use axgeom::Range;
 pub use axgeom::Rect;
