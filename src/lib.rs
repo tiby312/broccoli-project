@@ -64,7 +64,7 @@ pub use axgeom;
 pub use broccoli_tree as tree;
 
 use broccoli_tree::node::*;
-pub use compt;
+use compt;
 use tree::*;
 
 pub mod prelude {
