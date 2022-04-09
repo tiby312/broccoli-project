@@ -142,6 +142,25 @@ impl<'a, 'b: 'a, T: Aabb> AabbPin<&'a mut Node<'b, T>> {
     }
 }
 
+impl<'a, N: Num, T> AabbPin<&'a mut BBox<N, T>> {
+    /// Unpack only the mutable innner component
+    #[inline(always)]
+    pub fn destructure(&mut self) -> (&Rect<N>, &mut T) {
+        let r = &self.inner.rect;
+        let a = &mut self.inner.inner;
+        (r, a)
+    }
+}
+
+impl<'a, N: Num, T> AabbPin<&'a mut BBoxMut<'_, N, T>> {
+    /// Unpack only the mutable innner component
+    #[inline(always)]
+    pub fn destructure(&mut self) -> (&Rect<N>, &mut T) {
+        let r = &self.inner.rect;
+        (r, self.inner.inner)
+    }
+}
+
 impl<'a, T: HasInner> AabbPin<&'a mut T> {
     /// Unpack only the mutable innner component
     #[inline(always)]

@@ -81,17 +81,16 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
             tree.intersect_with_iter_mut(
                 AabbPin::new(walls.as_mut_slice()).iter_mut(),
-                |bot2, wall| {
+                |mut bot, wall| {
+                    let (rect, bot) = bot.destructure();
+
                     //TODO borrow instead
-                    let rect = bot2.rect;
-                    let bot = bot2.unpack_inner();
-                    let wall = wall;
-
-                    let fric = 0.8;
-
                     let wallx = &wall.x;
                     let wally = &wall.y;
                     let vel = bot.vel;
+
+                    //let vel = bot.vel;
+                    let fric = 0.8;
 
                     let ret = match duckduckgeo::collide_with_rect(&rect, &wall).unwrap() {
                         duckduckgeo::WallSide::Above => {
@@ -107,6 +106,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                             [Some((wallx.end + radius, -vel.x * fric)), None]
                         }
                     };
+
                     bot.wall_move = ret;
                 },
             );
