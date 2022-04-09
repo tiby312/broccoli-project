@@ -182,14 +182,13 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
 ///Shorthand constructor of [`node::BBoxMut`]
 #[inline(always)]
 #[must_use]
-pub fn bbox_mut<'a,N, T>(rect: axgeom::Rect<N>, inner: &'a mut T) -> node::BBoxMut<'a,N, T> {
+pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> node::BBoxMut<N, T> {
     node::BBoxMut::new(rect, inner)
 }
 
-
 ///
 /// Specify options for constructing the tree.
-/// 
+///
 pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     fn sorter(&self) -> S;
 

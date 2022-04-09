@@ -21,10 +21,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
     move |data| {
         let DemoData {
-            cursor,
-            sys,
-            ctx,
-            check_naive,
+            cursor, sys, ctx, ..
         } = data;
 
         let mut tree = tree.as_tree();

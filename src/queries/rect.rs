@@ -49,37 +49,34 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
                 }
             }
 
-            match rest {
-                Some([left, right]) => {
-                    let div = match div {
-                        Some(b) => b,
-                        None => return,
-                    };
+            if let Some([left, right]) = rest {
+                let div = match div {
+                    Some(b) => b,
+                    None => return,
+                };
 
-                    match rect.get().get_range(axis).contains_ext(*div) {
-                        core::cmp::Ordering::Greater => {
-                            for a in right.into_slice() {
-                                for b in a.into_range().iter_mut() {
-                                    closure(rect.borrow_mut(), b)
-                                }
+                match rect.get().get_range(axis).contains_ext(*div) {
+                    core::cmp::Ordering::Greater => {
+                        for a in right.into_slice() {
+                            for b in a.into_range().iter_mut() {
+                                closure(rect.borrow_mut(), b)
                             }
-                            rect_recurse(axis.next(), left, rect, closure)
                         }
-                        core::cmp::Ordering::Less => {
-                            for a in left.into_slice() {
-                                for b in a.into_range().iter_mut() {
-                                    closure(rect.borrow_mut(), b)
-                                }
+                        rect_recurse(axis.next(), left, rect, closure)
+                    }
+                    core::cmp::Ordering::Less => {
+                        for a in left.into_slice() {
+                            for b in a.into_range().iter_mut() {
+                                closure(rect.borrow_mut(), b)
                             }
-                            rect_recurse(axis.next(), right, rect, closure)
                         }
-                        core::cmp::Ordering::Equal => {
-                            rect_recurse(axis.next(), left, rect.borrow_mut(), closure);
-                            rect_recurse(axis.next(), right, rect.borrow_mut(), closure)
-                        }
+                        rect_recurse(axis.next(), right, rect, closure)
+                    }
+                    core::cmp::Ordering::Equal => {
+                        rect_recurse(axis.next(), left, rect.borrow_mut(), closure);
+                        rect_recurse(axis.next(), right, rect.borrow_mut(), closure)
                     }
                 }
-                None => {}
             }
         }
         rect_recurse(default_axis(), self.vistr_mut(), rect, &mut closure);
