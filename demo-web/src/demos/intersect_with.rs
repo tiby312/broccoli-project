@@ -79,7 +79,8 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         {
             let mut tree = broccoli::tree::new(&mut k);
 
-            tree.intersect_with_iter_mut(
+            broccoli::queries::intersect_with::intersect_with_iter_mut(
+                &mut tree,
                 AabbPin::new(walls.as_mut_slice()).iter_mut(),
                 |mut bot, wall| {
                     let (rect, bot) = bot.destruct_mut();
