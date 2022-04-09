@@ -10,7 +10,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let rect_save = {
         let mut verts = vec![];
         for bot in bots.iter() {
-            verts.rect(bot.inner_as().rect);
+            verts.rect(bot.rect.inner_as());
         }
         ctx.buffer_static(&verts)
     };

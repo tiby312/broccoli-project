@@ -21,6 +21,21 @@ pub trait Aabb {
     fn get(&self) -> &Rect<Self::Num>;
 }
 
+impl<T: Aabb> Aabb for &T {
+    type Num = T::Num;
+    #[inline(always)]
+    fn get(&self) -> &Rect<Self::Num> {
+        T::get(self)
+    }
+}
+impl<T: Aabb> Aabb for &mut T {
+    type Num = T::Num;
+    #[inline(always)]
+    fn get(&self) -> &Rect<Self::Num> {
+        T::get(self)
+    }
+}
+
 impl<N: Num> Aabb for Rect<N> {
     type Num = N;
     #[inline(always)]
@@ -53,62 +68,11 @@ impl<N, T> BBox<N, T> {
     }
 }
 
-use core::convert::TryFrom;
-impl<N: Copy, T> BBox<N, T> {
-    /// Change the number type of the Rect using
-    /// promitive cast.
-    #[inline(always)]
-    #[must_use]
-    pub fn inner_as<B: 'static + Copy>(self) -> BBox<B, T>
-    where
-        N: num_traits::AsPrimitive<B>,
-    {
-        BBox {
-            rect: self.rect.inner_as(),
-            inner: self.inner,
-        }
-    }
-
-    /// Change the number type using `From`
-    #[inline(always)]
-    #[must_use]
-    pub fn inner_into<A: From<N>>(self) -> BBox<A, T> {
-        BBox {
-            rect: self.rect.inner_into(),
-            inner: self.inner,
-        }
-    }
-
-    /// Change the number type using `TryFrom`
-    #[inline(always)]
-    pub fn inner_try_into<A: TryFrom<N>>(self) -> Result<BBox<A, T>, A::Error> {
-        Ok(BBox {
-            rect: self.rect.inner_try_into()?,
-            inner: self.inner,
-        })
-    }
-}
-
 impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;
     #[inline(always)]
     fn get(&self) -> &Rect<Self::Num> {
         &self.rect
-    }
-}
-
-impl<T: Aabb> Aabb for &T {
-    type Num = T::Num;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        T::get(self)
-    }
-}
-impl<T: Aabb> Aabb for &mut T {
-    type Num = T::Num;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        T::get(self)
     }
 }
 
@@ -127,6 +91,41 @@ impl<N: Num, T> HasInner for &mut BBox<N, T> {
     #[inline(always)]
     fn get_inner_mut(&mut self) -> &mut Self::Inner {
         &mut self.inner
+    }
+}
+
+///
+/// BBox with a reference.
+///
+/// Similar to `BBox<N,&mut T>` except
+/// get_inner_mut() doesnt return a `&mut &mut T`
+/// but instead just a `&mut T`.
+///
+pub struct BBoxMut<'a, N, T> {
+    pub rect: axgeom::Rect<N>,
+    pub inner: &'a mut T,
+}
+
+impl<'a, N, T> BBoxMut<'a, N, T> {
+    /// Constructor. Also consider using [`crate::bbox()`]
+    #[inline(always)]
+    #[must_use]
+    pub fn new(rect: Rect<N>, inner: &'a mut T) -> BBoxMut<'a, N, T> {
+        BBoxMut { rect, inner }
+    }
+}
+impl<N: Num, T> Aabb for BBoxMut<'_, N, T> {
+    type Num = N;
+    #[inline(always)]
+    fn get(&self) -> &axgeom::Rect<N> {
+        &self.rect
+    }
+}
+impl<N, T> HasInner for BBoxMut<'_, N, T> {
+    type Inner = T;
+    #[inline(always)]
+    fn get_inner_mut(&mut self) -> &mut Self::Inner {
+        self.inner
     }
 }
 

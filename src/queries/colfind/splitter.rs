@@ -3,7 +3,7 @@ use super::*;
 use crate::tree::splitter::Splitter;
 
 pub fn colliding_pairs_splitter<'a, T: Aabb + 'a, SO: NodeHandler, SS: Splitter>(
-    mut bu: &mut impl CollidingPairsBuilder<'a, T, SO>,
+    bu: &mut impl CollidingPairsBuilder<'a, T, SO>,
     splitter: SS,
     mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
 ) -> SS {
@@ -36,7 +36,7 @@ pub fn colliding_pairs_splitter<'a, T: Aabb + 'a, SO: NodeHandler, SS: Splitter>
 
 //TODO make these splitters api go behind a feature
 pub fn colliding_pairs_splitter_par<'a, T: Aabb + 'a, SO: NodeHandler, SS: Splitter + Send>(
-    mut bu: &mut impl CollidingPairsBuilder<'a, T, SO>,
+    bu: &mut impl CollidingPairsBuilder<'a, T, SO>,
     func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
     splitter: SS,
 ) -> SS
@@ -67,7 +67,7 @@ where
             if let Some([left, right]) = rest {
                 let (s1, s2) = splitter.div();
 
-                let (s1, s2) = rayon_core::join(
+                let (s1, s2) = rayon::join(
                     || {
                         let (prevec, func) = n.finish();
                         recurse_par_splitter(left, prevec, height_seq_fallback, func.clone(), s1)

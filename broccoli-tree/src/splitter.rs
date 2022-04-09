@@ -78,7 +78,7 @@ where
             if let Some([left, right]) = rest {
                 let (s1, s2) = splitter.div();
 
-                let (s1, (mut a, s2)) = rayon_core::join(
+                let (s1, (mut a, s2)) = rayon::join(
                     || {
                         buffer.push(node.finish());
                         recurse_par_splitter(left, height_seq_fallback, buffer, s1)

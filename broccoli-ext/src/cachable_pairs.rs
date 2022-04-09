@@ -1,5 +1,3 @@
-use std::ops::DerefMut;
-
 use broccoli::{
     prelude::CollisionApi,
     tree::{aabb_pin::HasInner, node::Aabb, Tree},
@@ -27,24 +25,18 @@ pub unsafe trait TrustedIterAll {
 
 pub struct IndTree<'a, 'b, T: Aabb>(pub &'b mut Tree<'a, T>);
 
-unsafe impl<T: Aabb + HasInner<Inner = K>, K: DerefMut> TrustedCollisionPairs for IndTree<'_, '_, T>
-where
-    K::Target: Sized,
-{
-    type T = K::Target;
-    fn for_every_pair(&mut self, mut func: impl FnMut(&mut K::Target, &mut K::Target)) {
+unsafe impl<T: Aabb + HasInner> TrustedCollisionPairs for IndTree<'_, '_, T> {
+    type T = T::Inner;
+    fn for_every_pair(&mut self, mut func: impl FnMut(&mut Self::T, &mut Self::T)) {
         self.0.colliding_pairs(|a, b| {
             func(a.unpack_inner(), b.unpack_inner());
         })
     }
 }
 
-unsafe impl<T: Aabb + HasInner<Inner = K>, K: DerefMut> TrustedIterAll for IndTree<'_, '_, T>
-where
-    K::Target: Sized,
-{
-    type T = K::Target;
-    fn for_every(&mut self, mut func: impl FnMut(&mut K::Target)) {
+unsafe impl<T: Aabb + HasInner> TrustedIterAll for IndTree<'_, '_, T> {
+    type T = T::Inner;
+    fn for_every(&mut self, mut func: impl FnMut(&mut Self::T)) {
         for a in self.0.iter_mut() {
             func(a.unpack_inner());
         }

@@ -179,6 +179,17 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> node::BBox<N, T> {
     node::BBox::new(rect, inner)
 }
 
+///Shorthand constructor of [`node::BBoxMut`]
+#[inline(always)]
+#[must_use]
+pub fn bbox_mut<'a,N, T>(rect: axgeom::Rect<N>, inner: &'a mut T) -> node::BBoxMut<'a,N, T> {
+    node::BBoxMut::new(rect, inner)
+}
+
+
+///
+/// Specify options for constructing the tree.
+/// 
 pub trait TreeBuild<T: Aabb, S: Sorter>: Sized {
     fn sorter(&self) -> S;
 
@@ -506,7 +517,7 @@ impl<'a, T: Aabb + 'a, S: Sorter> TreeInner<Node<'a, T>, S> {
                 let NodeBuildResult { node, rest } = vistr.build_and_next();
 
                 if let Some([left, right]) = rest {
-                    let (_, mut a) = rayon_core::join(
+                    let (_, mut a) = rayon::join(
                         || {
                             buffer.push(node.finish());
                             recurse_par(left, height_seq_fallback, buffer);

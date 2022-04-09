@@ -68,16 +68,6 @@ impl<'a, T: ?Sized> AabbPin<*mut T> {
     }
 }
 
-pub struct Escapable<'a, T> {
-    pub inner: &'a mut T,
-}
-impl<'a, T> HasInner for Escapable<'a, T> {
-    type Inner = T;
-    fn get_inner_mut(&mut self) -> &mut Self::Inner {
-        self.inner
-    }
-}
-
 impl<'a, 'b, T: ?Sized> AabbPin<&'a mut AabbPin<&'b mut T>> {
     #[inline(always)]
     pub fn flatten(self) -> AabbPin<&'a mut T> {

@@ -29,8 +29,13 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
             };
 
             let collect = {
-                let mut base =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
+                let base = crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
+                let mut base: Vec<_> = base
+                    .into_vec()
+                    .into_iter()
+                    .map(|x| BBoxMut::new(x.rect, x.inner))
+                    .collect();
+
                 let mut tree = broccoli::tree::new(&mut base);
 
                 bench_closure(|| {
@@ -77,8 +82,14 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
             let cached_pairs = {
-                let mut base =
-                    crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
+                let base = crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
+
+                let mut base: Vec<_> = base
+                    .into_vec()
+                    .into_iter()
+                    .map(|x| BBoxMut::new(x.rect, x.inner))
+                    .collect();
+
                 let mut tree = broccoli::tree::new(&mut base);
 
                 bench_closure(|| {

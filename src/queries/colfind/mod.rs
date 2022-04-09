@@ -137,7 +137,7 @@ pub fn colliding_pairs_par<'a, T: Aabb + 'a, SO: NodeHandler>(
             let func2 = func.clone();
             let (n, rest) = vistr.collide_and_next(prevec, &mut func);
             if let Some([left, right]) = rest {
-                rayon_core::join(
+                rayon::join(
                     || {
                         let (prevec, func) = n.finish();
                         recurse_par(left, prevec, height_seq_fallback, func.clone());
