@@ -10,20 +10,20 @@ readme = "README.md"
 edition = "2018"
 include = ["src/**/*", "LICENSE-MIT", "README.md"]
 
-[features]
-default = ["use_rayon"]
-use_rayon = ["rayon-core"]
 
+[lib]
+doctest = false
 
 [workspace]
-members = [ "demo_web","report/data_gen"]
+members = [ "broccoli-tree","demo-web","report/data-gen","broccoli-ext"]
 
 [dev-dependencies]
 dists = {git="https://github.com/tiby312/dists.git"}
 
 [dependencies]
+broccoli-tree={path="broccoli-tree",default-features=false}
+rayon={version="1.5",optional=true}
 itertools = "0.10"
-rayon-core = {version="1.9.0",optional=true}
 compt = "2.0"
 axgeom = {version="1.9",default-features = false}
 twounordered = "0.7"
@@ -38,4 +38,11 @@ targets = ["x86_64-unknown-linux-gnu"]
 #  when using flamegraph
 # [profile.release]
 # debug = true
+
+
+
+
+[features]
+default=["rayon"]
+rayon = ["dep:rayon","broccoli-tree/rayon"]
 

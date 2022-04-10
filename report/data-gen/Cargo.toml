@@ -1,0 +1,21 @@
+[package]
+name = "data-gen"
+version = "0.1.0"
+authors = ["Ken Reed <kenakioreed@gmail.com>"]
+edition = "2021"
+publish = false
+
+[dependencies]
+num_cpus = "1.*"
+rayon-core = "1.9"
+dists={git="https://github.com/tiby312/dists"}
+poloto={git="https://github.com/tiby312/poloto.git"}
+tagger="*"
+serde = {version="1.0",features = ["derive"]}
+serde_json = "1.0"
+broccoli-ext={path="../../broccoli-ext"}
+
+[dependencies.broccoli]
+path = "../.."
+features = []
+

@@ -1,30 +1,28 @@
 #[test]
 fn knearest_repro() {
     use axgeom::*;
-    use broccoli::*;
-
+    use broccoli::prelude::*;
+    use broccoli::tree::*;
     let mut repro = [
         bbox(rect(729.75f32, 731.25, -0.75, 0.75), vec2(730.5, 0.)),
         bbox(rect(1517.25, 1518.75, -0.75, 0.75), vec2(1518., 0.)),
     ];
 
-    let mut tree = broccoli::new(&mut repro);
+    let mut tree = broccoli::tree::new(&mut repro);
 
-    let mut handler = broccoli::helper::knearest_from_closure(
-        &tree,
-        (),
-        |_, point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0.)),
-        |_, point, a| a.inner.distance_squared_to_point(point),
-        |_, point, a| (point.x - a).powi(2),
-        |_, point, a| (point.y - a).powi(2),
+    let mut res = tree.k_nearest_mut_closure(
+        vec2(627.0, 727.5),
+        1,
+        |point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0.)),
+        |point, a| a.inner.distance_squared_to_point(point),
+        |point, a| (point.x - a).powi(2),
+        |point, a| (point.y - a).powi(2),
     );
-
-    let mut res = tree.k_nearest_mut(vec2(627.0, 727.5), 1, &mut handler);
 
     assert_eq!(res.len(), 1);
     assert_eq!(res.total_len(), 1);
 
-    use broccoli::query::KnearestResult;
+    use broccoli::queries::knearest::KnearestResult;
     let r: &[KnearestResult<_>] = res.iter().next().unwrap();
     assert_eq!(r.len(), 1);
 }

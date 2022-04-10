@@ -1,16 +1,11 @@
 //! Contains query modules for each query algorithm.
 
-use crate::build::default_axis;
-use crate::build::Splitter;
-use crate::build::SplitterEmpty;
-use crate::node::*;
-use crate::parallel;
-use crate::pmut::*;
-use crate::util::*;
+use super::*;
+use crate::aabb_pin::*;
 use alloc::vec::Vec;
 use axgeom::*;
+use broccoli_tree::default_axis;
 use compt::*;
-use core::marker::PhantomData;
 
 pub mod colfind;
 
@@ -20,89 +15,31 @@ pub mod knearest;
 
 pub mod raycast;
 
-pub mod nbody;
-
 pub mod rect;
+
+pub mod intersect_with;
 
 mod tools;
 
-///panics if a broken broccoli tree invariant is detected.
-///For debugging purposes only.
-pub fn assert_tree_invariants<T: Aabb>(tree: &crate::Tree<T>)
-where
-    T::Num: core::fmt::Debug,
-{
-    fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>)
-    where
-        T::Num: core::fmt::Debug,
-    {
-        fn a_bot_has_value<N: Num>(it: impl Iterator<Item = N>, val: N) -> bool {
-            for b in it {
-                if b == val {
-                    return true;
+pub mod nbody;
+
+///
+/// Iterate over every pair regardless if colliding or not.
+///
+pub fn for_every_pair<T: Aabb>(
+    mut arr: AabbPin<&mut [T]>,
+    mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+) {
+    loop {
+        let temp = arr;
+        match temp.split_first_mut() {
+            Some((mut b1, mut x)) => {
+                for mut b2 in x.borrow_mut().iter_mut() {
+                    func(b1.borrow_mut(), b2.borrow_mut());
                 }
+                arr = x;
             }
-            false
-        }
-
-        let ((_depth, nn), rest) = iter.next();
-        let axis_next = axis.next();
-
-        assert!(crate::util::is_sorted_by(&nn.range, |a, b| a
-            .get()
-            .get_range(axis_next)
-            .start
-            .partial_cmp(&b.get().get_range(axis_next).start)));
-
-        if let Some([start, end]) = rest {
-            match nn.div {
-                Some(div) => {
-                    if nn.range.is_empty() {
-                        assert_eq!(nn.cont.start, nn.cont.end);
-                        let v: T::Num = Default::default();
-                        assert_eq!(nn.cont.start, v);
-                    } else {
-                        let cont = &nn.cont;
-                        for bot in nn.range.iter() {
-                            assert!(bot.get().get_range(axis).contains(div));
-                        }
-
-                        assert!(a_bot_has_value(
-                            nn.range.iter().map(|b| b.get().get_range(axis).start),
-                            div
-                        ));
-
-                        for bot in nn.range.iter() {
-                            assert!(cont.contains_range(bot.get().get_range(axis)));
-                        }
-
-                        assert!(a_bot_has_value(
-                            nn.range.iter().map(|b| b.get().get_range(axis).start),
-                            cont.start
-                        ));
-                        assert!(a_bot_has_value(
-                            nn.range.iter().map(|b| b.get().get_range(axis).end),
-                            cont.end
-                        ));
-                    }
-
-                    inner(axis_next, start);
-                    inner(axis_next, end);
-                }
-                None => {
-                    for (_depth, n) in start.dfs_preorder_iter().chain(end.dfs_preorder_iter()) {
-                        assert!(n.range.is_empty());
-                        //assert!(n.cont.is_none());
-                        assert_eq!(n.cont.start, nn.cont.end);
-                        let v: T::Num = Default::default();
-                        assert_eq!(n.cont.start, v);
-
-                        assert!(n.div.is_none());
-                    }
-                }
-            }
+            None => break,
         }
     }
-
-    inner(default_axis(), tree.vistr().with_depth(compt::Depth(0)))
 }

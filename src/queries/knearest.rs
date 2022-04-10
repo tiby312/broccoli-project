@@ -3,162 +3,225 @@
 use super::*;
 
 ///The geometric functions that the user must provide.
-pub trait Knearest {
-    type T: Aabb<Num = Self::N>;
-    type N: Num;
-
+pub trait Knearest<T: Aabb> {
     ///User define distance function from a point to an axis aligned line of infinite length.
-    fn distance_to_aaline<A: Axis>(
-        &mut self,
-        point: Vec2<Self::N>,
-        axis: A,
-        val: Self::N,
-    ) -> Self::N;
+    fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num;
 
     ///User defined inexpensive distance function that that can be overly conservative.
     ///It may be that the precise distance function is fast enough, in which case you can simply
     ///return None. If None is desired, every call to this function for a particular element must
     ///always return None.
-    fn distance_to_broad(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Option<Self::N>;
+    fn distance_to_broad(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> Option<T::Num>;
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
-    fn distance_to_fine(&mut self, point: Vec2<Self::N>, a: PMut<Self::T>) -> Self::N;
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> T::Num;
 }
 
-///Create a handler that treats each object as its aabb rectangle shape.
-pub fn default_rect_knearest<T: Aabb>(tree: &Tree<T>) -> impl Knearest<T = T, N = T::Num>
+impl<'a, T: Aabb> KnearestApi<T> for Tree<'a, T> {
+    fn k_nearest_mut(
+        &mut self,
+        point: Vec2<T::Num>,
+        num: usize,
+        mut ktrait: impl Knearest<T>,
+    ) -> KResult<T> {
+        let dt = self.vistr_mut().with_depth(Depth(0));
+
+        let knear = &mut ktrait;
+
+        let closest = ClosestCand::new(num);
+
+        let mut rec = Recurser {
+            knear,
+            point,
+            closest,
+        };
+
+        rec.recc(default_axis(), dt);
+
+        let num_entries = rec.closest.curr_num;
+        KResult {
+            num_entries,
+            inner: rec.closest.into_sorted(),
+        }
+    }
+}
+impl<'a, T: Aabb> KnearestApi<T> for AabbPin<&'a mut [T]> {
+    fn k_nearest_mut(
+        &mut self,
+        point: Vec2<T::Num>,
+        num: usize,
+        mut ktrait: impl Knearest<T>,
+    ) -> KResult<T> {
+        let mut closest = ClosestCand::new(num);
+
+        for b in self.borrow_mut().iter_mut() {
+            closest.consider(&point, &mut ktrait, b);
+        }
+
+        let num_entries = closest.curr_num;
+        KResult {
+            num_entries,
+            inner: closest.into_sorted(),
+        }
+    }
+}
+
+///
+/// Find nearest using just axis alined bounding boxes. No fine-grained.
+///
+pub struct AabbKnearest;
+
+impl<T: Aabb> Knearest<T> for AabbKnearest
 where
     T::Num: num_traits::Signed + num_traits::Zero,
 {
-    use num_traits::Signed;
-    use num_traits::Zero;
-    from_closure(
-        tree,
-        (),
-        |_, _, _| None,
-        |_, point, a| {
-            a.get()
-                .distance_squared_to_point(point)
-                .unwrap_or_else(T::Num::zero)
-        },
-        |_, point, a| (point.x - a).abs() * (point.x - a).abs(),
-        |_, point, a| (point.y - a).abs() * (point.y - a).abs(),
-    )
+    fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, a: T::Num) -> T::Num {
+        use num_traits::Signed;
+
+        if axis.is_xaxis() {
+            (point.x - a).abs() * (point.x - a).abs()
+        } else {
+            (point.y - a).abs() * (point.y - a).abs()
+        }
+    }
+
+    fn distance_to_broad(
+        &mut self,
+        _point: Vec2<T::Num>,
+        _rect: AabbPin<&mut T>,
+    ) -> Option<T::Num> {
+        None
+    }
+
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> T::Num {
+        use num_traits::Zero;
+
+        a.get()
+            .distance_squared_to_point(point)
+            .unwrap_or_else(T::Num::zero)
+    }
 }
 
-///Hide the lifetime behind the RayCast trait
-///to make things simpler
-struct KnearestBorrow<'a, K>(&'a mut K);
-impl<'a, K: Knearest> Knearest for KnearestBorrow<'a, K> {
-    type T = K::T;
-    type N = K::N;
-    fn distance_to_aaline<A: Axis>(
+///
+/// Make k_nearest queries
+///
+pub trait KnearestApi<T: Aabb> {
+    fn k_nearest_mut(
         &mut self,
-        point: Vec2<Self::N>,
-        axis: A,
-        val: Self::N,
-    ) -> Self::N {
-        self.0.distance_to_aaline(point, axis, val)
+        point: Vec2<T::Num>,
+        num: usize,
+        ktrait: impl Knearest<T>,
+    ) -> KResult<T>;
+
+    /// Find knearest using aabb only.
+    fn k_nearest_mut_aabb(&mut self, point: Vec2<T::Num>, num: usize) -> KResult<T>
+    where
+        T::Num: num_traits::Signed + num_traits::Zero,
+    {
+        self.k_nearest_mut(point, num, AabbKnearest)
     }
 
-    fn distance_to_broad(&mut self, point: Vec2<Self::N>, rect: PMut<Self::T>) -> Option<Self::N> {
-        self.0.distance_to_broad(point, rect)
+    fn k_nearest_mut_closure(
+        &mut self,
+        point: Vec2<T::Num>,
+        num: usize,
+        broad: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
+        fine: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
+        xline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
+        yline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
+    ) -> KResult<T> {
+        ///Construct an object that implements [`Knearest`] from closures.
+        ///We pass the tree so that we can infer the type of `T`.
+        ///
+        /// `fine` is a function that gives the true distance between the `point`
+        /// and the specified tree element.
+        ///
+        /// `broad` is a function that gives the distance between the `point`
+        /// and the closest point of a axis aligned rectangle. This function
+        /// is used as a conservative estimate to prune out elements which minimizes
+        /// how often the `fine` function gets called.
+        ///
+        /// `xline` is a function that gives the distance between the point and a axis aligned line
+        ///    that was a fixed x value and spans the y values.
+        ///
+        /// `yline` is a function that gives the distance between the point and a axis aligned line
+        ///    that was a fixed x value and spans the y values.
+        ///
+        /// `acc` is a user defined object that is passed to every call to either
+        /// the `fine` or `broad` functions.
+        ///
+        ///Container of closures that implements [`Knearest`]
+        pub struct KnearestClosure<B, C, D, E> {
+            pub broad: B,
+            pub fine: C,
+            pub xline: D,
+            pub yline: E,
+        }
+
+        impl<'a, T: Aabb, B, C, D, E> Knearest<T> for KnearestClosure<B, C, D, E>
+        where
+            B: FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
+            C: FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
+            D: FnMut(Vec2<T::Num>, T::Num) -> T::Num,
+            E: FnMut(Vec2<T::Num>, T::Num) -> T::Num,
+        {
+            fn distance_to_aaline<A: Axis>(
+                &mut self,
+                point: Vec2<T::Num>,
+                axis: A,
+                val: T::Num,
+            ) -> T::Num {
+                if axis.is_xaxis() {
+                    (self.xline)(point, val)
+                } else {
+                    (self.yline)(point, val)
+                }
+            }
+
+            fn distance_to_broad(
+                &mut self,
+                point: Vec2<T::Num>,
+                rect: AabbPin<&mut T>,
+            ) -> Option<T::Num> {
+                (self.broad)(point, rect)
+            }
+
+            fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: AabbPin<&mut T>) -> T::Num {
+                (self.fine)(point, bot)
+            }
+        }
+
+        let a = KnearestClosure {
+            broad,
+            fine,
+            xline,
+            yline,
+        };
+        self.k_nearest_mut(point, num, a)
+    }
+}
+
+impl<'a, T: Aabb, K: Knearest<T>> Knearest<T> for &mut K {
+    fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num {
+        (*self).distance_to_aaline(point, axis, val)
     }
 
-    fn distance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
-        self.0.distance_to_fine(point, bot)
+    fn distance_to_broad(&mut self, point: Vec2<T::Num>, rect: AabbPin<&mut T>) -> Option<T::Num> {
+        (*self).distance_to_broad(point, rect)
+    }
+
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: AabbPin<&mut T>) -> T::Num {
+        (*self).distance_to_fine(point, bot)
     }
 }
 
 use crate::Tree;
-///Construct an object that implements [`Knearest`] from closures.
-///We pass the tree so that we can infer the type of `T`.
-///
-/// `fine` is a function that gives the true distance between the `point`
-/// and the specified tree element.
-///
-/// `broad` is a function that gives the distance between the `point`
-/// and the closest point of a axis aligned rectangle. This function
-/// is used as a conservative estimate to prune out elements which minimizes
-/// how often the `fine` function gets called.
-///
-/// `xline` is a function that gives the distance between the point and a axis aligned line
-///    that was a fixed x value and spans the y values.
-///
-/// `yline` is a function that gives the distance between the point and a axis aligned line
-///    that was a fixed x value and spans the y values.
-///
-/// `acc` is a user defined object that is passed to every call to either
-/// the `fine` or `broad` functions.
-///
-pub fn from_closure<Acc, T: Aabb>(
-    _tree: &Tree<T>,
-    acc: Acc,
-    broad: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
-    fine: impl FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-    xline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    yline: impl FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-) -> impl Knearest<T = T, N = T::Num> {
-    ///Container of closures that implements [`Knearest`]
-    struct KnearestClosure<T: Aabb, Acc, B, C, D, E> {
-        pub _p: PhantomData<T>,
-        pub acc: Acc,
-        pub broad: B,
-        pub fine: C,
-        pub xline: D,
-        pub yline: E,
-    }
-
-    impl<'a, T: Aabb, Acc, B, C, D, E> Knearest for KnearestClosure<T, Acc, B, C, D, E>
-    where
-        B: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> Option<T::Num>,
-        C: FnMut(&mut Acc, Vec2<T::Num>, PMut<T>) -> T::Num,
-        D: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-        E: FnMut(&mut Acc, Vec2<T::Num>, T::Num) -> T::Num,
-    {
-        type T = T;
-        type N = T::Num;
-
-        fn distance_to_aaline<A: Axis>(
-            &mut self,
-            point: Vec2<Self::N>,
-            axis: A,
-            val: Self::N,
-        ) -> Self::N {
-            if axis.is_xaxis() {
-                (self.xline)(&mut self.acc, point, val)
-            } else {
-                (self.yline)(&mut self.acc, point, val)
-            }
-        }
-
-        fn distance_to_broad(
-            &mut self,
-            point: Vec2<Self::N>,
-            rect: PMut<Self::T>,
-        ) -> Option<Self::N> {
-            (self.broad)(&mut self.acc, point, rect)
-        }
-
-        fn distance_to_fine(&mut self, point: Vec2<Self::N>, bot: PMut<Self::T>) -> Self::N {
-            (self.fine)(&mut self.acc, point, bot)
-        }
-    }
-    KnearestClosure {
-        _p: PhantomData,
-        acc,
-        broad,
-        fine,
-        xline,
-        yline,
-    }
-}
 
 /// Returned by k_nearest_mut
 #[derive(Debug)]
 pub struct KnearestResult<'a, T: Aabb> {
-    pub bot: PMut<'a, T>,
+    pub bot: AabbPin<&'a mut T>,
     pub mag: T::Num,
 }
 
@@ -184,11 +247,11 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
         }
     }
 
-    fn consider<K: Knearest<T = T, N = T::Num>>(
+    fn consider<K: Knearest<T>>(
         &mut self,
-        point: &Vec2<K::N>,
+        point: &Vec2<T::Num>,
         knear: &mut K,
-        mut curr_bot: PMut<'a, T>,
+        mut curr_bot: AabbPin<&'a mut T>,
     ) {
         if let Some(long_dis) = knear.distance_to_broad(*point, curr_bot.borrow_mut()) {
             if self.curr_num == self.num {
@@ -261,7 +324,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
     }
 
     fn full_and_max_distance(&self) -> Option<T::Num> {
-        assert!(crate::util::is_sorted_by(&self.bots, |a, b| a
+        assert!(broccoli_tree::util::is_sorted_by(&self.bots, |a, b| a
             .mag
             .partial_cmp(&b.mag)));
 
@@ -273,14 +336,14 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
     }
 }
 
-struct Recurser<'a, K: Knearest> {
+struct Recurser<'a, T: Aabb, K: Knearest<T>> {
     knear: K,
-    point: Vec2<K::N>,
-    closest: ClosestCand<'a, K::T>,
+    point: Vec2<T::Num>,
+    closest: ClosestCand<'a, T>,
 }
 
-impl<'a, K: Knearest> Recurser<'a, K> {
-    fn should_recurse<A: Axis>(&mut self, line: (A, K::N)) -> bool {
+impl<'a, T: Aabb, K: Knearest<T>> Recurser<'a, T, K> {
+    fn should_recurse<A: Axis>(&mut self, line: (A, T::Num)) -> bool {
         if let Some(m) = self.closest.full_and_max_distance() {
             let dis = self.knear.distance_to_aaline(self.point, line.0, line.1);
             dis < m
@@ -289,7 +352,7 @@ impl<'a, K: Knearest> Recurser<'a, K> {
         }
     }
 
-    fn recc<'b: 'a, A: Axis>(&mut self, axis: A, stuff: LevelIter<VistrMut<'a, Node<'b, K::T>>>) {
+    fn recc<'b: 'a, A: Axis>(&mut self, axis: A, stuff: LevelIter<VistrMutPin<'a, Node<'b, T>>>) {
         let ((_depth, nn), rest) = stuff.next();
         //let nn = nn.get_mut();
         let handle_node = match rest {
@@ -379,80 +442,35 @@ impl<'a, T: Aabb> KResult<'a, T> {
 
 ///Panics if a disconnect is detected between tree and naive queries.
 pub fn assert_k_nearest_mut<T: Aabb>(
-    tree: &mut Tree<T>,
+    bots: &mut [T],
     point: Vec2<T::Num>,
     num: usize,
-    knear: &mut impl Knearest<T = T, N = T::Num>,
+    mut knear: impl Knearest<T>,
 ) {
-    let bots = tree.get_elements_mut();
     use core::ops::Deref;
 
     fn into_ptr_usize<T>(a: &T) -> usize {
         a as *const T as usize
     }
-    let mut res_naive = naive_k_nearest_mut(bots, point, num, knear)
-        .into_vec()
-        .drain(..)
-        .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
-        .collect::<Vec<_>>();
 
-    let r = tree.k_nearest_mut(point, num, knear);
+    let mut tree = crate::new(bots);
+    let r = tree.k_nearest_mut(point, num, &mut knear);
     let mut res_dino: Vec<_> = r
         .into_vec()
         .drain(..)
         .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
         .collect();
 
+    let mut res_naive = AabbPin::new(bots)
+        .k_nearest_mut(point, num, knear)
+        .into_vec()
+        .drain(..)
+        .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+        .collect::<Vec<_>>();
+
     res_naive.sort_by(|a, b| a.partial_cmp(b).unwrap());
     res_dino.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
     assert_eq!(res_naive.len(), res_dino.len());
     assert!(res_naive.iter().eq(res_dino.iter()));
-}
-
-///Naive implementation
-pub fn naive_k_nearest_mut<'a, T: Aabb>(
-    elems: PMut<'a, [T]>,
-    point: Vec2<T::Num>,
-    num: usize,
-    k: &mut impl Knearest<T = T, N = T::Num>,
-) -> KResult<'a, T> {
-    let mut closest = ClosestCand::new(num);
-
-    for b in elems.iter_mut() {
-        closest.consider(&point, k, b);
-    }
-
-    let num_entries = closest.curr_num;
-    KResult {
-        num_entries,
-        inner: closest.into_sorted(),
-    }
-}
-
-pub fn knearest_mut<'a, K: Knearest>(
-    tree: &'a mut Tree<K::T>,
-    point: Vec2<K::N>,
-    num: usize,
-    ktrait: &mut K,
-) -> KResult<'a, K::T> {
-    let dt = tree.vistr_mut().with_depth(Depth(0));
-
-    let knear = KnearestBorrow(ktrait);
-
-    let closest = ClosestCand::new(num);
-
-    let mut rec = Recurser {
-        knear,
-        point,
-        closest,
-    };
-
-    rec.recc(default_axis(), dt);
-
-    let num_entries = rec.closest.curr_num;
-    KResult {
-        num_entries,
-        inner: rec.closest.into_sorted(),
-    }
 }

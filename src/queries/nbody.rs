@@ -13,7 +13,7 @@ type NodeWrapperVistr<'a, 'b, T, M> = VistrMut<'a, NodeWrapper<'b, T, M>, PreOrd
 ///Helper enum indicating whether or not to gravitate a node as a whole, or as its individual parts.
 pub enum GravEnum<'a, T: Aabb, M> {
     Mass(&'a mut M),
-    Bot(PMut<'a, [T]>),
+    Bot(AabbPin<&'a mut [T]>),
 }
 
 ///User defined functions for nbody
@@ -25,31 +25,30 @@ pub trait Nbody {
     //return the position of the center of mass
     fn compute_center_of_mass(&mut self, a: &[Self::T]) -> Self::Mass;
 
-    fn is_close(&mut self, a: &Self::Mass, line: Self::N, a: impl Axis) -> bool;
+    fn is_close(&self, a: &Self::Mass, line: Self::N, a: impl Axis) -> bool;
 
-    fn is_close_half(&mut self, a: &Self::Mass, line: Self::N, a: impl Axis) -> bool;
+    fn is_close_half(&self, a: &Self::Mass, line: Self::N, a: impl Axis) -> bool;
 
     fn gravitate(&mut self, a: GravEnum<Self::T, Self::Mass>, b: GravEnum<Self::T, Self::Mass>);
 
-    fn gravitate_self(&mut self, a: PMut<[Self::T]>);
+    fn gravitate_self(&mut self, a: AabbPin<&mut [Self::T]>);
 
-    fn apply_a_mass(&mut self, mass: Self::Mass, i: PMut<[Self::T]>);
+    fn apply_a_mass<'a>(
+        &'a mut self,
+        mass: Self::Mass,
+        i: impl Iterator<Item = AabbPin<&'a mut Self::T>>,
+        len: usize,
+    );
 
     fn combine_two_masses(&mut self, a: &Self::Mass, b: &Self::Mass) -> Self::Mass;
 }
 
-use compt::dfs_order::CompleteTreeContainer;
 use compt::dfs_order::PreOrder;
 use compt::dfs_order::VistrMut;
 
 struct NodeWrapper<'a, T: Aabb, M> {
     node: Node<'a, T>,
     mass: M,
-}
-
-///Naive version simply visits every pair.
-pub fn naive_nbody_mut<T: Aabb>(bots: PMut<[T]>, func: impl FnMut(PMut<T>, PMut<T>)) {
-    tools::for_every_pair(bots, func);
 }
 
 fn build_masses2<N: Nbody>(vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) -> N::Mass {
@@ -70,11 +69,10 @@ fn build_masses2<N: Nbody>(vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) -
 fn collect_masses<'a, 'b, N: Nbody>(
     root_div: N::N,
     root_axis: impl Axis,
-    root: &N::Mass,
     vistr: NodeWrapperVistr<'b, 'a, N::T, N::Mass>,
     no: &mut N,
     func1: &mut impl FnMut(&'b mut NodeWrapper<'a, N::T, N::Mass>, &mut N),
-    func2: &mut impl FnMut(&'b mut PMut<'a, [N::T]>, &mut N),
+    func2: &mut impl FnMut(&'b mut AabbPin<&'a mut [N::T]>, &mut N),
 ) {
     let (nn, rest) = vistr.next();
 
@@ -86,8 +84,8 @@ fn collect_masses<'a, 'b, N: Nbody>(
     func2(&mut nn.node.range, no);
 
     if let Some([left, right]) = rest {
-        collect_masses(root_div, root_axis, root, left, no, func1, func2);
-        collect_masses(root_div, root_axis, root, right, no, func1, func2);
+        collect_masses(root_div, root_axis, left, no, func1, func2);
+        collect_masses(root_div, root_axis, right, no, func1, func2);
     }
 }
 
@@ -139,7 +137,6 @@ fn recc_common<'a, 'b, N: Nbody>(
             collect_masses(
                 div,
                 axis,
-                &nn.mass,
                 left.borrow_mut(),
                 no,
                 &mut |a, _| finished_masses.push(a),
@@ -152,7 +149,6 @@ fn recc_common<'a, 'b, N: Nbody>(
             collect_masses(
                 div,
                 axis,
-                &nn.mass,
                 right.borrow_mut(),
                 no,
                 &mut |a, _| finished_masses2.push(a),
@@ -190,39 +186,6 @@ fn recc_common<'a, 'b, N: Nbody>(
     }
 }
 
-fn recc_par<N: Nbody, JJ: parallel::Joiner>(
-    joiner: impl crate::Joinable,
-    axis: impl Axis,
-    par: JJ,
-    vistr: NodeWrapperVistr<N::T, N::Mass>,
-    no: &mut N,
-) where
-    N::T: Send,
-    N::N: Send,
-    N::Mass: Send,
-    N: Splitter + Send + Sync,
-{
-    let keep_going = recc_common(axis, vistr, no);
-
-    if let Some([left, right]) = keep_going {
-        match par.next() {
-            parallel::ParResult::Parallel([dleft, dright]) => {
-                let (mut no1, mut no2) = no.div();
-
-                joiner.join(
-                    |joiner| recc_par(joiner.clone(), axis.next(), dleft, left, &mut no1),
-                    |joiner| recc_par(joiner.clone(), axis.next(), dright, right, &mut no2),
-                );
-                no.add(no1, no2);
-            }
-            parallel::ParResult::Sequential(_) => {
-                recc(axis.next(), left, no);
-                recc(axis.next(), right, no);
-            }
-        }
-    }
-}
-
 fn recc<N: Nbody>(
     axis: impl Axis,
     vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
@@ -236,25 +199,22 @@ fn recc<N: Nbody>(
     }
 }
 
-fn get_bots_from_vistr<'a, T: Aabb, N>(vistr: NodeWrapperVistr<'a, '_, T, N>) -> PMut<'a, [T]> {
-    let mut new_slice = None;
-
-    vistr.dfs_preorder(|a| {
-        if let Some(s) = new_slice.take() {
-            new_slice = Some(crate::pmut::combine_slice(s, a.node.range.borrow_mut()));
-        } else {
-            new_slice = Some(a.node.range.borrow_mut());
-        }
-    });
-    new_slice.unwrap()
-}
 fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) {
     {
         let mass = vistr.borrow_mut().next().0.mass;
 
-        let new_slice = get_bots_from_vistr(vistr.borrow_mut());
+        let len = vistr
+            .borrow_mut()
+            .dfs_preorder_iter()
+            .map(|x| x.node.range.borrow_mut().len())
+            .sum();
 
-        no.apply_a_mass(mass, new_slice);
+        let it = vistr
+            .borrow_mut()
+            .dfs_preorder_iter()
+            .flat_map(|x| x.node.range.borrow_mut().iter_mut());
+
+        no.apply_a_mass(mass, it, len);
     }
 
     let (_, rest) = vistr.next();
@@ -265,80 +225,53 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
     }
 }
 
-type TreeInner<T> = CompleteTreeContainer<T, PreOrder>;
-
-fn convert_tree_into_wrapper<T: Aabb, M: Default>(
-    tree: TreeInner<Node<T>>,
-) -> TreeInner<NodeWrapper<T, M>> {
-    let k = tree
-        .into_nodes()
-        .into_vec()
-        .into_iter()
-        .map(|node| NodeWrapper {
-            node,
-            mass: Default::default(),
-        })
-        .collect();
-
-    CompleteTreeContainer::from_preorder(k).unwrap()
-}
-fn convert_wrapper_into_tree<T: Aabb, M: Default>(
-    tree: TreeInner<NodeWrapper<T, M>>,
-) -> TreeInner<Node<T>> {
-    let nt: Vec<_> = tree
-        .into_nodes()
-        .into_vec()
-        .into_iter()
-        .map(|node| node.node)
-        .collect();
-
-    CompleteTreeContainer::from_preorder(nt).unwrap()
+///
+/// Make nbody queries
+///
+pub trait NbodyApi<N: Nbody> {
+    fn nbody(self, no: &mut N) -> Self;
 }
 
-///Perform nbody
-///The tree is taken by value so that its nodes can be expended to include more data.
-pub fn nbody_mut_par<'a, N: Nbody>(
-    tree: crate::Tree<'a, N::T>,
-    joiner: impl crate::Joinable,
-    no: &mut N,
-) -> crate::Tree<'a, N::T>
-where
-    N: Send + Sync + Splitter,
-    N::T: Send + Sync,
-    <N::T as Aabb>::Num: Send + Sync,
-    N::Mass: Send + Sync,
-{
-    let mut newtree = convert_tree_into_wrapper(tree.into_inner());
+impl<'a, N: Nbody> NbodyApi<N> for crate::Tree<'a, N::T> {
+    fn nbody(self, no: &mut N) -> Self {
+        ///Perform nbody
+        ///The tree is taken by value so that its nodes can be expended to include more data.
+        pub fn nbody_mut<'a, N: Nbody>(
+            tree: crate::Tree<'a, N::T>,
+            no: &mut N,
+        ) -> crate::Tree<'a, N::T> {
+            let mut newtree = tree.node_map(|x| NodeWrapper {
+                node: x,
+                mass: Default::default(),
+            });
 
-    //calculate node masses of each node.
-    build_masses2(newtree.as_tree_mut().vistr_mut(), no);
+            //calculate node masses of each node.
+            build_masses2(newtree.vistr_mut_raw(), no);
 
-    let par =
-        parallel::ParallelBuilder::new().build_for_tree_of_height(newtree.as_tree().get_height());
+            recc(default_axis(), newtree.vistr_mut_raw(), no);
 
-    recc_par(
-        joiner,
-        default_axis(),
-        par,
-        newtree.as_tree_mut().vistr_mut(),
-        no,
-    );
+            apply_tree(newtree.vistr_mut_raw(), no);
 
-    apply_tree(newtree.as_tree_mut().vistr_mut(), no);
+            newtree.node_map(|x| x.node)
+        }
 
-    unsafe { crate::Tree::from_raw_parts(convert_wrapper_into_tree(newtree)) }
+        nbody_mut(self, no)
+    }
 }
 
-///Perform nbody
-///The tree is taken by value so that its nodes can be expended to include more data.
-pub fn nbody_mut<'a, N: Nbody>(tree: crate::Tree<'a, N::T>, no: &mut N) -> crate::Tree<'a, N::T> {
-    let mut newtree = convert_tree_into_wrapper(tree.into_inner());
+impl<'a, N: Nbody> NbodyApi<N> for AabbPin<&mut [N::T]> {
+    fn nbody(mut self, no: &mut N) -> Self {
+        ///Naive version simply visits every pair.
+        pub fn naive_nbody_mut<T: Aabb>(
+            bots: AabbPin<&mut [T]>,
+            func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+        ) {
+            queries::for_every_pair(bots, func);
+        }
 
-    //calculate node masses of each node.
-    build_masses2(newtree.as_tree_mut().vistr_mut(), no);
-
-    recc(default_axis(), newtree.as_tree_mut().vistr_mut(), no);
-
-    apply_tree(newtree.as_tree_mut().vistr_mut(), no);
-    unsafe { crate::Tree::from_raw_parts(convert_wrapper_into_tree(newtree)) }
+        naive_nbody_mut(self.borrow_mut(), |a, b| {
+            no.gravitate(GravEnum::Bot(a.into_slice()), GravEnum::Bot(b.into_slice()));
+        });
+        self
+    }
 }

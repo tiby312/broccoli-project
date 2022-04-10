@@ -2,22 +2,21 @@ use twounordered::TwoUnorderedVecs;
 
 use super::CollisionHandler;
 use super::*;
-use crate::util::PreVec;
 
 //For sweep and prune type algorithms, we can narrow down which bots
 //intersection in one dimension. We also need to check the other direction
 //because we know for sure they are colliding. That is the purpose of
 //this object.
-struct OtherAxisCollider<'a, A: Axis + 'a, F: CollisionHandler + 'a> {
+struct OtherAxisCollider<'a, A: Axis + 'a, F: 'a> {
     a: &'a mut F,
     axis: A,
 }
 
-impl<'a, A: Axis + 'a, F: CollisionHandler + 'a> CollisionHandler for OtherAxisCollider<'a, A, F> {
-    type T = F::T;
-
+impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
+    for OtherAxisCollider<'a, A, F>
+{
     #[inline(always)]
-    fn collide(&mut self, a: PMut<Self::T>, b: PMut<Self::T>) {
+    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
         //only check if the opoosite axis intersects.
         //already know they intersect
         let a2 = self.axis.next();
@@ -29,10 +28,10 @@ impl<'a, A: Axis + 'a, F: CollisionHandler + 'a> CollisionHandler for OtherAxisC
 
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
-pub fn find_2d<A: Axis, F: CollisionHandler>(
+pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    bots: PMut<[F::T]>,
+    bots: AabbPin<&mut [T]>,
     func: &mut F,
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
@@ -41,11 +40,11 @@ pub fn find_2d<A: Axis, F: CollisionHandler>(
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
-pub fn find_parallel_2d<A: Axis, F: CollisionHandler>(
+pub fn find_parallel_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    bots1: PMut<[F::T]>,
-    bots2: PMut<[F::T]>,
+    bots1: AabbPin<&mut [T]>,
+    bots2: AabbPin<&mut [T]>,
     func: &mut F,
 ) {
     let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
@@ -55,10 +54,10 @@ pub fn find_parallel_2d<A: Axis, F: CollisionHandler>(
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
-pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
+pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     axis: A, //the axis of r1.
-    r1: PMut<[F::T]>,
-    mut r2: PMut<[F::T]>,
+    r1: AabbPin<&mut [T]>,
+    mut r2: AabbPin<&mut [T]>,
     func: &mut F,
 ) {
     //OPTION 1
@@ -80,18 +79,18 @@ pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
 
     let mut rr1=prevec3.get_empty_vec_mut();
     rr1.extend(r1);
-    //let mut rr1: Vec<PMut<F::T>> = r1.iter_mut().collect();
+    //let mut rr1: Vec<AabbPin<F::T>> = r1.iter_mut().collect();
 
     rr1.sort_unstable_by(|a, b| compare_bots(axis, a, b));
 
-    let rrr:&mut [PMut<F::T>]=(&mut rr1) as &mut [PMut<F::T>];
+    let rrr:&mut [AabbPin<F::T>]=(&mut rr1) as &mut [AabbPin<F::T>];
     self::find_other_parallel3(
         prevec1,
         prevec2,
         axis,
         (
             r2,
-            rrr.iter_mut().map(|a|PMut::new(a).flatten())
+            rrr.iter_mut().map(|a|AabbPin::new(a).flatten())
         ),
         &mut b);
     */
@@ -137,10 +136,10 @@ pub fn find_perp_2d1<A: Axis, F: CollisionHandler>(
 
 #[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.
-fn find<'a, A: Axis, F: CollisionHandler>(
+fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    collision_botids: PMut<'a, [F::T]>,
+    collision_botids: AabbPin<&'a mut [T]>,
     func: &mut F,
 ) {
     use twounordered::RetainMutUnordered;
@@ -158,12 +157,12 @@ fn find<'a, A: Axis, F: CollisionHandler>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let mut active: Vec<PMut<F::T>> = prevec1.extract_vec();
+    let mut active: Vec<AabbPin<&mut T>> = prevec1.extract_vec();
 
     for mut curr_bot in collision_botids.iter_mut() {
-        let crr = curr_bot.rect().get_range(axis);
-
         active.retain_mut_unordered(|that_bot| {
+            let crr = curr_bot.get().get_range(axis);
+
             if that_bot.get().get_range(axis).end > crr.start {
                 debug_assert!(curr_bot
                     .get()
@@ -187,22 +186,22 @@ fn find<'a, A: Axis, F: CollisionHandler>(
 
 #[inline(always)]
 //does less comparisons than option 2.
-fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
+fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
     cols: (
-        impl IntoIterator<Item = PMut<'a, F::T>>,
-        impl IntoIterator<Item = PMut<'b, F::T>>,
+        impl IntoIterator<Item = AabbPin<&'a mut T>>,
+        impl IntoIterator<Item = AabbPin<&'b mut T>>,
     ),
     func: &mut F,
 ) where
-    F::T: 'a + 'b,
+    T: 'a + 'b,
 {
     use twounordered::RetainMutUnordered;
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
 
-    let mut active_lists = TwoUnorderedVecs::from(prevec1.extract_vec::<F::T>());
+    let mut active_lists = TwoUnorderedVecs::from(prevec1.extract_vec::<T>());
     loop {
         enum NextP {
             X,
@@ -277,8 +276,8 @@ fn find_other_parallel3<'a, 'b, A: Axis, F: CollisionHandler>(
 fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
     axis: A,
     cols: (
-        impl IntoIterator<Item = PMut<'a, F::T>>,
-        impl IntoIterator<Item = PMut<'b, F::T>>,
+        impl IntoIterator<Item = AabbPin<'a, F::T>>,
+        impl IntoIterator<Item = AabbPin<'b, F::T>>,
     ),
     func: &mut F,
 ) where
@@ -288,7 +287,7 @@ fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
     let ys = cols.1.into_iter();
 
     //let active_x = self.helper.get_empty_vec_mut();
-    let mut active_x: Vec<PMut<F::T>> = Vec::new();
+    let mut active_x: Vec<AabbPin<F::T>> = Vec::new();
     for mut y in ys {
         let yr = *y.get().get_range(axis);
 
@@ -332,9 +331,12 @@ fn test_parallel() {
     struct Test {
         set: BTreeSet<[usize; 2]>,
     }
-    impl CollisionHandler for Test {
-        type T = BBox<isize, Bot>;
-        fn collide(&mut self, a: PMut<BBox<isize, Bot>>, b: PMut<BBox<isize, Bot>>) {
+    impl CollisionHandler<BBox<isize, Bot>> for Test {
+        fn collide(
+            &mut self,
+            a: AabbPin<&mut BBox<isize, Bot>>,
+            b: AabbPin<&mut BBox<isize, Bot>>,
+        ) {
             let [a, b] = [a.unpack_inner().id, b.unpack_inner().id];
 
             let fin = if a < b { [a, b] } else { [b, a] };
@@ -370,24 +372,24 @@ fn test_parallel() {
         b.make(6, 7),
     ];
 
-    crate::util::sweeper_update(axgeom::XAXIS, &mut left);
-    crate::util::sweeper_update(axgeom::XAXIS, &mut right);
+    broccoli_tree::util::sweeper_update(axgeom::XAXIS, &mut left);
+    broccoli_tree::util::sweeper_update(axgeom::XAXIS, &mut right);
 
     let mut p1 = PreVec::new();
     let mut test1 = Test {
         set: BTreeSet::new(),
     };
 
-    let j1: PMut<[BBox<_, _>]> = PMut::new(&mut left);
-    let j2: PMut<[BBox<_, _>]> = PMut::new(&mut right);
+    let j1: AabbPin<&mut [BBox<_, _>]> = AabbPin::new(&mut left);
+    let j2: AabbPin<&mut [BBox<_, _>]> = AabbPin::new(&mut right);
 
     self::find_other_parallel3(&mut p1, axgeom::XAXIS, (j1, j2), &mut test1);
 
     let mut test2 = Test {
         set: BTreeSet::new(),
     };
-    let j1: PMut<[BBox<_, _>]> = PMut::new(&mut right);
-    let j2: PMut<[BBox<_, _>]> = PMut::new(&mut left);
+    let j1: AabbPin<&mut [BBox<_, _>]> = AabbPin::new(&mut right);
+    let j2: AabbPin<&mut [BBox<_, _>]> = AabbPin::new(&mut left);
 
     self::find_other_parallel3(&mut p1, axgeom::XAXIS, (j1, j2), &mut test2);
 

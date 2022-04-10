@@ -1,4 +1,5 @@
-use broccoli::{bbox, rect};
+use broccoli::prelude::*;
+use broccoli::tree::{bbox, rect};
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -15,10 +16,10 @@ fn main() {
     //This will change the order of the elements
     //in bboxes,but this is okay since we
     //populated it with mutable references.
-    let mut tree = broccoli::new(&mut aabbs);
+    let mut tree = broccoli::tree::new(&mut aabbs);
 
     //Find all colliding aabbs.
-    tree.find_colliding_pairs_mut(|a, b| {
+    tree.colliding_pairs(|a, b| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
     });

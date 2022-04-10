@@ -2,14 +2,14 @@ set -ex
 
 
 
-cargo build --release  --manifest-path data_gen/Cargo.toml
+cargo build --release  --manifest-path data-gen/Cargo.toml
 
 rm -rf src/raw
-../target/release/data_gen bench src/raw
-../target/release/data_gen theory src/raw
+../target/release/data-gen bench src/raw
+../target/release/data-gen theory src/raw
 
 mkdir -p src/graphs
-cargo-deps deps --exclude demo,data_gen | dot -Tsvg> src/graphs/graph.svg
+cargo-deps deps --exclude demo,data-gen | dot -Tsvg> src/graphs/graph.svg
 
 
 #RUSTFLAGS='-g'
