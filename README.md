@@ -27,7 +27,7 @@ Broccoli are also basically small trees and broccoli uses a tree data structure.
 ### Example
 
 ```rust
-use broccoli::prelude::CollisionApi;
+use broccoli::prelude::*;
 use broccoli::tree::{bbox, rect};
 fn main() {
     let mut inner1 = 0;
