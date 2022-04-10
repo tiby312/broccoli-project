@@ -145,6 +145,7 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
 }
 
 #[must_use]
+#[cfg(feature = "rayon")]
 pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
 where
     T: Send + Sync,
@@ -165,6 +166,7 @@ where
 }
 
 #[must_use]
+#[cfg(feature = "rayon")]
 pub fn new_owned_par<C: Container>(cont: C) -> TreeOwned<C, DefaultSorter>
 where
     C::T: Aabb + Send + Sync,
