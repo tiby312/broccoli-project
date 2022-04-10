@@ -145,10 +145,13 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
 }
 
 #[must_use]
-pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>where T:Send+Sync,T::Num:Send+Sync {
+pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
+where
+    T: Send + Sync,
+    T::Num: Send + Sync,
+{
     TreeInner::new_par(DefaultSorter, bots)
 }
-
 
 ///
 /// Create a [`TreeOwned`]
@@ -164,11 +167,11 @@ where
 #[must_use]
 pub fn new_owned_par<C: Container>(cont: C) -> TreeOwned<C, DefaultSorter>
 where
-    C::T: Aabb+Send+Sync, <C::T as Aabb>::Num:Send+Sync
+    C::T: Aabb + Send + Sync,
+    <C::T as Aabb>::Num: Send + Sync,
 {
     TreeOwned::new_par(DefaultSorter, cont)
 }
-
 
 ///
 /// Abstract over containers that produce `&mut [T]`

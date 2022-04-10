@@ -8,9 +8,9 @@ fn main() {
     let mut inner3 = 2;
 
     let mut aabbs = [
-        bbox(rect(0isize, 10, 0, 10), &mut inner1),
+        bbox(rect(00, 10, 00, 10), &mut inner1),
         bbox(rect(15, 20, 15, 20), &mut inner2),
-        bbox(rect(5, 15, 5, 15), &mut inner3),
+        bbox(rect(05, 15, 05, 15), &mut inner3),
     ];
 
     let mut tree = broccoli::tree::new(&mut aabbs);

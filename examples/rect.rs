@@ -7,9 +7,9 @@ fn main() {
     let inner3 = 6;
 
     let mut bots = [
-        bbox(rect(0isize, 10, 0, 10), &inner1),
+        bbox(rect(00, 10, 00, 10), &inner1),
         bbox(rect(15, 20, 15, 20), &inner2),
-        bbox(rect(5, 15, 5, 15), &inner3),
+        bbox(rect(05, 15, 05, 15), &inner3),
     ];
 
     let mut tree = broccoli::tree::new(&mut bots);

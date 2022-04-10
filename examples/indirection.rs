@@ -2,9 +2,9 @@ use broccoli::prelude::*;
 use broccoli::tree::{bbox, rect};
 fn main() {
     let mut aabbs = [
-        bbox(rect(0isize, 10, 0, 10), 0),
+        bbox(rect(00, 10, 00, 10), 0),
         bbox(rect(15, 20, 15, 20), 0),
-        bbox(rect(5, 15, 5, 15), 0),
+        bbox(rect(05, 15, 05, 15), 0),
     ];
 
     //Create a layer of direction.

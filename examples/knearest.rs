@@ -13,9 +13,9 @@ fn main() {
     let mut inner3 = vec2(7, 7);
 
     let mut bots = [
-        bbox(rect(0, 10, 0, 10), &mut inner1),
-        bbox(rect(2, 4, 2, 4), &mut inner2),
-        bbox(rect(6, 8, 6, 8), &mut inner3),
+        bbox(rect(00, 10, 00, 10), &mut inner1),
+        bbox(rect(02, 04, 02, 04), &mut inner2),
+        bbox(rect(06, 08, 06, 08), &mut inner3),
     ];
 
     let mut tree = broccoli::tree::new(&mut bots);
