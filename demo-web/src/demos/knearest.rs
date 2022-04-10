@@ -68,7 +68,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         ctx.buffer_static(&verts)
     };
 
-    let mut tree = broccoli::tree::TreeOwned::new(bots);
+    let mut tree = broccoli::tree::new_owned(bots);
 
     let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();

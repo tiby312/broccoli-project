@@ -60,7 +60,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
 
-    let mut tree = broccoli::tree::TreeOwned::new(vv);
+    let mut tree = broccoli::tree::new_owned(vv);
 
     let mut handler = MyRaycast { radius };
 

@@ -1,6 +1,6 @@
 use broccoli::{
     prelude::CollidingPairsApi,
-    tree::{aabb_pin::HasInner, build::Aabb, Tree},
+    tree::{aabb_pin::HasInner, node::Aabb, Tree},
 };
 
 ///

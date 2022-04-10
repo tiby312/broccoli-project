@@ -56,7 +56,8 @@ impl Record {
         let bench_par = {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| broccoli::tree::new_par(&mut bots));
+            let (mut tree, t1) =
+                bench_closure_ret(|| broccoli::tree::TreeInner::new(DefaultSorter, &mut bots));
             let t2 = bench_closure(|| {
                 tree.colliding_pairs_par(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
@@ -70,7 +71,7 @@ impl Record {
         let nosort = if do_all || num_bots <= NO_SORT_MAX {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| TreeInner::build(NoSorter, &mut bots));
+            let (mut tree, t1) = bench_closure_ret(|| TreeInner::new(NoSorter, &mut bots));
             let t2 = bench_closure(|| {
                 tree.colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
@@ -86,7 +87,7 @@ impl Record {
         let nosort_par = if do_all || num_bots <= NO_SORT_PAR_MAX {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| TreeInner::build_par(NoSorter, &mut bots));
+            let (mut tree, t1) = bench_closure_ret(|| TreeInner::new_par(NoSorter, &mut bots));
             let t2 = bench_closure(|| {
                 tree.colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();

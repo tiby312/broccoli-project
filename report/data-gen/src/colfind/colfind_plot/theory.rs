@@ -53,7 +53,7 @@ impl Record {
         let c4 = datanum::datanum_test(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
-            let _tree = TreeInner::build(NoSorter, &mut bots).colliding_pairs(|a, b| {
+            let _tree = TreeInner::new(NoSorter, &mut bots).colliding_pairs(|a, b| {
                 **a.unpack_inner() += 2;
                 **b.unpack_inner() += 2;
             });

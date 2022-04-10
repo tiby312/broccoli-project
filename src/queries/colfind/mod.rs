@@ -37,7 +37,7 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
         .collect();
     let bots = bots.as_mut_slice();
 
-    let nosort_res = collect_pairs(&mut TreeInner::build(NoSorter, bots));
+    let nosort_res = collect_pairs(&mut TreeInner::new(NoSorter, bots));
     let sweep_res = collect_pairs(&mut SweepAndPrune::new(bots));
     let tree_res = collect_pairs(&mut crate::new(bots));
     let naive_res = collect_pairs(&mut AabbPin::from_mut(bots));

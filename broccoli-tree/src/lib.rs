@@ -1,8 +1,12 @@
-//! Contains code to help build the [`Tree`] structure with more options than
+//!
+//! This is a supporting crate to the  `broccoli` crate. This crate only
+//! provides the broccoli tree and tree building code, but no querying code.
+//!
 
 pub mod aabb_pin;
 mod assert;
 pub mod build;
+pub mod node;
 mod oned;
 pub mod splitter;
 pub mod util;
@@ -11,6 +15,7 @@ use aabb_pin::*;
 use axgeom::*;
 use build::*;
 use compt::Visitor;
+use node::*;
 
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
 ///This means that the first divider is a 'vertical' line since it is
@@ -136,20 +141,18 @@ impl<T: Aabb, S: Sorter> TreeBuild<T, S> for S {
 ///```
 #[must_use]
 pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
-    TreeInner::build(DefaultSorter, bots)
+    TreeInner::new(DefaultSorter, bots)
 }
 
 ///
-/// Create a [`Tree`] using rayon.
+/// Create a [`TreeOwned`]
 ///
-#[cfg(feature = "rayon")]
 #[must_use]
-pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
+pub fn new_owned<C: Container>(cont: C) -> TreeOwned<C, DefaultSorter>
 where
-    T: Send + Sync,
-    T::Num: Send + Sync,
+    C::T: Aabb,
 {
-    TreeInner::build_par(DefaultSorter, bots)
+    TreeOwned::new(DefaultSorter, cont)
 }
 
 ///
@@ -191,26 +194,16 @@ where
     length: usize,
 }
 
-impl<C: Container> TreeOwned<C, DefaultSorter>
-where
-    C::T: Aabb,
-{
-    #[must_use]
-    pub fn new(bots: C) -> Self {
-        TreeOwned::build_owned(DefaultSorter, bots)
-    }
-}
-
 impl<C: Container, S: Sorter> TreeOwned<C, S>
 where
     C::T: Aabb,
 {
     #[must_use]
-    pub fn build_owned(sorter: S, mut bots: C) -> TreeOwned<C, S> {
+    pub fn new(sorter: S, mut bots: C) -> TreeOwned<C, S> {
         let j = bots.as_mut();
         let length = j.len();
 
-        let t = TreeInner::build(sorter, j);
+        let t = TreeInner::new(sorter, j);
         let data = t.into_node_data_tree();
         TreeOwned {
             inner: bots,
@@ -221,7 +214,7 @@ where
 
     #[cfg(feature = "rayon")]
     #[must_use]
-    pub fn build_owned_par(sorter: S, mut bots: C) -> TreeOwned<C, S>
+    pub fn new_par(sorter: S, mut bots: C) -> TreeOwned<C, S>
     where
         C::T: Send + Sync,
         <C::T as Aabb>::Num: Send + Sync,
@@ -229,7 +222,7 @@ where
         let j = bots.as_mut();
         let length = j.len();
 
-        let t = TreeInner::build_par(sorter, j);
+        let t = TreeInner::new_par(sorter, j);
         let data = t.into_node_data_tree();
         TreeOwned {
             inner: bots,
@@ -282,6 +275,82 @@ pub struct TreeInner<N, S> {
 /// [`TreeInner`] type with default node and sorter.
 ///
 pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
+
+impl<'a, T: Aabb + 'a, S: Sorter> TreeInner<Node<'a, T>, S> {
+    #[must_use]
+    pub fn new(tb: impl TreeBuild<T, S>, bots: &'a mut [T]) -> TreeInner<Node<'a, T>, S> {
+        let total_num_elem = bots.len();
+        let num_level = tb.num_level(bots.len()); //num_level::default(bots.len());
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
+        let vistr = TreeBuildVisitor::new(num_level, bots, tb.sorter());
+        vistr.recurse_seq(&mut buffer);
+        TreeInner {
+            nodes: buffer,
+            sorter: tb.sorter(),
+            total_num_elem,
+        }
+    }
+
+    #[cfg(feature = "rayon")]
+    #[must_use]
+    pub fn new_par(tb: impl TreeBuild<T, S>, bots: &'a mut [T]) -> TreeInner<Node<'a, T>, S>
+    where
+        T: Send + Sync,
+        T::Num: Send + Sync,
+    {
+        pub fn recurse_par<'a, T: Aabb, S: Sorter>(
+            vistr: TreeBuildVisitor<'a, T, S>,
+            height_seq_fallback: usize,
+            buffer: &mut Vec<Node<'a, T>>,
+        ) where
+            T: Send,
+            T::Num: Send,
+        {
+            if vistr.get_height() <= height_seq_fallback {
+                vistr.recurse_seq(buffer);
+            } else {
+                let NodeBuildResult { node, rest } = vistr.build_and_next();
+
+                if let Some([left, right]) = rest {
+                    let (_, mut a) = rayon::join(
+                        || {
+                            buffer.push(node.finish());
+                            recurse_par(left, height_seq_fallback, buffer);
+                        },
+                        || {
+                            let mut f = vec![];
+                            recurse_par(right, height_seq_fallback, &mut f);
+                            f
+                        },
+                    );
+
+                    buffer.append(&mut a);
+                }
+            }
+        }
+
+        let total_num_elem = bots.len();
+        let num_level = tb.num_level(bots.len()); //num_level::default(bots.len());
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
+        let vistr = TreeBuildVisitor::new(num_level, bots, tb.sorter());
+        recurse_par(vistr, tb.height_seq_fallback(), &mut buffer);
+
+        TreeInner {
+            nodes: buffer,
+            sorter: tb.sorter(),
+            total_num_elem,
+        }
+    }
+
+    #[must_use]
+    pub fn into_node_data_tree(self) -> TreeInner<NodeData<T::Num>, S> {
+        self.node_map(|x| NodeData {
+            range: x.range.len(),
+            cont: x.cont,
+            div: x.div,
+        })
+    }
+}
 
 impl<S, H: HasElem> TreeInner<H, S> {
     pub fn iter_mut(&mut self) -> impl Iterator<Item = AabbPin<&mut H::T>> {
@@ -375,17 +444,6 @@ impl<S, H> TreeInner<H, S> {
     }
 }
 
-impl<N> TreeInner<N, DefaultSorter> {
-    #[must_use]
-    pub fn into_no_sort(self) -> TreeInner<N, NoSorter> {
-        TreeInner {
-            total_num_elem: self.total_num_elem,
-            nodes: self.nodes,
-            sorter: NoSorter,
-        }
-    }
-}
-
 impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
     #[must_use]
     pub fn into_tree<T: Aabb<Num = N>>(self, bots: AabbPin<&mut [T]>) -> TreeInner<Node<T>, S> {
@@ -402,80 +460,5 @@ impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
         });
         assert!(last.unwrap().is_empty());
         n
-    }
-}
-impl<'a, T: Aabb + 'a, S: Sorter> TreeInner<Node<'a, T>, S> {
-    #[must_use]
-    pub fn build(tb: impl TreeBuild<T, S>, bots: &'a mut [T]) -> TreeInner<Node<'a, T>, S> {
-        let total_num_elem = bots.len();
-        let num_level = tb.num_level(bots.len()); //num_level::default(bots.len());
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = TreeBuildVisitor::new(num_level, bots, tb.sorter());
-        vistr.recurse_seq(&mut buffer);
-        TreeInner {
-            nodes: buffer,
-            sorter: tb.sorter(),
-            total_num_elem,
-        }
-    }
-
-    #[cfg(feature = "rayon")]
-    #[must_use]
-    pub fn build_par(tb: impl TreeBuild<T, S>, bots: &'a mut [T]) -> TreeInner<Node<'a, T>, S>
-    where
-        T: Send + Sync,
-        T::Num: Send + Sync,
-    {
-        pub fn recurse_par<'a, T: Aabb, S: Sorter>(
-            vistr: TreeBuildVisitor<'a, T, S>,
-            height_seq_fallback: usize,
-            buffer: &mut Vec<Node<'a, T>>,
-        ) where
-            T: Send,
-            T::Num: Send,
-        {
-            if vistr.get_height() <= height_seq_fallback {
-                vistr.recurse_seq(buffer);
-            } else {
-                let NodeBuildResult { node, rest } = vistr.build_and_next();
-
-                if let Some([left, right]) = rest {
-                    let (_, mut a) = rayon::join(
-                        || {
-                            buffer.push(node.finish());
-                            recurse_par(left, height_seq_fallback, buffer);
-                        },
-                        || {
-                            let mut f = vec![];
-                            recurse_par(right, height_seq_fallback, &mut f);
-                            f
-                        },
-                    );
-
-                    buffer.append(&mut a);
-                }
-            }
-        }
-
-        let total_num_elem = bots.len();
-        let num_level = tb.num_level(bots.len()); //num_level::default(bots.len());
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = TreeBuildVisitor::new(num_level, bots, tb.sorter());
-        recurse_par(vistr, tb.height_seq_fallback(), &mut buffer);
-
-        TreeInner {
-            nodes: buffer,
-            sorter: tb.sorter(),
-            total_num_elem,
-        }
-    }
-
-    #[must_use]
-    pub fn into_node_data_tree(self) -> TreeInner<NodeData<T::Num>, S> {
-        self.node_map(|x| NodeData {
-            range: x.range.len(),
-            cont: x.cont,
-            div: x.div,
-        })
     }
 }

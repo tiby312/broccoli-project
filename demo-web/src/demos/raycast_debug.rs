@@ -41,7 +41,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .into_boxed_slice();
 
     let mut counter: f32 = 0.0;
-    let mut tree = broccoli::tree::TreeOwned::new(walls);
+    let mut tree = broccoli::tree::new_owned(walls);
 
     let rect_save = {
         let mut verts = vec![];

@@ -17,7 +17,7 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c0 = bench_closure(|| {
-            let mut tree = broccoli::tree::new_par(&mut bots);
+            let mut tree = broccoli::tree::TreeInner::new_par(DefaultSorter, &mut bots);
             tree.colliding_pairs_par(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
@@ -64,7 +64,7 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c5 = bench_closure(|| {
-            let mut tree = TreeInner::build_par(NoSorter, &mut bots);
+            let mut tree = TreeInner::new_par(NoSorter, &mut bots);
             tree.colliding_pairs_par(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
@@ -74,7 +74,7 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c6 = bench_closure(|| {
-            let mut tree = TreeInner::build(NoSorter, &mut bots);
+            let mut tree = TreeInner::new(NoSorter, &mut bots);
             tree.colliding_pairs(|a, b| {
                 **a.unpack_inner() -= 1;
                 **b.unpack_inner() -= 1;

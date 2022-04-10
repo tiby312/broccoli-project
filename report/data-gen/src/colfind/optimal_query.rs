@@ -40,7 +40,7 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
 
                 bench_closure(|| {
                     let mut tree = broccoli_ext::cachable_pairs::IndTree(&mut tree);
-                    let mut cacher = broccoli_ext::cachable_pairs::Cacheable::new(&mut tree);
+                    let mut cacher = broccoli_ext::cachable_pairs::CacheSession::new(&mut tree);
                     let pairs = cacher.cache_colliding_pairs(|a, b| {
                         *a += 1;
                         *b += 1;
@@ -94,10 +94,10 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
 
                 bench_closure(|| {
                     let mut tree = broccoli_ext::cachable_pairs::IndTree(&mut tree);
-                    let mut cacher = broccoli_ext::cachable_pairs::Cacheable::new(&mut tree);
+                    let mut cacher = broccoli_ext::cachable_pairs::CacheSession::new(&mut tree);
                     let mut pairs = cacher.cache_colliding_pairs(|_, _| Some(()));
                     for _ in 0..10 {
-                        pairs.colliding_pairs(&mut cacher, |a, b, ()| {
+                        pairs.handle(&mut cacher, |a, b, ()| {
                             *a += 1;
                             *b += 1;
                         });

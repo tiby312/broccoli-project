@@ -31,7 +31,7 @@ impl Record {
         let nosort_theory = datanum::datanum_test2(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
-            let mut tree = TreeInner::build(NoSorter, &mut bots);
+            let mut tree = TreeInner::new(NoSorter, &mut bots);
 
             let count = maker.count();
 
