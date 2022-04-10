@@ -1,6 +1,6 @@
 ### Broccoli
 
-Requires Rust 1.49
+Requires Rust 1.60
 
 [![Crates.io](https://img.shields.io/crates/v/broccoli)](https://crates.io/crates/broccoli)
 [![docs.rs](https://docs.rs/broccoli/badge.svg)](https://docs.rs/broccoli)
@@ -18,11 +18,9 @@ Screen capture from the inner `demo` project.
 
 <img src="./assets/screenshot.gif" alt="screenshot">
 
+### Other crates
 
-### Name
-
-If you shorten "broad-phase collision" to "broad colli" and say it fast, it sounds like broccoli.
-Broccoli are also basically small trees and broccoli uses a tree data structure.
+The [broccoli-ext](https://crates.io/crates/broccoli-ext) crate contains some more functionality but relies on unsafe.
 
 ### Example
 
@@ -59,3 +57,9 @@ fn main() {
 }
 
 ```
+
+
+### Name
+
+If you shorten "broad-phase collision" to "broad colli" and say it fast, it sounds like broccoli.
+Broccoli are also basically small trees and broccoli uses a tree data structure.
