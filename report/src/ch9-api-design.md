@@ -89,18 +89,3 @@ In this way, it would be nice if the query algorithms were generic of the type o
 To do this you can go down one of two paths, macros or generic associated types. GATs [don't exist yet](https://github.com/rust-lang/rfcs/blob/master/text/1598-generic_associated_types.md), and macros are hard to read and can be a head ache. Check out how rust reuses code between Iter and IterMut for slices for an example of macro solution. So for now, we will just support mutable api.
 
 A good article about GATs can be found [here](https://lukaskalbertodt.github.io/2018/08/03/solving-the-generalized-streaming-iterator-problem-without-gats.html).
-
-
-### Making `Aabb` an unsafe trait vs Not
-
-Making 'Aabb' unsafe allows us to make some assumptions that lets us do others things safely. If rust had [trait member fields](https://github.com/rust-lang/rfcs/pull/1546#issuecomment-304033345) we could avoid unsafe.
-
-The key idea is the following:
-If two rectangle queries do not intersect, then it is guaranteed that the elements are mutually exclusive.
-This means that we can safely return mutable references to all the elements in the first rectangle,
-and all the elements in the second rectangle simultaneously. 
-
-For this to work the user must uphold the contract of `Aabb` such that the aabb returned is always the same while it is inserted in the tree.
-This is hard for the user not to do since they only have read-only reference to self, but still possible using
-RefCell or Mutex. If the user violates this, then despite two query rectangles being mutually exclusive,
-the same bot might be in both. So at the cost of making HasAabb unsafe, we can make the MultiRect Api not unsafe.
