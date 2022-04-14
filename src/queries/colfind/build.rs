@@ -76,7 +76,6 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
             data: &mut Recurser<impl NodeHandler, impl CollisionHandler<T>>,
         ) {
             let (nn, rest) = v.next();
-            
 
             if let Some([mut left, mut right]) = rest {
                 struct InnerRecurser<'a, 'node, T: Aabb, NN, C, B: Axis> {
@@ -106,14 +105,13 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
                             node: nn.borrow_mut(),
                             axis: this_axis,
                         };
-                        
+
                         self.handler.handle_children(
                             self.sweeper,
                             self.prevec,
                             self.anchor.borrow_mut(),
                             current,
                         );
-                        
 
                         if let Some([left, right]) = rest {
                             if let Some(div) = nn.div {
@@ -196,10 +194,8 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
             handler: self.handler,
         };
 
-
         (
             fin,
-            
             if let Some([left, right]) = rest {
                 Some([
                     CollVis {
@@ -216,7 +212,6 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
             } else {
                 None
             },
-            
         )
     }
 

@@ -3,8 +3,8 @@ use broccoli::prelude::*;
 use broccoli::tree::*;
 #[test]
 fn test1() {
-    for &i in [2.0,4.0,12.0].iter(){
-        for &num_bots in [0, 20, 40,10000].iter() {
+    for &i in [2.0, 4.0, 12.0].iter() {
+        for &num_bots in [0, 20, 40, 10000].iter() {
             let s = dists::spiral_iter([400.0, 400.0], i, 1.0);
 
             let mut data: Vec<_> = (0..num_bots).collect();
