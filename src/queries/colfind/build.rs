@@ -105,6 +105,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
                         &mut self,
                         this_axis: A,
                         m: VistrMutPin<Node<T>>,
+                        is_left: bool,
                     ) {
                         let anchor_axis = self.anchor.axis;
                         let (mut nn, rest) = m.next();
@@ -122,28 +123,42 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
                         );
 
                         if let Some([left, right]) = rest {
-                            //Continue to recurse even if we know there are no more bots
-                            //This simplifies query algorithms that might be building up
-                            //a tree.
                             if let Some(div) = nn.div {
                                 if anchor_axis.is_equal_to(this_axis) {
+                                    /*
                                     use core::cmp::Ordering::*;
                                     match self.anchor.node.cont.contains_ext(div) {
                                         Less => {
-                                            self.recurse(this_axis.next(), right);
+                                            self.recurse(this_axis.next(), right,is_left);
                                             return;
                                         }
                                         Greater => {
-                                            self.recurse(this_axis.next(), left);
+                                            self.recurse(this_axis.next(), left,is_left);
                                             return;
                                         }
                                         Equal => {}
                                     }
+                                    */
+
+                                    match is_left {
+                                        true => {
+                                            if div < self.anchor.node.cont.start {
+                                                self.recurse(this_axis.next(), right, is_left);
+                                                return;
+                                            }
+                                        }
+                                        false => {
+                                            if div >= self.anchor.node.cont.end {
+                                                self.recurse(this_axis.next(), left, is_left);
+                                                return;
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
-                            self.recurse(this_axis.next(), left);
-                            self.recurse(this_axis.next(), right);
+                            self.recurse(this_axis.next(), left, is_left);
+                            self.recurse(this_axis.next(), right, is_left);
                         }
                     }
                 }
@@ -159,8 +174,8 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
                         prevec: data.prevec,
                     };
 
-                    g.recurse(this_axis.next(), left.borrow_mut());
-                    g.recurse(this_axis.next(), right.borrow_mut());
+                    g.recurse(this_axis.next(), left.borrow_mut(), true);
+                    g.recurse(this_axis.next(), right.borrow_mut(), false);
                 }
             }
         }
