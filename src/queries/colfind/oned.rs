@@ -234,12 +234,6 @@ fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                     }
                 });
 
-                /*
-                active_lists.retain_first_mut_unordered(|x2|{
-                    x2.get().get_range(axis).end > x.get().get_range(axis).start
-                });
-                */
-
                 active_lists.first().push(x);
             }
             NextP::Y => {
@@ -253,12 +247,6 @@ fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                         false
                     }
                 });
-
-                /*
-                active_lists.retain_second_mut_unordered(|y2|{
-                    y2.get().get_range(axis).end > y.get().get_range(axis).start
-                });
-                */
 
                 active_lists.second().push(y);
             }
