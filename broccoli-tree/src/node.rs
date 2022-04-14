@@ -47,7 +47,6 @@ impl<N: Num> Aabb for Rect<N> {
 ///* `&mut BBox<N,T>` (indirect)
 ///* `BBox<N,&mut T>` (rect direct, T indirect)
 #[derive(Debug, Copy, Clone)]
-#[repr(C)]
 pub struct BBox<N, T> {
     pub rect: Rect<N>,
     pub inner: T,
@@ -196,7 +195,6 @@ mod vistr_mut {
 pub use vistr_mut::VistrMutPin;
 
 /// A node in [`Tree`].
-#[repr(C)]
 pub struct Node<'a, T: Aabb> {
     pub range: AabbPin<&'a mut [T]>,
 
