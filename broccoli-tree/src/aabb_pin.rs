@@ -1,6 +1,5 @@
 //! Provides a mutable pointer type that is more restrictive that `&mut T`, in order
-//! to protect tree invariants.
-//! [`AabbPin`] is short for protected mutable reference.
+//! to protect invariants.
 //!
 //! ```rust
 //! use broccoli_tree::{bbox,rect,aabb_pin::AabbPin};
