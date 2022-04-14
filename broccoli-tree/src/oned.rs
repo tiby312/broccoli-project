@@ -29,8 +29,9 @@ pub fn bin_middle_left_right<'b, A: Axis, X: Aabb>(
         match bots[index_at].get().get_range(axis).contains_ext(*med) {
             //If the divider is less than the bot
             core::cmp::Ordering::Equal => {
-                //left
-
+                //This is the least likely case, therefore
+                //have it be the bin that requires the most swaps.
+                
                 bots.swap(index_at, left_end);
                 bots.swap(left_end, middle_end);
                 middle_end += 1;
@@ -38,7 +39,6 @@ pub fn bin_middle_left_right<'b, A: Axis, X: Aabb>(
             }
             //If the divider is greater than the bot
             core::cmp::Ordering::Greater => {
-                //middile
                 bots.swap(index_at, left_end);
                 left_end += 1;
             }
