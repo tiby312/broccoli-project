@@ -15,7 +15,7 @@ include = ["src/**/*", "LICENSE-MIT", "README.md"]
 rayon={version="1.5",optional = true}
 itertools = "0.10"
 compt = "2.0"
-axgeom = {version="1.10",default-features = false}
+axgeom = {version="1.11",default-features = false}
 
 [features]
 default = ["rayon"]

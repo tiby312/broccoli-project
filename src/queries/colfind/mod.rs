@@ -42,6 +42,10 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     let tree_res = collect_pairs(&mut crate::new(bots));
     let naive_res = collect_pairs(&mut AabbPin::from_mut(bots));
 
+    assert_eq!(naive_res.inner.len(), sweep_res.inner.len());
+    assert_eq!(naive_res.inner.len(), tree_res.inner.len());
+    assert_eq!(naive_res.inner.len(), nosort_res.inner.len());
+
     assert_eq!(naive_res, tree_res);
     assert_eq!(naive_res, sweep_res);
     assert_eq!(naive_res, nosort_res);
@@ -85,7 +89,7 @@ impl<'a, T: Aabb> CollidingPairsApi<T> for SweepAndPrune<'a, T> {
 
             let mut prevec = PreVec::with_capacity(2048);
             let bots = AabbPin::new(bots);
-            oned::find_2d(&mut prevec, axis, bots, &mut func);
+            oned::find_2d(&mut prevec, axis, bots, &mut func, true);
         }
         query_sweep_mut(default_axis(), self.inner, func)
     }

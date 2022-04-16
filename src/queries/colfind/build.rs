@@ -27,15 +27,26 @@ pub struct NodeFinisher<'a, 'b, T, F, H> {
     is_xaxis: bool,
     bots: AabbPin<&'b mut [T]>,
     handler: H,
+    is_leaf: bool,
 }
 impl<'a, 'b, T: Aabb, F: CollisionHandler<T>, H: NodeHandler> NodeFinisher<'a, 'b, T, F, H> {
     pub fn finish(self) -> (&'a mut PreVec, &'a mut F) {
         if self.is_xaxis {
-            self.handler
-                .handle_node(self.func, self.prevec, axgeom::XAXIS.next(), self.bots);
+            self.handler.handle_node(
+                self.func,
+                self.prevec,
+                axgeom::XAXIS.next(),
+                self.bots,
+                self.is_leaf,
+            );
         } else {
-            self.handler
-                .handle_node(self.func, self.prevec, axgeom::YAXIS.next(), self.bots);
+            self.handler.handle_node(
+                self.func,
+                self.prevec,
+                axgeom::YAXIS.next(),
+                self.bots,
+                self.is_leaf,
+            );
         }
         (self.prevec, self.func)
     }
@@ -185,13 +196,18 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
             }
         }
 
+        //TODO make height be zero for leaf?
+        let is_leaf = self.get_height() == 1;
+
         let (n, rest) = self.vistr.next();
+
         let fin = NodeFinisher {
             func,
             prevec,
             is_xaxis: self.is_xaxis,
             bots: n.into_range(),
             handler: self.handler,
+            is_leaf,
         };
 
         (
@@ -259,6 +275,7 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
         prevec: &mut PreVec,
         axis: impl Axis,
         bots: AabbPin<&mut [T]>,
+        is_leaf: bool,
     );
 
     fn handle_children<A: Axis, B: Axis, T: Aabb>(
@@ -277,6 +294,7 @@ impl NodeHandler for crate::tree::build::NoSorter {
         _: &mut PreVec,
         _axis: impl Axis,
         bots: AabbPin<&mut [T]>,
+        _is_leaf: bool,
     ) {
         queries::for_every_pair(bots, move |a, b| {
             if a.get().intersects_rect(b.get()) {
@@ -318,8 +336,15 @@ impl NodeHandler for crate::tree::build::DefaultSorter {
         prevec: &mut PreVec,
         axis: impl Axis,
         bots: AabbPin<&mut [T]>,
+        is_leaf: bool,
     ) {
-        oned::find_2d(prevec, axis, bots, func);
+        //
+        // All bots belonging to a non leaf node are guarenteed to touch the divider.
+        // Therfore, all bots intersect along one axis already. Because:
+        //
+        // If a contains x and b contains x then a intersects b.
+        //
+        oned::find_2d(prevec, axis, bots, func, is_leaf);
     }
     #[inline(always)]
     fn handle_children<A: Axis, B: Axis, T: Aabb>(

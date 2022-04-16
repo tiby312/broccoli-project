@@ -33,9 +33,15 @@ pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     axis: A,
     bots: AabbPin<&mut [T]>,
     func: &mut F,
+    check_y: bool,
 ) {
-    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
-    self::find(prevec1, axis, bots, &mut b);
+    if check_y {
+        let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
+        self::find(prevec1, axis, bots, &mut b);
+    } else {
+        let b = func;
+        self::find(prevec1, axis, bots, b);
+    }
 }
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
@@ -122,12 +128,12 @@ pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     for mut y in r1.iter_mut() {
         for y2 in r2.borrow_mut() {
             //Exploit the sorted property, to exit early
-            if y.get().get_range(axis).end <= y2.get().get_range(axis).start {
+            if y.get().get_range(axis).end < y2.get().get_range(axis).start {
                 break;
             }
 
             //Because we didnt exit from the previous comparison, we only need to check one thing.
-            if y.get().get_range(axis).start < y2.get().get_range(axis).end {
+            if y.get().get_range(axis).start <= y2.get().get_range(axis).end {
                 b.collide(y.borrow_mut(), y2);
             }
         }
@@ -163,12 +169,20 @@ fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
         active.retain_mut_unordered(|that_bot| {
             let crr = curr_bot.get().get_range(axis);
 
-            if that_bot.get().get_range(axis).end > crr.start {
+            if that_bot.get().get_range(axis).end >= crr.start {
                 debug_assert!(curr_bot
                     .get()
                     .get_range(axis)
                     .intersects(that_bot.get().get_range(axis)));
 
+                /*
+                assert!(curr_bot
+                    .get()
+                    .get_range(axis.next())
+                    .intersects(that_bot.get().get_range(axis.next())),"{:?} {:?}",curr_bot
+                    .get()
+                    .get_range(axis.next()),that_bot.get().get_range(axis.next()));
+                */
                 func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
                 true
             } else {
@@ -226,7 +240,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                 let mut x = f1.next().unwrap();
 
                 active_lists.second().retain_mut_unordered(|y| {
-                    if y.get().get_range(axis).end > x.get().get_range(axis).start {
+                    if y.get().get_range(axis).end >= x.get().get_range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
                         true
                     } else {
@@ -240,7 +254,7 @@ fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                 let mut y = f2.next().unwrap();
 
                 active_lists.first().retain_mut_unordered(|x| {
-                    if x.get().get_range(axis).end > y.get().get_range(axis).start {
+                    if x.get().get_range(axis).end >= y.get().get_range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
                         true
                     } else {
