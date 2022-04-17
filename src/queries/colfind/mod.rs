@@ -159,7 +159,7 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
                             recurse_par(right, &mut prevec, height_seq_fallback, func2);
                         },
                     );
-                }else{
+                } else {
                     let _ = n.finish();
                 }
             }
