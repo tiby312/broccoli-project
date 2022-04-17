@@ -28,15 +28,16 @@ pub fn build_from_splitter<T: Aabb, S: Sorter, SS: Splitter>(
         splitter: SS,
     ) -> SS {
         let NodeBuildResult { node, rest } = vistr.build_and_next();
-        res.push(node.finish());
         if let Some([left, right]) = rest {
             let (s1, s2) = splitter.div();
-
+            res.push(node.finish());
+        
             let s1 = recurse_seq_splitter(left, res, s1);
             let s2 = recurse_seq_splitter(right, res, s2);
 
             s1.add(s2)
         } else {
+            res.push(node.finish());
             splitter
         }
     }
@@ -100,6 +101,7 @@ where
                 buffer.append(&mut a);
                 s1.add(s2)
             } else {
+                buffer.push(node.finish());
                 splitter
             }
         }

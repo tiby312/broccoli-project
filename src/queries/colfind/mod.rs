@@ -159,6 +159,8 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
                             recurse_par(right, &mut prevec, height_seq_fallback, func2);
                         },
                     );
+                }else{
+                    let _ = n.finish();
                 }
             }
         }
@@ -190,6 +192,7 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
                 let ar = recurse_seq_splitter(right, s2, prevec, func);
                 al.add(ar)
             } else {
+                n.finish();
                 splitter
             }
         }
@@ -254,6 +257,7 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
 
                     s1.add(s2)
                 } else {
+                    let _ = n.finish();
                     splitter
                 }
             }
