@@ -31,7 +31,7 @@ pub fn bin_middle_left_right<'b, A: Axis, X: Aabb>(
             core::cmp::Ordering::Equal => {
                 //This is the least likely case, therefore
                 //have it be the bin that requires the most swaps.
-                
+
                 bots.swap(index_at, left_end);
                 bots.swap(left_end, middle_end);
                 middle_end += 1;

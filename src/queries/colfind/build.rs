@@ -367,7 +367,7 @@ impl NodeHandler for crate::tree::build::DefaultSorter {
                 cc2.cont,
             );
 
-            oned::find_perp_2d1(current.axis, r1, r2, func);
+            oned::find_perp_2d1(prevec, current.axis, r1, r2, func);
         } else if current.node.cont.intersects(&anchor.node.cont) {
             /*
             oned::find_parallel_2d(

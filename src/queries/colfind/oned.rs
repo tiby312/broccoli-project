@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use twounordered::TwoUnorderedVecs;
 
 use super::CollisionHandler;
@@ -61,13 +62,16 @@ pub fn find_parallel_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
 //that intsect.
 pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
-    axis: A, //the axis of r1.
+    _prevec: &mut PreVec,
+    axis: A, //the axis of r2.
     r1: AabbPin<&mut [T]>,
     mut r2: AabbPin<&mut [T]>,
     func: &mut F,
 ) {
-    //OPTION 1
+    let mut b = OtherAxisCollider { a: func, axis };
+
     /*
+    //OPTION 1
     #[inline(always)]
     pub fn compare_bots<T: Aabb, K: Aabb<Num = T::Num>>(
         axis: impl Axis,
@@ -81,18 +85,13 @@ pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
             core::cmp::Ordering::Less
         }
     }
-    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
 
-    let mut rr1=prevec3.get_empty_vec_mut();
-    rr1.extend(r1);
-    //let mut rr1: Vec<AabbPin<F::T>> = r1.iter_mut().collect();
+    let mut v2:Vec<_>=r1.iter_mut().collect();
+    v2.sort_unstable_by(|a,b|compare_bots(axis,&**a,&**b));
+    let rrr=v2.as_mut_slice();
 
-    rr1.sort_unstable_by(|a, b| compare_bots(axis, a, b));
-
-    let rrr:&mut [AabbPin<F::T>]=(&mut rr1) as &mut [AabbPin<F::T>];
     self::find_other_parallel3(
-        prevec1,
-        prevec2,
+        prevec,
         axis,
         (
             r2,
@@ -101,30 +100,7 @@ pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
         &mut b);
     */
 
-    //OPTION2
-    /*
-    let mut b = OtherAxisCollider { a: func, axis };
-
-    for y in r1.iter_mut() {
-        self::find_other_parallel3(prevec1, axis, (y.into_slice(), r2.borrow_mut()), &mut b);
-    }
-    */
-
-    //OPTION3
-    // benched and this is the slowest.
-    /*
-    for mut inda in r1.iter_mut() {
-        for mut indb in r2.borrow_mut().iter_mut() {
-            if inda.get().intersects_rect(indb.get()) {
-                func.collide(inda.borrow_mut(), indb.borrow_mut());
-            }
-        }
-    }
-    */
-
-    // OPTION4
-    let mut b = OtherAxisCollider { a: func, axis };
-
+    // OPTION2
     for mut y in r1.iter_mut() {
         for y2 in r2.borrow_mut() {
             //Exploit the sorted property, to exit early
@@ -271,25 +247,25 @@ fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
 
     prevec1.insert_vec(active_lists.into());
 }
-/*
+
 //This only uses one stack, but it ends up being more comparisons.
 #[allow(dead_code)]
 #[inline(always)]
-fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
+fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler<T>, T: Aabb>(
     axis: A,
     cols: (
-        impl IntoIterator<Item = AabbPin<'a, F::T>>,
-        impl IntoIterator<Item = AabbPin<'b, F::T>>,
+        impl IntoIterator<Item = AabbPin<&'a mut T>>,
+        impl IntoIterator<Item = AabbPin<&'b mut T>>,
     ),
     func: &mut F,
 ) where
-    F::T: 'a + 'b,
+    T: 'a + 'b,
 {
     let mut xs = cols.0.into_iter().peekable();
     let ys = cols.1.into_iter();
 
     //let active_x = self.helper.get_empty_vec_mut();
-    let mut active_x: Vec<AabbPin<F::T>> = Vec::new();
+    let mut active_x: Vec<AabbPin<&mut T>> = Vec::new();
     for mut y in ys {
         let yr = *y.get().get_range(axis);
 
@@ -317,7 +293,7 @@ fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler>(
         });
     }
 }
-*/
+
 #[test]
 #[cfg_attr(miri, ignore)]
 fn test_parallel() {
