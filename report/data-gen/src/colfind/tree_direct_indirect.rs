@@ -36,6 +36,8 @@ fn test_seq<T: Aabb>(
         query: query_time as f64,
     }
 }
+
+/*
 fn test_par<T: Aabb + Send + Sync>(
     bots: &mut [T],
     func: impl Fn(AabbPin<&mut T>, AabbPin<&mut T>) + Send + Sync,
@@ -60,29 +62,24 @@ where
         query: query_time as f64,
     }
 }
+*/
 
 #[derive(Serialize, Copy, Clone, Debug)]
 struct RebalRecord {
     direct_seq: f64,
-    direct_par: f64,
 
     indirect_seq: f64,
-    indirect_par: f64,
 
     default_seq: f64,
-    default_par: f64,
 }
 
 #[derive(Serialize, Copy, Clone, Debug)]
 struct QueryRecord {
     direct_seq: f64,
-    direct_par: f64,
 
     indirect_seq: f64,
-    indirect_par: f64,
 
     default_seq: f64,
-    default_par: f64,
 }
 #[derive(Copy, Clone, Debug)]
 struct CompleteTestResult {
@@ -91,71 +88,49 @@ struct CompleteTestResult {
 }
 impl CompleteTestResult {
     fn new<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTestResult {
-        let (direct_seq, direct_par) = {
+        let direct_seq = {
             let mut bots =
                 distribute_iter(grow, (0..num_bots as isize).map(|a| (a, t)), |a| a.to_i32());
-            (
+            
                 test_seq(&mut bots, |b, c| {
                     b.unpack_inner().0 += 1;
                     c.unpack_inner().0 += 1;
-                }),
-                test_par(&mut bots, |b, c| {
-                    b.unpack_inner().0 += 1;
-                    c.unpack_inner().0 += 1;
-                }),
-            )
+                })
+            
         };
 
-        let (indirect_seq, indirect_par) = {
+        let indirect_seq = {
             let mut bots =
                 distribute_iter(grow, (0..num_bots as isize).map(|a| (a, t)), |a| a.to_i32());
 
             let mut indirect: Vec<_> = bots.iter_mut().collect();
 
-            (
                 test_seq(&mut indirect, |b, c| {
                     b.unpack_inner().0 += 1;
                     c.unpack_inner().0 += 1;
-                }),
-                test_par(&mut indirect, |b, c| {
-                    b.unpack_inner().0 += 1;
-                    c.unpack_inner().0 += 1;
-                }),
-            )
+                })
         };
-        let (default_seq, default_par) = {
+        let default_seq = {
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| (0isize, t)).collect();
 
             let mut default = distribute(grow, &mut bot_inner, |a| a.to_i32());
 
-            (
                 test_seq(&mut default, |b, c| {
                     b.unpack_inner().0 += 1;
                     c.unpack_inner().0 += 1;
-                }),
-                test_par(&mut default, |b, c| {
-                    b.unpack_inner().0 += 1;
-                    c.unpack_inner().0 += 1;
-                }),
-            )
+                })
         };
 
         CompleteTestResult {
             rebal: RebalRecord {
                 direct_seq: direct_seq.rebal,
-                direct_par: direct_par.rebal,
                 indirect_seq: indirect_seq.rebal,
-                indirect_par: indirect_par.rebal,
                 default_seq: default_seq.rebal,
-                default_par: default_par.rebal,
             },
             query: QueryRecord {
                 direct_seq: direct_seq.query,
-                direct_par: direct_par.query,
                 indirect_seq: indirect_seq.query,
-                indirect_par: indirect_par.query,
                 default_seq: default_seq.query,
-                default_par: default_par.query,
             },
         }
     }
