@@ -17,15 +17,16 @@ impl Res {
                 &mut bots,
                 LevelTimer::new(0, vec![]),
             );
-
+            let c1=times1.into_levels().into_iter().map(|x| x as f64).collect();
             let times2 = tree.colliding_pairs_splitter(LevelTimer::new(0, vec![]), |a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1
             });
+            let c2=times2.into_levels().into_iter().map(|x| x as f64).collect();
 
             let t = Res {
-                rebal: times1.into_levels().into_iter().map(|x| x as f64).collect(),
-                query: times2.into_levels().into_iter().map(|x| x as f64).collect(),
+                rebal: c1,
+                query: c2,
             };
 
             assert_eq!(t.rebal.len(), t.query.len());

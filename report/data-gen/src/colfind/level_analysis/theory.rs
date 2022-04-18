@@ -14,12 +14,15 @@ impl Res {
             let (rebal, query) = datanum::datanum_test2(|maker| {
                 let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32dnum(maker));
 
+                maker.reset();
+
                 let (mut tree, levelc) = tree::splitter::build_from_splitter(
-                    DefaultSorter,
+                    NoSorter,
                     &mut bots,
                     LevelCounter::new(0, vec![]),
                 );
 
+                let c1=levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();
 
                 let levelc2 =
@@ -27,14 +30,15 @@ impl Res {
                         a.unpack_inner().x += 1.0;
                         b.unpack_inner().y += 1.0;
                     });
+                let c2=levelc2
+                .into_levels()
+                .into_iter()
+                .map(|x| x as f64)
+                .collect();
 
                 (
-                    levelc.into_levels().into_iter().map(|x| x as f64).collect(),
-                    levelc2
-                        .into_levels()
-                        .into_iter()
-                        .map(|x| x as f64)
-                        .collect(),
+                    c1,
+                    c2,
                 )
             });
 
