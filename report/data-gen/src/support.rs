@@ -29,8 +29,8 @@ pub mod convert {
         axgeom::rect(
             convert1d_u32(a.x.start, border.x),
             convert1d_u32(a.x.end, border.x),
-            convert1d_u32(a.y.start, border.x),
-            convert1d_u32(a.y.end, border.x),
+            convert1d_u32(a.y.start, border.y),
+            convert1d_u32(a.y.end, border.y),
         )
     }
 

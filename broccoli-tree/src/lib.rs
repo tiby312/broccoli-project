@@ -62,7 +62,7 @@ pub mod num_level {
     ///Outputs the height given an desirned number of bots per node.
     #[inline]
     #[must_use]
-    const fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> usize {
+    fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> usize {
         //we want each node to have space for around 300 bots.
         //there are 2^h nodes.
         //2^h*200>=num_bots.  Solve for h s.t. h is an integer.
@@ -73,7 +73,9 @@ pub mod num_level {
             let (num_bots, num_per_node) = (num_bots as u64, num_per_node as u64);
             let a = num_bots / num_per_node;
             let a = log_2(a);
-            (a + 1) as usize
+            let k=(((a/2)*2)+1) as usize;
+            assert_eq!(k % 2,1,"k={:?}",k);
+            k
         }
     }
     #[must_use]
@@ -89,7 +91,7 @@ pub mod num_level {
     }
     ///Specify a custom default number of elements per leaf
     #[must_use]
-    pub const fn with_num_elem_in_leaf(num_elements: usize, num_elem_leaf: usize) -> usize {
+    pub fn with_num_elem_in_leaf(num_elements: usize, num_elem_leaf: usize) -> usize {
         compute_tree_height_heuristic(num_elements, num_elem_leaf)
     }
 }
