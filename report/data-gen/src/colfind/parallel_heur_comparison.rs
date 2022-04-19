@@ -55,7 +55,7 @@ pub fn handle(fb: &mut FigureBuilder) {
     let height = tree::num_level::default(num_bots);
     let mut rebals = Vec::new();
 
-    let range = (000..20_000).step_by(200);
+    let range = (000..20_000).step_by(100);
 
     for rebal_num in range.clone() {
         let (a, _b) = test3(
@@ -75,7 +75,6 @@ pub fn handle(fb: &mut FigureBuilder) {
         queries.push((query_num as f64, b as f64));
     }
 
-    /*
     let mut seqs = Vec::new();
     for _ in 0..100 {
         let (a, b) = test1(&mut distribute(DEFAULT_GROW, &mut bot_inner, |a| {
@@ -83,7 +82,6 @@ pub fn handle(fb: &mut FigureBuilder) {
         }));
         seqs.push((a as f64, b as f64));
     }
-    */
 
     let s = format!(
         "Bench of differing parallel switch levels with abspiral(20,000,{})",
@@ -92,8 +90,9 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let data = plots!(
         poloto::build::scatter("Rebal Par", rebals.iter().map(|a| [a.0, a.1])),
-        poloto::build::scatter("Query Par", queries.iter().map(|a| [a.0, a.1])) //poloto::build::scatter("Rebal", seqs.iter().map(|a| [height as f64, a.0])),
-                                                                                //poloto::build::scatter("Query", seqs.iter().map(|a| [height as f64, a.1]))
+        poloto::build::scatter("Query Par", queries.iter().map(|a| [a.0, a.1])),
+        poloto::build::scatter("Rebal", seqs.iter().map(|a| [height as f64, a.0])),
+        poloto::build::scatter("Query", seqs.iter().map(|a| [height as f64, a.1]))
     );
 
     let canvas = fb.canvas().build();

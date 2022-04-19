@@ -13,6 +13,9 @@ pub struct NodeFinisher<'a, T: Aabb, S> {
     num_elem: usize,
 }
 impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
+    pub fn get_num_elem(&self) -> usize {
+        self.num_elem
+    }
     #[inline(always)]
     #[must_use]
     pub fn finish(self) -> Node<'a, T> {

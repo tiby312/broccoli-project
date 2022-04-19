@@ -328,13 +328,14 @@ impl<'a, T: Aabb, S: Sorter> TreeBuilder<'a, T, S> {
             T: Send,
             T::Num: Send,
         {
-            if vistr.get_bots().len() <= num_seq_fallback {
-                //println!("switching at height={:?}",vistr.get_height());
-                vistr.recurse_seq(buffer);
-            } else {
-                let NodeBuildResult { node, rest } = vistr.build_and_next();
+            let NodeBuildResult { node, rest } = vistr.build_and_next();
 
-                if let Some([left, right]) = rest {
+            if let Some([left, right]) = rest {
+                if node.get_num_elem() <= num_seq_fallback {
+                    buffer.push(node.finish());
+                    left.recurse_seq(buffer);
+                    right.recurse_seq(buffer);
+                } else {
                     let (_, mut a) = rayon::join(
                         || {
                             buffer.push(node.finish());
@@ -349,6 +350,8 @@ impl<'a, T: Aabb, S: Sorter> TreeBuilder<'a, T, S> {
 
                     buffer.append(&mut a);
                 }
+            } else {
+                buffer.push(node.finish());
             }
         }
 
