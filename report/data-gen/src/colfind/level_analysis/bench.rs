@@ -12,17 +12,17 @@ impl Res {
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
-            let (mut tree, times1) = tree::splitter::build_from_splitter(
-                DefaultSorter,
-                &mut bots,
-                LevelTimer::new(0, vec![]),
-            );
-            let c1=times1.into_levels().into_iter().map(|x| x as f64).collect();
-            let times2 = tree.colliding_pairs_splitter(LevelTimer::new(0, vec![]), |a, b| {
-                **a.unpack_inner() += 1;
-                **b.unpack_inner() += 1
-            });
-            let c2=times2.into_levels().into_iter().map(|x| x as f64).collect();
+            let (mut tree, times1) = TreeBuilder::new_default(&mut bots)
+                .build_from_splitter(LevelCounter::new(0, vec![]));
+
+            let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
+            let times2 = tree
+                .colliding_pairs_builder(|a, b| {
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1
+                })
+                .build_with_splitter(LevelTimer::new(0, vec![]));
+            let c2 = times2.into_levels().into_iter().map(|x| x as f64).collect();
 
             let t = Res {
                 rebal: c1,

@@ -1,35 +1,5 @@
 use super::*;
 
-struct MyBuild {
-    height_seq_fallback: usize,
-}
-impl<T: Aabb> TreeBuild<T, DefaultSorter> for MyBuild {
-    fn height_seq_fallback(&self) -> usize {
-        self.height_seq_fallback
-    }
-    fn sorter(&self) -> DefaultSorter {
-        DefaultSorter
-    }
-}
-
-struct MyQuery<'a, T: Aabb> {
-    tree: Tree<'a, T>,
-    height_seq_fallback: usize,
-}
-
-impl<'a, T: Aabb + 'a> broccoli::queries::colfind::CollidingPairsApiExt<'a, T, DefaultSorter>
-    for MyQuery<'a, T>
-{
-    fn height_seq_fallback(&self) -> usize {
-        self.height_seq_fallback
-    }
-    fn colliding_pairs_builder<'b>(
-        &'b mut self,
-    ) -> queries::colfind::build::CollVis<'a, 'b, T, DefaultSorter> {
-        self.tree.colliding_pairs_builder()
-    }
-}
-
 fn test1(bots: &mut [BBox<f64, &mut isize>]) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| broccoli::tree::new(bots));
 
@@ -48,27 +18,27 @@ fn test1(bots: &mut [BBox<f64, &mut isize>]) -> (f64, f64) {
 
 fn test3(
     bots: &mut [BBox<f64, &mut isize>],
-    rebal_height: usize,
-    query_height: usize,
+    rebal_num: Option<usize>,
+    query_num: Option<usize>,
 ) -> (f64, f64) {
-    let (tree, construction_time) = bench_closure_ret(|| {
-        TreeInner::new_par(
-            MyBuild {
-                height_seq_fallback: rebal_height,
-            },
-            bots,
-        )
+    let (mut tree, construction_time) = bench_closure_ret(|| {
+        let mut k = TreeBuilder::new_default(bots);
+        if let Some(r) = rebal_num {
+            //dbg!(r);
+            k.num_seq_fallback = r;
+        }
+        k.build_par()
     });
 
     let (tree, query_time) = bench_closure_ret(|| {
-        let mut tree = MyQuery {
-            tree,
-            height_seq_fallback: query_height,
-        };
-        tree.colliding_pairs_par(|a, b| {
+        let mut k = tree.colliding_pairs_builder(|a, b| {
             **a.unpack_inner() += 2;
             **b.unpack_inner() += 2;
         });
+        if let Some(r) = query_num {
+            k.num_seq_fallback = r;
+        }
+        k.build_par();
         tree
     });
 
@@ -84,23 +54,28 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let height = tree::num_level::default(num_bots);
     let mut rebals = Vec::new();
-    for rebal_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {
+
+    let range = (000..20_000).step_by(200);
+
+    for rebal_num in range.clone() {
         let (a, _b) = test3(
             &mut distribute(DEFAULT_GROW, &mut bot_inner, |a| a.to_f64n()),
-            rebal_height,
-            4,
+            Some(rebal_num),
+            None,
         );
-        rebals.push((rebal_height as f64, a as f64));
+        rebals.push((rebal_num as f64, a as f64));
     }
     let mut queries = Vec::new();
-    for query_height in (1..height + 1).flat_map(|a| std::iter::repeat(a).take(16)) {
+    for query_num in range.clone() {
         let (_a, b) = test3(
-            &mut distribute(0.2, &mut bot_inner, |a| a.to_f64n()),
-            4,
-            query_height,
+            &mut distribute(DEFAULT_GROW, &mut bot_inner, |a| a.to_f64n()),
+            None,
+            Some(query_num),
         );
-        queries.push((query_height as f64, b as f64));
+        queries.push((query_num as f64, b as f64));
     }
+
+    /*
     let mut seqs = Vec::new();
     for _ in 0..100 {
         let (a, b) = test1(&mut distribute(DEFAULT_GROW, &mut bot_inner, |a| {
@@ -108,6 +83,7 @@ pub fn handle(fb: &mut FigureBuilder) {
         }));
         seqs.push((a as f64, b as f64));
     }
+    */
 
     let s = format!(
         "Bench of differing parallel switch levels with abspiral(20,000,{})",
@@ -116,9 +92,8 @@ pub fn handle(fb: &mut FigureBuilder) {
 
     let data = plots!(
         poloto::build::scatter("Rebal Par", rebals.iter().map(|a| [a.0, a.1])),
-        poloto::build::scatter("Query Par", queries.iter().map(|a| [a.0, a.1])),
-        poloto::build::scatter("Rebal", seqs.iter().map(|a| [height as f64, a.0])),
-        poloto::build::scatter("Query", seqs.iter().map(|a| [height as f64, a.1]))
+        poloto::build::scatter("Query Par", queries.iter().map(|a| [a.0, a.1])) //poloto::build::scatter("Rebal", seqs.iter().map(|a| [height as f64, a.0])),
+                                                                                //poloto::build::scatter("Query", seqs.iter().map(|a| [height as f64, a.1]))
     );
 
     let canvas = fb.canvas().build();
@@ -126,7 +101,7 @@ pub fn handle(fb: &mut FigureBuilder) {
         canvas,
         data.chain(poloto::build::markers([], [0.0])),
         &s,
-        "Height at which to switch to sequential",
+        "problem size at which to switch to sequential",
         "Time in Seconds"
     );
 

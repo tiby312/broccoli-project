@@ -91,12 +91,11 @@ impl CompleteTestResult {
         let direct_seq = {
             let mut bots =
                 distribute_iter(grow, (0..num_bots as isize).map(|a| (a, t)), |a| a.to_i32());
-            
-                test_seq(&mut bots, |b, c| {
-                    b.unpack_inner().0 += 1;
-                    c.unpack_inner().0 += 1;
-                })
-            
+
+            test_seq(&mut bots, |b, c| {
+                b.unpack_inner().0 += 1;
+                c.unpack_inner().0 += 1;
+            })
         };
 
         let indirect_seq = {
@@ -105,20 +104,20 @@ impl CompleteTestResult {
 
             let mut indirect: Vec<_> = bots.iter_mut().collect();
 
-                test_seq(&mut indirect, |b, c| {
-                    b.unpack_inner().0 += 1;
-                    c.unpack_inner().0 += 1;
-                })
+            test_seq(&mut indirect, |b, c| {
+                b.unpack_inner().0 += 1;
+                c.unpack_inner().0 += 1;
+            })
         };
         let default_seq = {
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| (0isize, t)).collect();
 
             let mut default = distribute(grow, &mut bot_inner, |a| a.to_i32());
 
-                test_seq(&mut default, |b, c| {
-                    b.unpack_inner().0 += 1;
-                    c.unpack_inner().0 += 1;
-                })
+            test_seq(&mut default, |b, c| {
+                b.unpack_inner().0 += 1;
+                c.unpack_inner().0 += 1;
+            })
         };
 
         CompleteTestResult {

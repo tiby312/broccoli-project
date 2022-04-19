@@ -37,7 +37,7 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
         .collect();
     let bots = bots.as_mut_slice();
 
-    let nosort_res = collect_pairs(&mut TreeInner::new(NoSorter, bots));
+    let nosort_res = collect_pairs(&mut TreeBuilder::new(NoSorter, bots).build());
     let sweep_res = collect_pairs(&mut SweepAndPrune::new(bots));
     let tree_res = collect_pairs(&mut crate::new(bots));
     let naive_res = collect_pairs(&mut AabbPin::from_mut(bots));
@@ -70,10 +70,8 @@ impl<'a, T: Aabb> CollidingPairsApi<T> for AabbPin<&'a mut [T]> {
 use crate::tree::TreeInner;
 
 impl<'a, T: Aabb, S: NodeHandler> CollidingPairsApi<T> for TreeInner<Node<'a, T>, S> {
-    fn colliding_pairs(&mut self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        let mut prevec = PreVec::new();
-        let sorter = self.sorter();
-        CollVis::new(self.vistr_mut(), true, sorter).recurse_seq(&mut prevec, &mut func);
+    fn colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+        self.colliding_pairs_builder(func).build()
     }
 }
 
@@ -110,26 +108,59 @@ impl<'a, T> SweepAndPrune<'a, T> {
 
 use crate::tree::splitter::Splitter;
 
-///
-/// Provides extended options for collision pair finding specific to trees. (not applicable to naive/sweep and prune)
-///
-/// colliding pair finding functions that allow arbitrary code to be run every time the problem
-/// is split into two and built back together. Useful for debuging/measuring performance.
-///
-pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
-    fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, SO>;
+pub trait CollidingPairsBuilderApi<'a, T: Aabb, SO: NodeHandler> {
+    fn vistr_mut<'b>(&'b mut self) -> VistrMutPin<'b, broccoli_tree::node::Node<'a, T>>;
+    fn sorter(&mut self) -> SO;
 
-    fn height_seq_fallback(&self) -> usize {
-        5
+    fn colliding_pairs_builder<'b, F>(
+        &'b mut self,
+        func: F,
+    ) -> CollidingPairsBuilder<'a, 'b, T, SO, F>
+    where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    {
+        let sorter = self.sorter();
+        CollidingPairsBuilder {
+            vis: CollVis::new(self.vistr_mut(), true, sorter),
+            num_seq_fallback: 2_400,
+            func,
+        }
+    }
+}
+
+impl<'a, T: Aabb, SO: NodeHandler> CollidingPairsBuilderApi<'a, T, SO>
+    for TreeInner<Node<'a, T>, SO>
+{
+    fn vistr_mut<'b>(&'b mut self) -> VistrMutPin<'b, tree::node::Node<'a, T>> {
+        TreeInner::vistr_mut(self)
+    }
+
+    fn sorter(&mut self) -> SO {
+        TreeInner::sorter(self)
+    }
+}
+
+#[must_use]
+pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO, F> {
+    pub vis: CollVis<'a, 'b, T, SO>,
+    pub num_seq_fallback: usize,
+    pub func: F,
+}
+
+impl<'a, 'b, T: Aabb, SO: NodeHandler, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>
+    CollidingPairsBuilder<'a, 'b, T, SO, F>
+{
+    pub fn build(mut self) {
+        let mut prevec = PreVec::new();
+        self.vis.recurse_seq(&mut prevec, &mut self.func);
     }
 
     #[cfg(feature = "rayon")]
-    fn colliding_pairs_par(
-        &mut self,
-        func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
-    ) where
+    pub fn build_par(self)
+    where
         T: Send,
         T::Num: Send,
+        F: Clone + Send,
     {
         ///
         /// height_seq_fallback: if a subtree has this height, it will be processed as one unit sequentially.
@@ -137,13 +168,13 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
         pub fn recurse_par<T: Aabb, N: NodeHandler>(
             vistr: CollVis<T, N>,
             prevec: &mut PreVec,
-            height_seq_fallback: usize,
+            num_seq_fallback: usize,
             mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
         ) where
             T: Send,
             T::Num: Send,
         {
-            if vistr.get_height() <= height_seq_fallback {
+            if vistr.num_elem() <= num_seq_fallback {
                 vistr.recurse_seq(prevec, &mut func);
             } else {
                 let func2 = func.clone();
@@ -152,11 +183,11 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
                     rayon::join(
                         || {
                             let (prevec, func) = n.finish();
-                            recurse_par(left, prevec, height_seq_fallback, func.clone());
+                            recurse_par(left, prevec, num_seq_fallback, func.clone());
                         },
                         || {
                             let mut prevec = PreVec::new();
-                            recurse_par(right, &mut prevec, height_seq_fallback, func2);
+                            recurse_par(right, &mut prevec, num_seq_fallback, func2);
                         },
                     );
                 } else {
@@ -166,17 +197,12 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
         }
 
         let mut prevec = PreVec::new();
-        let h = self.height_seq_fallback();
 
         //TODO best level define somewhere?
-        recurse_par(self.colliding_pairs_builder(), &mut prevec, h, func)
+        recurse_par(self.vis, &mut prevec, self.num_seq_fallback, self.func)
     }
 
-    fn colliding_pairs_splitter<SS: Splitter>(
-        &mut self,
-        splitter: SS,
-        mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    ) -> SS {
+    pub fn build_with_splitter<SS: Splitter>(mut self, splitter: SS) -> SS {
         pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler, SS: Splitter>(
             vistr: CollVis<T, S>,
             splitter: SS,
@@ -197,23 +223,15 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
             }
         }
         let mut prevec = PreVec::new();
-        recurse_seq_splitter(
-            self.colliding_pairs_builder(),
-            splitter,
-            &mut prevec,
-            &mut func,
-        )
+        recurse_seq_splitter(self.vis, splitter, &mut prevec, &mut self.func)
     }
 
     #[cfg(feature = "rayon")]
-    fn colliding_pairs_splitter_par<SS: Splitter + Send>(
-        &mut self,
-        func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
-        splitter: SS,
-    ) -> SS
+    pub fn build_with_splitter_par<SS: Splitter + Send>(self, splitter: SS) -> SS
     where
         T: Send,
         T::Num: Send,
+        F: Clone + Send,
     {
         ///
         /// height_seq_fallback: if a subtree has this height, it will be processed as one unit sequentially.
@@ -221,7 +239,7 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
         pub fn recurse_par_splitter<T: Aabb, N: NodeHandler, S: Splitter + Send>(
             vistr: CollVis<T, N>,
             prevec: &mut PreVec,
-            height_seq_fallback: usize,
+            num_seq_fallback: usize,
             mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
             splitter: S,
         ) -> S
@@ -229,7 +247,7 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
             T: Send,
             T::Num: Send,
         {
-            if vistr.get_height() <= height_seq_fallback {
+            if vistr.num_elem() <= num_seq_fallback {
                 vistr.recurse_seq(prevec, &mut func);
                 splitter
             } else {
@@ -241,17 +259,11 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
                     let (s1, s2) = rayon::join(
                         || {
                             let (prevec, func) = n.finish();
-                            recurse_par_splitter(
-                                left,
-                                prevec,
-                                height_seq_fallback,
-                                func.clone(),
-                                s1,
-                            )
+                            recurse_par_splitter(left, prevec, num_seq_fallback, func.clone(), s1)
                         },
                         || {
                             let mut prevec = PreVec::new();
-                            recurse_par_splitter(right, &mut prevec, height_seq_fallback, func2, s2)
+                            recurse_par_splitter(right, &mut prevec, num_seq_fallback, func2, s2)
                         },
                     );
 
@@ -263,20 +275,12 @@ pub trait CollidingPairsApiExt<'a, T: Aabb + 'a, SO: NodeHandler> {
             }
         }
         let mut prevec = PreVec::new();
-        let h = self.height_seq_fallback();
         recurse_par_splitter(
-            self.colliding_pairs_builder(),
+            self.vis,
             &mut prevec,
-            h,
-            func,
+            self.num_seq_fallback,
+            self.func,
             splitter,
         )
-    }
-}
-
-impl<'a, T: Aabb, S: NodeHandler> CollidingPairsApiExt<'a, T, S> for TreeInner<Node<'a, T>, S> {
-    fn colliding_pairs_builder<'b>(&'b mut self) -> CollVis<'a, 'b, T, S> {
-        let sorter = self.sorter();
-        CollVis::new(self.vistr_mut(), true, sorter)
     }
 }

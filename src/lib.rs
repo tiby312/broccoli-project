@@ -69,7 +69,7 @@ use tree::*;
 
 pub mod prelude {
     pub use super::queries::colfind::CollidingPairsApi;
-    pub use super::queries::colfind::CollidingPairsApiExt;
+    pub use super::queries::colfind::CollidingPairsBuilderApi;
     pub use super::queries::knearest::KnearestApi;
     pub use super::queries::nbody::NbodyApi;
     pub use super::queries::raycast::RaycastApi;

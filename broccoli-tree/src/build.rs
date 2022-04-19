@@ -10,6 +10,7 @@ pub struct NodeFinisher<'a, T: Aabb, S> {
     div: Option<T::Num>, //This can be null if there are no bots left at all
     mid: &'a mut [T],
     sorter: S,
+    num_elem: usize,
 }
 impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
     #[inline(always)]
@@ -55,6 +56,7 @@ impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
         };
 
         Node {
+            num_elem: self.num_elem,
             range: AabbPin::new(self.mid),
             cont,
             div: self.div,
@@ -78,6 +80,9 @@ pub struct NodeBuildResult<'a, T: Aabb, S> {
 }
 
 impl<'a, T: Aabb, S: Sorter> TreeBuildVisitor<'a, T, S> {
+    pub fn get_bots(&self) -> &[T] {
+        self.bots
+    }
     #[must_use]
     pub fn new(num_levels: usize, bots: &'a mut [T], sorter: S) -> TreeBuildVisitor<'a, T, S> {
         assert!(num_levels >= 1);
@@ -101,6 +106,7 @@ impl<'a, T: Aabb, S: Sorter> TreeBuildVisitor<'a, T, S> {
                 div: None,
                 is_xaxis: self.is_xaxis,
                 sorter: self.sorter,
+                num_elem: 0,
             };
 
             NodeBuildResult { node, rest: None }
@@ -152,6 +158,7 @@ impl<'a, T: Aabb, S: Sorter> TreeBuildVisitor<'a, T, S> {
                 div: rr.div,
                 is_xaxis: self.is_xaxis,
                 sorter: self.sorter,
+                num_elem: rr.left.len() + rr.right.len(),
             };
 
             let left = rr.left;

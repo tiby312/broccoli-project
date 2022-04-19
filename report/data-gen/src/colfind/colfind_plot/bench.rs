@@ -17,11 +17,13 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c0 = bench_closure(|| {
-            let mut tree = broccoli::tree::TreeInner::new_par(DefaultSorter, &mut bots);
-            tree.colliding_pairs_par(|a, b| {
+            let mut tree = TreeBuilder::new_default(&mut bots).build_par();
+
+            tree.colliding_pairs_builder(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
-            });
+            })
+            .build_par();
         });
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
@@ -64,17 +66,18 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c5 = bench_closure(|| {
-            let mut tree = TreeInner::new_par(NoSorter, &mut bots);
-            tree.colliding_pairs_par(|a, b| {
+            let mut tree = TreeBuilder::new_no_sort(&mut bots).build_par();
+            tree.colliding_pairs_builder(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
-            });
+            })
+            .build_par();
         });
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c6 = bench_closure(|| {
-            let mut tree = TreeInner::new(NoSorter, &mut bots);
+            let mut tree = TreeBuilder::new_no_sort(&mut bots).build();
             tree.colliding_pairs(|a, b| {
                 **a.unpack_inner() -= 1;
                 **b.unpack_inner() -= 1;

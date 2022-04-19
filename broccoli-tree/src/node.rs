@@ -130,6 +130,7 @@ mod vistr_mut {
 
     /// Tree Iterator that returns a protected mutable reference to each node.
     #[repr(transparent)]
+    #[must_use]
     pub struct VistrMutPin<'a, N> {
         inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
     }
@@ -208,6 +209,8 @@ pub struct Node<'a, T: Aabb> {
     // for leafs:
     //   value is none
     pub div: Option<T::Num>,
+
+    pub num_elem: usize,
 }
 
 impl<'a, T: Aabb> HasElem for Node<'a, T> {
@@ -226,6 +229,8 @@ pub struct NodeData<N: Num> {
     pub range: usize,
     pub cont: axgeom::Range<N>,
     pub div: Option<N>,
+
+    pub num_elem: usize,
 }
 
 pub use axgeom::Range;

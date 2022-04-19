@@ -70,6 +70,11 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
     pub fn get_height(&self) -> usize {
         self.vistr.get_height()
     }
+
+    pub fn num_elem(&self) -> usize {
+        let (n, _) = self.vistr.borrow().next();
+        n.num_elem
+    }
     pub fn collide_and_next<'x, F: CollisionHandler<T>>(
         mut self,
         prevec: &'x mut PreVec,

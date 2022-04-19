@@ -16,30 +16,25 @@ impl Res {
 
                 maker.reset();
 
-                let (mut tree, levelc) = tree::splitter::build_from_splitter(
-                    NoSorter,
-                    &mut bots,
-                    LevelCounter::new(0, vec![]),
-                );
+                let (mut tree, levelc) = TreeBuilder::new_default(&mut bots)
+                    .build_from_splitter(LevelCounter::new(0, vec![]));
 
-                let c1=levelc.into_levels().into_iter().map(|x| x as f64).collect();
+                let c1 = levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();
 
-                let levelc2 =
-                    tree.colliding_pairs_splitter(LevelCounter::new(0, vec![]), |a, b| {
+                let levelc2 = tree
+                    .colliding_pairs_builder(|a, b| {
                         a.unpack_inner().x += 1.0;
                         b.unpack_inner().y += 1.0;
-                    });
-                let c2=levelc2
-                .into_levels()
-                .into_iter()
-                .map(|x| x as f64)
-                .collect();
+                    })
+                    .build_with_splitter(LevelCounter::new(0, vec![]));
+                let c2 = levelc2
+                    .into_levels()
+                    .into_iter()
+                    .map(|x| x as f64)
+                    .collect();
 
-                (
-                    c1,
-                    c2,
-                )
+                (c1, c2)
             });
 
             let t = Res { rebal, query };

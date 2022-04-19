@@ -88,7 +88,6 @@ mod levelcounter {
 
             if let Some(a) = self.stuff.iter_mut().find(|x| x.level == level) {
                 a.dur += dur;
-            
             } else {
                 self.stuff.push(Single {
                     level: self.level,
@@ -100,16 +99,15 @@ mod levelcounter {
         }
 
         pub fn into_levels(self) -> Vec<usize> {
-            let mut v:Vec<_>=self.consume().into_iter().map(|x| x.dur).collect();
+            let mut v: Vec<_> = self.consume().into_iter().map(|x| x.dur).collect();
 
             v.reverse();
-            let mut n=vec!();
+            let mut n = vec![];
 
-            for i in (0..v.len()).rev(){
-                let sum=v[..i+1].iter().sum();
-                
+            for i in (0..v.len()).rev() {
+                let sum = v[..i + 1].iter().sum();
+
                 n.push(sum);
-
             }
             n
         }
@@ -117,9 +115,8 @@ mod levelcounter {
     impl Splitter for LevelCounter {
         #[inline]
         fn div(self) -> (Self, Self) {
-            
             let level = self.level();
-            
+
             let v = self.consume();
 
             (
@@ -172,19 +169,17 @@ mod leveltimer {
 
         pub fn into_levels(self) -> Vec<f64> {
             //self.consume().into_iter().map(|x| x.1).collect()
-            let mut v:Vec<_>=self.consume().into_iter().map(|x| x.1).collect();
+            let mut v: Vec<_> = self.consume().into_iter().map(|x| x.1).collect();
 
             v.reverse();
-            let mut n=vec!();
+            let mut n = vec![];
 
-            for i in (0..v.len()).rev(){
-                let sum=v[..i+1].iter().sum();
-                
+            for i in (0..v.len()).rev() {
+                let sum = v[..i + 1].iter().sum();
+
                 n.push(sum);
-
             }
             n
-
         }
 
         pub fn consume(mut self) -> Vec<(usize, f64)> {
@@ -233,12 +228,12 @@ mod leveltimer {
 }
 
 pub fn bench_closure(func: impl FnOnce()) -> f64 {
-    black_box(bench_closure_ret(func).1)
+    black_box_ret(bench_closure_ret(func).1)
 }
 
 pub fn bench_closure_ret<T>(func: impl FnOnce() -> T) -> (T, f64) {
     let instant = Instant::now();
-    let a = black_box(func());
+    let a = black_box_ret(func());
     let j = instant_to_sec(instant.elapsed());
     (a, j)
 }

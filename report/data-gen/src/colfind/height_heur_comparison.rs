@@ -1,22 +1,12 @@
 use super::*;
 
-struct MyBuild {
-    num_level: usize,
-}
-impl<T: Aabb> TreeBuild<T, DefaultSorter> for MyBuild {
-    fn num_level(&self, _num_bots: usize) -> usize {
-        self.num_level
-    }
-    fn sorter(&self) -> DefaultSorter {
-        DefaultSorter
-    }
-}
-
 pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> f64 {
     let mut bots = distribute(grow, bot_inner, |a| a.to_f64n());
 
     bench_closure(|| {
-        let mut tree = TreeInner::new(MyBuild { num_level: height }, &mut bots);
+        let mut k = TreeBuilder::new_default(&mut bots);
+        k.num_level = height;
+        let mut tree = k.build();
 
         assert_eq!(tree.num_levels(), height);
 
@@ -31,7 +21,10 @@ pub fn handle_theory_inner(grow: f64, bot_inner: &mut [isize], height: usize) ->
     datanum::datanum_test(|maker| {
         let mut bots = distribute(grow, bot_inner, |a| a.to_isize_dnum(maker));
 
-        let mut tree = TreeInner::new(MyBuild { num_level: height }, &mut bots);
+        let mut k = TreeBuilder::new_default(&mut bots);
+        k.num_level = height;
+        let mut tree = k.build();
+
         assert_eq!(tree.num_levels(), height);
 
         tree.colliding_pairs(|a, b| {

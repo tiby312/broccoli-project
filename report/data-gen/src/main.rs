@@ -20,11 +20,21 @@ pub use std::time::Duration;
 pub use std::time::Instant;
 pub use tagger;
 
-pub fn black_box<T>(dummy: T) -> T {
+#[inline(never)]
+pub fn black_box_ret<T>(dummy: T) -> T {
     unsafe {
         let ret = std::ptr::read_volatile(&dummy);
         std::mem::forget(dummy);
         ret
+    }
+}
+
+#[inline(never)]
+pub fn black_box<T>(dummy: T) {
+    unsafe {
+        let ret = std::ptr::read_volatile(&dummy);
+        std::mem::forget(dummy);
+        std::mem::forget(ret);
     }
 }
 
@@ -184,7 +194,7 @@ fn profile_test(num_bots: usize) {
     for _ in 0..30 {
         let mut num_collision = 0;
         let c0 = bench_closure(|| {
-            let mut tree = broccoli::tree::new(&mut bots);
+            let mut tree = broccoli::tree::new_par(&mut bots);
             tree.colliding_pairs(|a, b| {
                 num_collision += 1;
                 **a.unpack_inner() += 1;
@@ -252,33 +262,30 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
+
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
-            
-            
+
             run_test!(&mut fb, spiral::handle);
             run_test!(&mut fb, colfind::colfind_plot::handle_theory);
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
-            
         }
         "bench" => {
             let folder = args[2].clone();
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-            run_test!(&mut fb, colfind::level_analysis::handle_bench);
-
-            
-            run_test!(&mut fb, colfind::optimal_query::handle);
 
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
 
-            
+            run_test!(&mut fb, colfind::level_analysis::handle_bench);
+
+            run_test!(&mut fb, colfind::optimal_query::handle);
+
             run_test!(&mut fb, colfind::colfind_plot::handle_bench);
             run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
             run_test!(&mut fb, colfind::float_vs_integer::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
             run_test!(&mut fb, colfind::tree_direct_indirect::handle);
-            
         }
         _ => {
             println!("Check code to see what it should be");

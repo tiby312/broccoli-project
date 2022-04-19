@@ -18,10 +18,11 @@ fn main() {
     //populated it with mutable references.
     let mut tree = broccoli::tree::new_par(&mut aabbs);
 
-    tree.colliding_pairs_par(|a, b| {
+    tree.colliding_pairs_builder(|a, b| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
-    });
+    })
+    .build_par();
 
     assert_eq!(inner1, 1);
     assert_eq!(inner2, 0);
