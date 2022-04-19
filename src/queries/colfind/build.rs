@@ -297,15 +297,23 @@ impl NodeHandler for crate::tree::build::NoSorter {
         self,
         func: &mut impl CollisionHandler<T>,
         _: &mut PreVec,
-        _axis: impl Axis,
+        axis: impl Axis,
         bots: AabbPin<&mut [T]>,
-        _is_leaf: bool,
+        is_leaf: bool,
     ) {
-        queries::for_every_pair(bots, move |a, b| {
-            if a.get().intersects_rect(b.get()) {
-                func.collide(a, b);
-            }
-        });
+        if !is_leaf {
+            queries::for_every_pair(bots, move |a, b| {
+                if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
+                    func.collide(a, b);
+                }
+            });
+        } else {
+            queries::for_every_pair(bots, move |a, b| {
+                if a.get().intersects_rect(b.get()) {
+                    func.collide(a, b);
+                }
+            });
+        }
     }
 
     fn handle_children<A: Axis, B: Axis, T: Aabb>(

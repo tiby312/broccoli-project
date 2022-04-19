@@ -13,13 +13,15 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         xname: "Number of Elements",
         yname: "Time in Seconds",
         plots: n_iter(0, 20_000)
-            .map(|num_bots| (num_bots as f64, Record::new(DEFAULT_GROW, num_bots, false))),
+            .map(|num_bots| (num_bots as f64, Record::new(DEFAULT_GROW, num_bots, true))),
+        /*
         stop_values: &[
             ("ns_contr", NO_SORT_MAX as f64),
             ("ns_query", NO_SORT_MAX as f64),
             ("ns_par_contr", NO_SORT_PAR_MAX as f64),
             ("ns_par_query", NO_SORT_PAR_MAX as f64),
-        ],
+        ],*/
+        stop_values: &[],
     });
 }
 
@@ -56,7 +58,8 @@ impl Record {
         let bench_par = {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| TreeBuilder::new_default(&mut bots).build());
+            let (mut tree, t1) =
+                bench_closure_ret(|| TreeBuilder::new_default(&mut bots).build_par());
             let t2 = bench_closure(|| {
                 tree.colliding_pairs_builder(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
@@ -90,11 +93,12 @@ impl Record {
             let (mut tree, t1) =
                 bench_closure_ret(|| TreeBuilder::new_no_sort(&mut bots).build_par());
             let t2 = bench_closure(|| {
-                tree.colliding_pairs(|a, b| {
+                tree.colliding_pairs_builder(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
-                });
+                })
+                .build_par();
             });
             (t1 as f64, t2 as f64)
         } else {

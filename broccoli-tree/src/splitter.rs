@@ -62,7 +62,6 @@ impl<'a, T: Aabb, S: Sorter> TreeBuilder<'a, T, S> {
     }
 
     #[cfg(feature = "rayon")]
-
     pub fn build_from_splitter_par<SS: Splitter + Send>(
         self,
         splitter: SS,
