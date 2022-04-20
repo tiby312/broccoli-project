@@ -115,6 +115,8 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
                         is_left: bool,
                     ) {
                         let anchor_axis = self.anchor.axis;
+                        let current_is_leaf=m.get_height()==1;
+
                         let (mut nn, rest) = m.next();
 
                         let current = NodeAxis {
@@ -122,11 +124,14 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
                             axis: this_axis,
                         };
 
+                        
+
                         self.handler.handle_children(
                             self.sweeper,
                             self.prevec,
                             self.anchor.borrow_mut(),
                             current,
+                            current_is_leaf
                         );
 
                         if let Some([left, right]) = rest {
@@ -289,6 +294,7 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
         prevec: &mut PreVec,
         anchor: NodeAxis<T, A>,
         current: NodeAxis<T, B>,
+        current_is_leaf:bool
     );
 }
 
@@ -322,6 +328,7 @@ impl NodeHandler for crate::tree::build::NoSorter {
         _: &mut PreVec,
         mut anchor: NodeAxis<T, A>,
         current: NodeAxis<T, B>,
+        current_is_leaf:bool
     ) {
         let res = if !current.axis.is_equal_to(anchor.axis) {
             true
@@ -366,6 +373,7 @@ impl NodeHandler for crate::tree::build::DefaultSorter {
         prevec: &mut PreVec,
         mut anchor: NodeAxis<T, A>,
         current: NodeAxis<T, B>,
+        current_is_leaf:bool
     ) {
         if !current.axis.is_equal_to(anchor.axis) {
             let cc1 = &anchor.node.cont;
@@ -381,24 +389,77 @@ impl NodeHandler for crate::tree::build::DefaultSorter {
             );
 
             oned::find_perp_2d1(prevec, current.axis, r1, r2, func);
-        } else if current.node.cont.intersects(&anchor.node.cont) {
-            /*
-            oned::find_parallel_2d(
-                &mut self.prevec1,
-                current.axis.next(),
-                current.node.into_range(),
-                anchor.node.borrow_mut().into_range(),
-                func,
-            );
-            */
+        } else{
+            
+            let axis=anchor.axis;
 
-            oned::find_parallel_2d(
-                prevec,
-                current.axis.next(),
-                anchor.node.borrow_mut().into_range(),
-                current.node.into_range(),
-                func,
-            );
+            let anchor_div=anchor.node.div.unwrap();
+
+            
+            if current_is_leaf{
+                oned::find_parallel_2d(
+                    prevec,
+                    current.axis.next(),
+                    anchor.node.borrow_mut().into_range(),
+                    current.node.into_range(),
+                    |a,b|{
+                        if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
+                            func.collide(a,b)
+                        }
+                    },
+                );
+            }else{
+                 
+                // TODO we already checked for this earlier i think?
+                if let Some(current_div)=current.node.div{
+
+                    if anchor_div<current_div{
+                        if anchor.node.cont.end>=current.node.cont.start{
+                            oned::find_parallel_2d(
+                                prevec,
+                                current.axis.next(),
+                                anchor.node.borrow_mut().into_range(),
+                                current.node.into_range(),
+                                |a,b|{
+                                    if a.get().get_range(axis).end>=b.get().get_range(axis).start{
+                                        func.collide(a,b)
+                                    }
+                                },
+                            );
+                        }
+                    }else if anchor_div>current_div{
+                        
+                        if anchor.node.cont.start<=current.node.cont.end{
+                            oned::find_parallel_2d(
+                                prevec,
+                                current.axis.next(),
+                                anchor.node.borrow_mut().into_range(),
+                                current.node.into_range(),
+                                |a,b|{
+                                    if a.get().get_range(axis).start<=b.get().get_range(axis).end{
+                                        func.collide(a,b)
+                                    }
+                                },
+                            );
+                        }
+                        
+                    }else{
+                        //TODO make sure this branch is exercised?
+                        oned::find_parallel_2d(
+                            prevec,
+                            current.axis.next(),
+                            anchor.node.borrow_mut().into_range(),
+                            current.node.into_range(),
+                            |a,b|{
+                                func.collide(a,b)
+                            },
+                        );
+                        
+                    }
+                }
+                
+            }   
+                    
         }
     }
 }

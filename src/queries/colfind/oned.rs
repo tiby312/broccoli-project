@@ -46,17 +46,18 @@ pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
 }
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
-//that intsect.
-pub fn find_parallel_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
+//that intsect
+//TODO turn into struct where the arguments are stored first except for the function.
+pub fn find_parallel_2d<A: Axis, T: Aabb>(
     prevec1: &mut PreVec,
     axis: A,
     bots1: AabbPin<&mut [T]>,
     bots2: AabbPin<&mut [T]>,
-    func: &mut F,
+    mut func: impl FnMut(AabbPin<&mut T>,AabbPin<&mut T>),
 ) {
-    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
+    //let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: &mut func, axis };
 
-    self::find_other_parallel3(prevec1, axis, (bots1, bots2), &mut b)
+    self::find_other_parallel3(prevec1, axis, (bots1, bots2), &mut func)
 }
 
 //Calls colliding on all aabbs that intersect between two groups and only one aabbs
