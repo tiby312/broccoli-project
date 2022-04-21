@@ -22,9 +22,9 @@ fn main() {
     ];
 
     let mut tree = broccoli::tree::new(&mut aabbs);
-    let mut tree = broccoli_ext::cachable_pairs::IndTree(&mut tree);
+    let mut tree = broccoli_ext::cacheable_pairs::IndTree(&mut tree);
 
-    let mut ctree = broccoli_ext::cachable_pairs::CacheSession::new(&mut tree);
+    let mut ctree = broccoli_ext::cacheable_pairs::CacheSession::new(&mut tree);
 
     let mut pairs = ctree.cache_colliding_pairs(|_, _| Some(()));
 

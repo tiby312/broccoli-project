@@ -1,5 +1,5 @@
 //!
-//! Find colliding pairs between two independant sets
+//! Find colliding pairs between two independent sets
 //!
 
 use super::{rect::RectApi, *};

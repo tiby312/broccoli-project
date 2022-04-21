@@ -137,8 +137,8 @@ impl FigureBuilder {
                                 true
                             }
                         })
-                        .map(move |(secondx, ba)| {
-                            let map = MySerialize::new(ba);
+                        .map(move |(secondx, v)| {
+                            let map = MySerialize::new(v);
                             let num: f64 = match &map.as_object()[plot_name] {
                                 serde_json::Value::Number(val) => val.as_f64().unwrap(),
                                 _ => {

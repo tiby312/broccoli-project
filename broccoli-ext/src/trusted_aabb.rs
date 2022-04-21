@@ -5,7 +5,7 @@ use broccoli::tree::node::*;
 ///
 /// # Safety
 ///
-/// Aabb::get() guarenteed to return the same value while pinned by `TreePin`.
+/// Aabb::get() guaranteed to return the same value while pinned by `TreePin`.
 ///
 ///
 pub unsafe trait TrustedAabb: Aabb {}

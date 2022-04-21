@@ -49,16 +49,15 @@ Same trends. Again naive was excluded since it just dwarfed everything.
 
 ### Extremely clumped up case
 
-So far we've looked at "reasonable" levels of clumpiness. When things get extremely clumped up, weird things happen.
+So far we've looked at "reasonable" levels of clumpiness. What happens in extremely clumped up cases?
 
 {{#include raw/colfind_theory_grow.svg}}
 
-Okay so there are some weird things going on here. For one thing naive isnt a straight line. For another broccoli and sweep cross over each other.
+The naive algorithm I used is not 100% naive. While it does check
+every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the aabbs are clumped up. If there were no short-circuiting, it would be flat all across. 
 
-The first weird thing is explained by the fact that the naive implementation I used is not 100% naive. While it does check
-every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the aabbs are clumped up. If there were no short-circuiting, it would be flat all across. It is clear from the graph that this short-circuiting optimization does not gain you all that much.
-
-The second weird thing of `sweep and prune` seemingly having a better worst case than the `broccoli`: This makes sense since in the worst case, `sweep and prune` will sort all the elements, and then sweep. In the worst case for `broccoli`, it will first find the median, and then sort all the elements, and then sweep. So `broccoli` is slower since it redundantly found the median, and then sorted everything. However, it is easy to see that this only happens when the aabbs are extremely clumped up. So while `sweep and prune` has a better worst-cast, the worst-cast scenario of `broccoli` is rare and it is not much worse (median finding + sort versus just sort). 
+Broccoli reduces to sweep and prune if it can't take advantage of its tree property, which it can't in extremely clumped up cases. However, it seemingly still does better than sweep and prune. I think this is related to the fact that sweep and prune sweeps across x, but still checks that the rects intersect along the y all the time. Broccoli
+however, doesn't check the y axis for bots if it knows they lie on the divider line. Bots that lie on an divider line are already guarenteed to intersect on the y axis.
 
 Now lets look at the benches.
 
@@ -66,7 +65,7 @@ Now lets look at the benches.
 
 Above we benched for a smaller number of elements since it simply takes too long at this density to bench 30_000 elements like we did in the non-extremely-clumped-up case earlier. This graph looks extremely weird!
 
-I really can't fathom why its faster to find collisions when everything is touching everything when everything is almost touching everything. My only guess is that in the former case, branch prediction is very straight forward. You just assume you're also going down the path of a collision hit. So its very weird to say, but the actual worst case when it comes to real-world performance is the almost-worst theoretical case.
+broccoli par reduces to broccoli sequential when the tree has size one, which is does in extremely clumped up cases.
 
 ### Fairness
 
