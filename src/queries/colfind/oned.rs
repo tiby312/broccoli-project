@@ -60,62 +60,29 @@ pub fn find_parallel_2d<A: Axis, T: Aabb>(
     self::find_other_parallel3(prevec1, axis, (bots1, bots2), &mut func)
 }
 
-//Calls colliding on all aabbs that intersect between two groups and only one aabbs
-//that intsect.
-pub fn find_perp_2d1<A: Axis, T: Aabb, F: CollisionHandler<T>>(
+
+pub fn find_perp_2d1_once<A: Axis, T: Aabb>(
     _prevec: &mut PreVec,
     axis: A, //the axis of r2.
-    r1: AabbPin<&mut [T]>,
+    mut y: AabbPin<&mut T>,
     mut r2: AabbPin<&mut [T]>,
-    func: &mut F,
+    mut func: impl FnMut(AabbPin<&mut T>,AabbPin<&mut T>),
 ) {
-    let mut b = OtherAxisCollider { a: func, axis };
+    for y2 in r2.borrow_mut() {
+        //Exploit the sorted property, to exit early
+        if y.get().get_range(axis).end < y2.get().get_range(axis).start {
+            break;
+        }
 
-    /*
-    //OPTION 1
-    #[inline(always)]
-    pub fn compare_bots<T: Aabb, K: Aabb<Num = T::Num>>(
-        axis: impl Axis,
-        a: &T,
-        b: &K,
-    ) -> core::cmp::Ordering {
-        let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
-        if p1 > p2 {
-            core::cmp::Ordering::Greater
-        } else {
-            core::cmp::Ordering::Less
+        //Because we didnt exit from the previous comparison, we only need to check one thing.
+        if y.get().get_range(axis).start <= y2.get().get_range(axis).end {
+            func(y.borrow_mut(), y2);
         }
     }
 
-    let mut v2:Vec<_>=r1.iter_mut().collect();
-    v2.sort_unstable_by(|a,b|compare_bots(axis,&**a,&**b));
-    let rrr=v2.as_mut_slice();
-
-    self::find_other_parallel3(
-        prevec,
-        axis,
-        (
-            r2,
-            rrr.iter_mut().map(|a|AabbPin::new(a).flatten())
-        ),
-        &mut b);
-    */
-
-    // OPTION2
-    for mut y in r1.iter_mut() {
-        for y2 in r2.borrow_mut() {
-            //Exploit the sorted property, to exit early
-            if y.get().get_range(axis).end < y2.get().get_range(axis).start {
-                break;
-            }
-
-            //Because we didnt exit from the previous comparison, we only need to check one thing.
-            if y.get().get_range(axis).start <= y2.get().get_range(axis).end {
-                b.collide(y.borrow_mut(), y2);
-            }
-        }
-    }
 }
+
+
 
 #[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.
