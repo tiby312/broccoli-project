@@ -16,12 +16,12 @@ pub trait Splitter: Sized {
     fn add(self, b: Self) -> Self;
 }
 
-impl<'a, T: Aabb, S: Sorter> TreeBuilder<'a, T, S> {
+impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
     pub fn build_from_splitter<SS: Splitter>(
         self,
         splitter: SS,
     ) -> (TreeInner<Node<'a, T>, S>, SS) {
-        pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter, SS: Splitter>(
+        pub fn recurse_seq_splitter<'a, T: Aabb, S: Sorter<T>, SS: Splitter>(
             vistr: TreeBuildVisitor<'a, T, S>,
             res: &mut Vec<Node<'a, T>>,
             splitter: SS,
@@ -70,7 +70,7 @@ impl<'a, T: Aabb, S: Sorter> TreeBuilder<'a, T, S> {
         T: Send + Sync,
         T::Num: Send + Sync,
     {
-        pub fn recurse_par_splitter<'a, T: Aabb, S: Sorter, SS: Splitter + Send>(
+        pub fn recurse_par_splitter<'a, T: Aabb, S: Sorter<T>, SS: Splitter + Send>(
             vistr: TreeBuildVisitor<'a, T, S>,
             num_seq_fallback: usize,
             buffer: &mut Vec<Node<'a, T>>,

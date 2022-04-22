@@ -12,7 +12,7 @@ pub struct NodeFinisher<'a, T: Aabb, S> {
     sorter: S,
     num_elem: usize,
 }
-impl<'a, T: Aabb, S: Sorter> NodeFinisher<'a, T, S> {
+impl<'a, T: Aabb, S: Sorter<T>> NodeFinisher<'a, T, S> {
     pub fn get_num_elem(&self) -> usize {
         self.num_elem
     }
@@ -82,7 +82,7 @@ pub struct NodeBuildResult<'a, T: Aabb, S> {
     pub rest: Option<[TreeBuildVisitor<'a, T, S>; 2]>,
 }
 
-impl<'a, T: Aabb, S: Sorter> TreeBuildVisitor<'a, T, S> {
+impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
     pub fn get_bots(&self) -> &[T] {
         self.bots
     }
@@ -207,8 +207,8 @@ struct ConstructResult<'a, T: Aabb> {
 #[derive(Copy, Clone, Default)]
 pub struct DefaultSorter;
 
-impl Sorter for DefaultSorter {
-    fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]) {
+impl<T: Aabb> Sorter<T> for DefaultSorter {
+    fn sort(&self, axis: impl Axis, bots: &mut [T]) {
         crate::util::sweeper_update(axis, bots);
     }
 }
@@ -216,6 +216,6 @@ impl Sorter for DefaultSorter {
 #[derive(Copy, Clone, Default)]
 pub struct NoSorter;
 
-impl Sorter for NoSorter {
-    fn sort(&self, _axis: impl Axis, _bots: &mut [impl Aabb]) {}
+impl<T: Aabb> Sorter<T> for NoSorter {
+    fn sort(&self, _axis: impl Axis, _bots: &mut [T]) {}
 }

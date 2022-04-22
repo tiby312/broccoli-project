@@ -1,6 +1,6 @@
 [package]
 name = "broccoli-tree"
-version = "0.4.2"
+version = "0.5.0"
 edition = "2018"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"

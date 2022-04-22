@@ -29,7 +29,7 @@ pub struct NodeFinisher<'a, 'b, T, F, H> {
     handler: H,
     is_leaf: bool,
 }
-impl<'a, 'b, T: Aabb, F: CollisionHandler<T>, H: NodeHandler> NodeFinisher<'a, 'b, T, F, H> {
+impl<'a, 'b, T: Aabb, F: CollisionHandler<T>, H: NodeHandler<T>> NodeFinisher<'a, 'b, T, F, H> {
     pub fn finish(self) -> (&'a mut PreVec, &'a mut F) {
         if self.is_xaxis {
             self.handler.handle_node(
@@ -58,7 +58,7 @@ pub struct CollVis<'a, 'b, T: Aabb, N> {
     is_xaxis: bool,
     handler: N,
 }
-impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
+impl<'a, 'b, T: Aabb, N: NodeHandler<T>> CollVis<'a, 'b, T, N> {
     pub(crate) fn new(vistr: VistrMutPin<'b, Node<'a, T>>, is_xaxis: bool, handler: N) -> Self {
         CollVis {
             vistr,
@@ -89,7 +89,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
         fn collide_self<A: axgeom::Axis, T: crate::Aabb>(
             this_axis: A,
             v: VistrMutPin<Node<T>>,
-            data: &mut Recurser<impl NodeHandler, impl CollisionHandler<T>>,
+            data: &mut Recurser<impl NodeHandler<T>, impl CollisionHandler<T>>,
         ) {
             let (nn, rest) = v.next();
 
@@ -103,7 +103,7 @@ impl<'a, 'b, T: Aabb, N: NodeHandler> CollVis<'a, 'b, T, N> {
 
                 impl<'a, 'node, T: Aabb, NN, C, B: Axis> InnerRecurser<'a, 'node, T, NN, C, B>
                 where
-                    NN: NodeHandler,
+                    NN: NodeHandler<T>,
                     C: CollisionHandler<T>,
                 {
                     fn recurse<
@@ -278,8 +278,8 @@ impl<'a, 'node, T: Aabb, A: Axis> NodeAxis<'a, 'node, T, A> {
 ///
 /// Abstract over sorted and non sorted trees
 ///
-pub trait NodeHandler: Copy + Clone + Send + Sync {
-    fn handle_node<T: Aabb>(
+pub trait NodeHandler<T: Aabb>: Copy + Clone + Send + Sync {
+    fn handle_node(
         self,
         func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
@@ -288,7 +288,7 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
         is_leaf: bool,
     );
 
-    fn handle_children<A: Axis, B: Axis, T: Aabb>(
+    fn handle_children<A: Axis, B: Axis>(
         self,
         func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
@@ -298,8 +298,8 @@ pub trait NodeHandler: Copy + Clone + Send + Sync {
     );
 }
 
-impl NodeHandler for crate::tree::build::NoSorter {
-    fn handle_node<T: Aabb>(
+impl<T: Aabb> NodeHandler<T> for crate::tree::build::NoSorter {
+    fn handle_node(
         self,
         func: &mut impl CollisionHandler<T>,
         _: &mut PreVec,
@@ -322,7 +322,7 @@ impl NodeHandler for crate::tree::build::NoSorter {
         }
     }
 
-    fn handle_children<A: Axis, B: Axis, T: Aabb>(
+    fn handle_children<A: Axis, B: Axis>(
         self,
         func: &mut impl CollisionHandler<T>,
         _: &mut PreVec,
@@ -348,9 +348,9 @@ impl NodeHandler for crate::tree::build::NoSorter {
     }
 }
 
-impl NodeHandler for crate::tree::build::DefaultSorter {
+impl<T: Aabb> NodeHandler<T> for crate::tree::build::DefaultSorter {
     #[inline(always)]
-    fn handle_node<T: Aabb>(
+    fn handle_node(
         self,
         func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
@@ -367,7 +367,7 @@ impl NodeHandler for crate::tree::build::DefaultSorter {
         oned::find_2d(prevec, axis, bots, func, is_leaf);
     }
     #[inline(always)]
-    fn handle_children<A: Axis, B: Axis, T: Aabb>(
+    fn handle_children<A: Axis, B: Axis>(
         self,
         func: &mut impl CollisionHandler<T>,
         prevec: &mut PreVec,
@@ -395,22 +395,22 @@ impl NodeHandler for crate::tree::build::DefaultSorter {
             for y in r1.iter_mut() {
                 let r2 = r2.borrow_mut();
 
-                match y.get().get_range(axis).contains_ext(div) {
+                let res = y.get().get_range(axis).contains_ext(div);
+                let ff = oned::FindPerp2DBuilder::new(current.axis, y, r2);
+
+                match res {
                     std::cmp::Ordering::Equal => {
-                        oned::find_perp_2d1_once(prevec, current.axis, y, r2, |a, b| {
-                            func.collide(a, b)
-                        });
+                        ff.build(|a, b| func.collide(a, b));
                     }
                     std::cmp::Ordering::Greater => {
-                        oned::find_perp_2d1_once(prevec, current.axis, y, r2, |a, b| {
+                        ff.build(|a, b| {
                             if a.get().get_range(axis).end >= b.get().get_range(axis).start {
                                 func.collide(a, b);
                             }
                         });
                     }
                     std::cmp::Ordering::Less => {
-                        oned::find_perp_2d1_once(prevec, current.axis, y, r2, |a, b| {
-                            //if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
+                        ff.build(|a, b| {
                             if a.get().get_range(axis).start <= b.get().get_range(axis).end {
                                 func.collide(a, b);
                             }
@@ -432,55 +432,42 @@ impl NodeHandler for crate::tree::build::DefaultSorter {
 
             let anchor_div = anchor.node.div.unwrap();
 
+            let anchor2 = anchor.node.into_node_ref();
+            let current2 = current.node.into_node_ref();
+            let fb = oned::FindParallel2DBuilder::new(
+                prevec,
+                current.axis.next(),
+                anchor2.range,
+                current2.range,
+            );
+
             if current_is_leaf {
-                oned::find_parallel_2d(
-                    prevec,
-                    current.axis.next(),
-                    anchor.node.borrow_mut().into_range(),
-                    current.node.into_range(),
-                    |a, b| {
-                        if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
-                            func.collide(a, b)
-                        }
-                    },
-                );
-            } else if let Some(current_div) = current.node.div {
+                fb.build(|a, b| {
+                    if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
+                        func.collide(a, b)
+                    }
+                });
+            } else if let Some(current_div) = *current2.div {
                 if anchor_div < current_div {
-                    if anchor.node.cont.end >= current.node.cont.start {
-                        oned::find_parallel_2d(
-                            prevec,
-                            current.axis.next(),
-                            anchor.node.borrow_mut().into_range(),
-                            current.node.into_range(),
-                            |a, b| {
-                                if a.get().get_range(axis).end >= b.get().get_range(axis).start {
-                                    func.collide(a, b)
-                                }
-                            },
-                        );
+                    if anchor2.cont.end >= current2.cont.start {
+                        fb.build(|a, b| {
+                            if a.get().get_range(axis).end >= b.get().get_range(axis).start {
+                                func.collide(a, b)
+                            }
+                        });
                     }
                 } else if anchor_div > current_div {
-                    if anchor.node.cont.start <= current.node.cont.end {
-                        oned::find_parallel_2d(
-                            prevec,
-                            current.axis.next(),
-                            anchor.node.borrow_mut().into_range(),
-                            current.node.into_range(),
-                            |a, b| {
-                                if a.get().get_range(axis).start <= b.get().get_range(axis).end {
-                                    func.collide(a, b)
-                                }
-                            },
-                        );
+                    if anchor2.cont.start <= current2.cont.end {
+                        fb.build(|a, b| {
+                            if a.get().get_range(axis).start <= b.get().get_range(axis).end {
+                                func.collide(a, b)
+                            }
+                        });
                     }
                 } else {
-                    oned::find_parallel_2d(
-                        prevec,
-                        current.axis.next(),
-                        anchor.node.borrow_mut().into_range(),
-                        current.node.into_range(),
-                        |a, b| func.collide(a, b),
-                    );
+                    fb.build(|a, b| {
+                        func.collide(a, b);
+                    });
                 }
             }
         }

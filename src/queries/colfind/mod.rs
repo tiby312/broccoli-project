@@ -69,7 +69,7 @@ impl<'a, T: Aabb> CollidingPairsApi<T> for AabbPin<&'a mut [T]> {
 
 use crate::tree::TreeInner;
 
-impl<'a, T: Aabb, S: NodeHandler> CollidingPairsApi<T> for TreeInner<Node<'a, T>, S> {
+impl<'a, T: Aabb, S: NodeHandler<T>> CollidingPairsApi<T> for TreeInner<Node<'a, T>, S> {
     fn colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
         self.colliding_pairs_builder(func).build()
     }
@@ -108,7 +108,7 @@ impl<'a, T> SweepAndPrune<'a, T> {
 
 use crate::tree::splitter::Splitter;
 
-pub trait CollidingPairsBuilderApi<'a, T: Aabb, SO: NodeHandler> {
+pub trait CollidingPairsBuilderApi<'a, T: Aabb, SO: NodeHandler<T>> {
     fn vistr_mut<'b>(&'b mut self) -> VistrMutPin<'b, broccoli_tree::node::Node<'a, T>>;
     fn sorter(&mut self) -> SO;
 
@@ -128,7 +128,7 @@ pub trait CollidingPairsBuilderApi<'a, T: Aabb, SO: NodeHandler> {
     }
 }
 
-impl<'a, T: Aabb, SO: NodeHandler> CollidingPairsBuilderApi<'a, T, SO>
+impl<'a, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilderApi<'a, T, SO>
     for TreeInner<Node<'a, T>, SO>
 {
     fn vistr_mut<'b>(&'b mut self) -> VistrMutPin<'b, tree::node::Node<'a, T>> {
@@ -147,7 +147,7 @@ pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO, F> {
     pub func: F,
 }
 
-impl<'a, 'b, T: Aabb, SO: NodeHandler, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>
+impl<'a, 'b, T: Aabb, SO: NodeHandler<T>, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>
     CollidingPairsBuilder<'a, 'b, T, SO, F>
 {
     pub fn build(mut self) {
@@ -165,7 +165,7 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>
         ///
         /// height_seq_fallback: if a subtree has this height, it will be processed as one unit sequentially.
         ///
-        pub fn recurse_par<T: Aabb, N: NodeHandler>(
+        pub fn recurse_par<T: Aabb, N: NodeHandler<T>>(
             vistr: CollVis<T, N>,
             prevec: &mut PreVec,
             num_seq_fallback: usize,
@@ -203,7 +203,7 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>
     }
 
     pub fn build_with_splitter<SS: Splitter>(mut self, splitter: SS) -> SS {
-        pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler, SS: Splitter>(
+        pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler<T>, SS: Splitter>(
             vistr: CollVis<T, S>,
             splitter: SS,
             prevec: &mut PreVec,
@@ -236,7 +236,7 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>
         ///
         /// height_seq_fallback: if a subtree has this height, it will be processed as one unit sequentially.
         ///
-        pub fn recurse_par_splitter<T: Aabb, N: NodeHandler, S: Splitter + Send>(
+        pub fn recurse_par_splitter<T: Aabb, N: NodeHandler<T>, S: Splitter + Send>(
             vistr: CollVis<T, N>,
             prevec: &mut PreVec,
             num_seq_fallback: usize,

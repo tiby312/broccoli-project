@@ -1,6 +1,6 @@
 [package]
 name = "broccoli"
-version = "3.3.1"
+version = "3.4.0"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
 license = "MIT"
@@ -21,7 +21,7 @@ members = [ "broccoli-tree","demo-web","report/data-gen","broccoli-ext"]
 dists = {git="https://github.com/tiby312/dists.git"}
 
 [dependencies]
-broccoli-tree={version="0.4",default-features=false}
+broccoli-tree={version="0.5",default-features=false}
 rayon={version="1.5",optional=true}
 itertools = "0.10"
 compt = "2.0"

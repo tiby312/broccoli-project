@@ -31,8 +31,8 @@ pub const fn default_axis() -> DefaultA {
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one
 ///does nothing when sort() is called.
-pub trait Sorter: Copy + Clone + Send + Sync {
-    fn sort(&self, axis: impl Axis, bots: &mut [impl Aabb]);
+pub trait Sorter<T: Aabb>: Copy + Clone + Send + Sync {
+    fn sort(&self, axis: impl Axis, bots: &mut [T]);
 }
 
 ///Using this struct the user can determine the height of a tree or the number of nodes
@@ -193,7 +193,7 @@ where
     length: usize,
 }
 
-impl<C: Container, S: Sorter> TreeOwned<C, S>
+impl<C: Container, S: Sorter<C::T>> TreeOwned<C, S>
 where
     C::T: Aabb,
 {
@@ -285,7 +285,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T, DefaultSorter> {
         Self::new(DefaultSorter, bots)
     }
 }
-impl<'a, T: Aabb, S: Sorter> TreeBuilder<'a, T, S> {
+impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
     pub fn new(sorter: S, bots: &'a mut [T]) -> Self {
         let num_bots = bots.len();
         let num_seq_fallback = 2_400;
@@ -320,7 +320,7 @@ impl<'a, T: Aabb, S: Sorter> TreeBuilder<'a, T, S> {
         T: Send,
         T::Num: Send,
     {
-        pub fn recurse_par<'a, T: Aabb, S: Sorter>(
+        pub fn recurse_par<'a, T: Aabb, S: Sorter<T>>(
             vistr: TreeBuildVisitor<'a, T, S>,
             num_seq_fallback: usize,
             buffer: &mut Vec<Node<'a, T>>,
@@ -379,7 +379,7 @@ impl<'a, T: Aabb, S: Sorter> TreeBuilder<'a, T, S> {
 ///
 pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
 
-impl<'a, T: Aabb + 'a, S: Sorter> TreeInner<Node<'a, T>, S> {
+impl<'a, T: Aabb + 'a, S: Sorter<T>> TreeInner<Node<'a, T>, S> {
     pub fn into_node_data_tree(self) -> TreeInner<NodeData<T::Num>, S> {
         self.node_map(|x| NodeData {
             range: x.range.len(),
@@ -478,7 +478,7 @@ impl<S, H> TreeInner<H, S> {
     }
 }
 
-impl<N: Num, S: Sorter> TreeInner<NodeData<N>, S> {
+impl<N: Num, S> TreeInner<NodeData<N>, S> {
     pub fn into_tree<T: Aabb<Num = N>>(self, bots: AabbPin<&mut [T]>) -> TreeInner<Node<T>, S> {
         assert_eq!(bots.len(), self.total_num_elem);
         let mut last = Some(bots);
