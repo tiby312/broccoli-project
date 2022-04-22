@@ -395,22 +395,20 @@ impl<T: Aabb> NodeHandler<T> for crate::tree::build::DefaultSorter {
             for y in r1.iter_mut() {
                 let r2 = r2.borrow_mut();
 
-                let res = y.get().get_range(axis).contains_ext(div);
-                let ff = oned::FindPerp2DBuilder::new(current.axis, y, r2);
-
-                match res {
+                match y.get().get_range(axis).contains_ext(div) {
                     std::cmp::Ordering::Equal => {
-                        ff.build(|a, b| func.collide(a, b));
+                        oned::find_perp_2d1_once(current.axis, y, r2, |a, b| func.collide(a, b));
                     }
                     std::cmp::Ordering::Greater => {
-                        ff.build(|a, b| {
+                        oned::find_perp_2d1_once(current.axis, y, r2, |a, b| {
                             if a.get().get_range(axis).end >= b.get().get_range(axis).start {
                                 func.collide(a, b);
                             }
                         });
                     }
                     std::cmp::Ordering::Less => {
-                        ff.build(|a, b| {
+                        oned::find_perp_2d1_once(current.axis, y, r2, |a, b| {
+                            //if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
                             if a.get().get_range(axis).start <= b.get().get_range(axis).end {
                                 func.collide(a, b);
                             }

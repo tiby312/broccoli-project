@@ -71,32 +71,21 @@ impl<'a, A: Axis, T: Aabb> FindParallel2DBuilder<'a, A, T> {
     }
 }
 
-pub struct FindPerp2DBuilder<'a, A: Axis, T: Aabb> {
-    axis: A,
-    y: AabbPin<&'a mut T>,
-    r2: AabbPin<&'a mut [T]>,
-}
+pub fn find_perp_2d1_once<A: Axis, T: Aabb>(
+    axis: A, //the axis of r2.
+    mut y: AabbPin<&mut T>,
+    mut r2: AabbPin<&mut [T]>,
+    mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+) {
+    for y2 in r2.borrow_mut() {
+        //Exploit the sorted property, to exit early
+        if y.get().get_range(axis).end < y2.get().get_range(axis).start {
+            break;
+        }
 
-impl<'a, A: Axis, T: Aabb> FindPerp2DBuilder<'a, A, T> {
-    pub fn new(axis: A, y: AabbPin<&'a mut T>, r2: AabbPin<&'a mut [T]>) -> Self {
-        FindPerp2DBuilder { axis, y, r2 }
-    }
-    pub fn build(self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        let FindPerp2DBuilder {
-            axis,
-            mut y,
-            mut r2,
-        } = self;
-        for y2 in r2.borrow_mut() {
-            //Exploit the sorted property, to exit early
-            if y.get().get_range(axis).end < y2.get().get_range(axis).start {
-                break;
-            }
-
-            //Because we didnt exit from the previous comparison, we only need to check one thing.
-            if y.get().get_range(axis).start <= y2.get().get_range(axis).end {
-                func(y.borrow_mut(), y2);
-            }
+        //Because we didnt exit from the previous comparison, we only need to check one thing.
+        if y.get().get_range(axis).start <= y2.get().get_range(axis).end {
+            func(y.borrow_mut(), y2);
         }
     }
 }
