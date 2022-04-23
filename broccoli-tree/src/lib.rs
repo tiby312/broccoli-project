@@ -11,6 +11,8 @@ mod oned;
 pub mod splitter;
 pub mod util;
 
+pub use axgeom;
+
 use aabb_pin::*;
 use axgeom::*;
 use build::*;

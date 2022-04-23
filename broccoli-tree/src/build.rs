@@ -6,7 +6,7 @@ use super::*;
 
 #[must_use]
 pub struct NodeFinisher<'a, T: Aabb, S> {
-    is_xaxis: bool,
+    axis: AxisDyn,
     div: Option<T::Num>, //This can be null if there are no bots left at all
     mid: &'a mut [T],
     sorter: S,
@@ -50,12 +50,15 @@ impl<'a, T: Aabb, S: Sorter<T>> NodeFinisher<'a, T, S> {
             }
         }
 
-        let cont = if self.is_xaxis {
-            self.sorter.sort(axgeom::XAXIS.next(), self.mid);
-            create_cont(axgeom::XAXIS, self.mid)
-        } else {
-            self.sorter.sort(axgeom::YAXIS.next(), self.mid);
-            create_cont(axgeom::YAXIS, self.mid)
+        let cont = match self.axis {
+            AxisDyn::X => {
+                self.sorter.sort(axgeom::XAXIS.next(), self.mid);
+                create_cont(axgeom::XAXIS, self.mid)
+            }
+            AxisDyn::Y => {
+                self.sorter.sort(axgeom::YAXIS.next(), self.mid);
+                create_cont(axgeom::YAXIS, self.mid)
+            }
         };
 
         Node {
@@ -74,7 +77,7 @@ pub struct TreeBuildVisitor<'a, T, S> {
     bots: &'a mut [T],
     current_height: usize,
     sorter: S,
-    is_xaxis: bool,
+    axis: AxisDyn,
 }
 
 pub struct NodeBuildResult<'a, T: Aabb, S> {
@@ -93,7 +96,7 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
             bots,
             current_height: num_levels - 1,
             sorter,
-            is_xaxis: true,
+            axis: default_axis().to_dyn(),
         }
     }
     #[must_use]
@@ -107,7 +110,7 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
             let node = NodeFinisher {
                 mid: self.bots,
                 div: None,
-                is_xaxis: self.is_xaxis,
+                axis: self.axis,
                 sorter: self.sorter,
                 num_elem: 0,
             };
@@ -150,16 +153,15 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
                 }
             }
 
-            let rr = if self.is_xaxis {
-                construct_non_leaf(axgeom::XAXIS, self.bots)
-            } else {
-                construct_non_leaf(axgeom::YAXIS, self.bots)
+            let rr = match self.axis {
+                AxisDyn::X => construct_non_leaf(axgeom::XAXIS, self.bots),
+                AxisDyn::Y => construct_non_leaf(axgeom::YAXIS, self.bots),
             };
 
             let finish_node = NodeFinisher {
                 mid: rr.mid,
                 div: rr.div,
-                is_xaxis: self.is_xaxis,
+                axis: self.axis,
                 sorter: self.sorter,
                 num_elem: rr.left.len() + rr.right.len(),
             };
@@ -174,13 +176,13 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
                         bots: left,
                         current_height: self.current_height.saturating_sub(1),
                         sorter: self.sorter,
-                        is_xaxis: !self.is_xaxis,
+                        axis: self.axis.next(),
                     },
                     TreeBuildVisitor {
                         bots: right,
                         current_height: self.current_height.saturating_sub(1),
                         sorter: self.sorter,
-                        is_xaxis: !self.is_xaxis,
+                        axis: self.axis.next(),
                     },
                 ]),
             }

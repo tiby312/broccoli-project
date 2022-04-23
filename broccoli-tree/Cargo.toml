@@ -1,6 +1,6 @@
 [package]
 name = "broccoli-tree"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2018"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
@@ -15,7 +15,7 @@ include = ["src/**/*", "LICENSE-MIT", "README.md"]
 rayon={version="1.5",optional = true}
 itertools = "0.10"
 compt = "2.0"
-axgeom = {version="1.11",default-features = false}
+axgeom = {version="1.12",default-features = false}
 
 [features]
 default = ["rayon"]

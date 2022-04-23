@@ -121,7 +121,7 @@ pub trait CollidingPairsBuilderApi<'a, T: Aabb, SO: NodeHandler<T>> {
     {
         let sorter = self.sorter();
         CollidingPairsBuilder {
-            vis: CollVis::new(self.vistr_mut(), true, sorter),
+            vis: CollVis::new(self.vistr_mut(), default_axis().to_dyn(), sorter),
             num_seq_fallback: 2_400,
             func,
         }

@@ -87,24 +87,28 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         broccoli::queries::draw::draw_divider(
             &mut tree,
             |axis, node, rect, _| {
+                use AxisDyn::*;
+                    
                 if !node.range.is_empty() {
-                    verts.rect(axis.map_val(
-                        Rect {
+                    let r=match axis{
+                        X=>Rect {
                             x: node.cont.into(),
                             y: rect.y.into(),
                         },
-                        Rect {
+                        Y=>Rect {
                             x: rect.x.into(),
                             y: node.cont.into(),
-                        },
-                    ));
+                        }
+                    };
+
+                    verts.rect(r);
                 }
 
                 let mid = if let Some(div) = node.div {
-                    axis.map(
-                        |x| get_nonleaf_mid(x, rect, div),
-                        |y| get_nonleaf_mid(y, rect, div),
-                    )
+                    match axis{
+                        X=>get_nonleaf_mid(XAXIS, rect, div),
+                        Y=>get_nonleaf_mid(YAXIS, rect, div)
+                    }
                 } else {
                     get_leaf_mid(rect)
                 };

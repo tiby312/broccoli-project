@@ -46,12 +46,14 @@ pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
 }
 
 pub struct FindParallel2DBuilder<'a, A: Axis, T: Aabb> {
-    prevec: &'a mut PreVec,
-    axis: A,
-    bots1: AabbPin<&'a mut [T]>,
-    bots2: AabbPin<&'a mut [T]>,
+    pub prevec: &'a mut PreVec,
+    pub axis: A,
+    pub bots1: AabbPin<&'a mut [T]>,
+    pub bots2: AabbPin<&'a mut [T]>,
 }
+
 impl<'a, A: Axis, T: Aabb> FindParallel2DBuilder<'a, A, T> {
+    #[inline(always)]
     pub fn new(
         prevec: &'a mut PreVec,
         axis: A,
@@ -90,7 +92,6 @@ pub fn find_perp_2d1_once<A: Axis, T: Aabb>(
     }
 }
 
-#[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.
 fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
@@ -148,19 +149,14 @@ fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1.insert_vec(active);
 }
 
-#[inline(always)]
 //does less comparisons than option 2.
-fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
+#[inline(always)]
+fn find_other_parallel3<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     prevec1: &mut PreVec,
     axis: A,
-    cols: (
-        impl IntoIterator<Item = AabbPin<&'a mut T>>,
-        impl IntoIterator<Item = AabbPin<&'b mut T>>,
-    ),
+    cols: (AabbPin<&mut [T]>, AabbPin<&mut [T]>),
     func: &mut F,
-) where
-    T: 'a + 'b,
-{
+) {
     use twounordered::RetainMutUnordered;
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
@@ -172,8 +168,20 @@ fn find_other_parallel3<'a, 'b, A: Axis, T: Aabb, F: CollisionHandler<T>>(
             Y,
         }
         let j = match (f1.peek(), f2.peek()) {
-            (Some(_), None) => NextP::X,
-            (None, Some(_)) => NextP::Y,
+            (Some(_), None) => {
+                if active_lists.second().is_empty() {
+                    break;
+                }
+
+                NextP::X
+            }
+            (None, Some(_)) => {
+                if active_lists.first().is_empty() {
+                    break;
+                }
+
+                NextP::Y
+            }
             (None, None) => {
                 break;
             }

@@ -58,10 +58,12 @@ mod test_readme {
 #[macro_use]
 extern crate alloc;
 
-pub use axgeom;
 
 #[doc(inline)]
 pub use broccoli_tree as tree;
+
+
+pub use tree::axgeom;
 
 use broccoli_tree::build::*;
 use broccoli_tree::node::*;

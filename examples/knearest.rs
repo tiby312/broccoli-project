@@ -1,4 +1,4 @@
-use axgeom::vec2;
+use broccoli::axgeom::vec2;
 use broccoli::prelude::*;
 use broccoli::tree::{bbox, rect};
 

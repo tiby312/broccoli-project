@@ -1,6 +1,6 @@
 [package]
 name = "broccoli"
-version = "3.4.1"
+version = "3.5.0"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
 license = "MIT"
@@ -21,11 +21,10 @@ members = [ "broccoli-tree","demo-web","report/data-gen","broccoli-ext"]
 dists = {git="https://github.com/tiby312/dists.git"}
 
 [dependencies]
-broccoli-tree={version="0.5",default-features=false}
+broccoli-tree={version="0.6",default-features=false}
 rayon={version="1.5",optional=true}
 itertools = "0.10"
 compt = "2.0"
-axgeom = {version="1.11",default-features = false}
 twounordered = "0.7"
 slice-group-by = "0.3"
 revec = "0.2"
@@ -48,3 +47,4 @@ parallel = ["rayon","broccoli-tree/rayon"]
 # [patch.crates-io]
 # broccoli-tree={path="broccoli-tree"}
 # broccoli={path="../broccoli"}
+# axgeom={path="../axgeom"}
