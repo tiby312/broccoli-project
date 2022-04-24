@@ -40,11 +40,18 @@ impl Record {
 
         let c3 = if sweep_bench {
             bench_closure(|| {
+
+                broccoli::queries::colfind::par_query_sweep_mut(axgeom::XAXIS, &mut bots, |a,b|{
+                    **a.unpack_inner() -= 2;
+                    **b.unpack_inner() -= 2;
+                });
+                /*
                 let mut s = broccoli::queries::colfind::SweepAndPrune::new(&mut bots);
                 s.colliding_pairs(|a, b| {
                     **a.unpack_inner() -= 2;
                     **b.unpack_inner() -= 2;
                 });
+                */
             })
         } else {
             0.0
@@ -157,11 +164,11 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
 
     fb.make_graph(Args {
         filename: "colfind_bench_grow",
-        title: "Bench of space partitioning algs with abspiral(3000,grow)",
+        title: "Bench of space partitioning algs with abspiral(10_000,grow)",
         xname: "Grow",
         yname: "Time in Seconds",
         plots: grow_iter(MEGA_MEGA_DENSE_GROW, MEGA_DENSE_GROW)
-            .map(|grow| (grow as f64, Record::new(grow, 3_000, true, true))),
+            .map(|grow| (grow as f64, Record::new(grow, 10_000, true, true))),
         stop_values: &[],
     });
 

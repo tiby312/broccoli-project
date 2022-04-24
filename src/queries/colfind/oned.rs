@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use twounordered::TwoUnorderedVecs;
 
 use super::CollisionHandler;
@@ -36,26 +35,27 @@ pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     func: &mut F,
     check_y: bool,
 ) {
+    let mut k=prevec1.extract_vec();
     if check_y {
         let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
-        self::find(prevec1, axis, bots, &mut b);
+        self::find_iter(&mut k, axis, bots, &mut b);
     } else {
         let b = func;
-        self::find(prevec1, axis, bots, b);
+        self::find_iter(&mut k, axis, bots, b);
     }
 }
 
-pub struct FindParallel2DBuilder<'a, A: Axis, T: Aabb> {
-    pub prevec: &'a mut PreVec,
+pub struct FindParallel2DBuilder<'a,'b, A: Axis, T: Aabb> {
+    pub prevec: &'b mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
     pub axis: A,
     pub bots1: AabbPin<&'a mut [T]>,
     pub bots2: AabbPin<&'a mut [T]>,
 }
 
-impl<'a, A: Axis, T: Aabb> FindParallel2DBuilder<'a, A, T> {
+impl<'a,'b, A: Axis, T: Aabb> FindParallel2DBuilder<'a,'b, A, T> {
     #[inline(always)]
     pub fn new(
-        prevec: &'a mut PreVec,
+        prevec: &'b mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
         axis: A,
         bots1: AabbPin<&'a mut [T]>,
         bots2: AabbPin<&'a mut [T]>,
@@ -69,7 +69,9 @@ impl<'a, A: Axis, T: Aabb> FindParallel2DBuilder<'a, A, T> {
     }
 
     pub fn build(self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        self::find_other_parallel3(self.prevec, self.axis, (self.bots1, self.bots2), &mut func)
+        
+        self::find_other_parallel3(self.prevec, self.axis, (self.bots1, self.bots2), &mut func);
+        
     }
 }
 
@@ -92,9 +94,10 @@ pub fn find_perp_2d1_once<A: Axis, T: Aabb>(
     }
 }
 
+
 ///Find colliding pairs using the mark and sweep algorithm.
-fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
-    prevec1: &mut PreVec,
+pub fn find_iter<'a, A: Axis, T: Aabb+'a, F: CollisionHandler<T>>(
+    active: &mut Vec<AabbPin<&'a mut T>>,
     axis: A,
     collision_botids: AabbPin<&'a mut [T]>,
     func: &mut F,
@@ -114,9 +117,7 @@ fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    let mut active: Vec<AabbPin<&mut T>> = prevec1.extract_vec();
-
-    for mut curr_bot in collision_botids.iter_mut() {
+    for mut curr_bot in collision_botids {
         active.retain_mut_unordered(|that_bot| {
             let crr = curr_bot.get().get_range(axis);
 
@@ -144,24 +145,124 @@ fn find<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
         active.push(curr_bot);
     }
 
-    active.clear();
-
-    prevec1.insert_vec(active);
 }
+
+
+///Find colliding pairs using the mark and sweep algorithm.
+fn find_iter_no_add<'a, A: Axis, T: Aabb+'a, F: CollisionHandler<T>>(
+    active: &mut Vec<AabbPin<&'a mut T>>,
+    axis: A,
+    collision_botids: impl Iterator<Item=AabbPin<&'a mut T>>,
+    func: &mut F,
+) {
+    use twounordered::RetainMutUnordered;
+    //    Create a new temporary list called “activeList”.
+    //    You begin on the left of your axisList, adding the first item to the activeList.
+    //
+    //    Now you have a look at the next item in the axisList and compare it with all items
+    //     currently in the activeList (at the moment just one):
+    //     - If the new item’s left is greater then the current activeList-item right,
+    //       then remove
+    //    the activeList-item from the activeList
+    //     - otherwise report a possible collision between the new axisList-item and the current
+    //     activeList-item.
+    //
+    //    Add the new item itself to the activeList and continue with the next item
+    //     in the axisList.
+
+    for mut curr_bot in collision_botids {
+        if active.is_empty(){
+            break;
+        }
+
+        active.retain_mut_unordered(|that_bot| {
+            let crr = curr_bot.get().get_range(axis);
+
+            if that_bot.get().get_range(axis).end >= crr.start {
+                debug_assert!(curr_bot
+                    .get()
+                    .get_range(axis)
+                    .intersects(that_bot.get().get_range(axis)));
+
+                /*
+                assert!(curr_bot
+                    .get()
+                    .get_range(axis.next())
+                    .intersects(that_bot.get().get_range(axis.next())),"{:?} {:?}",curr_bot
+                    .get()
+                    .get_range(axis.next()),that_bot.get().get_range(axis.next()));
+                */
+                func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
+                true
+            } else {
+                false
+            }
+        });
+
+    }
+
+}
+
+
+
+#[inline(always)]
+///Find colliding pairs using the mark and sweep algorithm.
+pub fn find_par<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
+    active_list: &mut Vec<AabbPin<&'a mut T>>,
+    axis: A,
+    collision_botids: AabbPin<&'a mut [T]>,
+    mut func: F,
+) where T:Send,F:Send+Clone{
+    //TODO dont hardcode.
+    if collision_botids.len()<5000{
+        find_iter( active_list,axis,collision_botids,&mut func);
+    }else{
+        let mid=collision_botids.len()/2;
+        let (left,mut right)=collision_botids.split_at_mut(mid);
+
+        let f1=func.clone();//TODO reduce cloning.
+        let f2=func.clone();
+        let (mut still_active,other)=rayon::join(
+            ||{
+                find_par( active_list,axis,left,f1);
+                active_list
+            },
+            ||{
+                //TODO some how use this?
+                let mut active_list2 = vec!();
+                find_par(&mut active_list2,axis,right.borrow_mut(),f2);
+                active_list2.into_iter().map(|mut x|x.as_ptr_mut().as_raw() as usize).collect::<Vec<_>>()
+            }
+        );
+
+        find_iter_no_add(&mut still_active,axis,right.iter_mut(),&mut func);
+
+        let other=other.into_iter().map(|x|AabbPin::from_mut(unsafe{&mut *(x as *mut T)}));
+        still_active.extend(other);
+
+
+    }
+}
+
 
 //does less comparisons than option 2.
 #[inline(always)]
-fn find_other_parallel3<A: Axis, T: Aabb, F: CollisionHandler<T>>(
-    prevec1: &mut PreVec,
+fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
+    active_lists: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
     axis: A,
-    cols: (AabbPin<&mut [T]>, AabbPin<&mut [T]>),
+    cols: (AabbPin<&'a mut [T]>, AabbPin<&'a mut [T]>),
     func: &mut F,
 ) {
     use twounordered::RetainMutUnordered;
     let mut f1 = cols.0.into_iter().peekable();
     let mut f2 = cols.1.into_iter().peekable();
 
-    let mut active_lists = TwoUnorderedVecs::from(prevec1.extract_vec::<T>());
+    //Use this to ensure that the active lists
+    //are pruned every once in a while even
+    //if there are only many many x's in a row with no y's.
+    const PRUNE_PERIOD:usize=100;
+    let mut xcounter=0;
+    let mut ycounter=0;
     loop {
         enum NextP {
             X,
@@ -205,8 +306,20 @@ fn find_other_parallel3<A: Axis, T: Aabb, F: CollisionHandler<T>>(
                         false
                     }
                 });
+                ycounter=0;
+
+
+                if xcounter>PRUNE_PERIOD{
+                    active_lists.first().retain_mut_unordered(|x2|
+                    x2.get().get_range(axis).end >= x.get().get_range(axis).start); 
+                    xcounter=0;
+                }else{
+                    xcounter+=1;
+                }
+
 
                 active_lists.first().push(x);
+
             }
             NextP::Y => {
                 let mut y = f2.next().unwrap();
@@ -219,63 +332,25 @@ fn find_other_parallel3<A: Axis, T: Aabb, F: CollisionHandler<T>>(
                         false
                     }
                 });
+                xcounter=0;
+
+
+                if ycounter>PRUNE_PERIOD{
+                    active_lists.second().retain_mut_unordered(|y2|
+                    y2.get().get_range(axis).end >= y.get().get_range(axis).start); 
+                    ycounter=0;
+                }else{
+                    ycounter+=1;
+                }
 
                 active_lists.second().push(y);
             }
         }
     }
-
-    active_lists.clear();
-
-    prevec1.insert_vec(active_lists.into());
 }
 
-//This only uses one stack, but it ends up being more comparisons.
-#[allow(dead_code)]
-#[inline(always)]
-fn find_other_parallel2<'a, 'b, A: Axis, F: CollisionHandler<T>, T: Aabb>(
-    axis: A,
-    cols: (
-        impl IntoIterator<Item = AabbPin<&'a mut T>>,
-        impl IntoIterator<Item = AabbPin<&'b mut T>>,
-    ),
-    func: &mut F,
-) where
-    T: 'a + 'b,
-{
-    let mut xs = cols.0.into_iter().peekable();
-    let ys = cols.1.into_iter();
 
-    //let active_x = self.helper.get_empty_vec_mut();
-    let mut active_x: Vec<AabbPin<&mut T>> = Vec::new();
-    for mut y in ys {
-        let yr = *y.get().get_range(axis);
-
-        //Add all the x's that are touching the y to the active x.
-        for x in xs.peeking_take_while(|x| x.get().get_range(axis).start <= yr.end) {
-            active_x.push(x);
-        }
-
-        use twounordered::RetainMutUnordered;
-        //Prune all the x's that are no longer touching the y.
-        active_x.retain_mut_unordered(|x| {
-            if x.get().get_range(axis).end > yr.start {
-                //So at this point some of the x's could actually not intersect y.
-                //These are the x's that are to the complete right of y.
-                //So to handle collisions, we want to make sure to not hit these.
-                //That is why have an if condition.
-                if x.get().get_range(axis).start < yr.end {
-                    debug_assert!(x.get().get_range(axis).intersects(&yr));
-                    func.collide(x.borrow_mut(), y.borrow_mut());
-                }
-                true
-            } else {
-                false
-            }
-        });
-    }
-}
-
+/* TODO update
 #[test]
 #[cfg_attr(miri, ignore)]
 fn test_parallel() {
@@ -358,3 +433,6 @@ fn test_parallel() {
     let diff2: Vec<_> = diff.collect();
     assert_eq!(num, 0, "{:?}", &diff2);
 }
+
+
+*/

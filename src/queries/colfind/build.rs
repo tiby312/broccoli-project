@@ -360,15 +360,14 @@ impl<T: Aabb> NodeHandler<T> for crate::tree::build::DefaultSorter {
         match (anchor.axis, current.axis) {
             (X, X) => handle_parallel(XAXIS, prevec, func, anchor, current, current_is_leaf),
             (Y, Y) => handle_parallel(YAXIS, prevec, func, anchor, current, current_is_leaf),
-            (X, Y) => handle_perp(XAXIS, prevec, func, anchor, current, current_is_leaf),
-            (Y, X) => handle_perp(YAXIS, prevec, func, anchor, current, current_is_leaf),
+            (X, Y) => handle_perp(XAXIS, func, anchor, current, current_is_leaf),
+            (Y, X) => handle_perp(YAXIS, func, anchor, current, current_is_leaf),
         }
     }
 }
 
 fn handle_perp<T: Aabb, A: Axis>(
     axis: A,
-    _prevec: &mut PreVec,
     func: &mut impl CollisionHandler<T>,
     mut anchor: NodeAxis<T>,
     current: NodeAxis<T>,
@@ -438,7 +437,12 @@ fn handle_parallel<T: Aabb, A: Axis>(
 
     let anchor2 = anchor.node.into_node_ref();
     let current2 = current.node.into_node_ref();
-    let fb = oned::FindParallel2DBuilder::new(prevec, axis.next(), anchor2.range, current2.range);
+
+    //TODO make this even earlier?
+    let mut k=twounordered::TwoUnorderedVecs::from(prevec.extract_vec());
+
+    
+    let fb = oned::FindParallel2DBuilder::new(&mut k, axis.next(), anchor2.range, current2.range);
 
     if current_is_leaf {
         fb.build(|a, b| {
@@ -469,6 +473,10 @@ fn handle_parallel<T: Aabb, A: Axis>(
             });
         }
     }
+
+    let mut j:Vec<_>=k.into();
+    j.clear();
+    prevec.insert_vec(j);
 }
 
 ///An vec api to avoid excessive dynamic allocation by reusing a Vec

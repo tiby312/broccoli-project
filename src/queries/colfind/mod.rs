@@ -284,3 +284,24 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>, F: FnMut(AabbPin<&mut T>, AabbPin<&mut
         )
     }
 }
+
+
+
+
+///Sweep and prune algorithm.
+pub fn par_query_sweep_mut<T: Aabb>(
+    axis: impl Axis,
+    bots: &mut [T],
+    mut func: impl FnMut(AabbPin<&mut T>,AabbPin<&mut T>)+Clone+Send,
+) where T:Send{
+    broccoli_tree::util::sweeper_update(axis, bots);
+
+    let mut prevec = Vec::with_capacity(2048);
+    let bots = AabbPin::new(bots);
+    let a2=axis.next();
+    oned::find_par(&mut prevec, axis, bots, move |a:AabbPin<&mut T>,b:AabbPin<&mut T>|{
+        if a.get().get_range(a2).intersects(b.get().get_range(a2)) {
+            func(a, b);
+        }
+    });
+}
