@@ -445,11 +445,14 @@ fn handle_parallel<T: Aabb, A: Axis>(
     let fb = oned::FindParallel2DBuilder::new(&mut k, axis.next(), anchor2.range, current2.range);
 
     if current_is_leaf {
-        fb.build(|a, b| {
-            if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
-                func.collide(a, b)
-            }
-        });
+        //TODO pointless?
+        if anchor2.cont.intersects(current2.cont){
+            fb.build(|a, b| {
+                if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
+                    func.collide(a, b)
+                }
+            });
+        }
     } else if let Some(current_div) = *current2.div {
         if anchor_div < current_div {
             if anchor2.cont.end >= current2.cont.start {
