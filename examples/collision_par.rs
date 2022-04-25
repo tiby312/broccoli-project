@@ -1,5 +1,5 @@
-use broccoli::prelude::*;
 use broccoli::tree::{bbox, rect};
+
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -18,7 +18,7 @@ fn main() {
     //populated it with mutable references.
     let mut tree = broccoli::tree::new_par(&mut aabbs);
 
-    tree.colliding_pairs_builder(|a, b| {
+    broccoli::queries::colfind::builder(&mut tree, |a, b| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
     })

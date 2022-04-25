@@ -1,5 +1,5 @@
-use broccoli::axgeom::vec2;
 use broccoli::axgeom;
+use broccoli::axgeom::vec2;
 
 use broccoli::prelude::*;
 use broccoli::tree::{bbox, rect};

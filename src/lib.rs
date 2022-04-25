@@ -58,10 +58,8 @@ mod test_readme {
 #[macro_use]
 extern crate alloc;
 
-
 #[doc(inline)]
 pub use broccoli_tree as tree;
-
 
 pub use tree::axgeom;
 
@@ -71,7 +69,6 @@ use tree::*;
 
 pub mod prelude {
     pub use super::queries::colfind::CollidingPairsApi;
-    pub use super::queries::colfind::CollidingPairsBuilderApi;
     pub use super::queries::knearest::KnearestApi;
     pub use super::queries::nbody::NbodyApi;
     pub use super::queries::raycast::RaycastApi;

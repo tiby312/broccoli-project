@@ -35,7 +35,7 @@ pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     func: &mut F,
     check_y: bool,
 ) {
-    let mut k=prevec1.extract_vec();
+    let mut k = prevec1.extract_vec();
     if check_y {
         let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
         self::find_iter(&mut k, axis, bots, &mut b);
@@ -45,14 +45,45 @@ pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     }
 }
 
-pub struct FindParallel2DBuilder<'a,'b, A: Axis, T: Aabb> {
+//Calls colliding on all aabbs that intersect and only one aabbs
+//that intsect.
+pub fn find_2d_par<A: Axis, T: Aabb, F: CollisionHandler<T>>(
+    prevec1: &mut PreVec,
+    axis: A,
+    bots: AabbPin<&mut [T]>,
+    mut func: F,
+    check_y: bool,
+) where
+    T: Send,
+    F: Send + Clone,
+{
+    let mut k = prevec1.extract_vec();
+    if check_y {
+        let _ = self::find_par(
+            &mut k,
+            axis,
+            bots,
+            move |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
+                let a2 = axis.next();
+                if a.get().get_range(a2).intersects(b.get().get_range(a2)) {
+                    func.collide(a, b);
+                }
+            },
+        );
+    } else {
+        let b = func;
+        self::find_par(&mut k, axis, bots, b);
+    }
+}
+
+pub struct FindParallel2DBuilder<'a, 'b, A: Axis, T: Aabb> {
     pub prevec: &'b mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
     pub axis: A,
     pub bots1: AabbPin<&'a mut [T]>,
     pub bots2: AabbPin<&'a mut [T]>,
 }
 
-impl<'a,'b, A: Axis, T: Aabb> FindParallel2DBuilder<'a,'b, A, T> {
+impl<'a, 'b, A: Axis, T: Aabb> FindParallel2DBuilder<'a, 'b, A, T> {
     #[inline(always)]
     pub fn new(
         prevec: &'b mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
@@ -69,9 +100,7 @@ impl<'a,'b, A: Axis, T: Aabb> FindParallel2DBuilder<'a,'b, A, T> {
     }
 
     pub fn build(self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        
         self::find_other_parallel3(self.prevec, self.axis, (self.bots1, self.bots2), &mut func);
-        
     }
 }
 
@@ -94,9 +123,8 @@ pub fn find_perp_2d1_once<A: Axis, T: Aabb>(
     }
 }
 
-
 ///Find colliding pairs using the mark and sweep algorithm.
-pub fn find_iter<'a, A: Axis, T: Aabb+'a, F: CollisionHandler<T>>(
+pub fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
     active: &mut Vec<AabbPin<&'a mut T>>,
     axis: A,
     collision_botids: AabbPin<&'a mut [T]>,
@@ -144,15 +172,13 @@ pub fn find_iter<'a, A: Axis, T: Aabb+'a, F: CollisionHandler<T>>(
 
         active.push(curr_bot);
     }
-
 }
 
-
 ///Find colliding pairs using the mark and sweep algorithm.
-fn find_iter_no_add<'a, A: Axis, T: Aabb+'a, F: CollisionHandler<T>>(
+fn find_iter_no_add<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
     active: &mut Vec<AabbPin<&'a mut T>>,
     axis: A,
-    collision_botids: impl Iterator<Item=AabbPin<&'a mut T>>,
+    collision_botids: impl Iterator<Item = AabbPin<&'a mut T>>,
     func: &mut F,
 ) {
     use twounordered::RetainMutUnordered;
@@ -171,7 +197,7 @@ fn find_iter_no_add<'a, A: Axis, T: Aabb+'a, F: CollisionHandler<T>>(
     //     in the axisList.
 
     for mut curr_bot in collision_botids {
-        if active.is_empty(){
+        if active.is_empty() {
             break;
         }
 
@@ -198,12 +224,8 @@ fn find_iter_no_add<'a, A: Axis, T: Aabb+'a, F: CollisionHandler<T>>(
                 false
             }
         });
-
     }
-
 }
-
-
 
 #[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.
@@ -212,38 +234,45 @@ pub fn find_par<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     axis: A,
     collision_botids: AabbPin<&'a mut [T]>,
     mut func: F,
-) where T:Send,F:Send+Clone{
+) -> F
+where
+    T: Send,
+    F: Send + Clone,
+{
     //TODO dont hardcode.
-    if collision_botids.len()<5000{
-        find_iter( active_list,axis,collision_botids,&mut func);
-    }else{
-        let mid=collision_botids.len()/2;
-        let (left,mut right)=collision_botids.split_at_mut(mid);
+    if collision_botids.len() < 8_000 {
+        find_iter(active_list, axis, collision_botids, &mut func);
+        func
+    } else {
+        let mid = collision_botids.len() / 2;
+        let (left, mut right) = collision_botids.split_at_mut(mid);
 
-        let f1=func.clone();//TODO reduce cloning.
-        let f2=func.clone();
-        let (mut still_active,other)=rayon::join(
-            ||{
-                find_par( active_list,axis,left,f1);
-                active_list
+        let f2 = func.clone();
+        let ((mut func, still_active), other) = rayon::join(
+            || {
+                let func = find_par(active_list, axis, left, func);
+                (func, active_list)
             },
-            ||{
+            || {
                 //TODO some how use this?
-                let mut active_list2 = vec!();
-                find_par(&mut active_list2,axis,right.borrow_mut(),f2);
-                active_list2.into_iter().map(|mut x|x.as_ptr_mut().as_raw() as usize).collect::<Vec<_>>()
-            }
+                let mut active_list2 = vec![];
+                find_par(&mut active_list2, axis, right.borrow_mut(), f2);
+                active_list2
+                    .into_iter()
+                    .map(|mut x| x.as_ptr_mut().as_raw() as usize)
+                    .collect::<Vec<_>>()
+            },
         );
 
-        find_iter_no_add(&mut still_active,axis,right.iter_mut(),&mut func);
+        find_iter_no_add(still_active, axis, right.iter_mut(), &mut func);
 
-        let other=other.into_iter().map(|x|AabbPin::from_mut(unsafe{&mut *(x as *mut T)}));
+        let other = other
+            .into_iter()
+            .map(|x| AabbPin::from_mut(unsafe { &mut *(x as *mut T) }));
         still_active.extend(other);
-
-
+        func
     }
 }
-
 
 //does less comparisons than option 2.
 #[inline(always)]
@@ -260,9 +289,9 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     //Use this to ensure that the active lists
     //are pruned every once in a while even
     //if there are only many many x's in a row with no y's.
-    const PRUNE_PERIOD:usize=100;
-    let mut xcounter=0;
-    let mut ycounter=0;
+    const PRUNE_PERIOD: usize = 100;
+    let mut xcounter = 0;
+    let mut ycounter = 0;
     loop {
         enum NextP {
             X,
@@ -306,20 +335,18 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                         false
                     }
                 });
-                ycounter=0;
+                ycounter = 0;
 
-
-                if xcounter>PRUNE_PERIOD{
-                    active_lists.first().retain_mut_unordered(|x2|
-                    x2.get().get_range(axis).end >= x.get().get_range(axis).start); 
-                    xcounter=0;
-                }else{
-                    xcounter+=1;
+                if xcounter > PRUNE_PERIOD {
+                    active_lists.first().retain_mut_unordered(|x2| {
+                        x2.get().get_range(axis).end >= x.get().get_range(axis).start
+                    });
+                    xcounter = 0;
+                } else {
+                    xcounter += 1;
                 }
 
-
                 active_lists.first().push(x);
-
             }
             NextP::Y => {
                 let mut y = f2.next().unwrap();
@@ -332,15 +359,15 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                         false
                     }
                 });
-                xcounter=0;
+                xcounter = 0;
 
-
-                if ycounter>PRUNE_PERIOD{
-                    active_lists.second().retain_mut_unordered(|y2|
-                    y2.get().get_range(axis).end >= y.get().get_range(axis).start); 
-                    ycounter=0;
-                }else{
-                    ycounter+=1;
+                if ycounter > PRUNE_PERIOD {
+                    active_lists.second().retain_mut_unordered(|y2| {
+                        y2.get().get_range(axis).end >= y.get().get_range(axis).start
+                    });
+                    ycounter = 0;
+                } else {
+                    ycounter += 1;
                 }
 
                 active_lists.second().push(y);
@@ -348,7 +375,6 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
         }
     }
 }
-
 
 /* TODO update
 #[test]

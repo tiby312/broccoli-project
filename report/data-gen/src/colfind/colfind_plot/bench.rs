@@ -5,6 +5,7 @@ pub struct Record {
     brocc: f64,
     brocc_par: f64,
     sweep: f64,
+    sweep_par:f64,
     naive: f64,
     nosort_par: f64,
     nosort: f64,
@@ -19,11 +20,12 @@ impl Record {
         let c0 = bench_closure(|| {
             let mut tree = TreeBuilder::new_default(&mut bots).build_par();
 
-            tree.colliding_pairs_builder(|a, b| {
+            let builder = broccoli::queries::colfind::builder(&mut tree, |a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
-            })
-            .build_par();
+            });
+
+            builder.build_par();
         });
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
@@ -40,18 +42,14 @@ impl Record {
 
         let c3 = if sweep_bench {
             bench_closure(|| {
-
-                broccoli::queries::colfind::par_query_sweep_mut(axgeom::XAXIS, &mut bots, |a,b|{
-                    **a.unpack_inner() -= 2;
-                    **b.unpack_inner() -= 2;
-                });
-                /*
-                let mut s = broccoli::queries::colfind::SweepAndPrune::new(&mut bots);
-                s.colliding_pairs(|a, b| {
-                    **a.unpack_inner() -= 2;
-                    **b.unpack_inner() -= 2;
-                });
-                */
+                broccoli::queries::colfind::par_query_sweep_mut(
+                    &mut bots,
+                    |a, b| {
+                        **a.unpack_inner() -= 2;
+                        **b.unpack_inner() -= 2;
+                    },
+                );
+                
             })
         } else {
             0.0
@@ -74,7 +72,8 @@ impl Record {
 
         let c5 = bench_closure(|| {
             let mut tree = TreeBuilder::new_no_sort(&mut bots).build_par();
-            tree.colliding_pairs_builder(|a, b| {
+
+            broccoli::queries::colfind::builder_nosort(&mut tree, |a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
             })
@@ -97,13 +96,33 @@ impl Record {
             }
         }
 
+        let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
+
+        let c7 = if sweep_bench {
+            bench_closure(|| {
+                let mut s=broccoli::queries::colfind::SweepAndPrune::new(&mut bots);
+
+                s.colliding_pairs(
+                    |a, b| {
+                        **a.unpack_inner() ^= 2;
+                        **b.unpack_inner() ^= 2;
+                    },
+                );
+                
+            })
+        } else {
+            0.0
+        };
+
+
         Record {
             brocc: c1,
             brocc_par: c0,
-            sweep: c3,
+            sweep_par: c3,
             naive: c4,
             nosort_par: c5,
             nosort: c6,
+            sweep:c7
         }
     }
 }

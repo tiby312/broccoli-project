@@ -69,9 +69,15 @@ impl<'a, T: Aabb> CollidingPairsApi<T> for AabbPin<&'a mut [T]> {
 
 use crate::tree::TreeInner;
 
-impl<'a, T: Aabb, S: NodeHandler<T>> CollidingPairsApi<T> for TreeInner<Node<'a, T>, S> {
+impl<'a, T: Aabb> CollidingPairsApi<T> for TreeInner<Node<'a, T>, DefaultSorter> {
     fn colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        self.colliding_pairs_builder(func).build()
+        builder(self, func).build()
+    }
+}
+
+impl<'a, T: Aabb> CollidingPairsApi<T> for TreeInner<Node<'a, T>, NoSorter> {
+    fn colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+        builder_nosort(self, func).build()
     }
 }
 
@@ -108,51 +114,61 @@ impl<'a, T> SweepAndPrune<'a, T> {
 
 use crate::tree::splitter::Splitter;
 
-pub trait CollidingPairsBuilderApi<'a, T: Aabb, SO: NodeHandler<T>> {
-    fn vistr_mut<'b>(&'b mut self) -> VistrMutPin<'b, broccoli_tree::node::Node<'a, T>>;
-    fn sorter(&mut self) -> SO;
+const SEQ_FALLBACK_DEFAULT: usize = 6000;
 
-    fn colliding_pairs_builder<'b, F>(
-        &'b mut self,
-        func: F,
-    ) -> CollidingPairsBuilder<'a, 'b, T, SO, F>
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    {
-        let sorter = self.sorter();
-        CollidingPairsBuilder {
-            vis: CollVis::new(self.vistr_mut(), default_axis().to_dyn(), sorter),
-            num_seq_fallback: 2_400,
-            func,
-        }
+pub fn builder_nosort<'a, 'b, T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
+    tree: &'a mut TreeInner<Node<'b, T>, NoSorter>,
+    func: F,
+) -> CollidingPairsBuilder<'b, 'a, T, NoSortQuery<F>> {
+    CollidingPairsBuilder {
+        vis: CollVis::new(tree.vistr_mut(), default_axis().to_dyn()),
+        num_seq_fallback: SEQ_FALLBACK_DEFAULT,
+        handler: NoSortQuery { func },
     }
 }
 
-impl<'a, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilderApi<'a, T, SO>
-    for TreeInner<Node<'a, T>, SO>
-{
-    fn vistr_mut<'b>(&'b mut self) -> VistrMutPin<'b, tree::node::Node<'a, T>> {
-        TreeInner::vistr_mut(self)
+pub fn builder<'a, 'b, T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
+    tree: &'a mut TreeInner<Node<'b, T>, DefaultSorter>,
+    func: F,
+) -> CollidingPairsBuilder<'b, 'a, T, QueryDefault<F>> {
+    CollidingPairsBuilder {
+        vis: CollVis::new(tree.vistr_mut(), default_axis().to_dyn()),
+        num_seq_fallback: SEQ_FALLBACK_DEFAULT,
+        handler: QueryDefault {
+            prevec: PreVec::new(),
+            func,
+        },
     }
+}
 
-    fn sorter(&mut self) -> SO {
-        TreeInner::sorter(self)
+pub fn builder_par<'a, 'b, T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
+    tree: &'a mut TreeInner<Node<'b, T>, DefaultSorter>,
+    func: F,
+) -> CollidingPairsBuilder<'b, 'a, T, QueryDefaultPar<F>>
+where
+    T: Send,
+    F: Clone + Send,
+{
+    CollidingPairsBuilder {
+        vis: CollVis::new(tree.vistr_mut(), default_axis().to_dyn()),
+        num_seq_fallback: SEQ_FALLBACK_DEFAULT,
+        handler: QueryDefaultPar {
+            prevec: PreVec::new(),
+            func,
+        },
     }
 }
 
 #[must_use]
-pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO, F> {
-    pub vis: CollVis<'a, 'b, T, SO>,
+pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO: NodeHandler<T>> {
+    pub vis: CollVis<'a, 'b, T>,
     pub num_seq_fallback: usize,
-    pub func: F,
+    pub handler: SO,
 }
 
-impl<'a, 'b, T: Aabb, SO: NodeHandler<T>, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>
-    CollidingPairsBuilder<'a, 'b, T, SO, F>
-{
+impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
     pub fn build(mut self) {
-        let mut prevec = PreVec::new();
-        self.vis.recurse_seq(&mut prevec, &mut self.func);
+        self.vis.recurse_seq(&mut self.handler);
     }
 
     #[cfg(feature = "rayon")]
@@ -160,70 +176,65 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>, F: FnMut(AabbPin<&mut T>, AabbPin<&mut
     where
         T: Send,
         T::Num: Send,
-        F: Clone + Send,
+        SO: Clone + Send,
     {
         ///
         /// height_seq_fallback: if a subtree has this height, it will be processed as one unit sequentially.
         ///
         pub fn recurse_par<T: Aabb, N: NodeHandler<T>>(
-            vistr: CollVis<T, N>,
-            prevec: &mut PreVec,
+            vistr: CollVis<T>,
+            mut handler: N,
             num_seq_fallback: usize,
-            mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
         ) where
             T: Send,
             T::Num: Send,
+            N: Clone + Send,
         {
             if vistr.num_elem() <= num_seq_fallback {
-                vistr.recurse_seq(prevec, &mut func);
+                vistr.recurse_seq(&mut handler);
             } else {
-                let func2 = func.clone();
-                let (n, rest) = vistr.collide_and_next(prevec, &mut func);
+                let handler2 = handler.clone();
+                let (n, rest) = vistr.collide_and_next(&mut handler);
                 if let Some([left, right]) = rest {
                     rayon::join(
                         || {
-                            let (prevec, func) = n.finish();
-                            recurse_par(left, prevec, num_seq_fallback, func.clone());
+                            n.finish(&mut handler);
+                            recurse_par(left, handler, num_seq_fallback);
                         },
                         || {
-                            let mut prevec = PreVec::new();
-                            recurse_par(right, &mut prevec, num_seq_fallback, func2);
+                            recurse_par(right, handler2, num_seq_fallback);
                         },
                     );
                 } else {
-                    let _ = n.finish();
+                    let _ = n.finish(&mut handler);
                 }
             }
         }
 
-        let mut prevec = PreVec::new();
-
         //TODO best level define somewhere?
-        recurse_par(self.vis, &mut prevec, self.num_seq_fallback, self.func)
+        recurse_par(self.vis, self.handler, self.num_seq_fallback)
     }
 
     pub fn build_with_splitter<SS: Splitter>(mut self, splitter: SS) -> SS {
         pub fn recurse_seq_splitter<T: Aabb, S: NodeHandler<T>, SS: Splitter>(
-            vistr: CollVis<T, S>,
+            vistr: CollVis<T>,
             splitter: SS,
-            prevec: &mut PreVec,
-            func: &mut impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+            func: &mut S,
         ) -> SS {
-            let (n, rest) = vistr.collide_and_next(prevec, func);
+            let (n, rest) = vistr.collide_and_next(func);
 
             if let Some([left, right]) = rest {
                 let (s1, s2) = splitter.div();
-                n.finish();
-                let al = recurse_seq_splitter(left, s1, prevec, func);
-                let ar = recurse_seq_splitter(right, s2, prevec, func);
+                n.finish(func);
+                let al = recurse_seq_splitter(left, s1, func);
+                let ar = recurse_seq_splitter(right, s2, func);
                 al.add(ar)
             } else {
-                n.finish();
+                n.finish(func);
                 splitter
             }
         }
-        let mut prevec = PreVec::new();
-        recurse_seq_splitter(self.vis, splitter, &mut prevec, &mut self.func)
+        recurse_seq_splitter(self.vis, splitter, &mut self.handler)
     }
 
     #[cfg(feature = "rayon")]
@@ -231,77 +242,71 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>, F: FnMut(AabbPin<&mut T>, AabbPin<&mut
     where
         T: Send,
         T::Num: Send,
-        F: Clone + Send,
+        SO: Clone + Send,
     {
         ///
         /// height_seq_fallback: if a subtree has this height, it will be processed as one unit sequentially.
         ///
         pub fn recurse_par_splitter<T: Aabb, N: NodeHandler<T>, S: Splitter + Send>(
-            vistr: CollVis<T, N>,
-            prevec: &mut PreVec,
+            vistr: CollVis<T>,
             num_seq_fallback: usize,
-            mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+            mut func: N,
             splitter: S,
         ) -> S
         where
             T: Send,
             T::Num: Send,
+            N: Clone + Send,
         {
             if vistr.num_elem() <= num_seq_fallback {
-                vistr.recurse_seq(prevec, &mut func);
+                vistr.recurse_seq(&mut func);
                 splitter
             } else {
                 let func2 = func.clone();
-                let (n, rest) = vistr.collide_and_next(prevec, &mut func);
+                let (n, rest) = vistr.collide_and_next(&mut func);
                 if let Some([left, right]) = rest {
                     let (s1, s2) = splitter.div();
 
                     let (s1, s2) = rayon::join(
                         || {
-                            let (prevec, func) = n.finish();
-                            recurse_par_splitter(left, prevec, num_seq_fallback, func.clone(), s1)
+                            n.finish(&mut func);
+                            recurse_par_splitter(left, num_seq_fallback, func, s1)
                         },
-                        || {
-                            let mut prevec = PreVec::new();
-                            recurse_par_splitter(right, &mut prevec, num_seq_fallback, func2, s2)
-                        },
+                        || recurse_par_splitter(right, num_seq_fallback, func2, s2),
                     );
 
                     s1.add(s2)
                 } else {
-                    let _ = n.finish();
+                    let _ = n.finish(&mut func);
                     splitter
                 }
             }
         }
-        let mut prevec = PreVec::new();
-        recurse_par_splitter(
-            self.vis,
-            &mut prevec,
-            self.num_seq_fallback,
-            self.func,
-            splitter,
-        )
+        recurse_par_splitter(self.vis, self.num_seq_fallback, self.handler, splitter)
     }
 }
 
-
-
-
 ///Sweep and prune algorithm.
 pub fn par_query_sweep_mut<T: Aabb>(
-    axis: impl Axis,
     bots: &mut [T],
-    mut func: impl FnMut(AabbPin<&mut T>,AabbPin<&mut T>)+Clone+Send,
-) where T:Send{
+    mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+) where
+    T: Send,
+{
+    let axis=default_axis();
     broccoli_tree::util::sweeper_update(axis, bots);
 
     let mut prevec = Vec::with_capacity(2048);
     let bots = AabbPin::new(bots);
-    let a2=axis.next();
-    oned::find_par(&mut prevec, axis, bots, move |a:AabbPin<&mut T>,b:AabbPin<&mut T>|{
-        if a.get().get_range(a2).intersects(b.get().get_range(a2)) {
-            func(a, b);
-        }
-    });
+    let a2 = axis.next();
+    let _ = oned::find_par(
+        &mut prevec,
+        axis,
+        bots,
+        move |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
+            if a.get().get_range(a2).intersects(b.get().get_range(a2)) {
+                func(a, b);
+            }
+        },
+    );
 }

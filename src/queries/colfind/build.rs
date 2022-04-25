@@ -21,50 +21,28 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> CollisionHandler<T> fo
 /// Finish handling a node by calling finish()
 ///
 #[must_use]
-pub struct NodeFinisher<'a, 'b, T, F, H> {
-    func: &'a mut F,
-    prevec: &'a mut PreVec,
+pub struct NodeFinisher<'b, T> {
     axis: AxisDyn,
     bots: AabbPin<&'b mut [T]>,
-    handler: H,
     is_leaf: bool,
 }
-impl<'a, 'b, T: Aabb, F: CollisionHandler<T>, H: NodeHandler<T>> NodeFinisher<'a, 'b, T, F, H> {
-    pub fn finish(self) -> (&'a mut PreVec, &'a mut F) {
-        match self.axis{
-            AxisDyn::X=>self.handler.handle_node(
-                self.func,
-                self.prevec,
-                axgeom::XAXIS.next(),
-                self.bots,
-                self.is_leaf,
-            ),
-            AxisDyn::Y=>self.handler.handle_node(
-                self.func,
-                self.prevec,
-                axgeom::YAXIS.next(),
-                self.bots,
-                self.is_leaf,
-            )
+impl<'b, T: Aabb> NodeFinisher<'b, T> {
+    pub fn finish<H: NodeHandler<T>>(self, handler: &mut H) {
+        match self.axis {
+            AxisDyn::X => handler.handle_node(axgeom::XAXIS.next(), self.bots, self.is_leaf),
+            AxisDyn::Y => handler.handle_node(axgeom::YAXIS.next(), self.bots, self.is_leaf),
         }
-
-        (self.prevec, self.func)
     }
 }
 
 /// The main primitive to visit each node and find colliding pairs
-pub struct CollVis<'a, 'b, T: Aabb, N> {
+pub struct CollVis<'a, 'b, T: Aabb> {
     vistr: VistrMutPin<'b, Node<'a, T>>,
     axis: AxisDyn,
-    handler: N,
 }
-impl<'a, 'b, T: Aabb, N: NodeHandler<T>> CollVis<'a, 'b, T, N> {
-    pub(crate) fn new(vistr: VistrMutPin<'b, Node<'a, T>>, axis: AxisDyn, handler: N) -> Self {
-        CollVis {
-            vistr,
-            axis,
-            handler,
-        }
+impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
+    pub(crate) fn new(vistr: VistrMutPin<'b, Node<'a, T>>, axis: AxisDyn) -> Self {
+        CollVis { vistr, axis }
     }
 
     pub fn get_height(&self) -> usize {
@@ -75,36 +53,30 @@ impl<'a, 'b, T: Aabb, N: NodeHandler<T>> CollVis<'a, 'b, T, N> {
         let (n, _) = self.vistr.borrow().next();
         n.num_elem
     }
-    pub fn collide_and_next<'x, F: CollisionHandler<T>>(
+    pub fn collide_and_next<N: NodeHandler<T>>(
         mut self,
-        prevec: &'x mut PreVec,
-        func: &'x mut F,
-    ) -> (NodeFinisher<'x, 'b, T, F, N>, Option<[Self; 2]>) {
-        pub struct Recurser<'a, NO, C> {
+        handler: &mut N,
+    ) -> (NodeFinisher<'b, T>, Option<[Self; 2]>) {
+        pub struct Recurser<'a, NO> {
             pub handler: &'a mut NO,
-            pub sweeper: &'a mut C,
-            pub prevec: &'a mut PreVec,
         }
 
         fn collide_self<T: crate::Aabb>(
             this_axis: AxisDyn,
             v: VistrMutPin<Node<T>>,
-            data: &mut Recurser<impl NodeHandler<T>, impl CollisionHandler<T>>,
+            data: &mut Recurser<impl NodeHandler<T>>,
         ) {
             let (nn, rest) = v.next();
 
             if let Some([mut left, mut right]) = rest {
-                struct InnerRecurser<'a, 'node, T: Aabb, NN, C> {
+                struct InnerRecurser<'a, 'node, T: Aabb, NN> {
                     anchor: NodeAxis<'a, 'node, T>,
                     handler: &'a mut NN,
-                    sweeper: &'a mut C,
-                    prevec: &'a mut PreVec,
                 }
 
-                impl<'a, 'node, T: Aabb, NN, C> InnerRecurser<'a, 'node, T, NN, C>
+                impl<'a, 'node, T: Aabb, NN> InnerRecurser<'a, 'node, T, NN>
                 where
                     NN: NodeHandler<T>,
-                    C: CollisionHandler<T>,
                 {
                     fn recurse(
                         &mut self,
@@ -123,8 +95,6 @@ impl<'a, 'b, T: Aabb, N: NodeHandler<T>> CollVis<'a, 'b, T, N> {
                         };
 
                         self.handler.handle_children(
-                            self.sweeper,
-                            self.prevec,
                             self.anchor.borrow_mut(),
                             current,
                             current_is_leaf,
@@ -133,7 +103,6 @@ impl<'a, 'b, T: Aabb, N: NodeHandler<T>> CollVis<'a, 'b, T, N> {
                         if let Some([left, right]) = rest {
                             if let Some(div) = nn.div {
                                 if anchor_axis.is_equal_to(this_axis) {
-                                
                                     match is_left {
                                         true => {
                                             if div < self.anchor.node.cont.start {
@@ -164,8 +133,6 @@ impl<'a, 'b, T: Aabb, N: NodeHandler<T>> CollVis<'a, 'b, T, N> {
                             axis: this_axis,
                         },
                         handler: data.handler,
-                        sweeper: data.sweeper,
-                        prevec: data.prevec,
                     };
 
                     g.recurse(this_axis.next(), left.borrow_mut(), true);
@@ -175,14 +142,9 @@ impl<'a, 'b, T: Aabb, N: NodeHandler<T>> CollVis<'a, 'b, T, N> {
         }
 
         {
-            let mut data = Recurser {
-                handler: &mut self.handler,
-                sweeper: func,
-                prevec,
-            };
+            let mut data = Recurser { handler };
 
             collide_self(self.axis, self.vistr.borrow_mut(), &mut data);
-            
         }
 
         //TODO make height be zero for leaf?
@@ -191,11 +153,8 @@ impl<'a, 'b, T: Aabb, N: NodeHandler<T>> CollVis<'a, 'b, T, N> {
         let (n, rest) = self.vistr.next();
 
         let fin = NodeFinisher {
-            func,
-            prevec,
             axis: self.axis,
             bots: n.into_range(),
-            handler: self.handler,
             is_leaf,
         };
 
@@ -206,12 +165,10 @@ impl<'a, 'b, T: Aabb, N: NodeHandler<T>> CollVis<'a, 'b, T, N> {
                     CollVis {
                         vistr: left,
                         axis: self.axis.next(),
-                        handler: self.handler,
                     },
                     CollVis {
                         vistr: right,
                         axis: self.axis.next(),
-                        handler: self.handler,
                     },
                 ])
             } else {
@@ -220,17 +177,17 @@ impl<'a, 'b, T: Aabb, N: NodeHandler<T>> CollVis<'a, 'b, T, N> {
         )
     }
 
-    pub fn recurse_seq(self, prevec: &mut PreVec, mut func: impl CollisionHandler<T>) {
-        self.recurse_seq_inner(prevec, &mut func)
+    pub fn recurse_seq<N: NodeHandler<T>>(self, handler: &mut N) {
+        self.recurse_seq_inner(handler)
     }
 
-    fn recurse_seq_inner(self, prevec: &mut PreVec, func: &mut impl CollisionHandler<T>) {
-        let (n, rest) = self.collide_and_next(prevec, func);
+    fn recurse_seq_inner<N: NodeHandler<T>>(self, handler: &mut N) {
+        let (n, rest) = self.collide_and_next(handler);
 
-        let (prevec, func) = n.finish();
+        n.finish(handler);
         if let Some([a, b]) = rest {
-            a.recurse_seq_inner(prevec, func);
-            b.recurse_seq_inner(prevec, func);
+            a.recurse_seq_inner(handler);
+            b.recurse_seq_inner(handler);
         }
     }
 }
@@ -257,54 +214,36 @@ impl<'a, 'node, T: Aabb> NodeAxis<'a, 'node, T> {
 ///
 /// Abstract over sorted and non sorted trees
 ///
-pub trait NodeHandler<T: Aabb>: Copy + Clone + Send + Sync {
-    fn handle_node(
-        self,
-        func: &mut impl CollisionHandler<T>,
-        prevec: &mut PreVec,
-        axis: impl Axis,
-        bots: AabbPin<&mut [T]>,
-        is_leaf: bool,
-    );
+pub trait NodeHandler<T: Aabb> {
+    fn handle_node(&mut self, axis: impl Axis, bots: AabbPin<&mut [T]>, is_leaf: bool);
 
-    fn handle_children(
-        self,
-        func: &mut impl CollisionHandler<T>,
-        prevec: &mut PreVec,
-        anchor: NodeAxis<T>,
-        current: NodeAxis<T>,
-        current_is_leaf: bool,
-    );
+    fn handle_children(&mut self, anchor: NodeAxis<T>, current: NodeAxis<T>, current_is_leaf: bool);
 }
 
-impl<T: Aabb> NodeHandler<T> for crate::tree::build::NoSorter {
-    fn handle_node(
-        self,
-        func: &mut impl CollisionHandler<T>,
-        _: &mut PreVec,
-        axis: impl Axis,
-        bots: AabbPin<&mut [T]>,
-        is_leaf: bool,
-    ) {
+#[derive(Clone)]
+pub struct NoSortQuery<F> {
+    pub func: F,
+}
+
+impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoSortQuery<F> {
+    fn handle_node(&mut self, axis: impl Axis, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         if !is_leaf {
             queries::for_every_pair(bots, move |a, b| {
                 if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
-                    func.collide(a, b);
+                    self.func.collide(a, b);
                 }
             });
         } else {
             queries::for_every_pair(bots, move |a, b| {
                 if a.get().intersects_rect(b.get()) {
-                    func.collide(a, b);
+                    self.func.collide(a, b);
                 }
             });
         }
     }
 
     fn handle_children(
-        self,
-        func: &mut impl CollisionHandler<T>,
-        _: &mut PreVec,
+        &mut self,
         mut anchor: NodeAxis<T>,
         current: NodeAxis<T>,
         _current_is_leaf: bool,
@@ -319,7 +258,7 @@ impl<T: Aabb> NodeHandler<T> for crate::tree::build::NoSorter {
             for mut a in current.node.into_range().iter_mut() {
                 for mut b in anchor.node.borrow_mut().into_range().iter_mut() {
                     if a.get().intersects_rect(b.get()) {
-                        func.collide(a.borrow_mut(), b.borrow_mut());
+                        self.func.collide(a.borrow_mut(), b.borrow_mut());
                     }
                 }
             }
@@ -327,36 +266,75 @@ impl<T: Aabb> NodeHandler<T> for crate::tree::build::NoSorter {
     }
 }
 
-impl<T: Aabb> NodeHandler<T> for crate::tree::build::DefaultSorter {
+#[derive(Clone)]
+pub struct QueryDefault<F> {
+    pub prevec: PreVec,
+    pub func: F,
+}
+
+impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for QueryDefault<F> {
     #[inline(always)]
-    fn handle_node(
-        self,
-        func: &mut impl CollisionHandler<T>,
-        prevec: &mut PreVec,
-        axis: impl Axis,
-        bots: AabbPin<&mut [T]>,
-        is_leaf: bool,
-    ) {
+    fn handle_node(&mut self, axis: impl Axis, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         //
         // All bots belonging to a non leaf node are guaranteed to touch the divider.
         // Therefore, all bots intersect along one axis already. Because:
         //
         // If a contains x and b contains x then a intersects b.
         //
-        oned::find_2d(prevec, axis, bots, func, is_leaf);
+        oned::find_2d(&mut self.prevec, axis, bots, &mut self.func, is_leaf);
     }
 
-    //TODO replace with dyn axis???
     #[inline(always)]
     fn handle_children(
-        self,
-        func: &mut impl CollisionHandler<T>,
-        prevec: &mut PreVec,
+        &mut self,
         anchor: NodeAxis<T>,
         current: NodeAxis<T>,
         current_is_leaf: bool,
     ) {
         use AxisDyn::*;
+        let func = &mut self.func;
+        let prevec = &mut self.prevec;
+        match (anchor.axis, current.axis) {
+            (X, X) => handle_parallel(XAXIS, prevec, func, anchor, current, current_is_leaf),
+            (Y, Y) => handle_parallel(YAXIS, prevec, func, anchor, current, current_is_leaf),
+            (X, Y) => handle_perp(XAXIS, func, anchor, current, current_is_leaf),
+            (Y, X) => handle_perp(YAXIS, func, anchor, current, current_is_leaf),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct QueryDefaultPar<F> {
+    pub prevec: PreVec,
+    pub func: F,
+}
+
+impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for QueryDefaultPar<F>
+where
+    T: Send,
+    F: Clone + Send,
+{
+    #[inline(always)]
+    fn handle_node(&mut self, axis: impl Axis, bots: AabbPin<&mut [T]>, is_leaf: bool) {
+        //
+        // All bots belonging to a non leaf node are guaranteed to touch the divider.
+        // Therefore, all bots intersect along one axis already. Because:
+        //
+        // If a contains x and b contains x then a intersects b.
+        //
+        oned::find_2d_par(&mut self.prevec, axis, bots, self.func.clone(), is_leaf);
+    }
+
+    #[inline(always)]
+    fn handle_children(
+        &mut self,
+        anchor: NodeAxis<T>,
+        current: NodeAxis<T>,
+        current_is_leaf: bool,
+    ) {
+        use AxisDyn::*;
+        let func = &mut self.func;
+        let prevec = &mut self.prevec;
         match (anchor.axis, current.axis) {
             (X, X) => handle_parallel(XAXIS, prevec, func, anchor, current, current_is_leaf),
             (Y, Y) => handle_parallel(YAXIS, prevec, func, anchor, current, current_is_leaf),
@@ -439,14 +417,13 @@ fn handle_parallel<T: Aabb, A: Axis>(
     let current2 = current.node.into_node_ref();
 
     //TODO make this even earlier?
-    let mut k=twounordered::TwoUnorderedVecs::from(prevec.extract_vec());
+    let mut k = twounordered::TwoUnorderedVecs::from(prevec.extract_vec());
 
-    
     let fb = oned::FindParallel2DBuilder::new(&mut k, axis.next(), anchor2.range, current2.range);
 
     if current_is_leaf {
         //TODO pointless?
-        if anchor2.cont.intersects(current2.cont){
+        if anchor2.cont.intersects(current2.cont) {
             fb.build(|a, b| {
                 if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
                     func.collide(a, b)
@@ -477,12 +454,13 @@ fn handle_parallel<T: Aabb, A: Axis>(
         }
     }
 
-    let mut j:Vec<_>=k.into();
+    let mut j: Vec<_> = k.into();
     j.clear();
     prevec.insert_vec(j);
 }
 
 ///An vec api to avoid excessive dynamic allocation by reusing a Vec
+#[derive(Clone)]
 pub struct PreVec {
     vec: Vec<usize>,
 }
