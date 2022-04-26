@@ -259,17 +259,6 @@ where
     }
 }
 
-///
-/// The main tree struct
-///
-#[derive(Clone)]
-#[must_use]
-pub struct TreeInner<N, S> {
-    total_num_elem: usize,
-    nodes: Vec<N>,
-    sorter: S,
-}
-
 pub struct TreeBuilder<'a, T, S> {
     pub bots: &'a mut [T],
     pub sorter: S,
@@ -374,6 +363,18 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
             total_num_elem,
         }
     }
+}
+
+///
+/// The main tree struct
+///
+#[derive(Clone)]
+#[must_use]
+pub struct TreeInner<N, S> {
+    total_num_elem: usize,
+    ///Stored in pre-order
+    nodes: Vec<N>,
+    sorter: S,
 }
 
 ///

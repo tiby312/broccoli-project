@@ -195,7 +195,7 @@ fn profile_test(num_bots: usize) {
         // let mut num_collision = 0;
         let c0 = bench_closure(|| {
             let mut tree = broccoli::tree::new_par(&mut bots);
-            broccoli::queries::colfind::builder_par(&mut tree, |a, b| {
+            broccoli::queries::colfind::builder(&mut tree, |a, b| {
                 //num_collision += 1;
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
@@ -235,7 +235,7 @@ fn main() {
             profile_test(args[2].parse().unwrap());
         }
         "profile_cmp" => {
-            let grow = 0.0; //DEFAULT_GROW;
+            let grow = DEFAULT_GROW;
             let num_bots = 20_000;
             use crate::support::*;
             let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
@@ -245,6 +245,7 @@ fn main() {
                     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
                     let mut tree = broccoli::tree::new(&mut bots);
+
                     let mut num_collide = 0;
 
                     tree.colliding_pairs(|a, b| {
@@ -263,13 +264,12 @@ fn main() {
             let path = Path::new(folder.trim_end_matches('/'));
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
-            
+
             run_test!(&mut fb, colfind::level_analysis::handle_theory);
 
             run_test!(&mut fb, spiral::handle);
             run_test!(&mut fb, colfind::colfind_plot::handle_theory);
             run_test!(&mut fb, colfind::construction_vs_query::handle_theory);
-            
         }
         "bench" => {
             let folder = args[2].clone();
@@ -278,7 +278,7 @@ fn main() {
             let mut fb = FigureBuilder::new(folder);
 
             run_test!(&mut fb, colfind::colfind_plot::handle_bench);
-            
+
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
 
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
@@ -289,7 +289,6 @@ fn main() {
             run_test!(&mut fb, colfind::float_vs_integer::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);
             run_test!(&mut fb, colfind::tree_direct_indirect::handle);
-            
         }
         _ => {
             println!("Check code to see what it should be");

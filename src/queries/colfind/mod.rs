@@ -141,24 +141,6 @@ pub fn builder<'a, 'b, T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
     }
 }
 
-pub fn builder_par<'a, 'b, T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
-    tree: &'a mut TreeInner<Node<'b, T>, DefaultSorter>,
-    func: F,
-) -> CollidingPairsBuilder<'b, 'a, T, QueryDefaultPar<F>>
-where
-    T: Send,
-    F: Clone + Send,
-{
-    CollidingPairsBuilder {
-        vis: CollVis::new(tree.vistr_mut(), default_axis().to_dyn()),
-        num_seq_fallback: SEQ_FALLBACK_DEFAULT,
-        handler: QueryDefaultPar {
-            prevec: PreVec::new(),
-            func,
-        },
-    }
-}
-
 #[must_use]
 pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO: NodeHandler<T>> {
     pub vis: CollVis<'a, 'b, T>,
@@ -293,7 +275,7 @@ pub fn par_query_sweep_mut<T: Aabb>(
 ) where
     T: Send,
 {
-    let axis=default_axis();
+    let axis = default_axis();
     broccoli_tree::util::sweeper_update(axis, bots);
 
     let mut prevec = Vec::with_capacity(2048);

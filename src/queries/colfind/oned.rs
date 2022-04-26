@@ -45,37 +45,6 @@ pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
     }
 }
 
-//Calls colliding on all aabbs that intersect and only one aabbs
-//that intsect.
-pub fn find_2d_par<A: Axis, T: Aabb, F: CollisionHandler<T>>(
-    prevec1: &mut PreVec,
-    axis: A,
-    bots: AabbPin<&mut [T]>,
-    mut func: F,
-    check_y: bool,
-) where
-    T: Send,
-    F: Send + Clone,
-{
-    let mut k = prevec1.extract_vec();
-    if check_y {
-        let _ = self::find_par(
-            &mut k,
-            axis,
-            bots,
-            move |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
-                let a2 = axis.next();
-                if a.get().get_range(a2).intersects(b.get().get_range(a2)) {
-                    func.collide(a, b);
-                }
-            },
-        );
-    } else {
-        let b = func;
-        self::find_par(&mut k, axis, bots, b);
-    }
-}
-
 pub struct FindParallel2DBuilder<'a, 'b, A: Axis, T: Aabb> {
     pub prevec: &'b mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
     pub axis: A,

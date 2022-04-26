@@ -303,47 +303,6 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for Que
     }
 }
 
-#[derive(Clone)]
-pub struct QueryDefaultPar<F> {
-    pub prevec: PreVec,
-    pub func: F,
-}
-
-impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for QueryDefaultPar<F>
-where
-    T: Send,
-    F: Clone + Send,
-{
-    #[inline(always)]
-    fn handle_node(&mut self, axis: impl Axis, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        //
-        // All bots belonging to a non leaf node are guaranteed to touch the divider.
-        // Therefore, all bots intersect along one axis already. Because:
-        //
-        // If a contains x and b contains x then a intersects b.
-        //
-        oned::find_2d_par(&mut self.prevec, axis, bots, self.func.clone(), is_leaf);
-    }
-
-    #[inline(always)]
-    fn handle_children(
-        &mut self,
-        anchor: NodeAxis<T>,
-        current: NodeAxis<T>,
-        current_is_leaf: bool,
-    ) {
-        use AxisDyn::*;
-        let func = &mut self.func;
-        let prevec = &mut self.prevec;
-        match (anchor.axis, current.axis) {
-            (X, X) => handle_parallel(XAXIS, prevec, func, anchor, current, current_is_leaf),
-            (Y, Y) => handle_parallel(YAXIS, prevec, func, anchor, current, current_is_leaf),
-            (X, Y) => handle_perp(XAXIS, func, anchor, current, current_is_leaf),
-            (Y, X) => handle_perp(YAXIS, func, anchor, current, current_is_leaf),
-        }
-    }
-}
-
 fn handle_perp<T: Aabb, A: Axis>(
     axis: A,
     func: &mut impl CollisionHandler<T>,

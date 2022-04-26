@@ -5,7 +5,7 @@ pub struct Record {
     brocc: f64,
     brocc_par: f64,
     sweep: f64,
-    sweep_par:f64,
+    sweep_par: f64,
     naive: f64,
     nosort_par: f64,
     nosort: f64,
@@ -42,14 +42,10 @@ impl Record {
 
         let c3 = if sweep_bench {
             bench_closure(|| {
-                broccoli::queries::colfind::par_query_sweep_mut(
-                    &mut bots,
-                    |a, b| {
-                        **a.unpack_inner() -= 2;
-                        **b.unpack_inner() -= 2;
-                    },
-                );
-                
+                broccoli::queries::colfind::par_query_sweep_mut(&mut bots, |a, b| {
+                    **a.unpack_inner() -= 2;
+                    **b.unpack_inner() -= 2;
+                });
             })
         } else {
             0.0
@@ -100,20 +96,16 @@ impl Record {
 
         let c7 = if sweep_bench {
             bench_closure(|| {
-                let mut s=broccoli::queries::colfind::SweepAndPrune::new(&mut bots);
+                let mut s = broccoli::queries::colfind::SweepAndPrune::new(&mut bots);
 
-                s.colliding_pairs(
-                    |a, b| {
-                        **a.unpack_inner() ^= 2;
-                        **b.unpack_inner() ^= 2;
-                    },
-                );
-                
+                s.colliding_pairs(|a, b| {
+                    **a.unpack_inner() ^= 2;
+                    **b.unpack_inner() ^= 2;
+                });
             })
         } else {
             0.0
         };
-
 
         Record {
             brocc: c1,
@@ -122,7 +114,7 @@ impl Record {
             naive: c4,
             nosort_par: c5,
             nosort: c6,
-            sweep:c7
+            sweep: c7,
         }
     }
 }
