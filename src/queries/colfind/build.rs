@@ -282,18 +282,22 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for Que
         use AxisDyn::*;
         let func = &mut self.func;
 
-        let mut k = twounordered::TwoUnorderedVecs::from(self.prevec.extract_vec());
-
         match (f.anchor_axis, f.current_axis) {
-            (X, X) => handle_parallel(XAXIS, &mut k, func, f),
-            (Y, Y) => handle_parallel(YAXIS, &mut k, func, f),
+            (X, X) | (Y, Y) => {
+                let mut k = twounordered::TwoUnorderedVecs::from(self.prevec.extract_vec());
+
+                match f.anchor_axis {
+                    X => handle_parallel(XAXIS, &mut k, func, f),
+                    Y => handle_parallel(YAXIS, &mut k, func, f),
+                }
+
+                let mut j: Vec<_> = k.into();
+                j.clear();
+                self.prevec.insert_vec(j);
+            }
             (X, Y) => handle_perp(XAXIS, func, f),
             (Y, X) => handle_perp(YAXIS, func, f),
         }
-
-        let mut j: Vec<_> = k.into();
-        j.clear();
-        self.prevec.insert_vec(j);
     }
 }
 
