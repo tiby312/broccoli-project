@@ -114,7 +114,7 @@ pub fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    for mut curr_bot in collision_botids {
+    collision_botids.iter_mut().for_each(|mut curr_bot| {
         active.retain_mut_unordered(|that_bot| {
             let crr = curr_bot.get().get_range(axis);
 
@@ -140,8 +140,24 @@ pub fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
         });
 
         active.push(curr_bot);
-    }
+    });
 }
+
+
+
+#[cfg(feature = "rayon")]
+#[inline(always)]
+///Find colliding pairs using the mark and sweep algorithm.
+pub fn find_par<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
+    active_list: &mut Vec<AabbPin<&'a mut T>>,
+    axis: A,
+    collision_botids: AabbPin<&'a mut [T]>,
+    mut func: F,
+) -> F
+where
+    T: Send,
+    F: Send + Clone,
+{
 
 ///Find colliding pairs using the mark and sweep algorithm.
 fn find_iter_no_add<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
@@ -196,18 +212,8 @@ fn find_iter_no_add<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
     }
 }
 
-#[inline(always)]
-///Find colliding pairs using the mark and sweep algorithm.
-pub fn find_par<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
-    active_list: &mut Vec<AabbPin<&'a mut T>>,
-    axis: A,
-    collision_botids: AabbPin<&'a mut [T]>,
-    mut func: F,
-) -> F
-where
-    T: Send,
-    F: Send + Clone,
-{
+
+
     //TODO dont hardcode.
     if collision_botids.len() < 8_000 {
         find_iter(active_list, axis, collision_botids, &mut func);

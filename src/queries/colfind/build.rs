@@ -235,7 +235,7 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoS
         let res = if !f.current_axis.is_equal_to(f.anchor_axis) {
             true
         } else {
-            f.current.cont.intersects(&f.anchor.cont)
+            f.current.cont.intersects(f.anchor.cont)
         };
 
         if res {
@@ -335,7 +335,6 @@ fn handle_perp<T: Aabb, A: Axis>(
 
     let cc2 = f.current;
 
-    //TODO turn into iterator so we dont do two passes
     let r1 = super::tools::get_section_mut(anchor_axis, cc2.range, cc1);
 
     let mut r2 = super::tools::get_section_mut(current_axis, f.anchor.range, cc2.cont);

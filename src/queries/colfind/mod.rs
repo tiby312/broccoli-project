@@ -268,6 +268,8 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
     }
 }
 
+
+#[cfg(feature = "rayon")]
 ///Sweep and prune algorithm.
 pub fn par_query_sweep_mut<T: Aabb>(
     bots: &mut [T],
