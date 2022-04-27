@@ -369,7 +369,6 @@ fn handle_parallel<'a, 'node, T: Aabb, A: Axis>(
     let fb = oned::FindParallel2DBuilder::new(prevec, axis.next(), anchor2.range, current2.range);
 
     if f.current_is_leaf {
-        //TODO pointless?
         if anchor2.cont.intersects(current2.cont) {
             fb.build(|a, b| {
                 if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
