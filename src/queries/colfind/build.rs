@@ -61,20 +61,20 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
             let (nn, rest) = self.vistr.borrow_mut().next();
 
             if let Some([mut left, mut right]) = rest {
-                struct InnerRecurser<'a, 'node, T: Aabb, NN> {
-                    anchor: AabbPin<&'a mut Node<'node, T>>,
+                struct InnerRecurser<'a, T: Aabb, NN> {
+                    anchor: DNode<'a, T>,
                     anchor_axis: AxisDyn,
                     handler: &'a mut NN,
                 }
 
-                impl<'a, 'node, T: Aabb, NN> InnerRecurser<'a, 'node, T, NN>
+                impl<'a, T: Aabb, NN> InnerRecurser<'a, T, NN>
                 where
                     NN: NodeHandler<T>,
                 {
                     fn recurse(
                         &mut self,
                         this_axis: AxisDyn,
-                        m: VistrMutPin<Node<'node, T>>,
+                        m: VistrMutPin<Node<T>>,
                         is_left: bool,
                     ) {
                         let anchor_axis = self.anchor_axis;
@@ -83,9 +83,9 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
                         let (mut nn, rest) = m.next();
 
                         self.handler.handle_children(HandleChildrenArgs {
-                            anchor: self.anchor.borrow_mut(),
+                            anchor: self.anchor.borrow(),
                             anchor_axis: self.anchor_axis,
-                            current: nn.borrow_mut(),
+                            current: nn.borrow_mut().into_node_ref(),
                             current_axis: this_axis,
                             current_is_leaf,
                         });
@@ -116,9 +116,14 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
                     }
                 }
 
-                if nn.div.is_some() {
+                if let Some(div) = nn.div {
+                    let d = nn.into_node_ref();
                     let mut g = InnerRecurser {
-                        anchor: nn,
+                        anchor: DNode {
+                            div,
+                            cont: d.cont,
+                            range: d.range,
+                        },
                         anchor_axis: this_axis,
                         handler,
                     };
@@ -174,9 +179,10 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
     }
 }
 
-pub struct HandleChildrenArgs<'a, 'node, T: Aabb> {
-    pub anchor: AabbPin<&'a mut Node<'node, T>>,
-    pub current: AabbPin<&'a mut Node<'node, T>>,
+//remove need for second lifetime
+pub struct HandleChildrenArgs<'a, T: Aabb> {
+    pub anchor: DNode<'a, T>,
+    pub current: NodeRef<'a, T>,
     pub anchor_axis: AxisDyn,
     pub current_axis: AxisDyn,
     pub current_is_leaf: bool,
@@ -233,13 +239,28 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoS
         };
 
         if res {
-            for mut a in f.current.into_range().iter_mut() {
-                for mut b in f.anchor.borrow_mut().into_range().iter_mut() {
+            for mut a in f.current.range.iter_mut() {
+                for mut b in f.anchor.range.borrow_mut().iter_mut() {
                     if a.get().intersects_rect(b.get()) {
                         self.func.collide(a.borrow_mut(), b.borrow_mut());
                     }
                 }
             }
+        }
+    }
+}
+
+pub struct DNode<'a, T: Aabb> {
+    div: T::Num,
+    cont: &'a Range<T::Num>,
+    range: AabbPin<&'a mut [T]>,
+}
+impl<'a, T: Aabb> DNode<'a, T> {
+    fn borrow(&mut self) -> DNode<T> {
+        DNode {
+            div: self.div,
+            cont: self.cont,
+            range: self.range.borrow_mut(),
         }
     }
 }
@@ -304,21 +325,20 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for Que
 fn handle_perp<T: Aabb, A: Axis>(
     axis: A,
     func: &mut impl CollisionHandler<T>,
-    mut f: HandleChildrenArgs<T>,
+    f: HandleChildrenArgs<T>,
 ) {
     let anchor_axis = axis;
     let current_axis = axis.next();
 
     let cc1 = &f.anchor.cont;
-    let div = f.anchor.div.unwrap();
+    let div = f.anchor.div;
 
-    let cc2 = f.current.into_node_ref();
+    let cc2 = f.current;
 
     //TODO turn into iterator so we dont do two passes
     let r1 = super::tools::get_section_mut(anchor_axis, cc2.range, cc1);
 
-    let mut r2 =
-        super::tools::get_section_mut(current_axis, f.anchor.borrow_mut().into_range(), cc2.cont);
+    let mut r2 = super::tools::get_section_mut(current_axis, f.anchor.range, cc2.cont);
 
     //iterate over current nodes botd
     for y in r1.iter_mut() {
@@ -355,21 +375,21 @@ fn handle_perp<T: Aabb, A: Axis>(
         */
     }
 }
-fn handle_parallel<'a, 'node, T: Aabb, A: Axis>(
+fn handle_parallel<'a, T: Aabb, A: Axis>(
     axis: A,
     prevec: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
     func: &mut impl CollisionHandler<T>,
-    f: HandleChildrenArgs<'a, 'node, T>,
+    f: HandleChildrenArgs<'a, T>,
 ) {
-    let anchor_div = f.anchor.div.unwrap();
+    let anchor_div = f.anchor.div;
 
-    let anchor2 = f.anchor.into_node_ref();
-    let current2 = f.current.into_node_ref();
+    //let anchor2 = f.anchor.into_node_ref();
+    let current2 = f.current;
 
-    let fb = oned::FindParallel2DBuilder::new(prevec, axis.next(), anchor2.range, current2.range);
+    let fb = oned::FindParallel2DBuilder::new(prevec, axis.next(), f.anchor.range, current2.range);
 
     if f.current_is_leaf {
-        if anchor2.cont.intersects(current2.cont) {
+        if f.anchor.cont.intersects(current2.cont) {
             fb.build(|a, b| {
                 if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
                     func.collide(a, b)
@@ -378,7 +398,7 @@ fn handle_parallel<'a, 'node, T: Aabb, A: Axis>(
         }
     } else if let Some(current_div) = *current2.div {
         if anchor_div < current_div {
-            if anchor2.cont.end >= current2.cont.start {
+            if f.anchor.cont.end >= current2.cont.start {
                 fb.build(|a, b| {
                     if a.get().get_range(axis).end >= b.get().get_range(axis).start {
                         func.collide(a, b)
@@ -386,7 +406,7 @@ fn handle_parallel<'a, 'node, T: Aabb, A: Axis>(
                 });
             }
         } else if anchor_div > current_div {
-            if anchor2.cont.start <= current2.cont.end {
+            if f.anchor.cont.start <= current2.cont.end {
                 fb.build(|a, b| {
                     if a.get().get_range(axis).start <= b.get().get_range(axis).end {
                         func.collide(a, b)
