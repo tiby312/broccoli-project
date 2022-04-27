@@ -114,7 +114,7 @@ impl<'a, T> SweepAndPrune<'a, T> {
 
 use crate::tree::splitter::Splitter;
 
-const SEQ_FALLBACK_DEFAULT: usize = 4000;
+const SEQ_FALLBACK_DEFAULT: usize = 6000;
 
 pub fn builder_nosort<'a, 'b, T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
     tree: &'a mut TreeInner<Node<'b, T>, NoSorter>,
