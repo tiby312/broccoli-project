@@ -2,6 +2,8 @@
 //! Building blocks to find colliding pairs with trees
 //!
 
+use twounordered::TwoUnorderedVecs;
+
 use super::*;
 
 ///
@@ -54,16 +56,9 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
         mut self,
         handler: &mut N,
     ) -> (NodeFinisher<'b, T>, Option<[Self; 2]>) {
-        pub struct Recurser<'a, NO> {
-            pub handler: &'a mut NO,
-        }
-
-        fn collide_self<T: crate::Aabb>(
-            this_axis: AxisDyn,
-            v: VistrMutPin<Node<T>>,
-            data: &mut Recurser<impl NodeHandler<T>>,
-        ) {
-            let (nn, rest) = v.next();
+        {
+            let this_axis = self.axis;
+            let (nn, rest) = self.vistr.borrow_mut().next();
 
             if let Some([mut left, mut right]) = rest {
                 struct InnerRecurser<'a, 'node, T: Aabb, NN> {
@@ -87,15 +82,13 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
 
                         let (mut nn, rest) = m.next();
 
-                        self.handler.handle_children(
-                            Floop {
-                                anchor: self.anchor.borrow_mut(),
-                                anchor_axis: self.anchor_axis,
-                                current: nn.borrow_mut(),
-                                current_axis: this_axis,
-                            },
+                        self.handler.handle_children(HandleChildrenArgs {
+                            anchor: self.anchor.borrow_mut(),
+                            anchor_axis: self.anchor_axis,
+                            current: nn.borrow_mut(),
+                            current_axis: this_axis,
                             current_is_leaf,
-                        );
+                        });
 
                         if let Some([left, right]) = rest {
                             if let Some(div) = nn.div {
@@ -127,19 +120,13 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
                     let mut g = InnerRecurser {
                         anchor: nn,
                         anchor_axis: this_axis,
-                        handler: data.handler,
+                        handler,
                     };
 
                     g.recurse(this_axis.next(), left.borrow_mut(), true);
                     g.recurse(this_axis.next(), right.borrow_mut(), false);
                 }
             }
-        }
-
-        {
-            let mut data = Recurser { handler };
-
-            collide_self(self.axis, self.vistr.borrow_mut(), &mut data);
         }
 
         //TODO make height be zero for leaf?
@@ -187,12 +174,12 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
     }
 }
 
-//TODO document
-pub struct Floop<'a, 'node, T: Aabb> {
+pub struct HandleChildrenArgs<'a, 'node, T: Aabb> {
     pub anchor: AabbPin<&'a mut Node<'node, T>>,
     pub current: AabbPin<&'a mut Node<'node, T>>,
     pub anchor_axis: AxisDyn,
     pub current_axis: AxisDyn,
+    pub current_is_leaf: bool,
 }
 
 ///
@@ -201,7 +188,7 @@ pub struct Floop<'a, 'node, T: Aabb> {
 pub trait NodeHandler<T: Aabb> {
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool);
 
-    fn handle_children(&mut self, floop: Floop<T>, current_is_leaf: bool);
+    fn handle_children(&mut self, floop: HandleChildrenArgs<T>);
 }
 
 #[derive(Clone)]
@@ -238,7 +225,7 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoS
         }
     }
 
-    fn handle_children(&mut self, mut f: Floop<T>, _current_is_leaf: bool) {
+    fn handle_children(&mut self, mut f: HandleChildrenArgs<T>) {
         let res = if !f.current_axis.is_equal_to(f.anchor_axis) {
             true
         } else {
@@ -291,24 +278,29 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for Que
     }
 
     #[inline(always)]
-    fn handle_children(&mut self, f: Floop<T>, current_is_leaf: bool) {
+    fn handle_children(&mut self, f: HandleChildrenArgs<T>) {
         use AxisDyn::*;
         let func = &mut self.func;
-        let prevec = &mut self.prevec;
+
+        let mut k = twounordered::TwoUnorderedVecs::from(self.prevec.extract_vec());
+
         match (f.anchor_axis, f.current_axis) {
-            (X, X) => handle_parallel(XAXIS, prevec, func, f, current_is_leaf),
-            (Y, Y) => handle_parallel(YAXIS, prevec, func, f, current_is_leaf),
-            (X, Y) => handle_perp(XAXIS, func, f, current_is_leaf),
-            (Y, X) => handle_perp(YAXIS, func, f, current_is_leaf),
+            (X, X) => handle_parallel(XAXIS, &mut k, func, f),
+            (Y, Y) => handle_parallel(YAXIS, &mut k, func, f),
+            (X, Y) => handle_perp(XAXIS, func, f),
+            (Y, X) => handle_perp(YAXIS, func, f),
         }
+
+        let mut j: Vec<_> = k.into();
+        j.clear();
+        self.prevec.insert_vec(j);
     }
 }
 
 fn handle_perp<T: Aabb, A: Axis>(
     axis: A,
     func: &mut impl CollisionHandler<T>,
-    mut f: Floop<T>,
-    _current_is_leaf: bool,
+    mut f: HandleChildrenArgs<T>,
 ) {
     let anchor_axis = axis;
     let current_axis = axis.next();
@@ -359,24 +351,20 @@ fn handle_perp<T: Aabb, A: Axis>(
         */
     }
 }
-fn handle_parallel<T: Aabb, A: Axis>(
+fn handle_parallel<'a, 'node, T: Aabb, A: Axis>(
     axis: A,
-    prevec: &mut PreVec,
+    prevec: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
     func: &mut impl CollisionHandler<T>,
-    f: Floop<T>,
-    current_is_leaf: bool,
+    f: HandleChildrenArgs<'a, 'node, T>,
 ) {
     let anchor_div = f.anchor.div.unwrap();
 
     let anchor2 = f.anchor.into_node_ref();
     let current2 = f.current.into_node_ref();
 
-    //TODO make this even earlier?
-    let mut k = twounordered::TwoUnorderedVecs::from(prevec.extract_vec());
+    let fb = oned::FindParallel2DBuilder::new(prevec, axis.next(), anchor2.range, current2.range);
 
-    let fb = oned::FindParallel2DBuilder::new(&mut k, axis.next(), anchor2.range, current2.range);
-
-    if current_is_leaf {
+    if f.current_is_leaf {
         //TODO pointless?
         if anchor2.cont.intersects(current2.cont) {
             fb.build(|a, b| {
@@ -408,10 +396,6 @@ fn handle_parallel<T: Aabb, A: Axis>(
             });
         }
     }
-
-    let mut j: Vec<_> = k.into();
-    j.clear();
-    prevec.insert_vec(j);
 }
 
 ///An vec api to avoid excessive dynamic allocation by reusing a Vec
