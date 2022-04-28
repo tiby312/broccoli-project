@@ -382,6 +382,17 @@ pub struct TreeInner<N, S> {
 ///
 pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
 
+
+
+impl<N,Y> TreeInner<N, Y>{
+    pub fn into_sorter<X>(self) -> TreeInner<N,X> where X:From<Y>{
+        TreeInner{
+            total_num_elem:self.total_num_elem,
+            nodes:self.nodes,
+            sorter:self.sorter.into()
+        }
+    }
+}
 impl<'a, T: Aabb + 'a, S: Sorter<T>> TreeInner<Node<'a, T>, S> {
     pub fn into_node_data_tree(self) -> TreeInner<NodeData<T::Num>, S> {
         self.node_map(|x| NodeData {
