@@ -114,7 +114,7 @@ impl<'a, T> SweepAndPrune<'a, T> {
 
 use crate::tree::splitter::Splitter;
 
-const SEQ_FALLBACK_DEFAULT: usize = 6000;
+const SEQ_FALLBACK_DEFAULT: usize = 2_000;
 
 
 

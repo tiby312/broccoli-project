@@ -279,7 +279,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T, DefaultSorter> {
 impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
     pub fn new(sorter: S, bots: &'a mut [T]) -> Self {
         let num_bots = bots.len();
-        let num_seq_fallback = 2_400;
+        let num_seq_fallback = 2_000;
         TreeBuilder {
             bots,
             sorter,

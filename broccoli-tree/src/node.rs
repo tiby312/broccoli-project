@@ -199,17 +199,28 @@ pub use vistr_mut::VistrMutPin;
 pub struct Node<'a, T: Aabb> {
     pub range: AabbPin<&'a mut [T]>,
 
-    // if range is empty, then value is unspecified.
-    // if range is not empty, then cont can be read.
+    /// if range is empty, then value is [default,default].
+    /// if range is not empty, then cont is the min max bounds in on the y axis (if the node belongs to the x axis).
     pub cont: axgeom::Range<T::Num>,
 
-    // for non leafs:
-    //   if there is a bot either in this node or in a child node, then div is some.
-    //
-    // for leafs:
-    //   value is none
+    /// for non leafs:
+    ///   if there is a bot either in this node or in a child node, then div is some.
+    ///
+    /// for leafs:
+    ///   value is none
     pub div: Option<T::Num>,
 
+
+    ///
+    /// The minimum number of elements in a child node.
+    /// If the left child has 500 bots, and the right child has 20, then
+    /// this value will be 20.
+    /// 
+    /// This is used to determine when to start a parallel task. 
+    /// Starting a parallel task has overhead so we only want to split
+    /// one off if we know that both threads have a decent amount of work 
+    /// to perform in parallel.
+    /// 
     pub num_elem: usize,
 }
 
@@ -224,12 +235,16 @@ pub trait HasElem {
     fn get_elems(&mut self) -> AabbPin<&mut [Self::T]>;
 }
 
+
+
+///
+/// Like [`Node`] except only has the number of elem instead of a slice..
+/// 
 #[derive(Debug, Clone)]
 pub struct NodeData<N: Num> {
     pub range: usize,
     pub cont: axgeom::Range<N>,
     pub div: Option<N>,
-
     pub num_elem: usize,
 }
 
