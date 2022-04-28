@@ -259,17 +259,6 @@ where
     }
 }
 
-///
-/// The main tree struct
-///
-#[derive(Clone)]
-#[must_use]
-pub struct TreeInner<N, S> {
-    total_num_elem: usize,
-    nodes: Vec<N>,
-    sorter: S,
-}
-
 pub struct TreeBuilder<'a, T, S> {
     pub bots: &'a mut [T],
     pub sorter: S,
@@ -377,10 +366,34 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
 }
 
 ///
+/// The main tree struct
+///
+#[derive(Clone)]
+#[must_use]
+pub struct TreeInner<N, S> {
+    total_num_elem: usize,
+    ///Stored in pre-order
+    nodes: Vec<N>,
+    sorter: S,
+}
+
+///
 /// [`TreeInner`] type with default node and sorter.
 ///
 pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
 
+impl<N, Y> TreeInner<N, Y> {
+    pub fn into_sorter<X>(self) -> TreeInner<N, X>
+    where
+        X: From<Y>,
+    {
+        TreeInner {
+            total_num_elem: self.total_num_elem,
+            nodes: self.nodes,
+            sorter: self.sorter.into(),
+        }
+    }
+}
 impl<'a, T: Aabb + 'a, S: Sorter<T>> TreeInner<Node<'a, T>, S> {
     pub fn into_node_data_tree(self) -> TreeInner<NodeData<T::Num>, S> {
         self.node_map(|x| NodeData {

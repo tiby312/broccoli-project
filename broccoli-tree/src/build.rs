@@ -163,7 +163,7 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
                 div: rr.div,
                 axis: self.axis,
                 sorter: self.sorter,
-                num_elem: rr.left.len() + rr.right.len(),
+                num_elem: rr.left.len().min(rr.right.len()),
             };
 
             let left = rr.left;

@@ -30,34 +30,35 @@ pub fn get_section_mut<'a, I: Aabb, A: Axis>(
     arr: AabbPin<&'a mut [I]>,
     range: &Range<I::Num>,
 ) -> AabbPin<&'a mut [I]> {
-    let mut start = None;
     let mut ii = arr.iter().enumerate();
-    for (e, i) in &mut ii {
-        let rr = i.get().get_range(axis);
-        if rr.end >= range.start {
-            start = Some(e);
-            break;
-        }
-    }
 
-    let start = if let Some(start) = start {
-        start
-    } else {
-        return AabbPin::new(&mut []);
+    let ii = &mut ii;
+
+    let start = {
+        let mut ii = ii.skip_while(|(_, i)| {
+            let rr = i.get().get_range(axis);
+            rr.end < range.start
+        });
+
+        if let Some(start) = ii.next() {
+            start.0
+        } else {
+            return AabbPin::new(&mut []);
+        }
     };
 
-    let mut end = None;
-    for (e, i) in ii {
-        let rr = i.get().get_range(axis);
-        if rr.start > range.end {
-            end = Some(e);
-            break;
-        }
-    }
+    let end = {
+        let mut ii = ii.skip_while(|(_, i)| {
+            let rr = i.get().get_range(axis);
+            rr.start <= range.end
+        });
 
-    if let Some(end) = end {
-        arr.truncate(start..end)
-    } else {
-        arr.truncate_from(start..)
-    }
+        if let Some((end, _)) = ii.next() {
+            end
+        } else {
+            return arr.truncate_from(start..);
+        }
+    };
+
+    arr.truncate(start..end)
 }

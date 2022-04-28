@@ -58,15 +58,13 @@ impl Record {
         let bench_par = {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) =
-                bench_closure_ret(|| TreeBuilder::new_default(&mut bots).build_par());
+            let (mut tree, t1) = bench_closure_ret(|| broccoli::tree::new_par(&mut bots));
             let t2 = bench_closure(|| {
-                tree.colliding_pairs_builder(|a, b| {
+                tree.par_colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
-                })
-                .build_par();
+                });
             });
             (t1 as f64, t2 as f64)
         };
@@ -93,12 +91,11 @@ impl Record {
             let (mut tree, t1) =
                 bench_closure_ret(|| TreeBuilder::new_no_sort(&mut bots).build_par());
             let t2 = bench_closure(|| {
-                tree.colliding_pairs_builder(|a, b| {
+                tree.par_colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
-                })
-                .build_par();
+                });
             });
             (t1 as f64, t2 as f64)
         } else {

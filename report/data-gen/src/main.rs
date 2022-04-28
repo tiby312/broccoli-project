@@ -184,25 +184,29 @@ macro_rules! run_test {
 }
 
 fn profile_test(num_bots: usize) {
-    let grow = DEFAULT_GROW;
-    //let num_bots = 50_000;
+    let grow = 0.02; // DEFAULT_GROW;
+                     //let num_bots = 50_000;
     use crate::support::*;
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
 
     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
     for _ in 0..30 {
-        let mut num_collision = 0;
+        // let mut num_collision = 0;
         let c0 = bench_closure(|| {
-            let mut tree = broccoli::tree::new_par(&mut bots);
-            tree.colliding_pairs(|a, b| {
-                num_collision += 1;
-                **a.unpack_inner() += 1;
-                **b.unpack_inner() += 1;
-            });
+            let mut tree = broccoli::tree::new(&mut bots);
+            broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
+                &mut tree,
+                |a, b| {
+                    //num_collision += 1;
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
+                },
+            )
+            .build();
         });
 
-        dbg!(c0, num_collision);
+        dbg!(c0);
     }
 }
 fn main() {
@@ -244,6 +248,7 @@ fn main() {
                     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
                     let mut tree = broccoli::tree::new(&mut bots);
+
                     let mut num_collide = 0;
 
                     tree.colliding_pairs(|a, b| {
@@ -275,13 +280,14 @@ fn main() {
             std::fs::create_dir_all(&path).expect("failed to create directory");
             let mut fb = FigureBuilder::new(folder);
 
+            run_test!(&mut fb, colfind::colfind_plot::handle_bench);
+
             run_test!(&mut fb, colfind::parallel_heur_comparison::handle);
 
             run_test!(&mut fb, colfind::level_analysis::handle_bench);
 
             run_test!(&mut fb, colfind::optimal_query::handle);
 
-            run_test!(&mut fb, colfind::colfind_plot::handle_bench);
             run_test!(&mut fb, colfind::construction_vs_query::handle_bench);
             run_test!(&mut fb, colfind::float_vs_integer::handle);
             run_test!(&mut fb, colfind::height_heur_comparison::handle);

@@ -88,26 +88,26 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             &mut tree,
             |axis, node, rect, _| {
                 use AxisDyn::*;
-                    
+
                 if !node.range.is_empty() {
-                    let r=match axis{
-                        X=>Rect {
+                    let r = match axis {
+                        X => Rect {
                             x: node.cont.into(),
                             y: rect.y.into(),
                         },
-                        Y=>Rect {
+                        Y => Rect {
                             x: rect.x.into(),
                             y: node.cont.into(),
-                        }
+                        },
                     };
 
                     verts.rect(r);
                 }
 
                 let mid = if let Some(div) = node.div {
-                    match axis{
-                        X=>get_nonleaf_mid(XAXIS, rect, div),
-                        Y=>get_nonleaf_mid(YAXIS, rect, div)
+                    match axis {
+                        X => get_nonleaf_mid(XAXIS, rect, div),
+                        Y => get_nonleaf_mid(YAXIS, rect, div),
                     }
                 } else {
                     get_leaf_mid(rect)
