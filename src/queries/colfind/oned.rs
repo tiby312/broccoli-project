@@ -28,20 +28,19 @@ impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
 
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
-pub fn find_2d<A: Axis, T: Aabb, F: CollisionHandler<T>>(
-    prevec1: &mut PreVec,
+pub fn find_2d<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
+    k: &mut Vec<AabbPin<&'a mut T>>,
     axis: A,
-    bots: AabbPin<&mut [T]>,
+    bots: AabbPin<&'a mut [T]>,
     func: &mut F,
     check_y: bool,
 ) {
-    let mut k = prevec1.extract_vec();
     if check_y {
         let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
-        self::find_iter(&mut k, axis, bots, &mut b);
+        self::find_iter(k, axis, bots, &mut b);
     } else {
         let b = func;
-        self::find_iter(&mut k, axis, bots, b);
+        self::find_iter(k, axis, bots, b);
     }
 }
 

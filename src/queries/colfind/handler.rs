@@ -46,6 +46,7 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for Def
     type Sorter = DefaultSorter;
     #[inline(always)]
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
+        let mut k = self.prevec.extract_vec();
         //
         // All bots belonging to a non leaf node are guaranteed to touch the divider.
         // Therefore, all bots intersect along one axis already. Because:
@@ -53,21 +54,12 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for Def
         // If a contains x and b contains x then a intersects b.
         //
         match axis.next() {
-            AxisDyn::X => oned::find_2d(
-                &mut self.prevec,
-                axgeom::XAXIS,
-                bots,
-                &mut self.func,
-                is_leaf,
-            ),
-            AxisDyn::Y => oned::find_2d(
-                &mut self.prevec,
-                axgeom::YAXIS,
-                bots,
-                &mut self.func,
-                is_leaf,
-            ),
+            AxisDyn::X => oned::find_2d(&mut k, axgeom::XAXIS, bots, &mut self.func, is_leaf),
+            AxisDyn::Y => oned::find_2d(&mut k, axgeom::YAXIS, bots, &mut self.func, is_leaf),
         }
+
+        k.clear();
+        self.prevec.insert_vec(k);
     }
 
     #[inline(always)]

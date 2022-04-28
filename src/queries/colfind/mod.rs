@@ -152,7 +152,7 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     }
 
     pub fn query(&mut self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        let mut prevec = PreVec::with_capacity(2048);
+        let mut prevec = Vec::with_capacity(2048);
         let bots = AabbPin::from_mut(self.inner);
         oned::find_2d(&mut prevec, default_axis(), bots, &mut func, true);
     }
