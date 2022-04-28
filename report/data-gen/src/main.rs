@@ -194,7 +194,7 @@ fn profile_test(num_bots: usize) {
     for _ in 0..30 {
         // let mut num_collision = 0;
         let c0 = bench_closure(|| {
-            let mut tree = broccoli::tree::new_par(&mut bots);
+            let mut tree = broccoli::tree::new(&mut bots);
             broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
                 &mut tree,
                 |a, b| {
@@ -203,7 +203,7 @@ fn profile_test(num_bots: usize) {
                     **b.unpack_inner() += 1;
                 },
             )
-            .build_par();
+            .build();
         });
 
         dbg!(c0);

@@ -184,7 +184,7 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
 
 use crate::tree::splitter::Splitter;
 
-const SEQ_FALLBACK_DEFAULT: usize = 2_000;
+const SEQ_FALLBACK_DEFAULT: usize = 2_400;
 
 #[must_use]
 pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO: NodeHandler<T>> {

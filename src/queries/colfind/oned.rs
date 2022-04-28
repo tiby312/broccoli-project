@@ -69,7 +69,7 @@ impl<'a, 'b, A: Axis, T: Aabb> FindParallel2DBuilder<'a, 'b, A, T> {
     }
 
     pub fn build(self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        self::find_other_parallel3(self.prevec, self.axis, (self.bots1, self.bots2), &mut func);
+        self::find_other_parallel4(self.prevec, self.axis, (self.bots1, self.bots2), &mut func);
     }
 }
 
@@ -244,7 +244,7 @@ where
     }
 }
 
-//does less comparisons than option 2.
+/*
 #[inline(always)]
 fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     active_lists: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
@@ -321,6 +321,135 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
             NextP::Y => {
                 let mut y = f2.next().unwrap();
 
+                active_lists.first().retain_mut_unordered(|x| {
+                    if x.get().get_range(axis).end >= y.get().get_range(axis).start {
+                        func.collide(x.borrow_mut(), y.borrow_mut());
+                        true
+                    } else {
+                        false
+                    }
+                });
+                xcounter = 0;
+
+                if ycounter > PRUNE_PERIOD {
+                    active_lists.second().retain_mut_unordered(|y2| {
+                        y2.get().get_range(axis).end >= y.get().get_range(axis).start
+                    });
+                    ycounter = 0;
+                } else {
+                    ycounter += 1;
+                }
+
+                active_lists.second().push(y);
+            }
+        }
+    }
+}
+*/
+
+#[inline(always)]
+#[allow(dead_code)]
+fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
+    active_lists: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
+    axis: A,
+    cols: (AabbPin<&'a mut [T]>, AabbPin<&'a mut [T]>),
+    func: &mut F,
+) {
+    use twounordered::RetainMutUnordered;
+    let mut xiter = cols.0.into_iter();
+    let mut yiter = cols.1.into_iter();
+
+    //Use this to ensure that the active lists
+    //are pruned every once in a while even
+    //if there are only many many x's in a row with no y's.
+    const PRUNE_PERIOD: usize = 100;
+    let mut xcounter = 0;
+    let mut ycounter = 0;
+
+    enum NextP<X> {
+        X(X),
+        Y(X),
+    }
+
+    let mut cache: Option<NextP<AabbPin<&mut T>>> = None;
+    loop {
+        let val = match cache.take() {
+            Some(NextP::X(x)) => match yiter.next() {
+                Some(y) => {
+                    if x.get().get_range(axis).start < y.get().get_range(axis).start {
+                        cache = Some(NextP::Y(y));
+                        NextP::X(x)
+                    } else {
+                        cache = Some(NextP::X(x));
+                        NextP::Y(y)
+                    }
+                }
+                None => NextP::X(x),
+            },
+            Some(NextP::Y(y)) => match xiter.next() {
+                Some(x) => {
+                    if x.get().get_range(axis).start < y.get().get_range(axis).start {
+                        cache = Some(NextP::Y(y));
+                        NextP::X(x)
+                    } else {
+                        cache = Some(NextP::X(x));
+                        NextP::Y(y)
+                    }
+                }
+                None => NextP::Y(y),
+            },
+            None => match (xiter.next(), yiter.next()) {
+                (Some(x), Some(y)) => {
+                    if x.get().get_range(axis).start < y.get().get_range(axis).start {
+                        cache = Some(NextP::Y(y));
+                        NextP::X(x)
+                    } else {
+                        cache = Some(NextP::X(x));
+                        NextP::Y(y)
+                    }
+                }
+                (Some(x), None) => {
+                    if active_lists.second().is_empty() {
+                        break;
+                    }
+                    NextP::X(x)
+                }
+                (None, Some(y)) => {
+                    if active_lists.first().is_empty() {
+                        break;
+                    }
+                    NextP::Y(y)
+                }
+                (None, None) => {
+                    break;
+                }
+            },
+        };
+
+        match val {
+            NextP::X(mut x) => {
+                active_lists.second().retain_mut_unordered(|y| {
+                    if y.get().get_range(axis).end >= x.get().get_range(axis).start {
+                        func.collide(x.borrow_mut(), y.borrow_mut());
+                        true
+                    } else {
+                        false
+                    }
+                });
+                ycounter = 0;
+
+                if xcounter > PRUNE_PERIOD {
+                    active_lists.first().retain_mut_unordered(|x2| {
+                        x2.get().get_range(axis).end >= x.get().get_range(axis).start
+                    });
+                    xcounter = 0;
+                } else {
+                    xcounter += 1;
+                }
+
+                active_lists.first().push(x);
+            }
+            NextP::Y(mut y) => {
                 active_lists.first().retain_mut_unordered(|x| {
                     if x.get().get_range(axis).end >= y.get().get_range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
