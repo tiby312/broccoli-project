@@ -17,12 +17,14 @@ impl Res {
 
             let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
 
-            let times2 =
-                broccoli::queries::colfind::build::QueryDefault::new_builder(&mut tree, |a, b| {
+            let times2 = broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
+                &mut tree,
+                |a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1
-                })
-                .build_with_splitter(LevelTimer::new(0, vec![]));
+                },
+            )
+            .build_with_splitter(LevelTimer::new(0, vec![]));
             let c2 = times2.into_levels().into_iter().map(|x| x as f64).collect();
 
             let t = Res {

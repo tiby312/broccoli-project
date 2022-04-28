@@ -1,4 +1,7 @@
-use broccoli::tree::{bbox, rect};
+use broccoli::{
+    prelude::ParCollidingPairsApi,
+    tree::{bbox, rect},
+};
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -17,11 +20,10 @@ fn main() {
     //populated it with mutable references.
     let mut tree = broccoli::tree::new_par(&mut aabbs);
 
-    broccoli::queries::colfind::build::QueryDefault::new_builder(&mut tree, |a, b| {
+    tree.par_colliding_pairs(|a, b| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
-    })
-    .build_par();
+    });
 
     assert_eq!(inner1, 1);
     assert_eq!(inner2, 1);

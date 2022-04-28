@@ -6,6 +6,8 @@ use super::tools;
 use super::*;
 pub mod build;
 use build::*;
+pub mod handler;
+use handler::*;
 
 ///Panics if a disconnect is detected between all colfind methods.
 pub fn assert_query<T: Aabb>(bots: &mut [T]) {
@@ -51,6 +53,53 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     assert_eq!(naive_res, nosort_res);
 }
 
+#[cfg(feature = "rayon")]
+pub mod par {
+    use super::*;
+    pub trait ParCollidingPairsApi<T: Aabb> {
+        fn par_colliding_pairs(
+            &mut self,
+            func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+        );
+    }
+
+    impl<'a, T: Aabb + Send> ParCollidingPairsApi<T> for TreeInner<Node<'a, T>, DefaultSorter>
+    where
+        T::Num: Send,
+    {
+        fn par_colliding_pairs(
+            &mut self,
+            func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+        ) {
+            CollidingPairsBuilder::new(self, DefaultNodeHandler::new(func)).build_par();
+        }
+    }
+
+    impl<'a, T: Aabb + Send> ParCollidingPairsApi<T> for TreeInner<Node<'a, T>, NoSorter>
+    where
+        T::Num: Send,
+    {
+        fn par_colliding_pairs(
+            &mut self,
+            func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+        ) {
+            CollidingPairsBuilder::new(self, NoSortNodeHandler::new(func)).build_par();
+        }
+    }
+
+    impl<'a, T: Aabb + Send> ParCollidingPairsApi<T> for SweepAndPrune<'a, T>
+    where
+        T::Num: Send,
+    {
+        fn par_colliding_pairs(
+            &mut self,
+            func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+        ) {
+            self.par_query(func);
+        }
+    }
+}
+
 ///
 /// Make colliding pair queries
 ///
@@ -71,13 +120,13 @@ use crate::tree::TreeInner;
 
 impl<'a, T: Aabb> CollidingPairsApi<T> for TreeInner<Node<'a, T>, DefaultSorter> {
     fn colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        CollidingPairsBuilder::new(self, QueryDefault::new(func)).build()
+        CollidingPairsBuilder::new(self, DefaultNodeHandler::new(func)).build()
     }
 }
 
 impl<'a, T: Aabb> CollidingPairsApi<T> for TreeInner<Node<'a, T>, NoSorter> {
     fn colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        CollidingPairsBuilder::new(self, NoSortQuery::new(func)).build()
+        CollidingPairsBuilder::new(self, NoSortNodeHandler::new(func)).build()
     }
 }
 

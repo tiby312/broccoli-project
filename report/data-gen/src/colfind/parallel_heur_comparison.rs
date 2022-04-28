@@ -32,11 +32,13 @@ fn test3(
 
     let (tree, query_time) = bench_closure_ret(|| {
         {
-            let mut k =
-                broccoli::queries::colfind::build::QueryDefault::new_builder(&mut tree, |a, b| {
+            let mut k = broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
+                &mut tree,
+                |a, b| {
                     **a.unpack_inner() += 2;
                     **b.unpack_inner() += 2;
-                });
+                },
+            );
 
             if let Some(r) = query_num {
                 k.num_seq_fallback = r;

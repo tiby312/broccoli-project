@@ -22,7 +22,7 @@ impl Res {
                 let c1 = levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();
 
-                let levelc2 = broccoli::queries::colfind::build::QueryDefault::new_builder(
+                let levelc2 = broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
                     &mut tree,
                     |a, b| {
                         a.unpack_inner().x += 1.0;

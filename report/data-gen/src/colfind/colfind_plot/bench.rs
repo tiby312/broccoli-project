@@ -20,15 +20,12 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c0 = bench_closure(|| {
-            let mut tree = TreeBuilder::new_default(&mut bots).build_par();
+            let mut tree = broccoli::tree::new_par(&mut bots);
 
-            let builder =
-                broccoli::queries::colfind::build::QueryDefault::new_builder(&mut tree, |a, b| {
-                    **a.unpack_inner() += 1;
-                    **b.unpack_inner() += 1;
-                });
-
-            builder.build_par();
+            tree.par_colliding_pairs(|a, b| {
+                **a.unpack_inner() += 1;
+                **b.unpack_inner() += 1;
+            });
         });
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
@@ -72,11 +69,10 @@ impl Record {
         let c5 = bench_closure(|| {
             let mut tree = TreeBuilder::new_no_sort(&mut bots).build_par();
 
-            broccoli::queries::colfind::build::NoSortQuery::new_builder(&mut tree, |a, b| {
+            tree.par_colliding_pairs(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
-            })
-            .build_par();
+            });
         });
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());

@@ -68,6 +68,10 @@ use broccoli_tree::node::*;
 use tree::*;
 
 pub mod prelude {
+
+    #[cfg(feature = "rayon")]
+    pub use super::queries::colfind::par::ParCollidingPairsApi;
+
     pub use super::queries::colfind::CollidingPairsApi;
     pub use super::queries::knearest::KnearestApi;
     pub use super::queries::nbody::NbodyApi;
