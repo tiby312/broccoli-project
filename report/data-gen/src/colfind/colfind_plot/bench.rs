@@ -1,3 +1,5 @@
+use broccoli::queries::colfind::SweepAndPrune;
+
 use super::*;
 
 #[derive(Serialize, Debug)]
@@ -20,10 +22,11 @@ impl Record {
         let c0 = bench_closure(|| {
             let mut tree = TreeBuilder::new_default(&mut bots).build_par();
 
-            let builder = broccoli::queries::colfind::builder(&mut tree, |a, b| {
-                **a.unpack_inner() += 1;
-                **b.unpack_inner() += 1;
-            });
+            let builder =
+                broccoli::queries::colfind::build::QueryDefault::new_builder(&mut tree, |a, b| {
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1;
+                });
 
             builder.build_par();
         });
@@ -42,7 +45,7 @@ impl Record {
 
         let c3 = if sweep_bench {
             bench_closure(|| {
-                broccoli::queries::colfind::par_query_sweep_mut(&mut bots, |a, b| {
+                SweepAndPrune::new(&mut bots).par_query(|a, b| {
                     **a.unpack_inner() -= 2;
                     **b.unpack_inner() -= 2;
                 });
@@ -69,7 +72,7 @@ impl Record {
         let c5 = bench_closure(|| {
             let mut tree = TreeBuilder::new_no_sort(&mut bots).build_par();
 
-            broccoli::queries::colfind::builder_nosort(&mut tree, |a, b| {
+            broccoli::queries::colfind::build::NoSortQuery::new_builder(&mut tree, |a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
             })

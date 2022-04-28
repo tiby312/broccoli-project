@@ -22,10 +22,13 @@ impl Res {
                 let c1 = levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();
 
-                let levelc2 = queries::colfind::builder(&mut tree, |a, b| {
-                    a.unpack_inner().x += 1.0;
-                    b.unpack_inner().y += 1.0;
-                })
+                let levelc2 = broccoli::queries::colfind::build::QueryDefault::new_builder(
+                    &mut tree,
+                    |a, b| {
+                        a.unpack_inner().x += 1.0;
+                        b.unpack_inner().y += 1.0;
+                    },
+                )
                 .build_with_splitter(LevelCounter::new(0, vec![]));
                 let c2 = levelc2
                     .into_levels()

@@ -196,7 +196,6 @@ pub trait NodeHandler<T: Aabb> {
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool);
 
     fn handle_children(&mut self, floop: HandleChildrenArgs<T>);
-
 }
 
 #[derive(Clone)]
@@ -204,20 +203,30 @@ pub struct NoSortQuery<F> {
     pub func: F,
 }
 impl<F> NoSortQuery<F> {
-    pub fn new<T:Aabb>(func:F)->Self where F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>){
-        NoSortQuery{
-            func
-        }
+    pub fn new<T: Aabb>(func: F) -> Self
+    where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    {
+        NoSortQuery { func }
+    }
+
+    pub fn new_builder<'a, 'b, T: Aabb>(
+        tree: &'a mut TreeInner<Node<'b, T>, NoSorter>,
+        func: F,
+    ) -> CollidingPairsBuilder<'b, 'a, T, NoSortQuery<F>>
+    where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    {
+        CollidingPairsBuilder::new(tree, NoSortQuery::new(func))
     }
 }
 
-
-impl<F:Clone> Splitter for NoSortQuery<F>{
+impl<F: Clone> Splitter for NoSortQuery<F> {
     fn div(self) -> (Self, Self) {
-        let other=NoSortQuery{
-            func:self.func.clone()
+        let other = NoSortQuery {
+            func: self.func.clone(),
         };
-        (self,other)
+        (self, other)
     }
 
     fn add(self, _b: Self) -> Self {
@@ -226,7 +235,7 @@ impl<F:Clone> Splitter for NoSortQuery<F>{
 }
 
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoSortQuery<F> {
-    type Sorter=NoSorter;
+    type Sorter = NoSorter;
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         fn foop<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
             func: &mut F,
@@ -295,22 +304,35 @@ pub struct QueryDefault<F> {
     pub func: F,
 }
 
-impl<F> QueryDefault<F>{
-    pub fn new<T:Aabb>(func:F)->Self where F:FnMut(AabbPin<&mut T>, AabbPin<&mut T>){
-        QueryDefault{
+impl<F> QueryDefault<F> {
+    pub fn new<T: Aabb>(func: F) -> Self
+    where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    {
+        QueryDefault {
             func,
-            prevec:PreVec::new()
+            prevec: PreVec::new(),
         }
+    }
+
+    pub fn new_builder<'a, 'b, T: Aabb>(
+        tree: &'a mut TreeInner<Node<'b, T>, DefaultSorter>,
+        func: F,
+    ) -> CollidingPairsBuilder<'b, 'a, T, QueryDefault<F>>
+    where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    {
+        CollidingPairsBuilder::new(tree, QueryDefault::new(func))
     }
 }
 
-impl<F:Clone> Splitter for QueryDefault<F>{
+impl<F: Clone> Splitter for QueryDefault<F> {
     fn div(self) -> (Self, Self) {
-        let other=QueryDefault{
-            prevec:self.prevec.clone(),
-            func:self.func.clone()
+        let other = QueryDefault {
+            prevec: self.prevec.clone(),
+            func: self.func.clone(),
         };
-        (self,other)
+        (self, other)
     }
 
     fn add(self, _b: Self) -> Self {
@@ -319,7 +341,7 @@ impl<F:Clone> Splitter for QueryDefault<F>{
 }
 
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for QueryDefault<F> {
-    type Sorter=DefaultSorter;
+    type Sorter = DefaultSorter;
     #[inline(always)]
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         //

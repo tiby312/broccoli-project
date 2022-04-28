@@ -143,8 +143,6 @@ pub fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
     });
 }
 
-
-
 #[cfg(feature = "rayon")]
 #[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.
@@ -158,61 +156,58 @@ where
     T: Send,
     F: Send + Clone,
 {
+    ///Find colliding pairs using the mark and sweep algorithm.
+    fn find_iter_no_add<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
+        active: &mut Vec<AabbPin<&'a mut T>>,
+        axis: A,
+        collision_botids: impl Iterator<Item = AabbPin<&'a mut T>>,
+        func: &mut F,
+    ) {
+        use twounordered::RetainMutUnordered;
+        //    Create a new temporary list called “activeList”.
+        //    You begin on the left of your axisList, adding the first item to the activeList.
+        //
+        //    Now you have a look at the next item in the axisList and compare it with all items
+        //     currently in the activeList (at the moment just one):
+        //     - If the new item’s left is greater then the current activeList-item right,
+        //       then remove
+        //    the activeList-item from the activeList
+        //     - otherwise report a possible collision between the new axisList-item and the current
+        //     activeList-item.
+        //
+        //    Add the new item itself to the activeList and continue with the next item
+        //     in the axisList.
 
-///Find colliding pairs using the mark and sweep algorithm.
-fn find_iter_no_add<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
-    active: &mut Vec<AabbPin<&'a mut T>>,
-    axis: A,
-    collision_botids: impl Iterator<Item = AabbPin<&'a mut T>>,
-    func: &mut F,
-) {
-    use twounordered::RetainMutUnordered;
-    //    Create a new temporary list called “activeList”.
-    //    You begin on the left of your axisList, adding the first item to the activeList.
-    //
-    //    Now you have a look at the next item in the axisList and compare it with all items
-    //     currently in the activeList (at the moment just one):
-    //     - If the new item’s left is greater then the current activeList-item right,
-    //       then remove
-    //    the activeList-item from the activeList
-    //     - otherwise report a possible collision between the new axisList-item and the current
-    //     activeList-item.
-    //
-    //    Add the new item itself to the activeList and continue with the next item
-    //     in the axisList.
-
-    for mut curr_bot in collision_botids {
-        if active.is_empty() {
-            break;
-        }
-
-        active.retain_mut_unordered(|that_bot| {
-            let crr = curr_bot.get().get_range(axis);
-
-            if that_bot.get().get_range(axis).end >= crr.start {
-                debug_assert!(curr_bot
-                    .get()
-                    .get_range(axis)
-                    .intersects(that_bot.get().get_range(axis)));
-
-                /*
-                assert!(curr_bot
-                    .get()
-                    .get_range(axis.next())
-                    .intersects(that_bot.get().get_range(axis.next())),"{:?} {:?}",curr_bot
-                    .get()
-                    .get_range(axis.next()),that_bot.get().get_range(axis.next()));
-                */
-                func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
-                true
-            } else {
-                false
+        for mut curr_bot in collision_botids {
+            if active.is_empty() {
+                break;
             }
-        });
+
+            active.retain_mut_unordered(|that_bot| {
+                let crr = curr_bot.get().get_range(axis);
+
+                if that_bot.get().get_range(axis).end >= crr.start {
+                    debug_assert!(curr_bot
+                        .get()
+                        .get_range(axis)
+                        .intersects(that_bot.get().get_range(axis)));
+
+                    /*
+                    assert!(curr_bot
+                        .get()
+                        .get_range(axis.next())
+                        .intersects(that_bot.get().get_range(axis.next())),"{:?} {:?}",curr_bot
+                        .get()
+                        .get_range(axis.next()),that_bot.get().get_range(axis.next()));
+                    */
+                    func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
+                    true
+                } else {
+                    false
+                }
+            });
+        }
     }
-}
-
-
 
     //TODO dont hardcode.
     if collision_botids.len() < 8_000 {

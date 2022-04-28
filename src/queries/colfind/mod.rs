@@ -83,19 +83,7 @@ impl<'a, T: Aabb> CollidingPairsApi<T> for TreeInner<Node<'a, T>, NoSorter> {
 
 impl<'a, T: Aabb> CollidingPairsApi<T> for SweepAndPrune<'a, T> {
     fn colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        ///Sweep and prune algorithm.
-        fn query_sweep_mut<T: Aabb>(
-            axis: impl Axis,
-            bots: &mut [T],
-            mut func: impl CollisionHandler<T>,
-        ) {
-            broccoli_tree::util::sweeper_update(axis, bots);
-
-            let mut prevec = PreVec::with_capacity(2048);
-            let bots = AabbPin::new(bots);
-            oned::find_2d(&mut prevec, axis, bots, &mut func, true);
-        }
-        query_sweep_mut(default_axis(), self.inner, func)
+        self.query(func);
     }
 }
 
@@ -106,34 +94,48 @@ pub struct SweepAndPrune<'a, T> {
     inner: &'a mut [T],
 }
 
-impl<'a, T> SweepAndPrune<'a, T> {
+impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     pub fn new(inner: &'a mut [T]) -> Self {
+        let axis = default_axis();
+        broccoli_tree::util::sweeper_update(axis, inner);
+
         SweepAndPrune { inner }
+    }
+
+    pub fn query(&mut self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+        let mut prevec = PreVec::with_capacity(2048);
+        let bots = AabbPin::from_mut(self.inner);
+        oned::find_2d(&mut prevec, default_axis(), bots, &mut func, true);
+    }
+
+    #[cfg(feature = "rayon")]
+    ///Sweep and prune algorithm.
+    pub fn par_query(
+        &mut self,
+        mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+    ) where
+        T: Send,
+    {
+        let axis = default_axis();
+        let mut prevec = Vec::with_capacity(2048);
+        let bots = AabbPin::from_mut(self.inner);
+        let a2 = axis.next();
+        let _ = oned::find_par(
+            &mut prevec,
+            axis,
+            bots,
+            move |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
+                if a.get().get_range(a2).intersects(b.get().get_range(a2)) {
+                    func(a, b);
+                }
+            },
+        );
     }
 }
 
 use crate::tree::splitter::Splitter;
 
 const SEQ_FALLBACK_DEFAULT: usize = 2_000;
-
-
-
-pub fn builder_nosort<'a, 'b, T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
-    tree: &'a mut TreeInner<Node<'b, T>, NoSorter>,
-    func: F,
-) -> CollidingPairsBuilder<'b, 'a, T, NoSortQuery<F>> {
-    CollidingPairsBuilder::new(tree,NoSortQuery::new(func))
-}
-
-
-pub fn builder<'a, 'b, T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
-    tree: &'a mut TreeInner<Node<'b, T>, DefaultSorter>,
-    func: F,
-) -> CollidingPairsBuilder<'b, 'a, T, QueryDefault<F>> {
-    CollidingPairsBuilder::new(tree,QueryDefault::new(func))
-}
-
-
 
 #[must_use]
 pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO: NodeHandler<T>> {
@@ -142,14 +144,12 @@ pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO: NodeHandler<T>> {
     pub handler: SO,
 }
 
-
-
 impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
-    pub fn new(tree:&'b mut TreeInner<Node<'a,T>,SO::Sorter>,handler:SO)->Self{
-        CollidingPairsBuilder{
+    pub fn new(tree: &'b mut TreeInner<Node<'a, T>, SO::Sorter>, handler: SO) -> Self {
+        CollidingPairsBuilder {
             vis: CollVis::new(tree.vistr_mut(), default_axis().to_dyn()),
             num_seq_fallback: SEQ_FALLBACK_DEFAULT,
-            handler
+            handler,
         }
     }
     pub fn build(mut self) {
@@ -157,7 +157,7 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
     }
 
     #[cfg(feature = "rayon")]
-    pub fn build_par(self)->SO
+    pub fn build_par(self) -> SO
     where
         T: Send,
         T::Num: Send,
@@ -170,7 +170,8 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
             vistr: CollVis<T>,
             mut handler: N,
             num_seq_fallback: usize,
-        )->N where
+        ) -> N
+        where
             T: Send,
             T::Num: Send,
             N: Splitter + Send,
@@ -179,18 +180,15 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
                 vistr.recurse_seq(&mut handler);
                 handler
             } else {
-                let (mut h1,h2)= handler.div();
+                let (mut h1, h2) = handler.div();
                 let (n, rest) = vistr.collide_and_next(&mut h1);
                 if let Some([left, right]) = rest {
-                    let (h1,h2)=rayon::join(
+                    let (h1, h2) = rayon::join(
                         || {
                             n.finish(&mut h1);
                             recurse_par(left, h1, num_seq_fallback)
-
                         },
-                        || {
-                            recurse_par(right, h2, num_seq_fallback)
-                        },
+                        || recurse_par(right, h2, num_seq_fallback),
                     );
                     h1.add(h2)
                 } else {
@@ -274,31 +272,4 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
         recurse_par_splitter(self.vis, self.num_seq_fallback, self.handler, splitter)
     }
     */
-}
-
-
-#[cfg(feature = "rayon")]
-///Sweep and prune algorithm.
-pub fn par_query_sweep_mut<T: Aabb>(
-    bots: &mut [T],
-    mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
-) where
-    T: Send,
-{
-    let axis = default_axis();
-    broccoli_tree::util::sweeper_update(axis, bots);
-
-    let mut prevec = Vec::with_capacity(2048);
-    let bots = AabbPin::new(bots);
-    let a2 = axis.next();
-    let _ = oned::find_par(
-        &mut prevec,
-        axis,
-        bots,
-        move |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
-            if a.get().get_range(a2).intersects(b.get().get_range(a2)) {
-                func(a, b);
-            }
-        },
-    );
 }

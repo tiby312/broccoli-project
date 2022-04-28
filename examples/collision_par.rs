@@ -1,6 +1,4 @@
-use broccoli::{tree::{bbox, rect}, queries::colfind::build::QueryDefault};
-use broccoli::tree::node::BBox;
-use broccoli::queries::colfind::CollidingPairsBuilder;
+use broccoli::tree::{bbox, rect};
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -19,10 +17,10 @@ fn main() {
     //populated it with mutable references.
     let mut tree = broccoli::tree::new_par(&mut aabbs);
 
-    CollidingPairsBuilder::new(&mut tree, QueryDefault::new::<BBox<i32, &mut i32>>(|a, b| {
+    broccoli::queries::colfind::build::QueryDefault::new_builder(&mut tree, |a, b| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
-    }))
+    })
     .build_par();
 
     assert_eq!(inner1, 1);

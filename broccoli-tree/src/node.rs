@@ -210,17 +210,16 @@ pub struct Node<'a, T: Aabb> {
     ///   value is none
     pub div: Option<T::Num>,
 
-
     ///
     /// The minimum number of elements in a child node.
     /// If the left child has 500 bots, and the right child has 20, then
     /// this value will be 20.
-    /// 
-    /// This is used to determine when to start a parallel task. 
+    ///
+    /// This is used to determine when to start a parallel task.
     /// Starting a parallel task has overhead so we only want to split
-    /// one off if we know that both threads have a decent amount of work 
+    /// one off if we know that both threads have a decent amount of work
     /// to perform in parallel.
-    /// 
+    ///
     pub num_elem: usize,
 }
 
@@ -235,11 +234,9 @@ pub trait HasElem {
     fn get_elems(&mut self) -> AabbPin<&mut [Self::T]>;
 }
 
-
-
 ///
 /// Like [`Node`] except only has the number of elem instead of a slice..
-/// 
+///
 #[derive(Debug, Clone)]
 pub struct NodeData<N: Num> {
     pub range: usize,

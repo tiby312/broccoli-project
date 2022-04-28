@@ -61,7 +61,7 @@ impl Record {
             let (mut tree, t1) =
                 bench_closure_ret(|| TreeBuilder::new_default(&mut bots).build_par());
             let t2 = bench_closure(|| {
-                queries::colfind::builder(&mut tree, |a, b| {
+                broccoli::queries::colfind::build::QueryDefault::new_builder(&mut tree, |a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
@@ -93,7 +93,7 @@ impl Record {
             let (mut tree, t1) =
                 bench_closure_ret(|| TreeBuilder::new_no_sort(&mut bots).build_par());
             let t2 = bench_closure(|| {
-                queries::colfind::builder_nosort(&mut tree, |a, b| {
+                broccoli::queries::colfind::build::NoSortQuery::new_builder(&mut tree, |a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());

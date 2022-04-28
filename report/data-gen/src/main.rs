@@ -195,7 +195,7 @@ fn profile_test(num_bots: usize) {
         // let mut num_collision = 0;
         let c0 = bench_closure(|| {
             let mut tree = broccoli::tree::new_par(&mut bots);
-            broccoli::queries::colfind::builder(&mut tree, |a, b| {
+            broccoli::queries::colfind::build::QueryDefault::new_builder(&mut tree, |a, b| {
                 //num_collision += 1;
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
