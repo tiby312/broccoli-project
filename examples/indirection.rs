@@ -21,6 +21,6 @@ fn main() {
     });
 
     assert_eq!(aabbs[0].inner, 1);
-    assert_eq!(aabbs[1].inner, 0);
-    assert_eq!(aabbs[2].inner, 1);
+    assert_eq!(aabbs[1].inner, 1);
+    assert_eq!(aabbs[2].inner, 2);
 }

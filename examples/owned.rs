@@ -25,6 +25,6 @@ fn main() {
     });
 
     assert_eq!(inner1, 1);
-    assert_eq!(inner2, 0);
-    assert_eq!(inner3, 1);
+    assert_eq!(inner2, 1);
+    assert_eq!(inner3, 2);
 }
