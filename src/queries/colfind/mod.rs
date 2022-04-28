@@ -71,13 +71,13 @@ use crate::tree::TreeInner;
 
 impl<'a, T: Aabb> CollidingPairsApi<T> for TreeInner<Node<'a, T>, DefaultSorter> {
     fn colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        builder(self, func).build()
+        CollidingPairsBuilder::new(self, QueryDefault::new(func)).build()
     }
 }
 
 impl<'a, T: Aabb> CollidingPairsApi<T> for TreeInner<Node<'a, T>, NoSorter> {
     fn colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        builder_nosort(self, func).build()
+        CollidingPairsBuilder::new(self, NoSortQuery::new(func)).build()
     }
 }
 
@@ -116,49 +116,52 @@ use crate::tree::splitter::Splitter;
 
 const SEQ_FALLBACK_DEFAULT: usize = 6000;
 
+
+
 pub fn builder_nosort<'a, 'b, T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
     tree: &'a mut TreeInner<Node<'b, T>, NoSorter>,
     func: F,
 ) -> CollidingPairsBuilder<'b, 'a, T, NoSortQuery<F>> {
-    CollidingPairsBuilder {
-        vis: CollVis::new(tree.vistr_mut(), default_axis().to_dyn()),
-        num_seq_fallback: SEQ_FALLBACK_DEFAULT,
-        handler: NoSortQuery { func },
-    }
+    CollidingPairsBuilder::new(tree,NoSortQuery::new(func))
 }
+
 
 pub fn builder<'a, 'b, T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
     tree: &'a mut TreeInner<Node<'b, T>, DefaultSorter>,
     func: F,
 ) -> CollidingPairsBuilder<'b, 'a, T, QueryDefault<F>> {
-    CollidingPairsBuilder {
-        vis: CollVis::new(tree.vistr_mut(), default_axis().to_dyn()),
-        num_seq_fallback: SEQ_FALLBACK_DEFAULT,
-        handler: QueryDefault {
-            prevec: PreVec::new(),
-            func,
-        },
-    }
+    CollidingPairsBuilder::new(tree,QueryDefault::new(func))
 }
+
+
 
 #[must_use]
 pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO: NodeHandler<T>> {
-    pub vis: CollVis<'a, 'b, T>,
+    vis: CollVis<'a, 'b, T>,
     pub num_seq_fallback: usize,
     pub handler: SO,
 }
 
+
+
 impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
+    pub fn new(tree:&'b mut TreeInner<Node<'a,T>,SO::Sorter>,handler:SO)->Self{
+        CollidingPairsBuilder{
+            vis: CollVis::new(tree.vistr_mut(), default_axis().to_dyn()),
+            num_seq_fallback: SEQ_FALLBACK_DEFAULT,
+            handler
+        }
+    }
     pub fn build(mut self) {
         self.vis.recurse_seq(&mut self.handler);
     }
 
     #[cfg(feature = "rayon")]
-    pub fn build_par(self)
+    pub fn build_par(self)->SO
     where
         T: Send,
         T::Num: Send,
-        SO: Clone + Send,
+        SO: Splitter + Send,
     {
         ///
         /// height_seq_fallback: if a subtree has this height, it will be processed as one unit sequentially.
@@ -167,33 +170,36 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
             vistr: CollVis<T>,
             mut handler: N,
             num_seq_fallback: usize,
-        ) where
+        )->N where
             T: Send,
             T::Num: Send,
-            N: Clone + Send,
+            N: Splitter + Send,
         {
             if vistr.num_elem() <= num_seq_fallback {
                 vistr.recurse_seq(&mut handler);
+                handler
             } else {
-                let handler2 = handler.clone();
-                let (n, rest) = vistr.collide_and_next(&mut handler);
+                let (mut h1,h2)= handler.div();
+                let (n, rest) = vistr.collide_and_next(&mut h1);
                 if let Some([left, right]) = rest {
-                    rayon::join(
+                    let (h1,h2)=rayon::join(
                         || {
-                            n.finish(&mut handler);
-                            recurse_par(left, handler, num_seq_fallback);
+                            n.finish(&mut h1);
+                            recurse_par(left, h1, num_seq_fallback)
+
                         },
                         || {
-                            recurse_par(right, handler2, num_seq_fallback);
+                            recurse_par(right, h2, num_seq_fallback)
                         },
                     );
+                    h1.add(h2)
                 } else {
-                    let _ = n.finish(&mut handler);
+                    let _ = n.finish(&mut h1);
+                    h1
                 }
             }
         }
 
-        //TODO best level define somewhere?
         recurse_par(self.vis, self.handler, self.num_seq_fallback)
     }
 
@@ -219,6 +225,7 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
         recurse_seq_splitter(self.vis, splitter, &mut self.handler)
     }
 
+    /*
     #[cfg(feature = "rayon")]
     pub fn build_with_splitter_par<SS: Splitter + Send>(self, splitter: SS) -> SS
     where
@@ -266,6 +273,7 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
         }
         recurse_par_splitter(self.vis, self.num_seq_fallback, self.handler, splitter)
     }
+    */
 }
 
 

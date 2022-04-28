@@ -192,17 +192,41 @@ pub struct HandleChildrenArgs<'a, T: Aabb> {
 /// Abstract over sorted and non sorted trees
 ///
 pub trait NodeHandler<T: Aabb> {
+    type Sorter;
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool);
 
     fn handle_children(&mut self, floop: HandleChildrenArgs<T>);
+
 }
 
 #[derive(Clone)]
 pub struct NoSortQuery<F> {
     pub func: F,
 }
+impl<F> NoSortQuery<F> {
+    pub fn new<T:Aabb>(func:F)->Self where F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>){
+        NoSortQuery{
+            func
+        }
+    }
+}
+
+
+impl<F:Clone> Splitter for NoSortQuery<F>{
+    fn div(self) -> (Self, Self) {
+        let other=NoSortQuery{
+            func:self.func.clone()
+        };
+        (self,other)
+    }
+
+    fn add(self, _b: Self) -> Self {
+        self
+    }
+}
 
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoSortQuery<F> {
+    type Sorter=NoSorter;
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         fn foop<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
             func: &mut F,
@@ -271,7 +295,31 @@ pub struct QueryDefault<F> {
     pub func: F,
 }
 
+impl<F> QueryDefault<F>{
+    pub fn new<T:Aabb>(func:F)->Self where F:FnMut(AabbPin<&mut T>, AabbPin<&mut T>){
+        QueryDefault{
+            func,
+            prevec:PreVec::new()
+        }
+    }
+}
+
+impl<F:Clone> Splitter for QueryDefault<F>{
+    fn div(self) -> (Self, Self) {
+        let other=QueryDefault{
+            prevec:self.prevec.clone(),
+            func:self.func.clone()
+        };
+        (self,other)
+    }
+
+    fn add(self, _b: Self) -> Self {
+        self
+    }
+}
+
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for QueryDefault<F> {
+    type Sorter=DefaultSorter;
     #[inline(always)]
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         //
