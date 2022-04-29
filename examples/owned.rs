@@ -1,5 +1,5 @@
 use broccoli::prelude::*;
-use broccoli::tree::{bbox, rect};
+use broccoli::tree::rect;
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -8,9 +8,9 @@ fn main() {
     //Rect is stored directly in tree,
     //but inner is not.
     let aabbs = [
-        bbox(rect(00, 10, 00, 10), &mut inner1),
-        bbox(rect(15, 20, 15, 20), &mut inner2),
-        bbox(rect(05, 15, 05, 15), &mut inner3),
+        (rect(00, 10, 00, 10), &mut inner1),
+        (rect(15, 20, 15, 20), &mut inner2),
+        (rect(05, 15, 05, 15), &mut inner3),
     ];
 
     //This will change the order of the elements

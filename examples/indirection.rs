@@ -1,10 +1,11 @@
 use broccoli::prelude::*;
-use broccoli::tree::{bbox, rect};
+use broccoli::tree::rect;
+
 fn main() {
     let mut aabbs = [
-        bbox(rect(00, 10, 00, 10), 0),
-        bbox(rect(15, 20, 15, 20), 0),
-        bbox(rect(05, 15, 05, 15), 0),
+        (rect(00, 10, 00, 10), 0),
+        (rect(15, 20, 15, 20), 0),
+        (rect(05, 15, 05, 15), 0),
     ];
 
     //Create a layer of direction.
@@ -20,7 +21,7 @@ fn main() {
         *b.unpack_inner() += 1;
     });
 
-    assert_eq!(aabbs[0].inner, 1);
-    assert_eq!(aabbs[1].inner, 1);
-    assert_eq!(aabbs[2].inner, 2);
+    assert_eq!(aabbs[0].1, 1);
+    assert_eq!(aabbs[1].1, 1);
+    assert_eq!(aabbs[2].1, 2);
 }

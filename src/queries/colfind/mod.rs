@@ -53,7 +53,7 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     assert_eq!(naive_res, nosort_res);
 }
 
-#[cfg(feature = "rayon")]
+#[cfg(feature = "parallel")]
 pub mod par {
     use super::*;
     pub trait ParCollidingPairsApi<T: Aabb> {
@@ -146,7 +146,7 @@ pub struct SweepAndPrune<'a, T> {
 impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     pub fn new(inner: &'a mut [T]) -> Self {
         let axis = default_axis();
-        broccoli_tree::util::sweeper_update(axis, inner);
+        tree::util::sweeper_update(axis, inner);
 
         SweepAndPrune { inner }
     }
@@ -157,7 +157,7 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
         oned::find_2d(&mut prevec, default_axis(), bots, &mut func, true);
     }
 
-    #[cfg(feature = "rayon")]
+    #[cfg(feature = "parallel")]
     ///Sweep and prune algorithm.
     pub fn par_query(
         &mut self,
@@ -205,7 +205,7 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
         self.vis.recurse_seq(&mut self.handler);
     }
 
-    #[cfg(feature = "rayon")]
+    #[cfg(feature = "parallel")]
     pub fn build_par(self) -> SO
     where
         T: Send,
@@ -271,54 +271,4 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
         }
         recurse_seq_splitter(self.vis, splitter, &mut self.handler)
     }
-
-    /*
-    #[cfg(feature = "rayon")]
-    pub fn build_with_splitter_par<SS: Splitter + Send>(self, splitter: SS) -> SS
-    where
-        T: Send,
-        T::Num: Send,
-        SO: Clone + Send,
-    {
-        ///
-        /// height_seq_fallback: if a subtree has this height, it will be processed as one unit sequentially.
-        ///
-        pub fn recurse_par_splitter<T: Aabb, N: NodeHandler<T>, S: Splitter + Send>(
-            vistr: CollVis<T>,
-            num_seq_fallback: usize,
-            mut func: N,
-            splitter: S,
-        ) -> S
-        where
-            T: Send,
-            T::Num: Send,
-            N: Clone + Send,
-        {
-            if vistr.num_elem() <= num_seq_fallback {
-                vistr.recurse_seq(&mut func);
-                splitter
-            } else {
-                let func2 = func.clone();
-                let (n, rest) = vistr.collide_and_next(&mut func);
-                if let Some([left, right]) = rest {
-                    let (s1, s2) = splitter.div();
-
-                    let (s1, s2) = rayon::join(
-                        || {
-                            n.finish(&mut func);
-                            recurse_par_splitter(left, num_seq_fallback, func, s1)
-                        },
-                        || recurse_par_splitter(right, num_seq_fallback, func2, s2),
-                    );
-
-                    s1.add(s2)
-                } else {
-                    let _ = n.finish(&mut func);
-                    splitter
-                }
-            }
-        }
-        recurse_par_splitter(self.vis, self.num_seq_fallback, self.handler, splitter)
-    }
-    */
 }

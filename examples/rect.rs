@@ -1,5 +1,5 @@
 use broccoli::prelude::*;
-use broccoli::tree::{aabb_pin::AabbPin, bbox, rect};
+use broccoli::tree::{aabb_pin::AabbPin, rect};
 
 fn main() {
     let inner1 = 4;
@@ -7,9 +7,9 @@ fn main() {
     let inner3 = 6;
 
     let mut bots = [
-        bbox(rect(00, 10, 00, 10), &inner1),
-        bbox(rect(15, 20, 15, 20), &inner2),
-        bbox(rect(05, 15, 05, 15), &inner3),
+        (rect(00, 10, 00, 10), &inner1),
+        (rect(15, 20, 15, 20), &inner2),
+        (rect(05, 15, 05, 15), &inner3),
     ];
 
     let mut tree = broccoli::tree::new(&mut bots);
@@ -20,8 +20,8 @@ fn main() {
     });
 
     assert_eq!(rect_collisions.len(), 1);
-    assert_eq!(rect_collisions[0].rect, rect(0, 10, 0, 10));
-    assert_eq!(*rect_collisions[0].inner, 4);
+    assert_eq!(rect_collisions[0].0, rect(0, 10, 0, 10));
+    assert_eq!(*rect_collisions[0].1, 4);
 
     tree.assert_tree_invariants();
 }

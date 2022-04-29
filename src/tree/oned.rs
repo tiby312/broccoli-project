@@ -1,4 +1,4 @@
-use crate::*;
+use super::*;
 
 ///The results of the binning process.
 pub struct Binned<'a, T: 'a> {

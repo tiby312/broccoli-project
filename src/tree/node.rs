@@ -1,5 +1,11 @@
 use super::*;
 
+use sealed::Sealed;
+
+mod sealed {
+    pub trait Sealed {}
+}
+
 /// The underlying number type used for the tree.
 /// It is auto implemented by all types that satisfy the type constraints.
 /// Notice that no arithmetic is possible. The tree is constructed
@@ -10,11 +16,12 @@ impl<T> Num for T where T: PartialOrd + Copy + Default + std::fmt::Debug {}
 ///
 /// Trait to signify that this object has an axis aligned bounding box.
 ///
-pub trait Aabb {
+pub trait Aabb: Sealed {
     type Num: Num;
     fn get(&self) -> &Rect<Self::Num>;
 }
 
+impl<T: Aabb> Sealed for &T {}
 impl<T: Aabb> Aabb for &T {
     type Num = T::Num;
     #[inline(always)]
@@ -22,6 +29,8 @@ impl<T: Aabb> Aabb for &T {
         T::get(self)
     }
 }
+
+impl<T: Aabb> Sealed for &mut T {}
 impl<T: Aabb> Aabb for &mut T {
     type Num = T::Num;
     #[inline(always)]
@@ -30,11 +39,37 @@ impl<T: Aabb> Aabb for &mut T {
     }
 }
 
+impl<N: Num> Sealed for Rect<N> {}
 impl<N: Num> Aabb for Rect<N> {
     type Num = N;
     #[inline(always)]
     fn get(&self) -> &Rect<Self::Num> {
         self
+    }
+}
+
+impl<N: Num, T> Sealed for (Rect<N>, T) {}
+impl<N: Num, T> Aabb for (Rect<N>, T) {
+    type Num = N;
+    #[inline(always)]
+    fn get(&self) -> &Rect<Self::Num> {
+        &self.0
+    }
+}
+
+impl<N: Num, T> HasInner for (Rect<N>, T) {
+    type Inner = T;
+    #[inline(always)]
+    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        (&self.0, &mut self.1)
+    }
+}
+
+impl<N: Num, T> HasInner for &mut (Rect<N>, T) {
+    type Inner = T;
+    #[inline(always)]
+    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        (&self.0, &mut self.1)
     }
 }
 
@@ -61,6 +96,7 @@ impl<N, T> BBox<N, T> {
     }
 }
 
+impl<N: Num, T> Sealed for BBox<N, T> {}
 impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;
     #[inline(always)]
@@ -105,6 +141,8 @@ impl<'a, N, T> BBoxMut<'a, N, T> {
         BBoxMut { rect, inner }
     }
 }
+
+impl<N: Num, T> Sealed for BBoxMut<'_, N, T> {}
 impl<N: Num, T> Aabb for BBoxMut<'_, N, T> {
     type Num = N;
     #[inline(always)]
@@ -126,7 +164,8 @@ impl<N: Num, T> HasInner for BBoxMut<'_, N, T> {
 pub type Vistr<'a, N> = compt::dfs_order::Vistr<'a, N, compt::dfs_order::PreOrder>;
 
 mod vistr_mut {
-    use crate::*;
+    use super::*;
+    use compt::Visitor;
 
     /// Tree Iterator that returns a protected mutable reference to each node.
     #[repr(transparent)]
@@ -199,7 +238,7 @@ pub use vistr_mut::VistrMutPin;
 pub struct Node<'a, T: Aabb> {
     pub range: AabbPin<&'a mut [T]>,
 
-    /// if range is empty, then value is [default,default].
+    /// if range is empty, then value is `[default,default]`.
     /// if range is not empty, then cont is the min max bounds in on the y axis (if the node belongs to the x axis).
     pub cont: axgeom::Range<T::Num>,
 

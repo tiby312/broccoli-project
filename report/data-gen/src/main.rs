@@ -43,8 +43,8 @@ pub mod bbox_helper {
     pub fn create_bbox_mut<T, N: Num>(
         arr: &mut [T],
         mut func: impl FnMut(&T) -> Rect<N>,
-    ) -> Vec<BBox<N, &mut T>> {
-        arr.iter_mut().map(|a| bbox(func(a), a)).collect()
+    ) -> Vec<(Rect<N>, &mut T)> {
+        arr.iter_mut().map(|a| (func(a), a)).collect()
     }
 }
 

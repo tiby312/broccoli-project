@@ -2,7 +2,7 @@ use broccoli::axgeom;
 use broccoli::axgeom::vec2;
 
 use broccoli::prelude::*;
-use broccoli::tree::{bbox, rect};
+use broccoli::tree::rect;
 
 fn main() {
     let mut inner1 = 4;
@@ -10,9 +10,9 @@ fn main() {
     let mut inner3 = 2;
 
     let mut aabbs = [
-        bbox(rect(00, 10, 00, 10), &mut inner1),
-        bbox(rect(15, 20, 15, 20), &mut inner2),
-        bbox(rect(05, 15, 05, 15), &mut inner3),
+        (rect(00, 10, 00, 10), &mut inner1),
+        (rect(15, 20, 15, 20), &mut inner2),
+        (rect(05, 15, 05, 15), &mut inner3),
     ];
 
     let mut tree = broccoli::tree::new(&mut aabbs);
@@ -25,12 +25,12 @@ fn main() {
     let res = tree.raycast_mut_closure(
         ray,
         |_, _| None,
-        |ray, a| ray.cast_to_rect(&a.rect),
+        |ray, a| ray.cast_to_rect(&a.0),
         |ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
         |ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
     );
 
-    assert_eq!(*res.unwrap().elems[0].inner, 4);
+    assert_eq!(*res.unwrap().elems[0].1, 4);
 
     tree.assert_tree_invariants();
 }

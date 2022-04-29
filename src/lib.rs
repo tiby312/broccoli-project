@@ -58,18 +58,21 @@ mod test_readme {
 #[macro_use]
 extern crate alloc;
 
-#[doc(inline)]
-pub use broccoli_tree as tree;
+//#[doc(inline)]
+//pub use broccoli_tree as tree;
 
-pub use tree::axgeom;
+pub use axgeom;
+pub mod tree;
 
-use broccoli_tree::build::*;
-use broccoli_tree::node::*;
+use tree::build::*;
+use tree::node::*;
 use tree::*;
+
+pub mod ext;
 
 pub mod prelude {
 
-    #[cfg(feature = "rayon")]
+    #[cfg(feature = "parallel")]
     pub use super::queries::colfind::par::ParCollidingPairsApi;
 
     pub use super::queries::colfind::CollidingPairsApi;

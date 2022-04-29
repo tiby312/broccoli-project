@@ -324,7 +324,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
     }
 
     fn full_and_max_distance(&self) -> Option<T::Num> {
-        assert!(broccoli_tree::util::is_sorted_by(&self.bots, |a, b| a
+        assert!(tree::util::is_sorted_by(&self.bots, |a, b| a
             .mag
             .partial_cmp(&b.mag)));
 

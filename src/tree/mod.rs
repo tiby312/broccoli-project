@@ -14,6 +14,7 @@ pub mod util;
 pub use axgeom;
 
 use aabb_pin::*;
+
 use axgeom::*;
 use build::*;
 use compt::Visitor;
@@ -127,7 +128,7 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
     TreeBuilder::new(DefaultSorter, bots).build()
 }
 
-#[cfg(feature = "rayon")]
+#[cfg(feature = "parallel")]
 pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
 where
     T: Send + Sync,
@@ -146,7 +147,7 @@ where
     TreeOwned::new(DefaultSorter, cont)
 }
 
-#[cfg(feature = "rayon")]
+#[cfg(feature = "parallel")]
 pub fn new_owned_par<C: Container>(cont: C) -> TreeOwned<C, DefaultSorter>
 where
     C::T: Aabb + Send + Sync,
@@ -212,7 +213,7 @@ where
         }
     }
 
-    #[cfg(feature = "rayon")]
+    #[cfg(feature = "parallel")]
     pub fn new_par(sorter: S, mut bots: C) -> TreeOwned<C, S>
     where
         C::T: Send + Sync,
@@ -305,7 +306,7 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
         }
     }
 
-    #[cfg(feature = "rayon")]
+    #[cfg(feature = "parallel")]
     pub fn build_par(self) -> TreeInner<Node<'a, T>, S>
     where
         T: Send,

@@ -23,7 +23,6 @@ serde = { version = "1.0", features = ["derive"] }
 axgeom="*"
 duckduckgeo ={git="https://github.com/tiby312/duckduckgeo"}
 dists={git="https://github.com/tiby312/dists"}
-broccoli-ext={path="../broccoli-ext"}
 
 
 [dependencies.gloo]

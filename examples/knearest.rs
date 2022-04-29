@@ -1,6 +1,6 @@
 use broccoli::axgeom::vec2;
 use broccoli::prelude::*;
-use broccoli::tree::{bbox, rect};
+use broccoli::tree::rect;
 
 fn distance_squared(a: isize, b: isize) -> isize {
     let a = (a - b).abs();
@@ -13,9 +13,9 @@ fn main() {
     let mut inner3 = vec2(7, 7);
 
     let mut bots = [
-        bbox(rect(00, 10, 00, 10), &mut inner1),
-        bbox(rect(02, 04, 02, 04), &mut inner2),
-        bbox(rect(06, 08, 06, 08), &mut inner3),
+        (rect(00, 10, 00, 10), &mut inner1),
+        (rect(02, 04, 02, 04), &mut inner2),
+        (rect(06, 08, 06, 08), &mut inner3),
     ];
 
     let mut tree = broccoli::tree::new(&mut bots);
@@ -23,8 +23,8 @@ fn main() {
     let mut res = tree.k_nearest_mut_closure(
         vec2(30, 30),
         2,
-        |point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0)),
-        |point, a| a.inner.distance_squared_to_point(point),
+        |point, a| Some(a.0.distance_squared_to_point(point).unwrap_or(0)),
+        |point, a| a.1.distance_squared_to_point(point),
         |point, a| distance_squared(point.x, a),
         |point, a| distance_squared(point.y, a),
     );
@@ -32,7 +32,7 @@ fn main() {
     assert_eq!(res.len(), 2);
     assert_eq!(res.total_len(), 2);
 
-    let foo: Vec<_> = res.iter().map(|a| *a[0].bot.inner).collect();
+    let foo: Vec<_> = res.iter().map(|a| *a[0].bot.1).collect();
 
     tree.assert_tree_invariants();
 

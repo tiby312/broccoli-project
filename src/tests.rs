@@ -12,7 +12,7 @@ fn test() {
 
     let mut bots: Vec<_> = bots
         .iter_mut()
-        .map(|a| crate::bbox(rect(0isize, 0, 0, 0), a))
+        .map(|a| (rect(0isize, 0, 0, 0), a))
         .collect();
 
     let mut tree = crate::new(&mut bots);
@@ -33,7 +33,7 @@ fn test() {
 
     recc(tree.vistr_mut());
     //recursively check that the length is correct at each node.
-    fn recc(a: VistrMutPin<Node<BBox<isize, &mut usize>>>) {
+    fn recc(a: VistrMutPin<Node<(Rect<isize>, &mut usize)>>) {
         let (_nn, rest) = a.next();
         match rest {
             Some([mut left, mut right]) => {
