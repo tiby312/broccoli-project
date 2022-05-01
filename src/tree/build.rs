@@ -5,20 +5,19 @@
 use super::*;
 
 #[must_use]
-pub struct NodeFinisher<'a, T: Aabb, S> {
+pub struct NodeFinisher<'a, T: Aabb> {
     axis: AxisDyn,
     div: Option<T::Num>, //This can be null if there are no bots left at all
     mid: &'a mut [T],
-    sorter: S,
     num_elem: usize,
 }
-impl<'a, T: Aabb, S: Sorter<T>> NodeFinisher<'a, T, S> {
+impl<'a, T: Aabb> NodeFinisher<'a, T> {
     pub fn get_num_elem(&self) -> usize {
         self.num_elem
     }
     #[inline(always)]
     #[must_use]
-    pub fn finish(self) -> Node<'a, T> {
+    pub fn finish<S:Sorter<T>>(self,sorter:&mut S) -> Node<'a, T> {
         fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
             match middle.split_first() {
                 Some((first, rest)) => {
@@ -52,11 +51,11 @@ impl<'a, T: Aabb, S: Sorter<T>> NodeFinisher<'a, T, S> {
 
         let cont = match self.axis {
             AxisDyn::X => {
-                self.sorter.sort(axgeom::XAXIS.next(), self.mid);
+                sorter.sort(axgeom::XAXIS.next(), self.mid);
                 create_cont(axgeom::XAXIS, self.mid)
             }
             AxisDyn::Y => {
-                self.sorter.sort(axgeom::YAXIS.next(), self.mid);
+                sorter.sort(axgeom::YAXIS.next(), self.mid);
                 create_cont(axgeom::YAXIS, self.mid)
             }
         };
@@ -73,29 +72,27 @@ impl<'a, T: Aabb, S: Sorter<T>> NodeFinisher<'a, T, S> {
 ///
 /// The main primitive to build a tree.
 ///
-pub struct TreeBuildVisitor<'a, T, S> {
+pub struct TreeBuildVisitor<'a, T> {
     bots: &'a mut [T],
     current_height: usize,
-    sorter: S,
     axis: AxisDyn,
 }
 
-pub struct NodeBuildResult<'a, T: Aabb, S> {
-    pub node: NodeFinisher<'a, T, S>,
-    pub rest: Option<[TreeBuildVisitor<'a, T, S>; 2]>,
+pub struct NodeBuildResult<'a, T: Aabb> {
+    pub node: NodeFinisher<'a, T>,
+    pub rest: Option<[TreeBuildVisitor<'a, T>; 2]>,
 }
 
-impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
+impl<'a, T: Aabb> TreeBuildVisitor<'a, T> {
     pub fn get_bots(&self) -> &[T] {
         self.bots
     }
     #[must_use]
-    pub fn new(num_levels: usize, bots: &'a mut [T], sorter: S) -> TreeBuildVisitor<'a, T, S> {
+    pub fn new(num_levels: usize, bots: &'a mut [T]) -> TreeBuildVisitor<'a, T> {
         assert!(num_levels >= 1);
         TreeBuildVisitor {
             bots,
             current_height: num_levels - 1,
-            sorter,
             axis: default_axis().to_dyn(),
         }
     }
@@ -104,14 +101,13 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
         self.current_height
     }
     #[must_use]
-    pub fn build_and_next(self) -> NodeBuildResult<'a, T, S> {
+    pub fn build_and_next(self) -> NodeBuildResult<'a, T> {
         //leaf case
         if self.current_height == 0 {
             let node = NodeFinisher {
                 mid: self.bots,
                 div: None,
                 axis: self.axis,
-                sorter: self.sorter,
                 num_elem: 0,
             };
 
@@ -162,7 +158,6 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
                 mid: rr.mid,
                 div: rr.div,
                 axis: self.axis,
-                sorter: self.sorter,
                 num_elem: rr.left.len().min(rr.right.len()),
             };
 
@@ -175,13 +170,11 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
                     TreeBuildVisitor {
                         bots: left,
                         current_height: self.current_height.saturating_sub(1),
-                        sorter: self.sorter,
                         axis: self.axis.next(),
                     },
                     TreeBuildVisitor {
                         bots: right,
                         current_height: self.current_height.saturating_sub(1),
-                        sorter: self.sorter,
                         axis: self.axis.next(),
                     },
                 ]),
@@ -189,14 +182,6 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuildVisitor<'a, T, S> {
         }
     }
 
-    pub fn recurse_seq(self, res: &mut Vec<Node<'a, T>>) {
-        let NodeBuildResult { node, rest } = self.build_and_next();
-        res.push(node.finish());
-        if let Some([left, right]) = rest {
-            left.recurse_seq(res);
-            right.recurse_seq(res);
-        }
-    }
 }
 
 struct ConstructResult<'a, T: Aabb> {

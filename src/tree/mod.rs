@@ -282,6 +282,62 @@ impl<'a, T: Aabb> TreeBuilder<'a, T, DefaultSorter> {
     }
 }
 
+
+//TODO copy same pattern for query
+pub struct Flop<'a,T,S:Sorter<T>>{
+    buffer:Vec<Node<'a,T>>,
+    sorter:S,
+    num_seq_fallback:usize
+}
+
+impl<'a,T,S:Sorter<T>> Flop<'a,T,S>{
+    pub fn recurse_seq(&mut self,vis:TreeBuildVisitor<T>){
+        let NodeBuildResult { node, rest } = vis.build_and_next();
+        self.buffer.push(node.finish(&mut self.sorter));
+        if let Some([left, right]) = rest {
+            self.recurse_seq(left);
+            self.recurse_seq(right);
+        }
+    }
+
+    fn merge(mut self,other:S)->Self{
+        self.buffer.append(&mut other.buffer);
+        self.sorter.add(other.sorter);
+        assert_eq!(self.num_seq_fallback,other.num_seq_fallback);
+    }
+
+    pub fn recurse_par(self,vistr:TreeBuildVisitor<T>)->Self{
+        let NodeBuildResult { node, rest } = vistr.build_and_next();
+
+        if let Some([left, right]) = rest {
+            if node.get_num_elem() <= self.num_seq_fallback {
+                self.buffer.push(node.finish());
+                self.recurse_seq(left);
+                self.recurse_seq(right);
+            } else {
+                let s2=self.clone();
+                let (_, mut a) = rayon::join(
+                    || {
+                        self.buffer.push(node.finish(&mut self.sorter));
+                        self.recurse_par(left);
+                        self
+                    },
+                    || {
+                        s2.recurse_par(right);
+                        s2
+                    },
+                );
+
+                self.merge(s2)
+            }
+        } else {
+            self.buffer.push(node.finish(&mut self.sorter));
+        }
+    }
+}
+
+
+
 impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
     pub fn new(sorter: S, bots: &'a mut [T]) -> Self {
         let num_bots = bots.len();
@@ -302,8 +358,8 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
             ..
         } = self;
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = TreeBuildVisitor::new(num_level, bots, sorter);
-        vistr.recurse_seq(&mut buffer);
+        let vistr = TreeBuildVisitor::new(num_level, bots);
+        vistr.recurse_seq(&mut buffer,&mut sorter);
         buffer
     }
 
@@ -315,10 +371,11 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
         T: Send,
         T::Num: Send,
     {
-        pub fn recurse_par<'a, T: Aabb, S: Sorter<T>>(
-            vistr: TreeBuildVisitor<'a, T, S>,
+        pub fn recurse_par<'a, T: Aabb>(
+            vistr: TreeBuildVisitor<'a, T>,
             num_seq_fallback: usize,
             buffer: &mut Vec<Node<'a, T>>,
+            
         ) where
             T: Send,
             T::Num: Send,
@@ -358,7 +415,7 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
         } = self;
         let total_num_elem = bots.len();
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = TreeBuildVisitor::new(num_level, bots, sorter);
+        let vistr = TreeBuildVisitor::new(num_level, bots);
         recurse_par(vistr, num_seq_fallback, &mut buffer);
 
         buffer
