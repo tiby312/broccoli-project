@@ -4,16 +4,41 @@
 
 use super::{rect::RectApi, *};
 
-pub fn intersect_with_tree_mut<'a, T: Aabb, X: Aabb<Num = T::Num> + 'a>(
-    tree: &mut crate::tree::Tree<'a, T>,
-    other: &mut crate::Tree<'a, X>,
+
+
+impl<'a, T: Aabb> Tree2<'a, T> {
+   
+
+    pub fn find_colliding_pairs_with<X: Aabb<Num = T::Num>>(
+        &mut self,
+        other: &mut crate::Tree2<X>,
+        func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
+    ) {
+        queries::intersect_with::intersect_with_tree_mut(&mut self.inner, &mut other.inner, func)
+    }
+
+    pub fn find_colliding_pairs_with_iter<'x, X: Aabb<Num = T::Num> + 'x>(
+        &mut self,
+        other: impl Iterator<Item = AabbPin<&'x mut X>>,
+        func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
+    ) {
+        queries::intersect_with::intersect_with_iter_mut(&mut self.inner, other, func)
+    }
+
+
+}
+
+
+pub fn intersect_with_tree_mut<T: Aabb, X: Aabb<Num = T::Num>>(
+    tree: &mut crate::tree::Tree< T>,
+    other: &mut crate::Tree<X>,
     func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
 ) {
     intersect_with_iter_mut(tree, other.iter_mut(), func)
 }
 
-pub fn intersect_with_iter_mut<'a, 'x, T: Aabb, X: Aabb<Num = T::Num> + 'x>(
-    tree: &mut crate::tree::Tree<'a, T>,
+pub fn intersect_with_iter_mut<'x, T: Aabb, X: Aabb<Num = T::Num> + 'x>(
+    tree: &mut crate::tree::Tree< T>,
     other: impl Iterator<Item = AabbPin<&'x mut X>>,
     mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
 ) {

@@ -23,6 +23,34 @@ pub trait RectApi<'a, T: Aabb>: Sized {
     );
 }
 
+
+impl<'a, T: Aabb> Tree2<'a, T> {
+ 
+    pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
+        &'b mut self,
+        rect: AabbPin<&mut K>,
+        foo: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
+    ) {
+        self.inner.for_all_not_in_rect_mut(rect, foo)
+    }
+    pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
+        &'b mut self,
+        rect: AabbPin<&mut K>,
+        foo: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
+    ) {
+        self.inner.for_all_in_rect_mut(rect, foo)
+    }
+    pub fn find_all_intersect_rect<'b, K: Aabb<Num = T::Num>>(
+        &'b mut self,
+        rect: AabbPin<&mut K>,
+        foo: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
+    ) {
+        self.inner.for_all_intersect_rect_mut(rect, foo)
+    }
+
+}
+
+
 impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
     fn for_all_not_in_rect_mut<K: Aabb<Num = T::Num>>(
         self,

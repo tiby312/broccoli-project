@@ -65,6 +65,35 @@ where
     }
 }
 
+
+
+
+impl<'a, T: Aabb> Tree2<'a, T> {
+ 
+    pub fn raycast<R: RayCast<T>>(
+        &mut self,
+        ray: Ray<T::Num>,
+        a: R,
+    ) -> axgeom::CastResult<CastAnswer<T>> {
+        self.inner.raycast_mut(ray, a)
+    }
+
+    pub fn raycast_from_closure(
+        &mut self,
+        ray: Ray<T::Num>,
+        broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
+        fine: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
+        xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+        yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+    ) -> axgeom::CastResult<CastAnswer<T>> {
+        self.inner
+            .raycast_mut_closure(ray, broad, fine, xline, yline)
+    }
+
+
+
+}
+
 ///
 /// Make raycast queries
 ///

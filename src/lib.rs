@@ -64,6 +64,8 @@ extern crate alloc;
 pub use axgeom;
 pub mod tree;
 
+use prelude::CollidingPairsApi;
+use tree::aabb_pin::AabbPin;
 use tree::build::*;
 use tree::node::*;
 use tree::*;
@@ -85,3 +87,24 @@ pub mod prelude {
 mod tests;
 
 pub mod queries;
+
+
+
+
+
+
+
+pub struct Tree2<'a, T: Aabb> {
+    inner: tree::TreeInner<Node<'a, T>, DefaultSorter>,
+}
+
+
+impl<'a, T: Aabb> Tree2<'a, T> {
+    pub fn new(bots: &'a mut [T]) -> Self {
+        Tree2 {
+            inner: tree::new(bots),
+        }
+    }
+
+
+}

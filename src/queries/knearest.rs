@@ -103,6 +103,34 @@ where
     }
 }
 
+
+impl<'a, T: Aabb> Tree2<'a, T> {
+ 
+    pub fn find_knearest(
+        &mut self,
+        point: Vec2<T::Num>,
+        num: usize,
+        ktrait: impl Knearest<T>,
+    ) -> KResult<T> {
+        self.inner.k_nearest_mut(point, num, ktrait)
+    }
+
+    pub fn find_knearest_from_closure(
+        &mut self,
+        point: Vec2<T::Num>,
+        num: usize,
+        broad: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
+        fine: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
+        xline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
+        yline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
+    ) -> KResult<T> {
+        self.inner
+            .k_nearest_mut_closure(point, num, broad, fine, xline, yline)
+    }
+
+}
+
+
 ///
 /// Make k_nearest queries
 ///

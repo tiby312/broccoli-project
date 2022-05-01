@@ -186,6 +186,21 @@ use crate::tree::splitter::Splitter;
 
 const SEQ_FALLBACK_DEFAULT: usize = 2_400;
 
+
+
+
+impl<'a, T: Aabb> Tree2<'a, T> {
+ 
+    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+        self.inner.colliding_pairs(func)
+    }
+
+    pub fn find_colliding_pairs_builder<'b,SO:NodeHandler<T,Sorter=DefaultSorter>>(&'b mut self,handler:SO)->CollidingPairsBuilder<'a,'b,T,SO>{
+        CollidingPairsBuilder::new(&mut self.inner,handler)
+    }
+
+}
+
 #[must_use]
 pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO: NodeHandler<T>> {
     vis: CollVis<'a, 'b, T>,
