@@ -4,11 +4,7 @@
 
 use super::{rect::RectApi, *};
 
-
-
 impl<'a, T: Aabb> Tree2<'a, T> {
-   
-
     pub fn find_colliding_pairs_with<X: Aabb<Num = T::Num>>(
         &mut self,
         other: &mut crate::Tree2<X>,
@@ -24,13 +20,10 @@ impl<'a, T: Aabb> Tree2<'a, T> {
     ) {
         queries::intersect_with::intersect_with_iter_mut(&mut self.inner, other, func)
     }
-
-
 }
 
-
 pub fn intersect_with_tree_mut<T: Aabb, X: Aabb<Num = T::Num>>(
-    tree: &mut crate::tree::Tree< T>,
+    tree: &mut crate::tree::Tree<T>,
     other: &mut crate::Tree<X>,
     func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
 ) {
@@ -38,7 +31,7 @@ pub fn intersect_with_tree_mut<T: Aabb, X: Aabb<Num = T::Num>>(
 }
 
 pub fn intersect_with_iter_mut<'x, T: Aabb, X: Aabb<Num = T::Num> + 'x>(
-    tree: &mut crate::tree::Tree< T>,
+    tree: &mut crate::tree::Tree<T>,
     other: impl Iterator<Item = AabbPin<&'x mut X>>,
     mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
 ) {

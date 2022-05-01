@@ -18,25 +18,22 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
         inner: Vec<(usize, usize)>,
     }
 
-    impl CollisionPtr{
-        fn new()->Self{
-            CollisionPtr{
-                inner:vec!()
-            }
+    impl CollisionPtr {
+        fn new() -> Self {
+            CollisionPtr { inner: vec![] }
         }
-        fn add<N>(&mut self,a:&BBox<N,usize>,b:&BBox<N,usize>){
+        fn add<N>(&mut self, a: &BBox<N, usize>, b: &BBox<N, usize>) {
             let a = a.inner;
             let b = b.inner;
             let (a, b) = if a < b { (a, b) } else { (b, a) };
 
             self.inner.push((a, b));
         }
-        pub fn finish(&mut self){
+        pub fn finish(&mut self) {
             self.inner.sort_unstable();
         }
     }
 
-    
     let mut bots: Vec<_> = bots
         .iter_mut()
         .enumerate()
@@ -44,73 +41,75 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
         .collect();
     let bots = bots.as_mut_slice();
 
-
-    let naive_res={
-        let mut cc=CollisionPtr::new();
-        Naive::new(bots).find_colliding_pairs(|a,b|{
-            cc.add(&*a,&*b);
+    let naive_res = {
+        let mut cc = CollisionPtr::new();
+        Naive::new(bots).find_colliding_pairs(|a, b| {
+            cc.add(&*a, &*b);
         });
         cc.finish();
         cc
     };
 
-    let tree_res={
-        let mut cc=CollisionPtr::new();
-        
-        Tree2::new(bots).find_colliding_pairs(|a,b|{
-            cc.add(&*a,&*b);
+    let tree_res = {
+        let mut cc = CollisionPtr::new();
+
+        Tree2::new(bots).find_colliding_pairs(|a, b| {
+            cc.add(&*a, &*b);
         });
         cc.finish();
         cc
     };
 
-    
-    let sweep_res={
-        let mut cc=CollisionPtr::new();
-        SweepAndPrune::new(bots).find_colliding_pairs(|a,b|{
-            cc.add(&*a,&*b);
+    let notsort_res = {
+        let mut cc = CollisionPtr::new();
+
+        NotSortedTree::new(bots).find_colliding_pairs(|a, b| {
+            cc.add(&*a, &*b);
         });
         cc.finish();
         cc
     };
 
-    
+    let sweep_res = {
+        let mut cc = CollisionPtr::new();
+        SweepAndPrune::new(bots).find_colliding_pairs(|a, b| {
+            cc.add(&*a, &*b);
+        });
+        cc.finish();
+        cc
+    };
+
     assert_eq!(naive_res.inner.len(), sweep_res.inner.len());
     assert_eq!(naive_res.inner.len(), tree_res.inner.len());
-    //TODO add back
-    //assert_eq!(naive_res.inner.len(), nosort_res.inner.len());
+    assert_eq!(naive_res.inner.len(), notsort_res.inner.len());
 
     assert_eq!(naive_res, tree_res);
     assert_eq!(naive_res, sweep_res);
-    //assert_eq!(naive_res, nosort_res);
-    
+    assert_eq!(naive_res, notsort_res);
 }
-
-
 
 use crate::tree::TreeInner;
 
-
-pub struct Naive<'a,T>{
-    inner:AabbPin<&'a mut [T]>
+pub struct Naive<'a, T> {
+    inner: AabbPin<&'a mut [T]>,
 }
-impl<'a,T:Aabb> Naive<'a,T>{
-    pub fn new(inner:&'a mut [T])->Self{
-        Naive{inner:AabbPin::from_mut(inner)}
+impl<'a, T: Aabb> Naive<'a, T> {
+    pub fn new(inner: &'a mut [T]) -> Self {
+        Naive {
+            inner: AabbPin::from_mut(inner),
+        }
     }
-    pub fn from_pinned(inner:AabbPin<&'a mut [T]>)->Self{
+    pub fn from_pinned(inner: AabbPin<&'a mut [T]>) -> Self {
         Naive { inner }
     }
 
-    pub fn find_colliding_pairs(&mut self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)){
+    pub fn find_colliding_pairs(&mut self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
         queries::for_every_pair(self.inner.borrow_mut(), move |a, b| {
             if a.get().intersects_rect(b.get()) {
                 func(a, b);
             }
         });
-
     }
-
 }
 
 ///
@@ -163,26 +162,74 @@ use crate::tree::splitter::Splitter;
 
 const SEQ_FALLBACK_DEFAULT: usize = 2_400;
 
+pub struct NotSortedTree<'a, T: Aabb> {
+    inner: tree::TreeInner<Node<'a, T>, NoSorter>,
+}
 
-
-
-impl<'a, T: Aabb> Tree2<'a, T> {
- 
-    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        self.colliding_pairs_builder(DefaultNodeHandler::new(func)).build();
+impl<'a, T: Aabb> NotSortedTree<'a, T> {
+    pub fn new(inner: &'a mut [T]) -> Self {
+        NotSortedTree {
+            inner: TreeBuilder::new_no_sort(inner).build(),
+        }
     }
 
+    pub fn par_new(inner: &'a mut [T]) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+    {
+        NotSortedTree {
+            inner: TreeBuilder::new_no_sort(inner).build_par(),
+        }
+    }
+
+    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+        self.colliding_pairs_builder(NoSortNodeHandler::new(func))
+            .build();
+    }
 
     #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs<F:FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(&mut self, func: F) where T:Send,T::Num:Send,F:Send+Clone{
-        self.colliding_pairs_builder(DefaultNodeHandler::new(func)).build_par();
+    pub fn par_find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(&mut self, func: F)
+    where
+        T: Send,
+        T::Num: Send,
+        F: Send + Clone,
+    {
+        self.colliding_pairs_builder(NoSortNodeHandler::new(func))
+            .build_par();
     }
 
+    pub fn colliding_pairs_builder<'b, SO: NodeHandler<T, Sorter = NoSorter>>(
+        &'b mut self,
+        handler: SO,
+    ) -> CollidingPairsBuilder<'a, 'b, T, SO> {
+        CollidingPairsBuilder::new(&mut self.inner, handler)
+    }
+}
 
-    pub fn colliding_pairs_builder<'b,SO:NodeHandler<T,Sorter=DefaultSorter>>(&'b mut self,handler:SO)->CollidingPairsBuilder<'a,'b,T,SO>{
-        CollidingPairsBuilder::new(&mut self.inner,handler)
+impl<'a, T: Aabb> Tree2<'a, T> {
+    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+        self.colliding_pairs_builder(DefaultNodeHandler::new(func))
+            .build();
     }
 
+    #[cfg(feature = "parallel")]
+    pub fn par_find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(&mut self, func: F)
+    where
+        T: Send,
+        T::Num: Send,
+        F: Send + Clone,
+    {
+        self.colliding_pairs_builder(DefaultNodeHandler::new(func))
+            .build_par();
+    }
+
+    pub fn colliding_pairs_builder<'b, SO: NodeHandler<T, Sorter = DefaultSorter>>(
+        &'b mut self,
+        handler: SO,
+    ) -> CollidingPairsBuilder<'a, 'b, T, SO> {
+        CollidingPairsBuilder::new(&mut self.inner, handler)
+    }
 }
 
 #[must_use]

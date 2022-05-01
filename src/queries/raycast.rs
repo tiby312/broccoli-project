@@ -65,11 +65,7 @@ where
     }
 }
 
-
-
-
 impl<'a, T: Aabb> Tree2<'a, T> {
- 
     pub fn cast_ray<R: RayCast<T>>(
         &mut self,
         ray: Ray<T::Num>,
@@ -89,9 +85,6 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         self.inner
             .raycast_mut_closure(ray, broad, fine, xline, yline)
     }
-
-
-
 }
 
 ///

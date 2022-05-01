@@ -81,16 +81,9 @@ mod tests;
 
 pub mod queries;
 
-
-
-
-
-
-
 pub struct Tree2<'a, T: Aabb> {
     inner: tree::TreeInner<Node<'a, T>, DefaultSorter>,
 }
-
 
 impl<'a, T: Aabb> Tree2<'a, T> {
     pub fn new(bots: &'a mut [T]) -> Self {
@@ -99,7 +92,11 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         }
     }
 
-    pub fn par_new(bots: &'a mut [T]) -> Self where T:Send,T::Num:Send{
+    pub fn par_new(bots: &'a mut [T]) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+    {
         Tree2 {
             inner: tree::new_par(bots),
         }

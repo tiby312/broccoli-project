@@ -150,7 +150,7 @@ where
 #[cfg(feature = "parallel")]
 pub fn new_owned_par<C: Container>(cont: C) -> TreeOwned<C, DefaultSorter>
 where
-    C::T: Aabb + Send ,
+    C::T: Aabb + Send,
     <C::T as Aabb>::Num: Send,
 {
     TreeOwned::new_par(DefaultSorter, cont)
@@ -217,7 +217,7 @@ where
     pub fn new_par(sorter: S, mut bots: C) -> TreeOwned<C, S>
     where
         C::T: Send,
-        <C::T as Aabb>::Num: Send ,
+        <C::T as Aabb>::Num: Send,
     {
         let j = bots.as_mut();
         let length = j.len();
