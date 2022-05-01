@@ -228,14 +228,11 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
 
 
 impl<'a, T: Aabb> Tree2<'a, T> {
- 
-    pub fn nbody<N: Nbody<T = T>>(self, no: &mut N) -> Self {
+    pub fn handle_nbody<N: Nbody<T = T>>(self, no: &mut N) -> Self {
         Tree2 {
             inner: self.inner.nbody(no),
         }
     }
-
-
 }
 
 

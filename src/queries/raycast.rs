@@ -70,7 +70,7 @@ where
 
 impl<'a, T: Aabb> Tree2<'a, T> {
  
-    pub fn raycast<R: RayCast<T>>(
+    pub fn cast_ray<R: RayCast<T>>(
         &mut self,
         ray: Ray<T::Num>,
         a: R,
@@ -78,7 +78,7 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         self.inner.raycast_mut(ray, a)
     }
 
-    pub fn raycast_from_closure(
+    pub fn cast_ray_from_closure(
         &mut self,
         ray: Ray<T::Num>,
         broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,

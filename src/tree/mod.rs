@@ -131,8 +131,8 @@ pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
 #[cfg(feature = "parallel")]
 pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
 where
-    T: Send + Sync,
-    T::Num: Send + Sync,
+    T: Send,
+    T::Num: Send,
 {
     TreeBuilder::new(DefaultSorter, bots).build_par()
 }
@@ -150,8 +150,8 @@ where
 #[cfg(feature = "parallel")]
 pub fn new_owned_par<C: Container>(cont: C) -> TreeOwned<C, DefaultSorter>
 where
-    C::T: Aabb + Send + Sync,
-    <C::T as Aabb>::Num: Send + Sync,
+    C::T: Aabb + Send ,
+    <C::T as Aabb>::Num: Send,
 {
     TreeOwned::new_par(DefaultSorter, cont)
 }
@@ -216,8 +216,8 @@ where
     #[cfg(feature = "parallel")]
     pub fn new_par(sorter: S, mut bots: C) -> TreeOwned<C, S>
     where
-        C::T: Send + Sync,
-        <C::T as Aabb>::Num: Send + Sync,
+        C::T: Send,
+        <C::T as Aabb>::Num: Send ,
     {
         let j = bots.as_mut();
         let length = j.len();

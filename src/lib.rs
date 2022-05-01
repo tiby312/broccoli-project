@@ -64,8 +64,6 @@ extern crate alloc;
 pub use axgeom;
 pub mod tree;
 
-use prelude::CollidingPairsApi;
-use tree::aabb_pin::AabbPin;
 use tree::build::*;
 use tree::node::*;
 use tree::*;
@@ -73,11 +71,6 @@ use tree::*;
 pub mod ext;
 
 pub mod prelude {
-
-    #[cfg(feature = "parallel")]
-    pub use super::queries::colfind::par::ParCollidingPairsApi;
-
-    pub use super::queries::colfind::CollidingPairsApi;
     pub use super::queries::knearest::KnearestApi;
     pub use super::queries::nbody::NbodyApi;
     pub use super::queries::raycast::RaycastApi;
@@ -106,5 +99,9 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         }
     }
 
-
+    pub fn par_new(bots: &'a mut [T]) -> Self where T:Send,T::Num:Send{
+        Tree2 {
+            inner: tree::new_par(bots),
+        }
+    }
 }
