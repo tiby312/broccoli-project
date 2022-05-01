@@ -81,6 +81,22 @@ mod tests;
 
 pub mod queries;
 
+
+
+impl<'a,T:Aabb> std::ops::Deref for Tree2<'a,T>{
+    type Target=TreeInner<Node<'a,T>,DefaultSorter>;
+    fn deref(&self)->&Self::Target{
+        &self.inner
+    }
+}
+
+impl<'a,T:Aabb> std::ops::DerefMut for Tree2<'a,T>{
+    fn deref_mut(&mut self)->&mut Self::Target{
+        &mut self.inner
+    }
+}
+
+
 pub struct Tree2<'a, T: Aabb> {
     inner: tree::TreeInner<Node<'a, T>, DefaultSorter>,
 }

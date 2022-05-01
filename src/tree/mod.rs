@@ -267,6 +267,10 @@ pub struct TreeBuilder<'a, T, S> {
     pub num_seq_fallback: usize,
 }
 
+
+
+
+
 impl<'a, T: Aabb> TreeBuilder<'a, T, NoSorter> {
     pub fn new_no_sort(bots: &'a mut [T]) -> Self {
         Self::new(NoSorter, bots)
@@ -277,6 +281,7 @@ impl<'a, T: Aabb> TreeBuilder<'a, T, DefaultSorter> {
         Self::new(DefaultSorter, bots)
     }
 }
+
 impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
     pub fn new(sorter: S, bots: &'a mut [T]) -> Self {
         let num_bots = bots.len();
@@ -288,26 +293,24 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
             num_seq_fallback,
         }
     }
-    pub fn build(self) -> TreeInner<Node<'a, T>, S> {
+
+    pub fn build(self) -> Vec<Node<'a, T>> {
         let TreeBuilder {
             bots,
             sorter,
             num_level,
             ..
         } = self;
-        let total_num_elem = bots.len();
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         let vistr = TreeBuildVisitor::new(num_level, bots, sorter);
         vistr.recurse_seq(&mut buffer);
-        TreeInner {
-            nodes: buffer,
-            sorter,
-            total_num_elem,
-        }
+        buffer
     }
 
+
+
     #[cfg(feature = "parallel")]
-    pub fn build_par(self) -> TreeInner<Node<'a, T>, S>
+    pub fn build_par(self) -> Vec<Node<'a, T>>
     where
         T: Send,
         T::Num: Send,
@@ -358,11 +361,7 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
         let vistr = TreeBuildVisitor::new(num_level, bots, sorter);
         recurse_par(vistr, num_seq_fallback, &mut buffer);
 
-        TreeInner {
-            nodes: buffer,
-            sorter,
-            total_num_elem,
-        }
+        buffer
     }
 }
 
