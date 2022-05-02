@@ -83,28 +83,18 @@ pub mod queries;
 
 
 
-impl<'a,T:Aabb> std::ops::Deref for Tree2<'a,T>{
-    type Target=TreeInner<Node<'a,T>,DefaultSorter>;
-    fn deref(&self)->&Self::Target{
-        &self.inner
-    }
-}
-
-impl<'a,T:Aabb> std::ops::DerefMut for Tree2<'a,T>{
-    fn deref_mut(&mut self)->&mut Self::Target{
-        &mut self.inner
-    }
-}
-
-
 pub struct Tree2<'a, T: Aabb> {
-    inner: tree::TreeInner<Node<'a, T>, DefaultSorter>,
+    total_num_elem: usize,
+    nodes: Vec<Node<'a,T>>,
 }
 
 impl<'a, T: Aabb> Tree2<'a, T> {
     pub fn new(bots: &'a mut [T]) -> Self {
+        let total_num_elem=bots.len();
+        let nodes=tree::TreeBuilder::new(DefaultSorter,bots).build();
         Tree2 {
-            inner: tree::new(bots),
+            nodes,
+            total_num_elem
         }
     }
 
@@ -113,8 +103,11 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         T: Send,
         T::Num: Send,
     {
+        let total_num_elem=bots.len();
+        let nodes=tree::TreeBuilder::new(DefaultSorter,bots).build_par();
         Tree2 {
-            inner: tree::new_par(bots),
+            nodes,
+            total_num_elem
         }
     }
 }

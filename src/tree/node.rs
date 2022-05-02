@@ -234,8 +234,9 @@ mod vistr_mut {
 }
 pub use vistr_mut::VistrMutPin;
 
-/// A node in [`Tree`].
+
 pub struct Node<'a, T: Aabb> {
+    /// May or may not be sorted.
     pub range: AabbPin<&'a mut [T]>,
 
     /// if range is empty, then value is `[default,default]`.

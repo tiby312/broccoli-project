@@ -88,7 +88,6 @@ pub fn assert_query<T: Aabb>(bots: &mut [T]) {
     assert_eq!(naive_res, notsort_res);
 }
 
-use crate::tree::TreeInner;
 
 pub struct Naive<'a, T> {
     inner: AabbPin<&'a mut [T]>,
@@ -163,23 +162,30 @@ use crate::tree::splitter::Splitter;
 const SEQ_FALLBACK_DEFAULT: usize = 2_400;
 
 pub struct NotSortedTree<'a, T: Aabb> {
-    inner: tree::TreeInner<Node<'a, T>, NoSorter>,
+    nodes:Vec<Node<'a,T>>,
+    total_num_elem:usize
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
-    pub fn new(inner: &'a mut [T]) -> Self {
+    pub fn new(bots: &'a mut [T]) -> Self {
+        let total_num_elem=bots.len();
+        let nodes=tree::TreeBuilder::new(DefaultSorter,bots).build();
         NotSortedTree {
-            inner: TreeBuilder::new_no_sort(inner).build(),
+            nodes,
+            total_num_elem
         }
     }
 
-    pub fn par_new(inner: &'a mut [T]) -> Self
+    pub fn par_new(bots: &'a mut [T]) -> Self
     where
         T: Send,
         T::Num: Send,
     {
+        let total_num_elem=bots.len();
+        let nodes=tree::TreeBuilder::new(DefaultSorter,bots).build_par();
         NotSortedTree {
-            inner: TreeBuilder::new_no_sort(inner).build_par(),
+            nodes,
+            total_num_elem
         }
     }
 
@@ -232,6 +238,10 @@ impl<'a, T: Aabb> Tree2<'a, T> {
     }
 }
 
+
+
+
+
 #[must_use]
 pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO: NodeHandler<T>> {
     vis: CollVis<'a, 'b, T>,
@@ -265,7 +275,7 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
             vistr: CollVis<T>,
             mut handler: N,
             num_seq_fallback: usize,
-        ) -> N
+        )
         where
             T: Send,
             T::Num: Send,
@@ -275,20 +285,19 @@ impl<'a, 'b, T: Aabb, SO: NodeHandler<T>> CollidingPairsBuilder<'a, 'b, T, SO> {
                 vistr.recurse_seq(&mut handler);
                 handler
             } else {
-                let (mut h1, h2) = handler.div();
-                let (n, rest) = vistr.collide_and_next(&mut h1);
+                let h2 = handler.div();
+                let (n, rest) = vistr.collide_and_next(&mut handler);
                 if let Some([left, right]) = rest {
                     let (h1, h2) = rayon::join(
                         || {
-                            n.finish(&mut h1);
-                            recurse_par(left, h1, num_seq_fallback)
+                            n.finish(&mut handler);
+                            recurse_par(left, handler, num_seq_fallback)
                         },
                         || recurse_par(right, h2, num_seq_fallback),
                     );
-                    h1.add(h2)
+                    handler.add(h2);
                 } else {
-                    let _ = n.finish(&mut h1);
-                    h1
+                    let _ = n.finish(&mut handler);
                 }
             }
         }

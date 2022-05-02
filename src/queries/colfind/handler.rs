@@ -29,16 +29,15 @@ impl<F> DefaultNodeHandler<F> {
 }
 
 impl<F: Clone> Splitter for DefaultNodeHandler<F> {
-    fn div(self) -> (Self, Self) {
+    fn div(&mut self) -> Self {
         let other = DefaultNodeHandler {
             prevec: self.prevec.clone(),
             func: self.func.clone(),
         };
-        (self, other)
+        other
     }
 
-    fn add(self, _b: Self) -> Self {
-        self
+    fn add(&mut self, _b: Self){
     }
 }
 
@@ -110,15 +109,14 @@ impl<F> NoSortNodeHandler<F> {
 }
 
 impl<F: Clone> Splitter for NoSortNodeHandler<F> {
-    fn div(self) -> (Self, Self) {
-        let other = NoSortNodeHandler {
+    fn div(&mut self) -> Self {
+        NoSortNodeHandler {
             func: self.func.clone(),
-        };
-        (self, other)
+        }
     }
 
-    fn add(self, _b: Self) -> Self {
-        self
+    fn add(&mut self, _b: Self) {
+        
     }
 }
 

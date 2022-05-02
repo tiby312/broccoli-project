@@ -10,12 +10,13 @@ use super::*;
 ///during construction.
 pub trait Splitter: Sized {
     ///Called to split this into two to be passed to the children.
-    fn div(self) -> (Self, Self);
+    fn div(&mut self) -> Self;
 
     ///Called to add the results of the recursive calls on the children.
-    fn add(self, b: Self) -> Self;
+    fn add(&mut self, b: Self);
 }
 
+/*
 impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
     pub fn build_from_splitter<SS: Splitter>(
         self,
@@ -132,3 +133,5 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
         (t, splitter)
     }
 }
+
+*/

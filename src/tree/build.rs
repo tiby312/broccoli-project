@@ -200,9 +200,27 @@ impl<T: Aabb> Sorter<T> for DefaultSorter {
     }
 }
 
+impl splitter::Splitter for DefaultSorter{
+    fn div(&mut self)->Self{
+        DefaultSorter
+    }
+    fn add(&mut self,other:Self){
+
+    }
+}
+
 #[derive(Copy, Clone, Default)]
 pub struct NoSorter;
 
 impl<T: Aabb> Sorter<T> for NoSorter {
     fn sort(&self, _axis: impl Axis, _bots: &mut [T]) {}
+}
+
+impl splitter::Splitter for NoSorter{
+    fn div(&mut self)->Self{
+        NoSorter
+    }
+    fn add(&mut self,other:Self){
+
+    }
 }
