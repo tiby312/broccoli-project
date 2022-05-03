@@ -3,7 +3,6 @@
 //! provides the broccoli tree and tree building code, but no querying code.
 //!
 
-
 use super::*;
 pub mod aabb_pin;
 mod assert;
@@ -36,7 +35,7 @@ pub const fn default_axis() -> DefaultA {
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one
 ///does nothing when sort() is called.
-pub trait Sorter<T>:splitter::Splitter {
+pub trait Sorter<T>: splitter::Splitter {
     fn sort(&self, axis: impl Axis, bots: &mut [T]);
 }
 
@@ -115,35 +114,6 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
 #[must_use]
 pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
     BBoxMut::new(rect, inner)
-}
-
-
-
-///
-/// Abstract over containers that produce `&mut [T]`
-///
-pub trait Container {
-    type T;
-    fn as_mut(&mut self) -> &mut [Self::T];
-}
-
-impl<T, const N: usize> Container for [T; N] {
-    type T = T;
-    fn as_mut(&mut self) -> &mut [T] {
-        self
-    }
-}
-impl<T> Container for Vec<T> {
-    type T = T;
-    fn as_mut(&mut self) -> &mut [Self::T] {
-        self
-    }
-}
-impl<T> Container for Box<[T]> {
-    type T = T;
-    fn as_mut(&mut self) -> &mut [Self::T] {
-        self
-    }
 }
 
 /*
@@ -225,32 +195,15 @@ where
 }
 */
 
-pub struct TreeBuilder<'a, T, S> {
+pub struct TreeBuilder<'a, 'b, T, S> {
     pub bots: &'a mut [T],
-    pub sorter: &'a mut S,
+    pub sorter: &'b mut S,
     pub num_level: usize,
     pub num_seq_fallback: usize,
 }
 
-
-
-
-
-impl<'a, T: Aabb> TreeBuilder<'a, T, NoSorter> {
-    pub fn new_no_sort(bots: &'a mut [T]) -> Self {
-        Self::new(&mut NoSorter, bots)
-    }
-}
-impl<'a, T: Aabb> TreeBuilder<'a, T, DefaultSorter> {
-    pub fn new_default(bots: &'a mut [T]) -> Self {
-        Self::new(&mut DefaultSorter, bots)
-    }
-}
-
-
-
-impl<'a, T: Aabb, S: Sorter<T>+'a> TreeBuilder<'a, T, S> {
-    pub fn new(sorter: &'a mut S, bots: &'a mut [T]) -> Self {
+impl<'a, 'b, T: Aabb, S: Sorter<T> + 'b> TreeBuilder<'a, 'b, T, S> {
+    pub fn new(sorter: &'b mut S, bots: &'a mut [T]) -> Self {
         let num_bots = bots.len();
         let num_seq_fallback = 2_400;
         TreeBuilder {
@@ -261,67 +214,79 @@ impl<'a, T: Aabb, S: Sorter<T>+'a> TreeBuilder<'a, T, S> {
         }
     }
 
-    fn recurse_seq(sorter:&mut S,buffer:&mut Vec<Node<'a,T>>,vis:TreeBuildVisitor<'a,T>){
+    fn recurse_seq(sorter: &mut S, buffer: &mut Vec<Node<'a, T>>, vis: TreeBuildVisitor<'a, T>) {
         let NodeBuildResult { node, rest } = vis.build_and_next();
         buffer.push(node.finish(sorter));
         if let Some([left, right]) = rest {
-            Self::recurse_seq(sorter,buffer,left);
-            Self::recurse_seq(sorter,buffer,right);
+            Self::recurse_seq(sorter, buffer, left);
+            Self::recurse_seq(sorter, buffer, right);
         }
     }
 
-    fn recurse_par(num_seq_fallback:usize,sorter:&mut S,buffer:&mut Vec<Node<'a,T>>,vistr:TreeBuildVisitor<'a,T>) where S:Send,T:Send,T::Num:Send{
+    fn recurse_par(
+        num_seq_fallback: usize,
+        sorter: &mut S,
+        buffer: &mut Vec<Node<'a, T>>,
+        vistr: TreeBuildVisitor<'a, T>,
+    ) where
+        S: Send,
+        T: Send,
+        T::Num: Send,
+    {
         let NodeBuildResult { node, rest } = vistr.build_and_next();
 
         if let Some([left, right]) = rest {
             if node.get_num_elem() <= num_seq_fallback {
                 buffer.push(node.finish(sorter));
-                Self::recurse_seq(sorter,buffer,left);
-                Self::recurse_seq(sorter,buffer,right);
+                Self::recurse_seq(sorter, buffer, left);
+                Self::recurse_seq(sorter, buffer, right);
             } else {
-                let mut s2=sorter.div();
-                let (_, mut a) = rayon::join(
+                let mut s2 = sorter.div();
+                let mut buffer2 = vec![]; //TODO figure out capacity
+
+                rayon::join(
                     || {
                         buffer.push(node.finish(sorter));
-                        Self::recurse_par(num_seq_fallback,sorter,buffer,left);
+                        Self::recurse_par(num_seq_fallback, sorter, buffer, left);
                     },
                     || {
-                        let buffer2=vec!(); //TODO figure out capacity
-                        Self::recurse_par(num_seq_fallback,&mut s2,&mut buffer2,right);
-                        buffer
+                        Self::recurse_par(num_seq_fallback, &mut s2, &mut buffer2, right);
                     },
                 );
-                buffer.append(a);
+                buffer.append(&mut buffer2);
                 sorter.add(s2)
             }
         } else {
             buffer.push(node.finish(sorter));
         }
     }
-    pub fn build(self) -> Vec<Node<'a, T>> {        
-        let buffer=vec!();//TODO figure out
-        Self::recurse_seq(&mut self.sorter,&mut buffer,TreeBuildVisitor::new(self.num_level, self.bots));
+    pub fn build(mut self) -> Vec<Node<'a, T>> {
+        let mut buffer = vec![]; //TODO figure out
+        Self::recurse_seq(
+            &mut self.sorter,
+            &mut buffer,
+            TreeBuildVisitor::new(self.num_level, self.bots),
+        );
         buffer
     }
 
-
-
     #[cfg(feature = "parallel")]
-    pub fn build_par(self) -> Vec<Node<'a, T>>
+    pub fn build_par(mut self) -> Vec<Node<'a, T>>
     where
         T: Send,
         T::Num: Send,
-        S:Send
+        S: Send,
     {
-        
-        let buffer=vec!();//TODO figure out
-        Self::recurse_par(self.num_seq_fallback,&mut self.sorter,&mut buffer,TreeBuildVisitor::new(self.num_level, self.bots));
+        let mut buffer = vec![]; //TODO figure out
+        Self::recurse_par(
+            self.num_seq_fallback,
+            &mut self.sorter,
+            &mut buffer,
+            TreeBuildVisitor::new(self.num_level, self.bots),
+        );
         buffer
-        
-       
     }
 }
-
 
 /*
 

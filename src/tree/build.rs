@@ -17,7 +17,7 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
     }
     #[inline(always)]
     #[must_use]
-    pub fn finish<S:Sorter<T>>(self,sorter:&mut S) -> Node<'a, T> {
+    pub fn finish<S: Sorter<T>>(self, sorter: &mut S) -> Node<'a, T> {
         fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
             match middle.split_first() {
                 Some((first, rest)) => {
@@ -181,7 +181,6 @@ impl<'a, T: Aabb> TreeBuildVisitor<'a, T> {
             }
         }
     }
-
 }
 
 struct ConstructResult<'a, T: Aabb> {
@@ -200,13 +199,11 @@ impl<T: Aabb> Sorter<T> for DefaultSorter {
     }
 }
 
-impl splitter::Splitter for DefaultSorter{
-    fn div(&mut self)->Self{
+impl splitter::Splitter for DefaultSorter {
+    fn div(&mut self) -> Self {
         DefaultSorter
     }
-    fn add(&mut self,other:Self){
-
-    }
+    fn add(&mut self, other: Self) {}
 }
 
 #[derive(Copy, Clone, Default)]
@@ -216,11 +213,9 @@ impl<T: Aabb> Sorter<T> for NoSorter {
     fn sort(&self, _axis: impl Axis, _bots: &mut [T]) {}
 }
 
-impl splitter::Splitter for NoSorter{
-    fn div(&mut self)->Self{
+impl splitter::Splitter for NoSorter {
+    fn div(&mut self) -> Self {
         NoSorter
     }
-    fn add(&mut self,other:Self){
-
-    }
+    fn add(&mut self, other: Self) {}
 }

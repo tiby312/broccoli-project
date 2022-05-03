@@ -27,8 +27,7 @@ impl<F: Clone> Splitter for DefaultNodeHandler<F> {
         other
     }
 
-    fn add(&mut self, _b: Self){
-    }
+    fn add(&mut self, _b: Self) {}
 }
 
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for DefaultNodeHandler<F> {
@@ -94,9 +93,7 @@ impl<F: Clone> Splitter for NoSortNodeHandler<F> {
         }
     }
 
-    fn add(&mut self, _b: Self) {
-        
-    }
+    fn add(&mut self, _b: Self) {}
 }
 
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoSortNodeHandler<F> {

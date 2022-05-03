@@ -1,4 +1,4 @@
-use broccoli::{prelude::ParCollidingPairsApi, tree::rect};
+use broccoli::tree::rect;
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -15,9 +15,9 @@ fn main() {
     //This will change the order of the elements
     //in bboxes,but this is okay since we
     //populated it with mutable references.
-    let mut tree = broccoli::tree::new_par(&mut aabbs);
+    let mut tree = broccoli::Tree2::par_new(&mut aabbs);
 
-    tree.par_colliding_pairs(|a, b| {
+    tree.par_find_colliding_pairs(|a, b| {
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
     });

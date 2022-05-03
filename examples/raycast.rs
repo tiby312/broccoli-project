@@ -1,7 +1,6 @@
 use broccoli::axgeom;
 use broccoli::axgeom::vec2;
 
-use broccoli::prelude::*;
 use broccoli::tree::rect;
 
 fn main() {
@@ -15,14 +14,14 @@ fn main() {
         (rect(05, 15, 05, 15), &mut inner3),
     ];
 
-    let mut tree = broccoli::tree::new(&mut aabbs);
+    let mut tree = broccoli::Tree2::new(&mut aabbs);
 
     let ray = axgeom::Ray {
         point: vec2(-10, 1),
         dir: vec2(1, 0),
     };
 
-    let res = tree.raycast_mut_closure(
+    let res = tree.cast_ray_closure(
         ray,
         |_, _| None,
         |ray, a| ray.cast_to_rect(&a.0),

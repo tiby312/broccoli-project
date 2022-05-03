@@ -8,19 +8,18 @@ pub trait DividerDrawer<T: Aabb> {
     fn draw_divider<A: Axis>(&mut self, axis: A, node: &Node<T>, rect: &Rect<T::Num>, depth: usize);
 }
 
-
-impl <'a,T:Aabb> Tree2<'a,T>{
+impl<'a, T: Aabb> Tree2<'a, T> {
     pub fn draw_divider(
         &self,
         line: impl FnMut(AxisDyn, &Node<T>, &Rect<T::Num>, usize),
         rect: Rect<T::Num>,
     ) {
-        let tree=self;
-   
+        let tree = self;
+
         struct DrawClosure<A> {
             pub line: A,
         }
-    
+
         impl<T: Aabb, A> DividerDrawer<T> for DrawClosure<A>
         where
             A: FnMut(AxisDyn, &Node<T>, &Rect<T::Num>, usize),
@@ -36,7 +35,7 @@ impl <'a,T:Aabb> Tree2<'a,T>{
                 (self.line)(axis.to_dyn(), node, rect, depth);
             }
         }
-    
+
         ///Calls the user supplied function on each divider.
         ///Since the leaves do not have dividers, it is not called for the leaves.
         fn draw<A: Axis, T: Aabb, D: DividerDrawer<T>>(
@@ -53,24 +52,22 @@ impl <'a,T:Aabb> Tree2<'a,T>{
             ) {
                 let ((depth, nn), rest) = stuff.next();
                 dr.draw_divider(axis, nn, &rect, depth.0);
-    
+
                 if let Some([left, right]) = rest {
                     if let Some(div) = nn.div {
                         let (a, b) = rect.subdivide(axis, div);
-    
+
                         recc(axis.next(), left, dr, a);
                         recc(axis.next(), right, dr, b);
                     }
                 }
             }
-    
+
             recc(axis, vistr.with_depth(Depth(0)), dr, rect);
         }
-    
-    
+
         let mut d = DrawClosure { line };
-    
+
         draw(default_axis(), tree.vistr(), &mut d, rect)
-         
     }
 }

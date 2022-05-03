@@ -23,8 +23,7 @@ mod tools;
 
 pub mod nbody;
 
-impl<'a,T:Aabb> Tree2<'a,T>{
-
+impl<'a, T: Aabb> Tree2<'a, T> {
     ///
     /// If the top 25% of tree levels has more elements than the bottom 75%,
     /// consider the tree not good for querying without
@@ -37,28 +36,27 @@ impl<'a,T:Aabb> Tree2<'a,T>{
     ///
     #[must_use]
     pub fn is_degenerate(&self) -> bool {
-        let tree=self;
+        let tree = self;
         //TODO test for tree with nun level 1.
         let mut v: Vec<_> = (0..tree.vistr().get_height()).map(|_| 0).collect();
-    
+
         for (i, n) in tree.vistr().with_depth(compt::Depth(0)).dfs_preorder_iter() {
             v[i.0] += n.range.len();
         }
-    
+
         let total: usize = v.iter().sum();
-    
+
         let relative: Vec<_> = v.iter().map(|&x| x as f64 / total as f64).collect();
-    
+
         let top_20 = v.len() / 4;
-    
+
         let top_20_sum: f64 = relative.iter().take(top_20).sum();
         let rest_sum: f64 = relative.iter().skip(top_20).sum();
-    
+
         //dbg!(relative,top_20_sum,rest_sum);
-    
+
         top_20_sum > rest_sum
     }
-    
 }
 
 ///

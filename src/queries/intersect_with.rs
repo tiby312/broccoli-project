@@ -2,7 +2,7 @@
 //! Find colliding pairs between two independent sets
 //!
 
-use super::{rect::RectApi, *};
+use super::*;
 
 impl<'a, T: Aabb> Tree2<'a, T> {
     pub fn find_colliding_pairs_with<X: Aabb<Num = T::Num>>(
@@ -10,13 +10,17 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         other: &mut crate::Tree2<X>,
         func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
     ) {
-        self.find_colliding_pairs_with_iter(other, func);
+        let i = other
+            .get_nodes_mut()
+            .iter_mut()
+            .flat_map(|x| x.into_range().iter_mut());
+        self.find_colliding_pairs_with_iter(i, func);
     }
 
     pub fn find_colliding_pairs_with_iter<'x, X: Aabb<Num = T::Num> + 'x>(
         &mut self,
         other: impl Iterator<Item = AabbPin<&'x mut X>>,
-        func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
+        mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
     ) {
         //TODO instead of create just a list of BBox, construct a tree using the dividers of the current tree.
         //This way we can parallelize this function.
@@ -33,7 +37,7 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         //The two trees could be recursed at the same time to break up the problem.
 
         for i in other {
-            self.for_all_in_rect_mut(i, |r, a| func(a, r))
+            self.find_all_in_rect(i, |r, a| func(a, r))
         }
     }
 }

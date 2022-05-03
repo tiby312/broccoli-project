@@ -72,29 +72,121 @@ use tree::*;
 
 pub mod ext;
 
-pub mod prelude {
-    pub use super::queries::knearest::KnearestApi;
-    pub use super::queries::nbody::NbodyApi;
-}
 #[cfg(test)]
 mod tests;
 
 pub mod queries;
 
+pub mod prelude {}
 
+///
+/// Abstract over containers that produce `&mut [T]`
+///
+pub trait Container {
+    type T;
+    fn as_mut(&mut self) -> &mut [Self::T];
+}
+
+impl<T, const N: usize> Container for [T; N] {
+    type T = T;
+    fn as_mut(&mut self) -> &mut [T] {
+        self
+    }
+}
+impl<T> Container for Vec<T> {
+    type T = T;
+    fn as_mut(&mut self) -> &mut [Self::T] {
+        self
+    }
+}
+impl<T> Container for Box<[T]> {
+    type T = T;
+    fn as_mut(&mut self) -> &mut [Self::T] {
+        self
+    }
+}
+
+pub struct TreeOwned<C: Container>
+where
+    C::T: Aabb,
+{
+    container: C,
+    nodes: Vec<NodeData<<C::T as Aabb>::Num>>,
+    total_num_elem: usize,
+}
+
+impl<C: Container> TreeOwned<C>
+where
+    C::T: Aabb,
+{
+    pub fn new(mut container: C) -> TreeOwned<C> {
+        let j = container.as_mut();
+        let length = j.len();
+
+        let t = TreeBuilder::new(&mut DefaultSorter, j).build();
+
+        let nodes = t.into_iter().map(|x| x.as_data()).collect();
+
+        TreeOwned {
+            container,
+            nodes,
+            total_num_elem: length,
+        }
+    }
+
+    pub fn as_tree(&mut self) -> Tree2<C::T> {
+        let bots = self.container.as_mut();
+        assert_eq!(bots.len(), self.total_num_elem);
+
+        //self.nodes.iter().map(|x|No)
+        let mut last = Some(bots);
+        let nodes = self
+            .nodes
+            .iter()
+            .map(|x| {
+                let (range, rest) = last.take().unwrap().split_at_mut(x.range);
+                last = Some(rest);
+                Node {
+                    range: AabbPin::from_mut(range),
+                    cont: x.cont,
+                    div: x.div,
+                    num_elem: x.num_elem,
+                }
+            })
+            .collect();
+        assert!(last.unwrap().is_empty());
+        Tree2 {
+            total_num_elem: self.total_num_elem,
+            nodes,
+        }
+    }
+
+    #[must_use]
+    pub fn as_slice_mut(&mut self) -> AabbPin<&mut [C::T]> {
+        let j = self.container.as_mut();
+        assert_eq!(j.len(), self.total_num_elem);
+
+        AabbPin::new(j)
+    }
+
+    #[must_use]
+    pub fn into_inner(self) -> C {
+        self.container
+    }
+}
 
 pub struct Tree2<'a, T: Aabb> {
     total_num_elem: usize,
-    nodes: Vec<Node<'a,T>>,
+    nodes: Vec<Node<'a, T>>,
 }
 
-impl<'a, T: Aabb> Tree2<'a, T> {
+impl<'a, T: Aabb + 'a> Tree2<'a, T> {
     pub fn new(bots: &'a mut [T]) -> Self {
-        let total_num_elem=bots.len();
-        let nodes=tree::TreeBuilder::new(&mut DefaultSorter,bots).build();
+        let total_num_elem = bots.len();
+        let nodes = tree::TreeBuilder::new(&mut DefaultSorter, bots).build();
         Tree2 {
             nodes,
-            total_num_elem
+            total_num_elem,
         }
     }
 
@@ -103,30 +195,34 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let total_num_elem=bots.len();
-        let nodes=tree::TreeBuilder::new(&mut DefaultSorter,bots).build_par();
+        let total_num_elem = bots.len();
+        let nodes = tree::TreeBuilder::new(&mut DefaultSorter, bots).build_par();
         Tree2 {
             nodes,
-            total_num_elem
+            total_num_elem,
         }
     }
 
-
     #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a,T>> {
+    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
         let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
         VistrMutPin::new(tree.vistr_mut())
     }
 
-
     #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a,T>> {
+    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
         let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
-
 
         tree.vistr()
     }
 
+    #[must_use]
+    #[inline(always)]
+    pub fn num_levels(&self) -> usize {
+        compt::dfs_order::CompleteTree::from_preorder(&self.nodes)
+            .unwrap()
+            .get_height()
+    }
 
     #[must_use]
     #[inline(always)]
@@ -142,26 +238,29 @@ impl<'a, T: Aabb> Tree2<'a, T> {
 
     #[must_use]
     #[inline(always)]
-    pub fn get_nodes(&self) -> &[Node<'a,T>] {
+    pub fn get_nodes(&self) -> &[Node<'a, T>] {
         &self.nodes
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn get_nodes_mut(&mut self) -> AabbPin<&mut [Node<'a, T>]> {
+        AabbPin::from_mut(&mut self.nodes)
     }
 }
 
-
-
-
 pub struct NotSortedTree<'a, T: Aabb> {
-    nodes:Vec<Node<'a,T>>,
-    total_num_elem:usize
+    nodes: Vec<Node<'a, T>>,
+    total_num_elem: usize,
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
     pub fn new(bots: &'a mut [T]) -> Self {
-        let total_num_elem=bots.len();
-        let nodes=tree::TreeBuilder::new(&mut NoSorter,bots).build();
+        let total_num_elem = bots.len();
+        let nodes = tree::TreeBuilder::new(&mut NoSorter, bots).build();
         NotSortedTree {
             nodes,
-            total_num_elem
+            total_num_elem,
         }
     }
 
@@ -170,31 +269,27 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let total_num_elem=bots.len();
-        let nodes=tree::TreeBuilder::new(&mut NoSorter,bots).build_par();
+        let total_num_elem = bots.len();
+        let nodes = tree::TreeBuilder::new(&mut NoSorter, bots).build_par();
         NotSortedTree {
             nodes,
-            total_num_elem
+            total_num_elem,
         }
     }
 
-
     #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a,T>> {
+    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
         let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
         VistrMutPin::new(tree.vistr_mut())
     }
 
-
     #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a,T>> {
+    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
         let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
-
 
         tree.vistr()
     }
 }
-
 
 pub struct Naive<'a, T> {
     inner: AabbPin<&'a mut [T]>,
@@ -209,8 +304,8 @@ impl<'a, T: Aabb> Naive<'a, T> {
         Naive { inner }
     }
 
-    pub fn iter_mut(&mut self)->AabbPinIter<T>{
-        self.inner.iter_mut()
+    pub fn iter_mut(&mut self) -> AabbPinIter<T> {
+        self.inner.borrow_mut().iter_mut()
     }
 }
 
@@ -228,12 +323,13 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
 
         SweepAndPrune { inner }
     }
-
 }
 
-
-
-pub struct Assert<'a,T>{
-    inner:&'a mut [T]
+pub struct Assert<'a, T> {
+    inner: &'a mut [T],
 }
-
+impl<'a, T: Aabb> Assert<'a, T> {
+    pub fn new(inner: &'a mut [T]) -> Self {
+        Assert { inner }
+    }
+}

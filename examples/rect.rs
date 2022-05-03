@@ -1,4 +1,3 @@
-use broccoli::prelude::*;
 use broccoli::tree::{aabb_pin::AabbPin, rect};
 
 fn main() {
@@ -12,10 +11,10 @@ fn main() {
         (rect(05, 15, 05, 15), &inner3),
     ];
 
-    let mut tree = broccoli::tree::new(&mut bots);
+    let mut tree = broccoli::Tree2::new(&mut bots);
 
     let mut rect_collisions = Vec::new();
-    tree.for_all_intersect_rect_mut(AabbPin::new(&mut rect(-5, 1, -5, 1)), |_, a| {
+    tree.find_all_intersect_rect(AabbPin::new(&mut rect(-5, 1, -5, 1)), |_, a| {
         rect_collisions.push(a);
     });
 

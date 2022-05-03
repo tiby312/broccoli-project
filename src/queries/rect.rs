@@ -2,9 +2,8 @@
 
 use super::*;
 
-
 impl<'a, T: Aabb> crate::Tree2<'a, T> {
-    fn find_all_not_in_rect<'b,K: Aabb<Num = T::Num>>(
+    pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: AabbPin<&mut K>,
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
@@ -65,7 +64,7 @@ impl<'a, T: Aabb> crate::Tree2<'a, T> {
         rect_recurse(default_axis(), self.vistr_mut(), rect, &mut closure);
     }
 
-    fn find_all_in_rect<'b,K: Aabb<Num = T::Num>>(
+    pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: AabbPin<&mut K>,
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
@@ -77,7 +76,7 @@ impl<'a, T: Aabb> crate::Tree2<'a, T> {
         });
     }
 
-    fn find_all_intersect_rect<'b,K: Aabb<Num = T::Num>>(
+    pub fn find_all_intersect_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: AabbPin<&mut K>,
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
@@ -90,8 +89,8 @@ impl<'a, T: Aabb> crate::Tree2<'a, T> {
     }
 }
 
-impl<'a, T: Aabb> Naive<'a,T> {
-    fn find_all_not_in_rect<'b,K: Aabb<Num = T::Num>>(
+impl<'a, T: Aabb> Naive<'a, T> {
+    pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         mut rect: AabbPin<&mut K>,
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
@@ -102,7 +101,7 @@ impl<'a, T: Aabb> Naive<'a,T> {
             }
         }
     }
-    fn find_all_in_rect<'b,K: Aabb<Num = T::Num>>(
+    pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         mut rect: AabbPin<&mut K>,
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
@@ -113,7 +112,7 @@ impl<'a, T: Aabb> Naive<'a,T> {
             }
         }
     }
-    fn find_all_intersect_rect<'b,K: Aabb<Num = T::Num>>(
+    pub fn find_all_intersect_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         mut rect: AabbPin<&mut K>,
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
@@ -187,10 +186,9 @@ fn into_ptr_usize<T>(a: &T) -> usize {
     a as *const T as usize
 }
 
-
-impl<'a,T:Aabb> Assert<'a,T>{
+impl<'a, T: Aabb> Assert<'a, T> {
     ///Panics if a disconnect is detected between tree and naive queries.
-    pub fn assert_rect(&mut self,rect: axgeom::Rect<T::Num>) {
+    pub fn assert_rect(&mut self, rect: axgeom::Rect<T::Num>) {
         self.assert_for_all_not_in_rect_mut(rect);
         self.assert_for_all_intersect_rect_mut(rect);
         self.assert_for_all_in_rect_mut(rect)
@@ -250,5 +248,4 @@ impl<'a,T:Aabb> Assert<'a,T>{
         assert_eq!(res_naive.len(), res_dino.len());
         assert!(res_naive.iter().eq(res_dino.iter()));
     }
-
 }

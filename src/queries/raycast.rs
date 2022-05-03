@@ -32,7 +32,6 @@ pub trait RayCast<T: Aabb> {
     fn cast_fine(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> axgeom::CastResult<T::Num>;
 }
 
-
 ///
 /// No fine-grained just cast to aabb
 ///
@@ -64,70 +63,62 @@ where
     }
 }
 
-
-
 ///Construct an object that implements [`RayCast`] from closures.
-        ///We pass the tree so that we can infer the type of `T`.
-        ///
-        /// `fine` is a function that returns the true length of a ray
-        /// cast to an object.
-        ///
-        /// `broad` is a function that returns the length of a ray cast to
-        /// a axis aligned rectangle. This function
-        /// is used as a conservative estimate to prune out elements which minimizes
-        /// how often the `fine` function gets called.
-        ///
-        /// `xline` is a function that gives the distance between the point and a axis aligned line
-        ///    that was a fixed x value and spans the y values.
-        ///
-        /// `yline` is a function that gives the distance between the point and a axis aligned line
-        ///    that was a fixed x value and spans the y values.
-        ///
-        /// `acc` is a user defined object that is passed to every call to either
-        /// the `fine` or `broad` functions.
-        struct RayCastClosure<B, C, D, E> {
-            broad: B,
-            fine: C,
-            xline: D,
-            yline: E,
+///We pass the tree so that we can infer the type of `T`.
+///
+/// `fine` is a function that returns the true length of a ray
+/// cast to an object.
+///
+/// `broad` is a function that returns the length of a ray cast to
+/// a axis aligned rectangle. This function
+/// is used as a conservative estimate to prune out elements which minimizes
+/// how often the `fine` function gets called.
+///
+/// `xline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values.
+///
+/// `yline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values.
+///
+/// `acc` is a user defined object that is passed to every call to either
+/// the `fine` or `broad` functions.
+struct RayCastClosure<B, C, D, E> {
+    broad: B,
+    fine: C,
+    xline: D,
+    yline: E,
+}
+
+impl<T: Aabb, B, C, D, E> RayCast<T> for RayCastClosure<B, C, D, E>
+where
+    B: FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
+    C: FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
+    D: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+    E: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+{
+    fn cast_to_aaline<X: Axis>(
+        &mut self,
+        ray: &Ray<T::Num>,
+        line: X,
+        val: T::Num,
+    ) -> axgeom::CastResult<T::Num> {
+        if line.is_xaxis() {
+            (self.xline)(ray, val)
+        } else {
+            (self.yline)(ray, val)
         }
+    }
+    fn cast_broad(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> Option<CastResult<T::Num>> {
+        (self.broad)(ray, a)
+    }
 
-        impl<T: Aabb, B, C, D, E> RayCast<T> for RayCastClosure<B, C, D, E>
-        where
-            B: FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
-            C: FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
-            D: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-            E: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-        {
-            fn cast_to_aaline<X: Axis>(
-                &mut self,
-                ray: &Ray<T::Num>,
-                line: X,
-                val: T::Num,
-            ) -> axgeom::CastResult<T::Num> {
-                if line.is_xaxis() {
-                    (self.xline)(ray, val)
-                } else {
-                    (self.yline)(ray, val)
-                }
-            }
-            fn cast_broad(
-                &mut self,
-                ray: &Ray<T::Num>,
-                a: AabbPin<&mut T>,
-            ) -> Option<CastResult<T::Num>> {
-                (self.broad)(ray, a)
-            }
+    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> CastResult<T::Num> {
+        (self.fine)(ray, a)
+    }
+}
 
-            fn cast_fine(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> CastResult<T::Num> {
-                (self.fine)(ray, a)
-            }
-        }
-
-
-impl<'a, T: Aabb> Naive<'a,T> {
-
-    pub fn cast_ray_from_closure(
+impl<'a, T: Aabb> Naive<'a, T> {
+    pub fn cast_ray_closure(
         &mut self,
         ray: Ray<T::Num>,
         broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
@@ -135,7 +126,6 @@ impl<'a, T: Aabb> Naive<'a,T> {
         xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     ) -> axgeom::CastResult<CastAnswer<T>> {
-
         let d = RayCastClosure {
             broad,
             fine,
@@ -145,7 +135,7 @@ impl<'a, T: Aabb> Naive<'a,T> {
         self.cast_ray(ray, d)
     }
 
-    fn cast_ray<R: RayCast<T>>(
+    pub fn cast_ray<R: RayCast<T>>(
         &mut self,
         ray: Ray<T::Num>,
         mut ar: R,
@@ -164,8 +154,7 @@ impl<'a, T: Aabb> Naive<'a,T> {
 }
 
 impl<'a, T: Aabb> Tree2<'a, T> {
-
-    pub fn cast_ray_from_closure(
+    pub fn cast_ray_closure(
         &mut self,
         ray: Ray<T::Num>,
         broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
@@ -173,7 +162,6 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     ) -> axgeom::CastResult<CastAnswer<T>> {
-
         let d = RayCastClosure {
             broad,
             fine,
@@ -183,7 +171,7 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         self.cast_ray(ray, d)
     }
 
-    fn cast_ray<R: RayCast<T>>(
+    pub fn cast_ray<R: RayCast<T>>(
         &mut self,
         ray: Ray<T::Num>,
         mut rtrait: R,
@@ -361,16 +349,10 @@ impl<'a, T: Aabb> Closest<'a, T> {
     }
 }
 
-
-impl<'a,T:Aabb> Assert<'a,T>{
-
-
+impl<'a, T: Aabb> Assert<'a, T> {
     ///Panics if a disconnect is detected between tree and naive queries.
-    pub fn assert_raycast(
-        &mut self,
-        ray: axgeom::Ray<T::Num>,
-        mut rtrait: impl RayCast<T>,
-    ) where
+    pub fn assert_raycast(&mut self, ray: axgeom::Ray<T::Num>, mut rtrait: impl RayCast<T>)
+    where
         T::Num: core::fmt::Debug,
     {
         fn into_ptr_usize<T>(a: &T) -> usize {

@@ -1,6 +1,5 @@
 use axgeom;
-use broccoli::prelude::*;
-use broccoli::tree::*;
+use broccoli::{tree::*, Assert};
 #[test]
 fn test1() {
     for &i in [2.0, 4.0, 12.0].iter() {
@@ -26,13 +25,9 @@ fn test1() {
 
             let mut bots: Vec<_> = bots.iter_mut().collect();
 
-            let tree = broccoli::tree::new(&mut bots);
+            let mut tree = broccoli::Tree2::new(&mut bots);
 
-            let nodes = tree.into_node_data_tree();
-            use broccoli::tree::aabb_pin::AabbPin;
-            let mut tree = nodes.into_tree(AabbPin::from_mut(&mut bots));
-
-            tree.colliding_pairs(|a, b| {
+            tree.find_colliding_pairs(|a, b| {
                 let a = a.unpack_inner();
                 let b = b.unpack_inner();
                 **a ^= 1;
@@ -40,7 +35,7 @@ fn test1() {
             });
 
             tree.assert_tree_invariants();
-            broccoli::queries::colfind::assert_query(&mut bots);
+            Assert::new(&mut bots).assert_query();
         }
     }
 }
