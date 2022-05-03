@@ -64,6 +64,8 @@ extern crate alloc;
 pub use axgeom;
 pub mod tree;
 
+use tree::aabb_pin::AabbPin;
+use tree::aabb_pin::AabbPinIter;
 use tree::build::*;
 use tree::node::*;
 use tree::*;
@@ -73,8 +75,6 @@ pub mod ext;
 pub mod prelude {
     pub use super::queries::knearest::KnearestApi;
     pub use super::queries::nbody::NbodyApi;
-    pub use super::queries::raycast::RaycastApi;
-    pub use super::queries::rect::RectApi;
 }
 #[cfg(test)]
 mod tests;
@@ -91,7 +91,7 @@ pub struct Tree2<'a, T: Aabb> {
 impl<'a, T: Aabb> Tree2<'a, T> {
     pub fn new(bots: &'a mut [T]) -> Self {
         let total_num_elem=bots.len();
-        let nodes=tree::TreeBuilder::new(DefaultSorter,bots).build();
+        let nodes=tree::TreeBuilder::new(&mut DefaultSorter,bots).build();
         Tree2 {
             nodes,
             total_num_elem
@@ -104,10 +104,136 @@ impl<'a, T: Aabb> Tree2<'a, T> {
         T::Num: Send,
     {
         let total_num_elem=bots.len();
-        let nodes=tree::TreeBuilder::new(DefaultSorter,bots).build_par();
+        let nodes=tree::TreeBuilder::new(&mut DefaultSorter,bots).build_par();
         Tree2 {
             nodes,
             total_num_elem
         }
     }
+
+
+    #[inline(always)]
+    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a,T>> {
+        let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
+        VistrMutPin::new(tree.vistr_mut())
+    }
+
+
+    #[inline(always)]
+    pub fn vistr(&self) -> Vistr<Node<'a,T>> {
+        let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
+
+
+        tree.vistr()
+    }
+
+
+    #[must_use]
+    #[inline(always)]
+    pub fn num_nodes(&self) -> usize {
+        self.nodes.len()
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn total_num_elem(&self) -> usize {
+        self.total_num_elem
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn get_nodes(&self) -> &[Node<'a,T>] {
+        &self.nodes
+    }
 }
+
+
+
+
+pub struct NotSortedTree<'a, T: Aabb> {
+    nodes:Vec<Node<'a,T>>,
+    total_num_elem:usize
+}
+
+impl<'a, T: Aabb> NotSortedTree<'a, T> {
+    pub fn new(bots: &'a mut [T]) -> Self {
+        let total_num_elem=bots.len();
+        let nodes=tree::TreeBuilder::new(&mut NoSorter,bots).build();
+        NotSortedTree {
+            nodes,
+            total_num_elem
+        }
+    }
+
+    pub fn par_new(bots: &'a mut [T]) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+    {
+        let total_num_elem=bots.len();
+        let nodes=tree::TreeBuilder::new(&mut NoSorter,bots).build_par();
+        NotSortedTree {
+            nodes,
+            total_num_elem
+        }
+    }
+
+
+    #[inline(always)]
+    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a,T>> {
+        let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
+        VistrMutPin::new(tree.vistr_mut())
+    }
+
+
+    #[inline(always)]
+    pub fn vistr(&self) -> Vistr<Node<'a,T>> {
+        let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
+
+
+        tree.vistr()
+    }
+}
+
+
+pub struct Naive<'a, T> {
+    inner: AabbPin<&'a mut [T]>,
+}
+impl<'a, T: Aabb> Naive<'a, T> {
+    pub fn new(inner: &'a mut [T]) -> Self {
+        Naive {
+            inner: AabbPin::from_mut(inner),
+        }
+    }
+    pub fn from_pinned(inner: AabbPin<&'a mut [T]>) -> Self {
+        Naive { inner }
+    }
+
+    pub fn iter_mut(&mut self)->AabbPinIter<T>{
+        self.inner.iter_mut()
+    }
+}
+
+///
+/// Sweep and prune collision finding algorithm
+///
+pub struct SweepAndPrune<'a, T> {
+    inner: &'a mut [T],
+}
+
+impl<'a, T: Aabb> SweepAndPrune<'a, T> {
+    pub fn new(inner: &'a mut [T]) -> Self {
+        let axis = default_axis();
+        tree::util::sweeper_update(axis, inner);
+
+        SweepAndPrune { inner }
+    }
+
+}
+
+
+
+pub struct Assert<'a,T>{
+    inner:&'a mut [T]
+}
+

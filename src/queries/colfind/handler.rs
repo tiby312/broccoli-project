@@ -16,16 +16,6 @@ impl<F> DefaultNodeHandler<F> {
             prevec: PreVec::new(),
         }
     }
-
-    pub fn new_builder<'a, 'b, T: Aabb>(
-        tree: &'a mut TreeInner<Node<'b, T>, DefaultSorter>,
-        func: F,
-    ) -> CollidingPairsBuilder<'b, 'a, T, DefaultNodeHandler<F>>
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    {
-        CollidingPairsBuilder::new(tree, DefaultNodeHandler::new(func))
-    }
 }
 
 impl<F: Clone> Splitter for DefaultNodeHandler<F> {
@@ -42,7 +32,6 @@ impl<F: Clone> Splitter for DefaultNodeHandler<F> {
 }
 
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for DefaultNodeHandler<F> {
-    type Sorter = DefaultSorter;
     #[inline(always)]
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         let mut k = self.prevec.extract_vec();
@@ -96,16 +85,6 @@ impl<F> NoSortNodeHandler<F> {
     {
         NoSortNodeHandler { func }
     }
-
-    pub fn new_builder<'a, 'b, T: Aabb>(
-        tree: &'a mut TreeInner<Node<'b, T>, NoSorter>,
-        func: F,
-    ) -> CollidingPairsBuilder<'b, 'a, T, NoSortNodeHandler<F>>
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    {
-        CollidingPairsBuilder::new(tree, NoSortNodeHandler::new(func))
-    }
 }
 
 impl<F: Clone> Splitter for NoSortNodeHandler<F> {
@@ -121,7 +100,6 @@ impl<F: Clone> Splitter for NoSortNodeHandler<F> {
 }
 
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoSortNodeHandler<F> {
-    type Sorter = NoSorter;
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         fn foop<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
             func: &mut F,

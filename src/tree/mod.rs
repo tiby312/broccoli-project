@@ -3,6 +3,8 @@
 //! provides the broccoli tree and tree building code, but no querying code.
 //!
 
+
+use super::*;
 pub mod aabb_pin;
 mod assert;
 pub mod build;
@@ -11,7 +13,7 @@ mod oned;
 pub mod splitter;
 pub mod util;
 
-pub use axgeom;
+use axgeom;
 
 use aabb_pin::*;
 

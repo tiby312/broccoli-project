@@ -240,7 +240,6 @@ impl<'a, T: Aabb, K: Knearest<T>> Knearest<T> for &mut K {
     }
 }
 
-use crate::Tree;
 
 /// Returned by k_nearest_mut
 #[derive(Debug)]

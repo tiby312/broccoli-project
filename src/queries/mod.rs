@@ -37,7 +37,7 @@ impl<'a,T:Aabb> Tree2<'a,T>{
     ///
     #[must_use]
     pub fn is_degenerate(&self) -> bool {
-        let tree=&self.inner;
+        let tree=self;
         //TODO test for tree with nun level 1.
         let mut v: Vec<_> = (0..tree.vistr().get_height()).map(|_| 0).collect();
     

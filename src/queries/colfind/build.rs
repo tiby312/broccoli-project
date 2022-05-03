@@ -190,7 +190,6 @@ pub struct HandleChildrenArgs<'a, T: Aabb> {
 /// Abstract over sorted and non sorted trees
 ///
 pub trait NodeHandler<T: Aabb> {
-    type Sorter;
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool);
 
     fn handle_children(&mut self, floop: HandleChildrenArgs<T>);
