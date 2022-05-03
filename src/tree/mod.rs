@@ -116,85 +116,6 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
     BBoxMut::new(rect, inner)
 }
 
-/*
-///
-/// Owned version of [`Tree`]
-///
-#[must_use]
-pub struct TreeOwned<C: Container, S>
-where
-    C::T: Aabb,
-{
-    inner: C,
-    nodes: TreeInner<NodeData<<C::T as Aabb>::Num>, S>,
-    length: usize,
-}
-
-impl<C: Container, S: Sorter<C::T>> TreeOwned<C, S>
-where
-    C::T: Aabb,
-{
-    pub fn new(sorter: S, mut bots: C) -> TreeOwned<C, S> {
-        let j = bots.as_mut();
-        let length = j.len();
-
-        let t = TreeBuilder::new(sorter, j).build();
-        let data = t.into_node_data_tree();
-        TreeOwned {
-            inner: bots,
-            nodes: data,
-            length,
-        }
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn new_par(sorter: S, mut bots: C) -> TreeOwned<C, S>
-    where
-        C::T: Send,
-        <C::T as Aabb>::Num: Send,
-    {
-        let j = bots.as_mut();
-        let length = j.len();
-
-        let t = TreeBuilder::new(sorter, j).build_par();
-        let data = t.into_node_data_tree();
-        TreeOwned {
-            inner: bots,
-            nodes: data,
-            length,
-        }
-    }
-
-    pub fn as_tree(&mut self) -> TreeInner<Node<C::T>, S> {
-        let j = self.inner.as_mut();
-        assert_eq!(j.len(), self.length);
-
-        self.nodes.clone().into_tree(AabbPin::from_mut(j))
-    }
-    #[must_use]
-    pub fn as_slice_mut(&mut self) -> AabbPin<&mut [C::T]> {
-        let j = self.inner.as_mut();
-        assert_eq!(j.len(), self.length);
-
-        AabbPin::new(j)
-    }
-    #[must_use]
-    pub fn into_inner(self) -> C {
-        self.inner
-    }
-}
-
-impl<C: Container + Clone, S> TreeOwned<C, S>
-where
-    C::T: Aabb,
-{
-    #[must_use]
-    pub fn clone_inner(&self) -> C {
-        self.inner.clone()
-    }
-}
-*/
-
 pub struct TreeBuilder<'a, 'b, T, S> {
     pub bots: &'a mut [T],
     pub sorter: &'b mut S,
@@ -242,7 +163,7 @@ impl<'a, 'b, T: Aabb, S: Sorter<T> + 'b> TreeBuilder<'a, 'b, T, S> {
                 Self::recurse_seq(sorter, buffer, right);
             } else {
                 let mut s2 = sorter.div();
-                let mut buffer2 = vec![]; //TODO figure out capacity
+                let mut buffer2 = Vec::with_capacity(num_level::num_nodes(right.get_height()));
 
                 rayon::join(
                     || {
@@ -261,7 +182,7 @@ impl<'a, 'b, T: Aabb, S: Sorter<T> + 'b> TreeBuilder<'a, 'b, T, S> {
         }
     }
     pub fn build(mut self) -> Vec<Node<'a, T>> {
-        let mut buffer = vec![]; //TODO figure out
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(self.num_level));
         Self::recurse_seq(
             &mut self.sorter,
             &mut buffer,
@@ -277,7 +198,7 @@ impl<'a, 'b, T: Aabb, S: Sorter<T> + 'b> TreeBuilder<'a, 'b, T, S> {
         T::Num: Send,
         S: Send,
     {
-        let mut buffer = vec![]; //TODO figure out
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(self.num_level));
         Self::recurse_par(
             self.num_seq_fallback,
             &mut self.sorter,

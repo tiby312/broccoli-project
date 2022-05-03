@@ -226,7 +226,7 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
 }
 
 impl<'a, T: Aabb> crate::Tree2<'a, T> {
-    fn handle_nbody<N: Nbody<T = T>>(self, no: &mut N) -> Self {
+    pub fn handle_nbody<N: Nbody<T = T>>(self, no: &mut N) -> Self {
         ///Perform nbody
         ///The tree is taken by value so that its nodes can be expended to include more data.
         pub fn nbody_mut<'a, N: Nbody>(

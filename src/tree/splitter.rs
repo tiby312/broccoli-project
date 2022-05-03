@@ -3,8 +3,6 @@
 //! is split into two and built back together. Useful for debuging/measuring performance.
 //!
 
-use super::*;
-
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
 ///during construction.

@@ -1,7 +1,6 @@
 #[test]
 fn knearest_repro() {
     use axgeom::*;
-    use broccoli::prelude::*;
     use broccoli::tree::*;
     let mut repro = [
         bbox(rect(729.75f32, 731.25, -0.75, 0.75), vec2(730.5, 0.)),

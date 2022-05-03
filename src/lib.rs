@@ -133,6 +133,24 @@ where
             total_num_elem: length,
         }
     }
+    pub fn par_new(mut container: C) -> TreeOwned<C>
+    where
+        C::T: Send,
+        <C::T as Aabb>::Num: Send,
+    {
+        let j = container.as_mut();
+        let length = j.len();
+
+        let t = TreeBuilder::new(&mut DefaultSorter, j).build_par();
+
+        let nodes = t.into_iter().map(|x| x.as_data()).collect();
+
+        TreeOwned {
+            container,
+            nodes,
+            total_num_elem: length,
+        }
+    }
 
     pub fn as_tree(&mut self) -> Tree2<C::T> {
         let bots = self.container.as_mut();
@@ -288,6 +306,17 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
 
         tree.vistr()
+    }
+    #[must_use]
+    #[inline(always)]
+    pub fn num_nodes(&self) -> usize {
+        self.nodes.len()
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn total_num_elem(&self) -> usize {
+        self.total_num_elem
     }
 }
 

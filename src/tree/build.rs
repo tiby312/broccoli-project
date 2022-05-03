@@ -203,7 +203,7 @@ impl splitter::Splitter for DefaultSorter {
     fn div(&mut self) -> Self {
         DefaultSorter
     }
-    fn add(&mut self, other: Self) {}
+    fn add(&mut self, _other: Self) {}
 }
 
 #[derive(Copy, Clone, Default)]
@@ -217,5 +217,5 @@ impl splitter::Splitter for NoSorter {
     fn div(&mut self) -> Self {
         NoSorter
     }
-    fn add(&mut self, other: Self) {}
+    fn add(&mut self, _other: Self) {}
 }
