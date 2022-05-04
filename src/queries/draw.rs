@@ -8,7 +8,7 @@ pub trait DividerDrawer<T: Aabb> {
     fn draw_divider<A: Axis>(&mut self, axis: A, node: &Node<T>, rect: &Rect<T::Num>, depth: usize);
 }
 
-impl<'a, T: Aabb> Tree2<'a, T> {
+impl<'a, T: Aabb> Tree<'a, T> {
     pub fn draw_divider(
         &self,
         line: impl FnMut(AxisDyn, &Node<T>, &Rect<T::Num>, usize),

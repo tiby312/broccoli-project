@@ -15,7 +15,7 @@ fn test() {
         .map(|a| (rect(0isize, 0, 0, 0), a))
         .collect();
 
-    let mut tree = Tree2::new(&mut bots);
+    let mut tree = Tree::new(&mut bots);
 
     tree.assert_tree_invariants();
 

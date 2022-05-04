@@ -15,8 +15,8 @@ impl Record {
         let c1 = datanum::datanum_test(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
-            let mut tree = broccoli::tree::new(&mut bots);
-            tree.colliding_pairs(|a, b| {
+            let mut tree = broccoli::Tree::new(&mut bots);
+            tree.find_colliding_pairs(|a, b| {
                 **a.unpack_inner() += 2;
                 **b.unpack_inner() += 2;
             });
@@ -26,7 +26,7 @@ impl Record {
             datanum::datanum_test(|maker| {
                 let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
-                AabbPin::new(bots.as_mut_slice()).colliding_pairs(|a, b| {
+                Naive::new(bots.as_mut_slice()).find_colliding_pairs(|a, b| {
                     **a.unpack_inner() -= 1;
                     **b.unpack_inner() -= 1;
                 });
@@ -39,7 +39,7 @@ impl Record {
             datanum::datanum_test(|maker| {
                 let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
-                broccoli::queries::colfind::SweepAndPrune::new(&mut bots).colliding_pairs(
+                broccoli::SweepAndPrune::new(&mut bots).find_colliding_pairs(
                     |a, b| {
                         **a.unpack_inner() -= 3;
                         **b.unpack_inner() -= 3;
@@ -53,9 +53,8 @@ impl Record {
         let c4 = datanum::datanum_test(|maker| {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
-            let _tree = TreeBuilder::new_no_sort(&mut bots)
-                .build()
-                .colliding_pairs(|a, b| {
+            let _tree = NotSortedTree::new(&mut bots)
+                .find_colliding_pairs(|a, b| {
                     **a.unpack_inner() += 2;
                     **b.unpack_inner() += 2;
                 });

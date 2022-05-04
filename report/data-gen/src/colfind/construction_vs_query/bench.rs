@@ -44,9 +44,9 @@ impl Record {
         let bench = {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| broccoli::tree::new(&mut bots));
+            let (mut tree, t1) = bench_closure_ret(|| broccoli::Tree::new(&mut bots));
             let t2 = bench_closure(|| {
-                tree.colliding_pairs(|a, b| {
+                tree.find_colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
@@ -58,9 +58,9 @@ impl Record {
         let bench_par = {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| broccoli::tree::new_par(&mut bots));
+            let (mut tree, t1) = bench_closure_ret(|| broccoli::Tree::par_new(&mut bots));
             let t2 = bench_closure(|| {
-                tree.par_colliding_pairs(|a, b| {
+                tree.par_find_colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
@@ -72,9 +72,9 @@ impl Record {
         let nosort = if do_all || num_bots <= NO_SORT_MAX {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-            let (mut tree, t1) = bench_closure_ret(|| TreeBuilder::new_no_sort(&mut bots).build());
+            let (mut tree, t1) = bench_closure_ret(|| NotSortedTree::new(&mut bots));
             let t2 = bench_closure(|| {
-                tree.colliding_pairs(|a, b| {
+                tree.find_colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());
@@ -89,9 +89,9 @@ impl Record {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
             let (mut tree, t1) =
-                bench_closure_ret(|| TreeBuilder::new_no_sort(&mut bots).build_par());
+                bench_closure_ret(|| NotSortedTree::par_new(&mut bots));
             let t2 = bench_closure(|| {
-                tree.par_colliding_pairs(|a, b| {
+                tree.par_find_colliding_pairs(|a, b| {
                     let aa = vec2(a.get().x.start, a.get().y.start).inner_as();
                     let bb = vec2(b.get().x.start, b.get().y.start).inner_as();
                     repel(aa, bb, a.unpack_inner(), b.unpack_inner());

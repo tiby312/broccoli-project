@@ -25,7 +25,7 @@ fn test_tie_knearest() {
 
     Assert::new(&mut bots).assert_k_nearest_mut(vec2(15, 30), 2, &mut handler);
 
-    let mut tree = broccoli::Tree2::new(&mut bots);
+    let mut tree = broccoli::Tree::new(&mut bots);
 
     let mut res = tree.find_knearest(vec2(15, 30), 2, &mut handler);
 
@@ -43,7 +43,7 @@ fn test_zero_sized() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
-    let tree = broccoli::Tree2::new(&mut bots);
+    let tree = broccoli::Tree::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
     assert_eq!(n.div.is_none(), true);
@@ -56,7 +56,7 @@ fn test_zero_sized2() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
-    let tree = broccoli::Tree2::new(&mut bots);
+    let tree = broccoli::Tree::new(&mut bots);
 
     let (n, _) = tree.vistr().next();
     assert_eq!(n.div.is_none(), true);
@@ -68,7 +68,7 @@ fn test_one() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
-    let tree = broccoli::Tree2::new(&mut bots);
+    let tree = broccoli::Tree::new(&mut bots);
     assert_eq!(tree.num_levels(), 1);
     let (n, _) = tree.vistr().next();
     assert!(n.div.is_none());
@@ -79,7 +79,7 @@ fn test_one() {
 fn test_empty() {
     let mut bots: Vec<()> = Vec::new();
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
-    let tree = broccoli::Tree2::new(&mut bots);
+    let tree = broccoli::Tree::new(&mut bots);
 
     assert_eq!(tree.num_levels(), 1);
 
@@ -94,7 +94,7 @@ fn test_many() {
 
     let mut bots = create_bbox_mut(&mut bots, |_b| rect(0isize, 0, 0, 0));
 
-    let tree = broccoli::Tree2::new(&mut bots);
+    let tree = broccoli::Tree::new(&mut bots);
 
     assert_eq!(
         tree.vistr()
@@ -126,8 +126,8 @@ fn test_send_sync_tree() {
 
     //Check that its send
     let (t1, t2) = rayon::join(
-        || broccoli::Tree2::new(&mut bots1),
-        || broccoli::Tree2::new(&mut bots2),
+        || broccoli::Tree::new(&mut bots1),
+        || broccoli::Tree::new(&mut bots2),
     );
 
     //Check that its sync
@@ -149,7 +149,7 @@ fn test_tie_raycast() {
 
     Assert::new(&mut bots).assert_raycast(ray, &mut handler);
 
-    let mut tree = broccoli::Tree2::new(&mut bots);
+    let mut tree = broccoli::Tree::new(&mut bots);
 
     let ans = tree.cast_ray(ray, &mut handler);
 

@@ -18,7 +18,7 @@ pub trait Knearest<T: Aabb> {
     fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> T::Num;
 }
 
-impl<'a, T: Aabb> Tree2<'a, T> {
+impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_knearest(
         &mut self,
         point: Vec2<T::Num>,
@@ -441,7 +441,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
             a as *const T as usize
         }
 
-        let mut tree = Tree2::new(self.inner);
+        let mut tree = Tree::new(self.inner);
         let r = tree.find_knearest(point, num, &mut knear);
         let mut res_dino: Vec<_> = r
             .into_vec()

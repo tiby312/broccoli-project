@@ -11,7 +11,7 @@ fn main() {
         (rect(05, 15, 05, 15), &inner3),
     ];
 
-    let mut tree = broccoli::Tree2::new(&mut bots);
+    let mut tree = broccoli::Tree::new(&mut bots);
 
     let mut rect_collisions = Vec::new();
     tree.find_all_intersect_rect(AabbPin::new(&mut rect(-5, 1, -5, 1)), |_, a| {

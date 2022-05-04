@@ -14,7 +14,7 @@ fn main() {
         (rect(05, 15, 05, 15), &mut inner3),
     ];
 
-    let mut tree = broccoli::Tree2::new(&mut aabbs);
+    let mut tree = broccoli::Tree::new(&mut aabbs);
 
     let ray = axgeom::Ray {
         point: vec2(-10, 1),

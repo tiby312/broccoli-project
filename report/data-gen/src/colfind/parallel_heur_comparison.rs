@@ -22,16 +22,17 @@ fn test3(
     query_num: Option<usize>,
 ) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| {
-        let mut k = TreeBuilder::new_default(bots);
+        let mut k = TreeBuilder::new(bots);
         if let Some(r) = rebal_num {
             //dbg!(r);
             k.num_seq_fallback = r;
         }
-        k.build_par()
+        Tree::par_from_builder(k)
     });
 
     let (tree, query_time) = bench_closure_ret(|| {
         {
+            
             let mut k = broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
                 &mut tree,
                 |a, b| {

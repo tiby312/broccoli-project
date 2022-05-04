@@ -15,7 +15,7 @@ fn main() {
     //This will change the order of the elements
     //in bboxes,but this is okay since we
     //populated it with mutable references.
-    let mut tree = broccoli::Tree2::par_new(&mut aabbs);
+    let mut tree = broccoli::Tree::par_new(&mut aabbs);
 
     tree.par_find_colliding_pairs(|a, b| {
         **a.unpack_inner() += 1;

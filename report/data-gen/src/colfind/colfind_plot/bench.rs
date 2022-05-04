@@ -1,4 +1,3 @@
-use broccoli::queries::colfind::SweepAndPrune;
 
 use super::*;
 
@@ -20,9 +19,9 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c0 = bench_closure(|| {
-            let mut tree = broccoli::tree::new_par(&mut bots);
+            let mut tree = broccoli::Tree::par_new(&mut bots);
 
-            tree.par_colliding_pairs(|a, b| {
+            tree.par_find_colliding_pairs(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
             });
@@ -31,8 +30,8 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c1 = bench_closure(|| {
-            let mut tree = broccoli::tree::new(&mut bots);
-            tree.colliding_pairs(|a, b| {
+            let mut tree = broccoli::Tree::new(&mut bots);
+            tree.find_colliding_pairs(|a, b| {
                 **a.unpack_inner() -= 1;
                 **b.unpack_inner() -= 1;
             });
@@ -42,7 +41,7 @@ impl Record {
 
         let c3 = if sweep_bench {
             bench_closure(|| {
-                SweepAndPrune::new(&mut bots).par_query(|a, b| {
+                SweepAndPrune::new(&mut bots).par_find_colliding_pairs(|a, b| {
                     **a.unpack_inner() -= 2;
                     **b.unpack_inner() -= 2;
                 });
@@ -55,7 +54,7 @@ impl Record {
 
         let c4 = if naive_bench {
             bench_closure(|| {
-                AabbPin::new(bots.as_mut_slice()).colliding_pairs(|a, b| {
+                Naive::new(bots.as_mut_slice()).find_colliding_pairs(|a, b| {
                     **a.unpack_inner() += 2;
                     **b.unpack_inner() += 2;
                 });
@@ -67,9 +66,9 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c5 = bench_closure(|| {
-            let mut tree = TreeBuilder::new_no_sort(&mut bots).build_par();
+            let mut tree = NotSortedTree::par_new(&mut bots);
 
-            tree.par_colliding_pairs(|a, b| {
+            tree.par_find_colliding_pairs(|a, b| {
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
             });
@@ -78,8 +77,8 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c6 = bench_closure(|| {
-            let mut tree = TreeBuilder::new_no_sort(&mut bots).build();
-            tree.colliding_pairs(|a, b| {
+            let mut tree = NotSortedTree::new(&mut bots);
+            tree.find_colliding_pairs(|a, b| {
                 **a.unpack_inner() -= 1;
                 **b.unpack_inner() -= 1;
             });
@@ -95,9 +94,9 @@ impl Record {
 
         let c7 = if sweep_bench {
             bench_closure(|| {
-                let mut s = broccoli::queries::colfind::SweepAndPrune::new(&mut bots);
+                let mut s = broccoli::SweepAndPrune::new(&mut bots);
 
-                s.colliding_pairs(|a, b| {
+                s.find_colliding_pairs(|a, b| {
                     **a.unpack_inner() ^= 2;
                     **b.unpack_inner() ^= 2;
                 });

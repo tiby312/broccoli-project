@@ -15,9 +15,9 @@ fn handle_num(fb: &mut FigureBuilder) {
 
         let mut bots = distribute(DEFAULT_GROW, &mut bot_inner, |a| a.to_f32n());
 
-        let mut tree = TreeBuilder::new_default(&mut bots).build_par();
+        let mut tree = Tree::new(&mut bots);
         let mut num_intersection = 0;
-        tree.colliding_pairs(|_a, _b| {
+        tree.find_colliding_pairs(|_a, _b| {
             num_intersection += 1;
         });
 
@@ -48,10 +48,10 @@ fn handle_grow(fb: &mut FigureBuilder) {
 
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
 
-        let mut tree = TreeBuilder::new_default(&mut bots).build_par();
+        let mut tree = Tree::new(&mut bots);
 
         let mut num_intersection = 0;
-        tree.colliding_pairs(|_a, _b| {
+        tree.find_colliding_pairs(|_a, _b| {
             num_intersection += 1;
         });
 

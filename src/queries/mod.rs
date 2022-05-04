@@ -23,7 +23,7 @@ mod tools;
 
 pub mod nbody;
 
-impl<'a, T: Aabb> Tree2<'a, T> {
+impl<'a, T: Aabb> Tree<'a, T> {
     ///
     /// If the top 25% of tree levels has more elements than the bottom 75%,
     /// consider the tree not good for querying without

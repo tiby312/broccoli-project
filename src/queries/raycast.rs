@@ -153,7 +153,7 @@ impl<'a, T: Aabb> Naive<'a, T> {
     }
 }
 
-impl<'a, T: Aabb> Tree2<'a, T> {
+impl<'a, T: Aabb> Tree<'a, T> {
     pub fn cast_ray_closure(
         &mut self,
         ray: Ray<T::Num>,
@@ -360,7 +360,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
         }
         let mut res_naive = Vec::new();
 
-        let mut tree = Tree2::new(self.inner);
+        let mut tree = Tree::new(self.inner);
         let mut res_dino = Vec::new();
         match tree.cast_ray(ray, &mut rtrait) {
             axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {

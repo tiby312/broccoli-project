@@ -15,7 +15,7 @@ fn main() {
     //This will change the order of the elements
     //in bboxes,but this is okay since we
     //populated it with mutable references.
-    let mut tree = broccoli::Tree2::new(&mut aabbs);
+    let mut tree = broccoli::Tree::new(&mut aabbs);
 
     //Find all colliding aabbs.
     tree.find_colliding_pairs(|a, b| {

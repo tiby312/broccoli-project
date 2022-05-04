@@ -4,10 +4,10 @@
 
 use super::*;
 
-impl<'a, T: Aabb> Tree2<'a, T> {
+impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs_with<X: Aabb<Num = T::Num>>(
         &mut self,
-        other: &mut crate::Tree2<X>,
+        other: &mut crate::Tree<X>,
         func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
     ) {
         let i = other

@@ -123,7 +123,7 @@ where
         let j = container.as_mut();
         let length = j.len();
 
-        let t = TreeBuilder::new(&mut DefaultSorter, j).build();
+        let t = TreeBuilder::new(j).build(&mut DefaultSorter);
 
         let nodes = t.into_iter().map(|x| x.as_data()).collect();
 
@@ -141,7 +141,7 @@ where
         let j = container.as_mut();
         let length = j.len();
 
-        let t = TreeBuilder::new(&mut DefaultSorter, j).build_par();
+        let t = TreeBuilder::new( j).build_par(&mut DefaultSorter);
 
         let nodes = t.into_iter().map(|x| x.as_data()).collect();
 
@@ -152,7 +152,7 @@ where
         }
     }
 
-    pub fn as_tree(&mut self) -> Tree2<C::T> {
+    pub fn as_tree(&mut self) -> Tree<C::T> {
         let bots = self.container.as_mut();
         assert_eq!(bots.len(), self.total_num_elem);
 
@@ -173,7 +173,7 @@ where
             })
             .collect();
         assert!(last.unwrap().is_empty());
-        Tree2 {
+        Tree {
             total_num_elem: self.total_num_elem,
             nodes,
         }
@@ -193,19 +193,35 @@ where
     }
 }
 
-pub struct Tree2<'a, T: Aabb> {
+
+
+
+
+pub struct Tree<'a, T: Aabb> {
     total_num_elem: usize,
     nodes: Vec<Node<'a, T>>,
 }
 
-impl<'a, T: Aabb + 'a> Tree2<'a, T> {
-    pub fn new(bots: &'a mut [T]) -> Self {
-        let total_num_elem = bots.len();
-        let nodes = tree::TreeBuilder::new(&mut DefaultSorter, bots).build();
-        Tree2 {
+impl<'a, T: Aabb + 'a> Tree<'a, T> {
+    pub fn from_builder(a:TreeBuilder<'a,T>)->Self{
+        let total_num_elem = a.bots.len();
+        let nodes = a.build(&mut DefaultSorter);
+        Tree {
             nodes,
             total_num_elem,
         }
+    }
+    pub fn par_from_builder(a:TreeBuilder<'a,T>)->Self where T:Send,T::Num:Send{
+        let total_num_elem = a.bots.len();
+        let nodes = a.build_par(&mut DefaultSorter);
+        Tree {
+            nodes,
+            total_num_elem,
+        }
+    }
+
+    pub fn new(bots: &'a mut [T]) -> Self {
+        Self::from_builder(TreeBuilder::new(bots))
     }
 
     pub fn par_new(bots: &'a mut [T]) -> Self
@@ -213,12 +229,7 @@ impl<'a, T: Aabb + 'a> Tree2<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let total_num_elem = bots.len();
-        let nodes = tree::TreeBuilder::new(&mut DefaultSorter, bots).build_par();
-        Tree2 {
-            nodes,
-            total_num_elem,
-        }
+        Self::par_from_builder(TreeBuilder::new(bots))
     }
 
     #[inline(always)]
@@ -273,13 +284,26 @@ pub struct NotSortedTree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
-    pub fn new(bots: &'a mut [T]) -> Self {
-        let total_num_elem = bots.len();
-        let nodes = tree::TreeBuilder::new(&mut NoSorter, bots).build();
+
+    pub fn from_builder(a:TreeBuilder<'a,T>)->Self{
+        let total_num_elem = a.bots.len();
+        let nodes = a.build(&mut NoSorter);
         NotSortedTree {
             nodes,
             total_num_elem,
         }
+    }
+    pub fn par_from_builder(a:TreeBuilder<'a,T>)->Self where T:Send,T::Num:Send{
+        let total_num_elem = a.bots.len();
+        let nodes = a.build_par(&mut NoSorter);
+        NotSortedTree {
+            nodes,
+            total_num_elem,
+        }
+    }
+
+    pub fn new(bots: &'a mut [T]) -> Self {
+        Self::from_builder(TreeBuilder::new(bots))
     }
 
     pub fn par_new(bots: &'a mut [T]) -> Self
@@ -287,13 +311,9 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let total_num_elem = bots.len();
-        let nodes = tree::TreeBuilder::new(&mut NoSorter, bots).build_par();
-        NotSortedTree {
-            nodes,
-            total_num_elem,
-        }
+        Self::par_from_builder(TreeBuilder::new(bots))
     }
+    
 
     #[inline(always)]
     pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
