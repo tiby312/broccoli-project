@@ -16,8 +16,9 @@ impl Res {
 
                 maker.reset();
 
-                let (mut tree, levelc) = TreeBuilder::new_default(&mut bots)
-                    .build_from_splitter(LevelCounter::new(0, vec![]));
+                let mut levelc = LevelCounter::new(0, vec![]);
+                let mut tree =
+                    Tree::from_builder(TreeBuilder::with_splitter(&mut bots, &mut levelc));
 
                 let c1 = levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();

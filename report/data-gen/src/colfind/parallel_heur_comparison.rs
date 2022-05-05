@@ -32,7 +32,6 @@ fn test3(
 
     let (tree, query_time) = bench_closure_ret(|| {
         {
-            
             let mut k = broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
                 &mut tree,
                 |a, b| {

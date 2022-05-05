@@ -14,6 +14,19 @@ pub trait Splitter: Sized {
     fn add(&mut self, b: Self);
 }
 
+pub type EmptySplitter = [(); 0];
+
+pub fn empty_mut() -> &'static mut EmptySplitter {
+    &mut []
+}
+
+impl Splitter for [(); 0] {
+    fn div(&mut self) -> Self {
+        []
+    }
+    fn add(&mut self, _: Self) {}
+}
+
 /*
 impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
     pub fn build_from_splitter<SS: Splitter>(

@@ -68,6 +68,7 @@ use tree::aabb_pin::AabbPin;
 use tree::aabb_pin::AabbPinIter;
 use tree::build::*;
 use tree::node::*;
+use tree::splitter::Splitter;
 use tree::*;
 
 pub mod ext;
@@ -141,7 +142,7 @@ where
         let j = container.as_mut();
         let length = j.len();
 
-        let t = TreeBuilder::new( j).build_par(&mut DefaultSorter);
+        let t = TreeBuilder::new(j).build_par(&mut DefaultSorter);
 
         let nodes = t.into_iter().map(|x| x.as_data()).collect();
 
@@ -193,17 +194,13 @@ where
     }
 }
 
-
-
-
-
 pub struct Tree<'a, T: Aabb> {
     total_num_elem: usize,
     nodes: Vec<Node<'a, T>>,
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
-    pub fn from_builder(a:TreeBuilder<'a,T>)->Self{
+    pub fn from_builder<'b, P: Splitter>(a: TreeBuilder<'a, T, &'b mut P>) -> Self {
         let total_num_elem = a.bots.len();
         let nodes = a.build(&mut DefaultSorter);
         Tree {
@@ -211,7 +208,12 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
             total_num_elem,
         }
     }
-    pub fn par_from_builder(a:TreeBuilder<'a,T>)->Self where T:Send,T::Num:Send{
+    pub fn par_from_builder<'b, P: Splitter>(a: TreeBuilder<'a, T, &'b mut P>) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+        P: Send,
+    {
         let total_num_elem = a.bots.len();
         let nodes = a.build_par(&mut DefaultSorter);
         Tree {
@@ -284,8 +286,7 @@ pub struct NotSortedTree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
-
-    pub fn from_builder(a:TreeBuilder<'a,T>)->Self{
+    pub fn from_builder<'b, P: Splitter>(a: TreeBuilder<'a, T, &'b mut P>) -> Self {
         let total_num_elem = a.bots.len();
         let nodes = a.build(&mut NoSorter);
         NotSortedTree {
@@ -293,7 +294,12 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
             total_num_elem,
         }
     }
-    pub fn par_from_builder(a:TreeBuilder<'a,T>)->Self where T:Send,T::Num:Send{
+    pub fn par_from_builder<'b, P: Splitter>(a: TreeBuilder<'a, T, &'b mut P>) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+        P: Send,
+    {
         let total_num_elem = a.bots.len();
         let nodes = a.build_par(&mut NoSorter);
         NotSortedTree {
@@ -313,7 +319,6 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
     {
         Self::par_from_builder(TreeBuilder::new(bots))
     }
-    
 
     #[inline(always)]
     pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {

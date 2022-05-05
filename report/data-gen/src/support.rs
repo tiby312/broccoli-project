@@ -119,14 +119,13 @@ mod levelcounter {
 
             let v = self.consume();
 
-            
-            *self=LevelCounter::new(level + 1, v);
+            *self = LevelCounter::new(level + 1, v);
 
             LevelCounter::new(level + 1, vec![])
         }
 
         #[inline]
-        fn add(&mut self, b: Self){
+        fn add(&mut self, b: Self) {
             let l1 = self.level();
             let l2 = b.level();
             assert_eq!(l1, l2);
@@ -140,7 +139,7 @@ mod levelcounter {
                 b.dur += a.dur;
             }
 
-            *self=LevelCounter::new(l1 - 1, v1)
+            *self = LevelCounter::new(l1 - 1, v1)
         }
     }
 }
@@ -203,13 +202,11 @@ mod leveltimer {
 
             let data = self.consume();
 
-        
-            *self=LevelTimer::new(level + 1, data);
+            *self = LevelTimer::new(level + 1, data);
             LevelTimer::new(level + 1, vec![])
-            
         }
         #[inline]
-        fn add(&mut self, b: Self)  {
+        fn add(&mut self, b: Self) {
             let l1 = self.level();
             let l2 = b.level();
             assert_eq!(l1, l2);
@@ -223,7 +220,7 @@ mod leveltimer {
                 b.1 += a.1;
             }
 
-            *self=LevelTimer::new(l1 - 1, v1)
+            *self = LevelTimer::new(l1 - 1, v1)
         }
     }
 }

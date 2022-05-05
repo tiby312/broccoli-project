@@ -195,11 +195,10 @@ fn profile_test(num_bots: usize) {
         let c0 = bench_closure(|| {
             let mut tree = broccoli::Tree::new(&mut bots);
             tree.find_colliding_pairs(|a, b| {
-                    //num_collision += 1;
-                    **a.unpack_inner() += 1;
-                    **b.unpack_inner() += 1;
-                },
-            );
+                //num_collision += 1;
+                **a.unpack_inner() += 1;
+                **b.unpack_inner() += 1;
+            });
         });
 
         dbg!(c0);
