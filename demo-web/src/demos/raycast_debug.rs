@@ -1,6 +1,7 @@
 use super::*;
 
 use axgeom::Ray;
+use broccoli::Assert;
 
 struct MyRaycast {
     verts: Vec<Rect<f32>>,
@@ -41,7 +42,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .into_boxed_slice();
 
     let mut counter: f32 = 0.0;
-    let mut tree = broccoli::tree::new_owned(walls);
+    let mut tree = broccoli::TreeOwned::new(walls);
 
     let rect_save = {
         let mut verts = vec![];
@@ -73,7 +74,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut handler = MyRaycast { verts: vec![] };
 
         if check_naive {
-            broccoli::queries::raycast::assert_raycast(&mut tree.clone_inner(), ray, &mut handler);
+            Assert::new(&mut tree.container_ref().clone()).assert_raycast(ray, &mut handler);
         }
 
         let mut tree = tree.as_tree();
@@ -88,7 +89,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         cam.draw_triangles(&rect_save, &[0.0, 0.0, 0.0, 0.3]);
 
         let test = {
-            let test = tree.raycast_mut(ray, &mut handler);
+            let test = tree.cast_ray(ray, &mut handler);
             drop(handler);
 
             buffer.update(&verts);

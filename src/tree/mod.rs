@@ -196,6 +196,7 @@ impl<'a, 'b, T: Aabb, P: Splitter + 'b> TreeBuilder<'a, T, &'b mut P> {
         }
     }
 
+    #[cfg(feature = "parallel")]
     fn recurse_par<S: Sorter<T>>(
         num_seq_fallback: usize,
         splitter: &mut P,

@@ -1,6 +1,5 @@
 use broccoli::queries::colfind::handler::DefaultNodeHandler;
 
-
 use super::*;
 
 struct Res {
@@ -26,14 +25,15 @@ impl Res {
                 let c1 = levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();
 
-                
-                let mut levelc2=LevelCounter::new(0, vec![]);
-                tree.colliding_pairs_builder_with_splitter(&mut DefaultNodeHandler::new::<BBox<_, &mut Vec2<_>>>(|a,b|{
-                    a.unpack_inner().x += 1.0;
-                    b.unpack_inner().y += 1.0;
-            
-                }),&mut levelc2).build();
-
+                let mut levelc2 = LevelCounter::new(0, vec![]);
+                tree.colliding_pairs_builder_with_splitter(
+                    &mut DefaultNodeHandler::new::<BBox<_, &mut Vec2<_>>>(|a, b| {
+                        a.unpack_inner().x += 1.0;
+                        b.unpack_inner().y += 1.0;
+                    }),
+                    &mut levelc2,
+                )
+                .build();
 
                 let c2 = levelc2
                     .into_levels()

@@ -20,11 +20,10 @@ impl<F> DefaultNodeHandler<F> {
 
 impl<F: Clone> Splitter for DefaultNodeHandler<F> {
     fn div(&mut self) -> Self {
-        let other = DefaultNodeHandler {
+        DefaultNodeHandler {
             prevec: self.prevec.clone(),
             func: self.func.clone(),
-        };
-        other
+        }
     }
 
     fn add(&mut self, _b: Self) {}

@@ -19,14 +19,15 @@ impl Res {
 
             let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
 
-
-
-            let mut times2=LevelTimer::new(0, vec![]);
-            tree.colliding_pairs_builder_with_splitter(&mut DefaultNodeHandler::new::<BBox<f64, &mut isize>>(|a,b|{
-                **a.unpack_inner() += 1;
-                **b.unpack_inner() += 1
-        
-            }),&mut times2).build();
+            let mut times2 = LevelTimer::new(0, vec![]);
+            tree.colliding_pairs_builder_with_splitter(
+                &mut DefaultNodeHandler::new::<BBox<f64, &mut isize>>(|a, b| {
+                    **a.unpack_inner() += 1;
+                    **b.unpack_inner() += 1
+                }),
+                &mut times2,
+            )
+            .build();
 
             let c2 = times2.into_levels().into_iter().map(|x| x as f64).collect();
 

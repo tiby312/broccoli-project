@@ -52,20 +52,13 @@ struct Bla<'a> {
     _p: PhantomData<&'a usize>,
 }
 impl<'a> broccoli::tree::splitter::Splitter for Bla<'a> {
-    fn div(self) -> (Self, Self) {
-        (
-            Bla {
-                _p: PhantomData,
-                _num_pairs_checked: 0,
-            },
-            Bla {
-                _p: PhantomData,
-                _num_pairs_checked: 0,
-            },
-        )
+    fn div(&mut self) -> Self {
+        Bla {
+            _p: PhantomData,
+            _num_pairs_checked: 0,
+        }
     }
-    fn add(self, _: Self) -> Self {
-        self
+    fn add(&mut self, _: Self) {
         //do nothing
     }
 }
@@ -250,9 +243,9 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
             //use std::time::{Duration, Instant};
             //let now = Instant::now();
-            let tree = broccoli::tree::new(&mut k);
+            let tree = broccoli::Tree::new(&mut k);
 
-            let mut tree = tree.nbody(&mut Bla {
+            let mut tree = tree.handle_nbody(&mut Bla {
                 _num_pairs_checked: 0,
                 _p: PhantomData,
             });
@@ -319,7 +312,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 */
             }
 
-            tree.colliding_pairs(|a, b| {
+            tree.find_colliding_pairs(|a, b| {
                 let (a, b) = (a.unpack_inner(), b.unpack_inner());
                 let (a, b) = if a.mass > b.mass { (a, b) } else { (b, a) };
 

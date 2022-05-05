@@ -22,7 +22,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             Rect::new(p.x - r, p.x + r, p.y - r, p.y + r)
         });
 
-        let mut tree = broccoli::tree::new(&mut k);
+        let mut tree = broccoli::Tree::new(&mut k);
 
         /*
         broccoli::naive::query_naive_mut(broccoli::pmut::PMut::new(&mut k),
@@ -33,14 +33,14 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         );
         */
 
-        tree.colliding_pairs(move |a, b| {
+        tree.find_colliding_pairs(move |a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = a.solve(b, radius);
         });
 
         let vv = vec2same(100.0);
 
-        tree.for_all_in_rect_mut(
+        tree.find_all_in_rect(
             AabbPin::new(&mut axgeom::Rect::from_point(cursor, vv)),
             move |_, b| {
                 let b = b.unpack_inner();
@@ -48,7 +48,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             },
         );
 
-        tree.for_all_not_in_rect_mut(AabbPin::new(&mut dim), move |dim, a| {
+        tree.find_all_not_in_rect(AabbPin::new(&mut dim), move |dim, a| {
             let a = a.unpack_inner();
             duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &*dim, 0.5);
         });

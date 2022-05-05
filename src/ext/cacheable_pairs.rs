@@ -1,6 +1,6 @@
-
 use crate::{
-    tree::{aabb_pin::HasInner, node::Aabb}, Tree
+    tree::{aabb_pin::HasInner, node::Aabb},
+    Tree,
 };
 
 ///
@@ -44,7 +44,12 @@ unsafe impl<T: Aabb + HasInner> TrustedCollisionPairs for IndTree<'_, '_, T> {
 unsafe impl<T: Aabb + HasInner> TrustedIterAll for IndTree<'_, '_, T> {
     type T = T::Inner;
     fn for_every(&mut self, mut func: impl FnMut(&mut Self::T)) {
-        for a in self.0.get_nodes_mut().iter_mut().flat_map(|x|x.into_range()) {
+        for a in self
+            .0
+            .get_nodes_mut()
+            .iter_mut()
+            .flat_map(|x| x.into_range())
+        {
             func(a.unpack_inner());
         }
     }

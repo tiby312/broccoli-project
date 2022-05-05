@@ -281,6 +281,7 @@ fn recurse_seq<T: Aabb, P: Splitter, SO: NodeHandler<T>>(
     }
 }
 
+#[cfg(feature = "parallel")]
 fn recurse_par<T: Aabb, P: Splitter, SO: NodeHandler<T>>(
     vistr: CollVis<T>,
     splitter: &mut P,

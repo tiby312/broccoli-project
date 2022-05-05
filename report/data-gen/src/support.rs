@@ -76,17 +76,16 @@ mod levelcounter {
             }
         }
 
-        fn restart(&mut self,level:usize){
+        fn restart(&mut self, level: usize) {
             let now = unsafe { datanum::COUNTER };
-            self.level=level;
-            self.start=now;
-
+            self.level = level;
+            self.start = now;
         }
         pub fn level(&self) -> usize {
             self.level
         }
 
-        pub fn consume(&mut self)  {
+        pub fn consume(&mut self) {
             let dur = unsafe { datanum::COUNTER - self.start };
 
             //stop self timer.
@@ -100,7 +99,6 @@ mod levelcounter {
                     dur,
                 });
             }
-
         }
 
         pub fn into_levels(mut self) -> Vec<usize> {
@@ -125,8 +123,8 @@ mod levelcounter {
 
             self.consume();
 
-            self.restart(level+1);
-            
+            self.restart(level + 1);
+
             LevelCounter::new(level + 1, vec![])
         }
 
@@ -139,8 +137,8 @@ mod levelcounter {
             self.consume();
             b.consume();
 
-            let v1=&mut self.stuff;
-            let v2=&mut b.stuff;
+            let v1 = &mut self.stuff;
+            let v2 = &mut b.stuff;
 
             //the left vec is bigger
             for a in v2.into_iter() {
@@ -148,7 +146,7 @@ mod levelcounter {
                 b.dur += a.dur;
             }
 
-            self.restart(l1-1);
+            self.restart(l1 - 1);
         }
     }
 }
@@ -176,11 +174,9 @@ mod leveltimer {
             }
         }
 
-        fn restart(&mut self,level:usize){
-            
-            self.level=level;
-            self.start=Instant::now();
-
+        fn restart(&mut self, level: usize) {
+            self.level = level;
+            self.start = Instant::now();
         }
 
         pub fn into_levels(mut self) -> Vec<f64> {
@@ -218,7 +214,7 @@ mod leveltimer {
 
             self.consume();
 
-            self.restart(level+1);
+            self.restart(level + 1);
             LevelTimer::new(level + 1, vec![])
         }
         #[inline]
@@ -230,8 +226,8 @@ mod leveltimer {
             self.consume();
             b.consume();
 
-            let v1=&mut self.stuff;
-            let v2=&mut b.stuff;
+            let v1 = &mut self.stuff;
+            let v2 = &mut b.stuff;
 
             //the left vec is bigger
             for a in v2.into_iter() {
@@ -239,7 +235,7 @@ mod leveltimer {
                 b.1 += a.1;
             }
 
-            self.restart(l1-1);
+            self.restart(l1 - 1);
         }
     }
 }

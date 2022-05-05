@@ -77,10 +77,9 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut k = support::distribute(&mut bots, |b| support::point_to_rect_f32(b.pos, radius));
 
         {
-            let mut tree = broccoli::tree::new(&mut k);
+            let mut tree = broccoli::Tree::new(&mut k);
 
-            broccoli::queries::intersect_with::intersect_with_iter_mut(
-                &mut tree,
+            tree.find_colliding_pairs_with_iter(
                 AabbPin::new(walls.as_mut_slice()).iter_mut(),
                 |mut bot, wall| {
                     let (rect, bot) = bot.destruct_mut();
@@ -112,7 +111,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 },
             );
 
-            tree.for_all_in_rect_mut(
+            tree.find_all_in_rect(
                 AabbPin::new(&mut axgeom::Rect::from_point(cursor, vec2same(100.0))),
                 |_, b| {
                     let b = b.unpack_inner();
@@ -120,7 +119,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 },
             );
 
-            tree.colliding_pairs(|a, b| {
+            tree.find_colliding_pairs(|a, b| {
                 let a = a.unpack_inner();
                 let b = b.unpack_inner();
                 let _ =

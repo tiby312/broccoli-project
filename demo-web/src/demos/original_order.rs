@@ -1,4 +1,5 @@
 use super::*;
+use broccoli::Assert;
 use duckduckgeo;
 
 #[derive(Copy, Clone)]
@@ -63,18 +64,18 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             .collect();
 
         if check_naive {
-            broccoli::queries::colfind::assert_query(&mut tree_bots);
+            Assert::new(&mut tree_bots).assert_query();
         }
 
-        let mut tree = broccoli::tree::new(&mut tree_bots);
+        let mut tree = broccoli::Tree::new(&mut tree_bots);
 
-        tree.for_all_not_in_rect_mut(AabbPin::new(&mut dim), |dim, a| {
+        tree.find_all_not_in_rect(AabbPin::new(&mut dim), |dim, a| {
             let a = a.unpack_inner();
             duckduckgeo::collide_with_border(&mut a.pos, &mut a.vel, &*dim, 0.5);
         });
 
         let vv = vec2same(100.0);
-        tree.for_all_in_rect_mut(
+        tree.find_all_in_rect(
             AabbPin::new(&mut axgeom::Rect::from_point(cursor, vv)),
             |_, b| {
                 let b = b.unpack_inner();
@@ -84,8 +85,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         let mut verts2 = vec![];
 
-        broccoli::queries::draw::draw_divider(
-            &mut tree,
+        tree.draw_divider(
             |axis, node, rect, _| {
                 use AxisDyn::*;
 
@@ -131,7 +131,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         buffer.update(&verts2);
         camera.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.3]);
 
-        tree.colliding_pairs(|a, b| {
+        tree.find_colliding_pairs(|a, b| {
             let (a, b) = (a.unpack_inner(), b.unpack_inner());
             let _ = duckduckgeo::repel([(a.pos, &mut a.force), (b.pos, &mut b.force)], 0.001, 2.0);
         });

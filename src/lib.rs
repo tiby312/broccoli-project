@@ -134,6 +134,8 @@ where
             total_num_elem: length,
         }
     }
+
+    #[cfg(feature = "parallel")]
     pub fn par_new(mut container: C) -> TreeOwned<C>
     where
         C::T: Send,
@@ -188,6 +190,10 @@ where
         AabbPin::new(j)
     }
 
+    pub fn container_ref(&self) -> &C {
+        &self.container
+    }
+
     #[must_use]
     pub fn into_inner(self) -> C {
         self.container
@@ -208,6 +214,8 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
             total_num_elem,
         }
     }
+
+    #[cfg(feature = "parallel")]
     pub fn par_from_builder<'b, P: Splitter>(a: TreeBuilder<'a, T, &'b mut P>) -> Self
     where
         T: Send,
@@ -226,6 +234,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
         Self::from_builder(TreeBuilder::new(bots))
     }
 
+    #[cfg(feature = "parallel")]
     pub fn par_new(bots: &'a mut [T]) -> Self
     where
         T: Send,
@@ -294,6 +303,8 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
             total_num_elem,
         }
     }
+
+    #[cfg(feature = "parallel")]
     pub fn par_from_builder<'b, P: Splitter>(a: TreeBuilder<'a, T, &'b mut P>) -> Self
     where
         T: Send,
@@ -312,6 +323,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         Self::from_builder(TreeBuilder::new(bots))
     }
 
+    #[cfg(feature = "parallel")]
     pub fn par_new(bots: &'a mut [T]) -> Self
     where
         T: Send,

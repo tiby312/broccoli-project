@@ -34,13 +34,12 @@ fn test3(
 
     let (tree, query_time) = bench_closure_ret(|| {
         {
-            let mut foo=DefaultNodeHandler::new::<BBox<f64, &mut isize>>(|a,b|{
+            let mut foo = DefaultNodeHandler::new::<BBox<f64, &mut isize>>(|a, b| {
                 **a.unpack_inner() += 2;
                 **b.unpack_inner() += 2;
-        
             });
 
-            let mut k=tree.colliding_pairs_builder(&mut foo);
+            let mut k = tree.colliding_pairs_builder(&mut foo);
 
             if let Some(r) = query_num {
                 k.num_seq_fallback = r;
