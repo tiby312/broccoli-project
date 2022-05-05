@@ -1,10 +1,12 @@
+use broccoli::queries::colfind::handler::DefaultNodeHandler;
+
 use super::*;
 
 fn test1(bots: &mut [BBox<f64, &mut isize>]) -> (f64, f64) {
-    let (mut tree, construction_time) = bench_closure_ret(|| broccoli::tree::new(bots));
+    let (mut tree, construction_time) = bench_closure_ret(|| broccoli::Tree::new(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {
-        tree.colliding_pairs(|a, b| {
+        tree.find_colliding_pairs(|a, b| {
             **a.unpack_inner() += 2;
             **b.unpack_inner() += 2;
         });
@@ -32,13 +34,13 @@ fn test3(
 
     let (tree, query_time) = bench_closure_ret(|| {
         {
-            let mut k = broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
-                &mut tree,
-                |a, b| {
-                    **a.unpack_inner() += 2;
-                    **b.unpack_inner() += 2;
-                },
-            );
+            let mut foo=DefaultNodeHandler::new::<BBox<f64, &mut isize>>(|a,b|{
+                **a.unpack_inner() += 2;
+                **b.unpack_inner() += 2;
+        
+            });
+
+            let mut k=tree.colliding_pairs_builder(&mut foo);
 
             if let Some(r) = query_num {
                 k.num_seq_fallback = r;

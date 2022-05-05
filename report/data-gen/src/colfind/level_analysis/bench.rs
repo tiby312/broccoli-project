@@ -1,3 +1,5 @@
+use broccoli::queries::colfind::handler::DefaultNodeHandler;
+
 use super::*;
 
 struct Res {
@@ -17,14 +19,15 @@ impl Res {
 
             let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
 
-            let times2 = broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
-                &mut tree,
-                |a, b| {
-                    **a.unpack_inner() += 1;
-                    **b.unpack_inner() += 1
-                },
-            )
-            .build_with_splitter(LevelTimer::new(0, vec![]));
+
+
+            let mut times2=LevelTimer::new(0, vec![]);
+            let mut k=tree.colliding_pairs_builder_with_splitter(&mut DefaultNodeHandler::new::<BBox<f64, &mut isize>>(|a,b|{
+                **a.unpack_inner() += 1;
+                **b.unpack_inner() += 1
+        
+            }),&mut times2);
+
             let c2 = times2.into_levels().into_iter().map(|x| x as f64).collect();
 
             let t = Res {

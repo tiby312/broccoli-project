@@ -1,7 +1,6 @@
 
 use crate::{
-    prelude::CollidingPairsApi,
-    tree::{aabb_pin::HasInner, node::Aabb, Tree},
+    tree::{aabb_pin::HasInner, node::Aabb}, Tree
 };
 
 ///
@@ -36,7 +35,7 @@ pub struct IndTree<'a, 'b, T: Aabb>(pub &'b mut Tree<'a, T>);
 unsafe impl<T: Aabb + HasInner> TrustedCollisionPairs for IndTree<'_, '_, T> {
     type T = T::Inner;
     fn for_every_pair(&mut self, mut func: impl FnMut(&mut Self::T, &mut Self::T)) {
-        self.0.colliding_pairs(|a, b| {
+        self.0.find_colliding_pairs(|a, b| {
             func(a.unpack_inner(), b.unpack_inner());
         })
     }
@@ -45,7 +44,7 @@ unsafe impl<T: Aabb + HasInner> TrustedCollisionPairs for IndTree<'_, '_, T> {
 unsafe impl<T: Aabb + HasInner> TrustedIterAll for IndTree<'_, '_, T> {
     type T = T::Inner;
     fn for_every(&mut self, mut func: impl FnMut(&mut Self::T)) {
-        for a in self.0.iter_mut() {
+        for a in self.0.get_nodes_mut().iter_mut().flat_map(|x|x.into_range()) {
             func(a.unpack_inner());
         }
     }

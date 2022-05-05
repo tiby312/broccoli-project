@@ -76,6 +76,7 @@ mod levelcounter {
             }
         }
 
+        
         pub fn level(&self) -> usize {
             self.level
         }

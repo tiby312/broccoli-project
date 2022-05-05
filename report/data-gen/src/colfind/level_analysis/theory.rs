@@ -1,3 +1,7 @@
+use broccoli::queries::colfind::handler::DefaultNodeHandler;
+
+use crate::datanum::Dnum;
+
 use super::*;
 
 struct Res {
@@ -23,14 +27,14 @@ impl Res {
                 let c1 = levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();
 
-                let levelc2 = broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
-                    &mut tree,
-                    |a, b| {
-                        a.unpack_inner().x += 1.0;
-                        b.unpack_inner().y += 1.0;
-                    },
-                )
-                .build_with_splitter(LevelCounter::new(0, vec![]));
+                
+                let mut levelc2=LevelCounter::new(0, vec![]);
+                let mut k=tree.colliding_pairs_builder_with_splitter(&mut DefaultNodeHandler::new::<BBox<_, &mut Vec2<_>>>(|a,b|{
+                    a.unpack_inner().x += 1.0;
+                    b.unpack_inner().y += 1.0;
+            
+                }),&mut levelc2);
+
                 let c2 = levelc2
                     .into_levels()
                     .into_iter()
