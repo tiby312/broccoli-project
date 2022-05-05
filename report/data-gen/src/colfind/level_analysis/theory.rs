@@ -1,6 +1,5 @@
 use broccoli::queries::colfind::handler::DefaultNodeHandler;
 
-use crate::datanum::Dnum;
 
 use super::*;
 
@@ -29,11 +28,12 @@ impl Res {
 
                 
                 let mut levelc2=LevelCounter::new(0, vec![]);
-                let mut k=tree.colliding_pairs_builder_with_splitter(&mut DefaultNodeHandler::new::<BBox<_, &mut Vec2<_>>>(|a,b|{
+                tree.colliding_pairs_builder_with_splitter(&mut DefaultNodeHandler::new::<BBox<_, &mut Vec2<_>>>(|a,b|{
                     a.unpack_inner().x += 1.0;
                     b.unpack_inner().y += 1.0;
             
-                }),&mut levelc2);
+                }),&mut levelc2).build();
+
 
                 let c2 = levelc2
                     .into_levels()
