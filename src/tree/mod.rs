@@ -118,19 +118,19 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
     BBoxMut::new(rect, inner)
 }
 
-pub struct TreeBuilder<'a, T, P> {
+pub struct TreeBuildOptions<'a, T, P> {
     pub bots: &'a mut [T],
     pub num_level: usize,
     pub num_seq_fallback: usize,
     pub splitter: P,
 }
 
-impl<'a, T: Aabb> TreeBuilder<'a, T, &'static mut EmptySplitter> {
+impl<'a, T: Aabb> TreeBuildOptions<'a, T, &'static mut EmptySplitter> {
     pub fn new(bots: &'a mut [T]) -> Self {
         let num_bots = bots.len();
         let num_seq_fallback = 2_400;
         let splitter = empty_mut();
-        TreeBuilder {
+        TreeBuildOptions {
             bots,
             num_level: num_level::default(num_bots),
             num_seq_fallback,
@@ -139,11 +139,11 @@ impl<'a, T: Aabb> TreeBuilder<'a, T, &'static mut EmptySplitter> {
     }
 }
 
-impl<'a, 'b, T: Aabb, P: Splitter + 'b> TreeBuilder<'a, T, &'b mut P> {
+impl<'a, 'b, T: Aabb, P: Splitter + 'b> TreeBuildOptions<'a, T, &'b mut P> {
     pub fn with_splitter(bots: &'a mut [T], splitter: &'b mut P) -> Self {
         let num_bots = bots.len();
         let num_seq_fallback = 2_400;
-        TreeBuilder {
+        TreeBuildOptions {
             bots,
             num_level: num_level::default(num_bots),
             num_seq_fallback,

@@ -24,12 +24,12 @@ fn test3(
     query_num: Option<usize>,
 ) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| {
-        let mut k = TreeBuilder::new(bots);
+        let mut k = TreeBuildOptions::new(bots);
         if let Some(r) = rebal_num {
             //dbg!(r);
             k.num_seq_fallback = r;
         }
-        Tree::par_from_builder(k)
+        Tree::par_with_options(k)
     });
 
     let (tree, query_time) = bench_closure_ret(|| {

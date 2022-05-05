@@ -124,7 +124,7 @@ where
         let j = container.as_mut();
         let length = j.len();
 
-        let t = TreeBuilder::new(j).build(&mut DefaultSorter);
+        let t = TreeBuildOptions::new(j).build(&mut DefaultSorter);
 
         let nodes = t.into_iter().map(|x| x.as_data()).collect();
 
@@ -144,7 +144,7 @@ where
         let j = container.as_mut();
         let length = j.len();
 
-        let t = TreeBuilder::new(j).build_par(&mut DefaultSorter);
+        let t = TreeBuildOptions::new(j).build_par(&mut DefaultSorter);
 
         let nodes = t.into_iter().map(|x| x.as_data()).collect();
 
@@ -206,7 +206,7 @@ pub struct Tree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
-    pub fn from_builder<'b, P: Splitter>(a: TreeBuilder<'a, T, &'b mut P>) -> Self {
+    pub fn with_options<'b, P: Splitter>(a: TreeBuildOptions<'a, T, &'b mut P>) -> Self {
         let total_num_elem = a.bots.len();
         let nodes = a.build(&mut DefaultSorter);
         Tree {
@@ -216,7 +216,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_from_builder<'b, P: Splitter>(a: TreeBuilder<'a, T, &'b mut P>) -> Self
+    pub fn par_with_options<'b, P: Splitter>(a: TreeBuildOptions<'a, T, &'b mut P>) -> Self
     where
         T: Send,
         T::Num: Send,
@@ -231,7 +231,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     }
 
     pub fn new(bots: &'a mut [T]) -> Self {
-        Self::from_builder(TreeBuilder::new(bots))
+        Self::with_options(TreeBuildOptions::new(bots))
     }
 
     #[cfg(feature = "parallel")]
@@ -240,7 +240,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        Self::par_from_builder(TreeBuilder::new(bots))
+        Self::par_with_options(TreeBuildOptions::new(bots))
     }
 
     #[inline(always)]
@@ -295,7 +295,7 @@ pub struct NotSortedTree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
-    pub fn from_builder<'b, P: Splitter>(a: TreeBuilder<'a, T, &'b mut P>) -> Self {
+    pub fn with_options<'b, P: Splitter>(a: TreeBuildOptions<'a, T, &'b mut P>) -> Self {
         let total_num_elem = a.bots.len();
         let nodes = a.build(&mut NoSorter);
         NotSortedTree {
@@ -305,7 +305,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_from_builder<'b, P: Splitter>(a: TreeBuilder<'a, T, &'b mut P>) -> Self
+    pub fn par_with_options<'b, P: Splitter>(a: TreeBuildOptions<'a, T, &'b mut P>) -> Self
     where
         T: Send,
         T::Num: Send,
@@ -320,7 +320,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
     }
 
     pub fn new(bots: &'a mut [T]) -> Self {
-        Self::from_builder(TreeBuilder::new(bots))
+        Self::with_options(TreeBuildOptions::new(bots))
     }
 
     #[cfg(feature = "parallel")]
@@ -329,7 +329,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        Self::par_from_builder(TreeBuilder::new(bots))
+        Self::par_with_options(TreeBuildOptions::new(bots))
     }
 
     #[inline(always)]
