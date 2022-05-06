@@ -1,4 +1,4 @@
-use broccoli::queries::colfind::handler::DefaultNodeHandler;
+use broccoli::queries::colfind::{build::CollVis, handler::DefaultNodeHandler};
 
 use super::*;
 
@@ -19,21 +19,32 @@ impl Res {
                 maker.reset();
 
                 let mut levelc = LevelCounter::new(0, vec![]);
-                let mut tree =
-                    Tree::with_options(TreeBuildOptions::with_splitter(&mut bots, &mut levelc));
+
+                let num_elements = bots.len();
+                let mut tree = Tree::from_nodes(
+                    BuildArgs {
+                        bots: bots.as_mut_slice(),
+                        num_level: num_level::default(num_elements),
+                        splitter: &mut levelc,
+                        sorter: &mut DefaultSorter,
+                    }
+                    .build_ext(),
+                );
 
                 let c1 = levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();
 
                 let mut levelc2 = LevelCounter::new(0, vec![]);
-                tree.colliding_pairs_builder_with_splitter(
-                    &mut DefaultNodeHandler::new::<BBox<_, &mut Vec2<_>>>(|a, b| {
+
+                broccoli::queries::colfind::BuildArgs {
+                    splitter: &mut levelc2,
+                    handler: &mut DefaultNodeHandler::new::<BBox<_, &mut Vec2<_>>>(|a, b| {
                         a.unpack_inner().x += 1.0;
                         b.unpack_inner().y += 1.0;
                     }),
-                    &mut levelc2,
-                )
-                .build();
+                    vistr: CollVis::new(tree.vistr_mut()),
+                }
+                .build_ext();
 
                 let c2 = levelc2
                     .into_levels()

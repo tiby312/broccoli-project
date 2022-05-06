@@ -38,8 +38,11 @@ pub struct CollVis<'a, 'b, T: Aabb> {
     axis: AxisDyn,
 }
 impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
-    pub(crate) fn new(vistr: VistrMutPin<'b, Node<'a, T>>, axis: AxisDyn) -> Self {
-        CollVis { vistr, axis }
+    pub fn new(vistr: VistrMutPin<'b, Node<'a, T>>) -> Self {
+        CollVis {
+            vistr,
+            axis: default_axis().to_dyn(),
+        }
     }
 
     pub fn get_height(&self) -> usize {

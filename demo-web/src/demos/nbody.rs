@@ -243,9 +243,9 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
             //use std::time::{Duration, Instant};
             //let now = Instant::now();
-            let tree = broccoli::Tree::new(&mut k);
+            let mut tree = broccoli::Tree::new(&mut k);
 
-            let mut tree = tree.handle_nbody(&mut Bla {
+            tree.handle_nbody(&mut Bla {
                 _num_pairs_checked: 0,
                 _p: PhantomData,
             });

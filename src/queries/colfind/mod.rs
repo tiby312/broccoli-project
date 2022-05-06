@@ -2,10 +2,6 @@
 
 mod oned;
 
-//use std::borrow::Borrow;
-
-use std::borrow::BorrowMut;
-
 use super::tools;
 use super::*;
 pub mod build;
@@ -135,14 +131,18 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     }
 }
 
-use crate::tree::splitter::{empty_mut, EmptySplitter, Splitter};
+use crate::tree::splitter::{empty_mut, Splitter};
 
 const SEQ_FALLBACK_DEFAULT: usize = 2_400;
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        self.colliding_pairs_builder(&mut NoSortNodeHandler::new(func))
-            .build();
+        BuildArgs {
+            splitter: empty_mut(),
+            handler: &mut NoSortNodeHandler::new(func),
+            vistr: CollVis::new(self.vistr_mut()),
+        }
+        .build_ext();
     }
 
     #[cfg(feature = "parallel")]
@@ -152,30 +152,23 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         T::Num: Send,
         F: Send + Clone,
     {
-        self.colliding_pairs_builder(&mut NoSortNodeHandler::new(func))
-            .build_par();
-    }
-
-    pub fn colliding_pairs_builder<'b, SO: NodeHandler<T>>(
-        &'b mut self,
-        handler: &'b mut SO,
-    ) -> CollidingPairsBuilder<'a, 'b, T, SO, &'static mut EmptySplitter> {
-        CollidingPairsBuilder::new(self.vistr_mut(), handler)
-    }
-
-    pub fn colliding_pairs_builder_with_splitter<'b, SO: NodeHandler<T>, K: Splitter>(
-        &'b mut self,
-        handler: &'b mut SO,
-        splitter: &'b mut K,
-    ) -> CollidingPairsBuilder<'a, 'b, T, SO, &'b mut K> {
-        CollidingPairsBuilder::with_splitter(self.vistr_mut(), handler, splitter)
+        BuildArgs {
+            splitter: empty_mut(),
+            handler: &mut NoSortNodeHandler::new(func),
+            vistr: CollVis::new(self.vistr_mut()),
+        }
+        .par_build_ext(SEQ_FALLBACK_DEFAULT);
     }
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        self.colliding_pairs_builder(&mut DefaultNodeHandler::new(func))
-            .build();
+        BuildArgs {
+            splitter: empty_mut(),
+            handler: &mut DefaultNodeHandler::new(func),
+            vistr: CollVis::new(self.vistr_mut()),
+        }
+        .build_ext();
     }
 
     #[cfg(feature = "parallel")]
@@ -185,81 +178,12 @@ impl<'a, T: Aabb> Tree<'a, T> {
         T::Num: Send,
         F: Send + Clone,
     {
-        self.colliding_pairs_builder(&mut DefaultNodeHandler::new(func))
-            .build_par();
-    }
-
-    pub fn colliding_pairs_builder_with_splitter<'b, SO: NodeHandler<T>, K: Splitter>(
-        &'b mut self,
-        handler: &'b mut SO,
-        splitter: &'b mut K,
-    ) -> CollidingPairsBuilder<'a, 'b, T, SO, &'b mut K> {
-        CollidingPairsBuilder::with_splitter(self.vistr_mut(), handler, splitter)
-    }
-
-    pub fn colliding_pairs_builder<'b, SO: NodeHandler<T>>(
-        &'b mut self,
-        handler: &'b mut SO,
-    ) -> CollidingPairsBuilder<'a, 'b, T, SO, &'static mut EmptySplitter> {
-        CollidingPairsBuilder::new(self.vistr_mut(), handler)
-    }
-}
-
-#[must_use]
-pub struct CollidingPairsBuilder<'a, 'b, T: Aabb, SO, P> {
-    vis: CollVis<'a, 'b, T>,
-    pub num_seq_fallback: usize,
-    pub handler: &'b mut SO,
-    pub splitter: P,
-}
-
-impl<'a, 'b, T: Aabb, SO: NodeHandler<T>>
-    CollidingPairsBuilder<'a, 'b, T, SO, &'static mut EmptySplitter>
-{
-    fn new(v: VistrMutPin<'b, Node<'a, T>>, handler: &'b mut SO) -> Self {
-        CollidingPairsBuilder {
-            vis: CollVis::new(v, default_axis().to_dyn()),
-            num_seq_fallback: SEQ_FALLBACK_DEFAULT,
-            handler,
+        BuildArgs {
             splitter: empty_mut(),
+            handler: &mut DefaultNodeHandler::new(func),
+            vistr: CollVis::new(self.vistr_mut()),
         }
-    }
-}
-
-impl<'a, 'b, 'c, T: Aabb, SO: NodeHandler<T>, P: Splitter>
-    CollidingPairsBuilder<'a, 'b, T, SO, &'c mut P>
-{
-    fn with_splitter(
-        v: VistrMutPin<'b, Node<'a, T>>,
-        handler: &'b mut SO,
-        splitter: &'c mut P,
-    ) -> Self {
-        CollidingPairsBuilder {
-            vis: CollVis::new(v, default_axis().to_dyn()),
-            num_seq_fallback: SEQ_FALLBACK_DEFAULT,
-            handler,
-            splitter,
-        }
-    }
-
-    pub fn build(self) {
-        recurse_seq(self.vis, self.splitter, self.handler.borrow_mut());
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn build_par(self)
-    where
-        T: Send,
-        T::Num: Send,
-        SO: Splitter + Send,
-        P: Send,
-    {
-        recurse_par(
-            self.vis,
-            self.splitter,
-            self.handler.borrow_mut(),
-            self.num_seq_fallback,
-        );
+        .par_build_ext(SEQ_FALLBACK_DEFAULT);
     }
 }
 
@@ -278,6 +202,27 @@ fn recurse_seq<T: Aabb, P: Splitter, SO: NodeHandler<T>>(
         splitter.add(s2);
     } else {
         n.finish(func);
+    }
+}
+
+pub struct BuildArgs<'a, 'b, 'c, 'd, T: Aabb, P: Splitter, SO: NodeHandler<T>> {
+    pub splitter: &'c mut P,
+    pub handler: &'d mut SO,
+    pub vistr: CollVis<'a, 'b, T>,
+}
+
+impl<'a, 'b, 'c, 'd, T: Aabb, P: Splitter, SO: NodeHandler<T>> BuildArgs<'a, 'b, 'c, 'd, T, P, SO> {
+    pub fn build_ext(self) {
+        recurse_seq(self.vistr, self.splitter, self.handler)
+    }
+    pub fn par_build_ext(self, num_seq_fallback: usize)
+    where
+        T: Send,
+        T::Num: Send,
+        SO: Splitter + Send,
+        P: Send,
+    {
+        recurse_par(self.vistr, self.splitter, self.handler, num_seq_fallback);
     }
 }
 

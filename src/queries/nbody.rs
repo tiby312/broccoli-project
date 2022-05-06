@@ -226,7 +226,7 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
 }
 
 impl<'a, T: Aabb> crate::Tree<'a, T> {
-    pub fn handle_nbody<N: Nbody<T = T>>(self, no: &mut N) -> Self {
+    pub fn handle_nbody<N: Nbody<T = T>>(&mut self, no: &mut N) {
         ///Perform nbody
         ///The tree is taken by value so that its nodes can be expended to include more data.
         pub fn nbody_mut<'a, N: Nbody>(
@@ -254,15 +254,16 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
             newnodes.into_iter().map(|x| x.node).collect()
         }
 
-        Tree {
-            nodes: nbody_mut(self.nodes, no),
-            total_num_elem: self.total_num_elem,
-        }
+        let mut vvv = vec![];
+        std::mem::swap(&mut self.nodes, &mut vvv);
+
+        let mut new = nbody_mut(vvv, no);
+        std::mem::swap(&mut self.nodes, &mut new);
     }
 }
 
 impl<'a, T: Aabb> Naive<'a, T> {
-    pub fn handle_nbody<N: Nbody<T = T>>(mut self, no: &mut N) -> Self {
+    pub fn handle_nbody<N: Nbody<T = T>>(&mut self, no: &mut N) {
         ///Naive version simply visits every pair.
         pub fn naive_nbody_mut<T: Aabb>(
             bots: AabbPin<&mut [T]>,
@@ -274,6 +275,5 @@ impl<'a, T: Aabb> Naive<'a, T> {
         naive_nbody_mut(self.inner.borrow_mut(), |a, b| {
             no.gravitate(GravEnum::Bot(a.into_slice()), GravEnum::Bot(b.into_slice()));
         });
-        self
     }
 }

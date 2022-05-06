@@ -15,7 +15,8 @@ impl Res {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
             let mut times1 = LevelTimer::new(0, vec![]);
-            let mut tree = Tree::with_options(TreeBuildOptions::with_splitter(&mut bots, &mut times1));
+            let mut tree =
+                Tree::with_options(TreeBuildOptions::with_splitter(&mut bots, &mut times1));
 
             let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
 
