@@ -20,6 +20,11 @@ pub fn empty_mut() -> &'static mut EmptySplitter {
     &mut []
 }
 
+pub fn empty() -> EmptySplitter {
+    []
+}
+
+
 impl Splitter for [(); 0] {
     fn div(&mut self) -> Self {
         []

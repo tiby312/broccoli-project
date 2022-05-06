@@ -68,7 +68,6 @@ use tree::aabb_pin::AabbPin;
 use tree::aabb_pin::AabbPinIter;
 use tree::build::*;
 use tree::node::*;
-use tree::splitter::empty_mut;
 use tree::*;
 
 pub mod ext;
@@ -207,13 +206,9 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     pub fn new(bots: &'a mut [T]) -> Self {
         let num_bots = bots.len();
-        let nodes = BuildArgs {
-            bots,
-            num_level: num_level::default(num_bots),
-            splitter: empty_mut(),
-            sorter: &mut DefaultSorter,
-        }
-        .build_ext();
+
+        let nodes=BuildArgs::new(num_bots).build_ext(bots);
+
         Tree { nodes }
     }
 
@@ -224,13 +219,9 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
         T::Num: Send,
     {
         let num_bots = bots.len();
-        let nodes = BuildArgs {
-            bots,
-            num_level: num_level::default(num_bots),
-            splitter: empty_mut(),
-            sorter: &mut DefaultSorter,
-        }
-        .par_build_ext(2_400);
+
+        let nodes=BuildArgs::new(num_bots).par_build_ext(bots,2_400);
+
         Tree { nodes }
     }
 
@@ -285,13 +276,9 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
 
     pub fn new(bots: &'a mut [T]) -> Self {
         let num_bots = bots.len();
-        let nodes = BuildArgs {
-            bots,
-            num_level: num_level::default(num_bots),
-            splitter: empty_mut(),
-            sorter: &mut NoSorter,
-        }
-        .build_ext();
+
+        let nodes=BuildArgs::new(num_bots).with_sorter::<T,_>(NoSorter).build_ext(bots);
+
         NotSortedTree { nodes }
     }
 
@@ -302,13 +289,9 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         T::Num: Send,
     {
         let num_bots = bots.len();
-        let nodes = BuildArgs {
-            bots,
-            num_level: num_level::default(num_bots),
-            splitter: empty_mut(),
-            sorter: &mut NoSorter,
-        }
-        .par_build_ext(2_400);
+
+        let nodes=BuildArgs::new(num_bots).with_sorter::<T,_>(NoSorter).par_build_ext(bots,2_400);
+
         NotSortedTree { nodes }
     }
 

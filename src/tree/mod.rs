@@ -3,7 +3,6 @@
 //! provides the broccoli tree and tree building code, but no querying code.
 //!
 
-use std::borrow::BorrowMut;
 
 use self::splitter::{Splitter, EmptySplitter};
 
@@ -125,11 +124,17 @@ pub struct BuildArgs<P, S> {
     pub splitter: P,
     pub sorter: S,
 }
+
+impl BuildArgs<EmptySplitter, DefaultSorter> {
+    pub fn new(num_bots:usize)->Self{
+        BuildArgs { num_level: num_level::default(num_bots), splitter: splitter::empty(), sorter: DefaultSorter }
+    }
+}
 impl<P:Splitter, S> BuildArgs<P, S> {
     pub fn with_splitter<K:Splitter>(self,splitter:K)->BuildArgs<K,S>{
         BuildArgs { num_level: self.num_level, splitter, sorter: self.sorter }
     }
-    pub fn with_sorter<T:Aabb,K:Sorter<K>>(self,sorter:K)->BuildArgs<P,K>{
+    pub fn with_sorter<T:Aabb,K:Sorter<T>>(self,sorter:K)->BuildArgs<P,K>{
         BuildArgs { num_level: self.num_level, splitter: self.splitter, sorter }
     }
 
