@@ -1,4 +1,4 @@
-use broccoli::queries::colfind::handler::DefaultNodeHandler;
+use broccoli::queries::colfind::QueryArgs;
 
 use super::*;
 
@@ -15,20 +15,21 @@ impl Res {
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
             let mut times1 = LevelTimer::new(0, vec![]);
+
             let mut tree =
-                Tree::with_options(TreeBuildOptions::with_splitter(&mut bots, &mut times1));
+                Tree::from_build_args(BuildArgs::new(&mut bots).with_splitter(&mut times1));
 
             let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
 
             let mut times2 = LevelTimer::new(0, vec![]);
-            tree.colliding_pairs_builder_with_splitter(
-                &mut DefaultNodeHandler::new::<BBox<f64, &mut isize>>(|a, b| {
+
+            tree.find_colliding_pairs_from_args(
+                QueryArgs::new().with_splitter(&mut times2),
+                |a, b| {
                     **a.unpack_inner() += 1;
-                    **b.unpack_inner() += 1
-                }),
-                &mut times2,
-            )
-            .build();
+                    **b.unpack_inner() += 1;
+                },
+            );
 
             let c2 = times2.into_levels().into_iter().map(|x| x as f64).collect();
 

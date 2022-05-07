@@ -1,4 +1,4 @@
-use broccoli::queries::colfind::{handler::DefaultNodeHandler};
+use broccoli::queries::colfind::QueryArgs;
 
 use super::*;
 
@@ -20,20 +20,21 @@ impl Res {
 
                 let mut levelc = LevelCounter::new(0, vec![]);
 
-
-                let mut tree = Tree::from_build_args(BuildArgs::new(&mut bots).with_splitter(&mut levelc));
+                let mut tree =
+                    Tree::from_build_args(BuildArgs::new(&mut bots).with_splitter(&mut levelc));
 
                 let c1 = levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();
 
                 let mut levelc2 = LevelCounter::new(0, vec![]);
 
-
-                broccoli::queries::colfind::QueryArgs::new(tree.vistr_mut()).with_splitter(&mut levelc2).query(&mut DefaultNodeHandler::new::<BBox<_, &mut Vec2<_>>>(|a, b| {
-                    a.unpack_inner().x += 1.0;
-                    b.unpack_inner().y += 1.0;
-                }));
-                
+                tree.find_colliding_pairs_from_args(
+                    QueryArgs::new().with_splitter(&mut levelc2),
+                    |a, b| {
+                        a.unpack_inner().x += 1.0;
+                        b.unpack_inner().y += 1.0;
+                    },
+                );
 
                 let c2 = levelc2
                     .into_levels()

@@ -131,13 +131,13 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     }
 }
 
-use crate::tree::splitter::{Splitter, EmptySplitter};
+use crate::tree::splitter::{EmptySplitter, Splitter};
 
 const SEQ_FALLBACK_DEFAULT: usize = 2_400;
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        QueryArgs::new().query(self.vistr_mut(),&mut NoSortNodeHandler::new(func));
+        QueryArgs::new().query(self.vistr_mut(), &mut NoSortNodeHandler::new(func));
     }
 
     #[cfg(feature = "parallel")]
@@ -147,14 +147,13 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         T::Num: Send,
         F: Send + Clone,
     {
-        QueryArgs::new().par_query(self.vistr_mut(),&mut NoSortNodeHandler::new(func))
+        QueryArgs::new().par_query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
     }
-
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        QueryArgs::new().query(self.vistr_mut(),&mut DefaultNodeHandler::new(func));
+        QueryArgs::new().query(self.vistr_mut(), &mut DefaultNodeHandler::new(func));
     }
 
     #[cfg(feature = "parallel")]
@@ -164,7 +163,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         T::Num: Send,
         F: Send + Clone,
     {
-        QueryArgs::new().par_query(self.vistr_mut(),&mut DefaultNodeHandler::new(func))
+        QueryArgs::new().par_query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
     }
 }
 
@@ -186,59 +185,61 @@ fn recurse_seq<T: Aabb, P: Splitter, SO: NodeHandler<T>>(
     }
 }
 
-
-pub struct QueryArgs<'split,P>{
-    pub num_seq_fallback:usize,
-    pub splitter:&'split mut P
+pub struct QueryArgs<'split, P> {
+    pub num_seq_fallback: usize,
+    pub splitter: &'split mut P,
 }
 
-
-impl<'a> QueryArgs<'a,EmptySplitter> {
-
-    pub fn new()->Self{
-        QueryArgs{
-            num_seq_fallback:SEQ_FALLBACK_DEFAULT,
-            splitter:empty_mut()
+impl<'a> Default for QueryArgs<'a, EmptySplitter> {
+    fn default() -> Self {
+        QueryArgs::new()
+    }
+}
+impl<'a> QueryArgs<'a, EmptySplitter> {
+    pub fn new() -> Self {
+        QueryArgs {
+            num_seq_fallback: SEQ_FALLBACK_DEFAULT,
+            splitter: empty_mut(),
         }
     }
-
 }
 
-impl<'split,P:Splitter> QueryArgs<'split,P> {
-    pub fn with_splitter<'c,K:Splitter>(self,splitter:&'c mut K)->QueryArgs<'c,K>{
-        QueryArgs{
-            num_seq_fallback:self.num_seq_fallback,
-            splitter
+impl<'split, P: Splitter> QueryArgs<'split, P> {
+    pub fn with_splitter<K: Splitter>(self, splitter: &mut K) -> QueryArgs<K> {
+        QueryArgs {
+            num_seq_fallback: self.num_seq_fallback,
+            splitter,
         }
-
     }
-    pub fn with_num_seq_fallback(self,num_seq_fallback:usize)->Self{
-        QueryArgs{
+    pub fn with_num_seq_fallback(self, num_seq_fallback: usize) -> Self {
+        QueryArgs {
             num_seq_fallback,
-            splitter:self.splitter
+            splitter: self.splitter,
         }
     }
 
-    pub fn query<T:Aabb,SO>(self,vistr:VistrMutPin<Node<T>>,handler:&mut SO) where SO:NodeHandler<T> {
-        let vv=CollVis::new(vistr);
+    pub fn query<T: Aabb, SO>(self, vistr: VistrMutPin<Node<T>>, handler: &mut SO)
+    where
+        SO: NodeHandler<T>,
+    {
+        let vv = CollVis::new(vistr);
 
         recurse_seq(vv, self.splitter, handler)
     }
-    pub fn par_query<T:Aabb,SO>(self,vistr:VistrMutPin<Node<T>>,handler:&mut SO)
+    pub fn par_query<T: Aabb, SO>(self, vistr: VistrMutPin<Node<T>>, handler: &mut SO)
     where
-        P:Splitter,
-        SO:NodeHandler<T>,
+        P: Splitter,
+        SO: NodeHandler<T>,
         T: Send,
         T::Num: Send,
         SO: Splitter + Send,
         P: Send,
     {
-        let vv=CollVis::new(vistr);
+        let vv = CollVis::new(vistr);
 
         recurse_par(vv, self.splitter, handler, self.num_seq_fallback);
     }
 }
-
 
 #[cfg(feature = "parallel")]
 fn recurse_par<T: Aabb, P: Splitter, SO: NodeHandler<T>>(

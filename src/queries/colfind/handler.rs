@@ -18,6 +18,52 @@ impl<F> DefaultNodeHandler<F> {
     }
 }
 
+impl<T: Aabb> Tree<'_, T> {
+    pub fn find_colliding_pairs_from_args<S: Splitter>(
+        &mut self,
+        args: QueryArgs<S>,
+        func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    ) {
+        args.query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
+    }
+    pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
+        &mut self,
+        args: QueryArgs<S>,
+        func: F,
+    ) where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+        F: Send + Clone,
+        S: Send,
+        T: Send,
+        T::Num: Send,
+    {
+        args.par_query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
+    }
+}
+
+impl<T: Aabb> NotSortedTree<'_, T> {
+    pub fn find_colliding_pairs_from_args<S: Splitter>(
+        &mut self,
+        args: QueryArgs<S>,
+        func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    ) {
+        args.query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
+    }
+    pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
+        &mut self,
+        args: QueryArgs<S>,
+        func: F,
+    ) where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+        F: Send + Clone,
+        S: Send,
+        T: Send,
+        T::Num: Send,
+    {
+        args.par_query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
+    }
+}
+
 impl<F: Clone> Splitter for DefaultNodeHandler<F> {
     fn div(&mut self) -> Self {
         DefaultNodeHandler {

@@ -68,9 +68,9 @@ use tree::aabb_pin::AabbPin;
 use tree::aabb_pin::AabbPinIter;
 use tree::build::*;
 use tree::node::*;
-use tree::*;
-use tree::splitter::Splitter;
 use tree::splitter::empty_mut;
+use tree::splitter::Splitter;
+use tree::*;
 
 pub mod ext;
 
@@ -206,23 +206,25 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
         Tree { nodes }
     }
 
-    pub fn from_build_args<'b,P:Splitter>(args:BuildArgs<'a,'b,T,P>)->Self{
-        Tree{
-            nodes:args.build_ext(&mut DefaultSorter)
+    pub fn from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self {
+        Tree {
+            nodes: args.build_ext(&mut DefaultSorter),
         }
     }
-    
-    pub fn par_from_build_args<'b,P:Splitter>(args:BuildArgs<'a,'b,T,P>)->Self where
-    T: Send,
-    T::Num: Send,P:Send{
-        Tree{
-            nodes:args.par_build_ext(&mut DefaultSorter)
+
+    pub fn par_from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+        P: Send,
+    {
+        Tree {
+            nodes: args.par_build_ext(&mut DefaultSorter),
         }
     }
 
     pub fn new(bots: &'a mut [T]) -> Self {
-        
-        let nodes=BuildArgs::new(bots).build_ext(&mut DefaultSorter);
+        let nodes = BuildArgs::new(bots).build_ext(&mut DefaultSorter);
 
         Tree { nodes }
     }
@@ -233,8 +235,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        
-        let nodes=BuildArgs::new(bots).par_build_ext(&mut DefaultSorter);
+        let nodes = BuildArgs::new(bots).par_build_ext(&mut DefaultSorter);
 
         Tree { nodes }
     }
@@ -288,24 +289,25 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         NotSortedTree { nodes }
     }
 
-
-    pub fn from_build_args<'b,P:Splitter>(args:BuildArgs<'a,'b,T,P>)->Self{
-        NotSortedTree{
-            nodes:args.build_ext(&mut NoSorter)
+    pub fn from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self {
+        NotSortedTree {
+            nodes: args.build_ext(&mut NoSorter),
         }
     }
-    
-    pub fn par_from_build_args<'b,P:Splitter>(args:BuildArgs<'a,'b,T,P>)->Self where
-    T: Send,
-    T::Num: Send,P:Send{
-        NotSortedTree{
-            nodes:args.par_build_ext(&mut NoSorter)
+
+    pub fn par_from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+        P: Send,
+    {
+        NotSortedTree {
+            nodes: args.par_build_ext(&mut NoSorter),
         }
     }
 
     pub fn new(bots: &'a mut [T]) -> Self {
-        
-        let nodes=BuildArgs::new(bots).build_ext(&mut NoSorter);
+        let nodes = BuildArgs::new(bots).build_ext(&mut NoSorter);
 
         NotSortedTree { nodes }
     }
@@ -316,8 +318,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-
-        let nodes=BuildArgs::new(bots).par_build_ext(&mut NoSorter);
+        let nodes = BuildArgs::new(bots).par_build_ext(&mut NoSorter);
 
         NotSortedTree { nodes }
     }
