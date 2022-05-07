@@ -131,13 +131,13 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     }
 }
 
-use crate::tree::splitter::Splitter;
+use crate::tree::splitter::{Splitter, EmptySplitter};
 
 const SEQ_FALLBACK_DEFAULT: usize = 2_400;
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        BuildArgs::new(NoSortNodeHandler::new(func)).build_ext(CollVis::new(self.vistr_mut()))
+        QueryArgs::new().query(self.vistr_mut(),&mut NoSortNodeHandler::new(func));
     }
 
     #[cfg(feature = "parallel")]
@@ -147,14 +147,14 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         T::Num: Send,
         F: Send + Clone,
     {
-        BuildArgs::new(NoSortNodeHandler::new(func)).par_build_ext(CollVis::new(self.vistr_mut()),
-        SEQ_FALLBACK_DEFAULT);
+        QueryArgs::new().par_query(self.vistr_mut(),&mut NoSortNodeHandler::new(func))
     }
+
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        BuildArgs::new(DefaultNodeHandler::new(func)).build_ext(CollVis::new(self.vistr_mut()));
+        QueryArgs::new().query(self.vistr_mut(),&mut DefaultNodeHandler::new(func));
     }
 
     #[cfg(feature = "parallel")]
@@ -164,7 +164,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         T::Num: Send,
         F: Send + Clone,
     {
-        BuildArgs::new(DefaultNodeHandler::new(func)).par_build_ext(CollVis::new(self.vistr_mut()), SEQ_FALLBACK_DEFAULT)
+        QueryArgs::new().par_query(self.vistr_mut(),&mut DefaultNodeHandler::new(func))
     }
 }
 
@@ -187,37 +187,55 @@ fn recurse_seq<T: Aabb, P: Splitter, SO: NodeHandler<T>>(
 }
 
 
-pub struct BuildArgs<P,SO>{
-    splitter:P,
-    handler:SO
+pub struct QueryArgs<'split,P>{
+    pub num_seq_fallback:usize,
+    pub splitter:&'split mut P
 }
 
-impl<SO> BuildArgs<splitter::EmptySplitter, SO> {
-    pub fn new<T:Aabb>(handler:SO)->Self where SO:NodeHandler<T>{
-        BuildArgs { splitter: splitter::empty(), handler }
+
+impl<'a> QueryArgs<'a,EmptySplitter> {
+
+    pub fn new()->Self{
+        QueryArgs{
+            num_seq_fallback:SEQ_FALLBACK_DEFAULT,
+            splitter:empty_mut()
+        }
     }
+
 }
 
-impl<P: Splitter, SO> BuildArgs<P, SO> {
-    pub fn with_splitter<K:Splitter>(self,splitter:K)->BuildArgs<K,SO>{
-        BuildArgs { splitter, handler: self.handler }
+impl<'split,P:Splitter> QueryArgs<'split,P> {
+    pub fn with_splitter<'c,K:Splitter>(self,splitter:&'c mut K)->QueryArgs<'c,K>{
+        QueryArgs{
+            num_seq_fallback:self.num_seq_fallback,
+            splitter
+        }
+
     }
-    pub fn with_handler<T:Aabb,K:NodeHandler<T>>(self,handler:K)->BuildArgs<P,K>{
-        BuildArgs { splitter: self.splitter, handler }
+    pub fn with_num_seq_fallback(self,num_seq_fallback:usize)->Self{
+        QueryArgs{
+            num_seq_fallback,
+            splitter:self.splitter
+        }
     }
 
-    pub fn build_ext<T:Aabb>(&mut self,vistr:CollVis<T>) where SO:NodeHandler<T> {
-        recurse_seq(vistr, &mut self.splitter, &mut self.handler)
+    pub fn query<T:Aabb,SO>(self,vistr:VistrMutPin<Node<T>>,handler:&mut SO) where SO:NodeHandler<T> {
+        let vv=CollVis::new(vistr);
+
+        recurse_seq(vv, self.splitter, handler)
     }
-    pub fn par_build_ext<T:Aabb>(&mut self,vistr:CollVis<T>,num_seq_fallback: usize)
+    pub fn par_query<T:Aabb,SO>(self,vistr:VistrMutPin<Node<T>>,handler:&mut SO)
     where
+        P:Splitter,
         SO:NodeHandler<T>,
         T: Send,
         T::Num: Send,
         SO: Splitter + Send,
         P: Send,
     {
-        recurse_par(vistr, &mut self.splitter, &mut self.handler, num_seq_fallback);
+        let vv=CollVis::new(vistr);
+
+        recurse_par(vv, self.splitter, handler, self.num_seq_fallback);
     }
 }
 
