@@ -202,10 +202,7 @@ pub struct Tree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
-    pub fn from_nodes(nodes: Vec<Node<'a, T>>) -> Self {
-        Tree { nodes }
-    }
-
+    
     pub fn from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self {
         Tree {
             nodes: args.build_ext(&mut DefaultSorter),
@@ -285,10 +282,7 @@ pub struct NotSortedTree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
-    pub fn from_nodes(nodes: Vec<Node<'a, T>>) -> Self {
-        NotSortedTree { nodes }
-    }
-
+    
     pub fn from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self {
         NotSortedTree {
             nodes: args.build_ext(&mut NoSorter),
