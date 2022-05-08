@@ -1,16 +1,15 @@
 #[test]
 fn knearest_repro() {
     use axgeom::*;
-    use broccoli::prelude::*;
     use broccoli::tree::*;
     let mut repro = [
         bbox(rect(729.75f32, 731.25, -0.75, 0.75), vec2(730.5, 0.)),
         bbox(rect(1517.25, 1518.75, -0.75, 0.75), vec2(1518., 0.)),
     ];
 
-    let mut tree = broccoli::tree::new(&mut repro);
+    let mut tree = broccoli::Tree::new(&mut repro);
 
-    let mut res = tree.k_nearest_mut_closure(
+    let mut res = tree.find_knearest_closure(
         vec2(627.0, 727.5),
         1,
         |point, a| Some(a.rect.distance_squared_to_point(point).unwrap_or(0.)),

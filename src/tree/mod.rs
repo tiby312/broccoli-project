@@ -1,8 +1,10 @@
 //!
-//! This is a supporting crate to the  `broccoli` crate. This crate only
-//! provides the broccoli tree and tree building code, but no querying code.
+//! Provides the broccoli tree building blocks and code, but no querying code.
 //!
 
+use self::splitter::{EmptySplitter, Splitter};
+
+use super::*;
 pub mod aabb_pin;
 mod assert;
 pub mod build;
@@ -11,7 +13,7 @@ mod oned;
 pub mod splitter;
 pub mod util;
 
-pub use axgeom;
+use axgeom;
 
 use aabb_pin::*;
 
@@ -34,7 +36,7 @@ pub const fn default_axis() -> DefaultA {
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one
 ///does nothing when sort() is called.
-pub trait Sorter<T: Aabb>: Copy + Clone + Send + Sync {
+pub trait Sorter<T>: splitter::Splitter {
     fn sort(&self, axis: impl Axis, bots: &mut [T]);
 }
 
@@ -115,400 +117,145 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
     BBoxMut::new(rect, inner)
 }
 
-///Create a [`Tree`].
 ///
-/// # Examples
+/// Options to specify how to build up a set of nodes.
 ///
-///```
-/// let mut bots = [axgeom::rect(0,10,0,10)];
-/// let tree = broccoli_tree::new(&mut bots);
-///
-///```
-pub fn new<T: Aabb>(bots: &mut [T]) -> Tree<T> {
-    TreeBuilder::new(DefaultSorter, bots).build()
-}
-
-#[cfg(feature = "parallel")]
-pub fn new_par<T: Aabb>(bots: &mut [T]) -> Tree<T>
-where
-    T: Send + Sync,
-    T::Num: Send + Sync,
-{
-    TreeBuilder::new(DefaultSorter, bots).build_par()
-}
-
-///
-/// Create a [`TreeOwned`]
-///
-pub fn new_owned<C: Container>(cont: C) -> TreeOwned<C, DefaultSorter>
-where
-    C::T: Aabb,
-{
-    TreeOwned::new(DefaultSorter, cont)
-}
-
-#[cfg(feature = "parallel")]
-pub fn new_owned_par<C: Container>(cont: C) -> TreeOwned<C, DefaultSorter>
-where
-    C::T: Aabb + Send + Sync,
-    <C::T as Aabb>::Num: Send + Sync,
-{
-    TreeOwned::new_par(DefaultSorter, cont)
-}
-
-///
-/// Abstract over containers that produce `&mut [T]`
-///
-pub trait Container {
-    type T;
-    fn as_mut(&mut self) -> &mut [Self::T];
-}
-
-impl<T, const N: usize> Container for [T; N] {
-    type T = T;
-    fn as_mut(&mut self) -> &mut [T] {
-        self
-    }
-}
-impl<T> Container for Vec<T> {
-    type T = T;
-    fn as_mut(&mut self) -> &mut [Self::T] {
-        self
-    }
-}
-impl<T> Container for Box<[T]> {
-    type T = T;
-    fn as_mut(&mut self) -> &mut [Self::T] {
-        self
-    }
-}
-
-///
-/// Owned version of [`Tree`]
-///
-#[must_use]
-pub struct TreeOwned<C: Container, S>
-where
-    C::T: Aabb,
-{
-    inner: C,
-    nodes: TreeInner<NodeData<<C::T as Aabb>::Num>, S>,
-    length: usize,
-}
-
-impl<C: Container, S: Sorter<C::T>> TreeOwned<C, S>
-where
-    C::T: Aabb,
-{
-    pub fn new(sorter: S, mut bots: C) -> TreeOwned<C, S> {
-        let j = bots.as_mut();
-        let length = j.len();
-
-        let t = TreeBuilder::new(sorter, j).build();
-        let data = t.into_node_data_tree();
-        TreeOwned {
-            inner: bots,
-            nodes: data,
-            length,
-        }
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn new_par(sorter: S, mut bots: C) -> TreeOwned<C, S>
-    where
-        C::T: Send + Sync,
-        <C::T as Aabb>::Num: Send + Sync,
-    {
-        let j = bots.as_mut();
-        let length = j.len();
-
-        let t = TreeBuilder::new(sorter, j).build_par();
-        let data = t.into_node_data_tree();
-        TreeOwned {
-            inner: bots,
-            nodes: data,
-            length,
-        }
-    }
-
-    pub fn as_tree(&mut self) -> TreeInner<Node<C::T>, S> {
-        let j = self.inner.as_mut();
-        assert_eq!(j.len(), self.length);
-
-        self.nodes.clone().into_tree(AabbPin::from_mut(j))
-    }
-    #[must_use]
-    pub fn as_slice_mut(&mut self) -> AabbPin<&mut [C::T]> {
-        let j = self.inner.as_mut();
-        assert_eq!(j.len(), self.length);
-
-        AabbPin::new(j)
-    }
-    #[must_use]
-    pub fn into_inner(self) -> C {
-        self.inner
-    }
-}
-
-impl<C: Container + Clone, S> TreeOwned<C, S>
-where
-    C::T: Aabb,
-{
-    #[must_use]
-    pub fn clone_inner(&self) -> C {
-        self.inner.clone()
-    }
-}
-
-pub struct TreeBuilder<'a, T, S> {
+pub struct BuildArgs<'a, 'b, T, S> {
     pub bots: &'a mut [T],
-    pub sorter: S,
     pub num_level: usize,
     pub num_seq_fallback: usize,
+    pub splitter: &'b mut S,
 }
 
-impl<'a, T: Aabb> TreeBuilder<'a, T, NoSorter> {
-    pub fn new_no_sort(bots: &'a mut [T]) -> Self {
-        Self::new(NoSorter, bots)
-    }
-}
-impl<'a, T: Aabb> TreeBuilder<'a, T, DefaultSorter> {
-    pub fn new_default(bots: &'a mut [T]) -> Self {
-        Self::new(DefaultSorter, bots)
-    }
-}
-impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
-    pub fn new(sorter: S, bots: &'a mut [T]) -> Self {
-        let num_bots = bots.len();
-        let num_seq_fallback = 2_400;
-        TreeBuilder {
+impl<'a, T: Aabb> BuildArgs<'a, 'static, T, EmptySplitter> {
+    pub fn new(bots: &'a mut [T]) -> Self {
+        let ff = bots.len();
+        BuildArgs {
             bots,
-            sorter,
-            num_level: num_level::default(num_bots),
+            num_level: num_level::default(ff),
+            num_seq_fallback: 2_400,
+            splitter: empty_mut(),
+        }
+    }
+}
+
+impl<'a, 'b, T: Aabb, P: Splitter> BuildArgs<'a, 'b, T, P> {
+    pub fn with_splitter<'c, PP: Splitter>(self, splitter: &'c mut PP) -> BuildArgs<'a, 'c, T, PP> {
+        BuildArgs {
+            bots: self.bots,
+            num_level: self.num_level,
+            num_seq_fallback: self.num_seq_fallback,
+            splitter,
+        }
+    }
+
+    pub fn with_num_seq_fallback(self, num_seq_fallback: usize) -> Self {
+        BuildArgs {
+            bots: self.bots,
+            num_level: self.num_level,
             num_seq_fallback,
+            splitter: self.splitter,
         }
     }
-    pub fn build(self) -> TreeInner<Node<'a, T>, S> {
-        let TreeBuilder {
-            bots,
-            sorter,
+    pub fn with_num_level(self, num_level: usize) -> Self {
+        BuildArgs {
+            bots: self.bots,
             num_level,
-            ..
-        } = self;
-        let total_num_elem = bots.len();
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = TreeBuildVisitor::new(num_level, bots, sorter);
-        vistr.recurse_seq(&mut buffer);
-        TreeInner {
-            nodes: buffer,
-            sorter,
-            total_num_elem,
+            num_seq_fallback: self.num_seq_fallback,
+            splitter: self.splitter,
         }
+    }
+    pub fn build_ext<S>(self, sorter: &mut S) -> Vec<Node<'a, T>>
+    where
+        S: Sorter<T>,
+        P: Splitter,
+    {
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(self.num_level));
+        recurse_seq(
+            self.splitter,
+            sorter,
+            &mut buffer,
+            TreeBuildVisitor::new(self.num_level, self.bots),
+        );
+        buffer
     }
 
     #[cfg(feature = "parallel")]
-    pub fn build_par(self) -> TreeInner<Node<'a, T>, S>
+    pub fn par_build_ext<S>(self, sorter: &mut S) -> Vec<Node<'a, T>>
     where
+        S: Sorter<T>,
         T: Send,
         T::Num: Send,
+        S: Send,
+        P: Splitter + Send,
     {
-        pub fn recurse_par<'a, T: Aabb, S: Sorter<T>>(
-            vistr: TreeBuildVisitor<'a, T, S>,
-            num_seq_fallback: usize,
-            buffer: &mut Vec<Node<'a, T>>,
-        ) where
-            T: Send,
-            T::Num: Send,
-        {
-            let NodeBuildResult { node, rest } = vistr.build_and_next();
-
-            if let Some([left, right]) = rest {
-                if node.get_num_elem() <= num_seq_fallback {
-                    buffer.push(node.finish());
-                    left.recurse_seq(buffer);
-                    right.recurse_seq(buffer);
-                } else {
-                    let (_, mut a) = rayon::join(
-                        || {
-                            buffer.push(node.finish());
-                            recurse_par(left, num_seq_fallback, buffer);
-                        },
-                        || {
-                            let mut f = vec![];
-                            recurse_par(right, num_seq_fallback, &mut f);
-                            f
-                        },
-                    );
-
-                    buffer.append(&mut a);
-                }
-            } else {
-                buffer.push(node.finish());
-            }
-        }
-
-        let TreeBuilder {
-            bots,
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(self.num_level));
+        recurse_par(
+            self.num_seq_fallback,
+            self.splitter,
             sorter,
-            num_level,
-            num_seq_fallback,
-        } = self;
-        let total_num_elem = bots.len();
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        let vistr = TreeBuildVisitor::new(num_level, bots, sorter);
-        recurse_par(vistr, num_seq_fallback, &mut buffer);
+            &mut buffer,
+            TreeBuildVisitor::new(self.num_level, self.bots),
+        );
+        buffer
+    }
+}
 
-        TreeInner {
-            nodes: buffer,
-            sorter,
-            total_num_elem,
+fn recurse_seq<'a, T: Aabb, S: Sorter<T>, P: Splitter>(
+    splitter: &mut P,
+    sorter: &mut S,
+    buffer: &mut Vec<Node<'a, T>>,
+    vis: TreeBuildVisitor<'a, T>,
+) {
+    let NodeBuildResult { node, rest } = vis.build_and_next();
+    buffer.push(node.finish(sorter));
+    if let Some([left, right]) = rest {
+        let mut a = splitter.div();
+        recurse_seq(splitter, sorter, buffer, left);
+        recurse_seq(&mut a, sorter, buffer, right);
+        splitter.add(a);
+    }
+}
+
+#[cfg(feature = "parallel")]
+fn recurse_par<'a, T: Aabb, S: Sorter<T>, P: Splitter>(
+    num_seq_fallback: usize,
+    splitter: &mut P,
+    sorter: &mut S,
+    buffer: &mut Vec<Node<'a, T>>,
+    vistr: TreeBuildVisitor<'a, T>,
+) where
+    S: Send,
+    T: Send,
+    T::Num: Send,
+    P: Send,
+{
+    let NodeBuildResult { node, rest } = vistr.build_and_next();
+
+    if let Some([left, right]) = rest {
+        let mut p = splitter.div();
+        if node.get_num_elem() <= num_seq_fallback {
+            buffer.push(node.finish(sorter));
+            recurse_seq(splitter, sorter, buffer, left);
+            recurse_seq(&mut p, sorter, buffer, right);
+        } else {
+            let mut s2 = sorter.div();
+            let mut buffer2 = Vec::with_capacity(num_level::num_nodes(right.get_height()));
+
+            rayon::join(
+                || {
+                    buffer.push(node.finish(sorter));
+                    recurse_par(num_seq_fallback, splitter, sorter, buffer, left);
+                },
+                || {
+                    recurse_par(num_seq_fallback, &mut p, &mut s2, &mut buffer2, right);
+                },
+            );
+            buffer.append(&mut buffer2);
+            sorter.add(s2)
         }
-    }
-}
-
-///
-/// The main tree struct
-///
-#[derive(Clone)]
-#[must_use]
-pub struct TreeInner<N, S> {
-    total_num_elem: usize,
-    ///Stored in pre-order
-    nodes: Vec<N>,
-    sorter: S,
-}
-
-///
-/// [`TreeInner`] type with default node and sorter.
-///
-pub type Tree<'a, T> = TreeInner<Node<'a, T>, DefaultSorter>;
-
-impl<N, Y> TreeInner<N, Y> {
-    pub fn into_sorter<X>(self) -> TreeInner<N, X>
-    where
-        X: From<Y>,
-    {
-        TreeInner {
-            total_num_elem: self.total_num_elem,
-            nodes: self.nodes,
-            sorter: self.sorter.into(),
-        }
-    }
-}
-impl<'a, T: Aabb + 'a, S: Sorter<T>> TreeInner<Node<'a, T>, S> {
-    pub fn into_node_data_tree(self) -> TreeInner<NodeData<T::Num>, S> {
-        self.node_map(|x| NodeData {
-            range: x.range.len(),
-            cont: x.cont,
-            div: x.div,
-            num_elem: x.num_elem,
-        })
-    }
-}
-
-impl<S, H: HasElem> TreeInner<H, S> {
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = AabbPin<&mut H::T>> {
-        self.nodes.iter_mut().flat_map(|x| x.get_elems().iter_mut())
-    }
-}
-
-#[must_use]
-fn as_node_tree<N>(vec: &[N]) -> compt::dfs_order::CompleteTree<N, compt::dfs_order::PreOrder> {
-    compt::dfs_order::CompleteTree::from_preorder(vec).unwrap()
-}
-
-impl<S, H> TreeInner<H, S> {
-    #[inline(always)]
-    pub fn node_map<K>(self, func: impl FnMut(H) -> K) -> TreeInner<K, S> {
-        let sorter = self.sorter;
-        let nodes = self.nodes.into_iter().map(func).collect();
-        TreeInner {
-            nodes,
-            sorter,
-            total_num_elem: self.total_num_elem,
-        }
-    }
-
-    #[must_use]
-    #[inline(always)]
-    pub fn num_levels(&self) -> usize {
-        as_node_tree(&self.nodes).get_height()
-    }
-
-    #[must_use]
-    #[inline(always)]
-    pub fn into_nodes(self) -> Vec<H> {
-        self.nodes
-    }
-
-    #[must_use]
-    #[inline(always)]
-    pub fn num_nodes(&self) -> usize {
-        self.nodes.len()
-    }
-
-    #[must_use]
-    #[inline(always)]
-    pub fn total_num_elem(&self) -> usize {
-        self.total_num_elem
-    }
-
-    #[must_use]
-    #[inline(always)]
-    pub fn get_nodes(&self) -> &[H] {
-        &self.nodes
-    }
-
-    #[must_use]
-    #[inline(always)]
-    pub fn get_nodes_mut(&mut self) -> AabbPin<&mut [H]> {
-        AabbPin::from_mut(&mut self.nodes)
-    }
-
-    #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMutPin<H> {
-        let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
-        VistrMutPin::new(tree.vistr_mut())
-    }
-
-    #[inline(always)]
-    pub fn vistr_mut_raw(&mut self) -> compt::dfs_order::VistrMut<H, compt::dfs_order::PreOrder> {
-        let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
-        tree.vistr_mut()
-    }
-
-    #[inline(always)]
-    pub fn vistr(&self) -> Vistr<H> {
-        let tree = as_node_tree(&self.nodes);
-
-        tree.vistr()
-    }
-
-    #[must_use]
-    #[inline(always)]
-    pub fn sorter(&self) -> S
-    where
-        S: Copy,
-    {
-        self.sorter
-    }
-}
-
-impl<N: Num, S> TreeInner<NodeData<N>, S> {
-    pub fn into_tree<T: Aabb<Num = N>>(self, bots: AabbPin<&mut [T]>) -> TreeInner<Node<T>, S> {
-        assert_eq!(bots.len(), self.total_num_elem);
-        let mut last = Some(bots);
-        let n = self.node_map(|x| {
-            let (range, rest) = last.take().unwrap().split_at_mut(x.range);
-            last = Some(rest);
-            Node {
-                range,
-                cont: x.cont,
-                div: x.div,
-                num_elem: x.num_elem,
-            }
-        });
-        assert!(last.unwrap().is_empty());
-        n
+        splitter.add(p);
+    } else {
+        buffer.push(node.finish(sorter));
     }
 }

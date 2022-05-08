@@ -1,3 +1,5 @@
+use broccoli::queries::colfind::QueryArgs;
+
 use super::*;
 
 struct Res {
@@ -16,20 +18,24 @@ impl Res {
 
                 maker.reset();
 
-                let (mut tree, levelc) = TreeBuilder::new_default(&mut bots)
-                    .build_from_splitter(LevelCounter::new(0, vec![]));
+                let mut levelc = LevelCounter::new(0, vec![]);
+
+                let mut tree =
+                    Tree::from_build_args(BuildArgs::new(&mut bots).with_splitter(&mut levelc));
 
                 let c1 = levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();
 
-                let levelc2 = broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
-                    &mut tree,
+                let mut levelc2 = LevelCounter::new(0, vec![]);
+
+                tree.find_colliding_pairs_from_args(
+                    QueryArgs::new().with_splitter(&mut levelc2),
                     |a, b| {
                         a.unpack_inner().x += 1.0;
                         b.unpack_inner().y += 1.0;
                     },
-                )
-                .build_with_splitter(LevelCounter::new(0, vec![]));
+                );
+
                 let c2 = levelc2
                     .into_levels()
                     .into_iter()

@@ -38,8 +38,11 @@ pub struct CollVis<'a, 'b, T: Aabb> {
     axis: AxisDyn,
 }
 impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
-    pub(crate) fn new(vistr: VistrMutPin<'b, Node<'a, T>>, axis: AxisDyn) -> Self {
-        CollVis { vistr, axis }
+    pub fn new(vistr: VistrMutPin<'b, Node<'a, T>>) -> Self {
+        CollVis {
+            vistr,
+            axis: default_axis().to_dyn(),
+        }
     }
 
     pub fn get_height(&self) -> usize {
@@ -190,7 +193,6 @@ pub struct HandleChildrenArgs<'a, T: Aabb> {
 /// Abstract over sorted and non sorted trees
 ///
 pub trait NodeHandler<T: Aabb> {
-    type Sorter;
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool);
 
     fn handle_children(&mut self, floop: HandleChildrenArgs<T>);

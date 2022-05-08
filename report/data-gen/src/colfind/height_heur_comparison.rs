@@ -4,13 +4,11 @@ pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> 
     let mut bots = distribute(grow, bot_inner, |a| a.to_f64n());
 
     bench_closure(|| {
-        let mut k = TreeBuilder::new_default(&mut bots);
-        k.num_level = height;
-        let mut tree = k.build();
+        let mut tree = Tree::from_build_args(BuildArgs::new(&mut bots).with_num_level(height));
 
         assert_eq!(tree.num_levels(), height);
 
-        tree.colliding_pairs(|a, b| {
+        tree.find_colliding_pairs(|a, b| {
             **a.unpack_inner() += 2;
             **b.unpack_inner() += 2;
         });
@@ -21,13 +19,11 @@ pub fn handle_theory_inner(grow: f64, bot_inner: &mut [isize], height: usize) ->
     datanum::datanum_test(|maker| {
         let mut bots = distribute(grow, bot_inner, |a| a.to_isize_dnum(maker));
 
-        let mut k = TreeBuilder::new_default(&mut bots);
-        k.num_level = height;
-        let mut tree = k.build();
+        let mut tree = Tree::from_build_args(BuildArgs::new(&mut bots).with_num_level(height));
 
         assert_eq!(tree.num_levels(), height);
 
-        tree.colliding_pairs(|a, b| {
+        tree.find_colliding_pairs(|a, b| {
             **a.unpack_inner() += 2;
             **b.unpack_inner() += 2;
         });

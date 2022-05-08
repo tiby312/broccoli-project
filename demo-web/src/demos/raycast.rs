@@ -1,6 +1,7 @@
 use super::*;
 
 use axgeom::Ray;
+use broccoli::Assert;
 
 #[derive(Copy, Clone)]
 struct Bot {
@@ -60,7 +61,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
 
-    let mut tree = broccoli::tree::new_owned(vv);
+    let mut tree = broccoli::TreeOwned::new(vv);
 
     let mut handler = MyRaycast { radius };
 
@@ -75,7 +76,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         verts.clear();
 
         if check_naive {
-            let mut vv_clone = tree.clone_inner();
+            let mut vv_clone = tree.container_ref().clone();
             for dir in 0..1000i32 {
                 let dir = (dir as f32) * (std::f32::consts::TAU / 1000.0);
                 let x = (dir.cos() * 20.0) as f32;
@@ -89,7 +90,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                     }
                 };
 
-                broccoli::queries::raycast::assert_raycast(&mut vv_clone, ray, &mut handler);
+                Assert::new(&mut vv_clone).assert_raycast(ray, &mut handler);
             }
         }
 
@@ -108,7 +109,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 }
             };
 
-            let res = tree.raycast_mut(ray, &mut handler);
+            let res = tree.cast_ray(ray, &mut handler);
 
             let mag = match res {
                 axgeom::CastResult::Hit(res) => res.mag,

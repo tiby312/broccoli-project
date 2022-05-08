@@ -32,8 +32,6 @@ pub trait RayCast<T: Aabb> {
     fn cast_fine(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> axgeom::CastResult<T::Num>;
 }
 
-use crate::Tree;
-
 ///
 /// No fine-grained just cast to aabb
 ///
@@ -65,25 +63,62 @@ where
     }
 }
 
+///Construct an object that implements [`RayCast`] from closures.
+///We pass the tree so that we can infer the type of `T`.
 ///
-/// Make raycast queries
+/// `fine` is a function that returns the true length of a ray
+/// cast to an object.
 ///
-pub trait RaycastApi<T: Aabb> {
-    fn raycast_mut<R: RayCast<T>>(
-        &mut self,
-        ray: Ray<T::Num>,
-        a: R,
-    ) -> axgeom::CastResult<CastAnswer<T>>;
+/// `broad` is a function that returns the length of a ray cast to
+/// a axis aligned rectangle. This function
+/// is used as a conservative estimate to prune out elements which minimizes
+/// how often the `fine` function gets called.
+///
+/// `xline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values.
+///
+/// `yline` is a function that gives the distance between the point and a axis aligned line
+///    that was a fixed x value and spans the y values.
+///
+/// `acc` is a user defined object that is passed to every call to either
+/// the `fine` or `broad` functions.
+struct RayCastClosure<B, C, D, E> {
+    broad: B,
+    fine: C,
+    xline: D,
+    yline: E,
+}
 
-    ///Create a handler that just casts directly to the axis aligned rectangle
-    fn raycast_mut_aabb(&mut self, ray: Ray<T::Num>) -> axgeom::CastResult<CastAnswer<T>>
-    where
-        T::Num: core::fmt::Debug + num_traits::Signed,
-    {
-        self.raycast_mut(ray, AabbRaycast)
+impl<T: Aabb, B, C, D, E> RayCast<T> for RayCastClosure<B, C, D, E>
+where
+    B: FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
+    C: FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
+    D: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+    E: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+{
+    fn cast_to_aaline<X: Axis>(
+        &mut self,
+        ray: &Ray<T::Num>,
+        line: X,
+        val: T::Num,
+    ) -> axgeom::CastResult<T::Num> {
+        if line.is_xaxis() {
+            (self.xline)(ray, val)
+        } else {
+            (self.yline)(ray, val)
+        }
+    }
+    fn cast_broad(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> Option<CastResult<T::Num>> {
+        (self.broad)(ray, a)
     }
 
-    fn raycast_mut_closure(
+    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> CastResult<T::Num> {
+        (self.fine)(ray, a)
+    }
+}
+
+impl<'a, T: Aabb> Naive<'a, T> {
+    pub fn cast_ray_closure(
         &mut self,
         ray: Ray<T::Num>,
         broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
@@ -91,83 +126,23 @@ pub trait RaycastApi<T: Aabb> {
         xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
     ) -> axgeom::CastResult<CastAnswer<T>> {
-        ///Construct an object that implements [`RayCast`] from closures.
-        ///We pass the tree so that we can infer the type of `T`.
-        ///
-        /// `fine` is a function that returns the true length of a ray
-        /// cast to an object.
-        ///
-        /// `broad` is a function that returns the length of a ray cast to
-        /// a axis aligned rectangle. This function
-        /// is used as a conservative estimate to prune out elements which minimizes
-        /// how often the `fine` function gets called.
-        ///
-        /// `xline` is a function that gives the distance between the point and a axis aligned line
-        ///    that was a fixed x value and spans the y values.
-        ///
-        /// `yline` is a function that gives the distance between the point and a axis aligned line
-        ///    that was a fixed x value and spans the y values.
-        ///
-        /// `acc` is a user defined object that is passed to every call to either
-        /// the `fine` or `broad` functions.
-        struct RayCastClosure<B, C, D, E> {
-            broad: B,
-            fine: C,
-            xline: D,
-            yline: E,
-        }
-
-        impl<T: Aabb, B, C, D, E> RayCast<T> for RayCastClosure<B, C, D, E>
-        where
-            B: FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
-            C: FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
-            D: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-            E: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-        {
-            fn cast_to_aaline<X: Axis>(
-                &mut self,
-                ray: &Ray<T::Num>,
-                line: X,
-                val: T::Num,
-            ) -> axgeom::CastResult<T::Num> {
-                if line.is_xaxis() {
-                    (self.xline)(ray, val)
-                } else {
-                    (self.yline)(ray, val)
-                }
-            }
-            fn cast_broad(
-                &mut self,
-                ray: &Ray<T::Num>,
-                a: AabbPin<&mut T>,
-            ) -> Option<CastResult<T::Num>> {
-                (self.broad)(ray, a)
-            }
-
-            fn cast_fine(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> CastResult<T::Num> {
-                (self.fine)(ray, a)
-            }
-        }
-
         let d = RayCastClosure {
             broad,
             fine,
             xline,
             yline,
         };
-        self.raycast_mut(ray, d)
+        self.cast_ray(ray, d)
     }
-}
 
-impl<'a, T: Aabb> RaycastApi<T> for AabbPin<&'a mut [T]> {
-    fn raycast_mut<R: RayCast<T>>(
+    pub fn cast_ray<R: RayCast<T>>(
         &mut self,
         ray: Ray<T::Num>,
         mut ar: R,
     ) -> axgeom::CastResult<CastAnswer<T>> {
         let mut closest = Closest { closest: None };
 
-        for b in self.borrow_mut().iter_mut() {
+        for b in self.iter_mut() {
             closest.consider(&ray, b, &mut ar);
         }
 
@@ -178,8 +153,25 @@ impl<'a, T: Aabb> RaycastApi<T> for AabbPin<&'a mut [T]> {
     }
 }
 
-impl<'a, T: Aabb> RaycastApi<T> for Tree<'a, T> {
-    fn raycast_mut<R: RayCast<T>>(
+impl<'a, T: Aabb> Tree<'a, T> {
+    pub fn cast_ray_closure(
+        &mut self,
+        ray: Ray<T::Num>,
+        broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
+        fine: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
+        xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+        yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+    ) -> axgeom::CastResult<CastAnswer<T>> {
+        let d = RayCastClosure {
+            broad,
+            fine,
+            xline,
+            yline,
+        };
+        self.cast_ray(ray, d)
+    }
+
+    pub fn cast_ray<R: RayCast<T>>(
         &mut self,
         ray: Ray<T::Num>,
         mut rtrait: R,
@@ -356,64 +348,63 @@ impl<'a, T: Aabb> Closest<'a, T> {
         self.closest.as_ref().map(|x| x.1)
     }
 }
-///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_raycast<T: Aabb>(
-    bots: &mut [T],
-    ray: axgeom::Ray<T::Num>,
-    mut rtrait: impl RayCast<T>,
-) where
-    T::Num: core::fmt::Debug,
-{
-    fn into_ptr_usize<T>(a: &T) -> usize {
-        a as *const T as usize
-    }
-    let mut res_naive = Vec::new();
 
-    let mut tree = crate::new(bots);
-    let mut res_dino = Vec::new();
-    match tree.raycast_mut(ray, &mut rtrait) {
-        axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
-            for a in elems.into_iter() {
-                let r = *a.get();
-                let j = into_ptr_usize(a.into_ref());
-                res_dino.push((j, r, mag))
+impl<'a, T: Aabb> Assert<'a, T> {
+    ///Panics if a disconnect is detected between tree and naive queries.
+    pub fn assert_raycast(&mut self, ray: axgeom::Ray<T::Num>, mut rtrait: impl RayCast<T>)
+    where
+        T::Num: core::fmt::Debug,
+    {
+        fn into_ptr_usize<T>(a: &T) -> usize {
+            a as *const T as usize
+        }
+        let mut res_naive = Vec::new();
+
+        let mut tree = Tree::new(self.inner);
+        let mut res_dino = Vec::new();
+        match tree.cast_ray(ray, &mut rtrait) {
+            axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
+                for a in elems.into_iter() {
+                    let r = *a.get();
+                    let j = into_ptr_usize(a.into_ref());
+                    res_dino.push((j, r, mag))
+                }
+            }
+            axgeom::CastResult::NoHit => {
+                //do nothing
             }
         }
-        axgeom::CastResult::NoHit => {
-            //do nothing
-        }
-    }
 
-    match AabbPin::new(bots).raycast_mut(ray, rtrait) {
-        axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
-            for a in elems.into_iter() {
-                let r = *a.get();
-                let j = into_ptr_usize(a.into_ref());
-                res_naive.push((j, r, mag))
+        match Naive::new(self.inner).cast_ray(ray, rtrait) {
+            axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
+                for a in elems.into_iter() {
+                    let r = *a.get();
+                    let j = into_ptr_usize(a.into_ref());
+                    res_naive.push((j, r, mag))
+                }
+            }
+            axgeom::CastResult::NoHit => {
+                //do nothing
             }
         }
-        axgeom::CastResult::NoHit => {
-            //do nothing
-        }
+
+        res_naive.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+        res_dino.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+        assert_eq!(
+            res_naive.len(),
+            res_dino.len(),
+            "len:{:?}",
+            (res_naive, res_dino)
+        );
+        assert!(
+            res_naive.iter().eq(res_dino.iter()),
+            "nop:\n\n naive:{:?} \n\n broc:{:?}",
+            res_naive,
+            res_dino
+        );
     }
-
-    res_naive.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-    res_dino.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-
-    assert_eq!(
-        res_naive.len(),
-        res_dino.len(),
-        "len:{:?}",
-        (res_naive, res_dino)
-    );
-    assert!(
-        res_naive.iter().eq(res_dino.iter()),
-        "nop:\n\n naive:{:?} \n\n broc:{:?}",
-        res_naive,
-        res_dino
-    );
 }
-
 ///What is returned when the ray hits something.
 ///It provides the length of the ray,
 ///as well as all solutions in a unspecified order.

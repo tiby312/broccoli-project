@@ -1,3 +1,5 @@
+use broccoli::Assert;
+
 use super::*;
 
 fn distance_to_line(point: Vec2<f32>, axis: impl Axis, val: f32) -> f32 {
@@ -68,7 +70,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         ctx.buffer_static(&verts)
     };
 
-    let mut tree = broccoli::tree::new_owned(bots);
+    let mut tree = broccoli::TreeOwned::new(bots);
 
     let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
@@ -90,8 +92,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut handler = MyKnearest { verts: vec![] };
 
         if check_naive {
-            broccoli::queries::knearest::assert_k_nearest_mut(
-                &mut tree.clone_inner(),
+            Assert::new(&mut tree.container_ref().clone()).assert_k_nearest_mut(
                 cursor,
                 3,
                 &mut handler,
@@ -107,7 +108,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
 
         let mut vv = {
-            let k = tree.k_nearest_mut(cursor, 3, &mut handler);
+            let k = tree.find_knearest(cursor, 3, &mut handler);
             drop(handler);
 
             buffer.update(&verts);

@@ -4,7 +4,6 @@ pub use axgeom::vec2same;
 pub use axgeom::Rect;
 pub use axgeom::Vec2;
 pub use broccoli::axgeom;
-use broccoli::prelude::*;
 pub use broccoli::queries::*;
 pub use broccoli::tree::aabb_pin::AabbPin;
 pub use broccoli::tree::build::*;
@@ -194,16 +193,12 @@ fn profile_test(num_bots: usize) {
     for _ in 0..30 {
         // let mut num_collision = 0;
         let c0 = bench_closure(|| {
-            let mut tree = broccoli::tree::new(&mut bots);
-            broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
-                &mut tree,
-                |a, b| {
-                    //num_collision += 1;
-                    **a.unpack_inner() += 1;
-                    **b.unpack_inner() += 1;
-                },
-            )
-            .build();
+            let mut tree = broccoli::Tree::new(&mut bots);
+            tree.find_colliding_pairs(|a, b| {
+                //num_collision += 1;
+                **a.unpack_inner() += 1;
+                **b.unpack_inner() += 1;
+            });
         });
 
         dbg!(c0);
@@ -247,11 +242,11 @@ fn main() {
                 let c0 = datanum::datanum_test(|maker| {
                     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_isize_dnum(maker));
 
-                    let mut tree = broccoli::tree::new(&mut bots);
+                    let mut tree = broccoli::Tree::new(&mut bots);
 
                     let mut num_collide = 0;
 
-                    tree.colliding_pairs(|a, b| {
+                    tree.find_colliding_pairs(|a, b| {
                         **a.unpack_inner() += 1;
                         **b.unpack_inner() += 1;
                         num_collide += 1;

@@ -234,8 +234,8 @@ mod vistr_mut {
 }
 pub use vistr_mut::VistrMutPin;
 
-/// A node in [`Tree`].
 pub struct Node<'a, T: Aabb> {
+    /// May or may not be sorted.
     pub range: AabbPin<&'a mut [T]>,
 
     /// if range is empty, then value is `[default,default]`.
@@ -261,16 +261,19 @@ pub struct Node<'a, T: Aabb> {
     ///
     pub num_elem: usize,
 }
-
-impl<'a, T: Aabb> HasElem for Node<'a, T> {
-    type T = T;
-    fn get_elems(&mut self) -> AabbPin<&mut [T]> {
+impl<'a, T: Aabb> Node<'a, T> {
+    pub fn borrow_range(&mut self) -> AabbPin<&mut [T]> {
         self.range.borrow_mut()
     }
-}
-pub trait HasElem {
-    type T;
-    fn get_elems(&mut self) -> AabbPin<&mut [Self::T]>;
+
+    pub fn as_data(&self) -> NodeData<T::Num> {
+        NodeData {
+            range: self.range.len(),
+            cont: self.cont,
+            div: self.div,
+            num_elem: self.num_elem,
+        }
+    }
 }
 
 ///

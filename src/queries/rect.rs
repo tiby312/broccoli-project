@@ -2,30 +2,9 @@
 
 use super::*;
 
-///
-/// Make rect queries
-///
-pub trait RectApi<'a, T: Aabb>: Sized {
-    fn for_all_not_in_rect_mut<K: Aabb<Num = T::Num>>(
-        self,
-        rect: AabbPin<&mut K>,
-        foo: impl FnMut(AabbPin<&mut K>, AabbPin<&'a mut T>),
-    );
-    fn for_all_in_rect_mut<K: Aabb<Num = T::Num>>(
-        self,
-        rect: AabbPin<&mut K>,
-        foo: impl FnMut(AabbPin<&mut K>, AabbPin<&'a mut T>),
-    );
-    fn for_all_intersect_rect_mut<K: Aabb<Num = T::Num>>(
-        self,
-        rect: AabbPin<&mut K>,
-        foo: impl FnMut(AabbPin<&mut K>, AabbPin<&'a mut T>),
-    );
-}
-
-impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
-    fn for_all_not_in_rect_mut<K: Aabb<Num = T::Num>>(
-        self,
+impl<'a, T: Aabb> crate::Tree<'a, T> {
+    pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
+        &'b mut self,
         rect: AabbPin<&mut K>,
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
     ) {
@@ -85,8 +64,8 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
         rect_recurse(default_axis(), self.vistr_mut(), rect, &mut closure);
     }
 
-    fn for_all_in_rect_mut<K: Aabb<Num = T::Num>>(
-        self,
+    pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
+        &'b mut self,
         rect: AabbPin<&mut K>,
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
     ) {
@@ -97,8 +76,8 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
         });
     }
 
-    fn for_all_intersect_rect_mut<K: Aabb<Num = T::Num>>(
-        self,
+    pub fn find_all_intersect_rect<'b, K: Aabb<Num = T::Num>>(
+        &'b mut self,
         rect: AabbPin<&mut K>,
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
     ) {
@@ -109,11 +88,12 @@ impl<'a, 'b, T: Aabb> RectApi<'b, T> for &'b mut crate::Tree<'a, T> {
         });
     }
 }
-impl<'a, T: Aabb> RectApi<'a, T> for AabbPin<&'a mut [T]> {
-    fn for_all_not_in_rect_mut<K: Aabb<Num = T::Num>>(
-        self,
+
+impl<'a, T: Aabb> Naive<'a, T> {
+    pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
+        &'b mut self,
         mut rect: AabbPin<&mut K>,
-        mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'a mut T>),
+        mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
     ) {
         for b in self.iter_mut() {
             if !rect.get().contains_rect(b.get()) {
@@ -121,10 +101,10 @@ impl<'a, T: Aabb> RectApi<'a, T> for AabbPin<&'a mut [T]> {
             }
         }
     }
-    fn for_all_in_rect_mut<K: Aabb<Num = T::Num>>(
-        self,
+    pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
+        &'b mut self,
         mut rect: AabbPin<&mut K>,
-        mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'a mut T>),
+        mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
     ) {
         for b in self.iter_mut() {
             if rect.get().contains_rect(b.get()) {
@@ -132,10 +112,10 @@ impl<'a, T: Aabb> RectApi<'a, T> for AabbPin<&'a mut [T]> {
             }
         }
     }
-    fn for_all_intersect_rect_mut<K: Aabb<Num = T::Num>>(
-        self,
+    pub fn find_all_intersect_rect<'b, K: Aabb<Num = T::Num>>(
+        &'b mut self,
         mut rect: AabbPin<&mut K>,
-        mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'a mut T>),
+        mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
     ) {
         for b in self.iter_mut() {
             if rect.get().get_intersect_rect(b.get()).is_some() {
@@ -206,64 +186,66 @@ fn into_ptr_usize<T>(a: &T) -> usize {
     a as *const T as usize
 }
 
-///Panics if a disconnect is detected between tree and naive queries.
-pub fn assert_rect<T: Aabb>(bots: &mut [T], rect: axgeom::Rect<T::Num>) {
-    assert_for_all_not_in_rect_mut(bots, rect);
-    assert_for_all_intersect_rect_mut(bots, rect);
-    assert_for_all_in_rect_mut(bots, rect)
-}
+impl<'a, T: Aabb> Assert<'a, T> {
+    ///Panics if a disconnect is detected between tree and naive queries.
+    pub fn assert_rect(&mut self, rect: axgeom::Rect<T::Num>) {
+        self.assert_for_all_not_in_rect_mut(rect);
+        self.assert_for_all_intersect_rect_mut(rect);
+        self.assert_for_all_in_rect_mut(rect)
+    }
 
-fn assert_for_all_not_in_rect_mut<T: Aabb>(bots: &mut [T], mut rect: axgeom::Rect<T::Num>) {
-    let mut tree = crate::new(bots);
-    let mut res_dino = Vec::new();
-    tree.for_all_not_in_rect_mut(AabbPin::new(&mut rect), |_, a| {
-        res_dino.push(into_ptr_usize(a.deref()));
-    });
+    fn assert_for_all_not_in_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
+        let mut tree = Tree::new(self.inner);
+        let mut res_dino = Vec::new();
+        tree.find_all_not_in_rect(AabbPin::new(&mut rect), |_, a| {
+            res_dino.push(into_ptr_usize(a.deref()));
+        });
 
-    let mut res_naive = Vec::new();
-    AabbPin::new(bots).for_all_not_in_rect_mut(AabbPin::new(&mut rect), |_, a| {
-        res_naive.push(into_ptr_usize(a.deref()));
-    });
+        let mut res_naive = Vec::new();
+        Naive::new(self.inner).find_all_not_in_rect(AabbPin::new(&mut rect), |_, a| {
+            res_naive.push(into_ptr_usize(a.deref()));
+        });
 
-    res_dino.sort_unstable();
-    res_naive.sort_unstable();
+        res_dino.sort_unstable();
+        res_naive.sort_unstable();
 
-    assert_eq!(res_naive.len(), res_dino.len());
-    assert!(res_naive.iter().eq(res_dino.iter()));
-}
+        assert_eq!(res_naive.len(), res_dino.len());
+        assert!(res_naive.iter().eq(res_dino.iter()));
+    }
 
-fn assert_for_all_intersect_rect_mut<T: Aabb>(bots: &mut [T], mut rect: axgeom::Rect<T::Num>) {
-    let mut tree = crate::new(bots);
-    let mut res_dino = Vec::new();
-    tree.for_all_intersect_rect_mut(AabbPin::new(&mut rect), |_, a| {
-        res_dino.push(into_ptr_usize(a.deref()));
-    });
-    let mut res_naive = Vec::new();
-    AabbPin::new(bots).for_all_intersect_rect_mut(AabbPin::new(&mut rect), |_, a| {
-        res_naive.push(into_ptr_usize(a.deref()));
-    });
+    fn assert_for_all_intersect_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
+        let mut tree = Tree::new(self.inner);
+        let mut res_dino = Vec::new();
+        tree.find_all_intersect_rect(AabbPin::new(&mut rect), |_, a| {
+            res_dino.push(into_ptr_usize(a.deref()));
+        });
+        let mut res_naive = Vec::new();
+        Naive::new(self.inner).find_all_intersect_rect(AabbPin::new(&mut rect), |_, a| {
+            res_naive.push(into_ptr_usize(a.deref()));
+        });
 
-    res_dino.sort_unstable();
-    res_naive.sort_unstable();
+        res_dino.sort_unstable();
+        res_naive.sort_unstable();
 
-    assert_eq!(res_naive.len(), res_dino.len());
-    assert!(res_naive.iter().eq(res_dino.iter()));
-}
+        assert_eq!(res_naive.len(), res_dino.len());
+        assert!(res_naive.iter().eq(res_dino.iter()));
+    }
 
-fn assert_for_all_in_rect_mut<T: Aabb>(bots: &mut [T], mut rect: axgeom::Rect<T::Num>) {
-    let mut tree = crate::new(bots);
-    let mut res_dino = Vec::new();
-    tree.for_all_in_rect_mut(AabbPin::new(&mut rect), |_, a| {
-        res_dino.push(into_ptr_usize(a.deref()));
-    });
-    let mut res_naive = Vec::new();
-    AabbPin::new(bots).for_all_in_rect_mut(AabbPin::new(&mut rect), |_, a| {
-        res_naive.push(into_ptr_usize(a.deref()));
-    });
+    fn assert_for_all_in_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
+        let mut tree = Tree::new(self.inner);
+        let mut res_dino = Vec::new();
+        tree.find_all_in_rect(AabbPin::new(&mut rect), |_, a| {
+            res_dino.push(into_ptr_usize(a.deref()));
+        });
+        let mut res_naive = Vec::new();
+        Naive::new(self.inner).find_all_in_rect(AabbPin::new(&mut rect), |_, a| {
+            res_naive.push(into_ptr_usize(a.deref()));
+        });
 
-    res_dino.sort_unstable();
-    res_naive.sort_unstable();
+        res_dino.sort_unstable();
+        res_naive.sort_unstable();
 
-    assert_eq!(res_naive.len(), res_dino.len());
-    assert!(res_naive.iter().eq(res_dino.iter()));
+        assert_eq!(res_naive.len(), res_dino.len());
+        assert!(res_naive.iter().eq(res_dino.iter()));
+    }
 }

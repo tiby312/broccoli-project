@@ -17,7 +17,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
     let mut buffer = ctx.buffer_dynamic();
 
-    let mut tree = broccoli::tree::new_owned(bots);
+    let mut tree = broccoli::TreeOwned::new(bots);
 
     move |data| {
         let DemoData {
@@ -44,12 +44,12 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         //test MultiRect
 
         let mut to_draw = Vec::new();
-        tree.for_all_in_rect_mut(AabbPin::new(&mut r1), |_, a| {
+        tree.find_all_in_rect(AabbPin::new(&mut r1), |_, a| {
             to_draw.rect(a.rect.inner_as())
         });
 
         let res = if !r1.intersects_rect(&r2) {
-            tree.for_all_in_rect_mut(AabbPin::new(&mut r2), |_, a| {
+            tree.find_all_in_rect(AabbPin::new(&mut r2), |_, a| {
                 to_draw.rect(a.rect.inner_as());
             });
             true

@@ -225,42 +225,45 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
     }
 }
 
-///
-/// Make nbody queries
-///
-pub trait NbodyApi<N: Nbody> {
-    fn nbody(self, no: &mut N) -> Self;
-}
-
-impl<'a, N: Nbody> NbodyApi<N> for crate::Tree<'a, N::T> {
-    fn nbody(self, no: &mut N) -> Self {
+impl<'a, T: Aabb> crate::Tree<'a, T> {
+    pub fn handle_nbody<N: Nbody<T = T>>(&mut self, no: &mut N) {
         ///Perform nbody
         ///The tree is taken by value so that its nodes can be expended to include more data.
         pub fn nbody_mut<'a, N: Nbody>(
-            tree: crate::Tree<'a, N::T>,
+            tree: Vec<Node<'a, N::T>>,
             no: &mut N,
-        ) -> crate::Tree<'a, N::T> {
-            let mut newtree = tree.node_map(|x| NodeWrapper {
-                node: x,
-                mass: Default::default(),
-            });
+        ) -> Vec<Node<'a, N::T>> {
+            let mut newnodes: Vec<_> = tree
+                .into_iter()
+                .map(|x| NodeWrapper {
+                    node: x,
+                    mass: Default::default(),
+                })
+                .collect();
+
+            let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut newnodes).unwrap();
+            let mut vistr = tree.vistr_mut();
 
             //calculate node masses of each node.
-            build_masses2(newtree.vistr_mut_raw(), no);
+            build_masses2(vistr.borrow_mut(), no);
 
-            recc(default_axis(), newtree.vistr_mut_raw(), no);
+            recc(default_axis(), vistr.borrow_mut(), no);
 
-            apply_tree(newtree.vistr_mut_raw(), no);
+            apply_tree(vistr, no);
 
-            newtree.node_map(|x| x.node)
+            newnodes.into_iter().map(|x| x.node).collect()
         }
 
-        nbody_mut(self, no)
+        let mut vvv = vec![];
+        std::mem::swap(&mut self.nodes, &mut vvv);
+
+        let mut new = nbody_mut(vvv, no);
+        std::mem::swap(&mut self.nodes, &mut new);
     }
 }
 
-impl<'a, N: Nbody> NbodyApi<N> for AabbPin<&mut [N::T]> {
-    fn nbody(mut self, no: &mut N) -> Self {
+impl<'a, T: Aabb> Naive<'a, T> {
+    pub fn handle_nbody<N: Nbody<T = T>>(&mut self, no: &mut N) {
         ///Naive version simply visits every pair.
         pub fn naive_nbody_mut<T: Aabb>(
             bots: AabbPin<&mut [T]>,
@@ -269,9 +272,8 @@ impl<'a, N: Nbody> NbodyApi<N> for AabbPin<&mut [N::T]> {
             queries::for_every_pair(bots, func);
         }
 
-        naive_nbody_mut(self.borrow_mut(), |a, b| {
+        naive_nbody_mut(self.inner.borrow_mut(), |a, b| {
             no.gravitate(GravEnum::Bot(a.into_slice()), GravEnum::Bot(b.into_slice()));
         });
-        self
     }
 }

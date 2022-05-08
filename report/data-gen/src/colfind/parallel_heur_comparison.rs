@@ -1,10 +1,12 @@
+use broccoli::queries::colfind::QueryArgs;
+
 use super::*;
 
 fn test1(bots: &mut [BBox<f64, &mut isize>]) -> (f64, f64) {
-    let (mut tree, construction_time) = bench_closure_ret(|| broccoli::tree::new(bots));
+    let (mut tree, construction_time) = bench_closure_ret(|| broccoli::Tree::new(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {
-        tree.colliding_pairs(|a, b| {
+        tree.find_colliding_pairs(|a, b| {
             **a.unpack_inner() += 2;
             **b.unpack_inner() += 2;
         });
@@ -22,28 +24,25 @@ fn test3(
     query_num: Option<usize>,
 ) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| {
-        let mut k = TreeBuilder::new_default(bots);
+        let mut k = BuildArgs::new(bots);
         if let Some(r) = rebal_num {
-            //dbg!(r);
             k.num_seq_fallback = r;
         }
-        k.build_par()
+        Tree::par_from_build_args(k)
     });
 
     let (tree, query_time) = bench_closure_ret(|| {
         {
-            let mut k = broccoli::queries::colfind::handler::DefaultNodeHandler::new_builder(
-                &mut tree,
-                |a, b| {
-                    **a.unpack_inner() += 2;
-                    **b.unpack_inner() += 2;
-                },
-            );
+            let mut f = QueryArgs::new();
 
             if let Some(r) = query_num {
-                k.num_seq_fallback = r;
+                f.num_seq_fallback = r;
             }
-            k.build_par();
+
+            tree.par_find_colliding_pairs_from_args(f, |a, b| {
+                **a.unpack_inner() += 2;
+                **b.unpack_inner() += 2;
+            });
         }
         tree
     });

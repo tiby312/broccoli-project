@@ -16,34 +16,70 @@ impl<F> DefaultNodeHandler<F> {
             prevec: PreVec::new(),
         }
     }
+}
 
-    pub fn new_builder<'a, 'b, T: Aabb>(
-        tree: &'a mut TreeInner<Node<'b, T>, DefaultSorter>,
+impl<T: Aabb> Tree<'_, T> {
+    pub fn find_colliding_pairs_from_args<S: Splitter>(
+        &mut self,
+        args: QueryArgs<S>,
+        func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    ) {
+        args.query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
+        &mut self,
+        args: QueryArgs<S>,
         func: F,
-    ) -> CollidingPairsBuilder<'b, 'a, T, DefaultNodeHandler<F>>
-    where
+    ) where
         F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+        F: Send + Clone,
+        S: Send,
+        T: Send,
+        T::Num: Send,
     {
-        CollidingPairsBuilder::new(tree, DefaultNodeHandler::new(func))
+        args.par_query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
+    }
+}
+
+impl<T: Aabb> NotSortedTree<'_, T> {
+    pub fn find_colliding_pairs_from_args<S: Splitter>(
+        &mut self,
+        args: QueryArgs<S>,
+        func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    ) {
+        args.query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
+        &mut self,
+        args: QueryArgs<S>,
+        func: F,
+    ) where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+        F: Send + Clone,
+        S: Send,
+        T: Send,
+        T::Num: Send,
+    {
+        args.par_query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
     }
 }
 
 impl<F: Clone> Splitter for DefaultNodeHandler<F> {
-    fn div(self) -> (Self, Self) {
-        let other = DefaultNodeHandler {
+    fn div(&mut self) -> Self {
+        DefaultNodeHandler {
             prevec: self.prevec.clone(),
             func: self.func.clone(),
-        };
-        (self, other)
+        }
     }
 
-    fn add(self, _b: Self) -> Self {
-        self
-    }
+    fn add(&mut self, _b: Self) {}
 }
 
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for DefaultNodeHandler<F> {
-    type Sorter = DefaultSorter;
     #[inline(always)]
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         let mut k = self.prevec.extract_vec();
@@ -97,33 +133,19 @@ impl<F> NoSortNodeHandler<F> {
     {
         NoSortNodeHandler { func }
     }
-
-    pub fn new_builder<'a, 'b, T: Aabb>(
-        tree: &'a mut TreeInner<Node<'b, T>, NoSorter>,
-        func: F,
-    ) -> CollidingPairsBuilder<'b, 'a, T, NoSortNodeHandler<F>>
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    {
-        CollidingPairsBuilder::new(tree, NoSortNodeHandler::new(func))
-    }
 }
 
 impl<F: Clone> Splitter for NoSortNodeHandler<F> {
-    fn div(self) -> (Self, Self) {
-        let other = NoSortNodeHandler {
+    fn div(&mut self) -> Self {
+        NoSortNodeHandler {
             func: self.func.clone(),
-        };
-        (self, other)
+        }
     }
 
-    fn add(self, _b: Self) -> Self {
-        self
-    }
+    fn add(&mut self, _b: Self) {}
 }
 
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoSortNodeHandler<F> {
-    type Sorter = NoSorter;
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         fn foop<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
             func: &mut F,
@@ -232,12 +254,35 @@ pub fn handle_parallel<'a, T: Aabb, A: Axis>(
 ) {
     let anchor_div = f.anchor.div;
 
-    //let anchor2 = f.anchor.into_node_ref();
     let current2 = f.current;
 
     let fb = oned::FindParallel2DBuilder::new(prevec, axis.next(), f.anchor.range, current2.range);
 
     if f.current_is_leaf {
+        match current2.cont.contains_ext(anchor_div) {
+            std::cmp::Ordering::Equal => {
+                fb.build(|a, b| {
+                    if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
+                        func.collide(a, b)
+                    }
+                });
+            }
+            std::cmp::Ordering::Less => {
+                fb.build(|a, b| {
+                    if a.get().get_range(axis).end >= b.get().get_range(axis).start {
+                        func.collide(a, b)
+                    }
+                });
+            }
+            std::cmp::Ordering::Greater => {
+                fb.build(|a, b| {
+                    if a.get().get_range(axis).start <= b.get().get_range(axis).end {
+                        func.collide(a, b)
+                    }
+                });
+            }
+        }
+        /*
         if f.anchor.cont.intersects(current2.cont) {
             fb.build(|a, b| {
                 if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
@@ -245,6 +290,7 @@ pub fn handle_parallel<'a, T: Aabb, A: Axis>(
                 }
             });
         }
+        */
     } else if let Some(current_div) = *current2.div {
         if anchor_div < current_div {
             if f.anchor.cont.end >= current2.cont.start {

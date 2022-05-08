@@ -58,30 +58,334 @@ mod test_readme {
 #[macro_use]
 extern crate alloc;
 
-//#[doc(inline)]
-//pub use broccoli_tree as tree;
-
 pub use axgeom;
 pub mod tree;
 
+use tree::aabb_pin::AabbPin;
+use tree::aabb_pin::AabbPinIter;
 use tree::build::*;
 use tree::node::*;
+use tree::splitter::empty_mut;
+use tree::splitter::Splitter;
 use tree::*;
 
 pub mod ext;
 
-pub mod prelude {
-
-    #[cfg(feature = "parallel")]
-    pub use super::queries::colfind::par::ParCollidingPairsApi;
-
-    pub use super::queries::colfind::CollidingPairsApi;
-    pub use super::queries::knearest::KnearestApi;
-    pub use super::queries::nbody::NbodyApi;
-    pub use super::queries::raycast::RaycastApi;
-    pub use super::queries::rect::RectApi;
-}
 #[cfg(test)]
 mod tests;
 
 pub mod queries;
+
+///
+/// Abstract over containers that produce `&mut [T]`
+///
+pub trait Container {
+    type T;
+    fn as_mut(&mut self) -> &mut [Self::T];
+}
+
+impl<T, const N: usize> Container for [T; N] {
+    type T = T;
+    fn as_mut(&mut self) -> &mut [T] {
+        self
+    }
+}
+impl<T> Container for Vec<T> {
+    type T = T;
+    fn as_mut(&mut self) -> &mut [Self::T] {
+        self
+    }
+}
+impl<T> Container for Box<[T]> {
+    type T = T;
+    fn as_mut(&mut self) -> &mut [Self::T] {
+        self
+    }
+}
+
+///
+/// An owned version of [`Tree`]
+///
+pub struct TreeOwned<C: Container>
+where
+    C::T: Aabb,
+{
+    container: C,
+    nodes: Vec<NodeData<<C::T as Aabb>::Num>>,
+    total_num_elem: usize,
+}
+
+impl<C: Container> TreeOwned<C>
+where
+    C::T: Aabb,
+{
+    pub fn new(mut container: C) -> TreeOwned<C> {
+        let j = container.as_mut();
+        let length = j.len();
+
+        let t = Tree::new(j).nodes;
+
+        let nodes = t.into_iter().map(|x| x.as_data()).collect();
+
+        TreeOwned {
+            container,
+            nodes,
+            total_num_elem: length,
+        }
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_new(mut container: C) -> TreeOwned<C>
+    where
+        C::T: Send,
+        <C::T as Aabb>::Num: Send,
+    {
+        let j = container.as_mut();
+        let length = j.len();
+
+        let t = Tree::par_new(j).nodes;
+
+        let nodes = t.into_iter().map(|x| x.as_data()).collect();
+
+        TreeOwned {
+            container,
+            nodes,
+            total_num_elem: length,
+        }
+    }
+
+    pub fn as_tree(&mut self) -> Tree<C::T> {
+        let bots = self.container.as_mut();
+        assert_eq!(bots.len(), self.total_num_elem);
+
+        let mut last = Some(bots);
+        let nodes = self
+            .nodes
+            .iter()
+            .map(|x| {
+                let (range, rest) = last.take().unwrap().split_at_mut(x.range);
+                last = Some(rest);
+                Node {
+                    range: AabbPin::from_mut(range),
+                    cont: x.cont,
+                    div: x.div,
+                    num_elem: x.num_elem,
+                }
+            })
+            .collect();
+        assert!(last.unwrap().is_empty());
+        Tree { nodes }
+    }
+
+    #[must_use]
+    pub fn as_slice_mut(&mut self) -> AabbPin<&mut [C::T]> {
+        let j = self.container.as_mut();
+        assert_eq!(j.len(), self.total_num_elem);
+
+        AabbPin::new(j)
+    }
+
+    pub fn container_ref(&self) -> &C {
+        &self.container
+    }
+
+    #[must_use]
+    pub fn into_inner(self) -> C {
+        self.container
+    }
+}
+
+///
+/// A broccoli Tree.
+///
+pub struct Tree<'a, T: Aabb> {
+    nodes: Vec<Node<'a, T>>,
+}
+
+impl<'a, T: Aabb + 'a> Tree<'a, T> {
+    pub fn from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self {
+        Tree {
+            nodes: args.build_ext(&mut DefaultSorter),
+        }
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+        P: Send,
+    {
+        Tree {
+            nodes: args.par_build_ext(&mut DefaultSorter),
+        }
+    }
+
+    pub fn new(bots: &'a mut [T]) -> Self {
+        let nodes = BuildArgs::new(bots).build_ext(&mut DefaultSorter);
+
+        Tree { nodes }
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_new(bots: &'a mut [T]) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+    {
+        let nodes = BuildArgs::new(bots).par_build_ext(&mut DefaultSorter);
+
+        Tree { nodes }
+    }
+
+    #[inline(always)]
+    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
+        let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
+        VistrMutPin::new(tree.vistr_mut())
+    }
+
+    #[inline(always)]
+    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
+        let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
+
+        tree.vistr()
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn num_levels(&self) -> usize {
+        compt::dfs_order::CompleteTree::from_preorder(&self.nodes)
+            .unwrap()
+            .get_height()
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn num_nodes(&self) -> usize {
+        self.nodes.len()
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn get_nodes(&self) -> &[Node<'a, T>] {
+        &self.nodes
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub fn get_nodes_mut(&mut self) -> AabbPin<&mut [Node<'a, T>]> {
+        AabbPin::from_mut(&mut self.nodes)
+    }
+}
+
+///
+/// A tree where the elements in a node are not sorted.
+///
+pub struct NotSortedTree<'a, T: Aabb> {
+    nodes: Vec<Node<'a, T>>,
+}
+
+impl<'a, T: Aabb> NotSortedTree<'a, T> {
+    pub fn from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self {
+        NotSortedTree {
+            nodes: args.build_ext(&mut NoSorter),
+        }
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+        P: Send,
+    {
+        NotSortedTree {
+            nodes: args.par_build_ext(&mut NoSorter),
+        }
+    }
+
+    pub fn new(bots: &'a mut [T]) -> Self {
+        let nodes = BuildArgs::new(bots).build_ext(&mut NoSorter);
+
+        NotSortedTree { nodes }
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_new(bots: &'a mut [T]) -> Self
+    where
+        T: Send,
+        T::Num: Send,
+    {
+        let nodes = BuildArgs::new(bots).par_build_ext(&mut NoSorter);
+
+        NotSortedTree { nodes }
+    }
+
+    #[inline(always)]
+    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
+        let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
+        VistrMutPin::new(tree.vistr_mut())
+    }
+
+    #[inline(always)]
+    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
+        let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
+
+        tree.vistr()
+    }
+    #[must_use]
+    #[inline(always)]
+    pub fn num_nodes(&self) -> usize {
+        self.nodes.len()
+    }
+}
+
+///
+/// Easily verifiable naive query algorithms.
+///
+pub struct Naive<'a, T> {
+    inner: AabbPin<&'a mut [T]>,
+}
+impl<'a, T: Aabb> Naive<'a, T> {
+    pub fn new(inner: &'a mut [T]) -> Self {
+        Naive {
+            inner: AabbPin::from_mut(inner),
+        }
+    }
+    pub fn from_pinned(inner: AabbPin<&'a mut [T]>) -> Self {
+        Naive { inner }
+    }
+
+    pub fn iter_mut(&mut self) -> AabbPinIter<T> {
+        self.inner.borrow_mut().iter_mut()
+    }
+}
+
+///
+/// Sweep and prune collision finding algorithm
+///
+pub struct SweepAndPrune<'a, T> {
+    inner: &'a mut [T],
+}
+
+impl<'a, T: Aabb> SweepAndPrune<'a, T> {
+    pub fn new(inner: &'a mut [T]) -> Self {
+        let axis = default_axis();
+        tree::util::sweeper_update(axis, inner);
+
+        SweepAndPrune { inner }
+    }
+}
+
+///
+/// Compare query results between [`Tree`] and
+/// the easily verifiable [`Naive`] versions.
+///
+pub struct Assert<'a, T> {
+    inner: &'a mut [T],
+}
+impl<'a, T: Aabb> Assert<'a, T> {
+    pub fn new(inner: &'a mut [T]) -> Self {
+        Assert { inner }
+    }
+}

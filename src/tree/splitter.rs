@@ -3,19 +3,35 @@
 //! is split into two and built back together. Useful for debuging/measuring performance.
 //!
 
-use super::*;
-
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
 ///during construction.
 pub trait Splitter: Sized {
     ///Called to split this into two to be passed to the children.
-    fn div(self) -> (Self, Self);
+    fn div(&mut self) -> Self;
 
     ///Called to add the results of the recursive calls on the children.
-    fn add(self, b: Self) -> Self;
+    fn add(&mut self, b: Self);
 }
 
+pub type EmptySplitter = [(); 0];
+
+pub fn empty_mut() -> &'static mut EmptySplitter {
+    &mut []
+}
+
+pub fn empty() -> EmptySplitter {
+    []
+}
+
+impl Splitter for [(); 0] {
+    fn div(&mut self) -> Self {
+        []
+    }
+    fn add(&mut self, _: Self) {}
+}
+
+/*
 impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
     pub fn build_from_splitter<SS: Splitter>(
         self,
@@ -132,3 +148,5 @@ impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
         (t, splitter)
     }
 }
+
+*/

@@ -142,8 +142,6 @@ pub fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
     });
 }
 
-
-
 #[cfg(feature = "parallel")]
 #[inline(always)]
 ///Find colliding pairs using the mark and sweep algorithm.

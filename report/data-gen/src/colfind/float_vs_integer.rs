@@ -17,9 +17,9 @@ impl Record {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_i32());
 
             bench_closure(|| {
-                let mut tree = broccoli::tree::new(&mut bb);
+                let mut tree = broccoli::Tree::new(&mut bb);
 
-                tree.colliding_pairs(|a, b| {
+                tree.find_colliding_pairs(|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
@@ -30,9 +30,9 @@ impl Record {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_i64());
 
             bench_closure(|| {
-                let mut tree = broccoli::tree::new(&mut bb);
+                let mut tree = broccoli::Tree::new(&mut bb);
 
-                tree.colliding_pairs(|a, b| {
+                tree.find_colliding_pairs(|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
@@ -47,9 +47,9 @@ impl Record {
             bench_closure(|| {
                 let mut bb = convert_dist(bb, |a| convert::rect_f32_to_u32(a.inner_as(), &border));
 
-                let mut tree = broccoli::tree::new(&mut bb);
+                let mut tree = broccoli::Tree::new(&mut bb);
 
-                tree.colliding_pairs(|a, b| {
+                tree.find_colliding_pairs(|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
@@ -60,9 +60,9 @@ impl Record {
             let mut bb = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
             bench_closure(|| {
-                let mut tree = broccoli::tree::new(&mut bb);
+                let mut tree = broccoli::Tree::new(&mut bb);
 
-                tree.colliding_pairs(|a, b| {
+                tree.find_colliding_pairs(|a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;
                 });
