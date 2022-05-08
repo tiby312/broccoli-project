@@ -205,6 +205,8 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
         }
     }
 
+
+    #[cfg(feature = "parallel")]
     pub fn par_from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self
     where
         T: Send,
@@ -285,6 +287,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         }
     }
 
+    #[cfg(feature = "parallel")]
     pub fn par_from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self
     where
         T: Send,

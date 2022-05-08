@@ -26,6 +26,9 @@ impl<T: Aabb> Tree<'_, T> {
     ) {
         args.query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
     }
+
+
+    #[cfg(feature = "parallel")]
     pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
         &mut self,
         args: QueryArgs<S>,
@@ -49,6 +52,9 @@ impl<T: Aabb> NotSortedTree<'_, T> {
     ) {
         args.query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
     }
+
+
+    #[cfg(feature = "parallel")]
     pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
         &mut self,
         args: QueryArgs<S>,
