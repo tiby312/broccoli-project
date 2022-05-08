@@ -16,10 +16,6 @@ Screen capture from the inner `demo` project.
 
 <img src="./assets/screenshot.gif" alt="screenshot">
 
-### Other crates
-
-The [broccoli-ext](https://crates.io/crates/broccoli-ext) crate contains some more functionality but relies on unsafe.
-
 ### Example
 
 ```rust
