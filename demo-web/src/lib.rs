@@ -14,7 +14,6 @@ pub use broccoli::tree::bbox;
 pub use broccoli::tree::node::*;
 pub use broccoli::tree::*;
 
-
 pub use crate::demos::Demo;
 pub use crate::demos::DemoData;
 pub use dists::uniform_rand::UniformRandGen;

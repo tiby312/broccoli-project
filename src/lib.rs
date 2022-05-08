@@ -76,7 +76,6 @@ mod tests;
 
 pub mod queries;
 
-
 ///
 /// Abstract over containers that produce `&mut [T]`
 ///
@@ -198,13 +197,11 @@ pub struct Tree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
-    
     pub fn from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self {
         Tree {
             nodes: args.build_ext(&mut DefaultSorter),
         }
     }
-
 
     #[cfg(feature = "parallel")]
     pub fn par_from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self
@@ -280,7 +277,6 @@ pub struct NotSortedTree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
-    
     pub fn from_build_args<'b, P: Splitter>(args: BuildArgs<'a, 'b, T, P>) -> Self {
         NotSortedTree {
             nodes: args.build_ext(&mut NoSorter),

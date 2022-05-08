@@ -227,7 +227,6 @@ impl<'split, P: Splitter> QueryArgs<'split, P> {
         recurse_seq(vv, self.splitter, handler)
     }
 
-
     #[cfg(feature = "parallel")]
     pub fn par_query<T: Aabb, SO>(self, vistr: VistrMutPin<Node<T>>, handler: &mut SO)
     where

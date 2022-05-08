@@ -27,7 +27,6 @@ impl<T: Aabb> Tree<'_, T> {
         args.query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
     }
 
-
     #[cfg(feature = "parallel")]
     pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
         &mut self,
@@ -52,7 +51,6 @@ impl<T: Aabb> NotSortedTree<'_, T> {
     ) {
         args.query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
     }
-
 
     #[cfg(feature = "parallel")]
     pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
@@ -261,7 +259,6 @@ pub fn handle_parallel<'a, T: Aabb, A: Axis>(
     let fb = oned::FindParallel2DBuilder::new(prevec, axis.next(), f.anchor.range, current2.range);
 
     if f.current_is_leaf {
-        
         match current2.cont.contains_ext(anchor_div) {
             std::cmp::Ordering::Equal => {
                 fb.build(|a, b| {
