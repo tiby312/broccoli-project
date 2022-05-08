@@ -25,21 +25,24 @@ fn main() {
     let mut inner2 = 0;
     let mut inner3 = 0;
 
-    //Rect is stored directly in tree,
-    //but inner is not.
+    // Rect is stored directly in tree,
+    // but inner is not.
     let mut aabbs = [
         (rect(00, 10, 00, 10), &mut inner1),
         (rect(15, 20, 15, 20), &mut inner2),
         (rect(05, 15, 05, 15), &mut inner3),
     ];
 
-    //This will change the order of the elements
-    //in bboxes,but this is okay since we
-    //populated it with mutable references.
+    // This will change the order of the elements
+    // but since we populated it with mutable references.
+    // the original order is preserved.
     let mut tree = broccoli::Tree::new(&mut aabbs);
 
-    //Find all colliding aabbs.
+    // Find all colliding aabbs.
     tree.find_colliding_pairs(|a, b| {
+        // We aren't given &mut T reference, but instead of AabbPin<&mut T>.
+        // We call unpack_inner() to extract the portion that we are allowed to mutate.
+        // (We are not allowed to change the bounding box while in the tree)
         **a.unpack_inner() += 1;
         **b.unpack_inner() += 1;
     });
