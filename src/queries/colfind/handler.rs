@@ -250,12 +250,36 @@ pub fn handle_parallel<'a, T: Aabb, A: Axis>(
 ) {
     let anchor_div = f.anchor.div;
 
-    //let anchor2 = f.anchor.into_node_ref();
     let current2 = f.current;
 
     let fb = oned::FindParallel2DBuilder::new(prevec, axis.next(), f.anchor.range, current2.range);
 
     if f.current_is_leaf {
+        
+        match current2.cont.contains_ext(anchor_div) {
+            std::cmp::Ordering::Equal => {
+                fb.build(|a, b| {
+                    if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
+                        func.collide(a, b)
+                    }
+                });
+            }
+            std::cmp::Ordering::Less => {
+                fb.build(|a, b| {
+                    if a.get().get_range(axis).end >= b.get().get_range(axis).start {
+                        func.collide(a, b)
+                    }
+                });
+            }
+            std::cmp::Ordering::Greater => {
+                fb.build(|a, b| {
+                    if a.get().get_range(axis).start <= b.get().get_range(axis).end {
+                        func.collide(a, b)
+                    }
+                });
+            }
+        }
+        /*
         if f.anchor.cont.intersects(current2.cont) {
             fb.build(|a, b| {
                 if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
@@ -263,6 +287,7 @@ pub fn handle_parallel<'a, T: Aabb, A: Axis>(
                 }
             });
         }
+        */
     } else if let Some(current_div) = *current2.div {
         if anchor_div < current_div {
             if f.anchor.cont.end >= current2.cont.start {
