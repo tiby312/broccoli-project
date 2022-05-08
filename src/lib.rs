@@ -58,9 +58,6 @@ mod test_readme {
 #[macro_use]
 extern crate alloc;
 
-//#[doc(inline)]
-//pub use broccoli_tree as tree;
-
 pub use axgeom;
 pub mod tree;
 
@@ -79,7 +76,6 @@ mod tests;
 
 pub mod queries;
 
-pub mod prelude {}
 
 ///
 /// Abstract over containers that produce `&mut [T]`
