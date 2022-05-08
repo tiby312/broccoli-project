@@ -103,6 +103,9 @@ impl<T> Container for Box<[T]> {
     }
 }
 
+///
+/// An owned version of [`Tree`]
+///
 pub struct TreeOwned<C: Container>
 where
     C::T: Aabb,
@@ -192,6 +195,9 @@ where
     }
 }
 
+///
+/// A broccoli Tree.
+///
 pub struct Tree<'a, T: Aabb> {
     nodes: Vec<Node<'a, T>>,
 }
@@ -272,6 +278,9 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     }
 }
 
+///
+/// A tree where the elements in a node are not sorted.
+///
 pub struct NotSortedTree<'a, T: Aabb> {
     nodes: Vec<Node<'a, T>>,
 }
@@ -331,6 +340,9 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
     }
 }
 
+///
+/// Easily verifiable naive query algorithms.
+///
 pub struct Naive<'a, T> {
     inner: AabbPin<&'a mut [T]>,
 }
@@ -365,6 +377,10 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     }
 }
 
+///
+/// Compare query results between [`Tree`] and
+/// the easily verifiable [`Naive`] versions.
+///
 pub struct Assert<'a, T> {
     inner: &'a mut [T],
 }

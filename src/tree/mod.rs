@@ -1,6 +1,5 @@
 //!
-//! This is a supporting crate to the  `broccoli` crate. This crate only
-//! provides the broccoli tree and tree building code, but no querying code.
+//! Provides the broccoli tree building blocks and code, but no querying code.
 //!
 
 use self::splitter::{EmptySplitter, Splitter};
@@ -118,6 +117,9 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
     BBoxMut::new(rect, inner)
 }
 
+///
+/// Options to specify how to build up a set of nodes.
+///
 pub struct BuildArgs<'a, 'b, T, S> {
     pub bots: &'a mut [T],
     pub num_level: usize,
