@@ -1,22 +1,5 @@
 use super::*;
 use twounordered::TwoUnorderedVecs;
-#[derive(Clone)]
-pub struct DefaultNodeHandler<F> {
-    pub prevec: PreVec,
-    pub func: F,
-}
-
-impl<F> DefaultNodeHandler<F> {
-    pub fn new<T: Aabb>(func: F) -> Self
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    {
-        DefaultNodeHandler {
-            func,
-            prevec: PreVec::new(),
-        }
-    }
-}
 
 impl<T: Aabb> Tree<'_, T> {
     pub fn find_colliding_pairs_from_args<S: Splitter>(
@@ -41,8 +24,193 @@ impl<T: Aabb> Tree<'_, T> {
     {
         args.par_query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
     }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_find_colliding_pairs_acc<Acc, FS, FA, F>(
+        &mut self,
+        acc: Acc,
+        split_func: FS,
+        add_func: FA,
+        func: F,
+    ) -> Acc
+    where
+        FS: FnMut(&mut Acc) -> Acc + Clone + Send,
+        FA: FnMut(&mut Acc, &mut Acc) + Clone + Send,
+        F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+        Acc: Send,
+        T: Send,
+        T::Num: Send,
+    {
+        let mut f = Floop {
+            acc,
+            prevec: PreVec::new(),
+            split_func,
+            add_func,
+            func,
+        };
+        QueryArgs::new().par_query(self.vistr_mut(), &mut f);
+        f.acc
+    }
 }
 
+pub struct Floop<Acc, SF, AF, F> {
+    acc: Acc,
+    prevec: PreVec,
+    split_func: SF,
+    add_func: AF,
+    func: F,
+}
+
+impl<Acc, SF, AF, F> Splitter for Floop<Acc, SF, AF, F>
+where
+    SF: FnMut(&mut Acc) -> Acc + Clone,
+    AF: FnMut(&mut Acc, &mut Acc) + Clone,
+    F: Clone,
+{
+    fn div(&mut self) -> Self {
+        let acc = (self.split_func)(&mut self.acc);
+
+        Floop {
+            acc,
+            prevec: self.prevec.clone(),
+            split_func: self.split_func.clone(),
+            add_func: self.add_func.clone(),
+            func: self.func.clone(),
+        }
+    }
+
+    fn add(&mut self, mut b: Self) {
+        (self.add_func)(&mut self.acc, &mut b.acc);
+    }
+}
+
+pub struct Lol<'a, Acc, F> {
+    func: &'a mut F,
+    acc: &'a mut Acc,
+}
+impl<'a, T: Aabb, Acc, F> CollisionHandler<T> for Lol<'a, Acc, F>
+where
+    F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>),
+{
+    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
+        (self.func)(self.acc, a, b);
+    }
+}
+
+impl<T: Aabb, Acc, SF, AF, F> NodeHandler<T> for Floop<Acc, SF, AF, F>
+where
+    SF: FnMut(&mut Acc) -> Acc,
+    AF: FnMut(&mut Acc, &mut Acc),
+    F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>),
+{
+    #[inline(always)]
+    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
+        let mut a = Lol {
+            func: &mut self.func,
+            acc: &mut self.acc,
+        };
+        handle_node(&mut self.prevec, axis, bots, &mut a, is_leaf);
+    }
+
+    #[inline(always)]
+    fn handle_children(&mut self, f: HandleChildrenArgs<T>) {
+        let mut a = Lol {
+            func: &mut self.func,
+            acc: &mut self.acc,
+        };
+        handle_children(&mut self.prevec, &mut a, f)
+    }
+}
+
+#[derive(Clone)]
+pub struct DefaultNodeHandler<F> {
+    pub prevec: PreVec,
+    pub func: F,
+}
+
+impl<F> DefaultNodeHandler<F> {
+    pub fn new<T: Aabb>(func: F) -> Self
+    where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    {
+        DefaultNodeHandler {
+            func,
+            prevec: PreVec::new(),
+        }
+    }
+}
+
+impl<F: Clone> Splitter for DefaultNodeHandler<F> {
+    fn div(&mut self) -> Self {
+        DefaultNodeHandler {
+            prevec: self.prevec.clone(),
+            func: self.func.clone(),
+        }
+    }
+
+    fn add(&mut self, _b: Self) {}
+}
+
+impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for DefaultNodeHandler<F> {
+    #[inline(always)]
+    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
+        handle_node(&mut self.prevec, axis, bots, &mut self.func, is_leaf);
+    }
+
+    #[inline(always)]
+    fn handle_children(&mut self, f: HandleChildrenArgs<T>) {
+        handle_children(&mut self.prevec, &mut self.func, f)
+    }
+}
+
+fn handle_node<T: Aabb, F>(
+    prevec: &mut PreVec,
+    axis: AxisDyn,
+    bots: AabbPin<&mut [T]>,
+    func: &mut F,
+    is_leaf: bool,
+) where
+    F: CollisionHandler<T>,
+{
+    let mut k = prevec.extract_vec();
+    //
+    // All bots belonging to a non leaf node are guaranteed to touch the divider.
+    // Therefore, all bots intersect along one axis already. Because:
+    //
+    // If a contains x and b contains x then a intersects b.
+    //
+    match axis.next() {
+        AxisDyn::X => oned::find_2d(&mut k, axgeom::XAXIS, bots, func, is_leaf),
+        AxisDyn::Y => oned::find_2d(&mut k, axgeom::YAXIS, bots, func, is_leaf),
+    }
+
+    k.clear();
+    prevec.insert_vec(k);
+}
+
+fn handle_children<T: Aabb, F>(prevec: &mut PreVec, func: &mut F, f: HandleChildrenArgs<T>)
+where
+    F: CollisionHandler<T>,
+{
+    use AxisDyn::*;
+
+    match (f.anchor_axis, f.current_axis) {
+        (X, X) | (Y, Y) => {
+            let mut k = twounordered::TwoUnorderedVecs::from(prevec.extract_vec());
+
+            match f.anchor_axis {
+                X => handle_parallel(XAXIS, &mut k, func, f),
+                Y => handle_parallel(YAXIS, &mut k, func, f),
+            }
+
+            let mut j: Vec<_> = k.into();
+            j.clear();
+            prevec.insert_vec(j);
+        }
+        (X, Y) => handle_perp(XAXIS, func, f),
+        (Y, X) => handle_perp(YAXIS, func, f),
+    }
+}
 impl<T: Aabb> NotSortedTree<'_, T> {
     pub fn find_colliding_pairs_from_args<S: Splitter>(
         &mut self,
@@ -65,60 +233,6 @@ impl<T: Aabb> NotSortedTree<'_, T> {
         T::Num: Send,
     {
         args.par_query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
-    }
-}
-
-impl<F: Clone> Splitter for DefaultNodeHandler<F> {
-    fn div(&mut self) -> Self {
-        DefaultNodeHandler {
-            prevec: self.prevec.clone(),
-            func: self.func.clone(),
-        }
-    }
-
-    fn add(&mut self, _b: Self) {}
-}
-
-impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for DefaultNodeHandler<F> {
-    #[inline(always)]
-    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        let mut k = self.prevec.extract_vec();
-        //
-        // All bots belonging to a non leaf node are guaranteed to touch the divider.
-        // Therefore, all bots intersect along one axis already. Because:
-        //
-        // If a contains x and b contains x then a intersects b.
-        //
-        match axis.next() {
-            AxisDyn::X => oned::find_2d(&mut k, axgeom::XAXIS, bots, &mut self.func, is_leaf),
-            AxisDyn::Y => oned::find_2d(&mut k, axgeom::YAXIS, bots, &mut self.func, is_leaf),
-        }
-
-        k.clear();
-        self.prevec.insert_vec(k);
-    }
-
-    #[inline(always)]
-    fn handle_children(&mut self, f: HandleChildrenArgs<T>) {
-        use AxisDyn::*;
-        let func = &mut self.func;
-
-        match (f.anchor_axis, f.current_axis) {
-            (X, X) | (Y, Y) => {
-                let mut k = twounordered::TwoUnorderedVecs::from(self.prevec.extract_vec());
-
-                match f.anchor_axis {
-                    X => handle_parallel(XAXIS, &mut k, func, f),
-                    Y => handle_parallel(YAXIS, &mut k, func, f),
-                }
-
-                let mut j: Vec<_> = k.into();
-                j.clear();
-                self.prevec.insert_vec(j);
-            }
-            (X, Y) => handle_perp(XAXIS, func, f),
-            (Y, X) => handle_perp(YAXIS, func, f),
-        }
     }
 }
 
@@ -216,22 +330,37 @@ pub fn handle_perp<T: Aabb, A: Axis>(
 
         match y.get().get_range(axis).contains_ext(div) {
             std::cmp::Ordering::Equal => {
-                oned::find_perp_2d1_once(current_axis, y, r2, |a, b| func.collide(a, b));
+                oned::find_perp_2d1_once(
+                    current_axis,
+                    y,
+                    r2,
+                    |a: AabbPin<&mut T>, b: AabbPin<&mut T>| func.collide(a, b),
+                );
             }
             std::cmp::Ordering::Greater => {
-                oned::find_perp_2d1_once(current_axis, y, r2, |a, b| {
-                    if a.get().get_range(axis).end >= b.get().get_range(axis).start {
-                        func.collide(a, b);
-                    }
-                });
+                oned::find_perp_2d1_once(
+                    current_axis,
+                    y,
+                    r2,
+                    |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
+                        if a.get().get_range(axis).end >= b.get().get_range(axis).start {
+                            func.collide(a, b);
+                        }
+                    },
+                );
             }
             std::cmp::Ordering::Less => {
-                oned::find_perp_2d1_once(current_axis, y, r2, |a, b| {
-                    //if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
-                    if a.get().get_range(axis).start <= b.get().get_range(axis).end {
-                        func.collide(a, b);
-                    }
-                });
+                oned::find_perp_2d1_once(
+                    current_axis,
+                    y,
+                    r2,
+                    |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
+                        //if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
+                        if a.get().get_range(axis).start <= b.get().get_range(axis).end {
+                            func.collide(a, b);
+                        }
+                    },
+                );
             }
         }
 

@@ -76,7 +76,7 @@ pub fn find_perp_2d1_once<A: Axis, T: Aabb>(
     axis: A, //the axis of r2.
     mut y: AabbPin<&mut T>,
     mut r2: AabbPin<&mut [T]>,
-    mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    mut func: impl CollisionHandler<T>,
 ) {
     for y2 in r2.borrow_mut() {
         //Exploit the sorted property, to exit early
@@ -86,7 +86,7 @@ pub fn find_perp_2d1_once<A: Axis, T: Aabb>(
 
         //Because we didnt exit from the previous comparison, we only need to check one thing.
         if y.get().get_range(axis).start <= y2.get().get_range(axis).end {
-            func(y.borrow_mut(), y2);
+            func.collide(y.borrow_mut(), y2);
         }
     }
 }
