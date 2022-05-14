@@ -15,13 +15,13 @@ fn main() {
     let mut res = tree.par_find_colliding_pairs_acc(
         vec![],
         |_| vec![],
-        |a, b| a.append(b),
+        |a, mut b| a.append(&mut b),
         |v, a, b| {
-            v.push((*a.1,*b.1));
+            v.push((*a.1, *b.1));
         },
     );
 
     res.sort();
 
-    assert_eq!(res, vec!((1,2),(2,0)));
+    assert_eq!(res, vec!((1, 2), (2, 0)));
 }

@@ -35,7 +35,7 @@ impl<T: Aabb> Tree<'_, T> {
     ) -> Acc
     where
         FS: FnMut(&mut Acc) -> Acc + Clone + Send,
-        FA: FnMut(&mut Acc, &mut Acc) + Clone + Send,
+        FA: FnMut(&mut Acc, Acc) + Clone + Send,
         F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
         Acc: Send,
         T: Send,
@@ -64,7 +64,7 @@ pub struct Floop<Acc, SF, AF, F> {
 impl<Acc, SF, AF, F> Splitter for Floop<Acc, SF, AF, F>
 where
     SF: FnMut(&mut Acc) -> Acc + Clone,
-    AF: FnMut(&mut Acc, &mut Acc) + Clone,
+    AF: FnMut(&mut Acc, Acc) + Clone,
     F: Clone,
 {
     fn div(&mut self) -> Self {
@@ -79,8 +79,8 @@ where
         }
     }
 
-    fn add(&mut self, mut b: Self) {
-        (self.add_func)(&mut self.acc, &mut b.acc);
+    fn add(&mut self, b: Self) {
+        (self.add_func)(&mut self.acc, b.acc);
     }
 }
 
@@ -100,7 +100,7 @@ where
 impl<T: Aabb, Acc, SF, AF, F> NodeHandler<T> for Floop<Acc, SF, AF, F>
 where
     SF: FnMut(&mut Acc) -> Acc,
-    AF: FnMut(&mut Acc, &mut Acc),
+    AF: FnMut(&mut Acc, Acc),
     F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>),
 {
     #[inline(always)]
