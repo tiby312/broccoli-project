@@ -41,7 +41,7 @@ impl<T: Aabb> Tree<'_, T> {
         T: Send,
         T::Num: Send,
     {
-        let mut f = Floop {
+        let mut f = AccNodeHandler {
             acc,
             prevec: PreVec::new(),
             split_func,
@@ -53,7 +53,7 @@ impl<T: Aabb> Tree<'_, T> {
     }
 }
 
-pub struct Floop<Acc, SF, AF, F> {
+pub struct AccNodeHandler<Acc, SF, AF, F> {
     acc: Acc,
     prevec: PreVec,
     split_func: SF,
@@ -61,7 +61,7 @@ pub struct Floop<Acc, SF, AF, F> {
     func: F,
 }
 
-impl<Acc, SF, AF, F> Splitter for Floop<Acc, SF, AF, F>
+impl<Acc, SF, AF, F> Splitter for AccNodeHandler<Acc, SF, AF, F>
 where
     SF: FnMut(&mut Acc) -> Acc + Clone,
     AF: FnMut(&mut Acc, Acc) + Clone,
@@ -70,7 +70,7 @@ where
     fn div(&mut self) -> Self {
         let acc = (self.split_func)(&mut self.acc);
 
-        Floop {
+        AccNodeHandler {
             acc,
             prevec: self.prevec.clone(),
             split_func: self.split_func.clone(),
@@ -84,20 +84,7 @@ where
     }
 }
 
-pub struct Lol<'a, Acc, F> {
-    func: &'a mut F,
-    acc: &'a mut Acc,
-}
-impl<'a, T: Aabb, Acc, F> CollisionHandler<T> for Lol<'a, Acc, F>
-where
-    F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>),
-{
-    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(self.acc, a, b);
-    }
-}
-
-impl<T: Aabb, Acc, SF, AF, F> NodeHandler<T> for Floop<Acc, SF, AF, F>
+impl<T: Aabb, Acc, SF, AF, F> NodeHandler<T> for AccNodeHandler<Acc, SF, AF, F>
 where
     SF: FnMut(&mut Acc) -> Acc,
     AF: FnMut(&mut Acc, Acc),
@@ -105,7 +92,7 @@ where
 {
     #[inline(always)]
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        let mut a = Lol {
+        let mut a = AccCollisionHandler {
             func: &mut self.func,
             acc: &mut self.acc,
         };
@@ -114,11 +101,24 @@ where
 
     #[inline(always)]
     fn handle_children(&mut self, f: HandleChildrenArgs<T>) {
-        let mut a = Lol {
+        let mut a = AccCollisionHandler {
             func: &mut self.func,
             acc: &mut self.acc,
         };
         handle_children(&mut self.prevec, &mut a, f)
+    }
+}
+
+pub struct AccCollisionHandler<'a, Acc, F> {
+    func: &'a mut F,
+    acc: &'a mut Acc,
+}
+impl<'a, T: Aabb, Acc, F> CollisionHandler<T> for AccCollisionHandler<'a, Acc, F>
+where
+    F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>),
+{
+    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
+        (self.func)(self.acc, a, b);
     }
 }
 
