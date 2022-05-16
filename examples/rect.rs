@@ -1,14 +1,14 @@
 use broccoli::tree::{aabb_pin::AabbPin, rect};
 
 fn main() {
-    let inner1 = 4;
-    let inner2 = 5;
-    let inner3 = 6;
+    let mut inner1 = 4;
+    let mut inner2 = 5;
+    let mut inner3 = 6;
 
     let mut bots = [
-        (rect(00, 10, 00, 10), &inner1),
-        (rect(15, 20, 15, 20), &inner2),
-        (rect(05, 15, 05, 15), &inner3),
+        (rect(00, 10, 00, 10), &mut inner1),
+        (rect(15, 20, 15, 20), &mut inner2),
+        (rect(05, 15, 05, 15), &mut inner3),
     ];
 
     let mut tree = broccoli::Tree::new(&mut bots);

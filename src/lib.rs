@@ -201,13 +201,13 @@ pub struct Tree<'a, T: Aabb> {
     nodes: Vec<Node<'a, T>>,
 }
 
-impl<'a, N: Num, T: 'a> Tree<'a, (Rect<N>, T)> {
-    pub fn new(bots: &'a mut [(Rect<N>, T)]) -> Self {
+impl<'a, 'b, N: Num, T: 'a> Tree<'a, (Rect<N>, &'b mut T)> {
+    pub fn new(bots: &'a mut [(Rect<N>, &'b mut T)]) -> Self {
         Self::from_aabb(bots)
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_new(bots: &'a mut [(Rect<N>, T)]) -> Self
+    pub fn par_new(bots: &'a mut [(Rect<N>, &'b mut T)]) -> Self
     where
         T: Send,
         N: Send,
@@ -313,14 +313,14 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         (NotSortedTree { nodes }, s)
     }
 
-    pub fn new(bots: &'a mut [T]) -> Self {
+    pub fn from_aabb(bots: &'a mut [T]) -> Self {
         let (nodes, _) = BuildArgs::new(bots.len()).build_ext(bots, &mut NoSorter);
 
         NotSortedTree { nodes }
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_new(bots: &'a mut [T]) -> Self
+    pub fn par_from_aabb(bots: &'a mut [T]) -> Self
     where
         T: Send,
         T::Num: Send,

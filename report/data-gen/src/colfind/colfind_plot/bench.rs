@@ -65,7 +65,7 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c5 = bench_closure(|| {
-            let mut tree = NotSortedTree::par_new(&mut bots);
+            let mut tree = NotSortedTree::par_from_aabb(&mut bots);
 
             tree.par_find_colliding_pairs(|a, b| {
                 **a.unpack_inner() += 1;
@@ -76,7 +76,7 @@ impl Record {
         let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
         let c6 = bench_closure(|| {
-            let mut tree = NotSortedTree::new(&mut bots);
+            let mut tree = NotSortedTree::from_aabb(&mut bots);
             tree.find_colliding_pairs(|a, b| {
                 **a.unpack_inner() -= 1;
                 **b.unpack_inner() -= 1;
