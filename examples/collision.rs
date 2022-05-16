@@ -12,9 +12,7 @@ fn main() {
         (rect(05, 15, 05, 15), &mut inner3),
     ];
 
-    // This will change the order of the elements
-    // but since we populated it with mutable references.
-    // the original order is preserved.
+    // Construct tree by doing many swapping of elements
     let mut tree = broccoli::Tree::new(&mut aabbs);
 
     // Find all colliding aabbs.

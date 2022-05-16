@@ -16,6 +16,18 @@ Screen capture from the inner `demo` project.
 
 <img src="./assets/screenshot.gif" alt="screenshot">
 
+### Optimisation
+
+| Algorithm        | Cost | Effort spent optimizating |
+| ---------------- | ---- | ------------------------- |
+| Construction     |   7  |         9                 |
+| Colliding Pairs  |   8  |         9                 |
+| knearest         |   1  |         2                 |
+| raycast          |   1  |         2                 |
+| rect             |   1  |         2                 |
+| nbody            |  10  |         1                 |
+
+
 ### Example
 
 ```rust
@@ -33,9 +45,7 @@ fn main() {
         (rect(05, 15, 05, 15), &mut inner3),
     ];
 
-    // This will change the order of the elements
-    // but since we populated it with mutable references.
-    // the original order is preserved.
+    // Construct tree by doing many swapping of elements
     let mut tree = broccoli::Tree::new(&mut aabbs);
 
     // Find all colliding aabbs.
