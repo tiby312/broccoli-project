@@ -31,7 +31,7 @@ fn test1() {
                 vs.push((a.1, b.1));
             });
 
-            let mut vs2 = tree.par_find_colliding_pairs_acc(vec![], |v, a, b| {
+            let mut vs2 = tree.par_find_colliding_pairs_acc_closure(vec![],|_|vec!(),|a,mut b|a.append(&mut b), |v, a, b| {
                 v.push((a.1, b.1));
             });
 

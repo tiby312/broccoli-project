@@ -153,7 +153,14 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
 
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        QueryArgs::new().query(self.vistr_mut(), &mut DefaultNodeHandler::new(func));
+        let mut f=FloopDefault{func};
+
+        let mut f = AccNodeHandler {
+            acc:f,
+            prevec: PreVec::new(),
+        };
+
+        QueryArgs::new().query(self.vistr_mut(), &mut f);
     }
 
     #[cfg(feature = "parallel")]
@@ -163,7 +170,14 @@ impl<'a, T: Aabb> Tree<'a, T> {
         T::Num: Send,
         F: Send + Clone,
     {
-        let _ = QueryArgs::new().par_query(self.vistr_mut(), &mut DefaultNodeHandler::new(func));
+        let mut f=FloopDefault{func};
+
+        let mut f = AccNodeHandler {
+            acc:f,
+            prevec: PreVec::new(),
+        };
+
+        let _ = QueryArgs::new().par_query(self.vistr_mut(), &mut f);
     }
 }
 

@@ -1,3 +1,5 @@
+use crate::ext::cacheable_pairs::CollidingPairsCache;
+
 use super::*;
 use twounordered::TwoUnorderedVecs;
 
@@ -7,7 +9,13 @@ impl<T: Aabb> Tree<'_, T> {
         args: QueryArgs<S>,
         func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
     ) -> S {
-        args.query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
+        let mut f=FloopDefault{func};
+
+        let mut f = AccNodeHandler {
+            acc:f,
+            prevec: PreVec::new(),
+        };
+        args.query(self.vistr_mut(), &mut f)
     }
 
     #[cfg(feature = "parallel")]
@@ -23,7 +31,14 @@ impl<T: Aabb> Tree<'_, T> {
         T: Send,
         T::Num: Send,
     {
-        args.par_query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
+        
+        let mut f=FloopDefault{func};
+
+        let mut f = AccNodeHandler {
+            acc:f,
+            prevec: PreVec::new(),
+        };
+        args.par_query(self.vistr_mut(), &mut f)
     }
 
     #[cfg(feature = "parallel")]
@@ -34,35 +49,118 @@ impl<T: Aabb> Tree<'_, T> {
         T: Send,
         T::Num: Send,
     {
-        let mut f = AccNodeHandler {
+        let floop=Floop{
             acc,
+            func
+        };
+        let mut f = AccNodeHandler {
+            acc:floop,
             prevec: PreVec::new(),
-            func,
         };
         QueryArgs::new().par_query(self.vistr_mut(), &mut f);
-        f.acc
+        f.acc.acc
+    }
+
+
+    #[cfg(feature = "parallel")]
+    pub fn par_find_colliding_pairs_acc_closure<Acc, A,B,F>(&mut self, acc: Acc, div:A,add:B,mut func: F) -> Acc
+    where
+        A:FnMut(&mut Acc)->Acc+Clone+Send,
+        B:FnMut(&mut Acc,Acc)+Clone+Send,
+        F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+        Acc:Send,
+        T: Send,
+        T::Num: Send,
+    {
+        let floop=FloopClosure{
+            acc,
+            div,
+            add,
+            func
+        };
+
+        let mut f = AccNodeHandler {
+            acc:floop,
+            prevec: PreVec::new(),
+        };
+        QueryArgs::new().par_query(self.vistr_mut(), &mut f);
+        f.acc.acc
     }
 }
 
-impl<T> Splitter for Vec<T> {
+
+
+pub struct FloopDefault<F>{
+    pub func:F
+}
+impl<T:Aabb,F> CollisionHandler<T> for FloopDefault<F>
+    where F:FnMut(AabbPin<&mut T>, AabbPin<&mut T>){
+    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
+        (self.func)(a,b)
+    }
+}
+impl<F:Clone> Splitter for FloopDefault<F>{
     fn div(&mut self) -> Self {
-        vec![]
+        FloopDefault {  func: self.func.clone() }
     }
 
-    fn add(&mut self, mut b: Self) {
-        self.append(&mut b);
+    fn add(&mut self,b: Self) {
+
     }
 }
 
-pub struct AccNodeHandler<Acc: Splitter, F> {
-    acc: Acc,
-    prevec: PreVec,
-    func: F,
+
+pub struct Floop<K,F>{
+    acc:K,
+    func:F
+}
+impl<T:Aabb,K,F> CollisionHandler<T> for Floop<K,F>
+    where F:FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>){
+    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
+        (self.func)(&mut self.acc,a,b)
+    }
+}
+impl<K:Splitter,F:Clone> Splitter for Floop<K,F>{
+    fn div(&mut self) -> Self {
+        let k=self.acc.div();
+        Floop { acc: k, func: self.func.clone() }
+    }
+
+    fn add(&mut self,b: Self) {
+        let j=self.acc.add(b.acc);
+    }
 }
 
-impl<Acc: Splitter, F> Splitter for AccNodeHandler<Acc, F>
-where
-    F: Clone,
+
+pub struct FloopClosure<K,A,B,F>{
+    acc:K,
+    div:A,
+    add:B,
+    func:F
+}
+impl<T:Aabb,K,A,B,F> CollisionHandler<T> for FloopClosure<K,A,B,F>
+    where F:FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>){
+    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
+        (self.func)(&mut self.acc,a,b)
+    }
+}
+impl<K,A:FnMut(&mut K)->K+Clone,B:FnMut(&mut K,K)+Clone,F:Clone> Splitter for FloopClosure<K,A,B,F>{
+    fn div(&mut self) -> Self {
+        FloopClosure { acc: (self.div)(&mut self.acc), div: self.div.clone(), add: self.add.clone(),func:self.func.clone() }
+    }
+
+    fn add(&mut self,b: Self) {
+        (self.add)(&mut self.acc,b.acc)
+    }
+}
+
+
+pub struct AccNodeHandler<Acc> {
+    pub acc: Acc,
+    pub prevec: PreVec,
+}
+
+impl<Acc: Splitter> Splitter for AccNodeHandler<Acc>
 {
     fn div(&mut self) -> Self {
         let acc = self.acc.div();
@@ -70,7 +168,6 @@ where
         AccNodeHandler {
             acc,
             prevec: self.prevec.clone(),
-            func: self.func.clone(),
         }
     }
 
@@ -79,43 +176,23 @@ where
     }
 }
 
-impl<T: Aabb, Acc, F> NodeHandler<T> for AccNodeHandler<Acc, F>
+impl<T: Aabb, Acc> NodeHandler<T> for AccNodeHandler<Acc>
 where
-    Acc: Splitter,
-    F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>),
-{
+    Acc: CollisionHandler<T>,
+    {
     #[inline(always)]
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        let mut a = AccCollisionHandler {
-            func: &mut self.func,
-            acc: &mut self.acc,
-        };
-        handle_node(&mut self.prevec, axis, bots, &mut a, is_leaf);
+        handle_node(&mut self.prevec, axis, bots, &mut self.acc, is_leaf);
     }
 
     #[inline(always)]
     fn handle_children(&mut self, f: HandleChildrenArgs<T>) {
-        let mut a = AccCollisionHandler {
-            func: &mut self.func,
-            acc: &mut self.acc,
-        };
-        handle_children(&mut self.prevec, &mut a, f)
+        handle_children(&mut self.prevec, &mut self.acc, f)
     }
 }
 
-pub struct AccCollisionHandler<'a, Acc, F> {
-    func: &'a mut F,
-    acc: &'a mut Acc,
-}
-impl<'a, T: Aabb, Acc, F> CollisionHandler<T> for AccCollisionHandler<'a, Acc, F>
-where
-    F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>),
-{
-    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(self.acc, a, b);
-    }
-}
 
+/*
 #[derive(Clone)]
 pub struct DefaultNodeHandler<F> {
     pub prevec: PreVec,
@@ -156,6 +233,7 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for Def
         handle_children(&mut self.prevec, &mut self.func, f)
     }
 }
+*/
 
 fn handle_node<T: Aabb, F>(
     prevec: &mut PreVec,
