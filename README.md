@@ -17,6 +17,9 @@ Screen capture from the inner `demo` project.
 
 ### Optimisation
 
+I've focused mainly on making finding colliding pairs as fast as possible primarily in
+distributions where there are a lot of overlapping aabbs.
+
 Quick rundown of what i've spent effort on and a rough estimate of performance
 cost of each algorithm in general. 
 
