@@ -8,8 +8,7 @@ Broccoli is a broad-phase collision detection library.
 
 The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 
-Checkout it out on [github](https://github.com/tiby312/broccoli) and on [crates.io](https://crates.io/crates/broccoli). Documentation at [docs.rs](https://docs.rs/broccoli). For a report on the algorithm used as well as analysis on the crate in general, see the [broccoli book](https://tiby312.github.io/broccoli_report).
-
+Checkout it out on [github](https://github.com/tiby312/broccoli) and on [crates.io](https://crates.io/crates/broccoli). Documentation at [docs.rs](https://docs.rs/broccoli). 
 ### Screenshot
 
 Screen capture from the inner `demo` project.
@@ -18,7 +17,10 @@ Screen capture from the inner `demo` project.
 
 ### Optimisation
 
-| Algorithm        | Cost | Effort spent optimizating |
+Quick rundown of what i've spent effort on and a rough estimate of performance
+cost of each algorithm in general. 
+
+| Algorithm        | Cost | Effort spent optimising   |
 | ---------------- | ---- | ------------------------- |
 | Construction     |   7  |         9                 |
 | Colliding Pairs  |   8  |         9                 |
@@ -27,6 +29,7 @@ Screen capture from the inner `demo` project.
 | rect             |   1  |         2                 |
 | nbody            |  10  |         1                 |
 
+For more in-depth analysis, see the [broccoli book](https://tiby312.github.io/broccoli_report).
 
 ### Example
 
