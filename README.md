@@ -20,16 +20,16 @@ Screen capture from the inner `demo` project.
 Quick rundown of what i've spent effort on and a rough estimate of performance
 cost of each algorithm in general. 
 
-| Algorithm        | Cost | Effort spent optimising   |
-| ---------------- | ---- | ------------------------- |
-| Construction     |   7  |         9                 |
-| Colliding Pairs  |   8  |         9                 |
-| knearest         |   1  |         2                 |
-| raycast          |   1  |         2                 |
-| rect             |   1  |         2                 |
-| nbody            |  10  |         1                 |
+| Algorithm        | Cost | Effort spent  |
+| ---------------- | ---- | ------------- |
+| Construction     |   7  |         9     |
+| Colliding Pairs  |   8  |         9     |
+| knearest         |   1  |         2     |
+| raycast          |   1  |         2     |
+| rect             |   1  |         2     |
+| nbody            |  10  |         1     |
 
-For more in-depth analysis, see the [broccoli book](https://tiby312.github.io/broccoli_report).
+Numbers are completely made up. For more in-depth analysis, see the [broccoli book](https://tiby312.github.io/broccoli_report).
 
 ### Example
 
