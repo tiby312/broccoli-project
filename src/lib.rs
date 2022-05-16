@@ -5,6 +5,7 @@
 //!
 //! Using this crate, the user can create three flavors of the same fundamental data structure.
 //! The different characteristics are explored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
+//! In almost all cases you want to use the Semi-direct layout.
 //!
 //! - `(Rect<N>,&mut T)` Semi-direct
 //! - `(Rect<N>,T)` Direct

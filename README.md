@@ -25,8 +25,8 @@ cost of each algorithm in general.
 
 | Algorithm        | Cost | Effort spent  |
 | ---------------- | ---- | ------------- |
-| Construction     |   7  |         9     |
-| Colliding Pairs  |   8  |         9     |
+| Construction     |   7  |        10     |
+| Colliding Pairs  |   8  |        10     |
 | knearest         |   1  |         2     |
 | raycast          |   1  |         2     |
 | rect             |   1  |         2     |
