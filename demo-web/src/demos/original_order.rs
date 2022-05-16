@@ -60,7 +60,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         let mut tree_bots: Vec<_> = bots
             .iter_mut()
-            .map(|a| bbox(Rect::from_point(a.pos, vec2same(radius)), a))
+            .map(|a| (Rect::from_point(a.pos, vec2same(radius)), a))
             .collect();
 
         if check_naive {
@@ -114,7 +114,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 };
 
                 for b in node.range.iter() {
-                    verts2.line(1.0, b.inner.pos, mid);
+                    verts2.line(1.0, b.1.pos, mid);
                 }
             },
             dim,

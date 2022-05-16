@@ -1,5 +1,4 @@
 use axgeom::*;
-use broccoli::tree::bbox;
 use broccoli::tree::node::*;
 
 fn rand() -> f32 {
@@ -41,6 +40,6 @@ pub fn point_to_rect_f32(a: axgeom::Vec2<f32>, radius: f32) -> Rect<f32> {
 pub fn distribute<X, T: Num>(
     inner: &mut [X],
     mut func: impl FnMut(&X) -> Rect<T>,
-) -> Vec<BBox<T, &mut X>> {
-    inner.iter_mut().map(|a| bbox(func(a), a)).collect()
+) -> Vec<(Rect<T>, &mut X)> {
+    inner.iter_mut().map(|a| (func(a), a)).collect()
 }

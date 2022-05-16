@@ -14,17 +14,16 @@ impl Res {
 
             let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
-            let mut times1 = LevelTimer::new(0, vec![]);
-
-            let mut tree =
-                Tree::from_build_args(BuildArgs::new(&mut bots).with_splitter(&mut times1));
+            let len = bots.len();
+            let (mut tree, times1) = Tree::from_build_args(
+                &mut bots,
+                BuildArgs::new(len).with_splitter(LevelTimer::new(0, vec![])),
+            );
 
             let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
 
-            let mut times2 = LevelTimer::new(0, vec![]);
-
-            tree.find_colliding_pairs_from_args(
-                QueryArgs::new().with_splitter(&mut times2),
+            let times2 = tree.find_colliding_pairs_from_args(
+                QueryArgs::new().with_splitter(LevelTimer::new(0, vec![])),
                 |a, b| {
                     **a.unpack_inner() += 1;
                     **b.unpack_inner() += 1;

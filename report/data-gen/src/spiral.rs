@@ -77,7 +77,7 @@ fn handle_visualize(fb: &mut FigureBuilder) {
 
         let bots = distribute(grow, &mut bot_inner, |a| a.to_f32n());
         bots.into_iter()
-            .map(|a| vec2(a.rect.x.start, a.rect.y.start))
+            .map(|a| vec2(a.0.x.start, a.0.y.start))
             .collect()
     }
 

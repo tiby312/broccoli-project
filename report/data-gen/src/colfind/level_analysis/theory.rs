@@ -18,18 +18,17 @@ impl Res {
 
                 maker.reset();
 
-                let mut levelc = LevelCounter::new(0, vec![]);
-
-                let mut tree =
-                    Tree::from_build_args(BuildArgs::new(&mut bots).with_splitter(&mut levelc));
+                let len = bots.len();
+                let (mut tree, levelc) = Tree::from_build_args(
+                    &mut bots,
+                    BuildArgs::new(len).with_splitter(LevelCounter::new(0, vec![])),
+                );
 
                 let c1 = levelc.into_levels().into_iter().map(|x| x as f64).collect();
                 maker.reset();
 
-                let mut levelc2 = LevelCounter::new(0, vec![]);
-
-                tree.find_colliding_pairs_from_args(
-                    QueryArgs::new().with_splitter(&mut levelc2),
+                let levelc2 = tree.find_colliding_pairs_from_args(
+                    QueryArgs::new().with_splitter(LevelCounter::new(0, vec![])),
                     |a, b| {
                         a.unpack_inner().x += 1.0;
                         b.unpack_inner().y += 1.0;

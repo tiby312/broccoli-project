@@ -6,7 +6,7 @@ impl<T: Aabb> Tree<'_, T> {
         &mut self,
         args: QueryArgs<S>,
         func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    ) {
+    ) -> S {
         args.query(self.vistr_mut(), &mut DefaultNodeHandler::new(func))
     }
 
@@ -15,7 +15,8 @@ impl<T: Aabb> Tree<'_, T> {
         &mut self,
         args: QueryArgs<S>,
         func: F,
-    ) where
+    ) -> S
+    where
         F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
         F: Send + Clone,
         S: Send,
@@ -26,26 +27,16 @@ impl<T: Aabb> Tree<'_, T> {
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs_acc<Acc, FS, FA, F>(
-        &mut self,
-        acc: Acc,
-        split_func: FS,
-        add_func: FA,
-        func: F,
-    ) -> Acc
+    pub fn par_find_colliding_pairs_acc<Acc: Splitter, F>(&mut self, acc: Acc, func: F) -> Acc
     where
-        FS: FnMut(&mut Acc) -> Acc + Clone + Send,
-        FA: FnMut(&mut Acc, Acc) + Clone + Send,
         F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
-        Acc: Send,
+        Acc: Splitter + Send,
         T: Send,
         T::Num: Send,
     {
         let mut f = AccNodeHandler {
             acc,
             prevec: PreVec::new(),
-            split_func,
-            add_func,
             func,
         };
         QueryArgs::new().par_query(self.vistr_mut(), &mut f);
@@ -53,41 +44,44 @@ impl<T: Aabb> Tree<'_, T> {
     }
 }
 
-pub struct AccNodeHandler<Acc, SF, AF, F> {
+impl<T> Splitter for Vec<T> {
+    fn div(&mut self) -> Self {
+        vec![]
+    }
+
+    fn add(&mut self, mut b: Self) {
+        self.append(&mut b);
+    }
+}
+
+pub struct AccNodeHandler<Acc: Splitter, F> {
     acc: Acc,
     prevec: PreVec,
-    split_func: SF,
-    add_func: AF,
     func: F,
 }
 
-impl<Acc, SF, AF, F> Splitter for AccNodeHandler<Acc, SF, AF, F>
+impl<Acc: Splitter, F> Splitter for AccNodeHandler<Acc, F>
 where
-    SF: FnMut(&mut Acc) -> Acc + Clone,
-    AF: FnMut(&mut Acc, Acc) + Clone,
     F: Clone,
 {
     fn div(&mut self) -> Self {
-        let acc = (self.split_func)(&mut self.acc);
+        let acc = self.acc.div();
 
         AccNodeHandler {
             acc,
             prevec: self.prevec.clone(),
-            split_func: self.split_func.clone(),
-            add_func: self.add_func.clone(),
             func: self.func.clone(),
         }
     }
 
     fn add(&mut self, b: Self) {
-        (self.add_func)(&mut self.acc, b.acc);
+        self.acc.add(b.acc);
     }
 }
 
-impl<T: Aabb, Acc, SF, AF, F> NodeHandler<T> for AccNodeHandler<Acc, SF, AF, F>
+impl<T: Aabb, Acc, F> NodeHandler<T> for AccNodeHandler<Acc, F>
 where
-    SF: FnMut(&mut Acc) -> Acc,
-    AF: FnMut(&mut Acc, Acc),
+    Acc: Splitter,
     F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>),
 {
     #[inline(always)]
@@ -216,7 +210,7 @@ impl<T: Aabb> NotSortedTree<'_, T> {
         &mut self,
         args: QueryArgs<S>,
         func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    ) {
+    ) -> S {
         args.query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
     }
 
@@ -225,7 +219,8 @@ impl<T: Aabb> NotSortedTree<'_, T> {
         &mut self,
         args: QueryArgs<S>,
         func: F,
-    ) where
+    ) -> S
+    where
         F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
         F: Send + Clone,
         S: Send,

@@ -134,8 +134,8 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         camera.draw_triangles(&rect_save, &[0.7, 0.7, 0.7, 0.3]);
 
         verts.clear();
-        for bot in k.iter() {
-            verts.push(bot.inner.pos.into());
+        for bot in bots.iter() {
+            verts.push(bot.pos.into());
         }
         buffer.update(&verts);
         camera.draw_circles(&buffer, radius, &[1.0, 0.0, 0.5, 0.3]);

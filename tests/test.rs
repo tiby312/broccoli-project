@@ -3,23 +3,17 @@ use broccoli::tree::node::*;
 use broccoli::Assert;
 use compt::*;
 
-use broccoli::tree::*;
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.
 fn create_bbox_mut<'a, N: Num, T>(
     bots: &'a mut [T],
     mut aabb_create: impl FnMut(&T) -> Rect<N>,
-) -> Vec<BBox<N, &'a mut T>> {
-    bots.iter_mut()
-        .map(move |k| BBox::new(aabb_create(k), k))
-        .collect()
+) -> Vec<(Rect<N>, &'a mut T)> {
+    bots.iter_mut().map(move |k| (aabb_create(k), k)).collect()
 }
 
 #[test]
 fn test_tie_knearest() {
-    let mut bots = [
-        bbox(rect(5isize, 10, 0, 10), ()),
-        bbox(rect(6, 10, 0, 10), ()),
-    ];
+    let mut bots = [(rect(5isize, 10, 0, 10), ()), (rect(6, 10, 0, 10), ())];
 
     let mut handler = broccoli::queries::knearest::AabbKnearest;
 
@@ -137,8 +131,8 @@ fn test_send_sync_tree() {
 
 #[test]
 fn test_tie_raycast() {
-    let mut bots: &mut [BBox<isize, ()>] =
-        &mut [bbox(rect(0, 10, 0, 20), ()), bbox(rect(5, 10, 0, 20), ())];
+    let mut bots: &mut [(Rect<isize>, ())] =
+        &mut [(rect(0, 10, 0, 20), ()), (rect(5, 10, 0, 20), ())];
 
     let mut handler = broccoli::queries::raycast::AabbRaycast;
 

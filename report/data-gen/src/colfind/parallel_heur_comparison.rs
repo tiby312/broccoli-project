@@ -2,7 +2,7 @@ use broccoli::queries::colfind::QueryArgs;
 
 use super::*;
 
-fn test1(bots: &mut [BBox<f64, &mut isize>]) -> (f64, f64) {
+fn test1(bots: &mut [(Rect<f64>, &mut isize)]) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| broccoli::Tree::new(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {
@@ -19,16 +19,16 @@ fn test1(bots: &mut [BBox<f64, &mut isize>]) -> (f64, f64) {
 }
 
 fn test3(
-    bots: &mut [BBox<f64, &mut isize>],
+    bots: &mut [(Rect<f64>, &mut isize)],
     rebal_num: Option<usize>,
     query_num: Option<usize>,
 ) -> (f64, f64) {
     let (mut tree, construction_time) = bench_closure_ret(|| {
-        let mut k = BuildArgs::new(bots);
+        let mut k = BuildArgs::new(bots.len());
         if let Some(r) = rebal_num {
             k.num_seq_fallback = r;
         }
-        Tree::par_from_build_args(k)
+        Tree::par_from_build_args(bots, k).0
     });
 
     let (tree, query_time) = bench_closure_ret(|| {

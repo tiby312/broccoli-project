@@ -1,4 +1,5 @@
 use broccoli::tree::rect;
+
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 1;
@@ -12,14 +13,9 @@ fn main() {
 
     let mut tree = broccoli::Tree::par_new(&mut aabbs);
 
-    let mut res = tree.par_find_colliding_pairs_acc(
-        vec![],
-        |_| vec![],
-        |a, mut b| a.append(&mut b),
-        |v, a, b| {
-            v.push((*a.1, *b.1));
-        },
-    );
+    let mut res = tree.par_find_colliding_pairs_acc(vec![], |v, a, b| {
+        v.push((*a.1, *b.1));
+    });
 
     res.sort();
 

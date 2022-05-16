@@ -20,7 +20,7 @@ fn test_seq<T: Aabb>(
     bots: &mut [T],
     func: impl Fn(AabbPin<&mut T>, AabbPin<&mut T>),
 ) -> TestResult {
-    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::Tree::new(bots));
+    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::Tree::from_aabb(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {
         tree.find_colliding_pairs(|a, b| {

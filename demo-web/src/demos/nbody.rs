@@ -64,7 +64,7 @@ impl<'a> broccoli::tree::splitter::Splitter for Bla<'a> {
 }
 impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
     type Mass = NodeMass;
-    type T = BBox<f32, &'b mut Bot>;
+    type T = (Rect<f32>, &'b mut Bot);
     type N = f32;
 
     //return the position of the center of mass
@@ -74,10 +74,10 @@ impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
         let mut total_mass = 0.0;
 
         for i in a.iter() {
-            let m = i.inner.mass;
+            let m = i.1.mass;
             total_mass += m;
-            total_x += m * i.inner.pos.x;
-            total_y += m * i.inner.pos.y;
+            total_x += m * i.1.pos.x;
+            total_y += m * i.1.pos.y;
         }
 
         let center = if total_mass != 0.0 {
@@ -342,7 +342,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         //Draw bots.
         verts.clear();
         for bot in k.iter() {
-            verts.rect(bot.rect);
+            verts.rect(bot.0);
         }
         buffer.update(&verts);
 

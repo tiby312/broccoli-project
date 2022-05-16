@@ -4,7 +4,9 @@ pub fn handle_bench_inner(grow: f64, bot_inner: &mut [isize], height: usize) -> 
     let mut bots = distribute(grow, bot_inner, |a| a.to_f64n());
 
     bench_closure(|| {
-        let mut tree = Tree::from_build_args(BuildArgs::new(&mut bots).with_num_level(height));
+        let len = bots.len();
+        let (mut tree, _) =
+            Tree::from_build_args(&mut bots, BuildArgs::new(len).with_num_level(height));
 
         assert_eq!(tree.num_levels(), height);
 
@@ -19,7 +21,9 @@ pub fn handle_theory_inner(grow: f64, bot_inner: &mut [isize], height: usize) ->
     datanum::datanum_test(|maker| {
         let mut bots = distribute(grow, bot_inner, |a| a.to_isize_dnum(maker));
 
-        let mut tree = Tree::from_build_args(BuildArgs::new(&mut bots).with_num_level(height));
+        let len = bots.len();
+        let (mut tree, _) =
+            Tree::from_build_args(&mut bots, BuildArgs::new(len).with_num_level(height));
 
         assert_eq!(tree.num_levels(), height);
 

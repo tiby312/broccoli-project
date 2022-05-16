@@ -346,20 +346,20 @@ pub fn compute_border<T: Aabb>(bb: &[T]) -> Option<Rect<T::Num>> {
     Some(r)
 }
 pub fn convert_dist<T, T2, X>(
-    a: Vec<BBox<T, X>>,
+    a: Vec<(Rect<T>, X)>,
     mut func: impl FnMut(Rect<T>) -> Rect<T2>,
-) -> Vec<BBox<T2, X>> {
-    a.into_iter().map(|a| bbox(func(a.rect), a.inner)).collect()
+) -> Vec<(Rect<T2>, X)> {
+    a.into_iter().map(|a| (func(a.0), a.1)).collect()
 }
 
 pub fn distribute_iter<T, X>(
     grow: f64,
     i: impl ExactSizeIterator<Item = T> + core::iter::FusedIterator,
     mut func: impl FnMut(RectConv) -> Rect<X>,
-) -> Vec<BBox<X, T>> {
+) -> Vec<(Rect<X>, T)> {
     abspiral_f64(grow)
         .zip(i)
-        .map(|(a, b)| bbox(func(RectConv(a)), b))
+        .map(|(a, b)| (func(RectConv(a)), b))
         .collect()
 }
 
@@ -367,9 +367,9 @@ pub fn distribute<T, X>(
     grow: f64,
     inner: &mut [T],
     mut func: impl FnMut(RectConv) -> Rect<X>,
-) -> Vec<BBox<X, &mut T>> {
+) -> Vec<(Rect<X>, &mut T)> {
     abspiral_f64(grow)
         .zip(inner.iter_mut())
-        .map(|(a, b)| bbox(func(RectConv(a)), b))
+        .map(|(a, b)| (func(RectConv(a)), b))
         .collect()
 }

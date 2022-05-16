@@ -360,7 +360,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
         }
         let mut res_naive = Vec::new();
 
-        let mut tree = Tree::new(self.inner);
+        let mut tree = Tree::from_aabb(self.inner);
         let mut res_dino = Vec::new();
         match tree.cast_ray(ray, &mut rtrait) {
             axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {

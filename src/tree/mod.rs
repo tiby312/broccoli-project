@@ -120,29 +120,25 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
 ///
 /// Options to specify how to build up a set of nodes.
 ///
-pub struct BuildArgs<'a, 'b, T, S> {
-    pub bots: &'a mut [T],
+pub struct BuildArgs<S> {
     pub num_level: usize,
     pub num_seq_fallback: usize,
-    pub splitter: &'b mut S,
+    pub splitter: S,
 }
 
-impl<'a, T: Aabb> BuildArgs<'a, 'static, T, EmptySplitter> {
-    pub fn new(bots: &'a mut [T]) -> Self {
-        let ff = bots.len();
+impl BuildArgs<EmptySplitter> {
+    pub fn new(bots: usize) -> Self {
         BuildArgs {
-            bots,
-            num_level: num_level::default(ff),
+            num_level: num_level::default(bots),
             num_seq_fallback: 2_400,
-            splitter: empty_mut(),
+            splitter: EmptySplitter,
         }
     }
 }
 
-impl<'a, 'b, T: Aabb, P: Splitter> BuildArgs<'a, 'b, T, P> {
-    pub fn with_splitter<'c, PP: Splitter>(self, splitter: &'c mut PP) -> BuildArgs<'a, 'c, T, PP> {
+impl<P: Splitter> BuildArgs<P> {
+    pub fn with_splitter<PP: Splitter>(self, splitter: PP) -> BuildArgs<PP> {
         BuildArgs {
-            bots: self.bots,
             num_level: self.num_level,
             num_seq_fallback: self.num_seq_fallback,
             splitter,
@@ -151,7 +147,6 @@ impl<'a, 'b, T: Aabb, P: Splitter> BuildArgs<'a, 'b, T, P> {
 
     pub fn with_num_seq_fallback(self, num_seq_fallback: usize) -> Self {
         BuildArgs {
-            bots: self.bots,
             num_level: self.num_level,
             num_seq_fallback,
             splitter: self.splitter,
@@ -159,29 +154,36 @@ impl<'a, 'b, T: Aabb, P: Splitter> BuildArgs<'a, 'b, T, P> {
     }
     pub fn with_num_level(self, num_level: usize) -> Self {
         BuildArgs {
-            bots: self.bots,
             num_level,
             num_seq_fallback: self.num_seq_fallback,
             splitter: self.splitter,
         }
     }
-    pub fn build_ext<S>(self, sorter: &mut S) -> Vec<Node<'a, T>>
+    pub fn build_ext<'a, T: Aabb, S>(
+        mut self,
+        bots: &'a mut [T],
+        sorter: &mut S,
+    ) -> (Vec<Node<'a, T>>, P)
     where
         S: Sorter<T>,
         P: Splitter,
     {
         let mut buffer = Vec::with_capacity(num_level::num_nodes(self.num_level));
         recurse_seq(
-            self.splitter,
+            &mut self.splitter,
             sorter,
             &mut buffer,
-            TreeBuildVisitor::new(self.num_level, self.bots),
+            TreeBuildVisitor::new(self.num_level, bots),
         );
-        buffer
+        (buffer, self.splitter)
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_build_ext<S>(self, sorter: &mut S) -> Vec<Node<'a, T>>
+    pub fn par_build_ext<'a, T: Aabb, S>(
+        mut self,
+        bots: &'a mut [T],
+        sorter: &mut S,
+    ) -> (Vec<Node<'a, T>>, P)
     where
         S: Sorter<T>,
         T: Send,
@@ -192,12 +194,12 @@ impl<'a, 'b, T: Aabb, P: Splitter> BuildArgs<'a, 'b, T, P> {
         let mut buffer = Vec::with_capacity(num_level::num_nodes(self.num_level));
         recurse_par(
             self.num_seq_fallback,
-            self.splitter,
+            &mut self.splitter,
             sorter,
             &mut buffer,
-            TreeBuildVisitor::new(self.num_level, self.bots),
+            TreeBuildVisitor::new(self.num_level, bots),
         );
-        buffer
+        (buffer, self.splitter)
     }
 }
 

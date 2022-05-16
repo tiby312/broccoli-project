@@ -14,19 +14,12 @@ pub trait Splitter: Sized {
     fn add(&mut self, b: Self);
 }
 
-pub type EmptySplitter = [(); 0];
+pub struct EmptySplitter;
 
-pub fn empty_mut() -> &'static mut EmptySplitter {
-    &mut []
-}
 
-pub fn empty() -> EmptySplitter {
-    []
-}
-
-impl Splitter for [(); 0] {
+impl Splitter for EmptySplitter {
     fn div(&mut self) -> Self {
-        []
+        EmptySplitter
     }
     fn add(&mut self, _: Self) {}
 }
