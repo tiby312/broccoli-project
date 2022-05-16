@@ -27,6 +27,7 @@ cost of each algorithm in general.
 | ---------------- | ---- | ------------- |
 | Construction     |   7  |        10     |
 | Colliding Pairs  |   8  |        10     |
+| Collide With     |   3  |         2     |
 | knearest         |   1  |         2     |
 | raycast          |   1  |         2     |
 | rect             |   1  |         2     |
