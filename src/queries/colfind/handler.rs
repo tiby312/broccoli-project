@@ -1,7 +1,21 @@
-use crate::ext::cacheable_pairs::CollidingPairsCache;
-
 use super::*;
 use twounordered::TwoUnorderedVecs;
+
+impl<'a, T: Aabb> NotSortedTree<'a, T> {
+    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+        QueryArgs::new().query(self.vistr_mut(), &mut NoSortNodeHandler::new(func));
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(&mut self, func: F)
+    where
+        T: Send,
+        T::Num: Send,
+        F: Send + Clone,
+    {
+        let _ = QueryArgs::new().par_query(self.vistr_mut(), &mut NoSortNodeHandler::new(func));
+    }
+}
 
 impl<T: Aabb> Tree<'_, T> {
     pub fn find_colliding_pairs_from_args<S: Splitter>(
@@ -9,10 +23,8 @@ impl<T: Aabb> Tree<'_, T> {
         args: QueryArgs<S>,
         func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
     ) -> S {
-        let mut f=FloopDefault{func};
-
         let mut f = AccNodeHandler {
-            acc:f,
+            acc: FloopDefault { func },
             prevec: PreVec::new(),
         };
         args.query(self.vistr_mut(), &mut f)
@@ -31,11 +43,8 @@ impl<T: Aabb> Tree<'_, T> {
         T: Send,
         T::Num: Send,
     {
-        
-        let mut f=FloopDefault{func};
-
         let mut f = AccNodeHandler {
-            acc:f,
+            acc: FloopDefault { func },
             prevec: PreVec::new(),
         };
         args.par_query(self.vistr_mut(), &mut f)
@@ -49,38 +58,40 @@ impl<T: Aabb> Tree<'_, T> {
         T: Send,
         T::Num: Send,
     {
-        let floop=Floop{
-            acc,
-            func
-        };
+        let floop = Floop { acc, func };
         let mut f = AccNodeHandler {
-            acc:floop,
+            acc: floop,
             prevec: PreVec::new(),
         };
         QueryArgs::new().par_query(self.vistr_mut(), &mut f);
         f.acc.acc
     }
 
-
     #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs_acc_closure<Acc, A,B,F>(&mut self, acc: Acc, div:A,add:B,mut func: F) -> Acc
+    pub fn par_find_colliding_pairs_acc_closure<Acc, A, B, F>(
+        &mut self,
+        acc: Acc,
+        div: A,
+        add: B,
+        func: F,
+    ) -> Acc
     where
-        A:FnMut(&mut Acc)->Acc+Clone+Send,
-        B:FnMut(&mut Acc,Acc)+Clone+Send,
+        A: FnMut(&mut Acc) -> Acc + Clone + Send,
+        B: FnMut(&mut Acc, Acc) + Clone + Send,
         F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
-        Acc:Send,
+        Acc: Send,
         T: Send,
         T::Num: Send,
     {
-        let floop=FloopClosure{
+        let floop = FloopClosure {
             acc,
             div,
             add,
-            func
+            func,
         };
 
         let mut f = AccNodeHandler {
-            acc:floop,
+            acc: floop,
             prevec: PreVec::new(),
         };
         QueryArgs::new().par_query(self.vistr_mut(), &mut f);
@@ -88,80 +99,90 @@ impl<T: Aabb> Tree<'_, T> {
     }
 }
 
-
-
-pub struct FloopDefault<F>{
-    pub func:F
+struct FloopDefault<F> {
+    pub func: F,
 }
-impl<T:Aabb,F> CollisionHandler<T> for FloopDefault<F>
-    where F:FnMut(AabbPin<&mut T>, AabbPin<&mut T>){
+impl<T: Aabb, F> CollisionHandler<T> for FloopDefault<F>
+where
+    F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+{
     fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(a,b)
+        (self.func)(a, b)
     }
 }
-impl<F:Clone> Splitter for FloopDefault<F>{
+impl<F: Clone> Splitter for FloopDefault<F> {
     fn div(&mut self) -> Self {
-        FloopDefault {  func: self.func.clone() }
+        FloopDefault {
+            func: self.func.clone(),
+        }
     }
 
-    fn add(&mut self,b: Self) {
-
-    }
+    fn add(&mut self, _: Self) {}
 }
 
-
-pub struct Floop<K,F>{
-    acc:K,
-    func:F
+struct Floop<K, F> {
+    acc: K,
+    func: F,
 }
-impl<T:Aabb,K,F> CollisionHandler<T> for Floop<K,F>
-    where F:FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>){
+impl<T: Aabb, K, F> CollisionHandler<T> for Floop<K, F>
+where
+    F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
+{
     fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(&mut self.acc,a,b)
+        (self.func)(&mut self.acc, a, b)
     }
 }
-impl<K:Splitter,F:Clone> Splitter for Floop<K,F>{
+impl<K: Splitter, F: Clone> Splitter for Floop<K, F> {
     fn div(&mut self) -> Self {
-        let k=self.acc.div();
-        Floop { acc: k, func: self.func.clone() }
+        let k = self.acc.div();
+        Floop {
+            acc: k,
+            func: self.func.clone(),
+        }
     }
 
-    fn add(&mut self,b: Self) {
-        let j=self.acc.add(b.acc);
+    fn add(&mut self, b: Self) {
+        self.acc.add(b.acc);
     }
 }
 
-
-pub struct FloopClosure<K,A,B,F>{
-    acc:K,
-    div:A,
-    add:B,
-    func:F
+struct FloopClosure<K, A, B, F> {
+    acc: K,
+    div: A,
+    add: B,
+    func: F,
 }
-impl<T:Aabb,K,A,B,F> CollisionHandler<T> for FloopClosure<K,A,B,F>
-    where F:FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>){
+impl<T: Aabb, K, A, B, F> CollisionHandler<T> for FloopClosure<K, A, B, F>
+where
+    F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
+{
     fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(&mut self.acc,a,b)
+        (self.func)(&mut self.acc, a, b)
     }
 }
-impl<K,A:FnMut(&mut K)->K+Clone,B:FnMut(&mut K,K)+Clone,F:Clone> Splitter for FloopClosure<K,A,B,F>{
+impl<K, A: FnMut(&mut K) -> K + Clone, B: FnMut(&mut K, K) + Clone, F: Clone> Splitter
+    for FloopClosure<K, A, B, F>
+{
     fn div(&mut self) -> Self {
-        FloopClosure { acc: (self.div)(&mut self.acc), div: self.div.clone(), add: self.add.clone(),func:self.func.clone() }
+        FloopClosure {
+            acc: (self.div)(&mut self.acc),
+            div: self.div.clone(),
+            add: self.add.clone(),
+            func: self.func.clone(),
+        }
     }
 
-    fn add(&mut self,b: Self) {
-        (self.add)(&mut self.acc,b.acc)
+    fn add(&mut self, b: Self) {
+        (self.add)(&mut self.acc, b.acc)
     }
 }
 
-
-pub struct AccNodeHandler<Acc> {
+struct AccNodeHandler<Acc> {
     pub acc: Acc,
     pub prevec: PreVec,
 }
 
-impl<Acc: Splitter> Splitter for AccNodeHandler<Acc>
-{
+impl<Acc: Splitter> Splitter for AccNodeHandler<Acc> {
     fn div(&mut self) -> Self {
         let acc = self.acc.div();
 
@@ -179,7 +200,7 @@ impl<Acc: Splitter> Splitter for AccNodeHandler<Acc>
 impl<T: Aabb, Acc> NodeHandler<T> for AccNodeHandler<Acc>
 where
     Acc: CollisionHandler<T>,
-    {
+{
     #[inline(always)]
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         handle_node(&mut self.prevec, axis, bots, &mut self.acc, is_leaf);
@@ -191,6 +212,31 @@ where
     }
 }
 
+impl<'a, T: Aabb> Tree<'a, T> {
+    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+        let mut f = AccNodeHandler {
+            acc: FloopDefault { func },
+            prevec: PreVec::new(),
+        };
+
+        QueryArgs::new().query(self.vistr_mut(), &mut f);
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(&mut self, func: F)
+    where
+        T: Send,
+        T::Num: Send,
+        F: Send + Clone,
+    {
+        let mut f = AccNodeHandler {
+            acc: FloopDefault { func },
+            prevec: PreVec::new(),
+        };
+
+        let _ = QueryArgs::new().par_query(self.vistr_mut(), &mut f);
+    }
+}
 
 /*
 #[derive(Clone)]
@@ -310,7 +356,7 @@ impl<T: Aabb> NotSortedTree<'_, T> {
 }
 
 #[derive(Clone)]
-pub struct NoSortNodeHandler<F> {
+struct NoSortNodeHandler<F> {
     pub func: F,
 }
 impl<F> NoSortNodeHandler<F> {
@@ -380,7 +426,7 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoS
     }
 }
 
-pub fn handle_perp<T: Aabb, A: Axis>(
+fn handle_perp<T: Aabb, A: Axis>(
     axis: A,
     func: &mut impl CollisionHandler<T>,
     f: HandleChildrenArgs<T>,
@@ -448,7 +494,7 @@ pub fn handle_perp<T: Aabb, A: Axis>(
     }
 }
 
-pub fn handle_parallel<'a, T: Aabb, A: Axis>(
+fn handle_parallel<'a, T: Aabb, A: Axis>(
     axis: A,
     prevec: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
     func: &mut impl CollisionHandler<T>,

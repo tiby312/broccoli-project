@@ -13,9 +13,14 @@ fn main() {
 
     let mut tree = broccoli::Tree::par_new(&mut aabbs);
 
-    let mut res = tree.par_find_colliding_pairs_acc_closure(vec![],|_|vec!(),|a,mut b|a.append(&mut b), |v, a, b| {
-        v.push((*a.1, *b.1));
-    });
+    let mut res = tree.par_find_colliding_pairs_acc_closure(
+        vec![],
+        |_| vec![],
+        |a, mut b| a.append(&mut b),
+        |v, a, b| {
+            v.push((*a.1, *b.1));
+        },
+    );
 
     res.sort();
 

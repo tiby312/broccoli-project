@@ -6,8 +6,7 @@ use super::tools;
 use super::*;
 pub mod build;
 use build::*;
-pub mod handler;
-use handler::*;
+mod handler;
 
 impl<'a, T: Aabb> Assert<'a, T> {
     ///Panics if a disconnect is detected between all colfind methods.
@@ -134,52 +133,6 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
 use crate::tree::splitter::{EmptySplitter, Splitter};
 
 const SEQ_FALLBACK_DEFAULT: usize = 2_400;
-
-impl<'a, T: Aabb> NotSortedTree<'a, T> {
-    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        QueryArgs::new().query(self.vistr_mut(), &mut NoSortNodeHandler::new(func));
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(&mut self, func: F)
-    where
-        T: Send,
-        T::Num: Send,
-        F: Send + Clone,
-    {
-        let _ = QueryArgs::new().par_query(self.vistr_mut(), &mut NoSortNodeHandler::new(func));
-    }
-}
-
-impl<'a, T: Aabb> Tree<'a, T> {
-    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        let mut f=FloopDefault{func};
-
-        let mut f = AccNodeHandler {
-            acc:f,
-            prevec: PreVec::new(),
-        };
-
-        QueryArgs::new().query(self.vistr_mut(), &mut f);
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(&mut self, func: F)
-    where
-        T: Send,
-        T::Num: Send,
-        F: Send + Clone,
-    {
-        let mut f=FloopDefault{func};
-
-        let mut f = AccNodeHandler {
-            acc:f,
-            prevec: PreVec::new(),
-        };
-
-        let _ = QueryArgs::new().par_query(self.vistr_mut(), &mut f);
-    }
-}
 
 fn recurse_seq<T: Aabb, P: Splitter, SO: NodeHandler<T>>(
     vistr: CollVis<T>,

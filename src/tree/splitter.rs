@@ -16,7 +16,6 @@ pub trait Splitter: Sized {
 
 pub struct EmptySplitter;
 
-
 impl Splitter for EmptySplitter {
     fn div(&mut self) -> Self {
         EmptySplitter
