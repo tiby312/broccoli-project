@@ -83,7 +83,7 @@ pub struct NodeBuildResult<'a, T: Aabb> {
     pub rest: Option<[TreeBuildVisitor<'a, T>; 2]>,
 }
 
-impl<'a, T: Aabb> TreeBuildVisitor<'a, T> {
+impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
     pub fn get_bots(&self) -> &[T] {
         self.bots
     }

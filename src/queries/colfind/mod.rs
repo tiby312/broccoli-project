@@ -60,7 +60,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
         let notsort_res = {
             let mut cc = CollisionPtr::new();
 
-            NotSortedTree::from_aabb(bots).find_colliding_pairs(|a, b| {
+            NotSortedTree::new(bots).find_colliding_pairs(|a, b| {
                 cc.add_pair(a.1, b.1);
             });
             cc.finish();
