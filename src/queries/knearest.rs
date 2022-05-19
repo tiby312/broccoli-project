@@ -427,7 +427,7 @@ impl<'a, T: Aabb> KResult<'a, T> {
     }
 }
 
-impl<'a, T: Aabb> Assert<'a, T> {
+impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
     ///Panics if a disconnect is detected between tree and naive queries.
     pub fn assert_k_nearest_mut(
         &mut self,
@@ -441,7 +441,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
             a as *const T as usize
         }
 
-        let mut tree = Tree::from_aabb(self.inner);
+        let mut tree = Tree::new(self.inner);
         let r = tree.find_knearest(point, num, &mut knear);
         let mut res_dino: Vec<_> = r
             .into_vec()

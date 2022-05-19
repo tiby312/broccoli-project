@@ -1,6 +1,8 @@
 //! Broccoli is a broad-phase collision detection library.
 //! The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 //!
+//! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
+//!
 //! ### Data Structure
 //!
 //! Using this crate, the user can create three flavors of the same fundamental data structure.
@@ -11,8 +13,13 @@
 //! - `(Rect<N>,T)` Direct
 //! - `&mut (Rect<N>,T)` Indirect
 //!
+//! ### Size of T
 //!
-//! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
+//! During construction, the elements of a tree are swapped around a lot. Therefore if the size
+//! of T is too big, the performance can regress a lot! To combat this, consider using the semi-direct
+//! or even indirect layouts. The Indirect layout achieves the smallest element size (just one pointer),
+//! however it can suffer from a lot of cache misses of large propblem sizes. The Semi-direct layout
+//! is more cache-friendly.
 //!
 //! ### Parallelism
 //!
@@ -112,51 +119,27 @@ where
 {
     container: C,
     nodes: Vec<NodeData<<C::T as Aabb>::Num>>,
-    total_num_elem: usize,
 }
 
 impl<C: Container> TreeOwned<C>
 where
     C::T: Aabb,
 {
-    pub fn new(mut container: C) -> TreeOwned<C> {
-        let j = container.as_mut();
-        let length = j.len();
-
-        let t = Tree::from_aabb(j).nodes;
-
-        let nodes = t.into_iter().map(|x| x.as_data()).collect();
-
-        TreeOwned {
-            container,
-            nodes,
-            total_num_elem: length,
-        }
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_new(mut container: C) -> TreeOwned<C>
+    pub fn new(mut container: C) -> TreeOwned<C>
     where
-        C::T: Send,
-        <C::T as Aabb>::Num: Send,
+        C::T: ManySwap,
     {
-        let j = container.as_mut();
-        let length = j.len();
+        let bots = container.as_mut();
 
-        let t = Tree::par_from_aabb(j).nodes;
+        let ttt = Tree::new(bots);
 
-        let nodes = t.into_iter().map(|x| x.as_data()).collect();
+        let nodes = ttt.nodes.into_iter().map(|x| x.as_data()).collect();
 
-        TreeOwned {
-            container,
-            nodes,
-            total_num_elem: length,
-        }
+        TreeOwned { container, nodes }
     }
 
     pub fn as_tree(&mut self) -> Tree<C::T> {
         let bots = self.container.as_mut();
-        assert_eq!(bots.len(), self.total_num_elem);
 
         let mut last = Some(bots);
         let nodes = self
@@ -180,20 +163,25 @@ where
     #[must_use]
     pub fn as_slice_mut(&mut self) -> AabbPin<&mut [C::T]> {
         let j = self.container.as_mut();
-        assert_eq!(j.len(), self.total_num_elem);
 
         AabbPin::new(j)
     }
 
-    pub fn container_ref(&self) -> &C {
+    pub fn as_container(&self) -> &C {
         &self.container
     }
 
-    #[must_use]
-    pub fn into_inner(self) -> C {
+    pub fn into_container(self) -> C {
         self.container
     }
 }
+
+///
+/// Singifies this object can be swapped around in a slice
+/// many times without much of a performance hit.
+///
+pub trait ManySwap {}
+impl<T> ManySwap for &mut T {}
 
 ///
 /// A broccoli Tree.
@@ -202,30 +190,20 @@ pub struct Tree<'a, T: Aabb> {
     nodes: Vec<Node<'a, T>>,
 }
 
-impl<'a, 'b, N: Num, T: 'a> Tree<'a, (Rect<N>, &'b mut T)> {
-    pub fn new(bots: &'a mut [(Rect<N>, &'b mut T)]) -> Self {
-        Self::from_aabb(bots)
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_new(bots: &'a mut [(Rect<N>, &'b mut T)]) -> Self
-    where
-        T: Send,
-        N: Send,
-    {
-        Self::par_from_aabb(bots)
-    }
-}
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
-    pub fn from_aabb(bots: &'a mut [T]) -> Self {
+    pub fn new(bots: &'a mut [T]) -> Self
+    where
+        T: ManySwap,
+    {
         let (nodes, _) = BuildArgs::new(bots.len()).build_ext(bots, &mut DefaultSorter);
 
         Tree { nodes }
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_from_aabb(bots: &'a mut [T]) -> Self
+    pub fn par_new(bots: &'a mut [T]) -> Self
     where
+        T: ManySwap,
         T: Send,
         T::Num: Send,
     {

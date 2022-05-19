@@ -2,11 +2,11 @@
 fn knearest_repro() {
     use axgeom::*;
     let mut repro = [
-        (rect(729.75f32, 731.25, -0.75, 0.75), vec2(730.5, 0.)),
-        (rect(1517.25, 1518.75, -0.75, 0.75), vec2(1518., 0.)),
+        (rect(729.75f32, 731.25, -0.75, 0.75), &mut vec2(730.5, 0.)),
+        (rect(1517.25, 1518.75, -0.75, 0.75), &mut vec2(1518., 0.)),
     ];
 
-    let mut tree = broccoli::Tree::from_aabb(&mut repro);
+    let mut tree = broccoli::Tree::new(&mut repro);
 
     let mut res = tree.find_knearest_closure(
         vec2(627.0, 727.5),

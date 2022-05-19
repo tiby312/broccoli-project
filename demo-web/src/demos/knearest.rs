@@ -92,7 +92,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut handler = MyKnearest { verts: vec![] };
 
         if check_naive {
-            Assert::new(&mut tree.container_ref().clone()).assert_k_nearest_mut(
+            Assert::new(&mut tree.as_container().clone()).assert_k_nearest_mut(
                 cursor,
                 3,
                 &mut handler,

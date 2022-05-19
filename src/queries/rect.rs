@@ -186,7 +186,7 @@ fn into_ptr_usize<T>(a: &T) -> usize {
     a as *const T as usize
 }
 
-impl<'a, T: Aabb> Assert<'a, T> {
+impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
     ///Panics if a disconnect is detected between tree and naive queries.
     pub fn assert_rect(&mut self, rect: axgeom::Rect<T::Num>) {
         self.assert_for_all_not_in_rect_mut(rect);
@@ -195,7 +195,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
     }
 
     fn assert_for_all_not_in_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
-        let mut tree = Tree::from_aabb(self.inner);
+        let mut tree = Tree::new(self.inner);
         let mut res_dino = Vec::new();
         tree.find_all_not_in_rect(AabbPin::new(&mut rect), |_, a| {
             res_dino.push(into_ptr_usize(a.deref()));
@@ -214,7 +214,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
     }
 
     fn assert_for_all_intersect_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
-        let mut tree = Tree::from_aabb(self.inner);
+        let mut tree = Tree::new(self.inner);
         let mut res_dino = Vec::new();
         tree.find_all_intersect_rect(AabbPin::new(&mut rect), |_, a| {
             res_dino.push(into_ptr_usize(a.deref()));
@@ -232,7 +232,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
     }
 
     fn assert_for_all_in_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
-        let mut tree = Tree::from_aabb(self.inner);
+        let mut tree = Tree::new(self.inner);
         let mut res_dino = Vec::new();
         tree.find_all_in_rect(AabbPin::new(&mut rect), |_, a| {
             res_dino.push(into_ptr_usize(a.deref()));

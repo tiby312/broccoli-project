@@ -19,7 +19,7 @@ fn test_tie_knearest() {
 
     Assert::new(&mut bots).assert_k_nearest_mut(vec2(15, 30), 2, &mut handler);
 
-    let mut tree = broccoli::Tree::from_aabb(&mut bots);
+    let mut tree = broccoli::Tree::new(&mut bots);
 
     let mut res = tree.find_knearest(vec2(15, 30), 2, &mut handler);
 
@@ -143,7 +143,7 @@ fn test_tie_raycast() {
 
     Assert::new(&mut bots).assert_raycast(ray, &mut handler);
 
-    let mut tree = broccoli::Tree::from_aabb(&mut bots);
+    let mut tree = broccoli::Tree::new(&mut bots);
 
     let ans = tree.cast_ray(ray, &mut handler);
 

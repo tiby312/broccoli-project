@@ -345,6 +345,7 @@ pub fn compute_border<T: Aabb>(bb: &[T]) -> Option<Rect<T::Num>> {
     }
     Some(r)
 }
+
 pub fn convert_dist<T, T2, X>(
     a: Vec<(Rect<T>, X)>,
     mut func: impl FnMut(Rect<T>) -> Rect<T2>,

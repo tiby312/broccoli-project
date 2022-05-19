@@ -21,9 +21,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
             fn new() -> Self {
                 CollisionPtr { inner: vec![] }
             }
-            fn add_pair<N>(&mut self, a: &(Rect<N>, usize), b: &(Rect<N>, usize)) {
-                let a = a.1;
-                let b = b.1;
+            fn add_pair(&mut self, a: usize, b: usize) {
                 let (a, b) = if a < b { (a, b) } else { (b, a) };
 
                 self.inner.push((a, b));
@@ -36,14 +34,14 @@ impl<'a, T: Aabb> Assert<'a, T> {
         let mut bots: Vec<_> = bots
             .iter_mut()
             .enumerate()
-            .map(|(i, x)| (*x.get(), i))
+            .map(|(i, x)| ManySwapBBox(*x.get(), i))
             .collect();
         let bots = bots.as_mut_slice();
 
         let naive_res = {
             let mut cc = CollisionPtr::new();
             Naive::new(bots).find_colliding_pairs(|a, b| {
-                cc.add_pair(&*a, &*b);
+                cc.add_pair(a.1, b.1);
             });
             cc.finish();
             cc
@@ -52,8 +50,8 @@ impl<'a, T: Aabb> Assert<'a, T> {
         let tree_res = {
             let mut cc = CollisionPtr::new();
 
-            Tree::from_aabb(bots).find_colliding_pairs(|a, b| {
-                cc.add_pair(&*a, &*b);
+            Tree::new(bots).find_colliding_pairs(|a, b| {
+                cc.add_pair(a.1, b.1);
             });
             cc.finish();
             cc
@@ -63,7 +61,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
             let mut cc = CollisionPtr::new();
 
             NotSortedTree::from_aabb(bots).find_colliding_pairs(|a, b| {
-                cc.add_pair(&*a, &*b);
+                cc.add_pair(a.1, b.1);
             });
             cc.finish();
             cc
@@ -72,7 +70,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
         let sweep_res = {
             let mut cc = CollisionPtr::new();
             SweepAndPrune::new(bots).find_colliding_pairs(|a, b| {
-                cc.add_pair(&*a, &*b);
+                cc.add_pair(a.1, b.1);
             });
             cc.finish();
             cc

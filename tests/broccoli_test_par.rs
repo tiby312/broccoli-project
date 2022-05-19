@@ -24,7 +24,7 @@ fn test1() {
 
             let mut bots: Vec<_> = bots.iter_mut().collect();
 
-            let mut tree = broccoli::Tree::from_aabb(&mut bots);
+            let mut tree = broccoli::Tree::new(&mut bots);
 
             let mut vs = vec![];
             tree.find_colliding_pairs(|a, b| {

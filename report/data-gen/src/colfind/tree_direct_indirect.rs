@@ -16,11 +16,11 @@ struct TestResult {
     query: f64,
 }
 
-fn test_seq<T: Aabb>(
+fn test_seq<T: Aabb + ManySwap>(
     bots: &mut [T],
     func: impl Fn(AabbPin<&mut T>, AabbPin<&mut T>),
 ) -> TestResult {
-    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::Tree::from_aabb(bots));
+    let (mut tree, construct_time) = bench_closure_ret(|| broccoli::Tree::new(bots));
 
     let (tree, query_time) = bench_closure_ret(|| {
         tree.find_colliding_pairs(|a, b| {
@@ -89,8 +89,10 @@ struct CompleteTestResult {
 impl CompleteTestResult {
     fn new<T: TestTrait>(num_bots: usize, grow: f64, t: T) -> CompleteTestResult {
         let direct_seq = {
-            let mut bots =
+            let bots =
                 distribute_iter(grow, (0..num_bots as isize).map(|a| (a, t)), |a| a.to_i32());
+
+            let mut bots: Vec<_> = bots.into_iter().map(|x| ManySwapBBox(x.0, x.1)).collect();
 
             test_seq(&mut bots, |b, c| {
                 b.unpack_inner().0 += 1;

@@ -74,7 +74,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut handler = MyRaycast { verts: vec![] };
 
         if check_naive {
-            Assert::new(&mut tree.container_ref().clone()).assert_raycast(ray, &mut handler);
+            Assert::new(&mut tree.as_container().clone()).assert_raycast(ray, &mut handler);
         }
 
         let mut tree = tree.as_tree();

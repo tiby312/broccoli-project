@@ -1,11 +1,5 @@
 use super::*;
 
-use sealed::Sealed;
-
-mod sealed {
-    pub trait Sealed {}
-}
-
 /// The underlying number type used for the tree.
 /// It is auto implemented by all types that satisfy the type constraints.
 /// Notice that no arithmetic is possible. The tree is constructed
@@ -16,12 +10,11 @@ impl<T> Num for T where T: PartialOrd + Copy + Default + std::fmt::Debug {}
 ///
 /// Trait to signify that this object has an axis aligned bounding box.
 ///
-pub trait Aabb: Sealed {
+pub trait Aabb {
     type Num: Num;
     fn get(&self) -> &Rect<Self::Num>;
 }
 
-impl<T: Aabb> Sealed for &T {}
 impl<T: Aabb> Aabb for &T {
     type Num = T::Num;
     #[inline(always)]
@@ -30,7 +23,6 @@ impl<T: Aabb> Aabb for &T {
     }
 }
 
-impl<T: Aabb> Sealed for &mut T {}
 impl<T: Aabb> Aabb for &mut T {
     type Num = T::Num;
     #[inline(always)]
@@ -39,7 +31,6 @@ impl<T: Aabb> Aabb for &mut T {
     }
 }
 
-impl<N: Num> Sealed for Rect<N> {}
 impl<N: Num> Aabb for Rect<N> {
     type Num = N;
     #[inline(always)]
@@ -47,8 +38,31 @@ impl<N: Num> Aabb for Rect<N> {
         self
     }
 }
+impl<'a, N> ManySwap for Rect<N> {}
 
-impl<N: Num, T> Sealed for (Rect<N>, T) {}
+impl<'a, N, T> ManySwap for (Rect<N>, &'a mut T) {}
+impl<'a, N> ManySwap for (Rect<N>, ()) {}
+
+#[derive(Copy, Clone, Debug)]
+pub struct ManySwapBBox<N, T>(pub Rect<N>, pub T);
+impl<N, T> ManySwap for ManySwapBBox<N, T> {}
+
+impl<N: Num, T> Aabb for ManySwapBBox<N, T> {
+    type Num = N;
+    #[inline(always)]
+    fn get(&self) -> &Rect<Self::Num> {
+        &self.0
+    }
+}
+
+impl<N: Num, T> HasInner for ManySwapBBox<N, T> {
+    type Inner = T;
+    #[inline(always)]
+    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        (&self.0, &mut self.1)
+    }
+}
+
 impl<N: Num, T> Aabb for (Rect<N>, T) {
     type Num = N;
     #[inline(always)]
@@ -94,9 +108,15 @@ impl<N, T> BBox<N, T> {
     pub fn new(rect: Rect<N>, inner: T) -> BBox<N, T> {
         BBox { rect, inner }
     }
+
+    pub fn many_swap(self) -> ManySwapBBox<N, T> {
+        ManySwapBBox(self.rect, self.inner)
+    }
 }
 
-impl<N: Num, T> Sealed for BBox<N, T> {}
+impl<'a, N> ManySwap for BBox<N, ()> {}
+impl<'a, N, T> ManySwap for BBox<N, &'a mut T> {}
+
 impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;
     #[inline(always)]
@@ -132,6 +152,7 @@ pub struct BBoxMut<'a, N, T> {
     pub rect: axgeom::Rect<N>,
     pub inner: &'a mut T,
 }
+impl<'a, N, T> ManySwap for BBoxMut<'a, N, T> {}
 
 impl<'a, N, T> BBoxMut<'a, N, T> {
     /// Constructor. Also consider using [`crate::bbox()`]
@@ -142,7 +163,6 @@ impl<'a, N, T> BBoxMut<'a, N, T> {
     }
 }
 
-impl<N: Num, T> Sealed for BBoxMut<'_, N, T> {}
 impl<N: Num, T> Aabb for BBoxMut<'_, N, T> {
     type Num = N;
     #[inline(always)]

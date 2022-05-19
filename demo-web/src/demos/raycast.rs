@@ -10,7 +10,7 @@ struct Bot {
 struct MyRaycast {
     radius: f32,
 }
-impl broccoli::queries::raycast::RayCast<BBox<f32, Bot>> for MyRaycast {
+impl broccoli::queries::raycast::RayCast<ManySwapBBox<f32, Bot>> for MyRaycast {
     fn cast_to_aaline<A: Axis>(
         &mut self,
         ray: &Ray<f32>,
@@ -23,7 +23,7 @@ impl broccoli::queries::raycast::RayCast<BBox<f32, Bot>> for MyRaycast {
     fn cast_broad(
         &mut self,
         ray: &Ray<f32>,
-        a: AabbPin<&mut BBox<f32, Bot>>,
+        a: AabbPin<&mut ManySwapBBox<f32, Bot>>,
     ) -> Option<axgeom::CastResult<f32>> {
         Some(ray.cast_to_rect(a.get()))
     }
@@ -31,9 +31,9 @@ impl broccoli::queries::raycast::RayCast<BBox<f32, Bot>> for MyRaycast {
     fn cast_fine(
         &mut self,
         ray: &Ray<f32>,
-        a: AabbPin<&mut BBox<f32, Bot>>,
+        a: AabbPin<&mut ManySwapBBox<f32, Bot>>,
     ) -> axgeom::CastResult<f32> {
-        ray.cast_to_circle(a.inner.center, self.radius)
+        ray.cast_to_circle(a.1.center, self.radius)
     }
 }
 
@@ -45,7 +45,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .take(200)
         .map(|c| {
             let center = c.into();
-            bbox(Rect::from_point(center, vec2same(radius)), Bot { center })
+            ManySwapBBox(Rect::from_point(center, vec2same(radius)), Bot { center })
         })
         .collect::<Vec<_>>()
         .into_boxed_slice();
@@ -53,7 +53,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let circle_save = {
         let mut f = vec![];
         for b in vv.iter() {
-            f.push(b.inner.center.into());
+            f.push(b.1.center.into());
         }
         ctx.buffer_static(&f)
     };
@@ -76,7 +76,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         verts.clear();
 
         if check_naive {
-            let mut vv_clone = tree.container_ref().clone();
+            let mut vv_clone = tree.as_container().clone();
             for dir in 0..1000i32 {
                 let dir = (dir as f32) * (std::f32::consts::TAU / 1000.0);
                 let x = (dir.cos() * 20.0) as f32;

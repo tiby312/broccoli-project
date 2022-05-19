@@ -18,7 +18,7 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
             let bench = {
                 let mut base =
                     crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
-                let mut tree = broccoli::Tree::from_aabb(&mut base);
+                let mut tree = broccoli::Tree::new(&mut base);
 
                 bench_closure(|| {
                     tree.find_colliding_pairs(|a, b| {
@@ -36,7 +36,7 @@ pub fn handle_broccoli(fb: &mut FigureBuilder) {
                     .map(|x| BBoxMut::new(x.rect, x.inner))
                     .collect();
 
-                let mut tree = broccoli::Tree::from_aabb(&mut base);
+                let mut tree = broccoli::Tree::new(&mut base);
 
                 bench_closure(|| {
                     let mut tree = broccoli::ext::cacheable_pairs::IndTree(&mut tree);
@@ -90,7 +90,7 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
                     .map(|x| BBoxMut::new(x.rect, x.inner))
                     .collect();
 
-                let mut tree = broccoli::Tree::from_aabb(&mut base);
+                let mut tree = broccoli::Tree::new(&mut base);
 
                 bench_closure(|| {
                     let mut tree = broccoli::ext::cacheable_pairs::IndTree(&mut tree);
@@ -108,7 +108,7 @@ pub fn handle_optimal(fb: &mut FigureBuilder) {
             let non_cached_pairs = {
                 let mut base =
                     crate::support::make_tree_ref_ind(&mut bot_inner, grow, |a| a.to_f64n());
-                let mut tree = broccoli::Tree::from_aabb(&mut base);
+                let mut tree = broccoli::Tree::new(&mut base);
 
                 bench_closure(|| {
                     for _ in 0..10 {
