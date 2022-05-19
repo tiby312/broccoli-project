@@ -127,11 +127,53 @@ impl<'a, T: Aabb> TreeBuildVisitor<'a, T> {
                 }
 
                 let med_index = bots.len() / 2;
-                let (_, med, _) = bots.select_nth_unstable_by(med_index, move |a, b| {
-                    crate::util::compare_bots(div_axis, a, b)
-                });
 
-                let med_val = med.get().get_range(div_axis).start;
+                let (med_val, left_len, mid_len) = {
+                    let (ll, med, rr) = bots.select_nth_unstable_by(med_index, move |a, b| {
+                        crate::util::compare_bots(div_axis, a, b)
+                    });
+
+                    let med_val = med.get().get_range(div_axis).start;
+
+                    fn bin_left<A: Axis, T: Aabb>(
+                        axis: A,
+                        bots: &mut [T],
+                        bound: T::Num,
+                    ) -> (&mut [T], &mut [T]) {
+                        let mut m = bots.len();
+                        for a in (0..bots.len()).rev() {
+                            if bots[a].get().get_range(axis).end >= bound {
+                                //keep
+                                m -= 1;
+                                bots.swap(a, m);
+                            }
+                        }
+                        bots.split_at_mut(m)
+                    }
+                    fn bin_right<A: Axis, T: Aabb>(
+                        axis: A,
+                        bots: &mut [T],
+                        bound: T::Num,
+                    ) -> (&mut [T], &mut [T]) {
+                        let mut m = 0;
+                        for a in 0..bots.len() {
+                            if bots[a].get().get_range(axis).start <= bound {
+                                //keep
+                                bots.swap(a, m);
+                                m += 1;
+                            }
+                        }
+                        bots.split_at_mut(m)
+                    }
+
+                    let (ll, ml) = bin_left(div_axis, ll, med_val);
+                    let (mr, _) = bin_right(div_axis, rr, med_val);
+
+                    (med_val, ll.len(), ml.len() + 1 + mr.len())
+                };
+
+                let (left, rest) = bots.split_at_mut(left_len);
+                let (middle, right) = rest.split_at_mut(mid_len);
 
                 //It is very important that the median bot end up be binned into the middile bin.
                 //We know this must be true because we chose the divider to be the medians left border,
@@ -139,13 +181,13 @@ impl<'a, T: Aabb> TreeBuildVisitor<'a, T> {
                 //Very important that if a bots border is exactly on the divider, it is put in the middle.
                 //If this were not true, there is no guarantee that the middile bin has bots in it even
                 //though we did pick a divider.
-                let binned = oned::bin_middle_left_right(div_axis, &med_val, bots);
+                //let binned = oned::bin_middle_left_right(div_axis, &med_val, bots);
 
                 ConstructResult {
-                    mid: binned.middle,
+                    mid: middle,
                     div: Some(med_val),
-                    left: binned.left,
-                    right: binned.right,
+                    left,
+                    right,
                 }
             }
 
