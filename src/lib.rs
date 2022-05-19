@@ -177,13 +177,6 @@ where
 }
 
 ///
-/// Singifies this object can be swapped around in a slice
-/// many times without much of a performance hit.
-///
-pub trait ManySwap {}
-impl<T> ManySwap for &mut T {}
-
-///
 /// A broccoli Tree.
 ///
 pub struct Tree<'a, T: Aabb> {

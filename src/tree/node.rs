@@ -1,5 +1,12 @@
 use super::*;
 
+///
+/// Singifies this object can be swapped around in a slice
+/// many times without much of a performance hit.
+///
+pub trait ManySwap {}
+impl<T> ManySwap for &mut T {}
+
 /// The underlying number type used for the tree.
 /// It is auto implemented by all types that satisfy the type constraints.
 /// Notice that no arithmetic is possible. The tree is constructed
