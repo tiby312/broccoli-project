@@ -2,10 +2,13 @@
 //! Tree building blocks
 //!
 
+use std::cmp::Ordering;
+
 use super::*;
 
 #[must_use]
 pub struct NodeFinisher<'a, T: Aabb> {
+    cont: [T::Num; 2],
     axis: AxisDyn,
     div: Option<T::Num>, //This can be null if there are no bots left at all
     mid: &'a mut [T],
@@ -18,46 +21,18 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
     #[inline(always)]
     #[must_use]
     pub fn finish<S: Sorter<T>>(self, sorter: &mut S) -> Node<'a, T> {
-        fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
-            match middle.split_first() {
-                Some((first, rest)) => {
-                    let mut min = first.get().get_range(axis).start;
-                    let mut max = first.get().get_range(axis).end;
-
-                    for a in rest.iter() {
-                        let start = &a.get().get_range(axis).start;
-                        let end = &a.get().get_range(axis).end;
-
-                        if *start < min {
-                            min = *start;
-                        }
-
-                        if *end > max {
-                            max = *end;
-                        }
-                    }
-
-                    axgeom::Range {
-                        start: min,
-                        end: max,
-                    }
-                }
-                None => axgeom::Range {
-                    start: Default::default(),
-                    end: Default::default(),
-                },
-            }
-        }
-
-        let cont = match self.axis {
+        match self.axis {
             AxisDyn::X => {
                 sorter.sort(axgeom::XAXIS.next(), self.mid);
-                create_cont(axgeom::XAXIS, self.mid)
             }
             AxisDyn::Y => {
                 sorter.sort(axgeom::YAXIS.next(), self.mid);
-                create_cont(axgeom::YAXIS, self.mid)
             }
+        };
+
+        let cont = Range {
+            start: self.cont[0],
+            end: self.cont[1],
         };
 
         Node {
@@ -66,6 +41,37 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
             cont,
             div: self.div,
         }
+    }
+}
+
+fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
+    match middle.split_first() {
+        Some((first, rest)) => {
+            let mut min = first.get().get_range(axis).start;
+            let mut max = first.get().get_range(axis).end;
+
+            for a in rest.iter() {
+                let start = &a.get().get_range(axis).start;
+                let end = &a.get().get_range(axis).end;
+
+                if *start < min {
+                    min = *start;
+                }
+
+                if *end > max {
+                    max = *end;
+                }
+            }
+
+            axgeom::Range {
+                start: min,
+                end: max,
+            }
+        }
+        None => axgeom::Range {
+            start: Default::default(),
+            end: Default::default(),
+        },
     }
 }
 
@@ -104,7 +110,13 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
     pub fn build_and_next(self) -> NodeBuildResult<'a, T> {
         //leaf case
         if self.current_height == 0 {
+            let cont = match self.axis {
+                AxisDyn::X => create_cont(axgeom::XAXIS, self.bots),
+                AxisDyn::Y => create_cont(axgeom::YAXIS, self.bots),
+            };
+
             let node = NodeFinisher {
+                cont: [cont.start, cont.end],
                 mid: self.bots,
                 div: None,
                 axis: self.axis,
@@ -119,6 +131,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
             ) -> ConstructResult<T> {
                 if bots.is_empty() {
                     return ConstructResult {
+                        cont: [std::default::Default::default(); 2],
                         mid: &mut [],
                         div: None,
                         left: &mut [],
@@ -128,7 +141,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
 
                 let med_index = bots.len() / 2;
 
-                let (med_val, left_len, mid_len) = {
+                let (min_cont, max_cont, med_val, left_len, mid_len) = {
                     let (ll, med, rr) = bots.select_nth_unstable_by(med_index, move |a, b| {
                         crate::util::compare_bots(div_axis, a, b)
                     });
@@ -169,21 +182,45 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                     let (ll, ml) = bin_left(div_axis, ll, med_val);
                     let (mr, _) = bin_right(div_axis, rr, med_val);
 
-                    (med_val, ll.len(), ml.len() + 1 + mr.len())
+                    let min_cont = std::iter::once(&*med)
+                        .chain(ml.iter())
+                        .map(|x| x.get().get_range(div_axis).start)
+                        .min_by(|x, y| {
+                            if x < y {
+                                Ordering::Less
+                            } else {
+                                Ordering::Greater
+                            }
+                        })
+                        .unwrap();
+
+                    //The max cont is guarenteed to be equal or greater than the div
+                    let max_cont = std::iter::once(&*med)
+                        .chain(mr.iter())
+                        .map(|x| x.get().get_range(div_axis).end)
+                        .max_by(|x, y| {
+                            if x <= y {
+                                Ordering::Less
+                            } else {
+                                Ordering::Greater
+                            }
+                        })
+                        .unwrap();
+
+                    (
+                        min_cont,
+                        max_cont,
+                        med_val,
+                        ll.len(),
+                        ml.len() + 1 + mr.len(),
+                    )
                 };
 
                 let (left, rest) = bots.split_at_mut(left_len);
                 let (middle, right) = rest.split_at_mut(mid_len);
 
-                //It is very important that the median bot end up be binned into the middile bin.
-                //We know this must be true because we chose the divider to be the medians left border,
-                //and we binned so that all bots who intersect with the divider end up in the middle bin.
-                //Very important that if a bots border is exactly on the divider, it is put in the middle.
-                //If this were not true, there is no guarantee that the middile bin has bots in it even
-                //though we did pick a divider.
-                //let binned = oned::bin_middle_left_right(div_axis, &med_val, bots);
-
                 ConstructResult {
+                    cont: [min_cont, max_cont],
                     mid: middle,
                     div: Some(med_val),
                     left,
@@ -197,6 +234,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
             };
 
             let finish_node = NodeFinisher {
+                cont: rr.cont,
                 mid: rr.mid,
                 div: rr.div,
                 axis: self.axis,
@@ -226,6 +264,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
 }
 
 struct ConstructResult<'a, T: Aabb> {
+    cont: [T::Num; 2],
     div: Option<T::Num>,
     mid: &'a mut [T],
     right: &'a mut [T],
