@@ -2,8 +2,6 @@
 //! Tree building blocks
 //!
 
-use std::cmp::Ordering;
-
 use super::*;
 
 #[must_use]
@@ -141,7 +139,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
 
                 let med_index = bots.len() / 2;
 
-                let (min_cont, max_cont, med_val, left_len, mid_len) = {
+                let (min_cont, med_val, left_len, mid_len) = {
                     let (ll, med, rr) = bots.select_nth_unstable_by(med_index, move |a, b| {
                         crate::util::compare_bots(div_axis, a, b)
                     });
@@ -182,42 +180,33 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                     let (ll, ml) = bin_left(div_axis, ll, med_val);
                     let (mr, _) = bin_right(div_axis, rr, med_val);
 
-                    let min_cont = std::iter::once(&*med)
-                        .chain(ml.iter())
-                        .map(|x| x.get().get_range(div_axis).start)
-                        .min_by(|x, y| {
-                            if x < y {
-                                Ordering::Less
-                            } else {
-                                Ordering::Greater
+                    let min_cont = {
+                        let mut ret = med_val;
+                        for a in ml.iter() {
+                            let k = a.get().get_range(div_axis).start;
+                            if k < ret {
+                                ret = k;
                             }
-                        })
-                        .unwrap();
+                        }
+                        ret
+                    };
 
-                    //The max cont is guarenteed to be equal or greater than the div
-                    let max_cont = std::iter::once(&*med)
-                        .chain(mr.iter())
-                        .map(|x| x.get().get_range(div_axis).end)
-                        .max_by(|x, y| {
-                            if x <= y {
-                                Ordering::Less
-                            } else {
-                                Ordering::Greater
-                            }
-                        })
-                        .unwrap();
-
-                    (
-                        min_cont,
-                        max_cont,
-                        med_val,
-                        ll.len(),
-                        ml.len() + 1 + mr.len(),
-                    )
+                    (min_cont, med_val, ll.len(), ml.len() + 1 + mr.len())
                 };
 
                 let (left, rest) = bots.split_at_mut(left_len);
                 let (middle, right) = rest.split_at_mut(mid_len);
+
+                let max_cont = {
+                    let mut ret = med_val;
+                    for a in middle.iter() {
+                        let k = a.get().get_range(div_axis).end;
+                        if k > ret {
+                            ret = k;
+                        }
+                    }
+                    ret
+                };
 
                 ConstructResult {
                     cont: [min_cont, max_cont],
