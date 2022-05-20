@@ -209,12 +209,15 @@ fn recurse_seq<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
     vis: TreeBuildVisitor<'a, T>,
 ) {
     let NodeBuildResult { node, rest } = vis.build_and_next();
-    buffer.push(node.finish(sorter));
+
     if let Some([left, right]) = rest {
         let mut a = splitter.div();
         recurse_seq(splitter, sorter, buffer, left);
+        buffer.push(node.finish(sorter));
         recurse_seq(&mut a, sorter, buffer, right);
         splitter.add(a);
+    } else {
+        buffer.push(node.finish(sorter));
     }
 }
 
@@ -236,8 +239,8 @@ fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
     if let Some([left, right]) = rest {
         let mut p = splitter.div();
         if node.get_num_elem() <= num_seq_fallback {
-            buffer.push(node.finish(sorter));
             recurse_seq(splitter, sorter, buffer, left);
+            buffer.push(node.finish(sorter));
             recurse_seq(&mut p, sorter, buffer, right);
         } else {
             let mut s2 = sorter.div();
@@ -245,8 +248,8 @@ fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
 
             rayon::join(
                 || {
-                    buffer.push(node.finish(sorter));
                     recurse_par(num_seq_fallback, splitter, sorter, buffer, left);
+                    buffer.push(node.finish(sorter));
                 },
                 || {
                     recurse_par(num_seq_fallback, &mut p, &mut s2, &mut buffer2, right);

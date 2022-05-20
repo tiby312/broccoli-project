@@ -22,7 +22,7 @@ dists = {git="https://github.com/tiby312/dists.git"}
 
 [dependencies]
 rayon={version="1.5",optional=true}
-compt = "2.0"
+compt = "2.1"
 twounordered = "0.7"
 slice-group-by = "0.3"
 revec = "0.2"

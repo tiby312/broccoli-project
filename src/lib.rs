@@ -227,13 +227,13 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     #[inline(always)]
     pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
-        let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
+        let tree = compt::dfs_order::CompleteTreeMut::from_inorder_mut(&mut self.nodes).unwrap();
         VistrMutPin::new(tree.vistr_mut())
     }
 
     #[inline(always)]
     pub fn vistr(&self) -> Vistr<Node<'a, T>> {
-        let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
+        let tree = compt::dfs_order::CompleteTree::from_inorder(&self.nodes).unwrap();
 
         tree.vistr()
     }
@@ -241,7 +241,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     #[must_use]
     #[inline(always)]
     pub fn num_levels(&self) -> usize {
-        compt::dfs_order::CompleteTree::from_preorder(&self.nodes)
+        compt::dfs_order::CompleteTree::from_inorder(&self.nodes)
             .unwrap()
             .get_height()
     }
@@ -316,13 +316,13 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
 
     #[inline(always)]
     pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
-        let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
+        let tree = compt::dfs_order::CompleteTreeMut::from_inorder_mut(&mut self.nodes).unwrap();
         VistrMutPin::new(tree.vistr_mut())
     }
 
     #[inline(always)]
     pub fn vistr(&self) -> Vistr<Node<'a, T>> {
-        let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
+        let tree = compt::dfs_order::CompleteTree::from_inorder(&self.nodes).unwrap();
 
         tree.vistr()
     }

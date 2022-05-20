@@ -204,7 +204,7 @@ impl<N: Num, T> HasInner for BBoxMut<'_, N, T> {
 /// When we traverse the tree in read-only mode, we can simply return a reference to each node.
 /// We don't need to protect the user from only mutating parts of the BBox's since they can't
 /// change anything.
-pub type Vistr<'a, N> = compt::dfs_order::Vistr<'a, N, compt::dfs_order::PreOrder>;
+pub type Vistr<'a, N> = compt::dfs_order::Vistr<'a, N, compt::dfs_order::InOrder>;
 
 mod vistr_mut {
     use super::*;
@@ -214,13 +214,13 @@ mod vistr_mut {
     #[repr(transparent)]
     #[must_use]
     pub struct VistrMutPin<'a, N> {
-        inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
+        inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::InOrder>,
     }
 
     impl<'a, N> VistrMutPin<'a, N> {
         #[inline(always)]
         pub(crate) fn new(
-            inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
+            inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::InOrder>,
         ) -> Self {
             VistrMutPin { inner }
         }
@@ -267,11 +267,6 @@ mod vistr_mut {
         #[inline(always)]
         fn level_remaining_hint(&self) -> (usize, Option<usize>) {
             self.inner.level_remaining_hint()
-        }
-
-        #[inline(always)]
-        fn dfs_preorder(self, mut func: impl FnMut(Self::Item)) {
-            self.inner.dfs_preorder(move |a| func(AabbPin::new(a)));
         }
     }
 }
