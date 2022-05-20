@@ -5,7 +5,6 @@ use super::*;
 /// many times without much of a performance hit.
 ///
 pub trait ManySwap {}
-impl<T> ManySwap for &mut T {}
 
 /// The underlying number type used for the tree.
 /// It is auto implemented by all types that satisfy the type constraints.
@@ -22,6 +21,7 @@ pub trait Aabb {
     fn get(&self) -> &Rect<Self::Num>;
 }
 
+/*
 impl<T: Aabb> Aabb for &T {
     type Num = T::Num;
     #[inline(always)]
@@ -37,6 +37,7 @@ impl<T: Aabb> Aabb for &mut T {
         T::get(self)
     }
 }
+*/
 
 impl<N: Num> Aabb for Rect<N> {
     type Num = N;
@@ -46,6 +47,9 @@ impl<N: Num> Aabb for Rect<N> {
     }
 }
 impl<'a, N> ManySwap for Rect<N> {}
+impl<'a, N> ManySwap for &'a mut Rect<N> {}
+
+impl<'a, N, T> ManySwap for &'a mut (Rect<N>, T) {}
 
 impl<'a, N, T> ManySwap for (Rect<N>, &'a mut T) {}
 impl<'a, N> ManySwap for (Rect<N>, ()) {}
@@ -86,6 +90,12 @@ impl<N: Num, T> HasInner for (Rect<N>, T) {
     }
 }
 
+impl<N: Num, T> Aabb for &mut (Rect<N>, T) {
+    type Num = N;
+    fn get(&self) -> &Rect<Self::Num> {
+        &self.0
+    }
+}
 impl<N: Num, T> HasInner for &mut (Rect<N>, T) {
     type Inner = T;
     #[inline(always)]
@@ -140,6 +150,12 @@ impl<N: Num, T> HasInner for BBox<N, T> {
     }
 }
 
+impl<N: Num, T> Aabb for &mut BBox<N, T> {
+    type Num = N;
+    fn get(&self) -> &Rect<N> {
+        &self.rect
+    }
+}
 impl<N: Num, T> HasInner for &mut BBox<N, T> {
     type Inner = T;
     #[inline(always)]
