@@ -53,6 +53,9 @@ impl<'a, N, T> ManySwap for &'a mut (Rect<N>, T) {}
 
 impl<'a, N, T> ManySwap for (Rect<N>, &'a mut T) {}
 impl<'a, N> ManySwap for (Rect<N>, ()) {}
+impl<'a, N> ManySwap for (Rect<N>, usize) {}
+impl<'a, N> ManySwap for (Rect<N>, u32) {}
+impl<'a, N> ManySwap for (Rect<N>, u64) {}
 
 #[derive(Copy, Clone, Debug)]
 pub struct ManySwapBBox<N, T>(pub Rect<N>, pub T);

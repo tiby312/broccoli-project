@@ -1,7 +1,7 @@
 use super::*;
 
 use axgeom::Ray;
-use broccoli::Assert;
+use broccoli::{Assert, TreeData};
 
 #[derive(Copy, Clone)]
 struct Bot {
@@ -10,7 +10,7 @@ struct Bot {
 struct MyRaycast {
     radius: f32,
 }
-impl broccoli::queries::raycast::RayCast<ManySwapBBox<f32, Bot>> for MyRaycast {
+impl broccoli::queries::raycast::RayCast<(Rect<f32>, Bot)> for MyRaycast {
     fn cast_to_aaline<A: Axis>(
         &mut self,
         ray: &Ray<f32>,
@@ -23,7 +23,7 @@ impl broccoli::queries::raycast::RayCast<ManySwapBBox<f32, Bot>> for MyRaycast {
     fn cast_broad(
         &mut self,
         ray: &Ray<f32>,
-        a: AabbPin<&mut ManySwapBBox<f32, Bot>>,
+        a: AabbPin<&mut (Rect<f32>, Bot)>,
     ) -> Option<axgeom::CastResult<f32>> {
         Some(ray.cast_to_rect(a.get()))
     }
@@ -31,7 +31,7 @@ impl broccoli::queries::raycast::RayCast<ManySwapBBox<f32, Bot>> for MyRaycast {
     fn cast_fine(
         &mut self,
         ray: &Ray<f32>,
-        a: AabbPin<&mut ManySwapBBox<f32, Bot>>,
+        a: AabbPin<&mut (Rect<f32>, Bot)>,
     ) -> axgeom::CastResult<f32> {
         ray.cast_to_circle(a.1.center, self.radius)
     }
@@ -41,19 +41,29 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 10.0;
     let line_width = 1.0;
 
-    let vv = support::make_rand(dim)
-        .take(200)
-        .map(|c| {
-            let center = c.into();
-            ManySwapBBox(Rect::from_point(center, vec2same(radius)), Bot { center })
-        })
-        .collect::<Vec<_>>()
-        .into_boxed_slice();
+    let centers:Vec<Vec2<f32>>=support::make_rand(dim)
+        .take(200).map(|x|x.into()).collect();
+
+
+    let mut tree={
+        let mut vv = centers.iter().enumerate()
+            .map(|(i,center)| {
+                (Rect::from_point(*center, vec2same(radius)), i)
+            })
+            .collect::<Vec<_>>();
+
+        let tree=broccoli::Tree::new(&mut vv);
+        let data=tree.get_tree_data();
+        let new_elem:Vec<_>=vv.into_iter().map(|x|(x.0,Bot{center:centers[x.1]})).collect();
+        broccoli::TreeOwned::from_tree_data(new_elem,data)
+    };
+
 
     let circle_save = {
         let mut f = vec![];
-        for b in vv.iter() {
-            f.push(b.1.center.into());
+        for &b in centers.iter() {
+            let k:[f32;2]=b.into();
+            f.push(k);
         }
         ctx.buffer_static(&f)
     };
@@ -61,7 +71,6 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
 
-    let mut tree = broccoli::TreeOwned::new(vv);
 
     let mut handler = MyRaycast { radius };
 
@@ -75,6 +84,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         verts.clear();
 
+        /*
         if check_naive {
             let mut vv_clone = tree.as_container().clone();
             for dir in 0..1000i32 {
@@ -93,6 +103,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 Assert::new(&mut vv_clone).assert_raycast(ray, &mut handler);
             }
         }
+        */
 
         let mut tree = tree.as_tree();
 

@@ -110,6 +110,12 @@ impl<T> Container for Box<[T]> {
     }
 }
 
+
+pub struct TreeData<N:Num>{
+    nodes:Vec<NodeData<N>>
+}
+
+
 ///
 /// An owned version of [`Tree`]
 ///
@@ -125,6 +131,13 @@ impl<C: Container> TreeOwned<C>
 where
     C::T: Aabb,
 {
+
+
+    pub fn from_tree_data(container:C,data:TreeData<<C::T as Aabb>::Num>)->TreeOwned<C>{
+        TreeOwned { container, nodes:data.nodes }
+    }
+
+
     pub fn new(mut container: C) -> TreeOwned<C>
     where
         C::T: ManySwap,
@@ -133,6 +146,7 @@ where
 
         let ttt = Tree::new(bots);
 
+        //TODO use TreeData struct?
         let nodes = ttt.nodes.into_iter().map(|x| x.as_data()).collect();
 
         TreeOwned { container, nodes }
@@ -184,6 +198,20 @@ pub struct Tree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
+
+
+    pub fn get_tree_data(&self)->TreeData<T::Num>{
+        let nodes = self.nodes.iter().map(|x| x.as_data()).collect();
+        TreeData { nodes }
+    }
+
+
+    pub fn into_nodes(self)->Vec<Node<'a,T>>{
+        self.nodes
+    }
+    
+
+
     pub fn new(bots: &'a mut [T]) -> Self
     where
         T: ManySwap,
