@@ -41,28 +41,30 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 10.0;
     let line_width = 1.0;
 
-    let centers:Vec<Vec2<f32>>=support::make_rand(dim)
-        .take(200).map(|x|x.into()).collect();
+    let centers: Vec<Vec2<f32>> = support::make_rand(dim)
+        .take(200)
+        .map(|x| x.into())
+        .collect();
 
-
-    let mut tree={
-        let mut vv = centers.iter().enumerate()
-            .map(|(i,center)| {
-                (Rect::from_point(*center, vec2same(radius)), i)
-            })
+    let mut tree = {
+        let mut vv = centers
+            .iter()
+            .map(|center| (Rect::from_point(*center, vec2same(radius)), center))
             .collect::<Vec<_>>();
 
-        let tree=broccoli::Tree::new(&mut vv);
-        let data=tree.get_tree_data();
-        let new_elem:Vec<_>=vv.into_iter().map(|x|(x.0,Bot{center:centers[x.1]})).collect();
-        broccoli::TreeOwned::from_tree_data(new_elem,data)
+        let tree = broccoli::Tree::new(&mut vv);
+        let data = tree.get_tree_data();
+        let new_elem: Vec<_> = vv
+            .into_iter()
+            .map(|x| (x.0, Bot { center: *x.1 }))
+            .collect();
+        broccoli::TreeOwned::from_tree_data(new_elem, data)
     };
-
 
     let circle_save = {
         let mut f = vec![];
         for &b in centers.iter() {
-            let k:[f32;2]=b.into();
+            let k: [f32; 2] = b.into();
             f.push(k);
         }
         ctx.buffer_static(&f)
@@ -70,7 +72,6 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
     let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
-
 
     let mut handler = MyRaycast { radius };
 
