@@ -91,15 +91,11 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut handler = MyKnearest { verts: vec![] };
 
         if check_naive {
-            Assert::new(&mut bots.clone()).assert_k_nearest_mut(
-                cursor,
-                3,
-                &mut handler,
-            );
+            Assert::new(&mut bots.clone()).assert_k_nearest_mut(cursor, 3, &mut handler);
             handler.verts.clear();
         }
 
-        let mut tree=broccoli::Tree::from_tree_data(&mut bots,&tree_data);
+        let mut tree = broccoli::Tree::from_tree_data(&mut bots, &tree_data);
         verts.clear();
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);

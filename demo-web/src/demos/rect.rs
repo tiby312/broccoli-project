@@ -23,7 +23,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             cursor, sys, ctx, ..
         } = data;
 
-        let mut tree = broccoli::Tree::from_tree_data(&mut bots,&tree_data);
+        let mut tree = broccoli::Tree::from_tree_data(&mut bots, &tree_data);
 
         let cc: Vec2<i32> = cursor.inner_as();
         let mut r1 = axgeom::Rect::new(cc.x - 100, cc.x + 100, cc.y - 100, cc.y + 100);

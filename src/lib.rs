@@ -83,13 +83,12 @@ mod tests;
 
 pub mod queries;
 
-
 ///
 /// Used to de-couple tree information from
 /// the underlying lifetimed slice of elements.
-/// 
-pub struct TreeData<N:Num>{
-    nodes:Vec<NodeData<N>>
+///
+pub struct TreeData<N: Num> {
+    nodes: Vec<NodeData<N>>,
 }
 
 ///
@@ -100,8 +99,7 @@ pub struct Tree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
-
-    pub fn into_nodes(self)->Vec<Node<'a,T>>{
+    pub fn into_nodes(self) -> Vec<Node<'a, T>> {
         self.nodes
     }
 
@@ -109,19 +107,17 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     /// Store tree data such as the number of
     /// elements per node, as well as the bounding
     /// range for each node.
-    /// 
-    pub fn get_tree_data(&self)->TreeData<T::Num>{
+    ///
+    pub fn get_tree_data(&self) -> TreeData<T::Num> {
         let nodes = self.nodes.iter().map(|x| x.as_data()).collect();
         TreeData { nodes }
     }
 
-    
     ///
     /// Create a Tree using stored treedata and the original
     /// list of elements in the same order!
-    /// 
-    pub fn from_tree_data(bots:&'a mut [T],data:&TreeData<T::Num>)->Self{
-        
+    ///
+    pub fn from_tree_data(bots: &'a mut [T], data: &TreeData<T::Num>) -> Self {
         let mut last = Some(bots);
         let nodes = data
             .nodes

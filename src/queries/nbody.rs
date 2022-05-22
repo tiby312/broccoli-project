@@ -44,7 +44,6 @@ pub trait Nbody {
 }
 
 use compt::dfs_order::InOrder;
-use compt::dfs_order::PreOrder;
 use compt::dfs_order::VistrMut;
 
 struct NodeWrapper<'a, T: Aabb, M> {

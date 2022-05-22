@@ -77,7 +77,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             Assert::new(&mut walls.clone()).assert_raycast(ray, &mut handler);
         }
 
-        let mut tree = broccoli::Tree::from_tree_data(&mut walls,&tree_data);
+        let mut tree = broccoli::Tree::from_tree_data(&mut walls, &tree_data);
 
         //Draw the walls
         verts.clear();

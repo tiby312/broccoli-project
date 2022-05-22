@@ -182,34 +182,6 @@ macro_rules! run_test {
     };
 }
 
-fn profile_test_owned(num_bots: usize) {
-    let grow = 0.02; // DEFAULT_GROW;
-                     //let num_bots = 50_000;
-    use crate::support::*;
-    let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
-
-    let bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
-
-    let bots: Vec<_> = bots
-        .into_iter()
-        .enumerate()
-        .map(|(i, x)| ManySwapBBox(x.0, i))
-        .collect();
-
-    for _ in 0..30 {
-        let c0 = bench_closure(|| {
-            let mut tree = broccoli::TreeOwned::new(bots.clone());
-
-            tree.as_tree().find_colliding_pairs(|a, b| {
-                bot_inner[a.1] += 1;
-                bot_inner[b.1] += 1;
-            });
-        });
-
-        dbg!(c0);
-    }
-}
-
 fn profile_test(num_bots: usize) {
     let grow = 0.02; // DEFAULT_GROW;
                      //let num_bots = 50_000;
@@ -261,9 +233,6 @@ fn main() {
     match args[1].as_ref() {
         "profile" => {
             profile_test(args[2].parse().unwrap());
-        }
-        "profile_owned" => {
-            profile_test_owned(args[2].parse().unwrap());
         }
         "profile_cmp" => {
             let grow = DEFAULT_GROW;

@@ -1,7 +1,6 @@
 use super::*;
 
 use axgeom::Ray;
-use broccoli::Assert;
 
 #[derive(Copy, Clone)]
 struct Bot {
@@ -58,7 +57,6 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .map(|x| (x.0, Bot { center: *x.1 }))
         .collect();
 
-
     let circle_save = {
         let mut f = vec![];
         for &b in centers.iter() {
@@ -104,7 +102,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         }
         */
 
-        let mut tree = broccoli::Tree::from_tree_data(&mut new_elem,&tree_data);
+        let mut tree = broccoli::Tree::from_tree_data(&mut new_elem, &tree_data);
 
         for dir in 0..1000i32 {
             let dir = (dir as f32) * (std::f32::consts::TAU / 1000.0);
