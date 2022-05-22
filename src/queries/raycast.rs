@@ -349,7 +349,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
     }
 }
 
-impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
+impl<'a, T: Aabb + ManySwappable> Assert<'a, T> {
     ///Panics if a disconnect is detected between tree and naive queries.
     pub fn assert_raycast(&mut self, ray: axgeom::Ray<T::Num>, mut rtrait: impl RayCast<T>)
     where

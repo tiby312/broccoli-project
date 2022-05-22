@@ -6,7 +6,11 @@ use broccoli::Assert;
 struct MyRaycast {
     radius: f32,
 }
-impl<'a> broccoli::queries::raycast::RayCast<ManySwapBBox<f32, Vec2<f32>>> for MyRaycast {
+
+//  ManySwapBBox<f32, Vec2<f32>>
+//  ManySwapBBox((Rect<f32>, Vec2<f32>))
+
+impl<'a> broccoli::queries::raycast::RayCast<ManySwap<(Rect<f32>, Vec2<f32>)>> for MyRaycast {
     fn cast_to_aaline<A: Axis>(
         &mut self,
         ray: &Ray<f32>,
@@ -19,17 +23,17 @@ impl<'a> broccoli::queries::raycast::RayCast<ManySwapBBox<f32, Vec2<f32>>> for M
     fn cast_broad(
         &mut self,
         ray: &Ray<f32>,
-        a: AabbPin<&mut ManySwapBBox<f32, Vec2<f32>>>,
+        a: AabbPin<&mut ManySwap<(Rect<f32>, Vec2<f32>)>>,
     ) -> Option<axgeom::CastResult<f32>> {
-        Some(ray.cast_to_rect(a.get()))
+        Some(ray.cast_to_rect(a.0.get()))
     }
 
     fn cast_fine(
         &mut self,
         ray: &Ray<f32>,
-        a: AabbPin<&mut ManySwapBBox<f32, Vec2<f32>>>,
+        a: AabbPin<&mut ManySwap<(Rect<f32>, Vec2<f32>)>>,
     ) -> axgeom::CastResult<f32> {
-        ray.cast_to_circle(a.1, self.radius)
+        ray.cast_to_circle(a.0 .1, self.radius)
     }
 }
 
@@ -41,14 +45,14 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .take(200)
         .map(|x| {
             let x: Vec2<f32> = x.into();
-            ManySwapBBox(Rect::from_point(x, vec2same(radius)), x)
+            ManySwap((Rect::from_point(x, vec2same(radius)), x))
         })
         .collect();
 
     let circle_save = {
         let mut f = vec![];
         for &b in centers.iter() {
-            let k: [f32; 2] = b.1.into();
+            let k: [f32; 2] = b.0 .1.into();
             f.push(k);
         }
         ctx.buffer_static(&f)

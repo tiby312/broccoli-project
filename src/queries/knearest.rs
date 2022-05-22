@@ -427,7 +427,7 @@ impl<'a, T: Aabb> KResult<'a, T> {
     }
 }
 
-impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
+impl<'a, T: Aabb + ManySwappable> Assert<'a, T> {
     ///Panics if a disconnect is detected between tree and naive queries.
     pub fn assert_k_nearest_mut(
         &mut self,

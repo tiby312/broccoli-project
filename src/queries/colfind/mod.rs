@@ -34,14 +34,14 @@ impl<'a, T: Aabb> Assert<'a, T> {
         let mut bots: Vec<_> = bots
             .iter_mut()
             .enumerate()
-            .map(|(i, x)| ManySwapBBox(*x.get(), i))
+            .map(|(i, x)| ManySwap((*x.get(), i)))
             .collect();
         let bots = bots.as_mut_slice();
 
         let naive_res = {
             let mut cc = CollisionPtr::new();
             Naive::new(bots).find_colliding_pairs(|a, b| {
-                cc.add_pair(a.1, b.1);
+                cc.add_pair(a.0 .1, b.0 .1);
             });
             cc.finish();
             cc
@@ -51,7 +51,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
             let mut cc = CollisionPtr::new();
 
             Tree::new(bots).find_colliding_pairs(|a, b| {
-                cc.add_pair(a.1, b.1);
+                cc.add_pair(a.0 .1, b.0 .1);
             });
             cc.finish();
             cc
@@ -61,7 +61,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
             let mut cc = CollisionPtr::new();
 
             NotSortedTree::new(bots).find_colliding_pairs(|a, b| {
-                cc.add_pair(a.1, b.1);
+                cc.add_pair(a.0 .1, b.0 .1);
             });
             cc.finish();
             cc
@@ -70,7 +70,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
         let sweep_res = {
             let mut cc = CollisionPtr::new();
             SweepAndPrune::new(bots).find_colliding_pairs(|a, b| {
-                cc.add_pair(a.1, b.1);
+                cc.add_pair(a.0 .1, b.0 .1);
             });
             cc.finish();
             cc

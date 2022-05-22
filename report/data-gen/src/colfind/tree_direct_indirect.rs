@@ -16,7 +16,7 @@ struct TestResult {
     query: f64,
 }
 
-fn test_seq<T: Aabb + ManySwap>(
+fn test_seq<T: Aabb + ManySwappable>(
     bots: &mut [T],
     func: impl Fn(AabbPin<&mut T>, AabbPin<&mut T>),
 ) -> TestResult {
@@ -92,7 +92,7 @@ impl CompleteTestResult {
             let bots =
                 distribute_iter(grow, (0..num_bots as isize).map(|a| (a, t)), |a| a.to_i32());
 
-            let mut bots: Vec<_> = bots.into_iter().map(|x| ManySwapBBox(x.0, x.1)).collect();
+            let mut bots: Vec<_> = bots.into_iter().map(ManySwap).collect();
 
             test_seq(&mut bots, |b, c| {
                 b.unpack_inner().0 += 1;

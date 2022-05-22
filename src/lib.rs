@@ -139,7 +139,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     pub fn new(bots: &'a mut [T]) -> Self
     where
-        T: ManySwap,
+        T: ManySwappable,
     {
         let (nodes, _) = BuildArgs::new(bots.len()).build_ext(bots, &mut DefaultSorter);
 
@@ -149,7 +149,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     #[cfg(feature = "parallel")]
     pub fn par_new(bots: &'a mut [T]) -> Self
     where
-        T: ManySwap,
+        T: ManySwappable,
         T: Send,
         T::Num: Send,
     {
@@ -160,7 +160,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
     where
-        T: ManySwap,
+        T: ManySwappable,
     {
         let (nodes, s) = args.build_ext(bots, &mut DefaultSorter);
         (Tree { nodes }, s)
@@ -169,7 +169,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     #[cfg(feature = "parallel")]
     pub fn par_from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
     where
-        T: ManySwap,
+        T: ManySwappable,
         T: Send,
         T::Num: Send,
         P: Send,
@@ -228,7 +228,7 @@ pub struct NotSortedTree<'a, T: Aabb> {
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
     pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
     where
-        T: ManySwap,
+        T: ManySwappable,
     {
         let (nodes, s) = args.build_ext(bots, &mut NoSorter);
         (NotSortedTree { nodes }, s)
@@ -237,7 +237,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
     #[cfg(feature = "parallel")]
     pub fn par_from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
     where
-        T: ManySwap,
+        T: ManySwappable,
         T: Send,
         T::Num: Send,
         P: Send,
@@ -248,7 +248,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
 
     pub fn new(bots: &'a mut [T]) -> Self
     where
-        T: ManySwap,
+        T: ManySwappable,
     {
         let (nodes, _) = BuildArgs::new(bots.len()).build_ext(bots, &mut NoSorter);
 
@@ -258,7 +258,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
     #[cfg(feature = "parallel")]
     pub fn par_new(bots: &'a mut [T]) -> Self
     where
-        T: ManySwap,
+        T: ManySwappable,
         T: Send,
         T::Num: Send,
     {
