@@ -83,80 +83,47 @@ mod tests;
 
 pub mod queries;
 
+
 ///
-/// Abstract over containers that produce `&mut [T]`
-///
-pub trait Container {
-    type T;
-    fn as_mut(&mut self) -> &mut [Self::T];
-}
-
-impl<T, const N: usize> Container for [T; N] {
-    type T = T;
-    fn as_mut(&mut self) -> &mut [T] {
-        self
-    }
-}
-impl<T> Container for Vec<T> {
-    type T = T;
-    fn as_mut(&mut self) -> &mut [Self::T] {
-        self
-    }
-}
-impl<T> Container for Box<[T]> {
-    type T = T;
-    fn as_mut(&mut self) -> &mut [Self::T] {
-        self
-    }
-}
-
-
+/// Used to de-couple tree information from
+/// the underlying lifetimed slice of elements.
+/// 
 pub struct TreeData<N:Num>{
     nodes:Vec<NodeData<N>>
 }
 
-
 ///
-/// An owned version of [`Tree`]
+/// A broccoli Tree.
 ///
-pub struct TreeOwned<C: Container>
-where
-    C::T: Aabb,
-{
-    container: C,
-    nodes: Vec<NodeData<<C::T as Aabb>::Num>>,
+pub struct Tree<'a, T: Aabb> {
+    nodes: Vec<Node<'a, T>>,
 }
 
-impl<C: Container> TreeOwned<C>
-where
-    C::T: Aabb,
-{
+impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
-
-    pub fn from_tree_data(container:C,data:TreeData<<C::T as Aabb>::Num>)->TreeOwned<C>{
-        TreeOwned { container, nodes:data.nodes }
+    pub fn into_nodes(self)->Vec<Node<'a,T>>{
+        self.nodes
     }
 
-
-    pub fn new(mut container: C) -> TreeOwned<C>
-    where
-        C::T: ManySwap,
-    {
-        let bots = container.as_mut();
-
-        let ttt = Tree::new(bots);
-
-        //TODO use TreeData struct?
-        let nodes = ttt.nodes.into_iter().map(|x| x.as_data()).collect();
-
-        TreeOwned { container, nodes }
+    ///
+    /// Store tree data such as the number of
+    /// elements per node, as well as the bounding
+    /// range for each node.
+    /// 
+    pub fn get_tree_data(&self)->TreeData<T::Num>{
+        let nodes = self.nodes.iter().map(|x| x.as_data()).collect();
+        TreeData { nodes }
     }
 
-    pub fn as_tree(&mut self) -> Tree<C::T> {
-        let bots = self.container.as_mut();
-
+    
+    ///
+    /// Create a Tree using stored treedata and the original
+    /// list of elements in the same order!
+    /// 
+    pub fn from_tree_data(bots:&'a mut [T],data:&TreeData<T::Num>)->Self{
+        
         let mut last = Some(bots);
-        let nodes = self
+        let nodes = data
             .nodes
             .iter()
             .map(|x| {
@@ -173,44 +140,6 @@ where
         assert!(last.unwrap().is_empty());
         Tree { nodes }
     }
-
-    #[must_use]
-    pub fn as_slice_mut(&mut self) -> AabbPin<&mut [C::T]> {
-        let j = self.container.as_mut();
-
-        AabbPin::new(j)
-    }
-
-    pub fn as_container(&self) -> &C {
-        &self.container
-    }
-
-    pub fn into_container(self) -> C {
-        self.container
-    }
-}
-
-///
-/// A broccoli Tree.
-///
-pub struct Tree<'a, T: Aabb> {
-    nodes: Vec<Node<'a, T>>,
-}
-
-impl<'a, T: Aabb + 'a> Tree<'a, T> {
-
-
-    pub fn get_tree_data(&self)->TreeData<T::Num>{
-        let nodes = self.nodes.iter().map(|x| x.as_data()).collect();
-        TreeData { nodes }
-    }
-
-
-    pub fn into_nodes(self)->Vec<Node<'a,T>>{
-        self.nodes
-    }
-    
-
 
     pub fn new(bots: &'a mut [T]) -> Self
     where

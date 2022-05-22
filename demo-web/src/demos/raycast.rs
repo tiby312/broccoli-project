@@ -1,7 +1,7 @@
 use super::*;
 
 use axgeom::Ray;
-use broccoli::{Assert, TreeData};
+use broccoli::Assert;
 
 #[derive(Copy, Clone)]
 struct Bot {
@@ -46,20 +46,18 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .map(|x| x.into())
         .collect();
 
-    let mut tree = {
-        let mut vv = centers
-            .iter()
-            .map(|center| (Rect::from_point(*center, vec2same(radius)), center))
-            .collect::<Vec<_>>();
+    let mut vv = centers
+        .iter()
+        .map(|center| (Rect::from_point(*center, vec2same(radius)), center))
+        .collect::<Vec<_>>();
 
-        let tree = broccoli::Tree::new(&mut vv);
-        let data = tree.get_tree_data();
-        let new_elem: Vec<_> = vv
-            .into_iter()
-            .map(|x| (x.0, Bot { center: *x.1 }))
-            .collect();
-        broccoli::TreeOwned::from_tree_data(new_elem, data)
-    };
+    let tree = broccoli::Tree::new(&mut vv);
+    let tree_data = tree.get_tree_data();
+    let mut new_elem: Vec<_> = vv
+        .into_iter()
+        .map(|x| (x.0, Bot { center: *x.1 }))
+        .collect();
+
 
     let circle_save = {
         let mut f = vec![];
@@ -106,7 +104,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         }
         */
 
-        let mut tree = tree.as_tree();
+        let mut tree = broccoli::Tree::from_tree_data(&mut new_elem,&tree_data);
 
         for dir in 0..1000i32 {
             let dir = (dir as f32) * (std::f32::consts::TAU / 1000.0);

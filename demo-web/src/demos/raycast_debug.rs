@@ -35,18 +35,18 @@ impl broccoli::queries::raycast::RayCast<BBox<f32, ()>> for MyRaycast {
 }
 
 pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
-    let walls = support::make_rand_rect(dim, [1.0, 4.0])
+    let mut walls = support::make_rand_rect(dim, [1.0, 4.0])
         .take(2000)
         .map(|a| bbox(a, ()))
         .collect::<Vec<_>>()
         .into_boxed_slice();
 
     let mut counter: f32 = 0.0;
-    let mut tree = broccoli::TreeOwned::new(walls);
+    let tree_data = broccoli::Tree::new(&mut walls).get_tree_data();
 
     let rect_save = {
         let mut verts = vec![];
-        for bot in tree.as_slice_mut().iter() {
+        for bot in walls.iter() {
             verts.rect(bot.rect);
         }
         ctx.buffer_static(&verts)
@@ -74,10 +74,10 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut handler = MyRaycast { verts: vec![] };
 
         if check_naive {
-            Assert::new(&mut tree.as_container().clone()).assert_raycast(ray, &mut handler);
+            Assert::new(&mut walls.clone()).assert_raycast(ray, &mut handler);
         }
 
-        let mut tree = tree.as_tree();
+        let mut tree = broccoli::Tree::from_tree_data(&mut walls,&tree_data);
 
         //Draw the walls
         verts.clear();

@@ -1,11 +1,10 @@
 use super::*;
 
 pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
-    let bots = support::make_rand_rect(dim, [5.0, 20.0])
+    let mut bots = support::make_rand_rect(dim, [5.0, 20.0])
         .take(200)
         .map(|rect| bbox(rect.inner_as::<i32>(), ()))
-        .collect::<Vec<_>>()
-        .into_boxed_slice();
+        .collect::<Vec<_>>();
 
     let rect_save = {
         let mut verts = vec![];
@@ -17,14 +16,14 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
     let mut buffer = ctx.buffer_dynamic();
 
-    let mut tree = broccoli::TreeOwned::new(bots);
+    let tree_data = broccoli::Tree::new(&mut bots).get_tree_data();
 
     move |data| {
         let DemoData {
             cursor, sys, ctx, ..
         } = data;
 
-        let mut tree = tree.as_tree();
+        let mut tree = broccoli::Tree::from_tree_data(&mut bots,&tree_data);
 
         let cc: Vec2<i32> = cursor.inner_as();
         let mut r1 = axgeom::Rect::new(cc.x - 100, cc.x + 100, cc.y - 100, cc.y + 100);

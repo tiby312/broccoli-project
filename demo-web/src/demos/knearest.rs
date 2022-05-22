@@ -56,11 +56,10 @@ impl broccoli::queries::knearest::Knearest<BBox<f32, ()>> for MyKnearest {
 }
 
 pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
-    let bots = support::make_rand_rect(dim, [1.0, 8.0])
+    let mut bots = support::make_rand_rect(dim, [1.0, 8.0])
         .take(500)
         .map(|rect| bbox(rect, ()))
-        .collect::<Vec<_>>()
-        .into_boxed_slice();
+        .collect::<Vec<_>>();
 
     let rect_save = {
         let mut verts = vec![];
@@ -70,7 +69,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         ctx.buffer_static(&verts)
     };
 
-    let mut tree = broccoli::TreeOwned::new(bots);
+    let tree_data = broccoli::Tree::new(&mut bots).get_tree_data();
 
     let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
@@ -92,7 +91,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut handler = MyKnearest { verts: vec![] };
 
         if check_naive {
-            Assert::new(&mut tree.as_container().clone()).assert_k_nearest_mut(
+            Assert::new(&mut bots.clone()).assert_k_nearest_mut(
                 cursor,
                 3,
                 &mut handler,
@@ -100,7 +99,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             handler.verts.clear();
         }
 
-        let mut tree = tree.as_tree();
+        let mut tree=broccoli::Tree::from_tree_data(&mut bots,&tree_data);
         verts.clear();
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
