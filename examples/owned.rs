@@ -1,11 +1,14 @@
-use broccoli::tree::{node::ManySwap, rect};
+use broccoli::tree::rect;
+
 fn main() {
-    let mut acc = [0; 3];
+    let mut a = 0;
+    let mut b = 0;
+    let mut c = 0;
 
     let mut aabbs = [
-        ManySwap((rect(00, 10, 00, 10), 0)),
-        ManySwap((rect(15, 20, 15, 20), 1)),
-        ManySwap((rect(05, 15, 05, 15), 2)),
+        (rect(00, 10, 00, 10), &mut a),
+        (rect(15, 20, 15, 20), &mut b),
+        (rect(05, 15, 05, 15), &mut c),
     ];
 
     // This is not lifetimed!
@@ -20,9 +23,9 @@ fn main() {
 
     //Find all colliding aabbs.
     tree.find_colliding_pairs(|a, b| {
-        acc[a.0 .1] += 1;
-        acc[b.0 .1] += 1;
+        **a.unpack_inner() += 1;
+        **b.unpack_inner() += 1;
     });
 
-    assert_eq!(acc, [1, 1, 2]);
+    assert_eq!([a, b, c], [1, 1, 2]);
 }
