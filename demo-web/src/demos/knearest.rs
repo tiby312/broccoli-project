@@ -96,6 +96,8 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         }
 
         let mut tree = broccoli::Tree::from_tree_data(&mut bots, &tree_data);
+        tree.assert_tree_invariants();
+
         verts.clear();
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
