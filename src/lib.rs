@@ -85,7 +85,10 @@ pub mod queries;
 
 ///
 /// Used to de-couple tree information from
-/// the underlying lifetimed slice of elements.
+/// the underlying lifetimed slice of elements
+/// to be combined again later on.
+/// 
+/// See [`Tree::get_tree_data()`] and [`Tree::from_tree_data()`]
 ///
 pub struct TreeData<N: Num> {
     nodes: Vec<NodeData<N>>,
@@ -115,8 +118,16 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     ///
     /// Create a Tree using stored treedata and the original
-    /// list of elements in the same order!
-    ///
+    /// list of elements in the same order.
+    /// 
+    /// Use this function if you want to store a constructed tree
+    /// outisde of lifetimes. 
+    /// 
+    /// It is the user responsiblity to feed this function the same
+    /// distribution of aabbs in the same order as the distribution that
+    /// was used in the original tree from which [`Tree::get_tree_data()`] was called.
+    /// Not doing so will make an invalid tree with no error notification.
+    /// 
     pub fn from_tree_data(bots: &'a mut [T], data: &TreeData<T::Num>) -> Self {
         let mut last = Some(bots);
         let nodes = data
