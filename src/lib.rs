@@ -3,9 +3,13 @@
 //!
 //! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
 //!
-//! ### Data Structure
+//! ### Size of `T` in `Tree`
 //!
-//! Using this crate, the user can create three flavors of the same fundamental data structure.
+//! During construction, the elements of a tree are swapped around a lot. Therefore if the size
+//! of T is too big, the performance can regress a lot! To combat this, consider using the semi-direct
+//! or even indirect layouts listed below. The Indirect layout achieves the smallest element size (just one pointer),
+//! however it can suffer from a lot of cache misses of large propblem sizes. The Semi-direct layout
+//! is more cache-friendly but can use more memory.
 //! The different characteristics are explored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
 //! In almost all cases you want to use the Semi-direct layout.
 //!
@@ -13,13 +17,13 @@
 //! - `(Rect<N>,T)` Direct
 //! - `&mut (Rect<N>,T)` Indirect
 //!
-//! ### Size of T
-//!
-//! During construction, the elements of a tree are swapped around a lot. Therefore if the size
-//! of T is too big, the performance can regress a lot! To combat this, consider using the semi-direct
-//! or even indirect layouts. The Indirect layout achieves the smallest element size (just one pointer),
-//! however it can suffer from a lot of cache misses of large propblem sizes. The Semi-direct layout
-//! is more cache-friendly.
+//! I made the [`ManySwappable`] marker trait to help bring awareness to this performance regression trap.
+//! It is implemented on a lot of types that are guaranteed to be small. 
+//! If you know what you are doing you can use the ManySwap wrapper struct that automatically 
+//! implements that trait, or implement it yourself on your own type. 
+//! 
+//! You can also construct a Tree using Semi-direct or indirect, and then convert it to direct. (See
+//! the [`Tree::from_tree_data()`] function.) However, I'm not sure if there are performance benefits to this.
 //!
 //! ### Parallelism
 //!
@@ -121,16 +125,17 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     /// list of elements in the same order.
     ///
     /// Use this function if you want to store a constructed tree
-    /// outisde of lifetimes.
+    /// outside of lifetimes.
     ///
-    /// It is the user responsiblity to feed this function the same
+    /// It is the user responsibility to feed this function the same
     /// distribution of aabbs in the same order as the distribution that
     /// was used in the original tree from which [`Tree::get_tree_data()`] was called.
     /// Not doing so will make an invalid tree with no error notification.
     ///
     /// Consider calling [`Tree::assert_tree_invariants()`] after tree construction
-    /// if you don't know if it was the same distribution.
-    /// 
+    /// if you don't know if it was the same distribution which will atleast tell
+    /// you if the distribution makes a valid tree.
+    ///
     pub fn from_tree_data(bots: &'a mut [T], data: &TreeData<T::Num>) -> Self {
         let mut last = Some(bots);
         let nodes = data

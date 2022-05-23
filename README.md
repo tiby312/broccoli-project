@@ -33,7 +33,7 @@ cost of each algorithm in general.
 | rect             |   1  |         2     |
 | nbody            |  10  |         1     |
 
-Numbers are completely made up. For more in-depth analysis, see the [broccoli book](https://tiby312.github.io/broccoli_report).
+Numbers are out of 10 and are just rough made up numbers. For more in-depth analysis, see the [broccoli book](https://tiby312.github.io/broccoli_report).
 
 ### Example
 
