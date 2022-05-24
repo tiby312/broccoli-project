@@ -447,11 +447,11 @@ fn handle_perp<T: Aabb, A: Axis>(
 
     let mut r2 = super::tools::get_section_mut(current_axis, f.anchor.range, cc2.cont);
 
-    //iterate over current nodes botd
-    for y in r1.iter_mut() {
-        let r2 = r2.borrow_mut();
+    if is_left {
+        //iterate over current nodes botd
+        for y in r1.iter_mut() {
+            let r2 = r2.borrow_mut();
 
-        if is_left {
             oned::find_perp_2d1_once(
                 current_axis,
                 y,
@@ -462,7 +462,12 @@ fn handle_perp<T: Aabb, A: Axis>(
                     }
                 },
             );
-        } else {
+        }
+    } else {
+        //iterate over current nodes botd
+        for y in r1.iter_mut() {
+            let r2 = r2.borrow_mut();
+
             oned::find_perp_2d1_once(
                 current_axis,
                 y,
