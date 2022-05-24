@@ -207,8 +207,8 @@ where
     }
 
     #[inline(always)]
-    fn handle_children(&mut self, f: HandleChildrenArgs<T>) {
-        handle_children(&mut self.prevec, &mut self.acc, f)
+    fn handle_children(&mut self, f: HandleChildrenArgs<T>,is_left:bool) {
+        handle_children(&mut self.prevec, &mut self.acc, f,is_left)
     }
 }
 
@@ -306,7 +306,7 @@ fn handle_node<T: Aabb, F>(
     prevec.insert_vec(k);
 }
 
-fn handle_children<T: Aabb, F>(prevec: &mut PreVec, func: &mut F, f: HandleChildrenArgs<T>)
+fn handle_children<T: Aabb, F>(prevec: &mut PreVec, func: &mut F, f: HandleChildrenArgs<T>,is_left:bool)
 where
     F: CollisionHandler<T>,
 {
@@ -317,8 +317,8 @@ where
             let mut k = twounordered::TwoUnorderedVecs::from(prevec.extract_vec());
 
             match f.anchor_axis {
-                X => handle_parallel(XAXIS, &mut k, func, f),
-                Y => handle_parallel(YAXIS, &mut k, func, f),
+                X => handle_parallel(XAXIS, &mut k, func, f,is_left),
+                Y => handle_parallel(YAXIS, &mut k, func, f,is_left),
             }
 
             let mut j: Vec<_> = k.into();
@@ -407,7 +407,7 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoS
         }
     }
 
-    fn handle_children(&mut self, mut f: HandleChildrenArgs<T>) {
+    fn handle_children(&mut self, mut f: HandleChildrenArgs<T>,_is_left:bool) {
         let res = if !f.current_axis.is_equal_to(f.anchor_axis) {
             true
         } else {
@@ -499,6 +499,7 @@ fn handle_parallel<'a, T: Aabb, A: Axis>(
     prevec: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
     func: &mut impl CollisionHandler<T>,
     f: HandleChildrenArgs<'a, T>,
+    _is_left:bool
 ) {
     let anchor_div = f.anchor.div;
 

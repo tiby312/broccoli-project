@@ -89,7 +89,8 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
                             current: nn.borrow_mut().into_node_ref(),
                             current_axis: this_axis,
                             current_is_leaf,
-                        });
+                            
+                        },is_left);
 
                         if let Some([left, right]) = rest {
                             if let Some(div) = nn.div {
@@ -195,7 +196,7 @@ pub struct HandleChildrenArgs<'a, T: Aabb> {
 pub trait NodeHandler<T: Aabb> {
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool);
 
-    fn handle_children(&mut self, floop: HandleChildrenArgs<T>);
+    fn handle_children(&mut self, floop: HandleChildrenArgs<T>,is_left:bool);
 }
 
 pub struct DNode<'a, T: Aabb> {
