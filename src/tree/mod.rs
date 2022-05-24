@@ -158,7 +158,7 @@ impl<P: Splitter> BuildArgs<P> {
             splitter: self.splitter,
         }
     }
-    pub fn build_ext<'a, T: Aabb + ManySwappable, S>(
+    pub fn build_ext<'a, T: Aabb + ManySwap, S>(
         mut self,
         bots: &'a mut [T],
         sorter: &mut S,
@@ -178,7 +178,7 @@ impl<P: Splitter> BuildArgs<P> {
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_build_ext<'a, T: Aabb + ManySwappable, S>(
+    pub fn par_build_ext<'a, T: Aabb + ManySwap, S>(
         mut self,
         bots: &'a mut [T],
         sorter: &mut S,
@@ -202,7 +202,7 @@ impl<P: Splitter> BuildArgs<P> {
     }
 }
 
-fn recurse_seq<'a, T: Aabb + ManySwappable, S: Sorter<T>, P: Splitter>(
+fn recurse_seq<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
     splitter: &mut P,
     sorter: &mut S,
     buffer: &mut Vec<Node<'a, T>>,
@@ -221,7 +221,7 @@ fn recurse_seq<'a, T: Aabb + ManySwappable, S: Sorter<T>, P: Splitter>(
 }
 
 #[cfg(feature = "parallel")]
-fn recurse_par<'a, T: Aabb + ManySwappable, S: Sorter<T>, P: Splitter>(
+fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
     num_seq_fallback: usize,
     splitter: &mut P,
     sorter: &mut S,

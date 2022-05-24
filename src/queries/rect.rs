@@ -186,7 +186,7 @@ fn into_ptr_usize<T>(a: &T) -> usize {
     a as *const T as usize
 }
 
-impl<'a, T: Aabb + ManySwappable> Assert<'a, T> {
+impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
     ///Panics if a disconnect is detected between tree and naive queries.
     pub fn assert_rect(&mut self, rect: axgeom::Rect<T::Num>) {
         self.assert_for_all_not_in_rect_mut(rect);

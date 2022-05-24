@@ -34,7 +34,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
         let mut bots: Vec<_> = bots
             .iter_mut()
             .enumerate()
-            .map(|(i, x)| ManySwap((*x.get(), i)))
+            .map(|(i, x)| ManySwappable((*x.get(), i)))
             .collect();
         let bots = bots.as_mut_slice();
 

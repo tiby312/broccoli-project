@@ -4,7 +4,7 @@ use super::*;
 /// Singifies this object can be swapped around in a slice
 /// many times without much of a performance hit.
 ///
-pub trait ManySwappable {}
+pub trait ManySwap {}
 
 /// The underlying number type used for the tree.
 /// It is auto implemented by all types that satisfy the type constraints.
@@ -46,24 +46,24 @@ impl<N: Num> Aabb for Rect<N> {
         self
     }
 }
-impl<'a, N> ManySwappable for Rect<N> {}
-impl<'a, N> ManySwappable for &'a mut Rect<N> {}
+impl<'a, N> ManySwap for Rect<N> {}
+impl<'a, N> ManySwap for &'a mut Rect<N> {}
 
-impl<'a, N, T> ManySwappable for &'a mut (Rect<N>, T) {}
+impl<'a, N, T> ManySwap for &'a mut (Rect<N>, T) {}
 
-impl<'a, N, T> ManySwappable for (Rect<N>, &'a mut T) {}
-impl<'a, N, T> ManySwappable for (Rect<N>, &'a T) {}
+impl<'a, N, T> ManySwap for (Rect<N>, &'a mut T) {}
+impl<'a, N, T> ManySwap for (Rect<N>, &'a T) {}
 
-impl<'a, N> ManySwappable for (Rect<N>, ()) {}
-impl<'a, N> ManySwappable for (Rect<N>, usize) {}
-impl<'a, N> ManySwappable for (Rect<N>, u32) {}
-impl<'a, N> ManySwappable for (Rect<N>, u64) {}
+impl<'a, N> ManySwap for (Rect<N>, ()) {}
+impl<'a, N> ManySwap for (Rect<N>, usize) {}
+impl<'a, N> ManySwap for (Rect<N>, u32) {}
+impl<'a, N> ManySwap for (Rect<N>, u64) {}
 
 #[derive(Copy, Clone, Debug)]
-pub struct ManySwap<T>(pub T);
-impl<T> ManySwappable for ManySwap<T> {}
+pub struct ManySwappable<T>(pub T);
+impl<T> ManySwap for ManySwappable<T> {}
 
-impl<T: Aabb> Aabb for ManySwap<T> {
+impl<T: Aabb> Aabb for ManySwappable<T> {
     type Num = T::Num;
     #[inline(always)]
     fn get(&self) -> &Rect<Self::Num> {
@@ -71,7 +71,7 @@ impl<T: Aabb> Aabb for ManySwap<T> {
     }
 }
 
-impl<T: HasInner> HasInner for ManySwap<T> {
+impl<T: HasInner> HasInner for ManySwappable<T> {
     type Inner = T::Inner;
     #[inline(always)]
     fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
@@ -131,13 +131,13 @@ impl<N, T> BBox<N, T> {
         BBox { rect, inner }
     }
 
-    pub fn many_swap(self) -> ManySwap<Self> {
-        ManySwap(self)
+    pub fn many_swap(self) -> ManySwappable<Self> {
+        ManySwappable(self)
     }
 }
 
-impl<'a, N> ManySwappable for BBox<N, ()> {}
-impl<'a, N, T> ManySwappable for BBox<N, &'a mut T> {}
+impl<'a, N> ManySwap for BBox<N, ()> {}
+impl<'a, N, T> ManySwap for BBox<N, &'a mut T> {}
 
 impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;
@@ -180,7 +180,7 @@ pub struct BBoxMut<'a, N, T> {
     pub rect: axgeom::Rect<N>,
     pub inner: &'a mut T,
 }
-impl<'a, N, T> ManySwappable for BBoxMut<'a, N, T> {}
+impl<'a, N, T> ManySwap for BBoxMut<'a, N, T> {}
 
 impl<'a, N, T> BBoxMut<'a, N, T> {
     /// Constructor. Also consider using [`crate::bbox()`]

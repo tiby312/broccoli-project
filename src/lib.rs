@@ -17,9 +17,9 @@
 //! - `(Rect<N>,T)` Direct
 //! - `&mut (Rect<N>,T)` Indirect
 //!
-//! I made the [`ManySwappable`] marker trait to help bring awareness to this performance regression trap.
+//! I made the [`ManySwap`] marker trait to help bring awareness to this performance regression trap.
 //! It is implemented on a lot of types that are guaranteed to be small.
-//! If you know what you are doing you can use the ManySwap wrapper struct that automatically
+//! If you know what you are doing you can use the [`ManySwappable`] wrapper struct that automatically
 //! implements that trait, or implement it yourself on your own type.
 //!
 //! You can also construct a Tree using Semi-direct or indirect, and then convert it to direct. (See
@@ -159,7 +159,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     pub fn new(bots: &'a mut [T]) -> Self
     where
-        T: ManySwappable,
+        T: ManySwap,
     {
         let (nodes, _) = BuildArgs::new(bots.len()).build_ext(bots, &mut DefaultSorter);
 
@@ -169,7 +169,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     #[cfg(feature = "parallel")]
     pub fn par_new(bots: &'a mut [T]) -> Self
     where
-        T: ManySwappable,
+        T: ManySwap,
         T: Send,
         T::Num: Send,
     {
@@ -180,7 +180,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
     where
-        T: ManySwappable,
+        T: ManySwap,
     {
         let (nodes, s) = args.build_ext(bots, &mut DefaultSorter);
         (Tree { nodes }, s)
@@ -189,7 +189,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     #[cfg(feature = "parallel")]
     pub fn par_from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
     where
-        T: ManySwappable,
+        T: ManySwap,
         T: Send,
         T::Num: Send,
         P: Send,
@@ -248,7 +248,7 @@ pub struct NotSortedTree<'a, T: Aabb> {
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
     pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
     where
-        T: ManySwappable,
+        T: ManySwap,
     {
         let (nodes, s) = args.build_ext(bots, &mut NoSorter);
         (NotSortedTree { nodes }, s)
@@ -257,7 +257,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
     #[cfg(feature = "parallel")]
     pub fn par_from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
     where
-        T: ManySwappable,
+        T: ManySwap,
         T: Send,
         T::Num: Send,
         P: Send,
@@ -268,7 +268,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
 
     pub fn new(bots: &'a mut [T]) -> Self
     where
-        T: ManySwappable,
+        T: ManySwap,
     {
         let (nodes, _) = BuildArgs::new(bots.len()).build_ext(bots, &mut NoSorter);
 
@@ -278,7 +278,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
     #[cfg(feature = "parallel")]
     pub fn par_new(bots: &'a mut [T]) -> Self
     where
-        T: ManySwappable,
+        T: ManySwap,
         T: Send,
         T::Num: Send,
     {
