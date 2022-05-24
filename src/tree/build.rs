@@ -194,8 +194,28 @@ impl<'a, T: Aabb + ManySwappable> TreeBuildVisitor<'a, T> {
                     (min_cont, med_val, ll.len(), ml.len() + 1 + mr.len())
                 };
 
-                let (left, rest) = bots.split_at_mut(left_len);
-                let (middle, right) = rest.split_at_mut(mid_len);
+                // Re-arrange so we have preorder to match the nodes being
+                // in pre-rder.
+                let (a, b) = if left_len > mid_len {
+                    // |------left-----|--mid--|---right--|
+                    let (a, rest) = bots.split_at_mut(mid_len);
+                    let (_, rest) = rest.split_at_mut(left_len - mid_len);
+                    let (b, _) = rest.split_at_mut(mid_len);
+                    (a, b)
+                } else {
+                    // |-left-|------mid------|---right--|
+                    let (a, rest) = bots.split_at_mut(left_len);
+                    let (_, rest) = rest.split_at_mut(mid_len - left_len);
+                    let (b, _) = rest.split_at_mut(left_len);
+                    (a, b)
+                };
+                a.swap_with_slice(b);
+                let (middle, rest) = bots.split_at_mut(mid_len);
+                let (left, right) = rest.split_at_mut(left_len);
+
+                // If we want in-order use this instead of the above
+                //let (left, rest) = bots.split_at_mut(left_len);
+                //let (middle, right) = rest.split_at_mut(mid_len);
 
                 let max_cont = {
                     let mut ret = med_val;

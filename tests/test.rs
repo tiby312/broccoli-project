@@ -92,14 +92,14 @@ fn test_many() {
 
     assert_eq!(
         tree.vistr()
-            .dfs_inorder_iter()
+            .dfs_preorder_iter()
             .flat_map(|a| a.range.iter())
             .count(),
         40
     );
 
     let mut num_div = 0;
-    for b in tree.vistr().dfs_inorder_iter() {
+    for b in tree.vistr().dfs_preorder_iter() {
         if let Some(_) = b.div {
             if !b.range.is_empty() {
                 num_div += 1;

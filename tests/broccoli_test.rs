@@ -25,8 +25,11 @@ fn test1() {
 
             let mut bots: Vec<_> = bots.iter_mut().collect();
 
-            let mut tree = broccoli::Tree::new(&mut bots);
-
+            let tree = broccoli::Tree::new(&mut bots);
+            tree.assert_tree_invariants();
+            let data = tree.get_tree_data();
+            let mut tree = broccoli::Tree::from_tree_data(&mut bots, &data);
+            tree.assert_tree_invariants();
             tree.find_colliding_pairs(|a, b| {
                 let a = a.unpack_inner();
                 let b = b.unpack_inner();
@@ -34,7 +37,6 @@ fn test1() {
                 **b ^= 1;
             });
 
-            tree.assert_tree_invariants();
             Assert::new(&mut bots).assert_query();
         }
     }

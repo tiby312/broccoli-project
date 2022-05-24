@@ -209,7 +209,7 @@ impl<N: Num, T> HasInner for BBoxMut<'_, N, T> {
 /// When we traverse the tree in read-only mode, we can simply return a reference to each node.
 /// We don't need to protect the user from only mutating parts of the BBox's since they can't
 /// change anything.
-pub type Vistr<'a, N> = compt::dfs_order::Vistr<'a, N, compt::dfs_order::InOrder>;
+pub type Vistr<'a, N> = compt::dfs_order::Vistr<'a, N, compt::dfs_order::PreOrder>;
 
 mod vistr_mut {
     use super::*;
@@ -219,13 +219,13 @@ mod vistr_mut {
     #[repr(transparent)]
     #[must_use]
     pub struct VistrMutPin<'a, N> {
-        inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::InOrder>,
+        inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
     }
 
     impl<'a, N> VistrMutPin<'a, N> {
         #[inline(always)]
         pub(crate) fn new(
-            inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::InOrder>,
+            inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
         ) -> Self {
             VistrMutPin { inner }
         }

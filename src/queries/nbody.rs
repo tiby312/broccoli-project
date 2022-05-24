@@ -8,7 +8,7 @@
 //!
 use super::*;
 
-type NodeWrapperVistr<'a, 'b, T, M> = VistrMut<'a, NodeWrapper<'b, T, M>, InOrder>;
+type NodeWrapperVistr<'a, 'b, T, M> = VistrMut<'a, NodeWrapper<'b, T, M>, PreOrder>;
 
 ///Helper enum indicating whether or not to gravitate a node as a whole, or as its individual parts.
 pub enum GravEnum<'a, T: Aabb, M> {
@@ -43,7 +43,7 @@ pub trait Nbody {
     fn combine_two_masses(&mut self, a: &Self::Mass, b: &Self::Mass) -> Self::Mass;
 }
 
-use compt::dfs_order::InOrder;
+use compt::dfs_order::PreOrder;
 use compt::dfs_order::VistrMut;
 
 struct NodeWrapper<'a, T: Aabb, M> {
@@ -188,7 +188,7 @@ fn recc_common<'a, 'b, N: Nbody>(
 
 fn recc<N: Nbody>(
     axis: impl Axis,
-    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, InOrder>,
+    vistr: VistrMut<NodeWrapper<N::T, N::Mass>, PreOrder>,
     no: &mut N,
 ) {
     let keep_going = recc_common(axis, vistr, no);
@@ -205,13 +205,13 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
 
         let len = vistr
             .borrow_mut()
-            .dfs_inorder_iter()
+            .dfs_preorder_iter()
             .map(|x| x.node.range.borrow_mut().len())
             .sum();
 
         let it = vistr
             .borrow_mut()
-            .dfs_inorder_iter()
+            .dfs_preorder_iter()
             .flat_map(|x| x.node.range.borrow_mut().iter_mut());
 
         no.apply_a_mass(mass, it, len);
@@ -241,7 +241,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
                 })
                 .collect();
 
-            let tree = compt::dfs_order::CompleteTreeMut::from_inorder_mut(&mut newnodes).unwrap();
+            let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut newnodes).unwrap();
             let mut vistr = tree.vistr_mut();
 
             //calculate node masses of each node.
