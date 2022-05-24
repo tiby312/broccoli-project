@@ -83,14 +83,16 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
 
                         let (mut nn, rest) = m.next();
 
-                        self.handler.handle_children(HandleChildrenArgs {
-                            anchor: self.anchor.borrow(),
-                            anchor_axis: self.anchor_axis,
-                            current: nn.borrow_mut().into_node_ref(),
-                            current_axis: this_axis,
-                            current_is_leaf,
-                            
-                        },is_left);
+                        self.handler.handle_children(
+                            HandleChildrenArgs {
+                                anchor: self.anchor.borrow(),
+                                anchor_axis: self.anchor_axis,
+                                current: nn.borrow_mut().into_node_ref(),
+                                current_axis: this_axis,
+                                current_is_leaf,
+                            },
+                            is_left,
+                        );
 
                         if let Some([left, right]) = rest {
                             if let Some(div) = nn.div {
@@ -196,7 +198,7 @@ pub struct HandleChildrenArgs<'a, T: Aabb> {
 pub trait NodeHandler<T: Aabb> {
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool);
 
-    fn handle_children(&mut self, floop: HandleChildrenArgs<T>,is_left:bool);
+    fn handle_children(&mut self, floop: HandleChildrenArgs<T>, is_left: bool);
 }
 
 pub struct DNode<'a, T: Aabb> {

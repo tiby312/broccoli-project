@@ -18,10 +18,10 @@
 //! - `&mut (Rect<N>,T)` Indirect
 //!
 //! I made the [`ManySwappable`] marker trait to help bring awareness to this performance regression trap.
-//! It is implemented on a lot of types that are guaranteed to be small. 
-//! If you know what you are doing you can use the ManySwap wrapper struct that automatically 
-//! implements that trait, or implement it yourself on your own type. 
-//! 
+//! It is implemented on a lot of types that are guaranteed to be small.
+//! If you know what you are doing you can use the ManySwap wrapper struct that automatically
+//! implements that trait, or implement it yourself on your own type.
+//!
 //! You can also construct a Tree using Semi-direct or indirect, and then convert it to direct. (See
 //! the [`Tree::from_tree_data()`] function.) However, I'm not sure if there are performance benefits to this.
 //!

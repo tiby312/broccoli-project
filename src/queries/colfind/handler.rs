@@ -207,8 +207,8 @@ where
     }
 
     #[inline(always)]
-    fn handle_children(&mut self, f: HandleChildrenArgs<T>,is_left:bool) {
-        handle_children(&mut self.prevec, &mut self.acc, f,is_left)
+    fn handle_children(&mut self, f: HandleChildrenArgs<T>, is_left: bool) {
+        handle_children(&mut self.prevec, &mut self.acc, f, is_left)
     }
 }
 
@@ -306,8 +306,12 @@ fn handle_node<T: Aabb, F>(
     prevec.insert_vec(k);
 }
 
-fn handle_children<T: Aabb, F>(prevec: &mut PreVec, func: &mut F, f: HandleChildrenArgs<T>,is_left:bool)
-where
+fn handle_children<T: Aabb, F>(
+    prevec: &mut PreVec,
+    func: &mut F,
+    f: HandleChildrenArgs<T>,
+    is_left: bool,
+) where
     F: CollisionHandler<T>,
 {
     use AxisDyn::*;
@@ -317,16 +321,16 @@ where
             let mut k = twounordered::TwoUnorderedVecs::from(prevec.extract_vec());
 
             match f.anchor_axis {
-                X => handle_parallel(XAXIS, &mut k, func, f,is_left),
-                Y => handle_parallel(YAXIS, &mut k, func, f,is_left),
+                X => handle_parallel(XAXIS, &mut k, func, f, is_left),
+                Y => handle_parallel(YAXIS, &mut k, func, f, is_left),
             }
 
             let mut j: Vec<_> = k.into();
             j.clear();
             prevec.insert_vec(j);
         }
-        (X, Y) => handle_perp(XAXIS, func, f),
-        (Y, X) => handle_perp(YAXIS, func, f),
+        (X, Y) => handle_perp(XAXIS, func, f, is_left),
+        (Y, X) => handle_perp(YAXIS, func, f, is_left),
     }
 }
 impl<T: Aabb> NotSortedTree<'_, T> {
@@ -407,7 +411,7 @@ impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoS
         }
     }
 
-    fn handle_children(&mut self, mut f: HandleChildrenArgs<T>,_is_left:bool) {
+    fn handle_children(&mut self, mut f: HandleChildrenArgs<T>, _is_left: bool) {
         let res = if !f.current_axis.is_equal_to(f.anchor_axis) {
             true
         } else {
@@ -430,12 +434,12 @@ fn handle_perp<T: Aabb, A: Axis>(
     axis: A,
     func: &mut impl CollisionHandler<T>,
     f: HandleChildrenArgs<T>,
+    is_left: bool,
 ) {
     let anchor_axis = axis;
     let current_axis = axis.next();
 
-    let cc1 = &f.anchor.cont;
-    let div = f.anchor.div;
+    let cc1 = f.anchor.cont;
 
     let cc2 = f.current;
 
@@ -447,50 +451,29 @@ fn handle_perp<T: Aabb, A: Axis>(
     for y in r1.iter_mut() {
         let r2 = r2.borrow_mut();
 
-        match y.get().get_range(axis).contains_ext(div) {
-            std::cmp::Ordering::Equal => {
-                oned::find_perp_2d1_once(
-                    current_axis,
-                    y,
-                    r2,
-                    |a: AabbPin<&mut T>, b: AabbPin<&mut T>| func.collide(a, b),
-                );
-            }
-            std::cmp::Ordering::Greater => {
-                oned::find_perp_2d1_once(
-                    current_axis,
-                    y,
-                    r2,
-                    |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
-                        if a.get().get_range(axis).end >= b.get().get_range(axis).start {
-                            func.collide(a, b);
-                        }
-                    },
-                );
-            }
-            std::cmp::Ordering::Less => {
-                oned::find_perp_2d1_once(
-                    current_axis,
-                    y,
-                    r2,
-                    |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
-                        //if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
-                        if a.get().get_range(axis).start <= b.get().get_range(axis).end {
-                            func.collide(a, b);
-                        }
-                    },
-                );
-            }
+        if is_left {
+            oned::find_perp_2d1_once(
+                current_axis,
+                y,
+                r2,
+                |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
+                    if a.get().get_range(axis).end >= b.get().get_range(axis).start {
+                        func.collide(a, b);
+                    }
+                },
+            );
+        } else {
+            oned::find_perp_2d1_once(
+                current_axis,
+                y,
+                r2,
+                |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
+                    if a.get().get_range(axis).start <= b.get().get_range(axis).end {
+                        func.collide(a, b);
+                    }
+                },
+            );
         }
-
-        /*
-        oned::find_perp_2d1_once(prevec,current.axis,y,r2,|a,b|{
-            if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
-            //if a.get().get_range(axis).start<=b.get().get_range(axis).end{
-                func.collide(a,b);
-            }
-        });
-        */
     }
 }
 
@@ -499,68 +482,25 @@ fn handle_parallel<'a, T: Aabb, A: Axis>(
     prevec: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
     func: &mut impl CollisionHandler<T>,
     f: HandleChildrenArgs<'a, T>,
-    _is_left:bool
+    is_left: bool,
 ) {
-    let anchor_div = f.anchor.div;
-
     let current2 = f.current;
 
     let fb = oned::FindParallel2DBuilder::new(prevec, axis.next(), f.anchor.range, current2.range);
 
-    if f.current_is_leaf {
-        match current2.cont.contains_ext(anchor_div) {
-            std::cmp::Ordering::Equal => {
-                fb.build(|a, b| {
-                    if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
-                        func.collide(a, b)
-                    }
-                });
-            }
-            std::cmp::Ordering::Less => {
-                fb.build(|a, b| {
-                    if a.get().get_range(axis).end >= b.get().get_range(axis).start {
-                        func.collide(a, b)
-                    }
-                });
-            }
-            std::cmp::Ordering::Greater => {
-                fb.build(|a, b| {
-                    if a.get().get_range(axis).start <= b.get().get_range(axis).end {
-                        func.collide(a, b)
-                    }
-                });
-            }
-        }
-        /*
-        if f.anchor.cont.intersects(current2.cont) {
+    if is_left {
+        if f.anchor.cont.start <= current2.cont.end {
             fb.build(|a, b| {
-                if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
+                if a.get().get_range(axis).start <= b.get().get_range(axis).end {
                     func.collide(a, b)
                 }
             });
         }
-        */
-    } else if let Some(current_div) = *current2.div {
-        if anchor_div < current_div {
-            if f.anchor.cont.end >= current2.cont.start {
-                fb.build(|a, b| {
-                    if a.get().get_range(axis).end >= b.get().get_range(axis).start {
-                        func.collide(a, b)
-                    }
-                });
+    } else if f.anchor.cont.end >= current2.cont.start {
+        fb.build(|a, b| {
+            if a.get().get_range(axis).end >= b.get().get_range(axis).start {
+                func.collide(a, b)
             }
-        } else if anchor_div > current_div {
-            if f.anchor.cont.start <= current2.cont.end {
-                fb.build(|a, b| {
-                    if a.get().get_range(axis).start <= b.get().get_range(axis).end {
-                        func.collide(a, b)
-                    }
-                });
-            }
-        } else {
-            fb.build(|a, b| {
-                func.collide(a, b);
-            });
-        }
+        });
     }
 }
