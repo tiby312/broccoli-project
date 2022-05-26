@@ -151,12 +151,12 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                         bots: &mut [T],
                         bound: T::Num,
                     ) -> (&mut [T], &mut [T]) {
-                        let mut m = bots.len();
-                        for a in (0..bots.len()).rev() {
+                        let mut m = 0;
+                        for a in 0..bots.len() {
                             if bots[a].get().get_range(axis).end >= bound {
                                 //keep
-                                m -= 1;
                                 bots.swap(a, m);
+                                m += 1;
                             }
                         }
                         bots.split_at_mut(m)
@@ -177,8 +177,12 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                         bots.split_at_mut(m)
                     }
 
-                    let (ll, ml) = bin_left(div_axis, ll, med_val);
+                    let (ml, ll) = bin_left(div_axis, ll, med_val);
                     let (mr, _) = bin_right(div_axis, rr, med_val);
+
+                    let ml_len = ml.len();
+                    let ll_len = ll.len();
+                    let mr_len = mr.len();
 
                     let min_cont = {
                         let mut ret = med_val;
@@ -191,25 +195,25 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                         ret
                     };
 
-                    (min_cont, med_val, ll.len(), ml.len() + 1 + mr.len())
+                    
+                    {
+                        let (_, rest) = bots.split_at_mut(ml_len);
+                        let (ll, rest) = rest.split_at_mut(ll_len);
+                        let (mr2, _) = rest.split_at_mut(1 + mr_len);
+
+                        let (a, b) = if mr2.len() < ll.len() {
+                            let (a, _) = ll.split_at_mut(mr2.len());
+                            (a, mr2)
+                        } else {
+                            let (_, a) = mr2.split_at_mut(mr2.len() - ll.len());
+                            (a, ll)
+                        };
+                        a.swap_with_slice(b);
+                    }
+
+                    (min_cont, med_val, ll_len, ml_len + 1 + mr_len)
                 };
 
-                // Re-arrange so we have preorder to match the nodes being
-                // in pre-rder.
-                let (a, b) = if left_len > mid_len {
-                    // |------left-----|--mid--|---right--|
-                    let (a, rest) = bots.split_at_mut(mid_len);
-                    let (_, rest) = rest.split_at_mut(left_len - mid_len);
-                    let (b, _) = rest.split_at_mut(mid_len);
-                    (a, b)
-                } else {
-                    // |-left-|------mid------|---right--|
-                    let (a, rest) = bots.split_at_mut(left_len);
-                    let (_, rest) = rest.split_at_mut(mid_len - left_len);
-                    let (b, _) = rest.split_at_mut(left_len);
-                    (a, b)
-                };
-                a.swap_with_slice(b);
                 let (middle, rest) = bots.split_at_mut(mid_len);
                 let (left, right) = rest.split_at_mut(left_len);
 
