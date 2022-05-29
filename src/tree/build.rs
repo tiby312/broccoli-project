@@ -195,7 +195,6 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                         ret
                     };
 
-                    
                     {
                         let (_, rest) = bots.split_at_mut(ml_len);
                         let (ll, rest) = rest.split_at_mut(ll_len);
@@ -223,7 +222,10 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
 
                 let max_cont = {
                     let mut ret = med_val;
-                    for a in middle.iter() {
+                    //The bots to the right of the divier
+                    //are more likely to  contain the max
+                    //rightmost aabb edge.
+                    for a in middle.iter().rev() {
                         let k = a.get().get_range(div_axis).end;
                         if k > ret {
                             ret = k;
