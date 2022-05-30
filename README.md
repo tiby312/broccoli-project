@@ -15,25 +15,6 @@ Screen capture from the inner `demo` project.
 
 <img src="./assets/screenshot.gif" alt="screenshot">
 
-### Optimisation
-
-I've focused mainly on making finding colliding pairs as fast as possible primarily in
-distributions where there are a lot of overlapping aabbs.
-
-Quick rundown of what i've spent effort on and a rough estimate of performance
-cost of each algorithm in general. 
-
-| Algorithm        | Cost | Effort spent  |
-| ---------------- | ---- | ------------- |
-| Construction     |   7  |        10     |
-| Colliding Pairs  |   8  |        10     |
-| Collide With     |   3  |         2     |
-| knearest         |   1  |         2     |
-| raycast          |   1  |         2     |
-| rect             |   1  |         2     |
-| nbody            |  10  |         1     |
-
-Numbers are out of 10 and are just rough made up numbers. For more in-depth analysis, see the [broccoli book](https://tiby312.github.io/broccoli_report).
 
 ### Example
 
@@ -69,6 +50,27 @@ fn main() {
     assert_eq!(inner3, 2);
 }
 ```
+
+
+### Optimisation
+
+I've focused mainly on making finding colliding pairs as fast as possible primarily in
+distributions where there are a lot of overlapping aabbs.
+
+Quick rundown of what i've spent effort on and a rough estimate of performance
+cost of each algorithm in general. 
+
+| Algorithm        | Cost | Effort spent  |
+| ---------------- | ---- | ------------- |
+| Construction     |   7  |        10     |
+| Colliding Pairs  |   8  |        10     |
+| Collide With     |   3  |         2     |
+| knearest         |   1  |         2     |
+| raycast          |   1  |         2     |
+| rect             |   1  |         2     |
+| nbody            |  10  |         1     |
+
+Numbers are out of 10 and are just rough made up numbers. For more in-depth analysis, see the [broccoli book](https://tiby312.github.io/broccoli_report).
 
 
 ### Name

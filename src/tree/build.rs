@@ -6,10 +6,10 @@ use super::*;
 
 #[must_use]
 pub struct NodeFinisher<'a, T: Aabb> {
-    cont: [T::Num; 2],
     axis: AxisDyn,
     div: Option<T::Num>, //This can be null if there are no bots left at all
     mid: &'a mut [T],
+    middle_left_len: Option<usize>,
     num_elem: usize,
 }
 impl<'a, T: Aabb> NodeFinisher<'a, T> {
@@ -19,57 +19,73 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
     #[inline(always)]
     #[must_use]
     pub fn finish<S: Sorter<T>>(self, sorter: &mut S) -> Node<'a, T> {
-        match self.axis {
+        fn create_cont<A: Axis, T: Aabb>(
+            axis: A,
+            middle: &[T],
+            ml: Option<usize>,
+        ) -> axgeom::Range<T::Num> {
+            let ml = if let Some(ml) = ml { ml } else { middle.len() };
+
+            match middle.split_first() {
+                Some((first, rest)) => {
+                    let start = {
+                        let mut min = first.get().get_range(axis).start;
+
+                        for a in rest[0..ml - 1].iter() {
+                            let start = a.get().get_range(axis).start;
+
+                            if start < min {
+                                min = start;
+                            }
+                        }
+                        min
+                    };
+
+                    let end = {
+                        let mut max = first.get().get_range(axis).end;
+
+                        //The bots to the right of the divier
+                        //are more likely to  contain the max
+                        //rightmost aabb edge.
+                        for a in rest.iter().rev() {
+                            let k = a.get().get_range(axis).end;
+
+                            if k > max {
+                                max = k;
+                            }
+                        }
+                        max
+                    };
+
+                    axgeom::Range { start, end }
+                }
+                None => axgeom::Range {
+                    start: Default::default(),
+                    end: Default::default(),
+                },
+            }
+        }
+
+        let cont = match self.axis {
             AxisDyn::X => {
+                //Create cont first otherwise middle_left_len is no longer valid.
+                let c = create_cont(axgeom::XAXIS, self.mid, self.middle_left_len);
                 sorter.sort(axgeom::XAXIS.next(), self.mid);
+                c
             }
             AxisDyn::Y => {
+                let c = create_cont(axgeom::YAXIS, self.mid, self.middle_left_len);
                 sorter.sort(axgeom::YAXIS.next(), self.mid);
+                c
             }
-        };
-
-        let cont = Range {
-            start: self.cont[0],
-            end: self.cont[1],
         };
 
         Node {
+            cont,
             num_elem: self.num_elem,
             range: AabbPin::new(self.mid),
-            cont,
             div: self.div,
         }
-    }
-}
-
-fn create_cont<A: Axis, T: Aabb>(axis: A, middle: &[T]) -> axgeom::Range<T::Num> {
-    match middle.split_first() {
-        Some((first, rest)) => {
-            let mut min = first.get().get_range(axis).start;
-            let mut max = first.get().get_range(axis).end;
-
-            for a in rest.iter() {
-                let start = &a.get().get_range(axis).start;
-                let end = &a.get().get_range(axis).end;
-
-                if *start < min {
-                    min = *start;
-                }
-
-                if *end > max {
-                    max = *end;
-                }
-            }
-
-            axgeom::Range {
-                start: min,
-                end: max,
-            }
-        }
-        None => axgeom::Range {
-            start: Default::default(),
-            end: Default::default(),
-        },
     }
 }
 
@@ -108,13 +124,8 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
     pub fn build_and_next(self) -> NodeBuildResult<'a, T> {
         //leaf case
         if self.current_height == 0 {
-            let cont = match self.axis {
-                AxisDyn::X => create_cont(axgeom::XAXIS, self.bots),
-                AxisDyn::Y => create_cont(axgeom::YAXIS, self.bots),
-            };
-
             let node = NodeFinisher {
-                cont: [cont.start, cont.end],
+                middle_left_len: None,
                 mid: self.bots,
                 div: None,
                 axis: self.axis,
@@ -126,138 +137,100 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
             fn construct_non_leaf<T: Aabb>(
                 div_axis: impl Axis,
                 bots: &mut [T],
-            ) -> ConstructResult<T> {
+            ) -> (NodeFinisher<T>, &mut [T], &mut [T]) {
                 if bots.is_empty() {
-                    return ConstructResult {
-                        cont: [std::default::Default::default(); 2],
-                        mid: &mut [],
-                        div: None,
-                        left: &mut [],
-                        right: &mut [],
-                    };
+                    return (
+                        NodeFinisher {
+                            middle_left_len: None,
+                            mid: bots,
+                            div: None,
+                            axis: div_axis.to_dyn(),
+                            num_elem: 0,
+                        },
+                        &mut [],
+                        &mut [],
+                    );
                 }
 
                 let med_index = bots.len() / 2;
 
-                let (min_cont, med_val, left_len, mid_len) = {
-                    let (ll, med, rr) = bots.select_nth_unstable_by(med_index, move |a, b| {
-                        crate::util::compare_bots(div_axis, a, b)
-                    });
+                let (ll, med, rr) = bots.select_nth_unstable_by(med_index, move |a, b| {
+                    crate::util::compare_bots(div_axis, a, b)
+                });
 
-                    let med_val = med.get().get_range(div_axis).start;
+                let med_val = med.get().get_range(div_axis).start;
 
-                    fn bin_left<A: Axis, T: Aabb>(
-                        axis: A,
-                        bots: &mut [T],
-                        bound: T::Num,
-                    ) -> (&mut [T], &mut [T]) {
-                        let mut m = 0;
-                        for a in 0..bots.len() {
-                            if bots[a].get().get_range(axis).end >= bound {
-                                //keep
-                                bots.swap(a, m);
-                                m += 1;
-                            }
+                let (ml, ll) = {
+                    let mut m = 0;
+                    for a in 0..ll.len() {
+                        if ll[a].get().get_range(div_axis).end >= med_val {
+                            //keep
+                            ll.swap(a, m);
+                            m += 1;
                         }
-                        bots.split_at_mut(m)
                     }
-                    fn bin_right<A: Axis, T: Aabb>(
-                        axis: A,
-                        bots: &mut [T],
-                        bound: T::Num,
-                    ) -> (&mut [T], &mut [T]) {
-                        let mut m = 0;
-                        for a in 0..bots.len() {
-                            if bots[a].get().get_range(axis).start <= bound {
-                                //keep
-                                bots.swap(a, m);
-                                m += 1;
-                            }
-                        }
-                        bots.split_at_mut(m)
-                    }
-
-                    let (ml, ll) = bin_left(div_axis, ll, med_val);
-                    let (mr, _) = bin_right(div_axis, rr, med_val);
-
-                    let ml_len = ml.len();
-                    let ll_len = ll.len();
-                    let mr_len = mr.len();
-
-                    let min_cont = {
-                        let mut ret = med_val;
-                        for a in ml.iter() {
-                            let k = a.get().get_range(div_axis).start;
-                            if k < ret {
-                                ret = k;
-                            }
-                        }
-                        ret
-                    };
-
-                    {
-                        let (_, rest) = bots.split_at_mut(ml_len);
-                        let (ll, rest) = rest.split_at_mut(ll_len);
-                        let (mr2, _) = rest.split_at_mut(1 + mr_len);
-
-                        let (a, b) = if mr2.len() < ll.len() {
-                            let (a, _) = ll.split_at_mut(mr2.len());
-                            (a, mr2)
-                        } else {
-                            let (_, a) = mr2.split_at_mut(mr2.len() - ll.len());
-                            (a, ll)
-                        };
-                        a.swap_with_slice(b);
-                    }
-
-                    (min_cont, med_val, ll_len, ml_len + 1 + mr_len)
+                    ll.split_at_mut(m)
                 };
 
-                let (middle, rest) = bots.split_at_mut(mid_len);
+                let (mr, rr) = {
+                    let mut m = 0;
+                    for a in 0..rr.len() {
+                        if rr[a].get().get_range(div_axis).start <= med_val {
+                            //keep
+                            rr.swap(a, m);
+                            m += 1;
+                        }
+                    }
+                    rr.split_at_mut(m)
+                };
+
+                let ml_len = ml.len();
+                let ll_len = ll.len();
+                let rr_len = rr.len();
+
+                let mr_len = mr.len();
+
+                {
+                    let (_, rest) = bots.split_at_mut(ml_len);
+                    let (ll, rest) = rest.split_at_mut(ll_len);
+                    let (mr2, _) = rest.split_at_mut(1 + mr_len);
+
+                    let (a, b) = if mr2.len() < ll.len() {
+                        let (a, _) = ll.split_at_mut(mr2.len());
+                        (a, mr2)
+                    } else {
+                        let (_, a) = mr2.split_at_mut(mr2.len() - ll.len());
+                        (a, ll)
+                    };
+                    a.swap_with_slice(b);
+                }
+
+                let left_len = ll_len;
+                let right_len = rr_len;
+                let mid_len = ml_len + 1 + mr_len;
+
+                let middle_left_len = Some(ml_len + 1);
+
+                let (mid, rest) = bots.split_at_mut(mid_len);
                 let (left, right) = rest.split_at_mut(left_len);
 
-                // If we want in-order use this instead of the above
-                //let (left, rest) = bots.split_at_mut(left_len);
-                //let (middle, right) = rest.split_at_mut(mid_len);
-
-                let max_cont = {
-                    let mut ret = med_val;
-                    //The bots to the right of the divier
-                    //are more likely to  contain the max
-                    //rightmost aabb edge.
-                    for a in middle.iter().rev() {
-                        let k = a.get().get_range(div_axis).end;
-                        if k > ret {
-                            ret = k;
-                        }
-                    }
-                    ret
-                };
-
-                ConstructResult {
-                    cont: [min_cont, max_cont],
-                    mid: middle,
-                    div: Some(med_val),
+                (
+                    NodeFinisher {
+                        middle_left_len,
+                        mid,
+                        div: Some(med_val),
+                        axis: div_axis.to_dyn(),
+                        num_elem: left_len.min(right_len),
+                    },
                     left,
                     right,
-                }
+                )
             }
 
-            let rr = match self.axis {
+            let (finish_node, left, right) = match self.axis {
                 AxisDyn::X => construct_non_leaf(axgeom::XAXIS, self.bots),
                 AxisDyn::Y => construct_non_leaf(axgeom::YAXIS, self.bots),
             };
-
-            let finish_node = NodeFinisher {
-                cont: rr.cont,
-                mid: rr.mid,
-                div: rr.div,
-                axis: self.axis,
-                num_elem: rr.left.len().min(rr.right.len()),
-            };
-
-            let left = rr.left;
-            let right = rr.right;
 
             NodeBuildResult {
                 node: finish_node,
@@ -276,14 +249,6 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
             }
         }
     }
-}
-
-struct ConstructResult<'a, T: Aabb> {
-    cont: [T::Num; 2],
-    div: Option<T::Num>,
-    mid: &'a mut [T],
-    right: &'a mut [T],
-    left: &'a mut [T],
 }
 
 #[derive(Copy, Clone, Default)]

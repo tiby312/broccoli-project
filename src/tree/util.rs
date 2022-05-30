@@ -14,6 +14,7 @@ where
         .all(|w| compare(&w[1], &w[0]).unwrap() != Ordering::Less)
 }
 
+
 #[inline(always)]
 #[must_use]
 pub fn compare_bots<T: Aabb>(axis: impl Axis, a: &T, b: &T) -> core::cmp::Ordering {
