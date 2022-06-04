@@ -128,7 +128,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         ),
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(0, 10_000).map(|num_bots| {
+        plots: n_iter(0, 40_000).map(|num_bots| {
             (
                 num_bots as f64,
                 Record::new(
@@ -153,7 +153,7 @@ pub fn handle_bench(fb: &mut FigureBuilder) {
         ),
         xname: "Number of Elements",
         yname: "Time in Seconds",
-        plots: n_iter(0, 10_000).map(|num_bots| {
+        plots: n_iter(0, 40_000).map(|num_bots| {
             (
                 num_bots as f64,
                 Record::new(
