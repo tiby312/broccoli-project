@@ -129,7 +129,7 @@ impl BuildArgs<EmptySplitter> {
     pub fn new(bots: usize) -> Self {
         BuildArgs {
             num_level: num_level::default(bots),
-            num_seq_fallback: 2_400,
+            num_seq_fallback: 512,
             splitter: EmptySplitter,
         }
     }
@@ -244,17 +244,20 @@ fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
             recurse_seq(&mut p, sorter, buffer, right);
         } else {
             let mut s2 = sorter.div();
-            let mut buffer2 = Vec::with_capacity(num_level::num_nodes(right.get_height()));
 
-            rayon::join(
+            let (_, mut buffer2) = rayon::join(
                 || {
                     buffer.push(node.finish(sorter));
                     recurse_par(num_seq_fallback, splitter, sorter, buffer, left);
                 },
                 || {
+                    let mut buffer2 = Vec::with_capacity(num_level::num_nodes(right.get_height()));
+
                     recurse_par(num_seq_fallback, &mut p, &mut s2, &mut buffer2, right);
+                    buffer2
                 },
             );
+
             buffer.append(&mut buffer2);
             sorter.add(s2)
         }

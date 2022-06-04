@@ -130,7 +130,7 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
 
 use crate::tree::splitter::{EmptySplitter, Splitter};
 
-const SEQ_FALLBACK_DEFAULT: usize = 2_400;
+const SEQ_FALLBACK_DEFAULT: usize = 512;
 
 fn recurse_seq<T: Aabb, P: Splitter, SO: NodeHandler<T>>(
     vistr: CollVis<T>,
