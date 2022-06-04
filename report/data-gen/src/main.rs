@@ -182,8 +182,8 @@ macro_rules! run_test {
     };
 }
 
-fn profile_test(num_bots: usize) {
-    let grow = 0.02; // DEFAULT_GROW;
+fn profile_test(num_bots: usize,grow:f64) {
+   // let grow = 0.2; // DEFAULT_GROW;
                      //let num_bots = 50_000;
     use crate::support::*;
     let mut bot_inner: Vec<_> = (0..num_bots).map(|_| 0isize).collect();
@@ -191,27 +191,46 @@ fn profile_test(num_bots: usize) {
     let mut bots = distribute(grow, &mut bot_inner, |a| a.to_f64n());
 
     for _ in 0..30 {
-        // let mut num_collision = 0;
-        let c0 = bench_closure(|| {
-            let mut tree = broccoli::Tree::new(&mut bots);
 
+
+        let (mut tree,seq_c) = bench_closure_ret(|| {
+            broccoli::Tree::new(&mut bots)
+        });
+
+        let seq_q = bench_closure(|| {
             tree.find_colliding_pairs(|a, b| {
-                //num_collision += 1;
                 **a.unpack_inner() += 1;
                 **b.unpack_inner() += 1;
             });
         });
 
-        dbg!(c0);
+
+        let (mut tree,par_c) = bench_closure_ret(|| {
+            broccoli::Tree::par_new(&mut bots)
+        });
+
+        let par_q = bench_closure(|| {
+            tree.par_find_colliding_pairs(|a, b| {
+                **a.unpack_inner() += 1;
+                **b.unpack_inner() += 1;
+            });
+        });
+        let create_speedup = seq_c as f64 / par_c as f64;
+        let query_speedup = seq_q as f64 / par_q as f64;
+        
+        println!("create/query speedup: {:.2}x {:.2}x", create_speedup,query_speedup);
+
+        
     }
 }
 
 fn main() {
+    /*
     rayon_core::ThreadPoolBuilder::new()
         .num_threads(num_cpus::get_physical())
         .build_global()
         .unwrap();
-
+*/
     //profile_test();
     //return;
 
@@ -232,7 +251,7 @@ fn main() {
     dbg!(&args);
     match args[1].as_ref() {
         "profile" => {
-            profile_test(args[2].parse().unwrap());
+            profile_test(args[2].parse().unwrap(),args[3].parse().unwrap());
         }
         "profile_cmp" => {
             let grow = DEFAULT_GROW;

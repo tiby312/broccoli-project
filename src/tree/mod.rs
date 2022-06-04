@@ -129,7 +129,7 @@ impl BuildArgs<EmptySplitter> {
     pub fn new(bots: usize) -> Self {
         BuildArgs {
             num_level: num_level::default(bots),
-            num_seq_fallback: 512,
+            num_seq_fallback: 10 * 1024,
             splitter: EmptySplitter,
         }
     }
