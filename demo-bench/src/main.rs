@@ -1,5 +1,7 @@
 use broccoli::axgeom;
 use broccoli::axgeom::*;
+use broccoli::tree::aabb_pin::AabbPin;
+use broccoli::*;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -39,51 +41,60 @@ pub fn bench_closure_ret<T>(func: impl FnOnce() -> T) -> (T, f64) {
 }
 
 use broccoli::tree::node::Aabb;
-use broccoli::tree::node::ManySwappable;
 use broccoli::tree::node::ManySwap;
+use broccoli::tree::node::ManySwappable;
 
-fn foo(num_bots:usize,grow:f64)->Vec<ManySwappable<Rect<f32>>>{
+fn foo<K: Clone>(num_bots: usize, grow: f64, k: K) -> Vec<ManySwappable<(Rect<f32>, K)>> {
     let s = dists::fib_iter([0.0, 0.0], grow).take(num_bots);
-
-    let mut bots: Vec<_> = s
-        .map(|a| {
-            ManySwappable(
-                axgeom::Rect::from_point(vec2(a[0] as f32, a[1] as f32), vec2same(RADIUS as f32)),
-                )
-        })
-        .collect();
-
-    bots
+    s.map(|a| {
+        ManySwappable((
+            axgeom::Rect::from_point(vec2(a[0] as f32, a[1] as f32), vec2same(RADIUS as f32)),
+            k.clone(),
+        ))
+    })
+    .collect()
 }
 
-fn par_bench<T:Aabb+ManySwap+Send>(bots:&mut [T],c_num_seq_fallback:usize)->f64 where T::Num:Send{
-    
+fn par_create_bench<T: Aabb + ManySwap + Send>(
+    bots: &mut [T],
+    num_seq_fallback: usize,
+) -> (broccoli::Tree<T>, f64)
+where
+    T::Num: Send,
+{
+    let (tree, seq) = bench_closure_ret(|| broccoli::Tree::new(bots));
+    black_box(tree);
 
-    let mut total_create_speedup=0.0;
-    
-    let num_iter=1;
-    for _ in 0..num_iter {
+    let mut args = broccoli::tree::BuildArgs::new(bots.len());
+    args.num_seq_fallback = num_seq_fallback;
 
-        let seq_c={
-            let ( tree, seq_c) = bench_closure_ret(|| broccoli::Tree::new(bots));
-            black_box(tree);
-            seq_c
-        };
+    let (tree, par) = bench_closure_ret(|| broccoli::Tree::par_from_build_args(bots, args).0);
 
-        let mut build_args=broccoli::tree::BuildArgs::new(bots.len());
-        build_args.num_seq_fallback=c_num_seq_fallback;
-
-        let ( tree, par_c) = bench_closure_ret(|| broccoli::Tree::par_from_build_args(bots,build_args).0);
-
-        let create_speedup = seq_c as f64 / par_c as f64;
-        total_create_speedup+=create_speedup;
-
-        black_box(tree);
-    }
-    let avg=total_create_speedup/num_iter as f64 ;
-    
-    avg
+    (tree, seq as f64 / par as f64)
 }
+
+fn par_query_bench<T: Aabb + ManySwap + Send>(
+    tree: &mut Tree<T>,
+    func: impl Fn(AabbPin<&mut T>, AabbPin<&mut T>) + Send + Clone + Sync,
+    num_seq_fallback: usize,
+) -> f64
+where
+    T::Num: Send,
+{
+    let seq = bench_closure(|| {
+        tree.find_colliding_pairs(|a, b| func(a, b));
+    });
+
+    let mut args = broccoli::queries::colfind::QueryArgs::new();
+    args.num_seq_fallback = num_seq_fallback;
+
+    let par = bench_closure(|| {
+        tree.par_find_colliding_pairs_from_args(args, |a, b| func(a, b));
+    });
+
+    seq as f64 / par as f64
+}
+
 /*
 fn cmp_bench(){
     let grow = DEFAULT_GROW;
@@ -116,44 +127,66 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     match args[1].as_ref() {
-        "par-bench" => {
-            let num_bots=args[2].parse().unwrap();
-            let grow=args[3].parse().unwrap();
-            let c_num_seq_fallback=args[4].parse().unwrap();
-            let mut all=foo(num_bots,grow);
-            let avg=par_bench(&mut all,c_num_seq_fallback);
-            println!(
-                "average create speedup: {:.2}x",
-                avg   );
-        
-        }
-        "par-bench-graph"=>{
-            let grow=args[2].parse().unwrap();
-            let c_num_seq_fallback=args[3].parse().unwrap();
-            
-            let mn=1000_000;
-            let mut all=foo(mn,grow);
-            let mut plots=vec!();
-            for i in (0..mnusize).step_by(1000).skip(1){
-                let ll=&mut all[0..i];
-                plots.push((i as i128,par_bench(ll,c_num_seq_fallback)));
+        "bench-par-create" => {
+            let grow = args[2].parse().unwrap();
+            let c_num_seq_fallback = args[3].parse().unwrap();
+
+            let mn = 1_000_000;
+            let mut all = foo(mn, grow, ());
+            let mut plots = vec![];
+            for i in (0..mn).step_by(1000).skip(1) {
+                let ll = &mut all[0..i];
+                plots.push((i as i128, par_create_bench(ll, c_num_seq_fallback).1));
             }
-            //dbg!(&plots);
 
             {
-                use poloto::prelude::*;
                 use poloto::build::scatter;
+                use poloto::prelude::*;
                 let l1 = scatter("", &plots);
                 let m = poloto::build::origin();
                 let data = plots!(l1, m);
 
-                let p = simple_fmt!(data, "hay", "x", "y");
+                let p = simple_fmt!(data, "create", "x", "y");
 
                 print!("{}", poloto::disp(|w| p.simple_theme(w)));
             }
+        }
+        "bench-par-query" => {
+            let grow = args[2].parse().unwrap();
+            let c_num_seq_fallback = args[3].parse().unwrap();
 
+            let mn = 1_000_000;
+            let mut all = foo(mn, grow, 0u32);
+            let mut plots = vec![];
 
+            for i in (0..mn).step_by(1000).skip(1) {
+                let ll = &mut all[0..i];
+                let mut tree = Tree::new(ll);
 
+                plots.push((
+                    i as i128,
+                    par_query_bench(
+                        &mut tree,
+                        |a, b| {
+                            *a.unpack_inner() ^= 1;
+                            *b.unpack_inner() ^= 1;
+                        },
+                        c_num_seq_fallback,
+                    ),
+                ));
+            }
+
+            {
+                use poloto::build::scatter;
+                use poloto::prelude::*;
+                let l1 = scatter("", &plots);
+                let m = poloto::build::origin();
+                let data = plots!(l1, m);
+
+                let p = simple_fmt!(data, "query", "x", "y");
+
+                print!("{}", poloto::disp(|w| p.simple_theme(w)));
+            }
         }
         _ => println!("invalid arg"),
     }
