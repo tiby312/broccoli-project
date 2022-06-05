@@ -51,7 +51,7 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
 
     pub fn num_elem(&self) -> usize {
         let (n, _) = self.vistr.borrow().next();
-        n.num_elem
+        n.min_elem
     }
     pub fn collide_and_next<N: NodeHandler<T>>(
         mut self,

@@ -149,7 +149,8 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
                     range: AabbPin::from_mut(range),
                     cont: x.cont,
                     div: x.div,
-                    num_elem: x.num_elem,
+                    min_elem: x.min_elem,
+                    num_elem:x.num_elem
                 }
             })
             .collect();

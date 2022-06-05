@@ -302,7 +302,10 @@ pub struct Node<'a, T: Aabb> {
     /// one off if we know that both threads have a decent amount of work
     /// to perform in parallel.
     ///
-    pub num_elem: usize,
+    pub min_elem: usize,
+
+
+    pub num_elem:usize
 }
 impl<'a, T: Aabb> Node<'a, T> {
     pub fn borrow_range(&mut self) -> AabbPin<&mut [T]> {
@@ -314,7 +317,8 @@ impl<'a, T: Aabb> Node<'a, T> {
             range: self.range.len(),
             cont: self.cont,
             div: self.div,
-            num_elem: self.num_elem,
+            min_elem: self.min_elem,
+            num_elem:self.num_elem
         }
     }
 }
@@ -327,7 +331,8 @@ pub struct NodeData<N: Num> {
     pub range: usize,
     pub cont: axgeom::Range<N>,
     pub div: Option<N>,
-    pub num_elem: usize,
+    pub min_elem: usize,
+    pub num_elem:usize
 }
 
 pub use axgeom::Range;

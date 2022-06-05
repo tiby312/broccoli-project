@@ -10,9 +10,14 @@ pub struct NodeFinisher<'a, T: Aabb> {
     div: Option<T::Num>, //This can be null if there are no bots left at all
     mid: &'a mut [T],
     middle_left_len: Option<usize>,
-    num_elem: usize,
+    min_elem: usize,
+    num_elem:usize
 }
 impl<'a, T: Aabb> NodeFinisher<'a, T> {
+    pub fn get_min_elem(&self) -> usize {
+        self.min_elem
+    }
+    
     pub fn get_num_elem(&self) -> usize {
         self.num_elem
     }
@@ -82,7 +87,8 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
 
         Node {
             cont,
-            num_elem: self.num_elem,
+            min_elem: self.min_elem,
+            num_elem:self.num_elem,
             range: AabbPin::new(self.mid),
             div: self.div,
         }
@@ -129,7 +135,8 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                 mid: self.bots,
                 div: None,
                 axis: self.axis,
-                num_elem: 0,
+                min_elem: 0,
+                num_elem:0
             };
 
             NodeBuildResult { node, rest: None }
@@ -145,7 +152,8 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                             mid: bots,
                             div: None,
                             axis: div_axis.to_dyn(),
-                            num_elem: 0,
+                            min_elem: 0,
+                            num_elem:0
                         },
                         &mut [],
                         &mut [],
@@ -220,7 +228,8 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                         mid,
                         div: Some(med_val),
                         axis: div_axis.to_dyn(),
-                        num_elem: left_len.min(right_len),
+                        min_elem: left_len.min(right_len),
+                        num_elem:left_len+right_len
                     },
                     left,
                     right,

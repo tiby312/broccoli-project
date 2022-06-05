@@ -220,6 +220,18 @@ fn recurse_seq<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
     }
 }
 
+
+// we want to pass small chunks so that if a slow core
+// gets a task, they don't hold everybody else up.
+
+
+// at the same time, we don't want there to be only 
+// a few chunks. i.e. only 3 cores available but 4 chunks.
+
+// so lets only result to chunking IF
+// the problem size is big enough such that there
+// are many chunks. 
+
 #[cfg(feature = "parallel")]
 fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
     num_seq_fallback: usize,
@@ -238,13 +250,13 @@ fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
     if let Some([left, right]) = rest {
         let mut p = splitter.div();
 
-        if node.get_num_elem() <= num_seq_fallback {
+        if node.get_min_elem() <= num_seq_fallback {
             buffer.push(node.finish(sorter));
             recurse_seq(splitter, sorter, buffer, left);
             recurse_seq(&mut p, sorter, buffer, right);
         } else {
             let mut s2 = sorter.div();
-
+            //dbg!(node.get_num_elem());
             let (_, mut buffer2) = rayon::join(
                 || {
                     buffer.push(node.finish(sorter));
