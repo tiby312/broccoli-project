@@ -1,5 +1,5 @@
 [package]
-name = "demo-bench"
+name = "demo-par-bench"
 version = "0.1.0"
 edition = "2021"
 
