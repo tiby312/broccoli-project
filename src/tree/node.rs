@@ -63,6 +63,24 @@ impl<'a, N> ManySwap for (Rect<N>, u64) {}
 pub struct ManySwappable<T>(pub T);
 impl<T> ManySwap for ManySwappable<T> {}
 
+impl<T> ManySwap for &mut ManySwappable<T> {}
+
+impl<T: Aabb> Aabb for &mut ManySwappable<T> {
+    type Num = T::Num;
+    #[inline(always)]
+    fn get(&self) -> &Rect<Self::Num> {
+        self.0.get()
+    }
+}
+impl<T: HasInner> HasInner for &mut ManySwappable<T> {
+    type Inner = T::Inner;
+    #[inline(always)]
+    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        self.0.destruct_mut()
+    }
+}
+
+
 impl<T: Aabb> Aabb for ManySwappable<T> {
     type Num = T::Num;
     #[inline(always)]
