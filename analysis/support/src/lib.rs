@@ -2,6 +2,7 @@
 
 pub use broccoli;
 pub use broccoli::axgeom;
+use broccoli::tree::aabb_pin::HasInner;
 pub use poloto;
 
 pub mod prelude{
@@ -16,6 +17,74 @@ pub mod prelude{
     pub use broccoli::tree::node::ManySwap;
     pub use broccoli::tree::node::ManySwappable;
 
+}
+pub trait ColfindHandler:Aabb+ManySwap+HasInner{
+    fn handle(a:&mut Self::Inner,b:&mut Self::Inner);
+}
+
+
+
+pub struct Dummy<T>(pub Rect<f32>,pub T);
+impl<T> Aabb for Dummy<T>{
+    type Num=f32;
+    fn get(&self)->&Rect<f32>{
+        &self.0
+    }
+}
+impl<T> Aabb for &mut Dummy<T>{
+    type Num=f32;
+    fn get(&self)->&Rect<f32>{
+        &self.0
+    }
+}
+impl<T> ManySwap for &mut Dummy<T>{}
+impl<T> HasInner for &mut Dummy<T>{
+    type Inner=T;
+
+    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        (&self.0,&mut self.1)
+    }
+}
+
+
+impl<T> ManySwap for Dummy<T>{}
+impl<T> HasInner for Dummy<T>{
+    type Inner=T;
+
+    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
+        (&self.0,&mut self.1)
+    }
+}
+
+impl<const K:usize> ColfindHandler for Dummy<&mut [u8;K]>{
+    fn handle(a:&mut Self::Inner,b:&mut Self::Inner){
+
+        a[0]^=1;
+        b[0]^=1;
+    }
+}
+
+impl<const K:usize> ColfindHandler for Dummy<[u8;K]>{
+    fn handle(a:&mut Self::Inner,b:&mut Self::Inner){
+
+        a[0]^=1;
+        b[0]^=1;
+    }
+}
+impl<const K:usize> ColfindHandler for &mut Dummy<[u8;K]>{
+    fn handle(a:&mut Self::Inner,b:&mut Self::Inner){
+
+        a[0]^=1;
+        b[0]^=1;
+    }
+}
+
+impl ColfindHandler for Dummy<u32>{
+    fn handle(a:&mut Self::Inner,b:&mut Self::Inner){
+        
+        *a^=1;
+        *b^=1;
+    }
 }
 
 
@@ -36,31 +105,12 @@ pub mod dist{
 
     pub const SPARSE_GROW: f64 = 2.1;
 
-    pub fn create_dist_manyswap<K: Clone>(num_bots: usize, grow: f64, k: K) -> Vec<ManySwappable<(Rect<f32>, K)>> {
-        let s = dists::fib_iter([0.0, 0.0], grow).take(num_bots);
-        s.map(|a| {
-            ManySwappable((
-                axgeom::Rect::from_point(vec2(a[0] as f32, a[1] as f32), vec2same(RADIUS as f32)),
-                k.clone(),
-            ))
-        })
-        .collect()
+    pub fn dist(grow:f64)->impl Iterator<Item=Rect<f32>>{
+        dists::fib_iter([0.0, 0.0], grow).map(|a|{
+            axgeom::Rect::from_point(vec2(a[0] as f32, a[1] as f32), vec2same(RADIUS as f32))
+        }) 
     }
-
-
-    pub fn create_dist<K>(num_bots: usize, grow: f64, mut func:impl FnMut(&Rect<f32>)->K) -> Vec<(Rect<f32>, K)> {
-        let s = dists::fib_iter([0.0, 0.0], grow).take(num_bots);
-        s.map(|a| {
-            let r=axgeom::Rect::from_point(vec2(a[0] as f32, a[1] as f32), vec2same(RADIUS as f32));
-            let b=func(&r);
-            (
-                r,
-                b
-            )
-        })
-        .collect()
-    }
-
+    
 }
 
 

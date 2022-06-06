@@ -1,48 +1,45 @@
 use support::prelude::*;
 
-trait TestTrait: Copy + Send + Sync {
-    fn handle(&mut self,other:&mut Self);
-}
 
 
-impl<const K:usize> TestTrait for [u8;K] {
-    fn handle(&mut self,other:&mut Self){
-        self[0]^=1;
-        other[0]^=1;
-    }
-}
+
+
+
 
 
 const MAX:usize=30_000;
 
 
 
-fn test_direct<T:TestTrait>(grow:f64,val:T)->Vec<(usize,f64,f64)>{
-    let mut all = dist::create_dist_manyswap(MAX, grow, val);
-    test_one_kind(&mut all,|a,b|{
-        a.unpack_inner().handle(b.unpack_inner())
-    })
-}
-
-fn test_indirect<T:TestTrait>(grow:f64,val:T)->Vec<(usize,f64,f64)>{
-    let mut all = dist::create_dist_manyswap(MAX, grow, val);
-    let mut ind:Vec<_>=all.iter_mut().collect();
-    test_one_kind(&mut ind,|a,b|{
-        a.unpack_inner().handle(b.unpack_inner())
-    })
-}
-
-fn test_default<T:TestTrait>(grow:f64,val:T)->Vec<(usize,f64,f64)>{
-        
-    let mut all = dist::create_dist_manyswap(MAX, grow, val);
-    let mut ind:Vec<_>=all.iter_mut().map(|x|(x.0.0,&mut x.0.1)).collect();
-    test_one_kind(&mut ind,|a,b|{
-        a.unpack_inner().handle(b.unpack_inner())
-    })
+fn test_direct<const K:usize>(grow:f64,val:[u8;K])->Vec<(usize,f64,f64)>{
+    let mut all:Vec<_>=dist::dist(grow).map(|x|{
+        Dummy(x,val)        
+    }).take(MAX).collect();
+    test_one_kind(&mut all)
 }
 
 
-fn test_one_kind<T:Aabb+ManySwap>(all:&mut [T],mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>))->Vec<(usize,f64,f64)>{
+fn test_indirect<const K:usize>(grow:f64,val:[u8;K])->Vec<(usize,f64,f64)>{
+    let mut all:Vec<_>=dist::dist(grow).map(|x|{
+        Dummy(x,val)        
+    }).take(MAX).collect();
+    let mut all:Vec<_>=all.iter_mut().collect();
+    test_one_kind(&mut all)
+}
+
+
+
+fn test_default<const K:usize>(grow:f64,val:[u8;K])->Vec<(usize,f64,f64)>{
+    let mut all:Vec<_>=dist::dist(grow).map(|x|{
+        Dummy(x,val)        
+    }).take(MAX).collect();
+    let mut all:Vec<_>=all.iter_mut().map(|x|Dummy(x.0,&mut x.1)).collect();
+    test_one_kind(&mut all)
+}
+
+
+
+fn test_one_kind<T:ColfindHandler>(all:&mut [T])->Vec<(usize,f64,f64)>{
     let mut plots=vec!();
     for a in n_iter(0,MAX){
         let bots=&mut all[0..a];
@@ -51,7 +48,7 @@ fn test_one_kind<T:Aabb+ManySwap>(all:&mut [T],mut func: impl FnMut(AabbPin<&mut
 
         let (_tree, query_time) = bench_closure_ret(|| {
             tree.find_colliding_pairs(|a, b| {
-                func(a, b);
+                T::handle(a.unpack_inner(), b.unpack_inner());
             });
             tree
         });    
