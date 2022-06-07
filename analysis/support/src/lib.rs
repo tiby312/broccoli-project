@@ -1,3 +1,4 @@
+pub mod datanum;
 
 
 pub use broccoli;
@@ -164,6 +165,11 @@ pub fn bench_closure(func: impl FnOnce()) -> f64 {
     black_box_ret(bench_closure_ret(func).1)
 }
 
+
+//TODO group time stuff?
+pub fn into_secs(elapsed: std::time::Duration) -> f64 {
+    (elapsed.as_secs() as f64) + (f64::from(elapsed.subsec_nanos()) / 1_000_000_000.0)
+}
 pub fn instant_to_sec(elapsed: Duration) -> f64 {
     let secs: f64 = elapsed.as_secs() as f64;
     let nano: f64 = elapsed.subsec_nanos() as f64;

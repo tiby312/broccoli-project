@@ -15,7 +15,7 @@ include = ["src/**/*", "LICENSE-MIT", "README.md"]
 doctest = false
 
 [workspace]
-members = [ "demo-web","report/data-gen","analysis/par-tuner","analysis/layout","analysis/support","analysis/report_gen","analysis/colfind"]
+members = [ "demo-web","report/data-gen","analysis/par-tuner","analysis/layout","analysis/support","analysis/report_gen","analysis/colfind","analysis/levels"]
 
 [dev-dependencies]
 dists = {git="https://github.com/tiby312/dists.git"}

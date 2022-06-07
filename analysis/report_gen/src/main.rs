@@ -2,7 +2,7 @@ use support::prelude::*;
 
 use poloto::build::scatter;
 use poloto::prelude::*;
-        
+
 fn main() {
     /*
     {
@@ -55,7 +55,7 @@ fn main() {
 
     {
         std::fs::create_dir_all("colfind").unwrap();
- 
+
         /*
         for grow in [2.0]{
             let res=colfind::bench(60_000,grow,10000,20000);
@@ -81,28 +81,26 @@ fn main() {
         }
         */
 
-        for n in [60_000]{
-            let res=colfind::bench_grow(n,0.2,1.5);
+        for n in [60_000] {
+            let res = colfind::bench_grow(n, 0.2, 1.5);
 
-            let l1 = scatter("brocc", res.iter().map(|(i,r)| (*i, r.brocc)));
-            let l2 = scatter("brocc_par", res.iter().map(|(i,r)| (*i, r.brocc_par)));
-            let l3 = scatter("nosort", res.iter().map(|(i,r)| (*i, r.nosort)));
-            let l4 = scatter("nosort_par", res.iter().map(|(i,r)| (*i, r.nosort_par)));
-            let l5 = scatter("sweep", res.iter().map(|(i,r)| (*i, r.sweep)));
-            let l6 = scatter("sweep_par", res.iter().map(|(i,r)| (*i, r.sweep_par)));
-            let l7 = scatter("naive", res.iter().map(|(i,r)| (*i, r.naive)));
+            let l1 = scatter("brocc", res.iter().map(|(i, r)| (*i, r.brocc)));
+            let l2 = scatter("brocc_par", res.iter().map(|(i, r)| (*i, r.brocc_par)));
+            let l3 = scatter("nosort", res.iter().map(|(i, r)| (*i, r.nosort)));
+            let l4 = scatter("nosort_par", res.iter().map(|(i, r)| (*i, r.nosort_par)));
+            let l5 = scatter("sweep", res.iter().map(|(i, r)| (*i, r.sweep)));
+            let l6 = scatter("sweep_par", res.iter().map(|(i, r)| (*i, r.sweep_par)));
+            let l7 = scatter("naive", res.iter().map(|(i, r)| (*i, r.naive)));
 
             let m = poloto::build::origin();
-            let data = plots!(l1,l2,l3,l4,l5,l6,l7, m);
+            let data = plots!(l1, l2, l3, l4, l5, l6, l7, m);
 
             let p = simple_fmt!(data, "hay", "x", "y");
 
-            let mut file =
-                        std::fs::File::create(format!("colfind/grow_{}.svg",n)).unwrap();
+            let mut file = std::fs::File::create(format!("colfind/grow_{}.svg", n)).unwrap();
 
             p.simple_theme(&mut support::upgrade_write(&mut file))
                 .unwrap();
         }
     }
 }
-
