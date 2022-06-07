@@ -11,21 +11,22 @@ pub struct Record {
     pub nosort: f64,
 }
 
-const MAX: usize = 30_000;
-pub fn bench(grow: f64) -> Vec<(usize, Record)> {
-    let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(MAX).collect();
+#[inline(never)]
+pub fn bench(max:usize,grow: f64,naive_stop:usize,sweep_stop:usize) -> Vec<(usize, Record)> {
+    let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
-    let mut res = vec![];
-    for a in (0..MAX).step_by(1000) {
+    (0..max).step_by(100).map(|a|{
         let bots = &mut all[0..a];
-
-        res.push((a, new_record(bots, true, true)));
-    }
-    res
+        (a, new_record(bots, a<naive_stop, a<sweep_stop))
+    }).collect()
 }
 
-pub fn bench_grow(num: usize) -> Vec<(f64, Record)> {
-    unimplemented!();
+#[inline(never)]
+pub fn bench_grow(num: usize,start_grow:f64,end_grow:f64) -> Vec<(f64, Record)> {
+    grow_iter(start_grow,end_grow).map(|grow|{
+        let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
+        (grow,new_record(&mut all, false, true))
+    }).collect()    
 }
 
 fn new_record<T: ColfindHandler>(bots: &mut [T], naive_bench: bool, sweep_bench: bool) -> Record

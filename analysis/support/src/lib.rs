@@ -113,6 +113,18 @@ pub mod dist{
     
 }
 
+pub fn grow_iter(
+    start: f64,
+    end: f64,
+) -> impl Iterator<Item = f64> + core::iter::DoubleEndedIterator + core::iter::ExactSizeIterator {
+    //hardcode the number of samples
+    //because it is tied to the graph
+    let num_samples = 120;
+    let step_size = (end - start) / num_samples as f64;
+
+    (0..num_samples).map(move |x| start + (x as f64 * step_size))
+}
+
 
 pub fn n_iter(start: usize, end: usize) -> core::iter::StepBy<std::ops::Range<usize>> {
     assert!(end > start);

@@ -1,13 +1,15 @@
 use support::prelude::*;
 
+use poloto::build::scatter;
+use poloto::prelude::*;
+        
 fn main() {
+    /*
     {
         let res = par_tuner::bench_par(3.0, Some(512), Some(512));
 
         let mut file = std::fs::File::create("par-tuner.svg").unwrap();
 
-        use poloto::build::scatter;
-        use poloto::prelude::*;
         let l1 = scatter("rebal", res.iter().map(|&(i, _, x)| (i as i128, x)));
         let l2 = scatter("query", res.iter().map(|&(i, x, _)| (i as i128, x)));
 
@@ -29,8 +31,6 @@ fn main() {
                 let res2 = layout::bench(layout::Layout::Direct, grow, size);
                 let res3 = layout::bench(layout::Layout::Indirect, grow, size);
 
-                use poloto::build::scatter;
-                use poloto::prelude::*;
                 let l1 = scatter("c default", res1.iter().map(|&(i, x, _)| (i as i128, x)));
                 let l2 = scatter("c direct", res2.iter().map(|&(i, x, _)| (i as i128, x)));
                 let l3 = scatter("c indirect", res3.iter().map(|&(i, x, _)| (i as i128, x)));
@@ -51,4 +51,58 @@ fn main() {
             }
         }
     }
+    */
+
+    {
+        std::fs::create_dir_all("colfind").unwrap();
+ 
+        /*
+        for grow in [2.0]{
+            let res=colfind::bench(60_000,grow,10000,20000);
+
+            let l1 = scatter("brocc", res.iter().map(|(i,r)| (*i as i128, r.brocc)));
+            let l2 = scatter("brocc_par", res.iter().map(|(i,r)| (*i as i128, r.brocc_par)));
+            let l3 = scatter("nosort", res.iter().map(|(i,r)| (*i as i128, r.nosort)));
+            let l4 = scatter("nosort_par", res.iter().map(|(i,r)| (*i as i128, r.nosort_par)));
+            let l5 = scatter("sweep", res.iter().map(|(i,r)| (*i as i128, r.sweep)));
+            let l6 = scatter("sweep_par", res.iter().map(|(i,r)| (*i as i128, r.sweep_par)));
+            let l7 = scatter("naive", res.iter().map(|(i,r)| (*i as i128, r.naive)));
+
+            let m = poloto::build::origin();
+            let data = plots!(l1,l2,l3,l4,l5,l6,l7, m);
+
+            let p = simple_fmt!(data, "hay", "x", "y");
+
+            let mut file =
+                        std::fs::File::create(format!("colfind/n_{}.svg",grow)).unwrap();
+
+            p.simple_theme(&mut support::upgrade_write(&mut file))
+                .unwrap();
+        }
+        */
+
+        for n in [60_000]{
+            let res=colfind::bench_grow(n,0.2,1.5);
+
+            let l1 = scatter("brocc", res.iter().map(|(i,r)| (*i, r.brocc)));
+            let l2 = scatter("brocc_par", res.iter().map(|(i,r)| (*i, r.brocc_par)));
+            let l3 = scatter("nosort", res.iter().map(|(i,r)| (*i, r.nosort)));
+            let l4 = scatter("nosort_par", res.iter().map(|(i,r)| (*i, r.nosort_par)));
+            let l5 = scatter("sweep", res.iter().map(|(i,r)| (*i, r.sweep)));
+            let l6 = scatter("sweep_par", res.iter().map(|(i,r)| (*i, r.sweep_par)));
+            let l7 = scatter("naive", res.iter().map(|(i,r)| (*i, r.naive)));
+
+            let m = poloto::build::origin();
+            let data = plots!(l1,l2,l3,l4,l5,l6,l7, m);
+
+            let p = simple_fmt!(data, "hay", "x", "y");
+
+            let mut file =
+                        std::fs::File::create(format!("colfind/grow_{}.svg",n)).unwrap();
+
+            p.simple_theme(&mut support::upgrade_write(&mut file))
+                .unwrap();
+        }
+    }
 }
+
