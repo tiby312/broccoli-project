@@ -42,25 +42,32 @@ pub fn bench_grow(num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, Bench
         .collect()
 }
 
-/*
 #[inline(never)]
 pub fn theory(
+    man: &mut datanum::DnumManager,
     max: usize,
     grow: f64,
     naive_stop: usize,
     sweep_stop: usize,
 ) -> Vec<(usize, TheoryRecord)> {
-    let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
+    let mut all: Vec<_> = dist::dist_datanum(man, grow)
+        .map(|x| Dummy(x, 0u32))
+        .take(max)
+        .collect();
 
     (0..max)
         .step_by(100)
         .map(|a| {
             let bots = &mut all[0..a];
-            (a, theory::new_record(bots,true, a < naive_stop, a < sweep_stop))
+            (
+                a,
+                theory::new_record(bots, true, a < naive_stop, a < sweep_stop),
+            )
         })
         .collect()
 }
 
+/*
 #[inline(never)]
 pub fn theory_grow(num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, TheoryRecord)> {
     grow_iter(start_grow, end_grow)

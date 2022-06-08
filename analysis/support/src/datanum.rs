@@ -1,4 +1,4 @@
-use broccoli::tree::node::Num;
+use broccoli::{axgeom::Rect, tree::node::Num};
 use once_cell::race::OnceBool;
 use std::cmp::Ordering;
 
@@ -62,6 +62,10 @@ impl DnumManager {
     }
     pub fn make_num<I: PartialOrd + Copy + Default + Debug>(&mut self, a: I) -> Dnum<I> {
         Dnum(a, PhantomData)
+    }
+
+    pub fn convert(&mut self, rect: Rect<f32>) -> Rect<Dnum<f32>> {
+        unimplemented!();
     }
 }
 

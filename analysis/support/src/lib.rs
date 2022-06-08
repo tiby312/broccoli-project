@@ -3,6 +3,7 @@ pub mod datanum;
 pub use broccoli;
 pub use broccoli::axgeom;
 use broccoli::tree::aabb_pin::HasInner;
+use broccoli::tree::node::Num;
 pub use poloto;
 
 pub mod prelude {
@@ -39,21 +40,21 @@ impl Recorder<f64> for Bencher {
     }
 }
 
-pub struct Dummy<T>(pub Rect<f32>, pub T);
-impl<T> Aabb for Dummy<T> {
-    type Num = f32;
-    fn get(&self) -> &Rect<f32> {
+pub struct Dummy<I, T>(pub Rect<I>, pub T);
+impl<I: Num, T> Aabb for Dummy<I, T> {
+    type Num = I;
+    fn get(&self) -> &Rect<I> {
         &self.0
     }
 }
-impl<T> Aabb for &mut Dummy<T> {
-    type Num = f32;
-    fn get(&self) -> &Rect<f32> {
+impl<I: Num, T> Aabb for &mut Dummy<I, T> {
+    type Num = I;
+    fn get(&self) -> &Rect<I> {
         &self.0
     }
 }
-impl<T> ManySwap for &mut Dummy<T> {}
-impl<T> HasInner for &mut Dummy<T> {
+impl<I, T> ManySwap for &mut Dummy<I, T> {}
+impl<I: Num, T> HasInner for &mut Dummy<I, T> {
     type Inner = T;
 
     fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
@@ -61,8 +62,8 @@ impl<T> HasInner for &mut Dummy<T> {
     }
 }
 
-impl<T> ManySwap for Dummy<T> {}
-impl<T> HasInner for Dummy<T> {
+impl<I, T> ManySwap for Dummy<I, T> {}
+impl<I: Num, T> HasInner for Dummy<I, T> {
     type Inner = T;
 
     fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
@@ -70,27 +71,27 @@ impl<T> HasInner for Dummy<T> {
     }
 }
 
-impl<const K: usize> ColfindHandler for Dummy<&mut [u8; K]> {
+impl<const K: usize> ColfindHandler for Dummy<f32, &mut [u8; K]> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
         a.unpack_inner()[0] ^= 1;
         b.unpack_inner()[0] ^= 1;
     }
 }
 
-impl<const K: usize> ColfindHandler for Dummy<[u8; K]> {
+impl<const K: usize> ColfindHandler for Dummy<f32, [u8; K]> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
         a.unpack_inner()[0] ^= 1;
         b.unpack_inner()[0] ^= 1;
     }
 }
-impl<const K: usize> ColfindHandler for &mut Dummy<[u8; K]> {
+impl<const K: usize> ColfindHandler for &mut Dummy<f32, [u8; K]> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
         a.unpack_inner()[0] ^= 1;
         b.unpack_inner()[0] ^= 1;
     }
 }
 
-impl ColfindHandler for Dummy<u32> {
+impl ColfindHandler for Dummy<f32, u32> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
         *a.unpack_inner() ^= 1;
         *b.unpack_inner() ^= 1;
@@ -100,6 +101,8 @@ impl ColfindHandler for Dummy<u32> {
 use prelude::*;
 
 pub mod dist {
+    use crate::datanum::Dnum;
+
     use super::*;
     pub const RADIUS: f32 = 2.0;
 
@@ -117,6 +120,17 @@ pub mod dist {
     pub fn dist(grow: f64) -> impl Iterator<Item = Rect<f32>> {
         dists::fib_iter([0.0, 0.0], grow).map(|a| {
             axgeom::Rect::from_point(vec2(a[0] as f32, a[1] as f32), vec2same(RADIUS as f32))
+        })
+    }
+
+    pub fn dist_datanum<'a>(
+        man: &'a mut datanum::DnumManager,
+        grow: f64,
+    ) -> impl Iterator<Item = Rect<Dnum<f32>>> + 'a {
+        dists::fib_iter([0.0, 0.0], grow).map(|a| {
+            let r =
+                axgeom::Rect::from_point(vec2(a[0] as f32, a[1] as f32), vec2same(RADIUS as f32));
+            man.convert(r)
         })
     }
 }

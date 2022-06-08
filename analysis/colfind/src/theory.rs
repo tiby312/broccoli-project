@@ -8,15 +8,13 @@ pub struct Record {
     pub nosort: f64,
 }
 
-pub fn new_record<B: Recorder<usize>, T: ColfindHandler>(
-    recorder: B,
+pub fn new_record<T: ColfindHandler>(
+    man: &mut datanum::DnumManager,
     bots: &mut [T],
     naive: bool,
     sweep: bool,
 ) -> Record {
-    unimplemented!();
-    /*
-    let recorder=Theory;
+    let recorder = man;
     let c1 = recorder.time(|| {
         let mut tree = broccoli::Tree::new(bots);
         tree.find_colliding_pairs(|a, b| {
@@ -56,5 +54,4 @@ pub fn new_record<B: Recorder<usize>, T: ColfindHandler>(
         sweep: c3 as f64,
         nosort: c4 as f64,
     }
-    */
 }
