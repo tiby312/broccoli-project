@@ -80,7 +80,6 @@ impl<T: HasInner> HasInner for &mut ManySwappable<T> {
     }
 }
 
-
 impl<T: Aabb> Aabb for ManySwappable<T> {
     type Num = T::Num;
     #[inline(always)]
@@ -322,8 +321,7 @@ pub struct Node<'a, T: Aabb> {
     ///
     pub min_elem: usize,
 
-
-    pub num_elem:usize
+    pub num_elem: usize,
 }
 impl<'a, T: Aabb> Node<'a, T> {
     pub fn borrow_range(&mut self) -> AabbPin<&mut [T]> {
@@ -336,7 +334,7 @@ impl<'a, T: Aabb> Node<'a, T> {
             cont: self.cont,
             div: self.div,
             min_elem: self.min_elem,
-            num_elem:self.num_elem
+            num_elem: self.num_elem,
         }
     }
 }
@@ -350,7 +348,7 @@ pub struct NodeData<N: Num> {
     pub cont: axgeom::Range<N>,
     pub div: Option<N>,
     pub min_elem: usize,
-    pub num_elem:usize
+    pub num_elem: usize,
 }
 
 pub use axgeom::Range;

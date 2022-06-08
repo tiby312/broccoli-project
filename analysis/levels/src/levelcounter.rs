@@ -1,6 +1,4 @@
-use support::prelude::tree::splitter::Splitter;
-
-use super::*;
+use support::{datanum::DnumManager, prelude::tree::splitter::Splitter};
 
 #[derive(Debug)]
 pub struct Single {
@@ -8,15 +6,17 @@ pub struct Single {
     dur: usize,
 }
 #[derive(Debug)]
-pub struct LevelCounter {
+pub struct LevelCounter<'a> {
+    man: &'a DnumManager,
     level: usize,
     stuff: Vec<Single>,
     start: usize,
 }
-impl LevelCounter {
-    pub fn new(level: usize, buffer: Vec<Single>) -> LevelCounter {
-        let now = unsafe { datanum::COUNTER };
+impl<'a> LevelCounter<'a> {
+    pub fn new(man: &'a DnumManager, level: usize, buffer: Vec<Single>) -> LevelCounter {
+        let now = man.counter();
         LevelCounter {
+            man,
             level,
             stuff: buffer,
             start: now,
@@ -24,7 +24,7 @@ impl LevelCounter {
     }
 
     fn restart(&mut self, level: usize) {
-        let now = unsafe { datanum::COUNTER };
+        let now = self.man.counter();
         self.level = level;
         self.start = now;
     }
@@ -33,7 +33,7 @@ impl LevelCounter {
     }
 
     pub fn consume(&mut self) {
-        let dur = unsafe { datanum::COUNTER - self.start };
+        let dur = self.man.counter() - self.start;
 
         //stop self timer.
         let level = self.level();
@@ -63,7 +63,7 @@ impl LevelCounter {
         n
     }
 }
-impl Splitter for LevelCounter {
+impl<'a> Splitter for LevelCounter<'a> {
     #[inline]
     fn div(&mut self) -> Self {
         let level = self.level();
@@ -72,7 +72,7 @@ impl Splitter for LevelCounter {
 
         self.restart(level + 1);
 
-        LevelCounter::new(level + 1, vec![])
+        LevelCounter::new(self.man, level + 1, vec![])
     }
 
     #[inline]

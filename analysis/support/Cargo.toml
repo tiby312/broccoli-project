@@ -9,3 +9,4 @@ edition = "2021"
 dists={git="https://github.com/tiby312/dists"}
 broccoli={path="../.."}
 poloto="*"
+once_cell="*"

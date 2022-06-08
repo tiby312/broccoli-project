@@ -150,7 +150,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
                     cont: x.cont,
                     div: x.div,
                     min_elem: x.min_elem,
-                    num_elem:x.num_elem
+                    num_elem: x.num_elem,
                 }
             })
             .collect();

@@ -220,17 +220,15 @@ fn recurse_seq<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
     }
 }
 
-
 // we want to pass small chunks so that if a slow core
 // gets a task, they don't hold everybody else up.
 
-
-// at the same time, we don't want there to be only 
+// at the same time, we don't want there to be only
 // a few chunks. i.e. only 3 cores available but 4 chunks.
 
 // so lets only result to chunking IF
 // the problem size is big enough such that there
-// are many chunks. 
+// are many chunks.
 
 #[cfg(feature = "parallel")]
 fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(

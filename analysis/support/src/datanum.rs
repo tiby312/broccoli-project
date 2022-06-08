@@ -1,18 +1,18 @@
-use broccoli::axgeom::Rect;
 use broccoli::tree::node::Num;
+use once_cell::race::OnceBool;
 use std::cmp::Ordering;
 
 use core::marker::PhantomData;
 
 #[derive(Copy, Clone, Debug)]
-pub struct Dnum<'a, I: Num>(pub I, PhantomData<&'a usize>);
+pub struct Dnum<I: Num>(pub I, PhantomData<*mut usize>);
 
-impl<'a, T: Num + Default> Default for Dnum<'a, T> {
+impl<T: Num + Default> Default for Dnum<T> {
     fn default() -> Self {
         Dnum(Default::default(), PhantomData)
     }
 }
-impl<'a, I: Num> PartialOrd for Dnum<'a, I> {
+impl<I: Num> PartialOrd for Dnum<I> {
     fn partial_cmp(&self, other: &Dnum<I>) -> Option<Ordering> {
         unsafe {
             COUNTER += 1;
@@ -21,60 +21,54 @@ impl<'a, I: Num> PartialOrd for Dnum<'a, I> {
     }
 }
 
-impl<'a, I: Num> PartialEq for Dnum<'a, I> {
+impl<I: Num> PartialEq for Dnum<I> {
     fn eq(&self, other: &Dnum<I>) -> bool {
         self.0.eq(&other.0)
     }
 }
 
-impl<'a, I: Num> Eq for Dnum<'a, I> {}
+impl<I: Num> Eq for Dnum<I> {}
 
-pub static mut COUNTER: usize = 0;
+static mut COUNTER: usize = 0;
 
-///within the closure, the user is allowed to create DataNum numbers
-///NOT SAFE
-///The number type Dnum is incorrectly marked as Send and Sync.
-///This is because broccoli::Num requires Send and Sync.
-///It i up to the user to not move any Dnum's between threads
-///inside of this closure.
-pub fn datanum_test(func: impl FnOnce(&mut Maker)) -> usize {
-    unsafe { COUNTER = 0 };
-    let mut maker = Maker { _p: PhantomData };
-    func(&mut maker);
+use std::fmt::Debug;
 
-    unsafe { COUNTER }
+use crate::Recorder;
+
+//You can only make this struct ONCE which
+//will destine all numbers created using this struct
+//to belong to the read used to call this function.
+pub fn new_session() -> DnumManager {
+    static INSTANCE: OnceBool = OnceBool::new();
+
+    assert!(INSTANCE.get().is_none());
+
+    INSTANCE.set(true).unwrap();
+
+    DnumManager { _p: PhantomData }
 }
 
-pub fn datanum_test2<T>(func: impl FnOnce(&mut Maker) -> T) -> T {
-    unsafe { COUNTER = 0 };
-    let mut maker = Maker { _p: PhantomData };
-    func(&mut maker)
+#[derive(Debug)]
+pub struct DnumManager {
+    _p: PhantomData<*mut usize>,
 }
-/*
-pub fn datanum_test_ret<T>(func: impl FnOnce(&mut Maker) -> T) -> (T, usize) {
-    unsafe { COUNTER = 0 };
-    let mut maker = Maker { _p: PhantomData };
-    let k = func(&mut maker);
-    (k, unsafe { COUNTER })
-}*/
 
-pub struct Maker {
-    _p: PhantomData<*mut usize>, //Make it not implement send or sync
-}
-impl Maker {
-    pub fn count(&self) -> usize {
-        unsafe { COUNTER }
-    }
-    pub fn reset(&self) {
+impl DnumManager {
+    pub fn reset_counter(&mut self) {
         unsafe { COUNTER = 0 }
     }
-    pub fn build_from_rect<I: Num>(&self, rect: Rect<I>) -> Rect<Dnum<I>> {
-        let ((a, b), (c, d)) = rect.get();
-        Rect::new(
-            Dnum(a, PhantomData),
-            Dnum(b, PhantomData),
-            Dnum(c, PhantomData),
-            Dnum(d, PhantomData),
-        )
+    pub fn counter(&self) -> usize {
+        unsafe { COUNTER }
+    }
+    pub fn make_num<I: PartialOrd + Copy + Default + Debug>(&mut self, a: I) -> Dnum<I> {
+        Dnum(a, PhantomData)
+    }
+}
+
+impl Recorder<usize> for DnumManager {
+    fn time_ext<K>(&mut self, func: impl FnOnce() -> K) -> (K, usize) {
+        unsafe { COUNTER = 0 };
+        let k = func();
+        (k, unsafe { COUNTER })
     }
 }

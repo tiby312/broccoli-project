@@ -1,97 +1,105 @@
 pub mod datanum;
 
-
 pub use broccoli;
 pub use broccoli::axgeom;
 use broccoli::tree::aabb_pin::HasInner;
 pub use poloto;
 
-pub mod prelude{
+pub mod prelude {
     pub use super::*;
-    pub use poloto::*;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
     pub use broccoli::tree::aabb_pin::AabbPin;
     pub use broccoli::*;
-    
+    pub use poloto::*;
+
     pub use broccoli::tree::node::Aabb;
     pub use broccoli::tree::node::ManySwap;
     pub use broccoli::tree::node::ManySwappable;
-
 }
-pub trait ColfindHandler:Aabb+ManySwap+HasInner{
-    fn handle(a:&mut Self::Inner,b:&mut Self::Inner);
+pub trait ColfindHandler: Aabb + ManySwap + HasInner {
+    fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>);
 }
 
+pub trait Recorder<L> {
+    fn time_ext<K>(&mut self, func: impl FnOnce() -> K) -> (K, L);
 
+    fn time(&mut self, func: impl FnOnce()) -> L {
+        self.time_ext(func).1
+    }
+}
 
-pub struct Dummy<T>(pub Rect<f32>,pub T);
-impl<T> Aabb for Dummy<T>{
-    type Num=f32;
-    fn get(&self)->&Rect<f32>{
+pub struct Bencher;
+impl Recorder<f64> for Bencher {
+    fn time_ext<K>(&mut self, func: impl FnOnce() -> K) -> (K, f64) {
+        let instant = Instant::now();
+        let a = black_box_ret(func());
+        let j = instant_to_sec(instant.elapsed());
+        (a, j)
+    }
+}
+
+pub struct Dummy<T>(pub Rect<f32>, pub T);
+impl<T> Aabb for Dummy<T> {
+    type Num = f32;
+    fn get(&self) -> &Rect<f32> {
         &self.0
     }
 }
-impl<T> Aabb for &mut Dummy<T>{
-    type Num=f32;
-    fn get(&self)->&Rect<f32>{
+impl<T> Aabb for &mut Dummy<T> {
+    type Num = f32;
+    fn get(&self) -> &Rect<f32> {
         &self.0
     }
 }
-impl<T> ManySwap for &mut Dummy<T>{}
-impl<T> HasInner for &mut Dummy<T>{
-    type Inner=T;
+impl<T> ManySwap for &mut Dummy<T> {}
+impl<T> HasInner for &mut Dummy<T> {
+    type Inner = T;
 
     fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        (&self.0,&mut self.1)
+        (&self.0, &mut self.1)
     }
 }
 
-
-impl<T> ManySwap for Dummy<T>{}
-impl<T> HasInner for Dummy<T>{
-    type Inner=T;
+impl<T> ManySwap for Dummy<T> {}
+impl<T> HasInner for Dummy<T> {
+    type Inner = T;
 
     fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        (&self.0,&mut self.1)
+        (&self.0, &mut self.1)
     }
 }
 
-impl<const K:usize> ColfindHandler for Dummy<&mut [u8;K]>{
-    fn handle(a:&mut Self::Inner,b:&mut Self::Inner){
-
-        a[0]^=1;
-        b[0]^=1;
+impl<const K: usize> ColfindHandler for Dummy<&mut [u8; K]> {
+    fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
+        a.unpack_inner()[0] ^= 1;
+        b.unpack_inner()[0] ^= 1;
     }
 }
 
-impl<const K:usize> ColfindHandler for Dummy<[u8;K]>{
-    fn handle(a:&mut Self::Inner,b:&mut Self::Inner){
-
-        a[0]^=1;
-        b[0]^=1;
+impl<const K: usize> ColfindHandler for Dummy<[u8; K]> {
+    fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
+        a.unpack_inner()[0] ^= 1;
+        b.unpack_inner()[0] ^= 1;
     }
 }
-impl<const K:usize> ColfindHandler for &mut Dummy<[u8;K]>{
-    fn handle(a:&mut Self::Inner,b:&mut Self::Inner){
-
-        a[0]^=1;
-        b[0]^=1;
-    }
-}
-
-impl ColfindHandler for Dummy<u32>{
-    fn handle(a:&mut Self::Inner,b:&mut Self::Inner){
-        
-        *a^=1;
-        *b^=1;
+impl<const K: usize> ColfindHandler for &mut Dummy<[u8; K]> {
+    fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
+        a.unpack_inner()[0] ^= 1;
+        b.unpack_inner()[0] ^= 1;
     }
 }
 
+impl ColfindHandler for Dummy<u32> {
+    fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
+        *a.unpack_inner() ^= 1;
+        *b.unpack_inner() ^= 1;
+    }
+}
 
 use prelude::*;
 
-pub mod dist{
+pub mod dist {
     use super::*;
     pub const RADIUS: f32 = 2.0;
 
@@ -106,12 +114,11 @@ pub mod dist{
 
     pub const SPARSE_GROW: f64 = 2.1;
 
-    pub fn dist(grow:f64)->impl Iterator<Item=Rect<f32>>{
-        dists::fib_iter([0.0, 0.0], grow).map(|a|{
+    pub fn dist(grow: f64) -> impl Iterator<Item = Rect<f32>> {
+        dists::fib_iter([0.0, 0.0], grow).map(|a| {
             axgeom::Rect::from_point(vec2(a[0] as f32, a[1] as f32), vec2same(RADIUS as f32))
-        }) 
+        })
     }
-    
 }
 
 pub fn grow_iter(
@@ -126,7 +133,6 @@ pub fn grow_iter(
     (0..num_samples).map(move |x| start + (x as f64 * step_size))
 }
 
-
 pub fn n_iter(start: usize, end: usize) -> core::iter::StepBy<std::ops::Range<usize>> {
     assert!(end > start);
     //hardcode the number of samples
@@ -137,8 +143,6 @@ pub fn n_iter(start: usize, end: usize) -> core::iter::StepBy<std::ops::Range<us
 
     (start..end).step_by(step_size)
 }
-
-
 
 use std::time::Duration;
 use std::time::Instant;
@@ -165,7 +169,6 @@ pub fn bench_closure(func: impl FnOnce()) -> f64 {
     black_box_ret(bench_closure_ret(func).1)
 }
 
-
 //TODO group time stuff?
 pub fn into_secs(elapsed: std::time::Duration) -> f64 {
     (elapsed.as_secs() as f64) + (f64::from(elapsed.subsec_nanos()) / 1_000_000_000.0)
@@ -183,9 +186,6 @@ pub fn bench_closure_ret<T>(func: impl FnOnce() -> T) -> (T, f64) {
     (a, j)
 }
 
-
-
-
 ///
 /// Used to wrap a `std::io::Write` to have `std::io::Write`.
 /// The underlying error can be extracted through the error field.
@@ -194,7 +194,6 @@ pub struct Adaptor<T> {
     pub inner: T,
     pub error: Result<(), std::io::Error>,
 }
-
 
 ///Update a `std::io::Write` to be a `std::fmt::Write`
 pub fn upgrade_write<T: std::io::Write>(inner: T) -> Adaptor<T> {
