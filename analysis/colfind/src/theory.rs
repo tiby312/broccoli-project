@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug)]
 pub struct Record {
-    pub broccoli: f64,
+    pub brocc: f64,
     pub naive: f64,
     pub sweep: f64,
     pub nosort: f64,
@@ -54,7 +54,7 @@ pub fn new_record<T: ColfindHandler>(
     };
 
     Record {
-        broccoli: c1 as f64,
+        brocc: c1 as f64,
         naive: c2 as f64,
         sweep: c3 as f64,
         nosort: c4 as f64,

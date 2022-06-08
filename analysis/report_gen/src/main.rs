@@ -1,24 +1,34 @@
-use support::prelude::*;
-
 use poloto::build::scatter;
 use poloto::prelude::*;
-
-/*
-[analysis/report_gen/src/main.rs:8] colfind::bench_one(30_000, 2.0) = Record {
-    brocc: 0.004039539,
-    brocc_par: 0.003442385,
-    sweep: 0.0,
-    sweep_par: 0.0,
-    naive: 0.0,
-    nosort_par: 0.0,
-    nosort: 0.0,
-}
-*/
+use support::datanum::DnumManager;
+use support::prelude::*;
 
 fn main() {
-    let a = datanum::new_session();
+    let mut a = datanum::new_session();
+    theory(&mut a);
+}
 
-    dbg!(colfind::bench_one(30_000, 2.0));
+fn theory(man: &mut DnumManager) {
+    std::fs::create_dir_all("colfind").unwrap();
+
+    for grow in [2.0] {
+        let res = colfind::theory(man, 5_000, grow, 1000, 20000);
+
+        let l1 = scatter("brocc", res.iter().map(|(i, r)| (*i as i128, r.brocc)));
+        let l2 = scatter("nosort", res.iter().map(|(i, r)| (*i as i128, r.nosort)));
+        let l3 = scatter("sweep", res.iter().map(|(i, r)| (*i as i128, r.sweep)));
+        let l4 = scatter("naive", res.iter().map(|(i, r)| (*i as i128, r.naive)));
+
+        let m = poloto::build::origin();
+        let data = plots!(l1, l2, l3, l4, m);
+
+        let p = simple_fmt!(data, "hay", "x", "y");
+
+        let mut file = std::fs::File::create(format!("colfind/theory_n_{}.svg", grow)).unwrap();
+
+        p.simple_theme(&mut support::upgrade_write(&mut file))
+            .unwrap();
+    }
 }
 
 fn report() {
