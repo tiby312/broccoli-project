@@ -11,6 +11,7 @@ pub struct Record {
 pub fn new_record<T: ColfindHandler>(
     man: &mut datanum::DnumManager,
     bots: &mut [T],
+    nosort: bool,
     naive: bool,
     sweep: bool,
 ) -> Record {
@@ -42,11 +43,15 @@ pub fn new_record<T: ColfindHandler>(
         0
     };
 
-    let c4 = recorder.time(|| {
-        let _tree = NotSortedTree::new(bots).find_colliding_pairs(|a, b| {
-            T::handle(a, b);
-        });
-    });
+    let c4 = if nosort {
+        recorder.time(|| {
+            let _tree = NotSortedTree::new(bots).find_colliding_pairs(|a, b| {
+                T::handle(a, b);
+            });
+        })
+    } else {
+        0
+    };
 
     Record {
         broccoli: c1 as f64,

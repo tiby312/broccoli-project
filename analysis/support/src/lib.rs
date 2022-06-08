@@ -91,6 +91,13 @@ impl<const K: usize> ColfindHandler for &mut Dummy<f32, [u8; K]> {
     }
 }
 
+impl ColfindHandler for Dummy<datanum::Dnum<f32>, u32> {
+    fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
+        *a.unpack_inner() ^= 1;
+        *b.unpack_inner() ^= 1;
+    }
+}
+
 impl ColfindHandler for Dummy<f32, u32> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
         *a.unpack_inner() ^= 1;

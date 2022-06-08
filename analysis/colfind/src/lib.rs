@@ -61,20 +61,24 @@ pub fn theory(
             let bots = &mut all[0..a];
             (
                 a,
-                theory::new_record(bots, true, a < naive_stop, a < sweep_stop),
+                theory::new_record(man, bots, true, a < naive_stop, a < sweep_stop),
             )
         })
         .collect()
 }
 
-/*
+
 #[inline(never)]
-pub fn theory_grow(num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, TheoryRecord)> {
+pub fn theory_grow(man: &mut datanum::DnumManager,num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, TheoryRecord)> {
     grow_iter(start_grow, end_grow)
         .map(|grow| {
-            let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
-            (grow, theory::new_record(&mut all,true, false, true))
+            let mut all: Vec<_> = dist::dist_datanum(man, grow)
+            .map(|x| Dummy(x, 0u32))
+            .take(num)
+            .collect();
+    
+            (grow, theory::new_record(man,&mut all,true, false, true))
         })
         .collect()
 }
-*/
+

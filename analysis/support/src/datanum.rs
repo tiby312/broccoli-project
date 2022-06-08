@@ -65,14 +65,21 @@ impl DnumManager {
     }
 
     pub fn convert(&mut self, rect: Rect<f32>) -> Rect<Dnum<f32>> {
-        unimplemented!();
+        let ((a, b), (c, d)) = rect.get();
+
+        let a = self.make_num(a);
+        let b = self.make_num(b);
+        let c = self.make_num(c);
+        let d = self.make_num(d);
+
+        Rect::new(a, b, c, d)
     }
 }
 
 impl Recorder<usize> for DnumManager {
     fn time_ext<K>(&mut self, func: impl FnOnce() -> K) -> (K, usize) {
-        unsafe { COUNTER = 0 };
+        self.reset_counter();
         let k = func();
-        (k, unsafe { COUNTER })
+        (k, self.counter())
     }
 }
