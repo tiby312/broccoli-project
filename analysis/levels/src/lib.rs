@@ -1,4 +1,4 @@
-use support::datanum;
+use support::datanum::{self, DnumManager};
 use support::prelude::tree::BuildArgs;
 use support::prelude::*;
 
@@ -25,50 +25,46 @@ pub fn bench(num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, Res<f64>)>
         .collect()
 }
 
-pub fn theory(num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, Res<usize>)> {
+pub fn theory(man:&mut DnumManager,num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, Res<usize>)> {
     grow_iter(start_grow, end_grow)
         .map(|grow| {
-            let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
-            let res = gen_theory(&mut all);
+            let mut all: Vec<_> = dist::dist_datanum(man,grow).map(|x| Dummy(x, 0u32)).take(num).collect();
+            let res = gen_theory(man,&mut all);
             (grow, res)
         })
         .collect()
 }
 
-fn gen_theory<T: ColfindHandler>(bots: &mut [T]) -> Res<usize> {
-    unimplemented!();
-    /*
-    let (rebal, query) = datanum::datanum_test2(|maker| {
+fn gen_theory<T: ColfindHandler>(man:&mut DnumManager,bots: &mut [T]) -> Res<usize> {
+    
+    
+    man.reset_counter();
 
-        maker.reset();
+    let len = bots.len();
+    let (mut tree, levelc) = Tree::from_build_args(
+        bots,
+        BuildArgs::new(len).with_splitter(LevelCounter::new(man,0, vec![])),
+    );
 
-        let len = bots.len();
-        let (mut tree, levelc) = Tree::from_build_args(
-            bots,
-            BuildArgs::new(len).with_splitter(LevelCounter::new(0, vec![])),
-        );
+    let c1 = levelc.into_levels().into_iter().map(|x| x ).collect();
+    
+    man.reset_counter();
 
-        let c1 = levelc.into_levels().into_iter().map(|x| x ).collect();
-        maker.reset();
+    let levelc2 = tree.find_colliding_pairs_from_args(
+        QueryArgs::new().with_splitter(LevelCounter::new(man,0, vec![])),
+        |a, b| {
+            T::handle(a,b);
+        },
+    );
 
-        let levelc2 = tree.find_colliding_pairs_from_args(
-            QueryArgs::new().with_splitter(LevelCounter::new(0, vec![])),
-            |a, b| {
-                T::handle(a,b);
-            },
-        );
+    let c2 = levelc2
+        .into_levels()
+        .into_iter()
+        .map(|x| x )
+        .collect();
 
-        let c2 = levelc2
-            .into_levels()
-            .into_iter()
-            .map(|x| x )
-            .collect();
-
-        (c1, c2)
-    });
-
-    Res { rebal, query }
-    */
+    Res { rebal:c1, query:c2 }
+    
 }
 
 fn gen<T: ColfindHandler>(bots: &mut [T]) -> Res<f64> {

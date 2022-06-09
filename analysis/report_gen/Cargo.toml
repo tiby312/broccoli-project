@@ -10,3 +10,4 @@ par-tuner={path="../par-tuner"}
 layout={path="../layout"}
 support={path="../support"}
 colfind={path="../colfind"}
+levels={path="../levels"}
