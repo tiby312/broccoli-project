@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 dists={git="https://github.com/tiby312/dists"}
-broccoli={path="../.."}
+broccoli={path="../../broccoli"}
 poloto="*"
 once_cell="*"

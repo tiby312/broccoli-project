@@ -1,6 +1,4 @@
-/target/
-/demo/target
-/report/data_gen/target
+/target
 /report/book/
 /report/src/graphs/
 /report/src/raw/

@@ -1,0 +1,40 @@
+[package]
+name = "broccoli"
+version = "5.0.5"
+authors = ["Ken Reed <kenakioreed@gmail.com>"]
+description = "broadphase collision detection algorithms"
+license = "MIT"
+repository = "https://github.com/tiby312/broccoli"
+keywords = ["tree", "kdtree","broadphase","space-partitioning","no_std"]
+readme = "README.md"
+edition = "2021"
+include = ["src/**/*", "LICENSE-MIT", "README.md"]
+
+
+[lib]
+doctest = false
+
+[dev-dependencies]
+dists = {git="https://github.com/tiby312/dists.git"}
+
+[dependencies]
+rayon={version="1.5",optional=true}
+compt = "2.1"
+twounordered = "0.7"
+slice-group-by = "0.3"
+revec = "0.2"
+axgeom = {version="1.12",default-features = false}
+
+
+[package.metadata.docs.rs]
+# This sets the default target to `x86_64-unknown-linux-gnu`
+# and only builds that target
+targets = ["x86_64-unknown-linux-gnu"]
+
+#  when using flamegraph
+# [profile.release]
+# debug = true
+
+[features]
+default=["parallel"]
+parallel = ["rayon"]

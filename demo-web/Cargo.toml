@@ -32,5 +32,5 @@ features=[
   ]
 
 [dependencies.broccoli]
-path = ".."
+path = "../broccoli"
 default-features=false

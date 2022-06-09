@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use poloto::build::scatter;
 use poloto::prelude::*;
 use support::datanum::DnumManager;
@@ -5,12 +7,12 @@ use support::prelude::*;
 
 fn main() {
     let mut a = datanum::new_session();
-    theory(&mut a);
+    theory(&mut a, &Path::new("../../target/analysis"));
 }
 
-fn theory(man: &mut DnumManager) {
+fn theory(man: &mut DnumManager, path: &Path) {
     {
-        std::fs::create_dir_all("colfind").unwrap();
+        std::fs::create_dir_all(path.join("colfind")).unwrap();
 
         for grow in [2.0] {
             let res = colfind::theory(man, 5_000, grow, 1000, 20000);
@@ -25,26 +27,30 @@ fn theory(man: &mut DnumManager) {
 
             let p = simple_fmt!(data, "hay", "x", "y");
 
-            let mut file = std::fs::File::create(format!("colfind/theory_n_{}.svg", grow)).unwrap();
+            let mut file =
+                std::fs::File::create(path.join("colfind").join(format!("theory_n_{}.svg", grow)))
+                    .unwrap();
 
             p.simple_theme(&mut support::upgrade_write(&mut file))
                 .unwrap();
         }
     }
     {
-        std::fs::create_dir_all("level").unwrap();
-        let res=levels::theory(man,20_000,0.2,2.0);
+        std::fs::create_dir_all(path.join("level")).unwrap();
+        let res = levels::theory(man, 20_000, 0.2, 2.0);
 
+        let num_level = res[0].1.rebal.len();
 
-        let num_level=res[0].1.rebal.len();
+        let data = (0usize..num_level)
+            .map(|i| {
+                let g = res
+                    .iter()
+                    .map(move |(grow, levels)| (*grow, levels.rebal[i] as i128));
+                poloto::build::line_fill(formatm!("Level {}", i), g)
+            })
+            .collect();
 
-
-        let data=(0usize..num_level).map(|i|{
-            let g=res.iter().map(move|(grow,levels)|(*grow,levels.rebal[i] as i128));
-            poloto::build::line_fill(formatm!("Level {}", i), g)
-        }).collect();
-
-        let mut file = std::fs::File::create("level/rebal.svg").unwrap();
+        let mut file = std::fs::File::create(path.join("level").join("rebal.svg")).unwrap();
 
         let plot = poloto::simple_fmt!(
             poloto::build::plots_dyn(data).chain(poloto::build::markers([], [0])),
@@ -55,15 +61,14 @@ fn theory(man: &mut DnumManager) {
 
         plot.simple_theme(&mut support::upgrade_write(&mut file))
             .unwrap();
-
     }
 }
 
-fn report() {
+fn report(path: &Path) {
     {
         let res = par_tuner::bench_par(3.0, Some(512), Some(512));
 
-        let mut file = std::fs::File::create("par-tuner.svg").unwrap();
+        let mut file = std::fs::File::create(path.join("par-tuner.svg")).unwrap();
 
         let l1 = scatter("rebal", res.iter().map(|&(i, _, x)| (i as i128, x)));
         let l2 = scatter("query", res.iter().map(|&(i, x, _)| (i as i128, x)));
@@ -78,7 +83,7 @@ fn report() {
     }
 
     {
-        std::fs::create_dir_all("layout").unwrap();
+        std::fs::create_dir_all(path.join("layout")).unwrap();
 
         for grow in [0.2, 2.0] {
             for size in [8, 128, 256] {
@@ -99,8 +104,11 @@ fn report() {
 
                 let p = simple_fmt!(data, formatm!("grow_{}", grow), "x", "y");
 
-                let mut file =
-                    std::fs::File::create(format!("layout/rebal_{}_{}.svg", size, grow)).unwrap();
+                let mut file = std::fs::File::create(
+                    path.join("layout")
+                        .join(format!("rebal_{}_{}.svg", size, grow)),
+                )
+                .unwrap();
 
                 p.simple_theme(support::upgrade_write(&mut file)).unwrap();
             }
@@ -108,7 +116,7 @@ fn report() {
     }
 
     {
-        std::fs::create_dir_all("colfind").unwrap();
+        std::fs::create_dir_all(path.join("colfind")).unwrap();
 
         for grow in [2.0] {
             let res = colfind::bench(60_000, grow, 10000, 20000);
@@ -135,7 +143,9 @@ fn report() {
 
             let p = simple_fmt!(data, "hay", "x", "y");
 
-            let mut file = std::fs::File::create(format!("colfind/n_{}.svg", grow)).unwrap();
+            let mut file =
+                std::fs::File::create(path.join("colfind").join(format!("n_{}.svg", grow)))
+                    .unwrap();
 
             p.simple_theme(&mut support::upgrade_write(&mut file))
                 .unwrap();
@@ -157,7 +167,9 @@ fn report() {
 
             let p = simple_fmt!(data, "hay", "x", "y");
 
-            let mut file = std::fs::File::create(format!("colfind/grow_{}.svg", n)).unwrap();
+            let mut file =
+                std::fs::File::create(path.join("colfind").join(format!("grow_{}.svg", n)))
+                    .unwrap();
 
             p.simple_theme(&mut support::upgrade_write(&mut file))
                 .unwrap();
