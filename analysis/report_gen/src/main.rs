@@ -7,7 +7,9 @@ use support::prelude::*;
 
 fn main() {
     let mut a = datanum::new_session();
-    theory(&mut a, &Path::new("../../target/analysis"));
+    let p=Path::new("../../target/analysis");
+    theory(&mut a, &p);
+    bench(&p);
 }
 
 fn theory(man: &mut DnumManager, path: &Path) {
@@ -64,7 +66,7 @@ fn theory(man: &mut DnumManager, path: &Path) {
     }
 }
 
-fn report(path: &Path) {
+fn bench(path: &Path) {
     {
         let res = par_tuner::bench_par(3.0, Some(512), Some(512));
 
