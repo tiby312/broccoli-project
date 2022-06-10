@@ -8,7 +8,7 @@ pub struct Res {
 
 
 #[inline(never)]
-pub fn bench(max:usize,grow:f64,num_iter:usize)->Vec<(usize,Res)>{
+pub fn bench(max:usize,grow:f64,num_iter:usize)-> Vec<(usize,Res)>{
     assert!(num_iter>=1);
     let mut bencher=Bencher;
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();

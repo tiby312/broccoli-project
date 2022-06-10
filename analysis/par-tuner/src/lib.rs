@@ -60,7 +60,7 @@ pub fn bench_par(
 }
 
 
-pub fn best_seq_fallback_rebal(num:usize,grow:f64)->Vec<(usize,f64)> {
+pub fn best_seq_fallback_rebal(num:usize,grow:f64)-> Vec<(usize,f64)> {
     
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 

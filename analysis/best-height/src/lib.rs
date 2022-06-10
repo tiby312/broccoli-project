@@ -11,11 +11,10 @@ pub fn bench(
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
     (0..max_height)
-        .map(|height| {
+        .map(move |height| {
             let f=new_bench_record(&mut all, height);
             (height,f)
-        })
-        .collect()
+        }).collect()
 }
 
 #[inline(never)]
@@ -24,15 +23,14 @@ pub fn theory(
     max: usize,
     max_height:usize,
     grow: f64,
-) -> Vec<(usize, usize)> {
+) -> Vec<(usize,usize)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
     (0..max_height)
-        .map(|height| {
+        .map(move |height| {
             let f=new_theory_record(man,&mut all, height);
             (height,f)
-        })
-        .collect()
+        }).collect()
 }
 
 
@@ -46,7 +44,7 @@ pub struct Res{
 pub fn optimal(num:usize,grow:f64)->Vec<(usize,Res)>{
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
-    (0..num).step_by(1000).map(|n|{
+    (0..num).step_by(1000).map(move |n|{
         let bots=&mut all[0..n];
 
         let optimal_height=(0..20).map(|height|{
@@ -62,7 +60,6 @@ pub fn optimal(num:usize,grow:f64)->Vec<(usize,Res)>{
             heur_height
         })
     }).collect()
-
 }
 
 
