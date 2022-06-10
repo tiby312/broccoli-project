@@ -7,7 +7,7 @@ use support::prelude::*;
 
 fn main() {
     let mut a = datanum::new_session();
-    let p=Path::new("../../target/analysis");
+    let p = Path::new("../../target/analysis");
     theory(&mut a, &p);
     bench(&p);
 }

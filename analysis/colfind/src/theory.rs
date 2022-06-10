@@ -18,16 +18,12 @@ pub fn new_record<T: ColfindHandler>(
     let recorder = man;
     let c1 = recorder.time(|| {
         let mut tree = broccoli::Tree::new(bots);
-        tree.find_colliding_pairs(|a, b| {
-            T::handle(a, b);
-        });
+        tree.find_colliding_pairs(T::handle);
     });
 
     let c2 = if naive {
         recorder.time(|| {
-            Naive::new(bots).find_colliding_pairs(|a, b| {
-                T::handle(a, b);
-            });
+            Naive::new(bots).find_colliding_pairs(T::handle);
         })
     } else {
         0
@@ -35,9 +31,7 @@ pub fn new_record<T: ColfindHandler>(
 
     let c3 = if sweep {
         recorder.time(|| {
-            broccoli::SweepAndPrune::new(bots).find_colliding_pairs(|a, b| {
-                T::handle(a, b);
-            });
+            broccoli::SweepAndPrune::new(bots).find_colliding_pairs(T::handle);
         })
     } else {
         0
@@ -45,9 +39,7 @@ pub fn new_record<T: ColfindHandler>(
 
     let c4 = if nosort {
         recorder.time(|| {
-            let _tree = NotSortedTree::new(bots).find_colliding_pairs(|a, b| {
-                T::handle(a, b);
-            });
+            let _tree = NotSortedTree::new(bots).find_colliding_pairs(T::handle);
         })
     } else {
         0

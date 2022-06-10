@@ -27,9 +27,7 @@ fn test_one_kind<T: ColfindHandler>(all: &mut [T]) -> Vec<(usize, f64, f64)> {
         let (mut tree, construct_time) = bench_closure_ret(|| broccoli::Tree::new(bots));
 
         let (_tree, query_time) = bench_closure_ret(|| {
-            tree.find_colliding_pairs(|a, b| {
-                T::handle(a, b);
-            });
+            tree.find_colliding_pairs(T::handle);
             tree
         });
 

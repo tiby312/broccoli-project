@@ -105,6 +105,13 @@ impl ColfindHandler for Dummy<f32, u32> {
     }
 }
 
+impl ColfindHandler for Dummy<u32, u32> {
+    fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
+        *a.unpack_inner() ^= 1;
+        *b.unpack_inner() ^= 1;
+    }
+}
+
 use prelude::*;
 
 pub mod dist {

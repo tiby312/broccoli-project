@@ -21,9 +21,7 @@ where
     let cspeedup = cseq as f64 / cpar as f64;
 
     let qseq = bench_closure(|| {
-        tree.find_colliding_pairs(|a, b| {
-            T::handle(a, b);
-        });
+        tree.find_colliding_pairs(T::handle);
     });
 
     let mut args = broccoli::queries::colfind::QueryArgs::new();
@@ -31,9 +29,7 @@ where
         args.num_seq_fallback = c;
     }
     let qpar = bench_closure(|| {
-        tree.par_find_colliding_pairs_from_args(args, |a, b| {
-            T::handle(a, b);
-        });
+        tree.par_find_colliding_pairs_from_args(args, T::handle);
     });
 
     let qspeedup = qseq as f64 / qpar as f64;
@@ -61,4 +57,27 @@ pub fn bench_par(
         plots.push((i, j, k));
     }
     plots
+}
+
+
+pub fn best_seq_fallback_rebal(num:usize,grow:f64)->Vec<(usize,f64)> {
+    
+    let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
+
+    (000..20_000).step_by(100).map(|r|{
+        let (a,_)=single(&mut all,Some(r),None);
+        (r, a as f64)
+    }).collect()
+
+}
+
+pub fn best_seq_fallback_query(num:usize,grow:f64)->Vec<(usize,f64)> {
+    
+    let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
+
+    (000..20_000).step_by(100).map(|a|{
+        let (_,b)=single(&mut all,None,Some(a));
+        (a, b as f64)
+    }).collect()
+
 }

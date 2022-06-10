@@ -25,17 +25,17 @@ where
     let c0 = recorder.time(|| {
         let mut tree = broccoli::Tree::par_new(bots);
 
-        tree.par_find_colliding_pairs(|a, b| T::handle(a, b));
+        tree.par_find_colliding_pairs(T::handle);
     });
 
     let c1 = recorder.time(|| {
         let mut tree = broccoli::Tree::new(bots);
-        tree.find_colliding_pairs(|a, b| T::handle(a, b));
+        tree.find_colliding_pairs(T::handle);
     });
 
     let c3 = if sweep_bench {
         recorder.time(|| {
-            SweepAndPrune::new(bots).par_find_colliding_pairs(|a, b| T::handle(a, b));
+            SweepAndPrune::new(bots).par_find_colliding_pairs(T::handle);
         })
     } else {
         0.0
@@ -43,7 +43,7 @@ where
 
     let c4 = if naive_bench {
         recorder.time(|| {
-            Naive::new(bots).find_colliding_pairs(|a, b| T::handle(a, b));
+            Naive::new(bots).find_colliding_pairs(T::handle);
         })
     } else {
         0.0
@@ -53,7 +53,7 @@ where
         recorder.time(|| {
             let mut tree = NotSortedTree::par_new(bots);
 
-            tree.par_find_colliding_pairs(|a, b| T::handle(a, b));
+            tree.par_find_colliding_pairs(T::handle);
         })
     } else {
         0.0
@@ -62,7 +62,7 @@ where
     let c6 = if nosort_bench {
         recorder.time(|| {
             let mut tree = NotSortedTree::new(bots);
-            tree.find_colliding_pairs(|a, b| T::handle(a, b));
+            tree.find_colliding_pairs(T::handle);
         })
     } else {
         0.0
@@ -72,7 +72,7 @@ where
         recorder.time(|| {
             let mut s = broccoli::SweepAndPrune::new(bots);
 
-            s.find_colliding_pairs(|a, b| T::handle(a, b));
+            s.find_colliding_pairs(T::handle);
         })
     } else {
         0.0

@@ -52,9 +52,7 @@ fn gen_theory<T: ColfindHandler>(man:&mut DnumManager,bots: &mut [T]) -> Res<usi
 
     let levelc2 = tree.find_colliding_pairs_from_args(
         QueryArgs::new().with_splitter(LevelCounter::new(man,0, vec![])),
-        |a, b| {
-            T::handle(a,b);
-        },
+        T::handle,
     );
 
     let c2 = levelc2
@@ -78,9 +76,7 @@ fn gen<T: ColfindHandler>(bots: &mut [T]) -> Res<f64> {
 
     let times2 = tree.find_colliding_pairs_from_args(
         QueryArgs::new().with_splitter(LevelTimer::new(0, vec![])),
-        |a, b| {
-            T::handle(a, b);
-        },
+        T::handle,
     );
 
     let c2 = times2.into_levels().into_iter().map(|x| x as f64).collect();
