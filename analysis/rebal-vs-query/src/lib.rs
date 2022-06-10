@@ -29,7 +29,7 @@ pub struct Record{
     pub tree:(f64,f64),
     pub par_tree:(f64,f64),
     pub nosort:(f64,f64),
-    pub par_nosort:(f64,f64)
+    //pub par_nosort:(f64,f64)
 }
 
 
@@ -59,6 +59,7 @@ where
     });
 
 
+    /*
     let (mut tree,par_notree1) = recorder.time_ext(|| {
         broccoli::NotSortedTree::par_new(bots)
     });
@@ -66,7 +67,7 @@ where
     let par_notree2=recorder.time(||{
         tree.par_find_colliding_pairs(T::handle);
     });
-
+    */
 
     let (mut tree,notree1) = recorder.time_ext(|| {
         broccoli::NotSortedTree::new(bots)
@@ -83,7 +84,7 @@ where
         tree:(tree1,tree2),
         par_tree:(par_tree1,par_tree2),
         nosort:(notree1,notree2),
-        par_nosort:(par_notree1,par_notree2)
+        //par_nosort:(par_notree1,par_notree2)
     }
 }
 

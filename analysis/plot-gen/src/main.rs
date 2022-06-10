@@ -71,6 +71,27 @@ fn bench(path: &Path) {
         let res = rebal_vs_query::bench(80_000, 2.0);
         let l1 = scatter("tree_r", res.iter().map(|(i, r)| (*i as i128, r.tree.0)));
         let l2 = scatter("tree_q", res.iter().map(|(i, r)| (*i as i128, r.tree.1)));
+        let l3 = scatter(
+            "nosort_r",
+            res.iter().map(|(i, r)| (*i as i128, r.nosort.0)),
+        );
+        let l4 = scatter(
+            "nosort_q",
+            res.iter().map(|(i, r)| (*i as i128, r.nosort.1)),
+        );
+
+        let m = poloto::build::origin();
+        let data = plots!(l1, l2, l3, l4, m);
+
+        let p = simple_fmt!(data, "rebal-vs-query", "x", "y");
+
+        let mut file = std::fs::File::create(path.join("rebal-vs-query.svg")).unwrap();
+
+        p.simple_theme(&mut support::upgrade_write(&mut file))
+            .unwrap();
+
+        let l1 = scatter("tree_r", res.iter().map(|(i, r)| (*i as i128, r.tree.0)));
+        let l2 = scatter("tree_q", res.iter().map(|(i, r)| (*i as i128, r.tree.1)));
 
         let l3 = scatter(
             "par_tree_r",
@@ -80,31 +101,13 @@ fn bench(path: &Path) {
             "par_tree_q",
             res.iter().map(|(i, r)| (*i as i128, r.par_tree.1)),
         );
-
-        let l5 = scatter(
-            "nosort_r",
-            res.iter().map(|(i, r)| (*i as i128, r.nosort.0)),
-        );
-        let l6 = scatter(
-            "nosort_q",
-            res.iter().map(|(i, r)| (*i as i128, r.nosort.1)),
-        );
-
-        let l7 = scatter(
-            "par_nosort_r",
-            res.iter().map(|(i, r)| (*i as i128, r.par_nosort.0)),
-        );
-        let l8 = scatter(
-            "par_nosort_q",
-            res.iter().map(|(i, r)| (*i as i128, r.par_nosort.1)),
-        );
-
         let m = poloto::build::origin();
-        let data = plots!(l1, l2, l3, l4, l5, l6, l7, l8, m);
 
-        let p = simple_fmt!(data, "rebal-vs-query", "x", "y");
+        let data = plots!(l1, l2, l3, l4, m);
 
-        let mut file = std::fs::File::create(path.join("rebal-vs-query.svg")).unwrap();
+        let p = simple_fmt!(data, "par-rebal-vs-query", "x", "y");
+
+        let mut file = std::fs::File::create(path.join("par-rebal-vs-query.svg")).unwrap();
 
         p.simple_theme(&mut support::upgrade_write(&mut file))
             .unwrap();
