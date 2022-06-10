@@ -12,7 +12,7 @@ pub fn bench(
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
     (0..max)
-        .step_by(100)
+        .step_by(100).skip(1)
         .map(|a| {
             let bots = &mut all[0..a];
             (
@@ -33,6 +33,8 @@ pub struct Record {
 }
 
 fn new_record(bots:&mut [Dummy<f32,u32>]) -> Record {
+    assert!(!bots.is_empty());
+
     let mut bencher=Bencher;
     let bench_integer = {
     

@@ -76,7 +76,7 @@ impl Splitter for LevelTimer {
         let v2 = &mut b.stuff;
 
         //the left vec is bigger
-        for a in v2.into_iter() {
+        for a in v2.iter_mut() {
             let b = v1.iter_mut().find(|x| x.0 == a.0).unwrap();
             b.1 += a.1;
         }

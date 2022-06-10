@@ -8,8 +8,8 @@ use support::prelude::*;
 fn main() {
     let mut a = datanum::new_session();
     let p = Path::new("../../target/analysis");
-    theory(&mut a, &p);
-    bench(&p);
+    theory(&mut a, p);
+    bench(p);
 }
 
 fn theory(man: &mut DnumManager, path: &Path) {
@@ -68,9 +68,74 @@ fn theory(man: &mut DnumManager, path: &Path) {
 
 fn bench(path: &Path) {
     {
-        let res = par_tuner::bench_par(3.0, Some(512), Some(512));
+        let res = rebal_vs_query::bench(80_000, 2.0);
+        let l1 = scatter("tree_r", res.iter().map(|(i, r)| (*i as i128, r.tree.0)));
+        let l2 = scatter("tree_q", res.iter().map(|(i, r)| (*i as i128, r.tree.1)));
 
-        let mut file = std::fs::File::create(path.join("par-tuner.svg")).unwrap();
+        let l3 = scatter(
+            "par_tree_r",
+            res.iter().map(|(i, r)| (*i as i128, r.par_tree.0)),
+        );
+        let l4 = scatter(
+            "par_tree_q",
+            res.iter().map(|(i, r)| (*i as i128, r.par_tree.1)),
+        );
+
+        let l5 = scatter(
+            "nosort_r",
+            res.iter().map(|(i, r)| (*i as i128, r.nosort.0)),
+        );
+        let l6 = scatter(
+            "nosort_q",
+            res.iter().map(|(i, r)| (*i as i128, r.nosort.1)),
+        );
+
+        let l7 = scatter(
+            "par_nosort_r",
+            res.iter().map(|(i, r)| (*i as i128, r.par_nosort.0)),
+        );
+        let l8 = scatter(
+            "par_nosort_q",
+            res.iter().map(|(i, r)| (*i as i128, r.par_nosort.1)),
+        );
+
+        let m = poloto::build::origin();
+        let data = plots!(l1, l2, l3, l4, l5, l6, l7, l8, m);
+
+        let p = simple_fmt!(data, "rebal-vs-query", "x", "y");
+
+        let mut file = std::fs::File::create(path.join("rebal-vs-query.svg")).unwrap();
+
+        p.simple_theme(&mut support::upgrade_write(&mut file))
+            .unwrap();
+    }
+
+    {
+        let res = float_vs_integer::bench(10_000, 2.0);
+
+        let l1 = scatter("f32", res.iter().map(|(i, r)| (*i as i128, r.float)));
+        let l2 = scatter("i32", res.iter().map(|(i, r)| (*i as i128, r.int)));
+        let l3 = scatter("i64", res.iter().map(|(i, r)| (*i as i128, r.i64)));
+        let l4 = scatter(
+            "f32->int",
+            res.iter().map(|(i, r)| (*i as i128, r.float_i32)),
+        );
+
+        let m = poloto::build::origin();
+        let data = plots!(l1, l2, l3, l4, m);
+
+        let p = simple_fmt!(data, "float-int", "x", "y");
+
+        let mut file = std::fs::File::create(path.join("float-int.svg")).unwrap();
+
+        p.simple_theme(&mut support::upgrade_write(&mut file))
+            .unwrap();
+    }
+
+    {
+        std::fs::create_dir_all(path.join("par")).unwrap();
+
+        let res = par_tuner::bench_par(3.0, Some(512), Some(512));
 
         let l1 = scatter("rebal", res.iter().map(|&(i, _, x)| (i as i128, x)));
         let l2 = scatter("query", res.iter().map(|&(i, x, _)| (i as i128, x)));
@@ -79,6 +144,38 @@ fn bench(path: &Path) {
         let data = plots!(l1, l2, m);
 
         let p = simple_fmt!(data, "rebal", "x", "y");
+
+        let mut file = std::fs::File::create(path.join("par").join("par-speedup.svg")).unwrap();
+
+        p.simple_theme(&mut support::upgrade_write(&mut file))
+            .unwrap();
+
+        let res = par_tuner::best_seq_fallback_rebal(80_000, 2.0);
+
+        let l1 = scatter("", res.iter().map(|&(i, x)| (i as i128, x)));
+
+        let m = poloto::build::origin();
+        let data = plots!(l1, m);
+
+        let p = simple_fmt!(data, "rebal", "x", "y");
+
+        let mut file =
+            std::fs::File::create(path.join("par").join("optimal-seq-fallback-rebal.svg")).unwrap();
+
+        p.simple_theme(&mut support::upgrade_write(&mut file))
+            .unwrap();
+
+        let res = par_tuner::best_seq_fallback_query(80_000, 2.0);
+
+        let l1 = scatter("", res.iter().map(|&(i, x)| (i as i128, x)));
+
+        let m = poloto::build::origin();
+        let data = plots!(l1, m);
+
+        let p = simple_fmt!(data, "query", "x", "y");
+
+        let mut file =
+            std::fs::File::create(path.join("par").join("optimal-seq-fallback-query.svg")).unwrap();
 
         p.simple_theme(&mut support::upgrade_write(&mut file))
             .unwrap();

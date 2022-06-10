@@ -64,7 +64,7 @@ pub fn best_seq_fallback_rebal(num:usize,grow:f64)->Vec<(usize,f64)> {
     
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
-    (000..20_000).step_by(100).map(|r|{
+    (000..20_000).step_by(10).map(|r|{
         let (a,_)=single(&mut all,Some(r),None);
         (r, a as f64)
     }).collect()
@@ -75,7 +75,7 @@ pub fn best_seq_fallback_query(num:usize,grow:f64)->Vec<(usize,f64)> {
     
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
-    (000..20_000).step_by(100).map(|a|{
+    (000..20_000).step_by(10).map(|a|{
         let (_,b)=single(&mut all,None,Some(a));
         (a, b as f64)
     }).collect()

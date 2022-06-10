@@ -1,4 +1,4 @@
-use support::datanum::{self, DnumManager};
+use support::datanum::DnumManager;
 use support::prelude::tree::BuildArgs;
 use support::prelude::*;
 
@@ -46,7 +46,7 @@ fn gen_theory<T: ColfindHandler>(man:&mut DnumManager,bots: &mut [T]) -> Res<usi
         BuildArgs::new(len).with_splitter(LevelCounter::new(man,0, vec![])),
     );
 
-    let c1 = levelc.into_levels().into_iter().map(|x| x ).collect();
+    let c1 = levelc.into_levels().into_iter().collect();
     
     man.reset_counter();
 
@@ -58,7 +58,6 @@ fn gen_theory<T: ColfindHandler>(man:&mut DnumManager,bots: &mut [T]) -> Res<usi
     let c2 = levelc2
         .into_levels()
         .into_iter()
-        .map(|x| x )
         .collect();
 
     Res { rebal:c1, query:c2 }

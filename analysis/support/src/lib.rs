@@ -137,10 +137,10 @@ pub mod dist {
         })
     }
 
-    pub fn dist_datanum<'a>(
-        man: &'a mut datanum::DnumManager,
+    pub fn dist_datanum(
+        man: & mut datanum::DnumManager,
         grow: f64,
-    ) -> impl Iterator<Item = Rect<Dnum<f32>>> + 'a {
+    ) -> impl Iterator<Item = Rect<Dnum<f32>>> + '_ {
         dists::fib_iter([0.0, 0.0], grow).map(|a| {
             let r =
                 axgeom::Rect::from_point(vec2(a[0] as f32, a[1] as f32), vec2same(RADIUS as f32));

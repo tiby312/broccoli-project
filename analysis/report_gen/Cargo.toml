@@ -11,3 +11,5 @@ layout={path="../layout"}
 support={path="../support"}
 colfind={path="../colfind"}
 levels={path="../levels"}
+float-vs-integer={path="../float-vs-integer"}
+rebal-vs-query={path="../rebal-vs-query"}

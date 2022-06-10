@@ -88,7 +88,7 @@ impl<'a> Splitter for LevelCounter<'a> {
         let v2 = &mut b.stuff;
 
         //the left vec is bigger
-        for a in v2.into_iter() {
+        for a in v2.iter_mut() {
             let b = v1.iter_mut().find(|x| x.level == a.level).unwrap();
             b.dur += a.dur;
         }

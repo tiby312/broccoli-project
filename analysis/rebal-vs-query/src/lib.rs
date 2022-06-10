@@ -2,6 +2,28 @@ use support::prelude::*;
 
 
 
+
+
+#[inline(never)]
+pub fn bench(
+    max: usize,
+    grow: f64,
+) -> Vec<(usize, Record)> {
+    let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
+
+    (0..max)
+        .step_by(100).skip(1)
+        .map(|a| {
+            let bots = &mut all[0..a];
+            (
+                a,
+                new_record(bots),
+            )
+        })
+        .collect()
+}
+
+
 #[derive(Debug)]
 pub struct Record{
     pub tree:(f64,f64),
