@@ -17,6 +17,9 @@ pub mod prelude {
     pub use broccoli::tree::node::Aabb;
     pub use broccoli::tree::node::ManySwap;
     pub use broccoli::tree::node::ManySwappable;
+    pub use datanum::DnumManager;
+    pub use broccoli::tree::BuildArgs;
+
 }
 pub trait ColfindHandler: Aabb + ManySwap + HasInner {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>);

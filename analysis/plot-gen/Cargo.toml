@@ -13,3 +13,6 @@ colfind={path="../colfind"}
 levels={path="../levels"}
 float-vs-integer={path="../float-vs-integer"}
 rebal-vs-query={path="../rebal-vs-query"}
+spiral={path="../spiral"}
+cached-pairs={path="../cached-pairs"}
+best-height={path="../best-height"}
