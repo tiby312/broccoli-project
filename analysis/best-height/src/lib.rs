@@ -5,12 +5,17 @@ use support::prelude::*;
 #[inline(never)]
 pub fn bench(
     max: usize,
+    min_height:usize,
     max_height:usize,
     grow: f64,
 ) -> Vec<(usize, f64)> {
+    assert!(min_height>=1);
+    assert!(max_height>=min_height);
+
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
-    (0..max_height)
+    
+    (min_height..max_height)
         .map(move |height| {
             let f=new_bench_record(&mut all, height);
             (height,f)
@@ -21,12 +26,16 @@ pub fn bench(
 pub fn theory(
     man:&mut DnumManager,
     max: usize,
+    min_height:usize,
     max_height:usize,
     grow: f64,
 ) -> Vec<(usize,usize)> {
+    assert!(min_height>=1);
+    assert!(max_height>=min_height);
+    
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
-    (0..max_height)
+    (min_height..max_height)
         .map(move |height| {
             let f=new_theory_record(man,&mut all, height);
             (height,f)
