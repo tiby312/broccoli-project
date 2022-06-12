@@ -14,8 +14,8 @@ pub fn bench(
 
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
-    
     (min_height..max_height)
+        .flat_map(|x|std::iter::repeat(x).take(5))
         .map(move |height| {
             let f=new_bench_record(&mut all, height);
             (height,f)
