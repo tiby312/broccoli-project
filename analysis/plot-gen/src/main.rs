@@ -11,28 +11,66 @@ use support::datanum::DnumManager;
 use support::prelude::*;
 
 pub trait GraphEmplace {
-    fn write_graph<J>(
+    fn write_graph(
         &mut self,
         group: Option<&str>,
         name: &str,
-        func: impl FnOnce(&mut dyn std::fmt::Write) -> (J, std::fmt::Result),
-    ) -> J;
+        func: impl FnOnce(&mut dyn std::fmt::Write) -> std::fmt::Result,
+    );
 
-    fn write_graph_simple<J>(
+    fn write_graph_simple(
         &mut self,
         name: &str,
-        func: impl FnOnce(&mut dyn std::fmt::Write) -> (J, std::fmt::Result),
-    ) -> J {
+        func: impl FnOnce(&mut dyn std::fmt::Write) -> std::fmt::Result,
+    ) {
         self.write_graph(None, name, func)
     }
 
-    fn write_graph_group<J>(
+    fn write_graph_group(
         &mut self,
         group: &str,
         name: &str,
-        func: impl FnOnce(&mut dyn std::fmt::Write) -> (J, std::fmt::Result),
-    ) -> J {
+        func: impl FnOnce(&mut dyn std::fmt::Write) -> std::fmt::Result,
+    ) {
         self.write_graph(Some(group), name, func)
+    }
+}
+
+mod html {
+    use crate::GraphEmplace;
+    use std::time::Instant;
+
+    pub struct Html<T> {
+        w: T,
+        now: Instant,
+    }
+
+    impl<T: std::fmt::Write> Html<T> {
+        pub fn new(w: T) -> Self {
+            Html {
+                w,
+                now: Instant::now(),
+            }
+        }
+    }
+
+    impl<T: std::fmt::Write> GraphEmplace for Html<T> {
+        fn write_graph(
+            &mut self,
+            group: Option<&str>,
+            name: &str,
+            func: impl FnOnce(&mut dyn std::fmt::Write) -> std::fmt::Result,
+        ) {
+            func(&mut self.w).unwrap();
+
+            eprintln!(
+                "finish writing:{:?}:{:?}  elapsed:{:?}",
+                group,
+                name,
+                self.now.elapsed()
+            );
+            self.now = Instant::now();
+        }
     }
 }
 
@@ -55,12 +93,12 @@ mod sysfile {
     }
 
     impl<K: AsRef<Path>> GraphEmplace for SysFile<K> {
-        fn write_graph<J>(
+        fn write_graph(
             &mut self,
             group: Option<&str>,
             name: &str,
-            func: impl FnOnce(&mut dyn std::fmt::Write) -> (J, std::fmt::Result),
-        ) -> J {
+            func: impl FnOnce(&mut dyn std::fmt::Write) -> std::fmt::Result,
+        ) {
             let base = self.base.as_ref();
             let p = if let Some(group) = group {
                 std::fs::create_dir_all(base.join(group)).unwrap();
@@ -73,21 +111,35 @@ mod sysfile {
 
             use crate::poloto::upgrade_write;
             let mut w = upgrade_write(file);
-            let (aa, bb) = func(&mut w);
+            let aa = func(&mut w);
 
             eprintln!("finish writing:{:?}  elapsed:{:?}", &p, self.now.elapsed());
             self.now = Instant::now();
 
-            bb.unwrap();
-            aa
+            aa.unwrap();
         }
     }
+}
+
+fn foo() -> std::fmt::Result {
+    use tagger::no_attr;
+    let mut w = tagger::new(tagger::upgrade_write(std::io::stdout()));
+
+    w.put_raw_escapable("<!DOCTYPE html>")?;
+
+    w.elem("html", no_attr())?.build(|w| {
+        let mut sys = html::Html::new(w.writer_escapable());
+        bench::bench(&mut sys);
+        Ok(())
+    })?;
+
+    Ok(())
 }
 
 fn main() {
     let mut a = datanum::new_session();
 
-    let mut sys = sysfile::SysFile::new("../../target/analysis");
-
-    bench::bench(&mut sys);
+    foo().unwrap();
+    //let mut sys = sysfile::SysFile::new("../../target/analysis");
+    //bench::bench(&mut sys);
 }
