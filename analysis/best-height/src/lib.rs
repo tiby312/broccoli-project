@@ -8,7 +8,7 @@ pub fn bench(
     min_height:usize,
     max_height:usize,
     grow: f64,
-) -> Vec<(usize, f64)> {
+) -> Vec<(i128, f64)> {
     assert!(min_height>=1);
     assert!(max_height>=min_height);
 
@@ -18,7 +18,7 @@ pub fn bench(
         .flat_map(|x|std::iter::repeat(x).take(5))
         .map(move |height| {
             let f=new_bench_record(&mut all, height);
-            (height,f)
+            (height as i128,f)
         }).collect()
 }
 
@@ -29,7 +29,7 @@ pub fn theory(
     min_height:usize,
     max_height:usize,
     grow: f64,
-) -> Vec<(usize,usize)> {
+) -> Vec<(i128,usize)> {
     assert!(min_height>=1);
     assert!(max_height>=min_height);
     
@@ -38,7 +38,7 @@ pub fn theory(
     (min_height..max_height)
         .map(move |height| {
             let f=new_theory_record(man,&mut all, height);
-            (height,f)
+            (height as i128,f)
         }).collect()
 }
 
@@ -50,7 +50,7 @@ pub struct Res{
 
 
 #[inline(never)]
-pub fn optimal(num:usize,grow:f64)->Vec<(usize,Res)>{
+pub fn optimal(num:usize,grow:f64)->Vec<(i128,Res)>{
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
     (0..num).step_by(1000).map(move |n|{
@@ -64,7 +64,7 @@ pub fn optimal(num:usize,grow:f64)->Vec<(usize,Res)>{
         let b=BuildArgs::new(n);
         let heur_height=b.num_level;
 
-        (n,Res{
+        (n as i128,Res{
             optimal_height,
             heur_height
         })

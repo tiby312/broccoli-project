@@ -42,7 +42,7 @@ pub fn bench_par(
     grow: f64,
     c_num_seq_fallback: Option<usize>,
     q_num_seq_fallback: Option<usize>,
-) -> Vec<(usize, f64, f64)> {
+) -> Vec<(i128, f64, f64)> {
     let mn = 1_000_000;
 
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(mn).collect();
@@ -54,30 +54,30 @@ pub fn bench_par(
 
         let (j, k) = single(bots, c_num_seq_fallback, q_num_seq_fallback);
 
-        plots.push((i, j, k));
+        plots.push((i as i128, j, k));
     }
     plots
 }
 
 
-pub fn best_seq_fallback_rebal(num:usize,grow:f64)-> Vec<(usize,f64)> {
+pub fn best_seq_fallback_rebal(num:usize,grow:f64)-> Vec<(i128,f64)> {
     
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
     (000..20_000).step_by(10).map(|r|{
         let (a,_)=single(&mut all,Some(r),None);
-        (r, a as f64)
+        (r as i128, a as f64)
     }).collect()
 
 }
 
-pub fn best_seq_fallback_query(num:usize,grow:f64)->Vec<(usize,f64)> {
+pub fn best_seq_fallback_query(num:usize,grow:f64)->Vec<(i128,f64)> {
     
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
     (000..20_000).step_by(10).map(|a|{
         let (_,b)=single(&mut all,None,Some(a));
-        (a, b as f64)
+        (a as i128, b as f64)
     }).collect()
 
 }

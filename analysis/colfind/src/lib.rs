@@ -17,7 +17,7 @@ pub fn bench(
     grow: f64,
     naive_stop: usize,
     sweep_stop: usize,
-) -> Vec<(usize, BenchRecord)> {
+) -> Vec<(i128, BenchRecord)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
     (0..max)
@@ -25,7 +25,7 @@ pub fn bench(
         .map(|a| {
             let bots = &mut all[0..a];
             (
-                a,
+                a as i128,
                 bench::new_record(bots, true, a < naive_stop, a < sweep_stop),
             )
         })
@@ -49,7 +49,7 @@ pub fn theory(
     grow: f64,
     naive_stop: usize,
     sweep_stop: usize,
-) -> Vec<(usize, TheoryRecord)> {
+) -> Vec<(i128, TheoryRecord)> {
     let mut all: Vec<_> = dist::dist_datanum(man, grow)
         .map(|x| Dummy(x, 0u32))
         .take(max)
@@ -60,7 +60,7 @@ pub fn theory(
         .map(|a| {
             let bots = &mut all[0..a];
             (
-                a,
+                a as i128,
                 theory::new_record(man, bots, true, a < naive_stop, a < sweep_stop),
             )
         })

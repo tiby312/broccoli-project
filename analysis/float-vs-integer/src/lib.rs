@@ -8,7 +8,7 @@ use support::prelude::*;
 pub fn bench(
     max: usize,
     grow: f64,
-) -> Vec<(usize, Record)> {
+) -> Vec<(i128, Record)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
     (0..max)
@@ -16,7 +16,7 @@ pub fn bench(
         .map(|a| {
             let bots = &mut all[0..a];
             (
-                a,
+                a as i128,
                 new_record(bots),
             )
         })
