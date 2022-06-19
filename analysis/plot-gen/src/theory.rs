@@ -8,22 +8,22 @@ fn colfind(man: &mut DnumManager, path: &Path) {
 
         let l1 = res
             .iter()
-            .map(|(i, r)| (*i as i128, r.brocc))
+            .map(|(i, r)| (i, r.brocc))
             .cloned_plot()
             .scatter("brocc");
         let l2 = res
             .iter()
-            .map(|(i, r)| (*i as i128, r.nosort))
+            .map(|(i, r)| (i, r.nosort))
             .cloned_plot()
             .scatter("nosort");
         let l3 = res
             .iter()
-            .map(|(i, r)| (*i as i128, r.sweep))
+            .map(|(i, r)| (i, r.sweep))
             .cloned_plot()
             .scatter("sweep");
         let l4 = res
             .iter()
-            .map(|(i, r)| (*i as i128, r.naive))
+            .map(|(i, r)| (i, r.naive))
             .cloned_plot()
             .scatter("naive");
 
@@ -49,7 +49,7 @@ fn level(man: &mut DnumManager, path: &Path) {
     let data = (0usize..num_level)
         .map(|i| {
             res.iter()
-                .map(move |(grow, levels)| (*grow, levels.rebal[i] as i128))
+                .map(move |(grow, levels)| (grow, levels.rebal[i]))
                 .cloned_plot()
                 .line_fill(formatm!("Level {}", i))
         })

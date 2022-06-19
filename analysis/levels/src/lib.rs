@@ -30,7 +30,7 @@ pub fn theory(
     num: usize,
     start_grow: f64,
     end_grow: f64,
-) -> Vec<(f64, Res<usize>)> {
+) -> Vec<(f64, Res<i128>)> {
     grow_iter(start_grow, end_grow)
         .map(|grow| {
             let mut all: Vec<_> = dist::dist_datanum(man, grow)
@@ -43,7 +43,7 @@ pub fn theory(
         .collect()
 }
 
-fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<usize> {
+fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i128> {
     man.reset_counter();
 
     let len = bots.len();
@@ -52,7 +52,7 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<u
         BuildArgs::new(len).with_splitter(LevelCounter::new(man, 0, vec![])),
     );
 
-    let c1 = levelc.into_levels().into_iter().collect();
+    let c1 = levelc.into_levels().into_iter().map(|x|x as i128).collect();
 
     man.reset_counter();
 
@@ -61,7 +61,7 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<u
         T::handle,
     );
 
-    let c2 = levelc2.into_levels().into_iter().collect();
+    let c2 = levelc2.into_levels().into_iter().map(|x|x as i128).collect();
 
     Res {
         rebal: c1,
