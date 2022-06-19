@@ -4,7 +4,6 @@
 mod bench;
 mod theory;
 
-use poloto::build::scatter;
 use poloto::prelude::*;
 use std::path::Path;
 use support::datanum::DnumManager;
@@ -122,23 +121,25 @@ mod sysfile {
 }
 
 fn foo() -> std::fmt::Result {
-    use tagger::no_attr;
+    //use tagger::no_attr;
     let mut w = tagger::new(tagger::upgrade_write(std::io::stdout()));
 
     w.put_raw_escapable("<!DOCTYPE html>")?;
 
-    w.elem("html", no_attr())?.build(|w| {
-        let mut sys = html::Html::new(w.writer_escapable());
-        bench::bench(&mut sys);
-        Ok(())
-    })?;
+    w.elem("html", |d| d.attr("style", "display:flex;flex-wrap:wrap;"))?
+        .build(|w| {
+            let mut sys = html::Html::new(w.writer_escapable());
+
+            //let mut a = datanum::new_session();
+            //theory::theory(&mut a, path)
+            bench::bench(&mut sys);
+            Ok(())
+        })?;
 
     Ok(())
 }
 
 fn main() {
-    let mut a = datanum::new_session();
-
     foo().unwrap();
     //let mut sys = sysfile::SysFile::new("../../target/analysis");
     //bench::bench(&mut sys);

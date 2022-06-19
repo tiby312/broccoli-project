@@ -7,6 +7,7 @@ use core::marker::PhantomData;
 #[derive(Copy, Clone, Debug)]
 pub struct Dnum<I: Num>(pub I, PhantomData<*mut usize>);
 
+
 impl<T: Num + Default> Default for Dnum<T> {
     fn default() -> Self {
         Dnum(Default::default(), PhantomData)

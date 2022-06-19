@@ -6,15 +6,30 @@ fn colfind(man: &mut DnumManager, path: &Path) {
     for grow in [2.0] {
         let res = colfind::theory(man, 5_000, grow, 1000, 20000);
 
-        let l1 = scatter("brocc", res.iter().map(|(i, r)| (*i as i128, r.brocc)));
-        let l2 = scatter("nosort", res.iter().map(|(i, r)| (*i as i128, r.nosort)));
-        let l3 = scatter("sweep", res.iter().map(|(i, r)| (*i as i128, r.sweep)));
-        let l4 = scatter("naive", res.iter().map(|(i, r)| (*i as i128, r.naive)));
+        let l1 = res
+            .iter()
+            .map(|(i, r)| (*i as i128, r.brocc))
+            .cloned_plot()
+            .scatter("brocc");
+        let l2 = res
+            .iter()
+            .map(|(i, r)| (*i as i128, r.nosort))
+            .cloned_plot()
+            .scatter("nosort");
+        let l3 = res
+            .iter()
+            .map(|(i, r)| (*i as i128, r.sweep))
+            .cloned_plot()
+            .scatter("sweep");
+        let l4 = res
+            .iter()
+            .map(|(i, r)| (*i as i128, r.naive))
+            .cloned_plot()
+            .scatter("naive");
 
         let m = poloto::build::origin();
-        let data = plots!(l1, l2, l3, l4, m);
 
-        let p = simple_fmt!(data, "hay", "x", "y");
+        let p = quick_fmt!("hay", "x", "y", l1, l2, l3, l4, m);
 
         let mut file =
             std::fs::File::create(path.join("colfind").join(format!("theory_n_{}.svg", grow)))
@@ -33,20 +48,21 @@ fn level(man: &mut DnumManager, path: &Path) {
 
     let data = (0usize..num_level)
         .map(|i| {
-            let g = res
-                .iter()
-                .map(move |(grow, levels)| (*grow, levels.rebal[i] as i128));
-            poloto::build::line_fill(formatm!("Level {}", i), g)
+            res.iter()
+                .map(move |(grow, levels)| (*grow, levels.rebal[i] as i128))
+                .cloned_plot()
+                .line_fill(formatm!("Level {}", i))
         })
         .collect();
 
     let mut file = std::fs::File::create(path.join("level").join("rebal.svg")).unwrap();
 
-    let plot = poloto::simple_fmt!(
-        poloto::build::plots_dyn(data).chain(poloto::build::markers([], [0])),
+    let plot = poloto::quick_fmt!(
         "rebal",
         "Spiral Grow",
-        "Number of Comparisons"
+        "Number of Comparisons",
+        poloto::build::plots_dyn(data),
+        poloto::build::markers([], [0])
     );
 
     plot.simple_theme(&mut support::upgrade_write(&mut file))
