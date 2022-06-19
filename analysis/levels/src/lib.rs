@@ -25,43 +25,48 @@ pub fn bench(num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, Res<f64>)>
         .collect()
 }
 
-pub fn theory(man:&mut DnumManager,num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, Res<usize>)> {
+pub fn theory(
+    man: &mut DnumManager,
+    num: usize,
+    start_grow: f64,
+    end_grow: f64,
+) -> Vec<(f64, Res<usize>)> {
     grow_iter(start_grow, end_grow)
         .map(|grow| {
-            let mut all: Vec<_> = dist::dist_datanum(man,grow).map(|x| Dummy(x, 0u32)).take(num).collect();
-            let res = gen_theory(man,&mut all);
+            let mut all: Vec<_> = dist::dist_datanum(man, grow)
+                .map(|x| Dummy(x, 0u32))
+                .take(num)
+                .collect();
+            let res = gen_theory(man, &mut all);
             (grow, res)
         })
         .collect()
 }
 
-fn gen_theory<T: ColfindHandler>(man:&mut DnumManager,bots: &mut [T]) -> Res<usize> {
-    
-    
+fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<usize> {
     man.reset_counter();
 
     let len = bots.len();
     let (mut tree, levelc) = Tree::from_build_args(
         bots,
-        BuildArgs::new(len).with_splitter(LevelCounter::new(man,0, vec![])),
+        BuildArgs::new(len).with_splitter(LevelCounter::new(man, 0, vec![])),
     );
 
     let c1 = levelc.into_levels().into_iter().collect();
-    
+
     man.reset_counter();
 
     let levelc2 = tree.find_colliding_pairs_from_args(
-        QueryArgs::new().with_splitter(LevelCounter::new(man,0, vec![])),
+        QueryArgs::new().with_splitter(LevelCounter::new(man, 0, vec![])),
         T::handle,
     );
 
-    let c2 = levelc2
-        .into_levels()
-        .into_iter()
-        .collect();
+    let c2 = levelc2.into_levels().into_iter().collect();
 
-    Res { rebal:c1, query:c2 }
-    
+    Res {
+        rebal: c1,
+        query: c2,
+    }
 }
 
 fn gen<T: ColfindHandler>(bots: &mut [T]) -> Res<f64> {

@@ -17,9 +17,8 @@ pub mod prelude {
     pub use broccoli::tree::node::Aabb;
     pub use broccoli::tree::node::ManySwap;
     pub use broccoli::tree::node::ManySwappable;
-    pub use datanum::DnumManager;
     pub use broccoli::tree::BuildArgs;
-
+    pub use datanum::DnumManager;
 }
 pub trait ColfindHandler: Aabb + ManySwap + HasInner {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>);
@@ -141,7 +140,7 @@ pub mod dist {
     }
 
     pub fn dist_datanum(
-        man: & mut datanum::DnumManager,
+        man: &mut datanum::DnumManager,
         grow: f64,
     ) -> impl Iterator<Item = Rect<Dnum<f32>>> + '_ {
         dists::fib_iter([0.0, 0.0], grow).map(|a| {

@@ -1,83 +1,84 @@
 use support::prelude::*;
 
-
-
 #[inline(never)]
-pub fn bench(
-    max: usize,
-    min_height:usize,
-    max_height:usize,
-    grow: f64,
-) -> Vec<(i128, f64)> {
-    assert!(min_height>=1);
-    assert!(max_height>=min_height);
+pub fn bench(max: usize, min_height: usize, max_height: usize, grow: f64) -> Vec<(i128, f64)> {
+    assert!(min_height >= 1);
+    assert!(max_height >= min_height);
 
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
     (min_height..max_height)
-        .flat_map(|x|std::iter::repeat(x).take(5))
+        .flat_map(|x| std::iter::repeat(x).take(5))
         .map(move |height| {
-            let f=new_bench_record(&mut all, height);
-            (height as i128,f)
-        }).collect()
+            let f = new_bench_record(&mut all, height);
+            (height as i128, f)
+        })
+        .collect()
 }
 
 #[inline(never)]
 pub fn theory(
-    man:&mut DnumManager,
+    man: &mut DnumManager,
     max: usize,
-    min_height:usize,
-    max_height:usize,
+    min_height: usize,
+    max_height: usize,
     grow: f64,
-) -> Vec<(i128,usize)> {
-    assert!(min_height>=1);
-    assert!(max_height>=min_height);
-    
+) -> Vec<(i128, usize)> {
+    assert!(min_height >= 1);
+    assert!(max_height >= min_height);
+
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
     (min_height..max_height)
         .map(move |height| {
-            let f=new_theory_record(man,&mut all, height);
-            (height as i128,f)
-        }).collect()
+            let f = new_theory_record(man, &mut all, height);
+            (height as i128, f)
+        })
+        .collect()
 }
 
-
-pub struct Res{
-    pub optimal_height:usize,
-    pub heur_height:usize
+pub struct Res {
+    pub optimal_height: usize,
+    pub heur_height: usize,
 }
-
 
 #[inline(never)]
-pub fn optimal(num:usize,grow:f64)->Vec<(i128,Res)>{
+pub fn optimal(num: usize, grow: f64) -> Vec<(i128, Res)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
-    (0..num).step_by(1000).map(move |n|{
-        let bots=&mut all[0..n];
+    (0..num)
+        .step_by(1000)
+        .map(move |n| {
+            let bots = &mut all[0..n];
 
-        let optimal_height=(0..20).map(|height|{
-            (height,new_bench_record(bots,height))
-        }).min_by(|(_,a),(_,b)|a.partial_cmp(b).unwrap()).unwrap().0;
+            let optimal_height = (0..20)
+                .map(|height| (height, new_bench_record(bots, height)))
+                .min_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+                .unwrap()
+                .0;
 
+            let b = BuildArgs::new(n);
+            let heur_height = b.num_level;
 
-        let b=BuildArgs::new(n);
-        let heur_height=b.num_level;
-
-        (n as i128,Res{
-            optimal_height,
-            heur_height
+            (
+                n as i128,
+                Res {
+                    optimal_height,
+                    heur_height,
+                },
+            )
         })
-    }).collect()
+        .collect()
 }
 
-
-fn new_theory_record<T:ColfindHandler>(man:&mut DnumManager,bots:&mut [T],height:usize) -> usize{
-    
-    man.time(||{
+fn new_theory_record<T: ColfindHandler>(
+    man: &mut DnumManager,
+    bots: &mut [T],
+    height: usize,
+) -> usize {
+    man.time(|| {
         let len = bots.len();
-        let (mut tree, _) =
-            Tree::from_build_args(bots, BuildArgs::new(len).with_num_level(height));
+        let (mut tree, _) = Tree::from_build_args(bots, BuildArgs::new(len).with_num_level(height));
 
         assert_eq!(tree.num_levels(), height);
 
@@ -85,18 +86,15 @@ fn new_theory_record<T:ColfindHandler>(man:&mut DnumManager,bots:&mut [T],height
     })
 }
 
-fn new_bench_record<T:ColfindHandler>(bots:&mut [T],height:usize) -> f64{
-    let mut bencher=Bencher;
+fn new_bench_record<T: ColfindHandler>(bots: &mut [T], height: usize) -> f64 {
+    let mut bencher = Bencher;
 
-    bencher.time(||{
+    bencher.time(|| {
         let len = bots.len();
-        let (mut tree, _) =
-            Tree::from_build_args(bots, BuildArgs::new(len).with_num_level(height));
+        let (mut tree, _) = Tree::from_build_args(bots, BuildArgs::new(len).with_num_level(height));
 
         assert_eq!(tree.num_levels(), height);
 
         tree.find_colliding_pairs(T::handle);
     })
 }
-
-

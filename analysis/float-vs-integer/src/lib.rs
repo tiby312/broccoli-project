@@ -1,28 +1,20 @@
-use support::{ColfindHandler, Bencher, prelude::Tree};
+use support::{prelude::Tree, Bencher, ColfindHandler};
 
 use support::prelude::*;
 
-
-
 #[inline(never)]
-pub fn bench(
-    max: usize,
-    grow: f64,
-) -> Vec<(i128, Record)> {
+pub fn bench(max: usize, grow: f64) -> Vec<(i128, Record)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
     (0..max)
-        .step_by(100).skip(1)
+        .step_by(100)
+        .skip(1)
         .map(|a| {
             let bots = &mut all[0..a];
-            (
-                a as i128,
-                new_record(bots),
-            )
+            (a as i128, new_record(bots))
         })
         .collect()
 }
-
 
 #[derive(Debug)]
 pub struct Record {
@@ -32,50 +24,48 @@ pub struct Record {
     pub float_i32: f64,
 }
 
-fn new_record(bots:&mut [Dummy<f32,u32>]) -> Record {
+fn new_record(bots: &mut [Dummy<f32, u32>]) -> Record {
     assert!(!bots.is_empty());
 
-    let mut bencher=Bencher;
+    let mut bencher = Bencher;
     let bench_integer = {
-    
         bencher.time(|| {
             let mut tree = Tree::new(bots);
 
-            tree.find_colliding_pairs(Dummy::<f32,u32>::handle);
+            tree.find_colliding_pairs(Dummy::<f32, u32>::handle);
         })
     };
 
     let bench_i64 = {
-        
         bencher.time(|| {
             let mut tree = broccoli::Tree::new(bots);
 
-            tree.find_colliding_pairs(Dummy::<f32,u32>::handle);
+            tree.find_colliding_pairs(Dummy::<f32, u32>::handle);
         })
     };
 
     let bench_float_i32 = {
-        
         let border = compute_border(bots).unwrap().inner_as();
 
         bencher.time(|| {
-            let mut bb:Vec<_>=bots.iter().map(|x|Dummy(rect_f32_to_u32(x.0.inner_as(), &border),x.1)).collect();
+            let mut bb: Vec<_> = bots
+                .iter()
+                .map(|x| Dummy(rect_f32_to_u32(x.0.inner_as(), &border), x.1))
+                .collect();
 
             let mut tree = broccoli::Tree::new(&mut bb);
 
-            tree.find_colliding_pairs(Dummy::<u32,u32>::handle);
+            tree.find_colliding_pairs(Dummy::<u32, u32>::handle);
         })
     };
 
     let bench_float = {
-        
         bencher.time(|| {
             let mut tree = broccoli::Tree::new(bots);
 
-            tree.find_colliding_pairs(Dummy::<f32,u32>::handle);
+            tree.find_colliding_pairs(Dummy::<f32, u32>::handle);
         })
     };
-
 
     Record {
         i64: bench_i64 as f64,

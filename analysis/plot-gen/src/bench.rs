@@ -19,37 +19,37 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         let res = colfind::bench(60_000, grow, 10000, 20000);
         let l1 = res
             .iter()
-            .map(|(i, r)| (*i, r.brocc))
+            .map(|(i, r)| (i, r.brocc))
             .cloned_plot()
             .scatter("brocc");
         let l2 = res
             .iter()
-            .map(|(i, r)| (*i, r.brocc_par))
+            .map(|(i, r)| (i, r.brocc_par))
             .cloned_plot()
             .scatter("brocc_par");
         let l3 = res
             .iter()
-            .map(|(i, r)| (*i, r.nosort))
+            .map(|(i, r)| (i, r.nosort))
             .cloned_plot()
             .scatter("nosort");
         let l4 = res
             .iter()
-            .map(|(i, r)| (*i, r.nosort_par))
+            .map(|(i, r)| (i, r.nosort_par))
             .cloned_plot()
             .scatter("nosort_par");
         let l5 = res
             .iter()
-            .map(|(i, r)| (*i, r.sweep))
+            .map(|(i, r)| (i, r.sweep))
             .cloned_plot()
             .scatter("sweep");
         let l6 = res
             .iter()
-            .map(|(i, r)| (*i, r.sweep_par))
+            .map(|(i, r)| (i, r.sweep_par))
             .cloned_plot()
             .scatter("sweep_par");
         let l7 = res
             .iter()
-            .map(|(i, r)| (*i, r.naive))
+            .map(|(i, r)| (i, r.naive))
             .cloned_plot()
             .scatter("naive");
 
@@ -64,37 +64,37 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         let res = colfind::bench_grow(n, 0.2, 1.5);
         let l1 = res
             .iter()
-            .map(|(i, r)| (*i, r.brocc))
+            .map(|(i, r)| (i, r.brocc))
             .cloned_plot()
             .scatter("brocc");
         let l2 = res
             .iter()
-            .map(|(i, r)| (*i, r.brocc_par))
+            .map(|(i, r)| (i, r.brocc_par))
             .cloned_plot()
             .scatter("brocc_par");
         let l3 = res
             .iter()
-            .map(|(i, r)| (*i, r.nosort))
+            .map(|(i, r)| (i, r.nosort))
             .cloned_plot()
             .scatter("nosort");
         let l4 = res
             .iter()
-            .map(|(i, r)| (*i, r.nosort_par))
+            .map(|(i, r)| (i, r.nosort_par))
             .cloned_plot()
             .scatter("nosort_par");
         let l5 = res
             .iter()
-            .map(|(i, r)| (*i, r.sweep))
+            .map(|(i, r)| (i, r.sweep))
             .cloned_plot()
             .scatter("sweep");
         let l6 = res
             .iter()
-            .map(|(i, r)| (*i, r.sweep_par))
+            .map(|(i, r)| (i, r.sweep_par))
             .cloned_plot()
             .scatter("sweep_par");
         let l7 = res
             .iter()
-            .map(|(i, r)| (*i, r.naive))
+            .map(|(i, r)| (i, r.naive))
             .cloned_plot()
             .scatter("naive");
 
@@ -112,33 +112,33 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             let res3 = layout::bench(layout::Layout::Indirect, grow, size);
             let l1 = res1
                 .iter()
-                .map(|&(i, x, _)| (i, x))
+                .map(|(i, x, _)| (i, x))
                 .cloned_plot()
                 .scatter("c default");
             let l2 = res2
                 .iter()
-                .map(|&(i, x, _)| (i, x))
+                .map(|(i, x, _)| (i, x))
                 .cloned_plot()
                 .scatter("c direct");
             let l3 = res3
                 .iter()
-                .map(|&(i, x, _)| (i, x))
+                .map(|(i, x, _)| (i, x))
                 .cloned_plot()
                 .scatter("c indirect");
 
             let l4 = res1
                 .iter()
-                .map(|&(i, _, x)| (i, x))
+                .map(|(i, _, x)| (i, x))
                 .cloned_plot()
                 .scatter("q default");
             let l5 = res2
                 .iter()
-                .map(|&(i, _, x)| (i, x))
+                .map(|(i, _, x)| (i, x))
                 .cloned_plot()
                 .scatter("q direct");
             let l6 = res3
                 .iter()
-                .map(|&(i, _, x)| (i, x))
+                .map(|(i, _, x)| (i, x))
                 .cloned_plot()
                 .scatter("q indirect");
 
@@ -168,12 +168,12 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let l1 = res
             .iter()
-            .map(|&(i, _, x)| (i, x))
+            .map(|(i, _, x)| (i, x))
             .cloned_plot()
             .scatter("rebal");
         let l2 = res
             .iter()
-            .map(|&(i, x, _)| (i, x))
+            .map(|(i, x, _)| (i, x))
             .cloned_plot()
             .scatter("query");
 
@@ -186,7 +186,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
     {
         let res = par_tuner::best_seq_fallback_rebal(80_000, 2.0);
-        let l1 = res.iter().map(|&(i, x)| (i, x)).cloned_plot().scatter("");
+        let l1 = res.iter().cloned_plot().scatter("");
 
         let m = poloto::build::origin();
 
@@ -198,7 +198,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
     {
         let res = par_tuner::best_seq_fallback_query(80_000, 2.0);
 
-        let l1 = res.iter().map(|&(i, x)| (i, x)).cloned_plot().scatter("");
+        let l1 = res.iter().cloned_plot().scatter("");
 
         let m = poloto::build::origin();
 
@@ -211,22 +211,22 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         let res = float_vs_integer::bench(10_000, 2.0);
         let l1 = res
             .iter()
-            .map(|(i, r)| (*i, r.float))
+            .map(|(i, r)| (i, r.float))
             .cloned_plot()
             .scatter("f32");
         let l2 = res
             .iter()
-            .map(|(i, r)| (*i, r.int))
+            .map(|(i, r)| (i, r.int))
             .cloned_plot()
             .scatter("i32");
         let l3 = res
             .iter()
-            .map(|(i, r)| (*i, r.i64))
+            .map(|(i, r)| (i, r.i64))
             .cloned_plot()
             .scatter("i64");
         let l4 = res
             .iter()
-            .map(|(i, r)| (*i, r.float_i32))
+            .map(|(i, r)| (i, r.float_i32))
             .cloned_plot()
             .scatter("f32->int");
 
@@ -241,22 +241,22 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         let res = rebal_vs_query::bench(80_000, 2.0);
         let l1 = res
             .iter()
-            .map(|(i, r)| (*i, r.tree.0))
+            .map(|(i, r)| (i, r.tree.0))
             .cloned_plot()
             .scatter("tree_r");
         let l2 = res
             .iter()
-            .map(|(i, r)| (*i, r.tree.1))
+            .map(|(i, r)| (i, r.tree.1))
             .cloned_plot()
             .scatter("tree_q");
         let l3 = res
             .iter()
-            .map(|(i, r)| (*i, r.nosort.0))
+            .map(|(i, r)| (i, r.nosort.0))
             .cloned_plot()
             .scatter("nosort_r");
         let l4 = res
             .iter()
-            .map(|(i, r)| (*i, r.nosort.1))
+            .map(|(i, r)| (i, r.nosort.1))
             .cloned_plot()
             .scatter("nosort_q");
 
@@ -268,23 +268,23 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let l1 = res
             .iter()
-            .map(|(i, r)| (*i, r.tree.0))
+            .map(|(i, r)| (i, r.tree.0))
             .cloned_plot()
             .scatter("tree_r");
         let l2 = res
             .iter()
-            .map(|(i, r)| (*i, r.tree.1))
+            .map(|(i, r)| (i, r.tree.1))
             .cloned_plot()
             .scatter("tree_q");
 
         let l3 = res
             .iter()
-            .map(|(i, r)| (*i, r.par_tree.0))
+            .map(|(i, r)| (i, r.par_tree.0))
             .cloned_plot()
             .scatter("par_tree_r");
         let l4 = res
             .iter()
-            .map(|(i, r)| (*i, r.par_tree.1))
+            .map(|(i, r)| (i, r.par_tree.1))
             .cloned_plot()
             .scatter("par_tree_q");
         let m = poloto::build::origin();
