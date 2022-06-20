@@ -62,45 +62,41 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
     for n in [60_000] {
         let res = colfind::bench_grow(n, 0.2, 1.5);
-        let l1 = res
-            .iter()
-            .map(|(i, r)| (i, r.brocc))
-            .cloned_plot()
-            .scatter("brocc");
-        let l2 = res
-            .iter()
-            .map(|(i, r)| (i, r.brocc_par))
-            .cloned_plot()
-            .scatter("brocc_par");
-        let l3 = res
-            .iter()
-            .map(|(i, r)| (i, r.nosort))
-            .cloned_plot()
-            .scatter("nosort");
-        let l4 = res
-            .iter()
-            .map(|(i, r)| (i, r.nosort_par))
-            .cloned_plot()
-            .scatter("nosort_par");
-        let l5 = res
-            .iter()
-            .map(|(i, r)| (i, r.sweep))
-            .cloned_plot()
-            .scatter("sweep");
-        let l6 = res
-            .iter()
-            .map(|(i, r)| (i, r.sweep_par))
-            .cloned_plot()
-            .scatter("sweep_par");
-        let l7 = res
-            .iter()
-            .map(|(i, r)| (i, r.naive))
-            .cloned_plot()
-            .scatter("naive");
 
-        let m = poloto::build::origin();
-
-        let p = quick_fmt!("hay", "x", "y", l1, l2, l3, l4, l5, l6, l7, m);
+        let p = quick_fmt!(
+            "hay",
+            "x",
+            "y",
+            res.iter()
+                .map(|(i, r)| (i, r.brocc))
+                .cloned_plot()
+                .scatter("brocc"),
+            res.iter()
+                .map(|(i, r)| (i, r.brocc_par))
+                .cloned_plot()
+                .scatter("brocc_par"),
+            res.iter()
+                .map(|(i, r)| (i, r.nosort))
+                .cloned_plot()
+                .scatter("nosort"),
+            res.iter()
+                .map(|(i, r)| (i, r.nosort_par))
+                .cloned_plot()
+                .scatter("nosort_par"),
+            res.iter()
+                .map(|(i, r)| (i, r.sweep))
+                .cloned_plot()
+                .scatter("sweep"),
+            res.iter()
+                .map(|(i, r)| (i, r.sweep_par))
+                .cloned_plot()
+                .scatter("sweep_par"),
+            res.iter()
+                .map(|(i, r)| (i, r.naive))
+                .cloned_plot()
+                .scatter("naive"),
+            poloto::build::origin()
+        );
 
         emp.write_graph_group("colfind", &format!("grow_{}", n), |w| p.simple_theme(w));
     }
@@ -110,51 +106,36 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             let res1 = layout::bench(layout::Layout::Default, grow, size);
             let res2 = layout::bench(layout::Layout::Direct, grow, size);
             let res3 = layout::bench(layout::Layout::Indirect, grow, size);
-            let l1 = res1
-                .iter()
-                .map(|(i, x, _)| (i, x))
-                .cloned_plot()
-                .scatter("c default");
-            let l2 = res2
-                .iter()
-                .map(|(i, x, _)| (i, x))
-                .cloned_plot()
-                .scatter("c direct");
-            let l3 = res3
-                .iter()
-                .map(|(i, x, _)| (i, x))
-                .cloned_plot()
-                .scatter("c indirect");
-
-            let l4 = res1
-                .iter()
-                .map(|(i, _, x)| (i, x))
-                .cloned_plot()
-                .scatter("q default");
-            let l5 = res2
-                .iter()
-                .map(|(i, _, x)| (i, x))
-                .cloned_plot()
-                .scatter("q direct");
-            let l6 = res3
-                .iter()
-                .map(|(i, _, x)| (i, x))
-                .cloned_plot()
-                .scatter("q indirect");
-
-            let m = poloto::build::origin();
 
             let p = quick_fmt!(
                 formatm!("grow_{}", grow),
                 "x",
                 "y",
-                l1,
-                l2,
-                l3,
-                l4,
-                l5,
-                l6,
-                m
+                res1.iter()
+                    .map(|(i, x, _)| (i, x))
+                    .cloned_plot()
+                    .scatter("c default"),
+                res2.iter()
+                    .map(|(i, x, _)| (i, x))
+                    .cloned_plot()
+                    .scatter("c direct"),
+                res3.iter()
+                    .map(|(i, x, _)| (i, x))
+                    .cloned_plot()
+                    .scatter("c indirect"),
+                res1.iter()
+                    .map(|(i, _, x)| (i, x))
+                    .cloned_plot()
+                    .scatter("q default"),
+                res2.iter()
+                    .map(|(i, _, x)| (i, x))
+                    .cloned_plot()
+                    .scatter("q direct"),
+                res3.iter()
+                    .map(|(i, _, x)| (i, x))
+                    .cloned_plot()
+                    .scatter("q indirect"),
+                poloto::build::origin()
             );
 
             emp.write_graph_group("layout", &format!("rebal_{}_{}", size, grow), |w| {
@@ -166,20 +147,20 @@ pub fn bench(emp: &mut impl GraphEmplace) {
     {
         let res = par_tuner::bench_par(3.0, Some(512), Some(512));
 
-        let l1 = res
-            .iter()
-            .map(|(i, _, x)| (i, x))
-            .cloned_plot()
-            .scatter("rebal");
-        let l2 = res
-            .iter()
-            .map(|(i, x, _)| (i, x))
-            .cloned_plot()
-            .scatter("query");
-
-        let m = poloto::build::origin();
-
-        let p = quick_fmt!("rebal", "x", "y", l1, l2, m);
+        let p = quick_fmt!(
+            "rebal",
+            "x",
+            "y",
+            res.iter()
+                .map(|(i, _, x)| (i, x))
+                .cloned_plot()
+                .scatter("rebal"),
+            res.iter()
+                .map(|(i, x, _)| (i, x))
+                .cloned_plot()
+                .scatter("query"),
+            poloto::build::origin()
+        );
 
         emp.write_graph_group("par", "par-speedup", |w| p.simple_theme(w));
     }

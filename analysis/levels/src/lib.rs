@@ -52,7 +52,11 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
         BuildArgs::new(len).with_splitter(LevelCounter::new(man, 0, vec![])),
     );
 
-    let c1 = levelc.into_levels().into_iter().map(|x|x as i128).collect();
+    let c1 = levelc
+        .into_levels()
+        .into_iter()
+        .map(|x| x as i128)
+        .collect();
 
     man.reset_counter();
 
@@ -61,7 +65,11 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
         T::handle,
     );
 
-    let c2 = levelc2.into_levels().into_iter().map(|x|x as i128).collect();
+    let c2 = levelc2
+        .into_levels()
+        .into_iter()
+        .map(|x| x as i128)
+        .collect();
 
     Res {
         rebal: c1,
