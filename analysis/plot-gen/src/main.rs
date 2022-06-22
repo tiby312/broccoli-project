@@ -120,9 +120,14 @@ mod sysfile {
     }
 }
 
-fn foo() -> std::fmt::Result {
+fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
+    let base = base.as_ref();
+    std::fs::create_dir_all(base).unwrap();
+
+    let file = std::fs::File::create(base.join("report").with_extension("html")).unwrap();
+
     //use tagger::no_attr;
-    let mut w = tagger::new(tagger::upgrade_write(std::io::stdout()));
+    let mut w = tagger::new(tagger::upgrade_write(file));
 
     w.put_raw_escapable("<!DOCTYPE html>")?;
 
@@ -140,7 +145,7 @@ fn foo() -> std::fmt::Result {
 }
 
 fn main() {
-    foo().unwrap();
+    foo("../../target/analysis/html").unwrap();
     //let mut sys = sysfile::SysFile::new("../../target/analysis");
     //bench::bench(&mut sys);
 }
