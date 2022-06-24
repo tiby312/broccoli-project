@@ -59,9 +59,31 @@ mod html {
             y: impl std::fmt::Display,
             plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
         ) {
-            let k = quick_fmt!(&name, x, y, plots);
+            //let k = quick_fmt!(&name, x, y, plots);
 
-            k.simple_theme_dark(&mut self.w).unwrap();
+            //k.simple_theme_dark(&mut self.w).unwrap();
+
+
+            pub const CUSTOM_SVG: &str = r####"<svg class="poloto_background poloto" width="500px" height="100%" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">"####;
+
+            write!(
+                &mut self.w,
+                "{}<style>{}{}</style>{}{}",
+                CUSTOM_SVG,
+                poloto::simple_theme::STYLE_CONFIG_DARK_DEFAULT,
+                ".poloto_scatter{stroke-width:20}",
+                poloto::disp(|a| {
+                    let s = poloto::quick_fmt!(
+                        &name,
+                        x,
+                        y,
+                        plots,
+                    );
+                    s.render(a)
+                }),
+                poloto::simple_theme::SVG_END
+            ).unwrap();
+
 
             eprintln!(
                 "finish writing:{:?}:{:?}  elapsed:{:?}",
