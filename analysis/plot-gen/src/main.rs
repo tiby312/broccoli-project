@@ -7,35 +7,32 @@ mod theory;
 use poloto::prelude::*;
 use std::path::Path;
 use support::datanum::DnumManager;
+use support::poloto;
+use support::prelude::build::marker::Markerable;
+use support::prelude::plotnum::PlotNum;
+use support::prelude::ticks::HasDefaultTicks;
 use support::prelude::*;
 
 pub trait GraphEmplace {
-    fn write_graph(
+    fn write_graph<X: PlotNum + HasDefaultTicks, Y: PlotNum + HasDefaultTicks>(
         &mut self,
         group: Option<&str>,
-        name: &str,
-        func: impl FnOnce(&mut dyn std::fmt::Write) -> std::fmt::Result,
+        name: impl std::fmt::Display + std::fmt::Debug,
+        x: impl std::fmt::Display,
+        y: impl std::fmt::Display,
+        plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
     );
-
-    fn write_graph_simple(
-        &mut self,
-        name: &str,
-        func: impl FnOnce(&mut dyn std::fmt::Write) -> std::fmt::Result,
-    ) {
-        self.write_graph(None, name, func)
-    }
-
-    fn write_graph_group(
-        &mut self,
-        group: &str,
-        name: &str,
-        func: impl FnOnce(&mut dyn std::fmt::Write) -> std::fmt::Result,
-    ) {
-        self.write_graph(Some(group), name, func)
-    }
 }
 
 mod html {
+    use support::{
+        poloto,
+        prelude::{
+            build::marker::Markerable, plotnum::PlotNum, quick_fmt, simple_theme::SimpleTheme,
+            ticks::HasDefaultTicks,
+        },
+    };
+
     use crate::GraphEmplace;
     use std::time::Instant;
 
@@ -54,13 +51,17 @@ mod html {
     }
 
     impl<T: std::fmt::Write> GraphEmplace for Html<T> {
-        fn write_graph(
+        fn write_graph<X: PlotNum + HasDefaultTicks, Y: PlotNum + HasDefaultTicks>(
             &mut self,
             group: Option<&str>,
-            name: &str,
-            func: impl FnOnce(&mut dyn std::fmt::Write) -> std::fmt::Result,
+            name: impl std::fmt::Display + std::fmt::Debug,
+            x: impl std::fmt::Display,
+            y: impl std::fmt::Display,
+            plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
         ) {
-            func(&mut self.w).unwrap();
+            let k = quick_fmt!(&name, x, y, plots);
+
+            k.simple_theme_dark(&mut self.w).unwrap();
 
             eprintln!(
                 "finish writing:{:?}:{:?}  elapsed:{:?}",
@@ -73,6 +74,7 @@ mod html {
     }
 }
 
+/*
 mod sysfile {
     use super::GraphEmplace;
     use std::{path::Path, time::Instant};
@@ -119,6 +121,7 @@ mod sysfile {
         }
     }
 }
+*/
 
 fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
     let base = base.as_ref();

@@ -10,9 +10,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let m = poloto::build::markers([], [0.0]);
 
-        let p = quick_fmt!("best-height", "height", "time", l1, m);
-
-        emp.write_graph_simple("best-height", |w| p.simple_theme(w));
+        emp.write_graph(None, "best-height", "height", "time", l1.chain(m));
     }
 
     for grow in [2.0] {
@@ -55,18 +53,19 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let m = poloto::build::origin();
 
-        let p = quick_fmt!("hay", "x", "y", l1, l2, l3, l4, l5, l6, l7, m);
-
-        emp.write_graph_group("colfind", &format!("n_{}", grow), |w| p.simple_theme(w));
+        emp.write_graph(
+            Some("colfind"),
+            &format!("n_{}", grow),
+            "x",
+            "y",
+            plots!(l1, l2, l3, l4, l5, l6, l7, m),
+        );
     }
 
     for n in [60_000] {
         let res = colfind::bench_grow(n, 0.2, 1.5);
 
-        let p = quick_fmt!(
-            "hay",
-            "x",
-            "y",
+        let p = plots!(
             res.iter()
                 .map(|(i, r)| (i, r.brocc))
                 .cloned_plot()
@@ -98,7 +97,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             poloto::build::origin()
         );
 
-        emp.write_graph_group("colfind", &format!("grow_{}", n), |w| p.simple_theme(w));
+        emp.write_graph(Some("colfind"), &format!("grow_{}", n), "x", "y", p);
     }
 
     for grow in [0.2, 2.0] {
@@ -107,10 +106,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             let res2 = layout::bench(layout::Layout::Direct, grow, size);
             let res3 = layout::bench(layout::Layout::Indirect, grow, size);
 
-            let p = quick_fmt!(
-                formatm!("grow_{}", grow),
-                "x",
-                "y",
+            let p = plots!(
                 res1.iter()
                     .map(|(i, x, _)| (i, x))
                     .cloned_plot()
@@ -138,19 +134,20 @@ pub fn bench(emp: &mut impl GraphEmplace) {
                 poloto::build::origin()
             );
 
-            emp.write_graph_group("layout", &format!("rebal_{}_{}", size, grow), |w| {
-                p.simple_theme(w)
-            });
+            emp.write_graph(
+                Some("layout"),
+                &format!("rebal_{}_{}", size, grow),
+                "x",
+                "y",
+                p,
+            );
         }
     }
 
     {
         let res = par_tuner::bench_par(3.0, Some(512), Some(512));
 
-        let p = quick_fmt!(
-            "rebal",
-            "x",
-            "y",
+        let p = plots!(
             res.iter()
                 .map(|(i, _, x)| (i, x))
                 .cloned_plot()
@@ -162,7 +159,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             poloto::build::origin()
         );
 
-        emp.write_graph_group("par", "par-speedup", |w| p.simple_theme(w));
+        emp.write_graph(Some("par"), "par-speedup", "x", "y", p);
     }
 
     {
@@ -171,9 +168,13 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let m = poloto::build::origin();
 
-        let p = quick_fmt!("rebal", "x", "y", l1, m);
-
-        emp.write_graph_group("par", "optimal-seq-fallback-rebal", |w| p.simple_theme(w));
+        emp.write_graph(
+            Some("par"),
+            "optimal-seq-fallback-rebal",
+            "x",
+            "y",
+            l1.chain(m),
+        );
     }
 
     {
@@ -183,9 +184,13 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let m = poloto::build::origin();
 
-        let p = quick_fmt!("query", "x", "y", l1, m);
-
-        emp.write_graph_group("par", "optimal-seq-fallback-query", |w| p.simple_theme(w));
+        emp.write_graph(
+            Some("par"),
+            "optimal-seq-fallback-query",
+            "x",
+            "y",
+            l1.chain(m),
+        );
     }
 
     {
@@ -213,9 +218,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let m = poloto::build::origin();
 
-        let p = quick_fmt!("float-int", "x", "y", l1, l2, l3, l4, m);
-
-        emp.write_graph_simple("float-int", |w| p.simple_theme(w));
+        emp.write_graph(None, "float-int", "x", "y", plots!(l1, l2, l3, l4, m));
     }
 
     {
@@ -243,9 +246,13 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let m = poloto::build::origin();
 
-        let p = quick_fmt!("rebal-vs-query", "x", "y", l1, l2, l3, l4, m);
-
-        emp.write_graph_group("rebal_vs_query", "rebal_vs_query", |w| p.simple_theme(w));
+        emp.write_graph(
+            Some("rebal_vs_query"),
+            "rebal_vs_query",
+            "x",
+            "y",
+            plots!(l1, l2, l3, l4, m),
+        );
 
         let l1 = res
             .iter()
@@ -270,10 +277,12 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             .scatter("par_tree_q");
         let m = poloto::build::origin();
 
-        let p = quick_fmt!("par-rebal-vs-query", "x", "y", l1, l2, l3, l4, m);
-
-        emp.write_graph_group("rebal_vs_query", "par-rebal-vs-query", |w| {
-            p.simple_theme(w)
-        });
+        emp.write_graph(
+            Some("rebal_vs_query"),
+            "par-rebal-vs-query",
+            "x",
+            "y",
+            plots!(l1, l2, l3, l4, m),
+        );
     }
 }
