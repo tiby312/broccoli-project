@@ -63,27 +63,44 @@ mod html {
 
             //k.simple_theme_dark(&mut self.w).unwrap();
 
+            //Make the plotting area slightly larger.
 
-            pub const CUSTOM_SVG: &str = r####"<svg class="poloto_background poloto" width="500px" height="100%" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">"####;
+            //pub const CUSTOM_SVG: &str = r####"<svg class="poloto_background poloto" width="300px" height="100%" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">"####;
+            let plotter = poloto::quick_fmt!(&name, x, y, plots,);
+
+            let dd = plotter.get_dim();
+            let svg_width = 400.0;
+            use poloto::simple_theme;
+            let hh = simple_theme::determine_height_from_width(dd, svg_width);
 
             write!(
                 &mut self.w,
                 "{}<style>{}{}</style>{}{}",
-                CUSTOM_SVG,
+                poloto::disp(|a| poloto::simple_theme::write_header(a, [svg_width, hh], dd)),
                 poloto::simple_theme::STYLE_CONFIG_DARK_DEFAULT,
-                ".poloto_scatter{stroke-width:20}",
-                poloto::disp(|a| {
-                    let s = poloto::quick_fmt!(
-                        &name,
-                        x,
-                        y,
-                        plots,
-                    );
-                    s.render(a)
-                }),
+                ".poloto_line{stroke-dasharray:2;stroke-width:2;}",
+                poloto::disp(|a| plotter.render(a)),
                 poloto::simple_theme::SVG_END
-            ).unwrap();
+            )
+            .unwrap();
 
+            // write!(
+            //     &mut self.w,
+            //     "{}<style>{}{}</style>{}{}",
+            //     CUSTOM_SVG,
+            //     poloto::simple_theme::STYLE_CONFIG_DARK_DEFAULT,
+            //     ".poloto_scatter{stroke-width:20}",
+            //     poloto::disp(|a| {
+            //         let s = poloto::quick_fmt!(
+            //             &name,
+            //             x,
+            //             y,
+            //             plots,
+            //         );
+            //         s.render(a)
+            //     }),
+            //     poloto::simple_theme::SVG_END
+            // ).unwrap();
 
             eprintln!(
                 "finish writing:{:?}:{:?}  elapsed:{:?}",
@@ -156,15 +173,20 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
     w.put_raw_escapable("<!DOCTYPE html>")?;
 
-    w.elem("html", |d| d.attr("style", "display:flex;flex-wrap:wrap;"))?
-        .build(|w| {
-            let mut sys = html::Html::new(w.writer_escapable());
+    w.elem("html", |d| {
+        d.attr(
+            "style",
+            "display:flex;flex-wrap:wrap;background-color: #262626;",
+        )
+    })?
+    .build(|w| {
+        let mut sys = html::Html::new(w.writer_escapable());
 
-            //let mut a = datanum::new_session();
-            //theory::theory(&mut a, path)
-            bench::bench(&mut sys);
-            Ok(())
-        })?;
+        //let mut a = datanum::new_session();
+        //theory::theory(&mut a, path)
+        bench::bench(&mut sys);
+        Ok(())
+    })?;
 
     Ok(())
 }
