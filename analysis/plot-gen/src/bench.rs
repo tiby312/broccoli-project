@@ -10,7 +10,22 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let m = poloto::build::markers([], [0.0]);
 
-        emp.write_graph(None, "best-height", "height", "time", l1.chain(m));
+        let description=r##"
+hello
+=====
+
+* alpha
+* beta
+
+# Heading!!!
+
+This is a *Serious* description!!!
+
+~How are you doing????
+
+[example_link](www.google.com)
+        "##;
+        emp.write_graph(None, "best-height", "height", "time", l1.chain(m),description);
     }
 
     for grow in [2.0] {
@@ -59,6 +74,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             "x",
             "y",
             plots!(l1, l2, l3, l4, l5, l6, l7, m),
+            ""
         );
     }
 
@@ -97,8 +113,11 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             poloto::build::origin()
         );
 
-        emp.write_graph(Some("colfind"), &format!("grow_{}", n), "x", "y", p);
+        emp.write_graph(Some("colfind"), &format!("grow_{}", n), "x", "y", p,"");
     }
+
+
+    return;
 
     for grow in [0.2, 2.0] {
         for size in [8, 128, 256] {
@@ -140,6 +159,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
                 "x",
                 "y",
                 p,
+                ""
             );
         }
     }
@@ -159,7 +179,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             poloto::build::origin()
         );
 
-        emp.write_graph(Some("par"), "par-speedup", "x", "y", p);
+        emp.write_graph(Some("par"), "par-speedup", "x", "y", p,"");
     }
 
     {
@@ -174,6 +194,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             "x",
             "y",
             l1.chain(m),
+            ""
         );
     }
 
@@ -190,6 +211,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             "x",
             "y",
             l1.chain(m),
+            ""
         );
     }
 
@@ -218,7 +240,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let m = poloto::build::origin();
 
-        emp.write_graph(None, "float-int", "x", "y", plots!(l1, l2, l3, l4, m));
+        emp.write_graph(None, "float-int", "x", "y", plots!(l1, l2, l3, l4, m),"");
     }
 
     {
@@ -252,6 +274,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             "x",
             "y",
             plots!(l1, l2, l3, l4, m),
+            ""
         );
 
         let l1 = res
@@ -283,6 +306,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             "x",
             "y",
             plots!(l1, l2, l3, l4, m),
+            ""
         );
     }
 }

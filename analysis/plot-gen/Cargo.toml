@@ -17,3 +17,4 @@ spiral={path="../spiral"}
 cached-pairs={path="../cached-pairs"}
 best-height={path="../best-height"}
 tagger="*"
+pulldown-cmark = "0.9"

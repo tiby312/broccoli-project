@@ -21,6 +21,7 @@ pub trait GraphEmplace {
         x: impl std::fmt::Display,
         y: impl std::fmt::Display,
         plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
+        description:&str
     );
 }
 
@@ -34,7 +35,7 @@ mod html {
     };
 
     use crate::GraphEmplace;
-    use std::time::Instant;
+    use std::{time::Instant, process::CommandEnvs};
 
     pub struct Html<T> {
         w: T,
@@ -58,7 +59,10 @@ mod html {
             x: impl std::fmt::Display,
             y: impl std::fmt::Display,
             plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
+            description:&str
         ) {
+
+
             //let k = quick_fmt!(&name, x, y, plots);
 
             //k.simple_theme_dark(&mut self.w).unwrap();
@@ -83,6 +87,13 @@ mod html {
                 poloto::simple_theme::SVG_END
             )
             .unwrap();
+
+
+            let parser = pulldown_cmark::Parser::new(description);
+            let mut s=String::new();
+
+            pulldown_cmark::html::push_html(&mut s,parser);
+            write!(&mut self.w,"{}",s).unwrap();
 
             // write!(
             //     &mut self.w,
