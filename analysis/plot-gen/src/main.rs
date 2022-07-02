@@ -118,7 +118,7 @@ mod html {
                 name.to_string()
             };
 
-            eprintln!("Finished: {:24} elapsed:{:>16?}", name, self.now.elapsed());
+            eprintln!("Elapsed : {:>16?} : {}", self.now.elapsed(), name);
             self.now = Instant::now();
         }
     }
@@ -192,7 +192,7 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
         w.put_raw_escapable(".poloto_scatter{stroke-width:3}")
     })?;
 
-    w.elem("html", |d| d.attr("style", "background: dimgray;"))?
+    w.elem("html", |d| d.attr("style", "background: black;"))?
         .build(|w| {
             w.elem("div", |d| {
                 d.attr(
