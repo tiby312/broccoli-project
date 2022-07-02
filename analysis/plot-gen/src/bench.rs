@@ -5,12 +5,12 @@ use indoc::formatdoc;
 pub fn bench(emp: &mut impl GraphEmplace) {
     {
         let grow = 2.0;
+        let num=30_000;
         let description = formatdoc! {r#"
-            Bench time to solve `abspiral(30_000,{grow})` with 
+            Bench time to solve `abspiral({num},{grow})` with 
             different tree heights
         "#};
 
-        let num = 30_000;
         let l = broccoli::tree::BuildArgs::new(num);
 
         let res = best_height::bench(num, 3, l.num_level + 4, grow);
