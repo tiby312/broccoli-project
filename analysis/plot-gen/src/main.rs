@@ -106,10 +106,10 @@ mod html {
             .unwrap();
 
             eprintln!(
-                "finish writing:{:?}:{:?}  elapsed:{:?}",
+                "finish writing. elapsed:{:?}\t\t finished:{:?}\t\t:{:?}",
+                self.now.elapsed(),
                 group,
-                name,
-                self.now.elapsed()
+                name
             );
             self.now = Instant::now();
         }
