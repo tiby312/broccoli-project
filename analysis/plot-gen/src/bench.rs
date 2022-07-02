@@ -1,7 +1,6 @@
 use super::*;
 
 use indoc::formatdoc;
-use indoc::indoc;
 
 pub fn bench(emp: &mut impl GraphEmplace) {
     {
@@ -63,8 +62,8 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         emp.write_graph(
             None,
             "float-int",
-            "x",
-            "y",
+            "num aabbs",
+            "time",
             plots!(l1, l2, l3, l4, m),
             &description,
         );
@@ -232,16 +231,15 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             `abspiral(n,{grow})`
         "#};
 
-        //let res = par_tuner::bench_par(grow, Some(512), Some(512));
         let res = par_tuner::bench_par(grow, None, None);
 
         let p = plots!(
             res.iter()
-                .map(|(i, _, x)| (i, x))
+                .map(|(i, x, _)| (i, x))
                 .cloned_plot()
                 .scatter("rebal"),
             res.iter()
-                .map(|(i, x, _)| (i, x))
+                .map(|(i, _, x)| (i, x))
                 .cloned_plot()
                 .scatter("query"),
             poloto::build::origin()
@@ -251,7 +249,14 @@ pub fn bench(emp: &mut impl GraphEmplace) {
     }
 
     {
-        let res = par_tuner::best_seq_fallback_rebal(80_000, 2.0);
+        let num = 80_000;
+        let grow = 2.0;
+        let description = formatdoc! {r#"
+            x speedup of different seq-fallback values during construction
+            `abspiral({num},{grow})`
+        "#};
+
+        let res = par_tuner::best_seq_fallback_rebal(num, grow);
         let l1 = res.iter().cloned_plot().scatter("");
 
         let m = poloto::build::origin();
@@ -262,12 +267,19 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             "x",
             "y",
             l1.chain(m),
-            "",
+            &description,
         );
     }
 
     {
-        let res = par_tuner::best_seq_fallback_query(80_000, 2.0);
+        let num = 80_000;
+        let grow = 2.0;
+        let description = formatdoc! {r#"
+            x speedup of different seq-fallback values during query
+            `abspiral({num},{grow})`
+        "#};
+
+        let res = par_tuner::best_seq_fallback_query(num, grow);
 
         let l1 = res.iter().cloned_plot().scatter("");
 
@@ -279,7 +291,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             "x",
             "y",
             l1.chain(m),
-            "",
+            &description,
         );
     }
 

@@ -61,52 +61,72 @@ mod html {
             plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
             description: &str,
         ) {
-            //let k = quick_fmt!(&name, x, y, plots);
+            fn floop<K>(a: impl FnOnce() -> K) -> K {
+                a()
+            }
 
-            //k.simple_theme_dark(&mut self.w).unwrap();
+            floop(|| {
+                //let k = quick_fmt!(&name, x, y, plots);
 
-            //Make the plotting area slightly larger.
+                //k.simple_theme_dark(&mut self.w).unwrap();
 
-            //pub const CUSTOM_SVG: &str = r####"<svg class="poloto_background poloto" width="300px" height="100%" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">"####;
-            let plotter = poloto::quick_fmt!(&name, x, y, plots,);
+                //Make the plotting area slightly larger.
 
-            let dd = plotter.get_dim();
-            let svg_width = 400.0;
-            use poloto::simple_theme;
-            let hh = simple_theme::determine_height_from_width(dd, svg_width);
+                //pub const CUSTOM_SVG: &str = r####"<svg class="poloto_background poloto" width="300px" height="100%" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">"####;
+                let name=if let Some(group)=group{
+                    format!("{group} : {name}")
+                }else{
+                    format!("{name}")
+                };
 
-            let mut t = tagger::new(&mut self.w);
+                let plotter = poloto::quick_fmt!(&name, x, y, plots,);
 
-            t.elem("div", |w| {
-                w.attr(
-                    "style",
-                    "width:400px;background:#262626;margin:5px;padding:10px;word-break: normal;
-                white-space: normal;",
-                )
-            })
-            .unwrap()
-            .build(|w| {
-                write!(
-                    w.writer_escapable(),
-                    "{}<style>{}</style>{}{}",
-                    poloto::disp(|a| poloto::simple_theme::write_header(a, [svg_width, hh], dd)),
-                    ".poloto_line{stroke-dasharray:2;stroke-width:2;}",
-                    poloto::disp(|a| plotter.render(a)),
-                    poloto::simple_theme::SVG_END
-                )?;
+                let dd = plotter.get_dim();
+                let svg_width = 400.0;
+                use poloto::simple_theme;
+                let hh = simple_theme::determine_height_from_width(dd, svg_width);
 
-                let parser = pulldown_cmark::Parser::new(description);
-                let mut s = String::new();
+                let mut t = tagger::new(&mut self.w);
 
-                pulldown_cmark::html::push_html(&mut s, parser);
+                t.elem("div", |w| {
+                    w.attr(
+                        "style",
+                        "width:400px;background:#262626;margin:5px;padding:10px;word-break: normal;white-space: normal;border-radius:3px",
+                    )
+                })?
+                .build(|w| {
+                    write!(
+                        w.writer_escapable(),
+                        "{}<style>{}</style>{}{}",
+                        poloto::disp(|a| poloto::simple_theme::write_header(
+                            a,
+                            [svg_width, hh],
+                            dd
+                        )),
+                        ".poloto_line{stroke-dasharray:2;stroke-width:2;}",
+                        poloto::disp(|a| plotter.render(a)),
+                        poloto::simple_theme::SVG_END
+                    )?;
 
-                w.elem("text", |d| d.attr("class", "markdown-body"))?
-                    .build(|w| write!(w.writer_escapable(), "{}", s))
+                    let parser = pulldown_cmark::Parser::new(description);
+                    let mut s = String::new();
+
+                    pulldown_cmark::html::push_html(&mut s, parser);
+
+                    w.elem("text", |d| d.attr("class", "markdown-body"))?
+                        .build(|w| write!(w.writer_escapable(), "{}", s))
+                })
             })
             .unwrap();
 
+            let group = if let Some(group) = group {
+                group
+            } else {
+                "n/a"
+            };
+
             eprintln!(
-                "finish writing. elapsed:{:?}\t\t finished:{:?}\t\t:{:?}",
+                "finish writing. elapsed:{:?}\t\t finished:\t{:?}\t\t:{:?}",
                 self.now.elapsed(),
                 group,
                 name
@@ -179,8 +199,10 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
     w.elem("style", tagger::no_attr())?
         .build(|w| w.put_raw(include_str!("github-markdown.css")))?;
 
-    w.elem("style", tagger::no_attr())?
-        .build(|w| w.put_raw_escapable(poloto::simple_theme::STYLE_CONFIG_DARK_DEFAULT))?;
+    w.elem("style", tagger::no_attr())?.build(|w| {
+        w.put_raw_escapable(poloto::simple_theme::STYLE_CONFIG_DARK_DEFAULT)?;
+        w.put_raw_escapable(".poloto_scatter{stroke-width:3}")
+    })?;
 
     w.elem("html", |d| d.attr("style", "background: dimgray;"))?
         .build(|w| {
