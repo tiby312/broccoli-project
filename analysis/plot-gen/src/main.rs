@@ -21,7 +21,7 @@ pub trait GraphEmplace {
         x: impl std::fmt::Display,
         y: impl std::fmt::Display,
         plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
-        description:&str
+        description: &str,
     );
 }
 
@@ -35,7 +35,7 @@ mod html {
     };
 
     use crate::GraphEmplace;
-    use std::{time::Instant, process::CommandEnvs};
+    use std::{process::CommandEnvs, time::Instant};
 
     pub struct Html<T> {
         w: T,
@@ -59,10 +59,8 @@ mod html {
             x: impl std::fmt::Display,
             y: impl std::fmt::Display,
             plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
-            description:&str
+            description: &str,
         ) {
-
-
             //let k = quick_fmt!(&name, x, y, plots);
 
             //k.simple_theme_dark(&mut self.w).unwrap();
@@ -77,41 +75,35 @@ mod html {
             use poloto::simple_theme;
             let hh = simple_theme::determine_height_from_width(dd, svg_width);
 
-            write!(
-                &mut self.w,
-                "{}<style>{}{}</style>{}{}",
-                poloto::disp(|a| poloto::simple_theme::write_header(a, [svg_width, hh], dd)),
-                poloto::simple_theme::STYLE_CONFIG_DARK_DEFAULT,
-                ".poloto_line{stroke-dasharray:2;stroke-width:2;}",
-                poloto::disp(|a| plotter.render(a)),
-                poloto::simple_theme::SVG_END
-            )
+            let mut t = tagger::new(&mut self.w);
+
+            t.elem("div", |w| {
+                w.attr(
+                    "style",
+                    "width:400px;background:#262626;margin:5px;padding:10px;word-break: normal;
+                white-space: normal;",
+                )
+            })
+            .unwrap()
+            .build(|w| {
+                write!(
+                    w.writer_escapable(),
+                    "{}<style>{}</style>{}{}",
+                    poloto::disp(|a| poloto::simple_theme::write_header(a, [svg_width, hh], dd)),
+                    ".poloto_line{stroke-dasharray:2;stroke-width:2;}",
+                    poloto::disp(|a| plotter.render(a)),
+                    poloto::simple_theme::SVG_END
+                )?;
+
+                let parser = pulldown_cmark::Parser::new(description);
+                let mut s = String::new();
+
+                pulldown_cmark::html::push_html(&mut s, parser);
+
+                w.elem("text", |d| d.attr("class", "markdown-body"))?
+                    .build(|w| write!(w.writer_escapable(), "{}", s))
+            })
             .unwrap();
-
-
-            let parser = pulldown_cmark::Parser::new(description);
-            let mut s=String::new();
-
-            pulldown_cmark::html::push_html(&mut s,parser);
-            write!(&mut self.w,"{}",s).unwrap();
-
-            // write!(
-            //     &mut self.w,
-            //     "{}<style>{}{}</style>{}{}",
-            //     CUSTOM_SVG,
-            //     poloto::simple_theme::STYLE_CONFIG_DARK_DEFAULT,
-            //     ".poloto_scatter{stroke-width:20}",
-            //     poloto::disp(|a| {
-            //         let s = poloto::quick_fmt!(
-            //             &name,
-            //             x,
-            //             y,
-            //             plots,
-            //         );
-            //         s.render(a)
-            //     }),
-            //     poloto::simple_theme::SVG_END
-            // ).unwrap();
 
             eprintln!(
                 "finish writing:{:?}:{:?}  elapsed:{:?}",
@@ -184,22 +176,29 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
     w.put_raw_escapable("<!DOCTYPE html>")?;
 
-    w.elem("html", |d| {
-        d.attr(
-            "style",
-            "display:flex;flex-wrap:wrap;background-color: #262626;",
-        )
-    })?
-    .build(|w| {
-        let mut sys = html::Html::new(w.writer_escapable());
+    w.elem("style", tagger::no_attr())?
+        .build(|w| w.put_raw(include_str!("github-markdown.css")))?;
 
-        //let mut a = datanum::new_session();
-        //theory::theory(&mut a, path)
-        bench::bench(&mut sys);
-        Ok(())
-    })?;
+    w.elem("style", tagger::no_attr())?
+        .build(|w| w.put_raw_escapable(poloto::simple_theme::STYLE_CONFIG_DARK_DEFAULT))?;
 
-    Ok(())
+    w.elem("html", |d| d.attr("style", "background: dimgray;"))?
+        .build(|w| {
+            w.elem("div", |d| {
+                d.attr(
+                    "style",
+                    "display:flex;flex-wrap:wrap;justify-content: center;",
+                )
+            })?
+            .build(|w| {
+                let mut sys = html::Html::new(w.writer_escapable());
+
+                //let mut a = datanum::new_session();
+                //theory::theory(&mut a, path)
+                bench::bench(&mut sys);
+                Ok(())
+            })
+        })
 }
 
 fn main() {

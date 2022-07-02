@@ -1,7 +1,14 @@
 use super::*;
 
+use indoc::indoc;
+
 pub fn bench(emp: &mut impl GraphEmplace) {
     {
+        let description = indoc! {r#"
+            Bench time to solve abspiral(30_000,2.0) with 
+            different tree heights
+        "#};
+
         let num = 30_000;
         let l = broccoli::tree::BuildArgs::new(num);
 
@@ -10,25 +17,62 @@ pub fn bench(emp: &mut impl GraphEmplace) {
 
         let m = poloto::build::markers([], [0.0]);
 
-        let description=r##"
-hello
-=====
+        emp.write_graph(
+            None,
+            "best-height",
+            "height",
+            "time",
+            l1.chain(m),
+            description,
+        );
+    }
 
-* alpha
-* beta
+    {
+        let description = indoc! {r#"
+            Comparison of bench times using different number types as problem
+            size increases. abspiral(n,2.0)
+        "#};
 
-# Heading!!!
+        let res = float_vs_integer::bench(10_000, 2.0);
+        let l1 = res
+            .iter()
+            .map(|(i, r)| (i, r.float))
+            .cloned_plot()
+            .scatter("f32");
+        let l2 = res
+            .iter()
+            .map(|(i, r)| (i, r.int))
+            .cloned_plot()
+            .scatter("i32");
+        let l3 = res
+            .iter()
+            .map(|(i, r)| (i, r.i64))
+            .cloned_plot()
+            .scatter("i64");
+        let l4 = res
+            .iter()
+            .map(|(i, r)| (i, r.float_i32))
+            .cloned_plot()
+            .scatter("f32->int");
 
-This is a *Serious* description!!!
+        let m = poloto::build::origin();
 
-~How are you doing????
-
-[example_link](www.google.com)
-        "##;
-        emp.write_graph(None, "best-height", "height", "time", l1.chain(m),description);
+        emp.write_graph(
+            None,
+            "float-int",
+            "x",
+            "y",
+            plots!(l1, l2, l3, l4, m),
+            description,
+        );
     }
 
     for grow in [2.0] {
+        let description = indoc! {r#"
+            Comparison of bench times of different collision finding strategies. 
+            abspiral(n,2.0)
+        "#};
+
         let res = colfind::bench(60_000, grow, 10000, 20000);
         let l1 = res
             .iter()
@@ -74,11 +118,16 @@ This is a *Serious* description!!!
             "x",
             "y",
             plots!(l1, l2, l3, l4, l5, l6, l7, m),
-            ""
+            description,
         );
     }
 
     for n in [60_000] {
+        let description = indoc! {r#"
+            Comparison of bench times of different collision finding strategies. 
+            abspiral(60_000,x)
+        "#};
+
         let res = colfind::bench_grow(n, 0.2, 1.5);
 
         let p = plots!(
@@ -113,9 +162,15 @@ This is a *Serious* description!!!
             poloto::build::origin()
         );
 
-        emp.write_graph(Some("colfind"), &format!("grow_{}", n), "x", "y", p,"");
+        emp.write_graph(
+            Some("colfind"),
+            &format!("grow_{}", n),
+            "x",
+            "y",
+            p,
+            description,
+        );
     }
-
 
     return;
 
@@ -159,7 +214,7 @@ This is a *Serious* description!!!
                 "x",
                 "y",
                 p,
-                ""
+                "",
             );
         }
     }
@@ -179,7 +234,7 @@ This is a *Serious* description!!!
             poloto::build::origin()
         );
 
-        emp.write_graph(Some("par"), "par-speedup", "x", "y", p,"");
+        emp.write_graph(Some("par"), "par-speedup", "x", "y", p, "");
     }
 
     {
@@ -194,7 +249,7 @@ This is a *Serious* description!!!
             "x",
             "y",
             l1.chain(m),
-            ""
+            "",
         );
     }
 
@@ -211,36 +266,8 @@ This is a *Serious* description!!!
             "x",
             "y",
             l1.chain(m),
-            ""
+            "",
         );
-    }
-
-    {
-        let res = float_vs_integer::bench(10_000, 2.0);
-        let l1 = res
-            .iter()
-            .map(|(i, r)| (i, r.float))
-            .cloned_plot()
-            .scatter("f32");
-        let l2 = res
-            .iter()
-            .map(|(i, r)| (i, r.int))
-            .cloned_plot()
-            .scatter("i32");
-        let l3 = res
-            .iter()
-            .map(|(i, r)| (i, r.i64))
-            .cloned_plot()
-            .scatter("i64");
-        let l4 = res
-            .iter()
-            .map(|(i, r)| (i, r.float_i32))
-            .cloned_plot()
-            .scatter("f32->int");
-
-        let m = poloto::build::origin();
-
-        emp.write_graph(None, "float-int", "x", "y", plots!(l1, l2, l3, l4, m),"");
     }
 
     {
@@ -274,7 +301,7 @@ This is a *Serious* description!!!
             "x",
             "y",
             plots!(l1, l2, l3, l4, m),
-            ""
+            "",
         );
 
         let l1 = res
@@ -306,7 +333,7 @@ This is a *Serious* description!!!
             "x",
             "y",
             plots!(l1, l2, l3, l4, m),
-            ""
+            "",
         );
     }
 }
