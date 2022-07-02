@@ -5,7 +5,7 @@ use indoc::indoc;
 pub fn bench(emp: &mut impl GraphEmplace) {
     {
         let description = indoc! {r#"
-            Bench time to solve abspiral(30_000,2.0) with 
+            Bench time to solve `abspiral(30_000,2.0)` with 
             different tree heights
         "#};
 
@@ -30,7 +30,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
     {
         let description = indoc! {r#"
             Comparison of bench times using different number types as problem
-            size increases. abspiral(n,2.0)
+            size increases. `abspiral(n,2.0)`
         "#};
 
         let res = float_vs_integer::bench(10_000, 2.0);
@@ -70,7 +70,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
     for grow in [2.0] {
         let description = indoc! {r#"
             Comparison of bench times of different collision finding strategies. 
-            abspiral(n,2.0)
+            `abspiral(n,2.0)`
         "#};
 
         let res = colfind::bench(60_000, grow, 10000, 20000);
@@ -125,7 +125,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
     for n in [60_000] {
         let description = indoc! {r#"
             Comparison of bench times of different collision finding strategies. 
-            abspiral(60_000,x)
+            `abspiral(60_000,x)`
         "#};
 
         let res = colfind::bench_grow(n, 0.2, 1.5);
@@ -172,7 +172,6 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         );
     }
 
-    return;
 
     for grow in [0.2, 2.0] {
         for size in [8, 128, 256] {
@@ -220,6 +219,7 @@ pub fn bench(emp: &mut impl GraphEmplace) {
     }
 
     {
+        
         let res = par_tuner::bench_par(3.0, Some(512), Some(512));
 
         let p = plots!(
