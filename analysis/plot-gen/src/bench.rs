@@ -5,7 +5,7 @@ use indoc::formatdoc;
 pub fn bench(emp: &mut impl GraphEmplace) {
     {
         let grow = 2.0;
-        let num=30_000;
+        let num = 30_000;
         let description = formatdoc! {r#"
             Bench time to solve `abspiral({num},{grow})` with 
             different tree heights
@@ -21,8 +21,8 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         emp.write_graph(
             None,
             "best-height",
-            "height",
-            "time",
+            "tree height",
+            "time taken (seconds)",
             l1.chain(m),
             &description,
         );
@@ -62,8 +62,8 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         emp.write_graph(
             None,
             "float-int",
-            "num aabbs",
-            "time",
+            "num elements",
+            "time taken (seconds)",
             plots!(l1, l2, l3, l4, m),
             &description,
         );
@@ -117,8 +117,8 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         emp.write_graph(
             Some("colfind"),
             &format!("n_{}", grow),
-            "x",
-            "y",
+            "num elements",
+            "time taken (seconds)",
             plots!(l1, l2, l3, l4, l5, l6, l7, m),
             &description,
         );
@@ -161,14 +161,14 @@ pub fn bench(emp: &mut impl GraphEmplace) {
                 .map(|(i, r)| (i, r.naive))
                 .cloned_plot()
                 .scatter("naive"),
-            poloto::build::origin()
+            poloto::build::markers([], [0.0])
         );
 
         emp.write_graph(
             Some("colfind"),
             &format!("grow_{}", n),
-            "x",
-            "y",
+            "grow",
+            "time taken (seconds)",
             p,
             &description,
         );
@@ -216,8 +216,8 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             emp.write_graph(
                 Some("layout"),
                 &format!("rebal_{}_{}", size, grow),
-                "x",
-                "y",
+                "num elements",
+                "time taken (seconds)",
                 p,
                 &description,
             );
@@ -245,7 +245,14 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             poloto::build::origin()
         );
 
-        emp.write_graph(Some("par"), "par-speedup", "x", "y", p, &description);
+        emp.write_graph(
+            Some("par"),
+            "par-speedup",
+            "num elements",
+            "x speedup over sequential",
+            p,
+            &description,
+        );
     }
 
     {
@@ -264,8 +271,8 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         emp.write_graph(
             Some("par"),
             "optimal-seq-fallback-rebal",
-            "x",
-            "y",
+            "num elements",
+            "x speedup over sequential",
             l1.chain(m),
             &description,
         );
@@ -288,15 +295,22 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         emp.write_graph(
             Some("par"),
             "optimal-seq-fallback-query",
-            "x",
-            "y",
+            "num elements",
+            "x speedup over sequential",
             l1.chain(m),
             &description,
         );
     }
 
     {
-        let res = rebal_vs_query::bench(80_000, 2.0);
+        let num = 80_000;
+        let grow = 2.0;
+        let description = formatdoc! {r#"
+            comparison of construction vs query
+            `abspiral({num},{grow})`
+        "#};
+
+        let res = rebal_vs_query::bench(num, grow);
         let l1 = res
             .iter()
             .map(|(i, r)| (i, r.tree.0))
@@ -323,10 +337,10 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         emp.write_graph(
             Some("rebal_vs_query"),
             "rebal_vs_query",
-            "x",
-            "y",
+            "num elements",
+            "time taken (seconds)",
             plots!(l1, l2, l3, l4, m),
-            "",
+            &description,
         );
 
         let l1 = res
@@ -355,10 +369,10 @@ pub fn bench(emp: &mut impl GraphEmplace) {
         emp.write_graph(
             Some("rebal_vs_query"),
             "par-rebal-vs-query",
-            "x",
-            "y",
+            "num elements",
+            "time taken (seconds)",
             plots!(l1, l2, l3, l4, m),
-            "",
+            &description,
         );
     }
 }

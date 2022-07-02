@@ -61,18 +61,11 @@ mod html {
             plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
             description: &str,
         ) {
-            fn floop<K>(a: impl FnOnce() -> K) -> K {
+            fn try_<K>(a: impl FnOnce() -> K) -> K {
                 a()
             }
 
-            floop(|| {
-                //let k = quick_fmt!(&name, x, y, plots);
-
-                //k.simple_theme_dark(&mut self.w).unwrap();
-
-                //Make the plotting area slightly larger.
-
-                //pub const CUSTOM_SVG: &str = r####"<svg class="poloto_background poloto" width="300px" height="100%" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">"####;
+            try_(|| {
                 let name=if let Some(group)=group{
                     format!("{group} : {name}")
                 }else{
@@ -91,7 +84,7 @@ mod html {
                 t.elem("div", |w| {
                     w.attr(
                         "style",
-                        "width:400px;background:#262626;margin:5px;padding:10px;word-break: normal;white-space: normal;border-radius:3px",
+                        "width:400px;background:#262626;margin:5px;padding:10px;word-break: normal;white-space: normal;border-radius:6px",
                     )
                 })?
                 .build(|w| {
@@ -119,18 +112,13 @@ mod html {
             })
             .unwrap();
 
-            let group = if let Some(group) = group {
-                group
+            let name = if let Some(group) = group {
+                format!("{}:{}", group, name)
             } else {
-                "n/a"
+                name.to_string()
             };
 
-            eprintln!(
-                "finish writing. elapsed:{:?}\t\t finished:\t{:?}\t\t:{:?}",
-                self.now.elapsed(),
-                group,
-                name
-            );
+            eprintln!("Finished: {:24} elapsed:{:>16?}", name, self.now.elapsed());
             self.now = Instant::now();
         }
     }
