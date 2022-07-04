@@ -4,6 +4,94 @@ use indoc::formatdoc;
 
 pub fn bench(emp: &mut impl GraphEmplace) {
     {
+        let grow = 2.0;
+        let num = 30_000;
+        let description = formatdoc! {r#"
+            Optimal height vs heur height for `abspiral({num},{grow})`
+        "#};
+
+        let l = broccoli::tree::BuildArgs::new(num);
+
+        let res = best_height::optimal(num, grow);
+
+        let l1 = res
+            .iter()
+            .map(|(i, r)| (*i, r.optimal_height))
+            .cloned_plot()
+            .scatter("optimal");
+        let l2 = res
+            .iter()
+            .map(|(i, r)| (*i, r.heur_height))
+            .cloned_plot()
+            .scatter("heur");
+
+        emp.write_graph(
+            Some("height"),
+            "heuristic",
+            "num elements",
+            "time taken (seconds)",
+            l1.chain(l2),
+            &description,
+        );
+    }
+
+    {
+        let grow = 2.0;
+        let num = 30_000;
+        let description = formatdoc! {r#"
+            Bench time to solve `abspiral({num},{grow})` with 
+            different tree heights
+        "#};
+
+        let l = broccoli::tree::BuildArgs::new(num);
+
+        let res = best_height::bench(num, 3, l.num_level + 4, grow);
+        let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
+
+        let m = poloto::build::markers([], [0.0]);
+
+        emp.write_graph(
+            Some("height"),
+            "best-height",
+            "tree height",
+            "time taken (seconds)",
+            l1.chain(m),
+            &description,
+        );
+    }
+
+    {
+        let num = 10_000;
+        let grow = 1.0;
+        let num_iter = 2;
+
+        let description = formatdoc! {r#"
+            Query vs Cached Query with {num_iter} iterations of `abspiral(num,{grow})`.
+        "#};
+        let res = cached_pairs::bench(num, grow, num_iter);
+
+        let a = res
+            .iter()
+            .map(|(x, y)| (*x, y.bench))
+            .cloned_plot()
+            .scatter("no cache");
+        let b = res
+            .iter()
+            .map(|(x, y)| (*x, y.collect))
+            .cloned_plot()
+            .scatter("cached");
+
+        emp.write_graph(
+            None,
+            "collect",
+            "num elements",
+            "time taken (seconds)",
+            a.chain(b),
+            &description,
+        );
+    }
+
+    {
         let num = 5_000;
         let description = formatdoc! {r#"
             Comparison of construction of different levels for `abspiral({num},grow)`
@@ -54,31 +142,6 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             "grow",
             "time taken (seconds)",
             poloto::build::plots_dyn::<f64, f64, _>(queries),
-            &description,
-        );
-    }
-
-    {
-        let grow = 2.0;
-        let num = 30_000;
-        let description = formatdoc! {r#"
-            Bench time to solve `abspiral({num},{grow})` with 
-            different tree heights
-        "#};
-
-        let l = broccoli::tree::BuildArgs::new(num);
-
-        let res = best_height::bench(num, 3, l.num_level + 4, grow);
-        let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
-
-        let m = poloto::build::markers([], [0.0]);
-
-        emp.write_graph(
-            None,
-            "best-height",
-            "tree height",
-            "time taken (seconds)",
-            l1.chain(m),
             &description,
         );
     }

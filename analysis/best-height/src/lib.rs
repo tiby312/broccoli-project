@@ -38,8 +38,8 @@ pub fn theory(
 }
 
 pub struct Res {
-    pub optimal_height: usize,
-    pub heur_height: usize,
+    pub optimal_height: i128,
+    pub heur_height: i128,
 }
 
 #[inline(never)]
@@ -51,7 +51,7 @@ pub fn optimal(num: usize, grow: f64) -> Vec<(i128, Res)> {
         .map(move |n| {
             let bots = &mut all[0..n];
 
-            let optimal_height = (0..20)
+            let optimal_height = (1..20)
                 .map(|height| (height, new_bench_record(bots, height)))
                 .min_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
                 .unwrap()
@@ -63,8 +63,8 @@ pub fn optimal(num: usize, grow: f64) -> Vec<(i128, Res)> {
             (
                 n as i128,
                 Res {
-                    optimal_height,
-                    heur_height,
+                    optimal_height:optimal_height as i128,
+                    heur_height:heur_height as i128,
                 },
             )
         })
