@@ -203,9 +203,9 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
             .build(|w| {
                 let mut sys = html::Html::new(w.writer_escapable());
 
-                //let mut a = datanum::new_session();
+                let mut a = datanum::new_session();
                 //theory::theory(&mut a, path)
-                bench::bench(&mut sys);
+                bench::bench(&mut sys,&mut a);
                 Ok(())
             })
         })

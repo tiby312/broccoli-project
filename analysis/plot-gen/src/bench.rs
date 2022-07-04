@@ -2,7 +2,95 @@ use super::*;
 
 use indoc::formatdoc;
 
-pub fn bench(emp: &mut impl GraphEmplace) {
+pub fn bench(emp: &mut impl GraphEmplace,man:&mut DnumManager) {
+
+
+    for grow in [0.5,2.0] {
+    
+        let description = formatdoc! {r#"
+            Comparison of theory times of different collision finding strategies. 
+            `abspiral(n,{grow})`
+        "#};
+        
+        let res=colfind::theory(man,5000,grow,1500,2000);
+
+
+        let l1=res.iter().map(|(i,r)|(*i,r.brocc)).cloned_plot().scatter("brocc");
+        let l2=res.iter().map(|(i,r)|(*i,r.naive)).cloned_plot().scatter("naive");
+        let l3=res.iter().map(|(i,r)|(*i,r.sweep)).cloned_plot().scatter("sweep");
+        let l4=res.iter().map(|(i,r)|(*i,r.nosort)).cloned_plot().scatter("nosort");
+
+        let m = poloto::build::origin();
+
+        emp.write_graph(
+            Some("theory_colfind"),
+            &format!("n_{}", grow),
+            "num elements",
+            "time taken (seconds)",
+            plots!(l1, l2,l3,l4,m),
+            &description,
+        );
+    }
+
+    
+    for grow in [0.5,2.0] {
+        let description = formatdoc! {r#"
+            Comparison of bench times of different collision finding strategies. 
+            `abspiral(n,{grow})`
+        "#};
+
+        let res = colfind::bench(40_000, grow, 5000, 20000);
+        let l1 = res
+            .iter()
+            .map(|(i, r)| (i, r.brocc))
+            .cloned_plot()
+            .scatter("brocc");
+        let l2 = res
+            .iter()
+            .map(|(i, r)| (i, r.brocc_par))
+            .cloned_plot()
+            .scatter("brocc_par");
+        let l3 = res
+            .iter()
+            .map(|(i, r)| (i, r.nosort))
+            .cloned_plot()
+            .scatter("nosort");
+        let l4 = res
+            .iter()
+            .map(|(i, r)| (i, r.nosort_par))
+            .cloned_plot()
+            .scatter("nosort_par");
+        let l5 = res
+            .iter()
+            .map(|(i, r)| (i, r.sweep))
+            .cloned_plot()
+            .scatter("sweep");
+        let l6 = res
+            .iter()
+            .map(|(i, r)| (i, r.sweep_par))
+            .cloned_plot()
+            .scatter("sweep_par");
+        let l7 = res
+            .iter()
+            .map(|(i, r)| (i, r.naive))
+            .cloned_plot()
+            .scatter("naive");
+
+        let m = poloto::build::origin();
+
+        emp.write_graph(
+            Some("colfind"),
+            &format!("n_{}", grow),
+            "num elements",
+            "time taken (seconds)",
+            plots!(l1, l2, l3, l4, l5, l6, l7, m),
+            &description,
+        );
+    }
+
+
+    return;
+
     {
         let grow = 2.0;
         let num = 30_000;
@@ -183,61 +271,6 @@ pub fn bench(emp: &mut impl GraphEmplace) {
             "num elements",
             "time taken (seconds)",
             plots!(l1, l2, l3, l4, m),
-            &description,
-        );
-    }
-
-    for grow in [2.0] {
-        let description = formatdoc! {r#"
-            Comparison of bench times of different collision finding strategies. 
-            `abspiral(n,{grow})`
-        "#};
-
-        let res = colfind::bench(60_000, grow, 10000, 20000);
-        let l1 = res
-            .iter()
-            .map(|(i, r)| (i, r.brocc))
-            .cloned_plot()
-            .scatter("brocc");
-        let l2 = res
-            .iter()
-            .map(|(i, r)| (i, r.brocc_par))
-            .cloned_plot()
-            .scatter("brocc_par");
-        let l3 = res
-            .iter()
-            .map(|(i, r)| (i, r.nosort))
-            .cloned_plot()
-            .scatter("nosort");
-        let l4 = res
-            .iter()
-            .map(|(i, r)| (i, r.nosort_par))
-            .cloned_plot()
-            .scatter("nosort_par");
-        let l5 = res
-            .iter()
-            .map(|(i, r)| (i, r.sweep))
-            .cloned_plot()
-            .scatter("sweep");
-        let l6 = res
-            .iter()
-            .map(|(i, r)| (i, r.sweep_par))
-            .cloned_plot()
-            .scatter("sweep_par");
-        let l7 = res
-            .iter()
-            .map(|(i, r)| (i, r.naive))
-            .cloned_plot()
-            .scatter("naive");
-
-        let m = poloto::build::origin();
-
-        emp.write_graph(
-            Some("colfind"),
-            &format!("n_{}", grow),
-            "num elements",
-            "time taken (seconds)",
-            plots!(l1, l2, l3, l4, l5, l6, l7, m),
             &description,
         );
     }
