@@ -285,7 +285,7 @@ impl<'a> Html<'a> {
             name.to_string()
         };
 
-        eprintln!("Elapsed : {:>16?} : {}", self.now.elapsed(), name);
+        eprintln!("{:<10.2?} : {}", self.now.elapsed(), name);
         self.now = Instant::now();
         Ok(())
 
