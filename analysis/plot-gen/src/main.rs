@@ -1,9 +1,5 @@
-//TODO remove
-#![allow(dead_code)]
-
 mod bench;
 
-use poloto::prelude::*;
 use std::path::Path;
 use support::datanum::DnumManager;
 use support::poloto;
@@ -41,7 +37,7 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
                 let mut a = datanum::new_session();
                 //theory::theory(&mut a, path)
-                bench::bench(&mut sys, &mut a);
+                bench::bench(&mut sys, &mut a)?;
                 Ok(())
             })
         })

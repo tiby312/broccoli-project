@@ -1,7 +1,5 @@
 use super::*;
 
-use indoc::formatdoc;
-
 pub fn bench(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     colfind::theory(emp, man)?;
     colfind::bench(emp)?;
