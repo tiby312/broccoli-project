@@ -16,6 +16,3 @@ rebal-vs-query={path="../rebal-vs-query"}
 spiral={path="../spiral"}
 cached-pairs={path="../cached-pairs"}
 best-height={path="../best-height"}
-tagger="*"
-pulldown-cmark = "0.9"
-indoc = "1.0.6"

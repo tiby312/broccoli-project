@@ -4,9 +4,12 @@ pub use broccoli;
 pub use broccoli::axgeom;
 use broccoli::tree::aabb_pin::HasInner;
 use broccoli::tree::node::Num;
+pub use indoc;
 pub use poloto;
-
+pub use tagger;
 pub mod prelude {
+    pub use poloto::prelude::*;
+    pub use indoc::formatdoc;
     pub use super::*;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
@@ -114,6 +117,9 @@ impl ColfindHandler for Dummy<u32, u32> {
     }
 }
 
+use poloto::build::marker::Markerable;
+use poloto::plotnum::PlotNum;
+use poloto::ticks::HasDefaultTicks;
 use prelude::*;
 
 pub mod dist {
@@ -242,5 +248,102 @@ impl<T: std::io::Write> std::fmt::Write for Adaptor<T> {
                 Err(std::fmt::Error)
             }
         }
+    }
+}
+
+
+
+
+pub struct Html<'a>{
+    w: &'a mut dyn std::fmt::Write,
+    now: Instant,
+}
+
+impl<'a> Html<'a> {
+    pub fn new<T:std::fmt::Write>(w: &'a mut T) -> Self {
+        Html {
+            w,
+            now: Instant::now(),
+        }
+    }
+
+    pub fn write_graph<X:PlotNum+HasDefaultTicks,Y:PlotNum+HasDefaultTicks>(
+        &mut self,
+        group: Option<&str>,
+        name: impl std::fmt::Display,
+        x: impl std::fmt::Display,
+        y: impl std::fmt::Display,
+        plots:  impl poloto::build::PlotIterator<X, Y>+Markerable<X,Y>,
+        description: &str,
+    )->std::fmt::Result{
+        
+        self.write_plot_block_inner(group,&format!("{name}"),&format!("{x}"),&format!("{y}"),plots,description)?;
+
+        let name = if let Some(group) = group {
+            format!("{}:{}", group, name)
+        } else {
+            name.to_string()
+        };
+
+        eprintln!("Elapsed : {:>16?} : {}", self.now.elapsed(), name);
+        self.now = Instant::now();
+        Ok(())
+
+    }
+
+    fn write_plot_block_inner<X:PlotNum+HasDefaultTicks,Y:PlotNum+HasDefaultTicks>(
+        &mut self,
+        group: Option<&str>,
+        name: &str,
+        x: &str,
+        y: &str,
+        plots:  impl poloto::build::PlotIterator<X, Y>+Markerable<X,Y>,
+        description: &str,
+    )->std::fmt::Result{
+        let name=if let Some(group)=group{
+            format!("{group} : {name}")
+        }else{
+            format!("{name}")
+        };
+
+        let plotter = poloto::quick_fmt!(&name, x, y, plots,);
+
+        let dd = plotter.get_dim();
+        let svg_width = 400.0;
+        use poloto::simple_theme;
+        let hh = simple_theme::determine_height_from_width(dd, svg_width);
+
+        let mut t = tagger::new(&mut self.w);
+
+        t.elem("div", |w| {
+            w.attr(
+                "style",
+                "width:400px;background:#262626;margin:5px;padding:10px;word-break: normal;white-space: normal;border-radius:6px",
+            )
+        })?
+        .build(|w| {
+            write!(
+                w.writer_escapable(),
+                "{}<style>{}</style>{}{}",
+                poloto::disp(|a| poloto::simple_theme::write_header(
+                    a,
+                    [svg_width, hh],
+                    dd
+                )),
+                ".poloto_line{stroke-dasharray:2;stroke-width:2;}",
+                poloto::disp(|a| plotter.render(a)),
+                poloto::simple_theme::SVG_END
+            )?;
+
+            let parser = pulldown_cmark::Parser::new(description);
+            let mut s = String::new();
+
+            pulldown_cmark::html::push_html(&mut s, parser);
+
+            w.elem("text", |d| d.attr("class", "markdown-body"))?
+                .build(|w| write!(w.writer_escapable(), "{}", s))
+        })
+
+
     }
 }

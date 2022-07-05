@@ -36,14 +36,68 @@ fn test_one_kind<T: ColfindHandler>(all: &mut [T]) -> Vec<(i128, f64, f64)> {
     plots
 }
 
-pub enum Layout {
+enum Layout {
     Direct,
     Indirect,
     Default,
 }
 
+pub fn bench(emp:&mut Html)->std::fmt::Result{
+
+    for grow in [0.2, 2.0] {
+        for size in [8, 128, 256] {
+            let description = formatdoc! {r#"
+                Comparison of bench times with elements with {size} bytes. 
+                `abspiral(n,{grow})`
+            "#};
+
+            let res1 = bench_inner(Layout::Default, grow, size);
+            let res2 = bench_inner(Layout::Direct, grow, size);
+            let res3 = bench_inner(Layout::Indirect, grow, size);
+
+            let p = plots!(
+                res1.iter()
+                    .map(|(i, x, _)| (i, x))
+                    .cloned_plot()
+                    .scatter("c default"),
+                res2.iter()
+                    .map(|(i, x, _)| (i, x))
+                    .cloned_plot()
+                    .scatter("c direct"),
+                res3.iter()
+                    .map(|(i, x, _)| (i, x))
+                    .cloned_plot()
+                    .scatter("c indirect"),
+                res1.iter()
+                    .map(|(i, _, x)| (i, x))
+                    .cloned_plot()
+                    .scatter("q default"),
+                res2.iter()
+                    .map(|(i, _, x)| (i, x))
+                    .cloned_plot()
+                    .scatter("q direct"),
+                res3.iter()
+                    .map(|(i, _, x)| (i, x))
+                    .cloned_plot()
+                    .scatter("q indirect"),
+                poloto::build::origin()
+            );
+
+            emp.write_graph(
+                Some("layout"),
+                &format!("rebal_{}_{}", size, grow),
+                "num elements",
+                "time taken (seconds)",
+                p,
+                &description,
+            )?;
+        }
+    }
+    Ok(())
+}
+
 #[inline(never)]
-pub fn bench(typ: Layout, grow: f64, size: usize) -> Vec<(i128, f64, f64)> {
+fn bench_inner(typ: Layout, grow: f64, size: usize) -> Vec<(i128, f64, f64)> {
     match typ {
         Layout::Direct => match size {
             8 => test_direct(grow, [0u8; 8]),

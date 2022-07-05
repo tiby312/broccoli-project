@@ -1,7 +1,85 @@
 use support::prelude::*;
 
+
+pub fn bench(emp:&mut Html)->std::fmt::Result{
+
+    
+        let num = 80_000;
+        let grow = 2.0;
+        let description = formatdoc! {r#"
+            comparison of construction vs query
+            `abspiral({num},{grow})`
+        "#};
+
+        let res = bench_inner(num, grow);
+        let l1 = res
+            .iter()
+            .map(|(i, r)| (i, r.tree.0))
+            .cloned_plot()
+            .scatter("tree_r");
+        let l2 = res
+            .iter()
+            .map(|(i, r)| (i, r.tree.1))
+            .cloned_plot()
+            .scatter("tree_q");
+        let l3 = res
+            .iter()
+            .map(|(i, r)| (i, r.nosort.0))
+            .cloned_plot()
+            .scatter("nosort_r");
+        let l4 = res
+            .iter()
+            .map(|(i, r)| (i, r.nosort.1))
+            .cloned_plot()
+            .scatter("nosort_q");
+
+        let m = poloto::build::origin();
+
+        emp.write_graph(
+            Some("rebal_vs_query"),
+            "rebal_vs_query",
+            "num elements",
+            "time taken (seconds)",
+            plots!(l1, l2, l3, l4, m),
+            &description,
+        )?;
+
+        let l1 = res
+            .iter()
+            .map(|(i, r)| (i, r.tree.0))
+            .cloned_plot()
+            .scatter("tree_r");
+        let l2 = res
+            .iter()
+            .map(|(i, r)| (i, r.tree.1))
+            .cloned_plot()
+            .scatter("tree_q");
+
+        let l3 = res
+            .iter()
+            .map(|(i, r)| (i, r.par_tree.0))
+            .cloned_plot()
+            .scatter("par_tree_r");
+        let l4 = res
+            .iter()
+            .map(|(i, r)| (i, r.par_tree.1))
+            .cloned_plot()
+            .scatter("par_tree_q");
+        let m = poloto::build::origin();
+
+        emp.write_graph(
+            Some("rebal_vs_query"),
+            "par-rebal-vs-query",
+            "num elements",
+            "time taken (seconds)",
+            plots!(l1, l2, l3, l4, m),
+            &description,
+        )
+    
+
+}
 #[inline(never)]
-pub fn bench(max: usize, grow: f64) -> Vec<(i128, Record)> {
+fn bench_inner(max: usize, grow: f64) -> Vec<(i128, Record)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
     (0..max)
@@ -15,14 +93,14 @@ pub fn bench(max: usize, grow: f64) -> Vec<(i128, Record)> {
 }
 
 #[derive(Debug)]
-pub struct Record {
+struct Record {
     pub tree: (f64, f64),
     pub par_tree: (f64, f64),
     pub nosort: (f64, f64),
     //pub par_nosort:(f64,f64)
 }
 
-pub fn new_record<T: ColfindHandler>(bots: &mut [T]) -> Record
+fn new_record<T: ColfindHandler>(bots: &mut [T]) -> Record
 where
     T: Send,
     T::Num: Send,

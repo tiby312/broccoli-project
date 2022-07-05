@@ -37,8 +37,40 @@ where
     (cspeedup, qspeedup)
 }
 
+
+pub fn bench_par(emp:&mut Html)->std::fmt::Result{
+
+        let grow = 3.0;
+        let description = formatdoc! {r#"
+            x speed up of parallel versions.
+            `abspiral(n,{grow})`
+        "#};
+
+        let res = bench_par_inner(grow, None, None);
+
+        let p = plots!(
+            res.iter()
+                .map(|(i, x, _)| (i, x))
+                .cloned_plot()
+                .scatter("rebal"),
+            res.iter()
+                .map(|(i, _, x)| (i, x))
+                .cloned_plot()
+                .scatter("query"),
+            poloto::build::origin()
+        );
+
+        emp.write_graph(
+            Some("par"),
+            "par-speedup",
+            "num elements",
+            "x speedup over sequential",
+            p,
+            &description,
+        )
+}
 #[inline(never)]
-pub fn bench_par(
+fn bench_par_inner(
     grow: f64,
     c_num_seq_fallback: Option<usize>,
     q_num_seq_fallback: Option<usize>,
@@ -59,7 +91,33 @@ pub fn bench_par(
     plots
 }
 
-pub fn best_seq_fallback_rebal(num: usize, grow: f64) -> Vec<(i128, f64)> {
+
+pub fn best_seq_fallback_rebal(emp:&mut Html)->std::fmt::Result{
+
+    
+        let num = 80_000;
+        let grow = 2.0;
+        let description = formatdoc! {r#"
+            x speedup of different seq-fallback values during construction
+            `abspiral({num},{grow})`
+        "#};
+
+        let res = best_seq_fallback_rebal_inner(num, grow);
+        let l1 = res.iter().cloned_plot().scatter("");
+
+        let m = poloto::build::origin();
+
+        emp.write_graph(
+            Some("par"),
+            "optimal-seq-fallback-rebal",
+            "num elements",
+            "x speedup over sequential",
+            l1.chain(m),
+            &description,
+        )
+    
+}
+pub fn best_seq_fallback_rebal_inner(num: usize, grow: f64) -> Vec<(i128, f64)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
     (000..20_000)
@@ -71,7 +129,35 @@ pub fn best_seq_fallback_rebal(num: usize, grow: f64) -> Vec<(i128, f64)> {
         .collect()
 }
 
-pub fn best_seq_fallback_query(num: usize, grow: f64) -> Vec<(i128, f64)> {
+pub fn best_seq_fallback_query(emp:&mut Html)->std::fmt::Result{
+
+
+
+    
+        let num = 80_000;
+        let grow = 2.0;
+        let description = formatdoc! {r#"
+            x speedup of different seq-fallback values during query
+            `abspiral({num},{grow})`
+        "#};
+
+        let res = best_seq_fallback_query_inner(num, grow);
+
+        let l1 = res.iter().cloned_plot().scatter("");
+
+        let m = poloto::build::origin();
+
+        emp.write_graph(
+            Some("par"),
+            "optimal-seq-fallback-query",
+            "num elements",
+            "x speedup over sequential",
+            l1.chain(m),
+            &description,
+        )
+    
+}
+fn best_seq_fallback_query_inner(num: usize, grow: f64) -> Vec<(i128, f64)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
     (000..20_000)

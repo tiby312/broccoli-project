@@ -1,13 +1,47 @@
 use support::prelude::*;
 
+
+
+pub fn bench(emp:&mut Html)->std::fmt::Result{
+    
+        let num = 10_000;
+        let grow = 1.0;
+        let num_iter = 2;
+
+        let description = formatdoc! {r#"
+            Query vs Cached Query with {num_iter} iterations of `abspiral(num,{grow})`.
+        "#};
+        let res = bench_inner(num, grow, num_iter);
+
+        let a = res
+            .iter()
+            .map(|(x, y)| (*x, y.bench))
+            .cloned_plot()
+            .scatter("no cache");
+        let b = res
+            .iter()
+            .map(|(x, y)| (*x, y.collect))
+            .cloned_plot()
+            .scatter("cached");
+
+        emp.write_graph(
+            None,
+            "collect",
+            "num elements",
+            "time taken (seconds)",
+            a.chain(b),
+            &description,
+        )
+    
+}
 #[derive(Debug)]
-pub struct Res {
+struct Res {
     pub bench: f64,
     pub collect: f64,
 }
 
 #[inline(never)]
-pub fn bench(max: usize, grow: f64, num_iter: usize) -> Vec<(i128, Res)> {
+fn bench_inner(max: usize, grow: f64, num_iter: usize) -> Vec<(i128, Res)> {
     assert!(num_iter >= 1);
     let mut bencher = Bencher;
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
