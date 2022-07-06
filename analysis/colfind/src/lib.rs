@@ -147,9 +147,12 @@ pub fn bench(emp:&mut Html)->std::fmt::Result{
 
         let m = poloto::build::origin();
 
+        let group_name="colfind";
+        let name=&format!("n_{}", grow);
+
         emp.write_graph(
-            Some("colfind"),
-            &format!("n_{}", grow),
+            Some(group_name),
+            name,
             "num elements",
             "time taken (seconds)",
             plots!(l1, l2, l3, l4, l5, l6, l7, m),

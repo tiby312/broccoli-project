@@ -10,6 +10,5 @@ dists={git="https://github.com/tiby312/dists"}
 broccoli={path="../../broccoli"}
 poloto={git="https://github.com/tiby312/poloto.git"}
 once_cell="*"
-pulldown-cmark = "0.9"
 tagger={git="https://github.com/tiby312/tagger.git"}
 indoc = "1.0.6"

@@ -256,16 +256,27 @@ impl<T: std::io::Write> std::fmt::Write for Adaptor<T> {
 
 pub struct Html<'a>{
     w: &'a mut dyn std::fmt::Write,
+    disper:&'a mut dyn Disper,
     now: Instant,
 }
 
+
+pub trait Disper{
+    fn write_graph_disp(&mut self,write:&mut dyn std::fmt::Write,dim:[f64;2],plot:&mut dyn std::fmt::Display,description:&str)->std::fmt::Result;
+}
+
+
 impl<'a> Html<'a> {
-    pub fn new<T:std::fmt::Write>(w: &'a mut T) -> Self {
+    pub fn new<T:std::fmt::Write>(w: &'a mut T,disper:&'a mut dyn Disper) -> Self {
         Html {
             w,
             now: Instant::now(),
+            disper
         }
     }
+
+
+
 
     pub fn write_graph<X:PlotNum+HasDefaultTicks,Y:PlotNum+HasDefaultTicks>(
         &mut self,
@@ -276,14 +287,18 @@ impl<'a> Html<'a> {
         plots:  impl poloto::build::PlotIterator<X, Y>+Markerable<X,Y>,
         description: &str,
     )->std::fmt::Result{
-        
-        self.write_plot_block_inner(group,&format!("{name}"),&format!("{x}"),&format!("{y}"),plots,description)?;
 
         let name = if let Some(group) = group {
             format!("{}:{}", group, name)
         } else {
             name.to_string()
-        };
+        };        
+        let plotter = poloto::quick_fmt!(&name, x, y, plots,);
+        let dd = plotter.get_dim();
+        let mut disp=poloto::disp(|x|plotter.render(x));
+        self.disper.write_graph_disp(self.w,dd,&mut disp,description)?;
+
+
 
         eprintln!("{:<10.2?} : {}", self.now.elapsed(), name);
         self.now = Instant::now();
@@ -291,59 +306,4 @@ impl<'a> Html<'a> {
 
     }
 
-    fn write_plot_block_inner<X:PlotNum+HasDefaultTicks,Y:PlotNum+HasDefaultTicks>(
-        &mut self,
-        group: Option<&str>,
-        name: &str,
-        x: &str,
-        y: &str,
-        plots:  impl poloto::build::PlotIterator<X, Y>+Markerable<X,Y>,
-        description: &str,
-    )->std::fmt::Result{
-        let name=if let Some(group)=group{
-            format!("{group} : {name}")
-        }else{
-            format!("{name}")
-        };
-
-        let plotter = poloto::quick_fmt!(&name, x, y, plots,);
-
-        let dd = plotter.get_dim();
-        let svg_width = 400.0;
-        use poloto::simple_theme;
-        let hh = simple_theme::determine_height_from_width(dd, svg_width);
-
-        let mut t = tagger::new(&mut self.w);
-
-        t.elem("div", |w| {
-            w.attr(
-                "style",
-                "width:400px;background:#262626;margin:5px;padding:10px;word-break: normal;white-space: normal;border-radius:6px",
-            )
-        })?
-        .build(|w| {
-            write!(
-                w.writer_escapable(),
-                "{}<style>{}</style>{}{}",
-                poloto::disp(|a| poloto::simple_theme::write_header(
-                    a,
-                    [svg_width, hh],
-                    dd
-                )),
-                ".poloto_line{stroke-dasharray:2;stroke-width:2;}",
-                poloto::disp(|a| plotter.render(a)),
-                poloto::simple_theme::SVG_END
-            )?;
-
-            let parser = pulldown_cmark::Parser::new(description);
-            let mut s = String::new();
-
-            pulldown_cmark::html::push_html(&mut s, parser);
-
-            w.elem("text", |d| d.attr("class", "markdown-body"))?
-                .build(|w| write!(w.writer_escapable(), "{}", s))
-        })
-
-
-    }
 }
