@@ -58,13 +58,13 @@ impl<'a, T> From<&'a mut T> for AabbPin<&'a mut T> {
     }
 }
 
-impl<'a, T: ?Sized> Clone for AabbPin<*mut T> {
+impl<T: ?Sized> Clone for AabbPin<*mut T> {
     #[inline(always)]
     fn clone(&self) -> Self {
         AabbPin { inner: self.inner }
     }
 }
-impl<'a, T: ?Sized> AabbPin<*mut T> {
+impl<T: ?Sized> AabbPin<*mut T> {
     #[inline(always)]
     pub fn as_raw(&self) -> *mut T {
         self.inner

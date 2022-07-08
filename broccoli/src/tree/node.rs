@@ -46,7 +46,7 @@ impl<N: Num> Aabb for Rect<N> {
         self
     }
 }
-impl<'a, N> ManySwap for Rect<N> {}
+impl< N> ManySwap for Rect<N> {}
 impl<'a, N> ManySwap for &'a mut Rect<N> {}
 
 impl<'a, N, T> ManySwap for &'a mut (Rect<N>, T) {}
@@ -54,10 +54,10 @@ impl<'a, N, T> ManySwap for &'a mut (Rect<N>, T) {}
 impl<'a, N, T> ManySwap for (Rect<N>, &'a mut T) {}
 impl<'a, N, T> ManySwap for (Rect<N>, &'a T) {}
 
-impl<'a, N> ManySwap for (Rect<N>, ()) {}
-impl<'a, N> ManySwap for (Rect<N>, usize) {}
-impl<'a, N> ManySwap for (Rect<N>, u32) {}
-impl<'a, N> ManySwap for (Rect<N>, u64) {}
+impl<N> ManySwap for (Rect<N>, ()) {}
+impl<N> ManySwap for (Rect<N>, usize) {}
+impl<N> ManySwap for (Rect<N>, u32) {}
+impl<N> ManySwap for (Rect<N>, u64) {}
 
 #[derive(Copy, Clone, Debug)]
 pub struct ManySwappable<T>(pub T);
@@ -153,7 +153,7 @@ impl<N, T> BBox<N, T> {
     }
 }
 
-impl<'a, N> ManySwap for BBox<N, ()> {}
+impl<N> ManySwap for BBox<N, ()> {}
 impl<'a, N, T> ManySwap for BBox<N, &'a mut T> {}
 
 impl<N: Num, T> Aabb for BBox<N, T> {

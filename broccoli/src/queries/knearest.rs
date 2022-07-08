@@ -167,7 +167,7 @@ pub struct KnearestClosure<B, C, D, E> {
     pub yline: E,
 }
 
-impl<'a, T: Aabb, B, C, D, E> Knearest<T> for KnearestClosure<B, C, D, E>
+impl<T: Aabb, B, C, D, E> Knearest<T> for KnearestClosure<B, C, D, E>
 where
     B: FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
     C: FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
@@ -191,7 +191,7 @@ where
     }
 }
 
-impl<'a, T: Aabb, K: Knearest<T>> Knearest<T> for &mut K {
+impl<T: Aabb, K: Knearest<T>> Knearest<T> for &mut K {
     fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num {
         (*self).distance_to_aaline(point, axis, val)
     }

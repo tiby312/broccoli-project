@@ -46,9 +46,39 @@ pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
 }
 
 
+pub fn theory_grow(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
+    let n=5000;
+
+
+    let description = formatdoc! {r#"
+        num comparison of different collision finding strategies. 
+        `abspiral({n},x)`
+    "#};
+
+    let res=theory_grow_inner(man,n,0.2,1.5);
+
+    let p=plots!(
+        res.iter().map(|(x,i)|(*x,i.brocc)).cloned_plot().scatter("brocc"),
+        res.iter().map(|(x,i)|(*x,i.nosort)).cloned_plot().scatter("nosort"),
+        res.iter().map(|(x,i)|(*x,i.sweep)).cloned_plot().scatter("sweep"),
+        res.iter().map(|(x,i)|(*x,i.naive)).cloned_plot().scatter("naive")
+    );
+
+    emp.write_graph(
+        Some("colfind"),
+        &format!("grow_{}", n),
+        "grow",
+        "num comparison",
+        p,
+        &description,
+    )
+
+}
+
 pub fn bench_grow(emp:&mut Html)->std::fmt::Result{
 
-    for n in [60_000] {
+    let n=60_000;
+     
         let description = formatdoc! {r#"
             Comparison of bench times of different collision finding strategies. 
             `abspiral({n},x)`
@@ -95,9 +125,7 @@ pub fn bench_grow(emp:&mut Html)->std::fmt::Result{
             "time taken (seconds)",
             p,
             &description,
-        )?;
-    }
-    Ok(())
+        )
 }
 pub fn bench(emp:&mut Html)->std::fmt::Result{
 
@@ -223,7 +251,7 @@ fn bench_grow_inner(num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, Ben
 
 
 #[inline(never)]
-pub fn theory_grow(
+fn theory_grow_inner(
     man: &mut datanum::DnumManager,
     num: usize,
     start_grow: f64,

@@ -45,6 +45,7 @@ pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     colfind::theory(emp, man)?;
     colfind::bench(emp)?;
     colfind::bench_grow(emp)?;
+    colfind::theory_grow(emp, man)?;
     best_height::optimal(emp)?;
     best_height::bench(emp)?;
     cached_pairs::bench(emp)?;
@@ -80,7 +81,7 @@ impl Disper for Custom {
         t.elem("div", |w| {
             w.attr(
                 "style",
-                "width:400px;background:#262626;margin:5px;padding:10px;word-break: normal;white-space: normal;border-radius:0px",
+                "width:400px;background:#262626;margin:5px;padding:10px;word-break: normal;white-space: normal;border-radius:8px",
             )
         })?
         .build(|w| {

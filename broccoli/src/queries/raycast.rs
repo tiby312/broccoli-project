@@ -267,7 +267,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     }
 }
 
-impl<'a, T: Aabb, R: RayCast<T>> RayCast<T> for &mut R {
+impl<T: Aabb, R: RayCast<T>> RayCast<T> for &mut R {
     fn cast_to_aaline<A: Axis>(
         &mut self,
         ray: &Ray<T::Num>,
