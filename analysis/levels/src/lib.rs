@@ -16,6 +16,63 @@ struct Res<X> {
 }
 
 
+pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
+
+    
+    let num = 5_000;
+    let description = formatdoc! {r#"
+        Comparison of construction of different levels for `abspiral({num},grow)`
+    "#};
+
+    let res = theory_inner(man,num, 0.2, 2.0);
+
+    let num_level = res[0].1.rebal.len();
+
+    let rebals: Vec<_> = (0..num_level)
+        .map(|i| {
+            let k = res
+                .iter()
+                .map(move |(x, y)| (*x, y.rebal[i]))
+                .cloned_plot()
+                .line_fill(formatm!("level {}", i));
+            k
+        })
+        .collect();
+
+    emp.write_graph(
+        Some("levels"),
+        "rebal",
+        "grow",
+        "number comparisons",
+        poloto::build::plots_dyn(rebals),
+        &description,
+    )?;
+
+    let description = formatdoc! {r#"
+        Comparison of querying for different levels for `abspiral({num},grow)`
+    "#};
+
+    let queries: Vec<_> = (0..num_level)
+        .map(|i| {
+            let k = res
+                .iter()
+                .map(move |(x, y)| (*x, y.query[i]))
+                .cloned_plot()
+                .line_fill(formatm!("level {}", i));
+            k
+        })
+        .collect();
+
+    emp.write_graph(
+        Some("levels"),
+        "query",
+        "grow",
+        "number of comparisons",
+        poloto::build::plots_dyn(queries),
+        &description,
+    )
+
+}
 pub fn bench(emp:&mut Html)->std::fmt::Result{
 
     
@@ -44,7 +101,7 @@ pub fn bench(emp:&mut Html)->std::fmt::Result{
             "rebal",
             "grow",
             "time taken (seconds)",
-            poloto::build::plots_dyn::<f64, f64, _>(rebals),
+            poloto::build::plots_dyn(rebals),
             &description,
         )?;
 
@@ -68,7 +125,7 @@ pub fn bench(emp:&mut Html)->std::fmt::Result{
             "query",
             "grow",
             "time taken (seconds)",
-            poloto::build::plots_dyn::<f64, f64, _>(queries),
+            poloto::build::plots_dyn(queries),
             &description,
         )
 

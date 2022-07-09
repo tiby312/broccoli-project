@@ -1,6 +1,11 @@
 use support::prelude::*;
 
 
+
+pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
+    unimplemented!();
+}
+
 pub fn bench(emp:&mut Html)->std::fmt::Result{
 
     

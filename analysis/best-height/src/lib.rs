@@ -42,14 +42,41 @@ fn bench_inner(max: usize, min_height: usize, max_height: usize, grow: f64) -> V
         .collect()
 }
 
+pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
+
+    let grow = 2.0;
+    let num = 30_000;
+    let description = formatdoc! {r#"
+        Bench time to solve `abspiral({num},{grow})` with 
+        different tree heights
+    "#};
+
+    let l = broccoli::tree::BuildArgs::new(num);
+
+    let res = theory_inner(man,num, 3, l.num_level + 4, grow);
+    let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
+
+    let m = poloto::build::markers([], [0]);
+
+    emp.write_graph(
+        Some("height"),
+        "best-height",
+        "tree height",
+        "time taken (seconds)",
+        l1.chain(m),
+        &description,
+    )
+}
+
+
 #[inline(never)]
-pub fn theory(
+fn theory_inner(
     man: &mut DnumManager,
     max: usize,
     min_height: usize,
     max_height: usize,
     grow: f64,
-) -> Vec<(i128, usize)> {
+) -> Vec<(i128, i128)> {
     assert!(min_height >= 1);
     assert!(max_height >= min_height);
 
@@ -58,7 +85,7 @@ pub fn theory(
     (min_height..max_height)
         .map(move |height| {
             let f = new_theory_record(man, &mut all, height);
-            (height as i128, f)
+            (height as i128, f as i128)
         })
         .collect()
 }

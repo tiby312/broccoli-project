@@ -1,7 +1,20 @@
 use support::prelude::*;
 
+
+
+pub fn num_intersection(_emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
+    unimplemented!();
+}
+pub fn handle_grow(_emp:&mut Html)->std::fmt::Result{
+    unimplemented!();
+}
+pub fn handle_visualize(_emp:&mut Html)->std::fmt::Result{
+    unimplemented!();
+}
+
+
 #[inline(never)]
-pub fn num_intersection(max: usize, grow: f64) -> Vec<(usize, usize)> {
+pub fn num_intersection_inner(max: usize, grow: f64) -> Vec<(usize, usize)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
 
     (0..max)
@@ -21,7 +34,7 @@ pub fn num_intersection(max: usize, grow: f64) -> Vec<(usize, usize)> {
 }
 
 #[inline(never)]
-pub fn handle_grow(num: usize, min_grow: f64, max_grow: f64) -> Vec<(f64, usize)> {
+pub fn handle_grow_inner(num: usize, min_grow: f64, max_grow: f64) -> Vec<(f64, usize)> {
     grow_iter(min_grow, max_grow)
         .map(|grow| {
             let mut bots: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
@@ -39,7 +52,7 @@ pub fn handle_grow(num: usize, min_grow: f64, max_grow: f64) -> Vec<(f64, usize)
 }
 
 #[inline(never)]
-pub fn handle_visualize(grow: f64, num: usize) -> Vec<[f32; 2]> {
+pub fn handle_visualize_inner(grow: f64, num: usize) -> Vec<[f32; 2]> {
     dist::dist(grow)
         .map(|x| Dummy(x, 0u32))
         .take(num)
