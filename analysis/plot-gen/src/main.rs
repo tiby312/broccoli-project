@@ -47,19 +47,19 @@ pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     colfind::bench_grow(emp)?;
     colfind::theory_grow(emp, man)?;
     best_height::bench(emp)?;
-    best_height::theory(emp,man)?;
+    best_height::theory(emp, man)?;
     best_height::optimal(emp)?;
     levels::bench(emp)?;
-    levels::theory(emp,man)?;
+    levels::theory(emp, man)?;
     cached_pairs::bench(emp)?;
     float_vs_integer::bench(emp)?;
 
     rebal_vs_query::bench(emp)?;
-    rebal_vs_query::theory(emp,man)?;
+    rebal_vs_query::theory(emp, man)?;
 
     spiral::handle_visualize(emp)?;
     spiral::handle_grow(emp)?;
-    spiral::num_intersection(emp, man)?;
+    spiral::num_intersection(emp)?;
 
     layout::bench(emp)?;
     par_tuner::bench_par(emp)?;
