@@ -143,7 +143,10 @@ fn bench_inner(max: usize, grow: f64) -> Vec<(i128, ParRecord)> {
 
 #[inline(never)]
 fn theory_inner(man:&mut DnumManager,max: usize, grow: f64) -> Vec<(i128, TheoryRecord)> {
-    let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
+    let mut all: Vec<_> = dist::dist_datanum(man, grow)
+    .map(|x| Dummy(x, 0u32))
+    .take(max)
+    .collect();
 
     (0..max)
         .step_by(100)
@@ -162,9 +165,6 @@ struct TheoryRecord {
 }
 
 fn new_record_theory<T: ColfindHandler>(bots: &mut [T],man:&mut DnumManager) -> TheoryRecord
-where
-    T: Send,
-    T::Num: Send,
 {
     
     let recorder = man;

@@ -47,7 +47,7 @@ pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
     let grow = 2.0;
     let num = 30_000;
     let description = formatdoc! {r#"
-        Bench time to solve `abspiral({num},{grow})` with 
+        theory time to solve `abspiral({num},{grow})` with 
         different tree heights
     "#};
 
@@ -62,7 +62,7 @@ pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
         Some("height"),
         "best-height",
         "tree height",
-        "time taken (seconds)",
+        "num comparison",
         l1.chain(m),
         &description,
     )
@@ -80,7 +80,10 @@ fn theory_inner(
     assert!(min_height >= 1);
     assert!(max_height >= min_height);
 
-    let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(max).collect();
+    let mut all: Vec<_> = dist::dist_datanum(man, grow)
+    .map(|x| Dummy(x, 0u32))
+    .take(max)
+    .collect();
 
     (min_height..max_height)
         .map(move |height| {
@@ -101,8 +104,6 @@ pub fn optimal(emp:&mut Html)->std::fmt::Result{
     let description = formatdoc! {r#"
         Optimal height vs heur height for `abspiral({num},{grow})`
     "#};
-
-    let l = broccoli::tree::BuildArgs::new(num);
 
     let res = optimal_inner(num, grow);
 
