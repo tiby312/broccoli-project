@@ -61,7 +61,10 @@ pub fn handle_visualize(emp: &mut Html) -> std::fmt::Result {
         poloto::build::markers([], [0.0])
     );
 
-    emp.write_graph(
+    let mut opt=poloto::render::render_opt_builder();
+    opt.preserve_aspect();
+    emp.write_graph_ext(
+        opt.build(),
         Some("spiral"),
         &format!("spiral{}", n),
         "x",

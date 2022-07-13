@@ -277,9 +277,22 @@ impl<'a> Html<'a> {
 
 
 
-
     pub fn write_graph<X:PlotNum+HasDefaultTicks,Y:PlotNum+HasDefaultTicks>(
         &mut self,
+        group: Option<&str>,
+        name: impl std::fmt::Display,
+        x: impl std::fmt::Display,
+        y: impl std::fmt::Display,
+        plots:  impl poloto::build::PlotIterator<X, Y>+Markerable<X,Y>,
+        description: &str,
+    )->std::fmt::Result{
+        let render_opt=poloto::render::render_opt();
+        self.write_graph_ext(render_opt,group,name,x,y,plots,description)
+    }
+    
+    pub fn write_graph_ext<X:PlotNum+HasDefaultTicks,Y:PlotNum+HasDefaultTicks>(
+        &mut self,
+        render_opt:poloto::render::RenderOptions,
         group: Option<&str>,
         name: impl std::fmt::Display,
         x: impl std::fmt::Display,
@@ -293,7 +306,7 @@ impl<'a> Html<'a> {
         } else {
             name.to_string()
         };        
-        let plotter = poloto::quick_fmt!(&name, x, y, plots,);
+        let plotter = poloto::quick_fmt_opt!(render_opt,&name, x, y, plots,);
         let dd = plotter.get_dim();
         let mut disp=poloto::disp(|x|plotter.render(x));
         self.disper.write_graph_disp(self.w,dd,&mut disp,description)?;
