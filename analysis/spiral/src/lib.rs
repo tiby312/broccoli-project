@@ -31,7 +31,7 @@ pub fn handle_grow(emp: &mut Html) -> std::fmt::Result {
             `abspiral({n},x)`
         "#};
 
-    let res = handle_grow_inner(n, 0.02,2.0);
+    let res = handle_grow_inner(n, 0.02, 2.0);
 
     let p = plots!(
         res.iter().cloned_plot().scatter(""),
@@ -54,14 +54,14 @@ pub fn handle_visualize(emp: &mut Html) -> std::fmt::Result {
             `abspiral({n},x)`
         "#};
 
-    let res = handle_visualize_inner(2.0,n);
+    let res = handle_visualize_inner(2.0, n);
 
     let p = plots!(
         res.iter().cloned_plot().scatter(""),
         poloto::build::markers([], [0.0])
     );
 
-    let mut opt=poloto::render::render_opt_builder();
+    let mut opt = poloto::render::render_opt_builder();
     opt.preserve_aspect();
     emp.write_graph_ext(
         opt.build(),

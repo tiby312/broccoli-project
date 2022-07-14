@@ -1,30 +1,28 @@
 use support::prelude::*;
 
-
-pub fn bench(emp:&mut Html)->std::fmt::Result{
-    
-        let grow = 2.0;
-        let num = 30_000;
-        let description = formatdoc! {r#"
+pub fn bench(emp: &mut Html) -> std::fmt::Result {
+    let grow = 2.0;
+    let num = 30_000;
+    let description = formatdoc! {r#"
             Bench time to solve `abspiral({num},{grow})` with 
             different tree heights
         "#};
 
-        let l = broccoli::tree::BuildArgs::new(num);
+    let l = broccoli::tree::BuildArgs::new(num);
 
-        let res = bench_inner(num, 3, l.num_level + 4, grow);
-        let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
+    let res = bench_inner(num, 3, l.num_level + 4, grow);
+    let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
 
-        let m = poloto::build::markers([], [0.0]);
+    let m = poloto::build::markers([], [0.0]);
 
-        emp.write_graph(
-            Some("height"),
-            "best-height",
-            "tree height",
-            "time taken (seconds)",
-            l1.chain(m),
-            &description,
-        )
+    emp.write_graph(
+        Some("height"),
+        "best-height",
+        "tree height",
+        "time taken (seconds)",
+        l1.chain(m),
+        &description,
+    )
 }
 #[inline(never)]
 fn bench_inner(max: usize, min_height: usize, max_height: usize, grow: f64) -> Vec<(i128, f64)> {
@@ -42,8 +40,7 @@ fn bench_inner(max: usize, min_height: usize, max_height: usize, grow: f64) -> V
         .collect()
 }
 
-pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
-
+pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     let grow = 2.0;
     let num = 30_000;
     let description = formatdoc! {r#"
@@ -53,7 +50,7 @@ pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
 
     let l = broccoli::tree::BuildArgs::new(num);
 
-    let res = theory_inner(man,num, 3, l.num_level + 4, grow);
+    let res = theory_inner(man, num, 3, l.num_level + 4, grow);
     let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
 
     let m = poloto::build::markers([], [0]);
@@ -68,7 +65,6 @@ pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
     )
 }
 
-
 #[inline(never)]
 fn theory_inner(
     man: &mut DnumManager,
@@ -81,9 +77,9 @@ fn theory_inner(
     assert!(max_height >= min_height);
 
     let mut all: Vec<_> = dist::dist_datanum(man, grow)
-    .map(|x| Dummy(x, 0u32))
-    .take(max)
-    .collect();
+        .map(|x| Dummy(x, 0u32))
+        .take(max)
+        .collect();
 
     (min_height..max_height)
         .map(move |height| {
@@ -98,7 +94,7 @@ struct Res {
     pub heur_height: i128,
 }
 
-pub fn optimal(emp:&mut Html)->std::fmt::Result{
+pub fn optimal(emp: &mut Html) -> std::fmt::Result {
     let grow = 2.0;
     let num = 30_000;
     let description = formatdoc! {r#"
@@ -148,8 +144,8 @@ fn optimal_inner(num: usize, grow: f64) -> Vec<(i128, Res)> {
             (
                 n as i128,
                 Res {
-                    optimal_height:optimal_height as i128,
-                    heur_height:heur_height as i128,
+                    optimal_height: optimal_height as i128,
+                    heur_height: heur_height as i128,
                 },
             )
         })

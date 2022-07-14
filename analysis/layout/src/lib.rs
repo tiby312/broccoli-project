@@ -42,8 +42,7 @@ enum Layout {
     Default,
 }
 
-pub fn bench(emp:&mut Html)->std::fmt::Result{
-
+pub fn bench(emp: &mut Html) -> std::fmt::Result {
     for grow in [0.2, 2.0] {
         for size in [8, 128, 256] {
             let description = formatdoc! {r#"

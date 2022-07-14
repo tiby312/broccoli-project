@@ -15,16 +15,13 @@ struct Res<X> {
     pub query: Vec<X>,
 }
 
-
-pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
-
-    
+pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     let num = 5_000;
     let description = formatdoc! {r#"
         Comparison of construction of different levels for `abspiral({num},grow)`
     "#};
 
-    let res = theory_inner(man,num, 0.2, 2.0);
+    let res = theory_inner(man, num, 0.2, 2.0);
 
     let num_level = res[0].1.rebal.len();
 
@@ -71,64 +68,60 @@ pub fn theory(emp:&mut Html,man:&mut DnumManager)->std::fmt::Result{
         poloto::build::plots_dyn(queries),
         &description,
     )
-
 }
-pub fn bench(emp:&mut Html)->std::fmt::Result{
-
-    
-        let num = 5_000;
-        let description = formatdoc! {r#"
+pub fn bench(emp: &mut Html) -> std::fmt::Result {
+    let num = 5_000;
+    let description = formatdoc! {r#"
             Comparison of construction of different levels for `abspiral({num},grow)`
         "#};
 
-        let res = bench_inner(num, 0.2, 2.0);
+    let res = bench_inner(num, 0.2, 2.0);
 
-        let num_level = res[0].1.rebal.len();
+    let num_level = res[0].1.rebal.len();
 
-        let rebals: Vec<_> = (0..num_level)
-            .map(|i| {
-                let k = res
-                    .iter()
-                    .map(move |(x, y)| (*x, y.rebal[i]))
-                    .cloned_plot()
-                    .line_fill(formatm!("level {}", i));
-                k
-            })
-            .collect();
+    let rebals: Vec<_> = (0..num_level)
+        .map(|i| {
+            let k = res
+                .iter()
+                .map(move |(x, y)| (*x, y.rebal[i]))
+                .cloned_plot()
+                .line_fill(formatm!("level {}", i));
+            k
+        })
+        .collect();
 
-        emp.write_graph(
-            Some("levels"),
-            "rebal",
-            "grow",
-            "time taken (seconds)",
-            poloto::build::plots_dyn(rebals),
-            &description,
-        )?;
+    emp.write_graph(
+        Some("levels"),
+        "rebal",
+        "grow",
+        "time taken (seconds)",
+        poloto::build::plots_dyn(rebals),
+        &description,
+    )?;
 
-        let description = formatdoc! {r#"
+    let description = formatdoc! {r#"
             Comparison of querying for different levels for `abspiral({num},grow)`
         "#};
 
-        let queries: Vec<_> = (0..num_level)
-            .map(|i| {
-                let k = res
-                    .iter()
-                    .map(move |(x, y)| (*x, y.query[i]))
-                    .cloned_plot()
-                    .line_fill(formatm!("level {}", i));
-                k
-            })
-            .collect();
+    let queries: Vec<_> = (0..num_level)
+        .map(|i| {
+            let k = res
+                .iter()
+                .map(move |(x, y)| (*x, y.query[i]))
+                .cloned_plot()
+                .line_fill(formatm!("level {}", i));
+            k
+        })
+        .collect();
 
-        emp.write_graph(
-            Some("levels"),
-            "query",
-            "grow",
-            "time taken (seconds)",
-            poloto::build::plots_dyn(queries),
-            &description,
-        )
-
+    emp.write_graph(
+        Some("levels"),
+        "query",
+        "grow",
+        "time taken (seconds)",
+        poloto::build::plots_dyn(queries),
+        &description,
+    )
 }
 fn bench_inner(num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, Res<f64>)> {
     grow_iter(start_grow, end_grow)

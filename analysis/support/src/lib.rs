@@ -8,13 +8,13 @@ pub use indoc;
 pub use poloto;
 pub use tagger;
 pub mod prelude {
-    pub use poloto::prelude::*;
-    pub use indoc::formatdoc;
     pub use super::*;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
     pub use broccoli::tree::aabb_pin::AabbPin;
     pub use broccoli::*;
+    pub use indoc::formatdoc;
+    pub use poloto::prelude::*;
     pub use poloto::*;
 
     pub use broccoli::tree::node::Aabb;
@@ -251,72 +251,67 @@ impl<T: std::io::Write> std::fmt::Write for Adaptor<T> {
     }
 }
 
-
-
-
-pub struct Html<'a>{
+pub struct Html<'a> {
     w: &'a mut dyn std::fmt::Write,
-    disper:&'a mut dyn Disper,
+    disper: &'a mut dyn Disper,
     now: Instant,
 }
 
-
-pub trait Disper{
-    fn write_graph_disp(&mut self,write:&mut dyn std::fmt::Write,dim:[f64;2],plot:&mut dyn std::fmt::Display,description:&str)->std::fmt::Result;
+pub trait Disper {
+    fn write_graph_disp(
+        &mut self,
+        write: &mut dyn std::fmt::Write,
+        dim: [f64; 2],
+        plot: &mut dyn std::fmt::Display,
+        description: &str,
+    ) -> std::fmt::Result;
 }
 
-
 impl<'a> Html<'a> {
-    pub fn new<T:std::fmt::Write>(w: &'a mut T,disper:&'a mut dyn Disper) -> Self {
+    pub fn new<T: std::fmt::Write>(w: &'a mut T, disper: &'a mut dyn Disper) -> Self {
         Html {
             w,
             now: Instant::now(),
-            disper
+            disper,
         }
     }
 
-
-
-    pub fn write_graph<X:PlotNum+HasDefaultTicks,Y:PlotNum+HasDefaultTicks>(
+    pub fn write_graph<X: PlotNum + HasDefaultTicks, Y: PlotNum + HasDefaultTicks>(
         &mut self,
         group: Option<&str>,
         name: impl std::fmt::Display,
         x: impl std::fmt::Display,
         y: impl std::fmt::Display,
-        plots:  impl poloto::build::PlotIterator<X, Y>+Markerable<X,Y>,
+        plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
         description: &str,
-    )->std::fmt::Result{
-        let render_opt=poloto::render::render_opt();
-        self.write_graph_ext(render_opt,group,name,x,y,plots,description)
+    ) -> std::fmt::Result {
+        let render_opt = poloto::render::render_opt();
+        self.write_graph_ext(render_opt, group, name, x, y, plots, description)
     }
-    
-    pub fn write_graph_ext<X:PlotNum+HasDefaultTicks,Y:PlotNum+HasDefaultTicks>(
+
+    pub fn write_graph_ext<X: PlotNum + HasDefaultTicks, Y: PlotNum + HasDefaultTicks>(
         &mut self,
-        render_opt:poloto::render::RenderOptions,
+        render_opt: poloto::render::RenderOptions,
         group: Option<&str>,
         name: impl std::fmt::Display,
         x: impl std::fmt::Display,
         y: impl std::fmt::Display,
-        plots:  impl poloto::build::PlotIterator<X, Y>+Markerable<X,Y>,
+        plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
         description: &str,
-    )->std::fmt::Result{
-
+    ) -> std::fmt::Result {
         let name = if let Some(group) = group {
             format!("{}:{}", group, name)
         } else {
             name.to_string()
-        };        
-        let plotter = poloto::quick_fmt_opt!(render_opt,&name, x, y, plots,);
+        };
+        let plotter = poloto::quick_fmt_opt!(render_opt, &name, x, y, plots,);
         let dd = plotter.get_dim();
-        let mut disp=poloto::disp(|x|plotter.render(x));
-        self.disper.write_graph_disp(self.w,dd,&mut disp,description)?;
-
-
+        let mut disp = poloto::disp(|x| plotter.render(x));
+        self.disper
+            .write_graph_disp(self.w, dd, &mut disp, description)?;
 
         eprintln!("{:<10.2?} : {}", self.now.elapsed(), name);
         self.now = Instant::now();
         Ok(())
-
     }
-
 }

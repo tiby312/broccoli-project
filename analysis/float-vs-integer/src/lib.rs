@@ -2,50 +2,45 @@ use support::{prelude::Tree, Bencher, ColfindHandler};
 
 use support::prelude::*;
 
-
-pub fn bench(emp:&mut Html)->std::fmt::Result{
-
-    
-        let grow = 2.0;
-        let description = formatdoc! {r#"
+pub fn bench(emp: &mut Html) -> std::fmt::Result {
+    let grow = 2.0;
+    let description = formatdoc! {r#"
             Comparison of bench times using different number types as problem
             size increases. `abspiral(n,{grow})`
         "#};
 
-        let res = bench_inner(10_000, 2.0);
-        let l1 = res
-            .iter()
-            .map(|(i, r)| (i, r.float))
-            .cloned_plot()
-            .scatter("f32");
-        let l2 = res
-            .iter()
-            .map(|(i, r)| (i, r.int))
-            .cloned_plot()
-            .scatter("i32");
-        let l3 = res
-            .iter()
-            .map(|(i, r)| (i, r.i64))
-            .cloned_plot()
-            .scatter("i64");
-        let l4 = res
-            .iter()
-            .map(|(i, r)| (i, r.float_i32))
-            .cloned_plot()
-            .scatter("f32->int");
+    let res = bench_inner(10_000, 2.0);
+    let l1 = res
+        .iter()
+        .map(|(i, r)| (i, r.float))
+        .cloned_plot()
+        .scatter("f32");
+    let l2 = res
+        .iter()
+        .map(|(i, r)| (i, r.int))
+        .cloned_plot()
+        .scatter("i32");
+    let l3 = res
+        .iter()
+        .map(|(i, r)| (i, r.i64))
+        .cloned_plot()
+        .scatter("i64");
+    let l4 = res
+        .iter()
+        .map(|(i, r)| (i, r.float_i32))
+        .cloned_plot()
+        .scatter("f32->int");
 
-        let m = poloto::build::origin();
+    let m = poloto::build::origin();
 
-        emp.write_graph(
-            None,
-            "float-int",
-            "num elements",
-            "time taken (seconds)",
-            plots!(l1, l2, l3, l4, m),
-            &description,
-        )
-    
-
+    emp.write_graph(
+        None,
+        "float-int",
+        "num elements",
+        "time taken (seconds)",
+        plots!(l1, l2, l3, l4, m),
+        &description,
+    )
 }
 #[inline(never)]
 fn bench_inner(max: usize, grow: f64) -> Vec<(i128, Record)> {
