@@ -1,7 +1,7 @@
 use support::prelude::*;
 
 pub fn num_intersection(emp: &mut Html) -> std::fmt::Result {
-    let n = 60_000;
+    let n = 10_000;
     let grow = 2.0;
     let description = formatdoc! {r#"
             Num of comparison for
@@ -25,7 +25,7 @@ pub fn num_intersection(emp: &mut Html) -> std::fmt::Result {
     )
 }
 pub fn handle_grow(emp: &mut Html) -> std::fmt::Result {
-    let n = 60_000;
+    let n = 10_000;
     let description = formatdoc! {r#"
             Num of comparison for
             `abspiral({n},x)`

@@ -62,9 +62,12 @@ pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     spiral::num_intersection(emp)?;
 
     layout::bench(emp)?;
-    par_tuner::bench_par(emp)?;
-    par_tuner::best_seq_fallback_rebal(emp)?;
-    par_tuner::best_seq_fallback_query(emp)?;
+
+    // TODO add back
+    // par_tuner::bench_par(emp)?;
+    // par_tuner::best_seq_fallback_rebal(emp)?;
+    // par_tuner::best_seq_fallback_query(emp)?;
+
     Ok(())
 }
 
