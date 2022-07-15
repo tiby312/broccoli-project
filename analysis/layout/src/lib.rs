@@ -1,6 +1,6 @@
 use support::prelude::*;
 
-const MAX: usize = 30_000;
+const MAX: usize = 15_000;
 
 fn test_direct<const K: usize>(grow: f64, val: [u8; K]) -> Vec<(i128, f64, f64)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, val)).take(MAX).collect();

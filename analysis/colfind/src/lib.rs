@@ -125,10 +125,10 @@ pub fn bench_grow(emp: &mut Html) -> std::fmt::Result {
             .map(|(i, r)| (i, r.sweep))
             .cloned_plot()
             .scatter("sweep"),
-        res.iter()
-            .map(|(i, r)| (i, r.sweep_par))
-            .cloned_plot()
-            .scatter("sweep_par"),
+        // res.iter()
+        //     .map(|(i, r)| (i, r.sweep_par))
+        //     .cloned_plot()
+        //     .scatter("sweep_par"),
         res.iter()
             .map(|(i, r)| (i, r.naive))
             .cloned_plot()
@@ -145,6 +145,9 @@ pub fn bench_grow(emp: &mut Html) -> std::fmt::Result {
         &description,
     )
 }
+
+
+
 pub fn bench(emp: &mut Html) -> std::fmt::Result {
     for (grow, n) in [(0.5, 8_000), (2.0, 30_000)] {
         let description = formatdoc! {r#"
@@ -178,11 +181,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
             .map(|(i, r)| (i, r.sweep))
             .cloned_plot()
             .scatter("sweep");
-        let l6 = res
-            .iter()
-            .map(|(i, r)| (i, r.sweep_par))
-            .cloned_plot()
-            .scatter("sweep_par");
+           
         let l7 = res
             .iter()
             .map(|(i, r)| (i, r.naive))
@@ -199,7 +198,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
             name,
             "num elements",
             "time taken (seconds)",
-            plots!(l1, l2, l3, l4, l5, l6, l7, m),
+            plots!(l1, l2, l3, l4, l5, l7, m),
             &description,
         )?;
     }

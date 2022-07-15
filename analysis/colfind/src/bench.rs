@@ -5,7 +5,7 @@ pub struct Record {
     pub brocc: f64,
     pub brocc_par: f64,
     pub sweep: f64,
-    pub sweep_par: f64,
+    //pub sweep_par: f64,
     pub naive: f64,
     pub nosort_par: f64,
     pub nosort: f64,
@@ -33,13 +33,13 @@ where
         tree.find_colliding_pairs(T::handle);
     });
 
-    let c3 = if sweep_bench {
-        recorder.time(|| {
-            SweepAndPrune::new(bots).par_find_colliding_pairs(T::handle);
-        })
-    } else {
-        0.0
-    };
+    // let c3 = if sweep_bench {
+    //     recorder.time(|| {
+    //         SweepAndPrune::new(bots).par_find_colliding_pairs(T::handle);
+    //     })
+    // } else {
+    //     0.0
+    // };
 
     let c4 = if naive_bench {
         recorder.time(|| {
@@ -81,7 +81,7 @@ where
     Record {
         brocc: c1,
         brocc_par: c0,
-        sweep_par: c3,
+        //sweep_par: c3,
         naive: c4,
         nosort_par: c5,
         nosort: c6,
