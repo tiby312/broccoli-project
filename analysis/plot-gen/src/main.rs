@@ -24,6 +24,7 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
     w.elem("html", |d| d.attr("style", "background: black;"))?
         .build(|w| {
+            w.put_raw_escapable(r##"<meta name="viewport" content="width=device-width, initial-scale=1.0">"##)?;
             w.elem("div", |d| {
                 d.attr(
                     "style",
@@ -43,6 +44,7 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
 pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     colfind::theory(emp, man)?;
+
     colfind::bench(emp)?;
     colfind::bench_grow(emp)?;
     colfind::theory_grow(emp, man)?;
