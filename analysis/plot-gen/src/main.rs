@@ -18,7 +18,7 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
         .build(|w| w.put_raw(include_str!("github-markdown.css")))?;
 
     w.elem("style", tagger::no_attr())?.build(|w| {
-        w.put_raw_escapable(poloto::simple_theme::STYLE_CONFIG_DARK_DEFAULT)?;
+        w.put_raw_escapable(MY_CONFIG)?;
         w.put_raw_escapable(".poloto_scatter{stroke-width:3}")
     })?;
 
@@ -89,7 +89,7 @@ impl Disper for Custom {
         description: &str,
     ) -> std::fmt::Result {
         let dd = dim;
-        let svg_width = 400.0;
+        let svg_width = 380.0;
         let hh = simple_theme::determine_height_from_width(dd, svg_width);
 
         let mut t = tagger::new(w);
@@ -97,7 +97,7 @@ impl Disper for Custom {
         t.elem("div", |w| {
             w.attr(
                 "style",
-                "width:400px;background:#262626;margin:5px;padding:10px;word-break: normal;white-space: normal;border-radius:8px",
+                "width:390px;background:#262626;margin:5px;padding:5px;word-break: normal;white-space: normal;border-radius:10px",
             )
         })?
         .build(|w| {
@@ -124,3 +124,36 @@ impl Disper for Custom {
         })
     }
 }
+
+
+pub const MY_CONFIG: &str = ".poloto{\
+    stroke-linecap:round;\
+    stroke-linejoin:round;\
+    font-family:Roboto,sans-serif;\
+    font-size:16px;\
+    }\
+    .poloto_background{fill:rgba(0,0,0,0);}\
+    .poloto_scatter{stroke-width:7}\
+    .poloto_tick_line{stroke:dimgray;stroke-width:0.5}\
+    .poloto_line{stroke-width:2}\
+    .poloto_text{fill: white;}\
+    .poloto_axis_lines{stroke: white;stroke-width:3;fill:none;stroke-dasharray:none}\
+    .poloto_title{font-size:24px;dominant-baseline:start;text-anchor:middle;}\
+    .poloto_xname{font-size:24px;dominant-baseline:start;text-anchor:middle;}\
+    .poloto_yname{font-size:24px;dominant-baseline:start;text-anchor:middle;}\
+    .poloto0stroke{stroke:blue;}\
+    .poloto1stroke{stroke:red;}\
+    .poloto2stroke{stroke:green;}\
+    .poloto3stroke{stroke:gold;}\
+    .poloto4stroke{stroke:aqua;}\
+    .poloto5stroke{stroke:lime;}\
+    .poloto6stroke{stroke:orange;}\
+    .poloto7stroke{stroke:chocolate;}\
+    .poloto0fill{fill:blue;}\
+    .poloto1fill{fill:red;}\
+    .poloto2fill{fill:green;}\
+    .poloto3fill{fill:gold;}\
+    .poloto4fill{fill:aqua;}\
+    .poloto5fill{fill:lime;}\
+    .poloto6fill{fill:orange;}\
+    .poloto7fill{fill:chocolate;}";
