@@ -89,26 +89,26 @@ impl Disper for Custom {
         description: &str,
     ) -> std::fmt::Result {
         let dd = dim;
-        let svg_width = 380.0;
-        let hh = simple_theme::determine_height_from_width(dd, svg_width);
+        //let svg_width = 380.0;
+        //TODO remove this kind of thing?
+        //let hh = simple_theme::determine_height_from_width(dd, svg_width);
 
         let mut t = tagger::new(w);
+
+        pub const SVG_HEADER: &str = r##"<svg class="poloto" width="100%" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">"##;
+
 
         t.elem("div", |w| {
             w.attr(
                 "style",
-                "width:390px;background:#262626;margin:5px;padding:5px;word-break: normal;white-space: normal;border-radius:10px",
+                "max-width:400px;width:100%;background:#262626;margin:5px;padding:5px;word-break: normal;white-space: normal;border-radius:10px",
             )
         })?
         .build(|w| {
             write!(
                 w.writer_escapable(),
                 "{}<style>{}</style>{}{}",
-                poloto::disp(|a| poloto::simple_theme::write_header(
-                    a,
-                    [svg_width, hh],
-                    dd
-                )),
+                SVG_HEADER,
                 ".poloto_line{stroke-dasharray:2;stroke-width:2;}",
                 plot,
                 poloto::simple_theme::SVG_END
