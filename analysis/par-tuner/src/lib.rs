@@ -9,32 +9,34 @@ where
     T: Send,
     T::Num: Send,
 {
-    let (tree, cseq) = bench_closure_ret(|| broccoli::Tree::new(bots));
-    black_box(tree);
+    unimplemented!();
 
-    let mut args = broccoli::tree::BuildArgs::new(bots.len());
-    if let Some(c) = c_num_seq_fallback {
-        args.num_seq_fallback = c;
-    }
-    let (mut tree, cpar) = bench_closure_ret(|| broccoli::Tree::par_from_build_args(bots, args).0);
+    // let (tree, cseq) = bench_closure_ret(|| broccoli::Tree::new(bots));
+    // black_box(tree);
 
-    let cspeedup = cseq as f64 / cpar as f64;
+    // let mut args = broccoli::tree::BuildArgs::new(bots.len());
+    // if let Some(c) = c_num_seq_fallback {
+    //     args.num_seq_fallback = c;
+    // }
+    // let (mut tree, cpar) = bench_closure_ret(|| broccoli::Tree::par_from_build_args(bots, args).0);
 
-    let qseq = bench_closure(|| {
-        tree.find_colliding_pairs(T::handle);
-    });
+    // let cspeedup = cseq as f64 / cpar as f64;
 
-    let mut args = broccoli::queries::colfind::QueryArgs::new();
-    if let Some(c) = q_num_seq_fallback {
-        args.num_seq_fallback = c;
-    }
-    let qpar = bench_closure(|| {
-        tree.par_find_colliding_pairs_from_args(args, T::handle);
-    });
+    // let qseq = bench_closure(|| {
+    //     tree.find_colliding_pairs(T::handle);
+    // });
 
-    let qspeedup = qseq as f64 / qpar as f64;
+    // let mut args = broccoli::queries::colfind::QueryArgs::new();
+    // if let Some(c) = q_num_seq_fallback {
+    //     args.num_seq_fallback = c;
+    // }
+    // let qpar = bench_closure(|| {
+    //     tree.par_find_colliding_pairs_from_args(args, T::handle);
+    // });
 
-    (cspeedup, qspeedup)
+    // let qspeedup = qseq as f64 / qpar as f64;
+
+    // (cspeedup, qspeedup)
 }
 
 pub fn bench_par(emp: &mut Html) -> std::fmt::Result {

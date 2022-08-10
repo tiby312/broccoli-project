@@ -3,99 +3,22 @@ use twounordered::TwoUnorderedVecs;
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        QueryArgs::new().query(self.vistr_mut(), &mut NoSortNodeHandler::new(func));
+        query(EmptySplitter,self.vistr_mut(), &mut NoSortNodeHandler::new(func));
     }
 
-    #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(&mut self, func: F)
-    where
-        T: Send,
-        T::Num: Send,
-        F: Send + Clone,
-    {
-        let _ = QueryArgs::new().par_query(self.vistr_mut(), &mut NoSortNodeHandler::new(func));
-    }
 }
 
 impl<T: Aabb> Tree<'_, T> {
     pub fn find_colliding_pairs_from_args<S: Splitter>(
         &mut self,
-        args: QueryArgs<S>,
+        splitter:S,
         func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
     ) -> S {
         let mut f = AccNodeHandler {
             acc: FloopDefault { func },
             prevec: PreVec::new(),
         };
-        args.query(self.vistr_mut(), &mut f)
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
-        &mut self,
-        args: QueryArgs<S>,
-        func: F,
-    ) -> S
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-        F: Send + Clone,
-        S: Send,
-        T: Send,
-        T::Num: Send,
-    {
-        let mut f = AccNodeHandler {
-            acc: FloopDefault { func },
-            prevec: PreVec::new(),
-        };
-        args.par_query(self.vistr_mut(), &mut f)
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs_acc<Acc: Splitter, F>(&mut self, acc: Acc, func: F) -> Acc
-    where
-        F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
-        Acc: Splitter + Send,
-        T: Send,
-        T::Num: Send,
-    {
-        let floop = Floop { acc, func };
-        let mut f = AccNodeHandler {
-            acc: floop,
-            prevec: PreVec::new(),
-        };
-        QueryArgs::new().par_query(self.vistr_mut(), &mut f);
-        f.acc.acc
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs_acc_closure<Acc, A, B, F>(
-        &mut self,
-        acc: Acc,
-        div: A,
-        add: B,
-        func: F,
-    ) -> Acc
-    where
-        A: FnMut(&mut Acc) -> Acc + Clone + Send,
-        B: FnMut(&mut Acc, Acc) + Clone + Send,
-        F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
-        Acc: Send,
-        T: Send,
-        T::Num: Send,
-    {
-        let floop = FloopClosure {
-            acc,
-            div,
-            add,
-            func,
-        };
-
-        let mut f = AccNodeHandler {
-            acc: floop,
-            prevec: PreVec::new(),
-        };
-        QueryArgs::new().par_query(self.vistr_mut(), &mut f);
-        f.acc.acc
+        query(splitter,self.vistr_mut(), &mut f)
     }
 }
 
@@ -219,67 +142,11 @@ impl<'a, T: Aabb> Tree<'a, T> {
             prevec: PreVec::new(),
         };
 
-        QueryArgs::new().query(self.vistr_mut(), &mut f);
+        query(EmptySplitter,self.vistr_mut(), &mut f);
     }
 
-    #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(&mut self, func: F)
-    where
-        T: Send,
-        T::Num: Send,
-        F: Send + Clone,
-    {
-        let mut f = AccNodeHandler {
-            acc: FloopDefault { func },
-            prevec: PreVec::new(),
-        };
-
-        let _ = QueryArgs::new().par_query(self.vistr_mut(), &mut f);
-    }
 }
 
-/*
-#[derive(Clone)]
-pub struct DefaultNodeHandler<F> {
-    pub prevec: PreVec,
-    pub func: F,
-}
-
-impl<F> DefaultNodeHandler<F> {
-    pub fn new<T: Aabb>(func: F) -> Self
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    {
-        DefaultNodeHandler {
-            func,
-            prevec: PreVec::new(),
-        }
-    }
-}
-
-impl<F: Clone> Splitter for DefaultNodeHandler<F> {
-    fn div(&mut self) -> Self {
-        DefaultNodeHandler {
-            prevec: self.prevec.clone(),
-            func: self.func.clone(),
-        }
-    }
-
-    fn add(&mut self, _b: Self) {}
-}
-
-impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for DefaultNodeHandler<F> {
-    #[inline(always)]
-    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        handle_node(&mut self.prevec, axis, bots, &mut self.func, is_leaf);
-    }
-
-    #[inline(always)]
-    fn handle_children(&mut self, f: HandleChildrenArgs<T>) {
-        handle_children(&mut self.prevec, &mut self.func, f)
-    }
-}
-*/
 
 fn handle_node<T: Aabb, F>(
     prevec: &mut PreVec,
@@ -336,26 +203,10 @@ fn handle_children<T: Aabb, F>(
 impl<T: Aabb> NotSortedTree<'_, T> {
     pub fn find_colliding_pairs_from_args<S: Splitter>(
         &mut self,
-        args: QueryArgs<S>,
+        splitter:S,
         func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
     ) -> S {
-        args.query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
-        &mut self,
-        args: QueryArgs<S>,
-        func: F,
-    ) -> S
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-        F: Send + Clone,
-        S: Send,
-        T: Send,
-        T::Num: Send,
-    {
-        args.par_query(self.vistr_mut(), &mut NoSortNodeHandler::new(func))
+        query(splitter,self.vistr_mut(), &mut NoSortNodeHandler::new(func))
     }
 }
 

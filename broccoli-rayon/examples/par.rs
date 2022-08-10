@@ -11,8 +11,8 @@ fn main() {
         (rect(05, 15, 05, 15), &mut inner3),
     ];
 
-    let mut tree = broccoli::Tree::par_new(&mut aabbs);
-
+    let mut tree = broccoli_rayon::build::ParBuilder::new(&mut aabbs).par_build();
+    
     let mut res = tree.par_find_colliding_pairs_acc_closure(
         vec![],
         |_| vec![],

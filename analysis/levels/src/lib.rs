@@ -8,7 +8,7 @@ use self::leveltimer::LevelTimer;
 mod levelcounter;
 mod leveltimer;
 
-use broccoli::queries::colfind::QueryArgs;
+// use broccoli::queries::colfind::QueryArgs;
 
 struct Res<X> {
     pub rebal: Vec<X>,
@@ -169,7 +169,7 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
     man.reset_counter();
 
     let levelc2 = tree.find_colliding_pairs_from_args(
-        QueryArgs::new().with_splitter(LevelCounter::new(man, 0, vec![])),
+        LevelCounter::new(man, 0, vec![]),
         T::handle,
     );
 
@@ -195,7 +195,7 @@ fn gen<T: ColfindHandler>(bots: &mut [T]) -> Res<f64> {
     let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
 
     let times2 = tree.find_colliding_pairs_from_args(
-        QueryArgs::new().with_splitter(LevelTimer::new(0, vec![])),
+        LevelTimer::new(0, vec![]),
         T::handle,
     );
 

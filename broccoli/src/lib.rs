@@ -77,6 +77,7 @@ use tree::aabb_pin::AabbPin;
 use tree::aabb_pin::AabbPinIter;
 use tree::build::*;
 use tree::node::*;
+use tree::splitter::EmptySplitter;
 use tree::splitter::Splitter;
 use tree::*;
 
@@ -102,10 +103,15 @@ pub struct TreeData<N: Num> {
 /// A broccoli Tree.
 ///
 pub struct Tree<'a, T: Aabb> {
+    //TODO change to boxed slice
     nodes: Vec<Node<'a, T>>,
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
+    pub fn from_nodes(nodes:Vec<Node<'a,T>>)->Self{
+        Tree{nodes}
+    }
+
     pub fn into_nodes(self) -> Vec<Node<'a, T>> {
         self.nodes
     }
@@ -162,42 +168,19 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     where
         T: ManySwap,
     {
-        let (nodes, _) = BuildArgs::new(bots.len()).build_ext(bots, &mut DefaultSorter);
+        let (nodes, _) = tree::build_ext(bots, &mut DefaultSorter,BuildArgs::new(bots.len()),EmptySplitter);
 
         Tree { nodes }
     }
 
-    #[cfg(feature = "parallel")]
-    pub fn par_new(bots: &'a mut [T]) -> Self
-    where
-        T: ManySwap,
-        T: Send,
-        T::Num: Send,
-    {
-        let (nodes, _) = BuildArgs::new(bots.len()).par_build_ext(bots, &mut DefaultSorter);
-
-        Tree { nodes }
-    }
-
-    pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
+    pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs,splitter:P) -> (Self, P)
     where
         T: ManySwap,
     {
-        let (nodes, s) = args.build_ext(bots, &mut DefaultSorter);
+        let (nodes, s) = tree::build_ext(bots,&mut DefaultSorter,args,splitter);
         (Tree { nodes }, s)
     }
 
-    #[cfg(feature = "parallel")]
-    pub fn par_from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
-    where
-        T: ManySwap,
-        T: Send,
-        T::Num: Send,
-        P: Send,
-    {
-        let (nodes, s) = args.par_build_ext(bots, &mut DefaultSorter);
-        (Tree { nodes }, s)
-    }
 
     #[inline(always)]
     pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
@@ -247,31 +230,20 @@ pub struct NotSortedTree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
-    pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
+    pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs,splitter:P) -> (Self, P)
     where
         T: ManySwap,
     {
-        let (nodes, s) = args.build_ext(bots, &mut NoSorter);
+        let (nodes, s) = tree::build_ext(bots, &mut NoSorter,args,splitter);
         (NotSortedTree { nodes }, s)
     }
 
-    #[cfg(feature = "parallel")]
-    pub fn par_from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
-    where
-        T: ManySwap,
-        T: Send,
-        T::Num: Send,
-        P: Send,
-    {
-        let (nodes, s) = args.par_build_ext(bots, &mut NoSorter);
-        (NotSortedTree { nodes }, s)
-    }
 
     pub fn new(bots: &'a mut [T]) -> Self
     where
         T: ManySwap,
     {
-        let (nodes, _) = BuildArgs::new(bots.len()).build_ext(bots, &mut NoSorter);
+        let (nodes, _) = tree::build_ext(bots,&mut NoSorter,BuildArgs::new(bots.len()),EmptySplitter);
 
         NotSortedTree { nodes }
     }

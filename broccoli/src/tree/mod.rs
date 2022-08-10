@@ -119,160 +119,45 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
 ///
 /// Options to specify how to build up a set of nodes.
 ///
-pub struct BuildArgs<S> {
+pub struct BuildArgs{
     pub num_level: usize,
-    pub num_seq_fallback: usize,
-    pub splitter: S,
 }
 
-impl BuildArgs<EmptySplitter> {
+impl BuildArgs{
     pub fn new(bots: usize) -> Self {
         BuildArgs {
-            num_level: num_level::default(bots),
-            num_seq_fallback: 512,
-            splitter: EmptySplitter,
+            num_level: num_level::default(bots)
         }
     }
 }
 
-impl<P: Splitter> BuildArgs<P> {
-    pub fn with_splitter<PP: Splitter>(self, splitter: PP) -> BuildArgs<PP> {
-        BuildArgs {
-            num_level: self.num_level,
-            num_seq_fallback: self.num_seq_fallback,
-            splitter,
-        }
-    }
 
-    pub fn with_num_seq_fallback(self, num_seq_fallback: usize) -> Self {
-        BuildArgs {
-            num_level: self.num_level,
-            num_seq_fallback,
-            splitter: self.splitter,
-        }
-    }
+
+pub fn build_ext<'a, T: Aabb + ManySwap, S,P>(
+    bots: &'a mut [T],
+    sorter: &mut S,
+    args:BuildArgs,
+    mut splitter:P
+) -> (Vec<Node<'a, T>>, P)
+where
+    S: Sorter<T>,
+    P: Splitter,
+{
+    let mut buffer = Vec::with_capacity(num_level::num_nodes(args.num_level));
+    TreeBuildVisitor::new(args.num_level, bots).recurse_seq(
+        &mut splitter,
+        sorter,
+        &mut buffer
+    );
+    (buffer, splitter)
+}
+
+impl BuildArgs{
+    
     pub fn with_num_level(self, num_level: usize) -> Self {
         BuildArgs {
-            num_level,
-            num_seq_fallback: self.num_seq_fallback,
-            splitter: self.splitter,
+            num_level
         }
     }
-    pub fn build_ext<'a, T: Aabb + ManySwap, S>(
-        mut self,
-        bots: &'a mut [T],
-        sorter: &mut S,
-    ) -> (Vec<Node<'a, T>>, P)
-    where
-        S: Sorter<T>,
-        P: Splitter,
-    {
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(self.num_level));
-        recurse_seq(
-            &mut self.splitter,
-            sorter,
-            &mut buffer,
-            TreeBuildVisitor::new(self.num_level, bots),
-        );
-        (buffer, self.splitter)
-    }
 
-    #[cfg(feature = "parallel")]
-    pub fn par_build_ext<'a, T: Aabb + ManySwap, S>(
-        mut self,
-        bots: &'a mut [T],
-        sorter: &mut S,
-    ) -> (Vec<Node<'a, T>>, P)
-    where
-        S: Sorter<T>,
-        T: Send,
-        T::Num: Send,
-        S: Send,
-        P: Splitter + Send,
-    {
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(self.num_level));
-        recurse_par(
-            self.num_seq_fallback,
-            &mut self.splitter,
-            sorter,
-            &mut buffer,
-            TreeBuildVisitor::new(self.num_level, bots),
-        );
-        (buffer, self.splitter)
-    }
-}
-
-fn recurse_seq<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
-    splitter: &mut P,
-    sorter: &mut S,
-    buffer: &mut Vec<Node<'a, T>>,
-    vis: TreeBuildVisitor<'a, T>,
-) {
-    let NodeBuildResult { node, rest } = vis.build_and_next();
-    buffer.push(node.finish(sorter));
-    if let Some([left, right]) = rest {
-        let mut a = splitter.div();
-
-        recurse_seq(splitter, sorter, buffer, left);
-
-        recurse_seq(&mut a, sorter, buffer, right);
-        splitter.add(a);
-    }
-}
-
-// we want to pass small chunks so that if a slow core
-// gets a task, they don't hold everybody else up.
-
-// at the same time, we don't want there to be only
-// a few chunks. i.e. only 3 cores available but 4 chunks.
-
-// so lets only result to chunking IF
-// the problem size is big enough such that there
-// are many chunks.
-
-#[cfg(feature = "parallel")]
-fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
-    num_seq_fallback: usize,
-    splitter: &mut P,
-    sorter: &mut S,
-    buffer: &mut Vec<Node<'a, T>>,
-    vistr: TreeBuildVisitor<'a, T>,
-) where
-    S: Send,
-    T: Send,
-    T::Num: Send,
-    P: Send,
-{
-    let NodeBuildResult { node, rest } = vistr.build_and_next();
-
-    if let Some([left, right]) = rest {
-        let mut p = splitter.div();
-
-        if node.get_min_elem() <= num_seq_fallback {
-            buffer.push(node.finish(sorter));
-            recurse_seq(splitter, sorter, buffer, left);
-            recurse_seq(&mut p, sorter, buffer, right);
-        } else {
-            let mut s2 = sorter.div();
-            //dbg!(node.get_num_elem());
-            let (_, mut buffer2) = rayon::join(
-                || {
-                    buffer.push(node.finish(sorter));
-                    recurse_par(num_seq_fallback, splitter, sorter, buffer, left);
-                },
-                || {
-                    let mut buffer2 = Vec::with_capacity(num_level::num_nodes(right.get_height()));
-
-                    recurse_par(num_seq_fallback, &mut p, &mut s2, &mut buffer2, right);
-                    buffer2
-                },
-            );
-
-            buffer.append(&mut buffer2);
-            sorter.add(s2)
-        }
-        splitter.add(p);
-    } else {
-        buffer.push(node.finish(sorter));
-    }
 }

@@ -21,70 +21,72 @@ where
     T: Send,
     T::Num: Send,
 {
-    let mut recorder = Bencher;
-    let c0 = recorder.time(|| {
-        let mut tree = broccoli::Tree::par_new(bots);
+    unimplemented!();
 
-        tree.par_find_colliding_pairs(T::handle);
-    });
+    // let mut recorder = Bencher;
+    // let c0 = recorder.time(|| {
+    //     let mut tree = broccoli::Tree::par_new(bots);
 
-    let c1 = recorder.time(|| {
-        let mut tree = broccoli::Tree::new(bots);
-        tree.find_colliding_pairs(T::handle);
-    });
+    //     tree.par_find_colliding_pairs(T::handle);
+    // });
 
-    // let c3 = if sweep_bench {
+    // let c1 = recorder.time(|| {
+    //     let mut tree = broccoli::Tree::new(bots);
+    //     tree.find_colliding_pairs(T::handle);
+    // });
+
+    // // let c3 = if sweep_bench {
+    // //     recorder.time(|| {
+    // //         SweepAndPrune::new(bots).par_find_colliding_pairs(T::handle);
+    // //     })
+    // // } else {
+    // //     0.0
+    // // };
+
+    // let c4 = if naive_bench {
     //     recorder.time(|| {
-    //         SweepAndPrune::new(bots).par_find_colliding_pairs(T::handle);
+    //         Naive::new(bots).find_colliding_pairs(T::handle);
     //     })
     // } else {
     //     0.0
     // };
 
-    let c4 = if naive_bench {
-        recorder.time(|| {
-            Naive::new(bots).find_colliding_pairs(T::handle);
-        })
-    } else {
-        0.0
-    };
+    // let c5 = if nosort_bench {
+    //     recorder.time(|| {
+    //         let mut tree = NotSortedTree::par_new(bots);
 
-    let c5 = if nosort_bench {
-        recorder.time(|| {
-            let mut tree = NotSortedTree::par_new(bots);
+    //         tree.par_find_colliding_pairs(T::handle);
+    //     })
+    // } else {
+    //     0.0
+    // };
 
-            tree.par_find_colliding_pairs(T::handle);
-        })
-    } else {
-        0.0
-    };
+    // let c6 = if nosort_bench {
+    //     recorder.time(|| {
+    //         let mut tree = NotSortedTree::new(bots);
+    //         tree.find_colliding_pairs(T::handle);
+    //     })
+    // } else {
+    //     0.0
+    // };
 
-    let c6 = if nosort_bench {
-        recorder.time(|| {
-            let mut tree = NotSortedTree::new(bots);
-            tree.find_colliding_pairs(T::handle);
-        })
-    } else {
-        0.0
-    };
+    // let c7 = if sweep_bench {
+    //     recorder.time(|| {
+    //         let mut s = broccoli::SweepAndPrune::new(bots);
 
-    let c7 = if sweep_bench {
-        recorder.time(|| {
-            let mut s = broccoli::SweepAndPrune::new(bots);
+    //         s.find_colliding_pairs(T::handle);
+    //     })
+    // } else {
+    //     0.0
+    // };
 
-            s.find_colliding_pairs(T::handle);
-        })
-    } else {
-        0.0
-    };
-
-    Record {
-        brocc: c1,
-        brocc_par: c0,
-        //sweep_par: c3,
-        naive: c4,
-        nosort_par: c5,
-        nosort: c6,
-        sweep: c7,
-    }
+    // Record {
+    //     brocc: c1,
+    //     brocc_par: c0,
+    //     //sweep_par: c3,
+    //     naive: c4,
+    //     nosort_par: c5,
+    //     nosort: c6,
+    //     sweep: c7,
+    // }
 }
