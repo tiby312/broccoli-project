@@ -1,74 +1,28 @@
-use broccoli::{tree::{node::{Aabb, ManySwap, Node}, BuildArgs, build::{DefaultSorter, TreeBuildVisitor, NodeBuildResult}, splitter::{Splitter, EmptySplitter}, Sorter}, Tree};
+use broccoli::{tree::{node::{Aabb, ManySwap, Node}, build::{DefaultSorter, TreeBuildVisitor, NodeBuildResult}, splitter::{Splitter, EmptySplitter}, Sorter}, Tree};
 
 use broccoli::tree::num_level;
 
+use crate::RayonPar;
 
 
 
-pub struct ParBuildArgs{
-    num_seq_fallback:usize
-}
 
-impl ParBuildArgs{
-    pub fn new()->ParBuildArgs{
-        ParBuildArgs { num_seq_fallback: 512 }
+impl<'a,T:Aabb> RayonPar<'a,T> for Tree<'a,T>{
+    fn par_new_ext<P:Splitter>(bots:&'a mut [T],num_level:usize,mut splitter:P,num_seq_fallback:usize)->(Self,P){
+        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
+        recurse_par(
+            num_seq_fallback,
+            &mut splitter,
+            &mut DefaultSorter,
+            &mut buffer,
+            TreeBuildVisitor::new(num_level, bots),
+        );
+        (buffer, splitter)
     }
-}
-
-
-pub struct ParBuilder<'a,T>{
-    elem:&'a mut [T]
-}
-impl<'a,T:Aabb+ManySwap+Send> ParBuilder<'a,T> where T::Num:Send{
-    pub fn new(elem:&'a mut [T])->Self{
-        ParBuilder{
-            elem
-        }
+    fn par_new(bots:&'a mut [T])->Self{
+        let num_level=num_level::default(bots.len());
+        Self::par_new_ext(bots,num_level,EmptySplitter,512).0
     }
-}
-impl<'a,T:Aabb+ManySwap+Send> ParBuilder<'a,T> where T::Num:Send{
-    pub fn par_build(self) -> Tree<'a, T>
-    {
-        let bots=self.elem;
-        let (nodes, _) = par_build_ext(bots, &mut DefaultSorter,BuildArgs::new(bots.len()),ParBuildArgs::new(),EmptySplitter);
-    
-        Tree::from_nodes(nodes)
-    }
-
-        
-    pub fn par_build_from_args<P: Splitter>(bots: &'a mut [T],splitter:P, args1:BuildArgs,args: ParBuildArgs) -> (Tree<'a, T>, P)
-    where    P: Send,
-    {
-        let (nodes, s) = par_build_ext(bots, &mut DefaultSorter,args1,args,splitter);
-        (Tree::from_nodes(nodes),s)
-    }
-
-}
-
-
-pub fn par_build_ext<'a, T: Aabb + ManySwap, S,P:Splitter>(
-    bots: &'a mut [T],
-    sorter: &mut S,
-    args:BuildArgs,
-    par_args:ParBuildArgs,
-    mut splitter:P
-) -> (Vec<Node<'a, T>>, P)
-where
-    S: Sorter<T>,
-    T: Send,
-    T::Num: Send,
-    S: Send,
-    P: Splitter + Send,
-{
-    let mut buffer = Vec::with_capacity(num_level::num_nodes(args.num_level));
-    recurse_par(
-        par_args.num_seq_fallback,
-        &mut splitter,
-        sorter,
-        &mut buffer,
-        TreeBuildVisitor::new(args.num_level, bots),
-    );
-    (buffer, splitter)
 }
 
 
@@ -106,16 +60,16 @@ fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
             right.recurse_seq(&mut p, sorter, buffer);
         } else {
             let mut s2 = sorter.div();
-            //dbg!(node.get_num_elem());
             let (_, mut buffer2) = rayon::join(
                 || {
                     buffer.push(node.finish(sorter));
                     recurse_par(num_seq_fallback, splitter, sorter, buffer, left);
                 },
                 || {
-                    let mut buffer2 = Vec::with_capacity(num_level::num_nodes(right.get_height()));
-
+                    let num_nodes=num_level::num_nodes(right.get_height());
+                    let mut buffer2 = Vec::with_capacity(num_nodes);
                     recurse_par(num_seq_fallback, &mut p, &mut s2, &mut buffer2, right);
+                    assert_eq!(num_nodes,buffer2.len());
                     buffer2
                 },
             );

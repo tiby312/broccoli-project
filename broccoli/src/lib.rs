@@ -168,17 +168,26 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     where
         T: ManySwap,
     {
-        let (nodes, _) = tree::build_ext(bots, &mut DefaultSorter,BuildArgs::new(bots.len()),EmptySplitter);
-
-        Tree { nodes }
+        let num_level=num_level::default(bots.len());
+        Self::new_ext(bots,num_level,EmptySplitter).0
     }
 
-    pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs,splitter:P) -> (Self, P)
+    pub fn new_ext<P:Splitter>(bots: &'a mut [T],num_level:usize,mut splitter:P) -> (Self,P)
     where
         T: ManySwap,
     {
-        let (nodes, s) = tree::build_ext(bots,&mut DefaultSorter,args,splitter);
-        (Tree { nodes }, s)
+        let num_nodes=num_level::num_nodes(num_level);
+        let mut nodes=Vec::with_capacity(num_nodes);
+
+        TreeBuildVisitor::new(num_level, bots).recurse_seq(
+            &mut splitter,
+            &mut DefaultSorter,
+            &mut nodes
+        );
+
+        assert_eq!(num_nodes,nodes.len());
+
+        (Tree { nodes },splitter)
     }
 
 
@@ -230,35 +239,34 @@ pub struct NotSortedTree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
-    pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs,splitter:P) -> (Self, P)
-    where
-        T: ManySwap,
-    {
-        let (nodes, s) = tree::build_ext(bots, &mut NoSorter,args,splitter);
-        (NotSortedTree { nodes }, s)
-    }
-
 
     pub fn new(bots: &'a mut [T]) -> Self
     where
         T: ManySwap,
     {
-        let (nodes, _) = tree::build_ext(bots,&mut NoSorter,BuildArgs::new(bots.len()),EmptySplitter);
-
-        NotSortedTree { nodes }
+        let num_level=num_level::default(bots.len());
+        Self::new_ext(bots,num_level,EmptySplitter).0
     }
 
-    #[cfg(feature = "parallel")]
-    pub fn par_new(bots: &'a mut [T]) -> Self
+    pub fn new_ext<P:Splitter>(bots: &'a mut [T],num_level:usize,mut splitter:P) -> (Self,P)
     where
         T: ManySwap,
-        T: Send,
-        T::Num: Send,
     {
-        let (nodes, _) = BuildArgs::new(bots.len()).par_build_ext(bots, &mut NoSorter);
+        let num_nodes=num_level::num_nodes(num_level);
+        let mut nodes=Vec::with_capacity(num_nodes);
 
-        NotSortedTree { nodes }
+        TreeBuildVisitor::new(num_level, bots).recurse_seq(
+            &mut splitter,
+            &mut NoSorter,
+            &mut nodes
+        );
+
+        assert_eq!(num_nodes,nodes.len());
+
+        (NotSortedTree { nodes },splitter)
     }
+
+    
 
     #[inline(always)]
     pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {

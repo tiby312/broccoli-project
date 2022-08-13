@@ -157,7 +157,8 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
     let len = bots.len();
     let (mut tree, levelc) = Tree::from_build_args(
         bots,
-        BuildArgs::new(len).with_splitter(LevelCounter::new(man, 0, vec![])),
+        BuildArgs::new(len),
+        LevelCounter::new(man, 0, vec![])
     );
 
     let c1 = levelc
@@ -189,7 +190,8 @@ fn gen<T: ColfindHandler>(bots: &mut [T]) -> Res<f64> {
     let len = bots.len();
     let (mut tree, times1) = Tree::from_build_args(
         bots,
-        BuildArgs::new(len).with_splitter(LevelTimer::new(0, vec![])),
+        BuildArgs::new(len),
+        LevelTimer::new(0, vec![])
     );
 
     let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();

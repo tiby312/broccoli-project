@@ -294,6 +294,8 @@ mod vistr_mut {
 }
 pub use vistr_mut::VistrMutPin;
 
+
+//TODO remove AAbb constraint. Instead use Node<T,N>
 pub struct Node<'a, T: Aabb> {
     /// May or may not be sorted.
     pub range: AabbPin<&'a mut [T]>,

@@ -2,7 +2,6 @@
 
 
 
-const SEQ_FALLBACK_DEFAULT: usize = 512;
 
 
 pub struct ParQuery{
@@ -15,6 +14,8 @@ impl Default for ParQuery{
         }
     }
 }
+
+
 
 impl PayQuery{
     pub fn par_query<P,T: Aabb, SO>(mut self, splitter:P,vistr: VistrMutPin<Node<T>>, handler: &mut SO) -> P

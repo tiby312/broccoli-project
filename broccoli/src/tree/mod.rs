@@ -119,45 +119,44 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
 ///
 /// Options to specify how to build up a set of nodes.
 ///
-pub struct BuildArgs{
-    pub num_level: usize,
+// pub struct BuildArgs{
+//     pub num_level: usize,
+// }
+
+// impl BuildArgs{
+//     pub fn new(bots: usize) -> Self {
+//         BuildArgs {
+//             num_level: num_level::default(bots)
+//         }
+//     }
+// }
+
+
+pub fn create_node_buffer<T>(num_elem:usize)->Vec<T>{
+    let num_level=num_level::default(num_elem);
+    create_node_buffer_from_num_level(num_level)
 }
 
-impl BuildArgs{
-    pub fn new(bots: usize) -> Self {
-        BuildArgs {
-            num_level: num_level::default(bots)
-        }
-    }
+pub fn create_node_buffer_from_num_level<T>(num_level:usize)->Vec<T>{
+    Vec::with_capacity(num_level::num_nodes(num_level))
 }
 
 
-
-pub fn build_ext<'a, T: Aabb + ManySwap, S,P>(
-    bots: &'a mut [T],
-    sorter: &mut S,
-    args:BuildArgs,
-    mut splitter:P
-) -> (Vec<Node<'a, T>>, P)
-where
-    S: Sorter<T>,
-    P: Splitter,
-{
-    let mut buffer = Vec::with_capacity(num_level::num_nodes(args.num_level));
-    TreeBuildVisitor::new(args.num_level, bots).recurse_seq(
-        &mut splitter,
-        sorter,
-        &mut buffer
-    );
-    (buffer, splitter)
-}
-
-impl BuildArgs{
-    
-    pub fn with_num_level(self, num_level: usize) -> Self {
-        BuildArgs {
-            num_level
-        }
-    }
-
-}
+// pub fn build_ext<'a, T: Aabb + ManySwap, S,P>(
+//     bots: &'a mut [T],
+//     sorter: &mut S,
+//     args:BuildArgs,
+//     mut splitter:P
+// ) -> (Vec<Node<'a, T>>, P)
+// where
+//     S: Sorter<T>,
+//     P: Splitter,
+// {
+//     let mut buffer = Vec::with_capacity(num_level::num_nodes(args.num_level));
+//     TreeBuildVisitor::new(args.num_level, bots).recurse_seq(
+//         &mut splitter,
+//         sorter,
+//         &mut buffer
+//     );
+//     (buffer, splitter)
+// }
