@@ -104,15 +104,15 @@ pub struct TreeData<N: Num> {
 ///
 pub struct Tree<'a, T: Aabb> {
     //TODO change to boxed slice
-    nodes: Vec<Node<'a, T>>,
+    nodes: Vec<Node<'a, T,T::Num>>,
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
-    pub fn from_nodes(nodes:Vec<Node<'a,T>>)->Self{
+    pub fn from_nodes(nodes:Vec<Node<'a,T,T::Num>>)->Self{
         Tree{nodes}
     }
 
-    pub fn into_nodes(self) -> Vec<Node<'a, T>> {
+    pub fn into_nodes(self) -> Vec<Node<'a, T,T::Num>> {
         self.nodes
     }
 
@@ -192,13 +192,13 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
 
     #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
+    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T,T::Num>> {
         let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
         VistrMutPin::new(tree.vistr_mut())
     }
 
     #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
+    pub fn vistr(&self) -> Vistr<Node<'a, T,T::Num>> {
         let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
 
         tree.vistr()
@@ -220,13 +220,13 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     #[must_use]
     #[inline(always)]
-    pub fn get_nodes(&self) -> &[Node<'a, T>] {
+    pub fn get_nodes(&self) -> &[Node<'a, T,T::Num>] {
         &self.nodes
     }
 
     #[must_use]
     #[inline(always)]
-    pub fn get_nodes_mut(&mut self) -> AabbPin<&mut [Node<'a, T>]> {
+    pub fn get_nodes_mut(&mut self) -> AabbPin<&mut [Node<'a, T,T::Num>]> {
         AabbPin::from_mut(&mut self.nodes)
     }
 }
@@ -235,7 +235,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 /// A tree where the elements in a node are not sorted.
 ///
 pub struct NotSortedTree<'a, T: Aabb> {
-    nodes: Vec<Node<'a, T>>,
+    nodes: Vec<Node<'a, T,T::Num>>,
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
@@ -269,13 +269,13 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
     
 
     #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
+    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T,T::Num>> {
         let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
         VistrMutPin::new(tree.vistr_mut())
     }
 
     #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
+    pub fn vistr(&self) -> Vistr<Node<'a, T,T::Num>> {
         let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
 
         tree.vistr()

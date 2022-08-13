@@ -23,7 +23,7 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
     }
     #[inline(always)]
     #[must_use]
-    pub fn finish<S: Sorter<T>>(self, sorter: &mut S) -> Node<'a, T> {
+    pub fn finish<S: Sorter<T>>(self, sorter: &mut S) -> Node<'a, T,T::Num> {
         fn create_cont<A: Axis, T: Aabb>(
             axis: A,
             middle: &[T],
@@ -264,7 +264,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
         self,
         splitter: &mut P,
         sorter: &mut S,
-        buffer: &mut Vec<Node<'a, T>>
+        buffer: &mut Vec<Node<'a, T,T::Num>>
     ) {
         let NodeBuildResult { node, rest } = self.build_and_next();
         buffer.push(node.finish(sorter));

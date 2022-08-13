@@ -296,20 +296,20 @@ pub use vistr_mut::VistrMutPin;
 
 
 //TODO remove AAbb constraint. Instead use Node<T,N>
-pub struct Node<'a, T: Aabb> {
+pub struct Node<'a, T,N> {
     /// May or may not be sorted.
     pub range: AabbPin<&'a mut [T]>,
 
     /// if range is empty, then value is `[default,default]`.
     /// if range is not empty, then cont is the min max bounds in on the y axis (if the node belongs to the x axis).
-    pub cont: axgeom::Range<T::Num>,
+    pub cont: axgeom::Range<N>,
 
     /// for non leafs:
     ///   if there is a bot either in this node or in a child node, then div is some.
     ///
     /// for leafs:
     ///   value is none
-    pub div: Option<T::Num>,
+    pub div: Option<N>,
 
     ///
     /// The minimum number of elements in a child node.
@@ -325,12 +325,12 @@ pub struct Node<'a, T: Aabb> {
 
     pub num_elem: usize,
 }
-impl<'a, T: Aabb> Node<'a, T> {
+impl<'a, T,N:Num> Node<'a, T,N> {
     pub fn borrow_range(&mut self) -> AabbPin<&mut [T]> {
         self.range.borrow_mut()
     }
 
-    pub fn as_data(&self) -> NodeData<T::Num> {
+    pub fn as_data(&self) -> NodeData<N> {
         NodeData {
             range: self.range.len(),
             cont: self.cont,

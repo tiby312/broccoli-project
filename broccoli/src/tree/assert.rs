@@ -7,7 +7,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     where
         T::Num: core::fmt::Debug,
     {
-        fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T>>>)
+        fn inner<A: Axis, T: Aabb>(axis: A, iter: compt::LevelIter<Vistr<Node<T,T::Num>>>)
         where
             T::Num: core::fmt::Debug,
         {

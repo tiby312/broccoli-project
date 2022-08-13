@@ -17,7 +17,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
             F: FnMut(AabbPin<&mut K>, AabbPin<&'a mut T>),
         >(
             axis: A,
-            it: VistrMutPin<'a, Node<'b, T>>,
+            it: VistrMutPin<'a, Node<'b, T,T::Num>>,
             mut rect: AabbPin<&mut K>,
             closure: &mut F,
         ) {
@@ -126,7 +126,7 @@ impl<'a, T: Aabb> Naive<'a, T> {
 }
 
 use super::tools::get_section_mut;
-fn foo<'a, 'b: 'a, T: Aabb>(node: AabbPin<&'a mut Node<'b, T>>) -> AabbPin<&'a mut [T]> {
+fn foo<'a, 'b: 'a, T: Aabb>(node: AabbPin<&'a mut Node<'b, T,T::Num>>) -> AabbPin<&'a mut [T]> {
     node.into_range()
 }
 fn rect_recurse<
@@ -137,7 +137,7 @@ fn rect_recurse<
     K: Aabb<Num = T::Num>,
 >(
     this_axis: A,
-    m: VistrMutPin<'a, Node<T>>,
+    m: VistrMutPin<'a, Node<T,T::Num>>,
     mut rect: AabbPin<&mut K>,
     func: &mut F,
 ) {

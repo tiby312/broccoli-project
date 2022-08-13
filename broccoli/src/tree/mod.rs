@@ -116,9 +116,6 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
     BBoxMut::new(rect, inner)
 }
 
-///
-/// Options to specify how to build up a set of nodes.
-///
 // pub struct BuildArgs{
 //     pub num_level: usize,
 // }
@@ -132,14 +129,6 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
 // }
 
 
-pub fn create_node_buffer<T>(num_elem:usize)->Vec<T>{
-    let num_level=num_level::default(num_elem);
-    create_node_buffer_from_num_level(num_level)
-}
-
-pub fn create_node_buffer_from_num_level<T>(num_level:usize)->Vec<T>{
-    Vec::with_capacity(num_level::num_nodes(num_level))
-}
 
 
 // pub fn build_ext<'a, T: Aabb + ManySwap, S,P>(

@@ -2,12 +2,15 @@ use broccoli::{tree::{node::{Aabb, ManySwap, Node}, build::{DefaultSorter, TreeB
 
 use broccoli::tree::num_level;
 
-use crate::RayonPar;
+
+pub trait RayonBuildPar<'a,T:Aabb>{
+    fn par_new_ext<P:Splitter>(bots:&'a mut [T],num_level:usize,splitter:P,num_seq_fallback:usize)->(Self,P);
+    fn par_new(bots:&'a mut [T])->Self;
+    
+}
 
 
-
-
-impl<'a,T:Aabb> RayonPar<'a,T> for Tree<'a,T>{
+impl<'a,T:Aabb> RayonBuildPar<'a,T> for Tree<'a,T>{
     fn par_new_ext<P:Splitter>(bots:&'a mut [T],num_level:usize,mut splitter:P,num_seq_fallback:usize)->(Self,P){
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         recurse_par(

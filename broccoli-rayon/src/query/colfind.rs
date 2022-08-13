@@ -1,7 +1,40 @@
+use broccoli::{tree::{node::Aabb, splitter::Splitter}, Tree};
 
 
 
 
+
+
+
+pub trait RayonQueryPar<'a,T:Aabb>{
+    
+    
+}
+
+impl<'a,T:Aabb> RayonQueryPar<'a,T> for Tree<'a,T>{
+    fn par_new(){
+        
+    }
+
+    pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
+        &mut self,
+        args: QueryArgs<S>,
+        func: F,
+    ) -> S
+    where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+        F: Send + Clone,
+        S: Send,
+        T: Send,
+        T::Num: Send,
+    {
+        let mut f = AccNodeHandler {
+            acc: FloopDefault { func },
+            prevec: PreVec::new(),
+        };
+        args.par_query(self.vistr_mut(), &mut f)
+    }
+}
 
 
 pub struct ParQuery{

@@ -132,7 +132,7 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
 use crate::tree::splitter::{EmptySplitter, Splitter};
 
 
-pub fn query<P:Splitter,T: Aabb, SO>(mut splitter:P,vistr: VistrMutPin<Node<T>>, handler: &mut SO) -> P
+pub fn query<P:Splitter,T: Aabb, SO>(mut splitter:P,vistr: VistrMutPin<Node<T,T::Num>>, handler: &mut SO) -> P
 where
     SO: NodeHandler<T>,
 {
