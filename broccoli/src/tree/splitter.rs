@@ -3,7 +3,6 @@
 //! is split into two and built back together. Useful for debuging/measuring performance.
 //!
 
-
 /*
 impl<'a, T: Aabb, S: Sorter<T>> TreeBuilder<'a, T, S> {
     pub fn build_from_splitter<SS: Splitter>(

@@ -1,9 +1,7 @@
-use broccoli::tree::{node::Aabb};
+use broccoli::tree::node::Aabb;
 
 pub mod build;
 pub mod query;
-
-
 
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree

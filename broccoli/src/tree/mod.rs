@@ -2,7 +2,6 @@
 //! Provides the broccoli tree building blocks and code, but no querying code.
 //!
 
-
 use super::*;
 pub mod aabb_pin;
 mod assert;

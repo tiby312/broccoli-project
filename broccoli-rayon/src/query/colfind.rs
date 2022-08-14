@@ -11,7 +11,7 @@ use broccoli::{
     Tree,
 };
 
-use crate::{Splitter, EmptySplitter};
+use crate::{EmptySplitter, Splitter};
 
 // struct Floop<K, F> {
 //     acc: K,
@@ -42,18 +42,64 @@ pub trait RayonQueryPar<'a, T: Aabb> {
         F: Send + Clone,
         T: Send,
         T::Num: Send;
+
+    fn par_find_colliding_pairs_acc_closure<Acc, A, B, F>(
+            &mut self,
+            acc: Acc,
+            div: A,
+            add: B,
+            func: F,
+        ) -> Acc
+        where
+            A: FnMut(&mut Acc) -> Acc + Clone + Send,
+            B: FnMut(&mut Acc, Acc) + Clone + Send,
+            F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+            Acc: Send,
+            T: Send,
+            T::Num: Send;    
 }
 
 impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
+    fn par_find_colliding_pairs_acc_closure<Acc, A, B, F>(
+        &mut self,
+        acc: Acc,
+        div: A,
+        add: B,
+        func: F,
+    ) -> Acc
+    where
+        A: FnMut(&mut Acc) -> Acc + Clone + Send,
+        B: FnMut(&mut Acc, Acc) + Clone + Send,
+        F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+        Acc: Send,
+        T: Send,
+        T::Num: Send,
+    {
+        let floop = FloopClosure {
+            acc,
+            div,
+            add,
+            func,
+        };
+
+        let mut f = AccNodeHandler {
+            acc: floop,
+            prevec: PreVec::new(),
+        };
+        QueryArgs::new().par_query(self.vistr_mut(), &mut f);
+        f.acc.acc
+    }
+
 
     fn par_find_colliding_pairs<F>(&mut self, func: F)
     where
         F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
         F: Send + Clone,
         T: Send,
-        T::Num: Send{
-            self.par_find_colliding_pairs_ext(SEQ_FALLBACK_DEFAULT,func);
-        }
+        T::Num: Send,
+    {
+        self.par_find_colliding_pairs_ext(SEQ_FALLBACK_DEFAULT, func);
+    }
     fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
     where
         F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
@@ -103,7 +149,6 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
         recurse_par(vv, &mut f, num_switch_seq);
     }
 }
-
 
 /// Wrapper that impl Splitter
 pub struct AccNodeHandlerWrapper<Acc, S> {

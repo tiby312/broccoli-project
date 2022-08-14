@@ -9,11 +9,34 @@ use broccoli::{
 
 use broccoli::tree::num_level;
 
-use crate::Splitter;
+use crate::{EmptySplitter, Splitter};
 
 pub trait RayonBuildPar<'a, T: Aabb> {
     fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self;
     fn par_new(bots: &'a mut [T]) -> Self;
+}
+
+pub struct SorterWrapper<S, P> {
+    sorter: S,
+    splitter: P,
+}
+impl<T: Aabb, S: Sorter<T>, P> Sorter<T> for SorterWrapper<S, P> {
+    fn sort(&self, axis: impl axgeom::Axis, bots: &mut [T]) {
+        self.sorter.sort(axis, bots)
+    }
+}
+impl<S: Clone, P: Splitter> Splitter for SorterWrapper<S, P> {
+    fn div(&mut self) -> Self {
+        let a = self.splitter.div();
+        SorterWrapper {
+            sorter: self.sorter.clone(),
+            splitter: a,
+        }
+    }
+
+    fn add(&mut self, b: Self) {
+        self.splitter.add(b.splitter);
+    }
 }
 
 impl<'a, T: Aabb + ManySwap> RayonBuildPar<'a, T> for Tree<'a, T>
@@ -32,7 +55,7 @@ where
         // the problem size is big enough such that there
         // are many chunks.
 
-        fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>+Splitter>(
+        fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Splitter>(
             num_seq_fallback: usize,
             sorter: &mut S,
             buffer: &mut Vec<Node<'a, T, T::Num>>,
@@ -76,7 +99,10 @@ where
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         recurse_par(
             num_seq_fallback,
-            &mut DefaultSorter,
+            &mut SorterWrapper {
+                sorter: DefaultSorter,
+                splitter: EmptySplitter,
+            },
             &mut buffer,
             TreeBuildVisitor::new(num_level, bots),
         );

@@ -284,4 +284,3 @@ pub struct NoSorter;
 impl<T: Aabb> Sorter<T> for NoSorter {
     fn sort(&self, _axis: impl Axis, _bots: &mut [T]) {}
 }
-

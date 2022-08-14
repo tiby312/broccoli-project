@@ -51,17 +51,6 @@ struct Bla<'a> {
     _num_pairs_checked: usize,
     _p: PhantomData<&'a usize>,
 }
-impl<'a> broccoli::tree::splitter::Splitter for Bla<'a> {
-    fn div(&mut self) -> Self {
-        Bla {
-            _p: PhantomData,
-            _num_pairs_checked: 0,
-        }
-    }
-    fn add(&mut self, _: Self) {
-        //do nothing
-    }
-}
 impl<'b> broccoli::queries::nbody::Nbody for Bla<'b> {
     type Mass = NodeMass;
     type T = (Rect<f32>, &'b mut Bot);
