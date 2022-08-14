@@ -15,7 +15,6 @@ use axgeom;
 use aabb_pin::*;
 
 use axgeom::*;
-use build::*;
 use compt::Visitor;
 use node::*;
 

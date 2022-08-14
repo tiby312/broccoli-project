@@ -1,5 +1,3 @@
-use broccoli::tree::node::Aabb;
-
 pub mod build;
 pub mod query;
 

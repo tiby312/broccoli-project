@@ -4,14 +4,11 @@ use broccoli::{
         build::{CollVis, CollisionHandler, HandleChildrenArgs, NodeHandler, PreVec},
         AccNodeHandler,
     },
-    tree::{
-        aabb_pin::AabbPin,
-        node::{Aabb, Node, VistrMutPin},
-    },
+    tree::{aabb_pin::AabbPin, node::Aabb},
     Tree,
 };
 
-use crate::{EmptySplitter, Splitter};
+use crate::Splitter;
 
 // struct Floop<K, F> {
 //     acc: K,
