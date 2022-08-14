@@ -79,13 +79,6 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
             func,
         };
 
-        // let mut f = AccNodeHandler {
-        //     acc: floop,
-        //     prevec: PreVec::new(),
-        // };
-        // QueryArgs::new().par_query(self.vistr_mut(), &mut f);
-        // f.acc.acc
-
         let mut f = AccNodeHandlerEmptySplitter {
             inner: AccNodeHandler::new(floop),
         };
