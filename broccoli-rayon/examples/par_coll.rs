@@ -1,4 +1,5 @@
 use broccoli::tree::rect;
+use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -15,7 +16,7 @@ fn main() {
     //This will change the order of the elements
     //in bboxes,but this is okay since we
     //populated it with mutable references.
-    let mut tree = broccoli_rayon::build::ParBuilder::new(&mut aabbs).par_build();
+    let mut tree = broccoli::Tree::par_new(&mut aabbs);
 
     tree.par_find_colliding_pairs(|a, b| {
         **a.unpack_inner() += 1;

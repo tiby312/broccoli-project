@@ -1,7 +1,8 @@
 use super::*;
 use twounordered::TwoUnorderedVecs;
 
-struct FloopDefault<F> {
+#[derive(Clone)]
+pub struct FloopDefault<F> {
     pub func: F,
 }
 impl<T: Aabb, F> CollisionHandler<T> for FloopDefault<F>
@@ -13,7 +14,8 @@ where
     }
 }
 
-struct AccNodeHandler<Acc> {
+#[derive(Clone)]
+pub struct AccNodeHandler<Acc> {
     pub acc: Acc,
     pub prevec: PreVec,
 }

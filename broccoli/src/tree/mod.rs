@@ -2,7 +2,6 @@
 //! Provides the broccoli tree building blocks and code, but no querying code.
 //!
 
-use self::splitter::{EmptySplitter, Splitter};
 
 use super::*;
 pub mod aabb_pin;
@@ -35,7 +34,7 @@ pub const fn default_axis() -> DefaultA {
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one
 ///does nothing when sort() is called.
-pub trait Sorter<T>: splitter::Splitter {
+pub trait Sorter<T> {
     fn sort(&self, axis: impl Axis, bots: &mut [T]);
 }
 

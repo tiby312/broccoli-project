@@ -77,8 +77,6 @@ use tree::aabb_pin::AabbPin;
 use tree::aabb_pin::AabbPinIter;
 use tree::build::*;
 use tree::node::*;
-use tree::splitter::EmptySplitter;
-use tree::splitter::Splitter;
 use tree::*;
 
 pub mod ext;
@@ -233,14 +231,10 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         T: ManySwap,
     {
         let num_level = num_level::default(bots.len());
-
         let num_nodes = num_level::num_nodes(num_level);
         let mut nodes = Vec::with_capacity(num_nodes);
-
         TreeBuildVisitor::new(num_level, bots).recurse_seq(&mut NoSorter, &mut nodes);
-
         assert_eq!(num_nodes, nodes.len());
-
         NotSortedTree { nodes }
     }
 
