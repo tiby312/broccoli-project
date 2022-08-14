@@ -1,6 +1,3 @@
-
-
-
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
 ///during construction.
@@ -21,38 +18,44 @@ impl Splitter for EmptySplitter {
     fn add(&mut self, _: Self) {}
 }
 
-pub mod build{
-    use broccoli::tree::{Sorter, node::{Node, Aabb, ManySwap}, build::{NodeBuildResult, TreeBuildVisitor}};
+pub mod build {
+    use broccoli::tree::{
+        build::{NodeBuildResult, TreeBuildVisitor},
+        node::{Aabb, ManySwap, Node},
+        Sorter,
+    };
 
     use crate::Splitter;
 
-    pub fn recurse_seq_splitter<'a,T:Aabb+ManySwap,S: Sorter<T>, P: Splitter>(
+    pub fn recurse_seq_splitter<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
         vistr: TreeBuildVisitor<'a, T>,
         splitter: &mut P,
         sorter: &mut S,
-        buffer: &mut Vec<Node<'a,T,T::Num>>
+        buffer: &mut Vec<Node<'a, T, T::Num>>,
     ) {
         let NodeBuildResult { node, rest } = vistr.build_and_next();
         buffer.push(node.finish(sorter));
         if let Some([left, right]) = rest {
             let mut a = splitter.div();
 
-            recurse_seq_splitter(left,splitter, sorter, buffer);
+            recurse_seq_splitter(left, splitter, sorter, buffer);
 
-            recurse_seq_splitter(right,&mut a, sorter, buffer);
+            recurse_seq_splitter(right, &mut a, sorter, buffer);
             splitter.add(a);
         }
     }
 }
 
-
-pub mod query{
-    pub mod colfind{
-        use broccoli::{queries::colfind::build::{NodeHandler, CollVis}, tree::node::Aabb};
+pub mod query {
+    pub mod colfind {
+        use broccoli::{
+            queries::colfind::build::{CollVis, NodeHandler},
+            tree::node::Aabb,
+        };
 
         use crate::Splitter;
 
-        pub fn recurse_seq_splitter<T:Aabb,P: Splitter, N: NodeHandler<T>>(
+        pub fn recurse_seq_splitter<T: Aabb, P: Splitter, N: NodeHandler<T>>(
             vistr: CollVis<T>,
             splitter: &mut P,
             func: &mut N,

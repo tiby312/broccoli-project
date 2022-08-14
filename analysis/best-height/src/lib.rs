@@ -1,4 +1,3 @@
-use crate::tree::splitter::EmptySplitter;
 use support::prelude::*;
 pub fn bench(emp: &mut Html) -> std::fmt::Result {
     let grow = 2.0;
@@ -8,9 +7,9 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
             different tree heights
         "#};
 
-    let l = broccoli::tree::BuildArgs::new(num);
+    let num_level = broccoli::tree::num_level::default(num);
 
-    let res = bench_inner(num, 3, l.num_level + 4, grow);
+    let res = bench_inner(num, 3, num_level + 4, grow);
     let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
 
     let m = poloto::build::markers([], [0.0]);
@@ -48,9 +47,9 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
         different tree heights
     "#};
 
-    let l = broccoli::tree::BuildArgs::new(num);
+    let num_level = broccoli::tree::num_level::default(num);
 
-    let res = theory_inner(man, num, 3, l.num_level + 4, grow);
+    let res = theory_inner(man, num, 3, num_level + 4, grow);
     let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
 
     let m = poloto::build::markers([], [0]);
@@ -138,8 +137,7 @@ fn optimal_inner(num: usize, grow: f64) -> Vec<(i128, Res)> {
                 .unwrap()
                 .0;
 
-            let b = BuildArgs::new(n);
-            let heur_height = b.num_level;
+            let heur_height = broccoli::tree::num_level::default(n);
 
             (
                 n as i128,
@@ -159,6 +157,7 @@ fn new_theory_record<T: ColfindHandler>(
 ) -> usize {
     man.time(|| {
         let len = bots.len();
+
         let (mut tree, _) = Tree::from_build_args(
             bots,
             BuildArgs::new(len).with_num_level(height),
