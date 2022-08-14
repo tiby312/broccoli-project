@@ -156,13 +156,18 @@ fn new_theory_record<T: ColfindHandler>(
     height: usize,
 ) -> usize {
     man.time(|| {
-        let len = bots.len();
+        use broccoli::tree::build::DefaultSorter;
+        use broccoli::tree::build::TreeBuildVisitor;
+        use broccoli::tree::num_level;
+        let num_level = height;
+        let num_nodes = num_level::num_nodes(num_level);
+        let mut nodes = Vec::with_capacity(num_nodes);
 
-        let (mut tree, _) = Tree::from_build_args(
-            bots,
-            BuildArgs::new(len).with_num_level(height),
-            EmptySplitter,
-        );
+        TreeBuildVisitor::new(num_level, bots).recurse_seq(&mut DefaultSorter, &mut nodes);
+
+        assert_eq!(num_nodes, nodes.len());
+
+        let mut tree = Tree::from_nodes(nodes);
 
         assert_eq!(tree.num_levels(), height);
 
@@ -174,12 +179,18 @@ fn new_bench_record<T: ColfindHandler>(bots: &mut [T], height: usize) -> f64 {
     let mut bencher = Bencher;
 
     bencher.time(|| {
-        let len = bots.len();
-        let (mut tree, _) = Tree::from_build_args(
-            bots,
-            BuildArgs::new(len).with_num_level(height),
-            EmptySplitter,
-        );
+        use broccoli::tree::build::DefaultSorter;
+        use broccoli::tree::build::TreeBuildVisitor;
+        use broccoli::tree::num_level;
+        let num_level = height;
+        let num_nodes = num_level::num_nodes(num_level);
+        let mut nodes = Vec::with_capacity(num_nodes);
+
+        TreeBuildVisitor::new(num_level, bots).recurse_seq(&mut DefaultSorter, &mut nodes);
+
+        assert_eq!(num_nodes, nodes.len());
+
+        let mut tree = Tree::from_nodes(nodes);
 
         assert_eq!(tree.num_levels(), height);
 
