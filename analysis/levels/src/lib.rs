@@ -155,11 +155,8 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
     man.reset_counter();
 
     let len = bots.len();
-    let (mut tree, levelc) = Tree::from_build_args(
-        bots,
-        BuildArgs::new(len),
-        LevelCounter::new(man, 0, vec![])
-    );
+    let (mut tree, levelc) =
+        Tree::from_build_args(bots, BuildArgs::new(len), LevelCounter::new(man, 0, vec![]));
 
     let c1 = levelc
         .into_levels()
@@ -169,10 +166,7 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
 
     man.reset_counter();
 
-    let levelc2 = tree.find_colliding_pairs_from_args(
-        LevelCounter::new(man, 0, vec![]),
-        T::handle,
-    );
+    let levelc2 = tree.find_colliding_pairs_from_args(LevelCounter::new(man, 0, vec![]), T::handle);
 
     let c2 = levelc2
         .into_levels()
@@ -188,18 +182,12 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
 
 fn gen<T: ColfindHandler>(bots: &mut [T]) -> Res<f64> {
     let len = bots.len();
-    let (mut tree, times1) = Tree::from_build_args(
-        bots,
-        BuildArgs::new(len),
-        LevelTimer::new(0, vec![])
-    );
+    let (mut tree, times1) =
+        Tree::from_build_args(bots, BuildArgs::new(len), LevelTimer::new(0, vec![]));
 
     let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
 
-    let times2 = tree.find_colliding_pairs_from_args(
-        LevelTimer::new(0, vec![]),
-        T::handle,
-    );
+    let times2 = tree.find_colliding_pairs_from_args(LevelTimer::new(0, vec![]), T::handle);
 
     let c2 = times2.into_levels().into_iter().map(|x| x as f64).collect();
 

@@ -34,11 +34,11 @@ impl<'b, T: Aabb> NodeFinisher<'b, T> {
 
 /// The main primitive to visit each node and find colliding pairs
 pub struct CollVis<'a, 'b, T: Aabb> {
-    vistr: VistrMutPin<'b, Node<'a, T,T::Num>>,
+    vistr: VistrMutPin<'b, Node<'a, T, T::Num>>,
     axis: AxisDyn,
 }
 impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
-    pub fn new(vistr: VistrMutPin<'b, Node<'a, T,T::Num>>) -> Self {
+    pub fn new(vistr: VistrMutPin<'b, Node<'a, T, T::Num>>) -> Self {
         CollVis {
             vistr,
             axis: default_axis().to_dyn(),
@@ -75,7 +75,7 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
                     fn recurse(
                         &mut self,
                         this_axis: AxisDyn,
-                        m: VistrMutPin<Node<T,T::Num>>,
+                        m: VistrMutPin<Node<T, T::Num>>,
                         is_left: bool,
                     ) {
                         let anchor_axis = self.anchor_axis;
@@ -168,7 +168,6 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
         )
     }
 
-
     pub fn recurse_seq<N: NodeHandler<T>>(self, handler: &mut N) {
         let (n, rest) = self.collide_and_next(handler);
 
@@ -178,7 +177,6 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
             b.recurse_seq(handler);
         }
     }
-
 }
 
 //remove need for second lifetime

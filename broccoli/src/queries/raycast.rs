@@ -197,7 +197,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
             fn recc<'b: 'a, A: Axis>(
                 &mut self,
                 axis: A,
-                stuff: LevelIter<VistrMutPin<'a, Node<'b, T,T::Num>>>,
+                stuff: LevelIter<VistrMutPin<'a, Node<'b, T, T::Num>>>,
             ) {
                 let ((_depth, nn), rest) = stuff.next();
                 let handle_curr = if let Some([left, right]) = rest {

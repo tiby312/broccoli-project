@@ -13,92 +13,10 @@ where
     }
 }
 
-// impl<F: Clone> Splitter for FloopDefault<F> {
-//     fn div(&mut self) -> Self {
-//         FloopDefault {
-//             func: self.func.clone(),
-//         }
-//     }
-
-//     fn add(&mut self, _: Self) {}
-// }
-
-struct Floop<K, F> {
-    acc: K,
-    func: F,
-}
-impl<T: Aabb, K, F> CollisionHandler<T> for Floop<K, F>
-where
-    F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
-{
-    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(&mut self.acc, a, b)
-    }
-}
-// impl<K: Splitter, F: Clone> Splitter for Floop<K, F> {
-//     fn div(&mut self) -> Self {
-//         let k = self.acc.div();
-//         Floop {
-//             acc: k,
-//             func: self.func.clone(),
-//         }
-//     }
-
-//     fn add(&mut self, b: Self) {
-//         self.acc.add(b.acc);
-//     }
-// }
-
-struct FloopClosure<K, A, B, F> {
-    acc: K,
-    div: A,
-    add: B,
-    func: F,
-}
-impl<T: Aabb, K, A, B, F> CollisionHandler<T> for FloopClosure<K, A, B, F>
-where
-    F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
-{
-    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(&mut self.acc, a, b)
-    }
-}
-// impl<K, A: FnMut(&mut K) -> K + Clone, B: FnMut(&mut K, K) + Clone, F: Clone> Splitter
-//     for FloopClosure<K, A, B, F>
-// {
-//     fn div(&mut self) -> Self {
-//         FloopClosure {
-//             acc: (self.div)(&mut self.acc),
-//             div: self.div.clone(),
-//             add: self.add.clone(),
-//             func: self.func.clone(),
-//         }
-//     }
-
-//     fn add(&mut self, b: Self) {
-//         (self.add)(&mut self.acc, b.acc)
-//     }
-// }
-
 struct AccNodeHandler<Acc> {
     pub acc: Acc,
     pub prevec: PreVec,
 }
-
-// impl<Acc: Splitter> Splitter for AccNodeHandler<Acc> {
-//     fn div(&mut self) -> Self {
-//         let acc = self.acc.div();
-
-//         AccNodeHandler {
-//             acc,
-//             prevec: self.prevec.clone(),
-//         }
-//     }
-
-//     fn add(&mut self, b: Self) {
-//         self.acc.add(b.acc);
-//     }
-// }
 
 impl<T: Aabb, Acc> NodeHandler<T> for AccNodeHandler<Acc>
 where
@@ -106,7 +24,6 @@ where
 {
     #[inline(always)]
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-
         fn handle_node<T: Aabb, F>(
             prevec: &mut PreVec,
             axis: AxisDyn,
@@ -136,7 +53,6 @@ where
 
     #[inline(always)]
     fn handle_children(&mut self, f: HandleChildrenArgs<T>, is_left: bool) {
-
         fn handle_children<T: Aabb, F>(
             prevec: &mut PreVec,
             func: &mut F,
@@ -145,7 +61,6 @@ where
         ) where
             F: CollisionHandler<T>,
         {
-
             fn handle_perp<T: Aabb, A: Axis>(
                 axis: A,
                 func: &mut impl CollisionHandler<T>,
@@ -207,7 +122,12 @@ where
             ) {
                 let current2 = f.current;
 
-                let fb = oned::FindParallel2DBuilder::new(prevec, axis.next(), f.anchor.range, current2.range);
+                let fb = oned::FindParallel2DBuilder::new(
+                    prevec,
+                    axis.next(),
+                    f.anchor.range,
+                    current2.range,
+                );
 
                 if is_left {
                     if f.anchor.cont.start <= current2.cont.end {
@@ -251,26 +171,16 @@ where
 
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-
-        
         let mut f = AccNodeHandler {
             acc: FloopDefault { func },
             prevec: PreVec::new(),
         };
-
         CollVis::new(self.vistr_mut()).recurse_seq(&mut f);
-
     }
-
 }
 
-
-
 impl<T: Aabb> NotSortedTree<'_, T> {
-    pub fn find_colliding_pairs(
-        &mut self,
-        func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    ) {
+    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
         CollVis::new(self.vistr_mut()).recurse_seq(&mut NoSortNodeHandler::new(func));
     }
 }
@@ -287,16 +197,6 @@ impl<F> NoSortNodeHandler<F> {
         NoSortNodeHandler { func }
     }
 }
-
-// impl<F: Clone> Splitter for NoSortNodeHandler<F> {
-//     fn div(&mut self) -> Self {
-//         NoSortNodeHandler {
-//             func: self.func.clone(),
-//         }
-//     }
-
-//     fn add(&mut self, _b: Self) {}
-// }
 
 impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoSortNodeHandler<F> {
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {

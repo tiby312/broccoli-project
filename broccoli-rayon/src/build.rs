@@ -1,17 +1,32 @@
-use broccoli::{tree::{node::{Aabb, ManySwap, Node}, build::{DefaultSorter, TreeBuildVisitor, NodeBuildResult}, splitter::{Splitter, EmptySplitter}, Sorter}, Tree};
+use broccoli::{
+    tree::{
+        build::{DefaultSorter, NodeBuildResult, TreeBuildVisitor},
+        node::{Aabb, ManySwap, Node},
+        splitter::{EmptySplitter, Splitter},
+        Sorter,
+    },
+    Tree,
+};
 
 use broccoli::tree::num_level;
 
-
-pub trait RayonBuildPar<'a,T:Aabb>{
-    fn par_new_ext<P:Splitter>(bots:&'a mut [T],num_level:usize,splitter:P,num_seq_fallback:usize)->(Self,P);
-    fn par_new(bots:&'a mut [T])->Self;
-    
+pub trait RayonBuildPar<'a, T: Aabb> {
+    fn par_new_ext<P: Splitter>(
+        bots: &'a mut [T],
+        num_level: usize,
+        splitter: P,
+        num_seq_fallback: usize,
+    ) -> (Self, P);
+    fn par_new(bots: &'a mut [T]) -> Self;
 }
 
-
-impl<'a,T:Aabb> RayonBuildPar<'a,T> for Tree<'a,T>{
-    fn par_new_ext<P:Splitter>(bots:&'a mut [T],num_level:usize,mut splitter:P,num_seq_fallback:usize)->(Self,P){
+impl<'a, T: Aabb> RayonBuildPar<'a, T> for Tree<'a, T> {
+    fn par_new_ext<P: Splitter>(
+        bots: &'a mut [T],
+        num_level: usize,
+        mut splitter: P,
+        num_seq_fallback: usize,
+    ) -> (Self, P) {
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         recurse_par(
             num_seq_fallback,
@@ -22,13 +37,11 @@ impl<'a,T:Aabb> RayonBuildPar<'a,T> for Tree<'a,T>{
         );
         (buffer, splitter)
     }
-    fn par_new(bots:&'a mut [T])->Self{
-        let num_level=num_level::default(bots.len());
-        Self::par_new_ext(bots,num_level,EmptySplitter,512).0
+    fn par_new(bots: &'a mut [T]) -> Self {
+        let num_level = num_level::default(bots.len());
+        Self::par_new_ext(bots, num_level, EmptySplitter, 512).0
     }
 }
-
-
 
 // we want to pass small chunks so that if a slow core
 // gets a task, they don't hold everybody else up.
@@ -69,10 +82,10 @@ fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
                     recurse_par(num_seq_fallback, splitter, sorter, buffer, left);
                 },
                 || {
-                    let num_nodes=num_level::num_nodes(right.get_height());
+                    let num_nodes = num_level::num_nodes(right.get_height());
                     let mut buffer2 = Vec::with_capacity(num_nodes);
                     recurse_par(num_seq_fallback, &mut p, &mut s2, &mut buffer2, right);
-                    assert_eq!(num_nodes,buffer2.len());
+                    assert_eq!(num_nodes, buffer2.len());
                     buffer2
                 },
             );

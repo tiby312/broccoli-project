@@ -24,7 +24,9 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
     w.elem("html", |d| d.attr("style", "background: black;"))?
         .build(|w| {
-            w.put_raw_escapable(r##"<meta name="viewport" content="width=device-width, initial-scale=1.0">"##)?;
+            w.put_raw_escapable(
+                r##"<meta name="viewport" content="width=device-width, initial-scale=1.0">"##,
+            )?;
             w.elem("div", |d| {
                 d.attr(
                     "style",
@@ -97,7 +99,6 @@ impl Disper for Custom {
 
         pub const SVG_HEADER: &str = r##"<svg class="poloto" width="100%" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">"##;
 
-
         t.elem("div", |w| {
             w.attr(
                 "style",
@@ -124,7 +125,6 @@ impl Disper for Custom {
         })
     }
 }
-
 
 pub const MY_CONFIG: &str = ".poloto{\
     stroke-linecap:round;\

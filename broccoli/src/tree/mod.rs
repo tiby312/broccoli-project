@@ -128,9 +128,6 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
 //     }
 // }
 
-
-
-
 // pub fn build_ext<'a, T: Aabb + ManySwap, S,P>(
 //     bots: &'a mut [T],
 //     sorter: &mut S,

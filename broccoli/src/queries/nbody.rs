@@ -47,7 +47,7 @@ use compt::dfs_order::PreOrder;
 use compt::dfs_order::VistrMut;
 
 struct NodeWrapper<'a, T: Aabb, M> {
-    node: Node<'a, T,T::Num>,
+    node: Node<'a, T, T::Num>,
     mass: M,
 }
 
@@ -230,9 +230,9 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
         ///Perform nbody
         ///The tree is taken by value so that its nodes can be expended to include more data.
         pub fn nbody_mut<'a, N: Nbody>(
-            tree: Vec<Node<'a, N::T,<N::T as Aabb>::Num>>,
+            tree: Vec<Node<'a, N::T, <N::T as Aabb>::Num>>,
             no: &mut N,
-        ) -> Vec<Node<'a, N::T,<N::T as Aabb>::Num>> {
+        ) -> Vec<Node<'a, N::T, <N::T as Aabb>::Num>> {
             let mut newnodes: Vec<_> = tree
                 .into_iter()
                 .map(|x| NodeWrapper {

@@ -23,7 +23,7 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
     }
     #[inline(always)]
     #[must_use]
-    pub fn finish<S: Sorter<T>>(self, sorter: &mut S) -> Node<'a, T,T::Num> {
+    pub fn finish<S: Sorter<T>>(self, sorter: &mut S) -> Node<'a, T, T::Num> {
         fn create_cont<A: Axis, T: Aabb>(
             axis: A,
             middle: &[T],
@@ -259,21 +259,14 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
         }
     }
 
-
-
-    pub fn recurse_seq<S: Sorter<T>>(
-        self,
-        sorter: &mut S,
-        buffer: &mut Vec<Node<'a, T,T::Num>>
-    ) {
+    pub fn recurse_seq<S: Sorter<T>>(self, sorter: &mut S, buffer: &mut Vec<Node<'a, T, T::Num>>) {
         let NodeBuildResult { node, rest } = self.build_and_next();
         buffer.push(node.finish(sorter));
         if let Some([left, right]) = rest {
-            left.recurse_seq( sorter, buffer);
-            right.recurse_seq( sorter, buffer);
+            left.recurse_seq(sorter, buffer);
+            right.recurse_seq(sorter, buffer);
         }
     }
-
 }
 
 #[derive(Copy, Clone, Default)]

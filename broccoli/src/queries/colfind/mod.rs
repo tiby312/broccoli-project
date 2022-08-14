@@ -128,6 +128,3 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     //     );
     // }
 }
-
-use crate::tree::splitter::{EmptySplitter, Splitter};
-

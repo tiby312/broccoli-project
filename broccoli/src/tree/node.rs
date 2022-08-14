@@ -46,7 +46,7 @@ impl<N: Num> Aabb for Rect<N> {
         self
     }
 }
-impl< N> ManySwap for Rect<N> {}
+impl<N> ManySwap for Rect<N> {}
 impl<'a, N> ManySwap for &'a mut Rect<N> {}
 
 impl<'a, N, T> ManySwap for &'a mut (Rect<N>, T) {}
@@ -294,9 +294,8 @@ mod vistr_mut {
 }
 pub use vistr_mut::VistrMutPin;
 
-
 //TODO remove AAbb constraint. Instead use Node<T,N>
-pub struct Node<'a, T,N> {
+pub struct Node<'a, T, N> {
     /// May or may not be sorted.
     pub range: AabbPin<&'a mut [T]>,
 
@@ -325,7 +324,7 @@ pub struct Node<'a, T,N> {
 
     pub num_elem: usize,
 }
-impl<'a, T,N:Num> Node<'a, T,N> {
+impl<'a, T, N: Num> Node<'a, T, N> {
     pub fn borrow_range(&mut self) -> AabbPin<&mut [T]> {
         self.range.borrow_mut()
     }

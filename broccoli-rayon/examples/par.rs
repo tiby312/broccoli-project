@@ -12,7 +12,7 @@ fn main() {
     ];
 
     let mut tree = broccoli_rayon::build::ParBuilder::new(&mut aabbs).par_build();
-    
+
     let mut res = tree.par_find_colliding_pairs_acc_closure(
         vec![],
         |_| vec![],

@@ -33,7 +33,7 @@ fn test() {
 
     recc(tree.vistr_mut());
     //recursively check that the length is correct at each node.
-    fn recc(a: VistrMutPin<Node<(Rect<isize>, &mut usize),isize>>) {
+    fn recc(a: VistrMutPin<Node<(Rect<isize>, &mut usize), isize>>) {
         let (_nn, rest) = a.next();
         match rest {
             Some([mut left, mut right]) => {

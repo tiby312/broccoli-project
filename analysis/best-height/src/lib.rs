@@ -1,5 +1,5 @@
-use support::prelude::*;
 use crate::tree::splitter::EmptySplitter;
+use support::prelude::*;
 pub fn bench(emp: &mut Html) -> std::fmt::Result {
     let grow = 2.0;
     let num = 30_000;
@@ -159,7 +159,11 @@ fn new_theory_record<T: ColfindHandler>(
 ) -> usize {
     man.time(|| {
         let len = bots.len();
-        let (mut tree, _) = Tree::from_build_args(bots, BuildArgs::new(len).with_num_level(height),EmptySplitter);
+        let (mut tree, _) = Tree::from_build_args(
+            bots,
+            BuildArgs::new(len).with_num_level(height),
+            EmptySplitter,
+        );
 
         assert_eq!(tree.num_levels(), height);
 
@@ -172,7 +176,11 @@ fn new_bench_record<T: ColfindHandler>(bots: &mut [T], height: usize) -> f64 {
 
     bencher.time(|| {
         let len = bots.len();
-        let (mut tree, _) = Tree::from_build_args(bots, BuildArgs::new(len).with_num_level(height),EmptySplitter);
+        let (mut tree, _) = Tree::from_build_args(
+            bots,
+            BuildArgs::new(len).with_num_level(height),
+            EmptySplitter,
+        );
 
         assert_eq!(tree.num_levels(), height);
 

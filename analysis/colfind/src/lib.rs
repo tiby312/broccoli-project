@@ -146,8 +146,6 @@ pub fn bench_grow(emp: &mut Html) -> std::fmt::Result {
     )
 }
 
-
-
 pub fn bench(emp: &mut Html) -> std::fmt::Result {
     for (grow, n) in [(0.5, 15_000), (2.0, 30_000)] {
         let description = formatdoc! {r#"
@@ -181,7 +179,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
             .map(|(i, r)| (i, r.sweep))
             .cloned_plot()
             .scatter("sweep");
-           
+
         let l7 = res
             .iter()
             .map(|(i, r)| (i, r.naive))

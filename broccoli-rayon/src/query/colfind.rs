@@ -1,67 +1,66 @@
-use broccoli::{tree::{node::Aabb, splitter::Splitter, aabb_pin::AabbPin}, Tree};
+use broccoli::{
+    tree::{aabb_pin::AabbPin, node::Aabb, splitter::Splitter},
+    Tree,
+};
 
+// struct Floop<K, F> {
+//     acc: K,
+//     func: F,
+// }
+// impl<T: Aabb, K, F> CollisionHandler<T> for Floop<K, F>
+// where
+//     F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
+// {
+//     fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
+//         (self.func)(&mut self.acc, a, b)
+//     }
+// }
 
-
-
-
-
-
-pub trait RayonQueryPar<'a,T:Aabb>{
-    
-    fn par_find_colliding_pairs_ext<S: Splitter, F>(
-        &mut self,
-        num_switch_seq:usize,
-        func:F
-    )->S
+pub trait RayonQueryPar<'a, T: Aabb> {
+    fn par_find_colliding_pairs_ext<S: Splitter, F>(&mut self, num_switch_seq: usize, func: F) -> S
     where
         F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
         F: Send + Clone,
         S: Send,
         T: Send,
         T::Num: Send;
-    
-    
 }
 
-impl<'a,T:Aabb> RayonQueryPar<'a,T> for Tree<'a,T>{
-    fn par_find_colliding_pairs_ext<S: Splitter, F>(
-        &mut self,
-        num_switch_seq:usize,
-        func:F
-    )->S
+impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
+    fn par_find_colliding_pairs_ext<S: Splitter, F>(&mut self, num_switch_seq: usize, func: F) -> S
     where
         F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
         F: Send + Clone,
         S: Send,
         T: Send,
-        T::Num: Send
+        T::Num: Send,
     {
         let mut f = AccNodeHandler {
             acc: FloopDefault { func },
             prevec: PreVec::new(),
         };
         args.par_query(self.vistr_mut(), &mut f)
-        
     }
-
 }
 
-
-pub struct ParQuery{
-    pub num_seq_fallback:usize
+pub struct ParQuery {
+    pub num_seq_fallback: usize,
 }
-impl Default for ParQuery{
-    fn default()->Self{
-        ParQuery{
-            num_seq_fallback:SEQ_FALLBACK_DEFAULT
+impl Default for ParQuery {
+    fn default() -> Self {
+        ParQuery {
+            num_seq_fallback: SEQ_FALLBACK_DEFAULT,
         }
     }
 }
 
-
-
-impl PayQuery{
-    pub fn par_query<P,T: Aabb, SO>(mut self, splitter:P,vistr: VistrMutPin<Node<T>>, handler: &mut SO) -> P
+impl PayQuery {
+    pub fn par_query<P, T: Aabb, SO>(
+        mut self,
+        splitter: P,
+        vistr: VistrMutPin<Node<T>>,
+        handler: &mut SO,
+    ) -> P
     where
         P: Splitter,
         SO: NodeHandler<T>,
@@ -74,7 +73,6 @@ impl PayQuery{
         recurse_par(vv, &mut splitter, handler, self.num_seq_fallback);
         splitter
     }
-
 
     #[cfg(feature = "parallel")]
     pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
@@ -143,8 +141,6 @@ impl PayQuery{
         QueryArgs::new().par_query(self.vistr_mut(), &mut f);
         f.acc.acc
     }
-
-
 }
 
 fn recurse_par<T: Aabb, P: Splitter, SO: NodeHandler<T>>(
