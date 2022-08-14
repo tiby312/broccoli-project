@@ -1,18 +1,7 @@
 use super::*;
 use twounordered::TwoUnorderedVecs;
 
-#[derive(Clone)]
-pub struct FloopDefault<F> {
-    pub func: F,
-}
-impl<T: Aabb, F> CollisionHandler<T> for FloopDefault<F>
-where
-    F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-{
-    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(a, b)
-    }
-}
+
 
 #[derive(Clone)]
 pub struct AccNodeHandler<Acc> {
@@ -173,8 +162,9 @@ where
 
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+
         let mut f = AccNodeHandler {
-            acc: FloopDefault { func },
+            acc: func,
             prevec: PreVec::new(),
         };
         CollVis::new(self.vistr_mut()).recurse_seq(&mut f);

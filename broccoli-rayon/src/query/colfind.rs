@@ -2,7 +2,7 @@ use axgeom::AxisDyn;
 use broccoli::{
     queries::colfind::{
         build::{CollVis, CollisionHandler, HandleChildrenArgs, NodeHandler, PreVec},
-        AccNodeHandler, FloopDefault,
+        AccNodeHandler,
     },
     tree::{
         aabb_pin::AabbPin,
@@ -107,14 +107,14 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        fn recurse_par<T: Aabb, SO: NodeHandler<T>>(
+        fn recurse_par<T: Aabb, SO: NodeHandler<T>+Splitter>(
             vistr: CollVis<T>,
             handler: &mut SO,
             num_seq_fallback: usize,
         ) where
             T: Send,
             T::Num: Send,
-            SO: Splitter + Send,
+            SO:   Send,
         {
             if vistr.num_elem() <= num_seq_fallback {
                 vistr.recurse_seq(handler);
@@ -139,7 +139,7 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
 
         let mut f = AccNodeHandlerWrapper {
             inner: AccNodeHandler {
-                acc: FloopDefault { func },
+                acc:   func ,
                 prevec: PreVec::new(),
             },
             splitter: EmptySplitter,
