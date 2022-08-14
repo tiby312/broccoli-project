@@ -22,20 +22,24 @@ impl Splitter for EmptySplitter {
 }
 
 pub mod build{
-    pub fn recurse_seq_splitter<S: Sorter<T>, P: Splitter>(
-        self,
+    use broccoli::tree::{Sorter, node::{Node, Aabb, ManySwap}, build::{NodeBuildResult, TreeBuildVisitor}};
+
+    use crate::Splitter;
+
+    pub fn recurse_seq_splitter<'a,T:Aabb+ManySwap,S: Sorter<T>, P: Splitter>(
+        vistr: TreeBuildVisitor<'a, T>,
         splitter: &mut P,
         sorter: &mut S,
-        buffer: &mut Vec<Node<'a, T,T::Num>>
+        buffer: &mut Vec<Node<'a,T,T::Num>>
     ) {
-        let NodeBuildResult { node, rest } = self.build_and_next();
+        let NodeBuildResult { node, rest } = vistr.build_and_next();
         buffer.push(node.finish(sorter));
         if let Some([left, right]) = rest {
             let mut a = splitter.div();
 
-            left.recurse_seq(splitter, sorter, buffer);
+            recurse_seq_splitter(left,splitter, sorter, buffer);
 
-            right.recurse_seq(&mut a, sorter, buffer);
+            recurse_seq_splitter(right,&mut a, sorter, buffer);
             splitter.add(a);
         }
     }
@@ -44,26 +48,26 @@ pub mod build{
 
 pub mod query{
     pub mod colfind{
-        pub fn recurse_seq_splitter<P: Splitter, N: NodeHandler<T>>(
-            self,
+        use broccoli::{queries::colfind::build::{NodeHandler, CollVis}, tree::node::Aabb};
+
+        use crate::Splitter;
+
+        pub fn recurse_seq_splitter<T:Aabb,P: Splitter, N: NodeHandler<T>>(
+            vistr: CollVis<T>,
             splitter: &mut P,
             func: &mut N,
         ) {
-            let (n, rest) = self.collide_and_next(func);
+            let (n, rest) = vistr.collide_and_next(func);
 
             if let Some([left, right]) = rest {
                 let mut s2 = splitter.div();
                 n.finish(func);
-                left.recurse_seq_splitter( splitter, func);
-                right.recurse_seq_splitter( &mut s2, func);
+                recurse_seq_splitter(left, splitter, func);
+                recurse_seq_splitter(right, &mut s2, func);
                 splitter.add(s2);
             } else {
                 n.finish(func);
             }
         }
     }
-}
-
-fn main() {
-    println!("Hello, world!");
 }
