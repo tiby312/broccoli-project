@@ -1,8 +1,6 @@
 use super::*;
 use twounordered::TwoUnorderedVecs;
 
-
-
 #[derive(Clone)]
 pub struct AccNodeHandler<Acc> {
     pub acc: Acc,
@@ -162,7 +160,6 @@ where
 
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-
         let mut f = AccNodeHandler {
             acc: func,
             prevec: PreVec::new(),
