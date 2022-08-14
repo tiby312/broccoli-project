@@ -131,33 +131,3 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
 
 use crate::tree::splitter::{EmptySplitter, Splitter};
 
-
-pub fn query<P:Splitter,T: Aabb, SO>(mut splitter:P,vistr: VistrMutPin<Node<T,T::Num>>, handler: &mut SO) -> P
-where
-    SO: NodeHandler<T>,
-{
-
-    fn recurse_seq<T: Aabb, P: Splitter, SO: NodeHandler<T>>(
-        vistr: CollVis<T>,
-        splitter: &mut P,
-        func: &mut SO,
-    ) {
-        let (n, rest) = vistr.collide_and_next(func);
-
-        if let Some([left, right]) = rest {
-            let mut s2 = splitter.div();
-            n.finish(func);
-            recurse_seq(left, splitter, func);
-            recurse_seq(right, &mut s2, func);
-            splitter.add(s2);
-        } else {
-            n.finish(func);
-        }
-    }
-
-    let vv = CollVis::new(vistr);
-
-    recurse_seq(vv, &mut splitter, handler);
-    splitter
-}
-

@@ -164,30 +164,24 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
         Tree { nodes }
     }
 
+
     pub fn new(bots: &'a mut [T]) -> Self
     where
         T: ManySwap,
     {
         let num_level=num_level::default(bots.len());
-        Self::new_ext(bots,num_level,EmptySplitter).0
-    }
-
-    pub fn new_ext<P:Splitter>(bots: &'a mut [T],num_level:usize,mut splitter:P) -> (Self,P)
-    where
-        T: ManySwap,
-    {
+        
         let num_nodes=num_level::num_nodes(num_level);
         let mut nodes=Vec::with_capacity(num_nodes);
 
         TreeBuildVisitor::new(num_level, bots).recurse_seq(
-            &mut splitter,
             &mut DefaultSorter,
             &mut nodes
         );
 
         assert_eq!(num_nodes,nodes.len());
 
-        (Tree { nodes },splitter)
+        Tree { nodes }
     }
 
 
@@ -245,25 +239,18 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
         T: ManySwap,
     {
         let num_level=num_level::default(bots.len());
-        Self::new_ext(bots,num_level,EmptySplitter).0
-    }
-
-    pub fn new_ext<P:Splitter>(bots: &'a mut [T],num_level:usize,mut splitter:P) -> (Self,P)
-    where
-        T: ManySwap,
-    {
+        
         let num_nodes=num_level::num_nodes(num_level);
         let mut nodes=Vec::with_capacity(num_nodes);
 
         TreeBuildVisitor::new(num_level, bots).recurse_seq(
-            &mut splitter,
             &mut NoSorter,
             &mut nodes
         );
 
         assert_eq!(num_nodes,nodes.len());
 
-        (NotSortedTree { nodes },splitter)
+        NotSortedTree { nodes }
     }
 
     

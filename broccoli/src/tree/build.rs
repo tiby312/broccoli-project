@@ -260,21 +260,17 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
     }
 
 
-    pub fn recurse_seq<S: Sorter<T>, P: Splitter>(
+
+    pub fn recurse_seq<S: Sorter<T>>(
         self,
-        splitter: &mut P,
         sorter: &mut S,
         buffer: &mut Vec<Node<'a, T,T::Num>>
     ) {
         let NodeBuildResult { node, rest } = self.build_and_next();
         buffer.push(node.finish(sorter));
         if let Some([left, right]) = rest {
-            let mut a = splitter.div();
-
-            left.recurse_seq(splitter, sorter, buffer);
-
-            right.recurse_seq(&mut a, sorter, buffer);
-            splitter.add(a);
+            left.recurse_seq( sorter, buffer);
+            right.recurse_seq( sorter, buffer);
         }
     }
 

@@ -168,19 +168,17 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
         )
     }
 
-    pub fn recurse_seq<N: NodeHandler<T>>(self, handler: &mut N) {
-        self.recurse_seq_inner(handler)
-    }
 
-    fn recurse_seq_inner<N: NodeHandler<T>>(self, handler: &mut N) {
+    pub fn recurse_seq<N: NodeHandler<T>>(self, handler: &mut N) {
         let (n, rest) = self.collide_and_next(handler);
 
         n.finish(handler);
         if let Some([a, b]) = rest {
-            a.recurse_seq_inner(handler);
-            b.recurse_seq_inner(handler);
+            a.recurse_seq(handler);
+            b.recurse_seq(handler);
         }
     }
+
 }
 
 //remove need for second lifetime
