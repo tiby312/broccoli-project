@@ -1,7 +1,7 @@
 use axgeom::AxisDyn;
 use broccoli::{
     queries::colfind::{
-        build::{CollVis, CollisionHandler, HandleChildrenArgs, NodeHandler, PreVec},
+        build::{CollVis, CollisionHandler, HandleChildrenArgs, NodeHandler},
         AccNodeHandler,
     },
     tree::{aabb_pin::AabbPin, node::Aabb},
@@ -87,15 +87,12 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
         // f.acc.acc
 
         let mut f = AccNodeHandlerEmptySplitter {
-            inner: AccNodeHandler {
-                acc: floop,
-                prevec: PreVec::new(),
-            },
+            inner: AccNodeHandler::new(floop),
         };
 
         let vv = CollVis::new(self.vistr_mut());
         recurse_par(vv, &mut f, SEQ_FALLBACK_DEFAULT);
-        f.inner.acc.acc
+        f.inner.into_acc().acc
     }
 
     fn par_find_colliding_pairs<F>(&mut self, func: F)
@@ -115,10 +112,7 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
         T::Num: Send,
     {
         let mut f = AccNodeHandlerEmptySplitter {
-            inner: AccNodeHandler {
-                acc: FloopDefault { func },
-                prevec: PreVec::new(),
-            },
+            inner: AccNodeHandler::new(FloopDefault { func }),
         };
 
         let vv = CollVis::new(self.vistr_mut());
@@ -226,15 +220,12 @@ where
 impl<Acc: Splitter> Splitter for AccNodeHandlerEmptySplitter<Acc> {
     fn div(&mut self) -> Self {
         AccNodeHandlerEmptySplitter {
-            inner: AccNodeHandler {
-                acc: self.inner.acc.div(),
-                prevec: PreVec::new(),
-            },
+            inner: AccNodeHandler::new(self.inner.acc_mut().div()),
         }
     }
 
     fn add(&mut self, b: Self) {
-        self.inner.acc.add(b.inner.acc);
+        self.inner.acc_mut().add(b.inner.into_acc());
     }
 }
 

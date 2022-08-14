@@ -1,4 +1,4 @@
-use support::prelude::tree::splitter::Splitter;
+use crate::splitter::Splitter;
 
 use std::time::Instant;
 #[derive(Debug)]

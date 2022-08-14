@@ -1,4 +1,6 @@
-use support::{datanum::DnumManager, prelude::tree::splitter::Splitter};
+use support::datanum::DnumManager;
+
+use crate::splitter::Splitter;
 
 #[derive(Debug)]
 pub struct Single {

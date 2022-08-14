@@ -3,8 +3,23 @@ use twounordered::TwoUnorderedVecs;
 
 #[derive(Clone)]
 pub struct AccNodeHandler<Acc> {
-    pub acc: Acc,
-    pub prevec: PreVec,
+    acc: Acc,
+    prevec: PreVec,
+}
+
+impl<Acc> AccNodeHandler<Acc> {
+    pub fn into_acc(self) -> Acc {
+        self.acc
+    }
+    pub fn acc_mut(&mut self) -> &mut Acc {
+        &mut self.acc
+    }
+    pub fn new(acc: Acc) -> Self {
+        AccNodeHandler {
+            acc,
+            prevec: PreVec::new(),
+        }
+    }
 }
 
 impl<T: Aabb, Acc> NodeHandler<T> for AccNodeHandler<Acc>

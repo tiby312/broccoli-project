@@ -1,3 +1,5 @@
+use support::broccoli;
+
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
 ///during construction.
@@ -19,13 +21,12 @@ impl Splitter for EmptySplitter {
 }
 
 pub mod build {
+    use super::*;
     use broccoli::tree::{
         build::{NodeBuildResult, TreeBuildVisitor},
         node::{Aabb, ManySwap, Node},
         Sorter,
     };
-
-    use crate::Splitter;
 
     pub fn recurse_seq_splitter<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(
         vistr: TreeBuildVisitor<'a, T>,
@@ -47,13 +48,13 @@ pub mod build {
 }
 
 pub mod query {
+    use super::*;
     pub mod colfind {
+        use super::*;
         use broccoli::{
             queries::colfind::build::{CollVis, NodeHandler},
             tree::node::Aabb,
         };
-
-        use crate::Splitter;
 
         pub fn recurse_seq_splitter<T: Aabb, P: Splitter, N: NodeHandler<T>>(
             vistr: CollVis<T>,
