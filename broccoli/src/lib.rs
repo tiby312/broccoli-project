@@ -54,8 +54,6 @@
     html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
 )]
-
-
 #![forbid(unsafe_code)]
 
 #[cfg(doctest)]
