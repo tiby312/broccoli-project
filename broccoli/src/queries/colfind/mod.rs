@@ -6,8 +6,7 @@ use super::tools;
 use super::*;
 pub mod build;
 use build::*;
-mod handler;
-pub use handler::AccNodeHandler;
+pub mod handler;
 
 impl<'a, T: Aabb> Assert<'a, T> {
     ///Panics if a disconnect is detected between all colfind methods.

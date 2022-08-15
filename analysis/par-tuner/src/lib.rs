@@ -1,4 +1,4 @@
-use broccoli_rayon::build::RayonBuildPar;
+use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
 use support::prelude::*;
 
 fn single<T: ColfindHandler>(
@@ -19,8 +19,7 @@ where
         broccoli_rayon::build::SEQ_FALLBACK_DEFAULT
     };
     let num_level = broccoli::tree::num_level::default(bots.len());
-    let (mut tree, cpar) =
-        bench_closure_ret(|| broccoli::Tree::par_new_ext(bots, num_level, sss).0);
+    let (mut tree, cpar) = bench_closure_ret(|| broccoli::Tree::par_new_ext(bots, num_level, sss));
 
     let cspeedup = cseq as f64 / cpar as f64;
 

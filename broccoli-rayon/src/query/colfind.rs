@@ -2,10 +2,10 @@ use axgeom::AxisDyn;
 use broccoli::{
     queries::colfind::{
         build::{CollVis, CollisionHandler, HandleChildrenArgs, NodeHandler},
-        AccNodeHandler,
+        handler::{AccNodeHandler, NoSortNodeHandler},
     },
     tree::{aabb_pin::AabbPin, node::Aabb},
-    Tree,
+    NotSortedTree, Tree,
 };
 
 use crate::Splitter;
@@ -113,6 +113,50 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
     }
 }
 
+impl<'a, T: Aabb> RayonQueryPar<'a, T> for NotSortedTree<'a, T> {
+    fn par_find_colliding_pairs_acc_closure<Acc, A, B, F>(
+        &mut self,
+        acc: Acc,
+        div: A,
+        add: B,
+        func: F,
+    ) -> Acc
+    where
+        A: FnMut(&mut Acc) -> Acc + Clone + Send,
+        B: FnMut(&mut Acc, Acc) + Clone + Send,
+        F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
+        Acc: Send,
+        T: Send,
+        T::Num: Send,
+    {
+        unimplemented!();
+    }
+
+    fn par_find_colliding_pairs<F>(&mut self, func: F)
+    where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+        F: Send + Clone,
+        T: Send,
+        T::Num: Send,
+    {
+        self.par_find_colliding_pairs_ext(SEQ_FALLBACK_DEFAULT, func);
+    }
+    fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
+    where
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+        F: Send + Clone,
+        T: Send,
+        T::Num: Send,
+    {
+        let mut f = AccNodeHandlerEmptySplitter {
+            inner: AccNodeHandler::new(FloopDefault { func }),
+        };
+
+        let vv = CollVis::new(self.vistr_mut());
+        recurse_par(vv, &mut f, num_switch_seq);
+    }
+}
+
 struct FloopDefault<F> {
     pub func: F,
 }
@@ -189,6 +233,34 @@ impl<K, A: FnMut(&mut K) -> K + Clone, B: FnMut(&mut K, K) + Clone, F: Clone> Sp
     fn add(&mut self, b: Self) {
         (self.add)(&mut self.acc, b.acc)
     }
+}
+
+pub struct NoSortNodeHandlerEmptySplitter<F> {
+    inner: NoSortNodeHandler<F>,
+}
+
+impl<T: Aabb, Acc> NodeHandler<T> for NoSortNodeHandlerEmptySplitter<Acc>
+where
+    Acc: CollisionHandler<T>,
+{
+    #[inline(always)]
+    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
+        self.inner.handle_node(axis, bots, is_leaf)
+    }
+
+    #[inline(always)]
+    fn handle_children(&mut self, f: HandleChildrenArgs<T>, is_left: bool) {
+        self.inner.handle_children(f, is_left)
+    }
+}
+impl<Acc: Clone> Splitter for NoSortNodeHandlerEmptySplitter<Acc> {
+    fn div(&mut self) -> Self {
+        NoSortNodeHandlerEmptySplitter {
+            inner: self.inner.clone(),
+        }
+    }
+
+    fn add(&mut self, b: Self) {}
 }
 
 /// Wrapper that impl Splitter

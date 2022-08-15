@@ -190,21 +190,21 @@ impl<T: Aabb> NotSortedTree<'_, T> {
 }
 
 #[derive(Clone)]
-struct NoSortNodeHandler<F> {
+pub struct NoSortNodeHandler<F> {
     pub func: F,
 }
 impl<F> NoSortNodeHandler<F> {
     pub fn new<T: Aabb>(func: F) -> Self
     where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+        F: CollisionHandler<T>,
     {
         NoSortNodeHandler { func }
     }
 }
 
-impl<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)> NodeHandler<T> for NoSortNodeHandler<F> {
+impl<T: Aabb, F: CollisionHandler<T>> NodeHandler<T> for NoSortNodeHandler<F> {
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        fn foop<T: Aabb, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
+        fn foop<T: Aabb, F: CollisionHandler<T>>(
             func: &mut F,
             axis: impl Axis,
             bots: AabbPin<&mut [T]>,

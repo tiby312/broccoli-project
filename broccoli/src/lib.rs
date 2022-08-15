@@ -226,6 +226,9 @@ pub struct NotSortedTree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb> NotSortedTree<'a, T> {
+    pub fn from_nodes(nodes: Vec<Node<'a, T, T::Num>>) -> Self {
+        NotSortedTree { nodes }
+    }
     pub fn new(bots: &'a mut [T]) -> Self
     where
         T: ManySwap,
