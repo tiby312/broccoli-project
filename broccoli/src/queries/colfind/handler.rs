@@ -175,11 +175,7 @@ where
 
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        let mut f = AccNodeHandler {
-            acc: func,
-            prevec: PreVec::new(),
-        };
-        CollVis::new(self.vistr_mut()).recurse_seq(&mut f);
+        CollVis::new(self.vistr_mut()).recurse_seq(&mut AccNodeHandler::new(func));
     }
 }
 
