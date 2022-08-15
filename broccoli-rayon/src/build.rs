@@ -1,10 +1,10 @@
 use broccoli::{
     tree::{
-        build::{DefaultSorter, NoSorter, NodeBuildResult, TreeBuildVisitor},
+        build::{DefaultSorter, NodeBuildResult, TreeBuildVisitor},
         node::{Aabb, ManySwap, Node},
         Sorter,
     },
-    NotSortedTree, Tree,
+    Tree,
 };
 
 use broccoli::tree::num_level;
@@ -17,8 +17,8 @@ pub trait RayonBuildPar<'a, T: Aabb> {
 }
 
 pub struct SorterWrapper<S, P> {
-    sorter: S,
-    splitter: P,
+    pub sorter: S,
+    pub splitter: P,
 }
 impl<T: Aabb, S: Sorter<T>, P> Sorter<T> for SorterWrapper<S, P> {
     fn sort(&self, axis: impl axgeom::Axis, bots: &mut [T]) {
@@ -64,31 +64,6 @@ where
     }
 }
 
-impl<'a, T: Aabb + ManySwap> RayonBuildPar<'a, T> for NotSortedTree<'a, T>
-where
-    T: Send,
-    T::Num: Send,
-{
-    fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self {
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
-        recurse_par(
-            num_seq_fallback,
-            &mut SorterWrapper {
-                sorter: NoSorter,
-                splitter: EmptySplitter,
-            },
-            &mut buffer,
-            TreeBuildVisitor::new(num_level, bots),
-        );
-        NotSortedTree::from_nodes(buffer)
-    }
-
-    fn par_new(bots: &'a mut [T]) -> Self {
-        let num_level = num_level::default(bots.len());
-        Self::par_new_ext(bots, num_level, SEQ_FALLBACK_DEFAULT)
-    }
-}
-
 pub const SEQ_FALLBACK_DEFAULT: usize = 512;
 
 // we want to pass small chunks so that if a slow core
@@ -101,7 +76,7 @@ pub const SEQ_FALLBACK_DEFAULT: usize = 512;
 // the problem size is big enough such that there
 // are many chunks.
 
-fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Splitter>(
+pub fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Splitter>(
     num_seq_fallback: usize,
     sorter: &mut S,
     buffer: &mut Vec<Node<'a, T, T::Num>>,

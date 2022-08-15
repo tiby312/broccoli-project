@@ -3,17 +3,11 @@ use twounordered::TwoUnorderedVecs;
 
 #[derive(Clone)]
 pub struct AccNodeHandler<Acc> {
-    acc: Acc,
+    pub acc: Acc,
     prevec: PreVec,
 }
 
 impl<Acc> AccNodeHandler<Acc> {
-    pub fn into_acc(self) -> Acc {
-        self.acc
-    }
-    pub fn acc_mut(&mut self) -> &mut Acc {
-        &mut self.acc
-    }
     pub fn new(acc: Acc) -> Self {
         AccNodeHandler {
             acc,
@@ -176,72 +170,5 @@ where
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
         CollVis::new(self.vistr_mut()).recurse_seq(&mut AccNodeHandler::new(func));
-    }
-}
-
-impl<T: Aabb> NotSortedTree<'_, T> {
-    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        CollVis::new(self.vistr_mut()).recurse_seq(&mut NoSortNodeHandler::new(func));
-    }
-}
-
-#[derive(Clone)]
-pub struct NoSortNodeHandler<F> {
-    pub func: F,
-}
-impl<F> NoSortNodeHandler<F> {
-    pub fn new<T: Aabb>(func: F) -> Self
-    where
-        F: CollisionHandler<T>,
-    {
-        NoSortNodeHandler { func }
-    }
-}
-
-impl<T: Aabb, F: CollisionHandler<T>> NodeHandler<T> for NoSortNodeHandler<F> {
-    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        fn foop<T: Aabb, F: CollisionHandler<T>>(
-            func: &mut F,
-            axis: impl Axis,
-            bots: AabbPin<&mut [T]>,
-            is_leaf: bool,
-        ) {
-            if !is_leaf {
-                queries::for_every_pair(bots, move |a, b| {
-                    if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
-                        func.collide(a, b);
-                    }
-                });
-            } else {
-                queries::for_every_pair(bots, move |a, b| {
-                    if a.get().intersects_rect(b.get()) {
-                        func.collide(a, b);
-                    }
-                });
-            }
-        }
-
-        match axis.next() {
-            AxisDyn::X => foop(&mut self.func, XAXIS, bots, is_leaf),
-            AxisDyn::Y => foop(&mut self.func, YAXIS, bots, is_leaf),
-        }
-    }
-
-    fn handle_children(&mut self, mut f: HandleChildrenArgs<T>, _is_left: bool) {
-        let res = if !f.current_axis.is_equal_to(f.anchor_axis) {
-            true
-        } else {
-            f.current.cont.intersects(f.anchor.cont)
-        };
-
-        if res {
-            for mut a in f.current.range.iter_mut() {
-                for mut b in f.anchor.range.borrow_mut().iter_mut() {
-                    if a.get().intersects_rect(b.get()) {
-                        self.func.collide(a.borrow_mut(), b.borrow_mut());
-                    }
-                }
-            }
-        }
     }
 }

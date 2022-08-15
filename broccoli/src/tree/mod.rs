@@ -3,19 +3,14 @@
 //!
 
 use super::*;
-pub mod aabb_pin;
-mod assert;
 pub mod build;
 pub mod node;
-pub mod splitter;
-pub mod util;
 
 use axgeom;
 
 use aabb_pin::*;
 
 use axgeom::*;
-use compt::Visitor;
 use node::*;
 
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.

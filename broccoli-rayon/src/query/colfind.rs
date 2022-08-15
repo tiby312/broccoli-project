@@ -1,27 +1,15 @@
 use axgeom::AxisDyn;
 use broccoli::{
+    aabb_pin::AabbPin,
     queries::colfind::{
         build::{CollVis, CollisionHandler, HandleChildrenArgs, NodeHandler},
-        handler::{AccNodeHandler, NoSortNodeHandler},
+        handler::AccNodeHandler,
     },
-    tree::{aabb_pin::AabbPin, node::Aabb},
-    NotSortedTree, Tree,
+    tree::node::Aabb,
+    Tree,
 };
 
 use crate::Splitter;
-
-// struct Floop<K, F> {
-//     acc: K,
-//     func: F,
-// }
-// impl<T: Aabb, K, F> CollisionHandler<T> for Floop<K, F>
-// where
-//     F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
-// {
-//     fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-//         (self.func)(&mut self.acc, a, b)
-//     }
-// }
 
 pub const SEQ_FALLBACK_DEFAULT: usize = 512;
 
@@ -85,51 +73,7 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
 
         let vv = CollVis::new(self.vistr_mut());
         recurse_par(vv, &mut f, SEQ_FALLBACK_DEFAULT);
-        f.inner.into_acc().acc
-    }
-
-    fn par_find_colliding_pairs<F>(&mut self, func: F)
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-        F: Send + Clone,
-        T: Send,
-        T::Num: Send,
-    {
-        self.par_find_colliding_pairs_ext(SEQ_FALLBACK_DEFAULT, func);
-    }
-    fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-        F: Send + Clone,
-        T: Send,
-        T::Num: Send,
-    {
-        let mut f = AccNodeHandlerEmptySplitter {
-            inner: AccNodeHandler::new(FloopDefault { func }),
-        };
-
-        let vv = CollVis::new(self.vistr_mut());
-        recurse_par(vv, &mut f, num_switch_seq);
-    }
-}
-
-impl<'a, T: Aabb> RayonQueryPar<'a, T> for NotSortedTree<'a, T> {
-    fn par_find_colliding_pairs_acc_closure<Acc, A, B, F>(
-        &mut self,
-        _acc: Acc,
-        _div: A,
-        _add: B,
-        _func: F,
-    ) -> Acc
-    where
-        A: FnMut(&mut Acc) -> Acc + Clone + Send,
-        B: FnMut(&mut Acc, Acc) + Clone + Send,
-        F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
-        Acc: Send,
-        T: Send,
-        T::Num: Send,
-    {
-        unimplemented!();
+        f.inner.acc.acc
     }
 
     fn par_find_colliding_pairs<F>(&mut self, func: F)
@@ -235,34 +179,6 @@ impl<K, A: FnMut(&mut K) -> K + Clone, B: FnMut(&mut K, K) + Clone, F: Clone> Sp
     }
 }
 
-pub struct NoSortNodeHandlerEmptySplitter<F> {
-    inner: NoSortNodeHandler<F>,
-}
-
-impl<T: Aabb, Acc> NodeHandler<T> for NoSortNodeHandlerEmptySplitter<Acc>
-where
-    Acc: CollisionHandler<T>,
-{
-    #[inline(always)]
-    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        self.inner.handle_node(axis, bots, is_leaf)
-    }
-
-    #[inline(always)]
-    fn handle_children(&mut self, f: HandleChildrenArgs<T>, is_left: bool) {
-        self.inner.handle_children(f, is_left)
-    }
-}
-impl<Acc: Clone> Splitter for NoSortNodeHandlerEmptySplitter<Acc> {
-    fn div(&mut self) -> Self {
-        NoSortNodeHandlerEmptySplitter {
-            inner: self.inner.clone(),
-        }
-    }
-
-    fn add(&mut self, _b: Self) {}
-}
-
 /// Wrapper that impl Splitter
 pub struct AccNodeHandlerEmptySplitter<Acc> {
     inner: AccNodeHandler<Acc>,
@@ -285,116 +201,16 @@ where
 impl<Acc: Splitter> Splitter for AccNodeHandlerEmptySplitter<Acc> {
     fn div(&mut self) -> Self {
         AccNodeHandlerEmptySplitter {
-            inner: AccNodeHandler::new(self.inner.acc_mut().div()),
+            inner: AccNodeHandler::new(self.inner.acc.div()),
         }
     }
 
     fn add(&mut self, b: Self) {
-        self.inner.acc_mut().add(b.inner.into_acc());
+        self.inner.acc.add(b.inner.acc);
     }
 }
 
-// pub struct ParQuery {
-//     pub num_seq_fallback: usize,
-// }
-// impl Default for ParQuery {
-//     fn default() -> Self {
-//         ParQuery {
-//             num_seq_fallback: SEQ_FALLBACK_DEFAULT,
-//         }
-//     }
-// }
-
-// impl ParQuery {
-//     pub fn par_query<P, T: Aabb, SO>(
-//         mut self,
-//         splitter: P,
-//         vistr: VistrMutPin<Node<T,T::Num>>,
-//         handler: &mut SO,
-//     ) -> P
-//     where
-//         P: Splitter,
-//         SO: NodeHandler<T>,
-//         T: Send,
-//         T::Num: Send,
-//         SO: Splitter + Send,
-//         P: Send,
-//     {
-//         let vv = CollVis::new(vistr);
-//         recurse_par(vv, &mut splitter, handler, self.num_seq_fallback);
-//         splitter
-//     }
-
-//     #[cfg(feature = "parallel")]
-//     pub fn par_find_colliding_pairs_from_args<S: Splitter, F>(
-//         &mut self,
-//         args: QueryArgs<S>,
-//         func: F,
-//     ) -> S
-//     where
-//         F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-//         F: Send + Clone,
-//         S: Send,
-//         T: Send,
-//         T::Num: Send,
-//     {
-//         let mut f = AccNodeHandler {
-//             acc: FloopDefault { func },
-//             prevec: PreVec::new(),
-//         };
-//         args.par_query(self.vistr_mut(), &mut f)
-//     }
-
-//     #[cfg(feature = "parallel")]
-//     pub fn par_find_colliding_pairs_acc<Acc: Splitter, F>(&mut self, acc: Acc, func: F) -> Acc
-//     where
-//         F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
-//         Acc: Splitter + Send,
-//         T: Send,
-//         T::Num: Send,
-//     {
-//         let floop = Floop { acc, func };
-//         let mut f = AccNodeHandler {
-//             acc: floop,
-//             prevec: PreVec::new(),
-//         };
-//         QueryArgs::new().par_query(self.vistr_mut(), &mut f);
-//         f.acc.acc
-//     }
-
-//     #[cfg(feature = "parallel")]
-//     pub fn par_find_colliding_pairs_acc_closure<Acc, A, B, F>(
-//         &mut self,
-//         acc: Acc,
-//         div: A,
-//         add: B,
-//         func: F,
-//     ) -> Acc
-//     where
-//         A: FnMut(&mut Acc) -> Acc + Clone + Send,
-//         B: FnMut(&mut Acc, Acc) + Clone + Send,
-//         F: FnMut(&mut Acc, AabbPin<&mut T>, AabbPin<&mut T>) + Clone + Send,
-//         Acc: Send,
-//         T: Send,
-//         T::Num: Send,
-//     {
-//         let floop = FloopClosure {
-//             acc,
-//             div,
-//             add,
-//             func,
-//         };
-
-//         let mut f = AccNodeHandler {
-//             acc: floop,
-//             prevec: PreVec::new(),
-//         };
-//         QueryArgs::new().par_query(self.vistr_mut(), &mut f);
-//         f.acc.acc
-//     }
-// }
-
-fn recurse_par<T: Aabb, SO: NodeHandler<T> + Splitter>(
+pub fn recurse_par<T: Aabb, SO: NodeHandler<T> + Splitter>(
     vistr: CollVis<T>,
     handler: &mut SO,
     num_seq_fallback: usize,

@@ -1,7 +1,4 @@
-use crate::{
-    tree::{aabb_pin::HasInner, node::Aabb},
-    Tree,
-};
+use crate::{aabb_pin::HasInner, tree::node::Aabb, Tree};
 
 ///
 /// Used by [`CacheSession::cache_colliding_pairs()`]

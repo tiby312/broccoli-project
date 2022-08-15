@@ -262,18 +262,21 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
     }
 }
 
-impl<'a, T: Aabb> Naive<'a, T> {
-    pub fn handle_nbody<N: Nbody<T = T>>(&mut self, no: &mut N) {
-        ///Naive version simply visits every pair.
-        pub fn naive_nbody_mut<T: Aabb>(
-            bots: AabbPin<&mut [T]>,
-            func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-        ) {
-            queries::for_every_pair(bots, func);
-        }
+mod assert {
+    use super::*;
+    impl<'a, T: Aabb> Naive<'a, T> {
+        pub fn handle_nbody<N: Nbody<T = T>>(&mut self, no: &mut N) {
+            ///Naive version simply visits every pair.
+            pub fn naive_nbody_mut<T: Aabb>(
+                bots: AabbPin<&mut [T]>,
+                func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+            ) {
+                queries::for_every_pair(bots, func);
+            }
 
-        naive_nbody_mut(self.inner.borrow_mut(), |a, b| {
-            no.gravitate(GravEnum::Bot(a.into_slice()), GravEnum::Bot(b.into_slice()));
-        });
+            naive_nbody_mut(self.inner.borrow_mut(), |a, b| {
+                no.gravitate(GravEnum::Bot(a.into_slice()), GravEnum::Bot(b.into_slice()));
+            });
+        }
     }
 }

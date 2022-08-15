@@ -1,4 +1,4 @@
-use broccoli::tree::{aabb_pin::AabbPin, rect};
+use broccoli::{aabb_pin::AabbPin, tree::rect};
 
 fn main() {
     let mut inner1 = 4;
@@ -22,5 +22,5 @@ fn main() {
     assert_eq!(rect_collisions[0].0, rect(0, 10, 0, 10));
     assert_eq!(*rect_collisions[0].1, 4);
 
-    tree.assert_tree_invariants();
+    broccoli::assert::assert_tree_invariants(&tree);
 }

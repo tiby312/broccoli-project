@@ -1,6 +1,6 @@
 use axgeom::*;
+use broccoli::assert::Assert;
 use broccoli::tree::node::*;
-use broccoli::Assert;
 use compt::*;
 
 ///Convenience function to create a `(Rect<N>,&mut T)` from a `T` and a Rect<N> generating function.

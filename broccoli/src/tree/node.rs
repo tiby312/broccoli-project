@@ -241,9 +241,7 @@ mod vistr_mut {
 
     impl<'a, N> VistrMutPin<'a, N> {
         #[inline(always)]
-        pub(crate) fn new(
-            inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
-        ) -> Self {
+        pub fn new(inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>) -> Self {
             VistrMutPin { inner }
         }
         /// It is safe to borrow the iterator and then produce mutable references from that

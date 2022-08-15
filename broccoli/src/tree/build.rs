@@ -277,10 +277,3 @@ impl<T: Aabb> Sorter<T> for DefaultSorter {
         crate::util::sweeper_update(axis, bots);
     }
 }
-
-#[derive(Copy, Clone, Default)]
-pub struct NoSorter;
-
-impl<T: Aabb> Sorter<T> for NoSorter {
-    fn sort(&self, _axis: impl Axis, _bots: &mut [T]) {}
-}

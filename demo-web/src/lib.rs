@@ -7,9 +7,9 @@ mod demos;
 mod support;
 
 pub use crate::dists::*;
+use broccoli::aabb_pin::AabbPin;
 pub use broccoli::axgeom;
 pub use broccoli::axgeom::*;
-use broccoli::tree::aabb_pin::AabbPin;
 pub use broccoli::tree::bbox;
 pub use broccoli::tree::node::*;
 pub use broccoli::tree::*;

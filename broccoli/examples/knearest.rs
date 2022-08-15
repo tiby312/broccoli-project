@@ -33,7 +33,7 @@ fn main() {
 
     let foo: Vec<_> = res.iter().map(|a| *a[0].bot.1).collect();
 
-    tree.assert_tree_invariants();
+    broccoli::assert::assert_tree_invariants(&tree);
 
     assert_eq!(foo, vec![vec2(7, 7), vec2(5, 5)])
 }
