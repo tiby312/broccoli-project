@@ -1,3 +1,6 @@
+
+#![forbid(unsafe_code)]
+
 pub mod build;
 pub mod query;
 

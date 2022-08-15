@@ -55,6 +55,9 @@
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
 )]
 
+
+#![forbid(unsafe_code)]
+
 #[cfg(doctest)]
 mod test_readme {
     macro_rules! external_doc_test {
@@ -79,8 +82,6 @@ use aabb_pin::AabbPinIter;
 use tree::build::*;
 use tree::node::*;
 use tree::*;
-
-pub mod ext;
 
 #[cfg(test)]
 mod tests;
