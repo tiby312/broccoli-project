@@ -23,7 +23,7 @@ pub fn new_record<T: ColfindHandler>(
 
     let c2 = if naive {
         recorder.time(|| {
-            Naive::new(bots).find_colliding_pairs(T::handle);
+            assert::Naive::new(bots).find_colliding_pairs(T::handle);
         })
     } else {
         0
@@ -31,7 +31,7 @@ pub fn new_record<T: ColfindHandler>(
 
     let c3 = if sweep {
         recorder.time(|| {
-            broccoli::SweepAndPrune::new(bots).find_colliding_pairs(T::handle);
+            sweep::SweepAndPrune::new(bots).find_colliding_pairs(T::handle);
         })
     } else {
         0
@@ -39,7 +39,7 @@ pub fn new_record<T: ColfindHandler>(
 
     let c4 = if nosort {
         recorder.time(|| {
-            let _tree = NotSortedTree::new(bots).find_colliding_pairs(T::handle);
+            let _tree = not_sorted::NotSortedTree::new(bots).find_colliding_pairs(T::handle);
         })
     } else {
         0

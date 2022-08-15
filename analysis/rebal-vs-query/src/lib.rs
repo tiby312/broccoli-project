@@ -1,3 +1,4 @@
+use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
 use support::prelude::*;
 
 pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
@@ -172,7 +173,7 @@ fn new_record_theory<T: ColfindHandler>(bots: &mut [T], man: &mut DnumManager) -
     });
     */
 
-    let (mut tree, notree1) = recorder.time_ext(|| broccoli::NotSortedTree::new(bots));
+    let (mut tree, notree1) = recorder.time_ext(|| not_sorted::NotSortedTree::new(bots));
 
     let notree2 = recorder.time(|| {
         tree.find_colliding_pairs(T::handle);
@@ -219,7 +220,7 @@ where
     });
     */
 
-    let (mut tree, notree1) = recorder.time_ext(|| broccoli::NotSortedTree::new(bots));
+    let (mut tree, notree1) = recorder.time_ext(|| not_sorted::NotSortedTree::new(bots));
 
     let notree2 = recorder.time(|| {
         tree.find_colliding_pairs(T::handle);

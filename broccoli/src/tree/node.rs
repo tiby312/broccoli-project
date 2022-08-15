@@ -46,7 +46,7 @@ impl<N: Num> Aabb for Rect<N> {
         self
     }
 }
-impl< N> ManySwap for Rect<N> {}
+impl<N> ManySwap for Rect<N> {}
 impl<'a, N> ManySwap for &'a mut Rect<N> {}
 
 impl<'a, N, T> ManySwap for &'a mut (Rect<N>, T) {}
@@ -241,9 +241,7 @@ mod vistr_mut {
 
     impl<'a, N> VistrMutPin<'a, N> {
         #[inline(always)]
-        pub(crate) fn new(
-            inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>,
-        ) -> Self {
+        pub fn new(inner: compt::dfs_order::VistrMut<'a, N, compt::dfs_order::PreOrder>) -> Self {
             VistrMutPin { inner }
         }
         /// It is safe to borrow the iterator and then produce mutable references from that
@@ -294,20 +292,21 @@ mod vistr_mut {
 }
 pub use vistr_mut::VistrMutPin;
 
-pub struct Node<'a, T: Aabb> {
+//TODO remove AAbb constraint. Instead use Node<T,N>
+pub struct Node<'a, T, N> {
     /// May or may not be sorted.
     pub range: AabbPin<&'a mut [T]>,
 
     /// if range is empty, then value is `[default,default]`.
     /// if range is not empty, then cont is the min max bounds in on the y axis (if the node belongs to the x axis).
-    pub cont: axgeom::Range<T::Num>,
+    pub cont: axgeom::Range<N>,
 
     /// for non leafs:
     ///   if there is a bot either in this node or in a child node, then div is some.
     ///
     /// for leafs:
     ///   value is none
-    pub div: Option<T::Num>,
+    pub div: Option<N>,
 
     ///
     /// The minimum number of elements in a child node.
@@ -323,12 +322,12 @@ pub struct Node<'a, T: Aabb> {
 
     pub num_elem: usize,
 }
-impl<'a, T: Aabb> Node<'a, T> {
+impl<'a, T, N: Num> Node<'a, T, N> {
     pub fn borrow_range(&mut self) -> AabbPin<&mut [T]> {
         self.range.borrow_mut()
     }
 
-    pub fn as_data(&self) -> NodeData<T::Num> {
+    pub fn as_data(&self) -> NodeData<N> {
         NodeData {
             range: self.range.len(),
             cont: self.cont,

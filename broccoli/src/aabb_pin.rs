@@ -130,7 +130,7 @@ pub struct NodeRef<'a, T: Aabb> {
     pub range: AabbPin<&'a mut [T]>,
 }
 
-impl<'a, 'b: 'a, T: Aabb> AabbPin<&'a mut Node<'b, T>> {
+impl<'a, 'b: 'a, T: Aabb> AabbPin<&'a mut Node<'b, T, T::Num>> {
     /// Destructure a node into its three parts.
     #[inline(always)]
     pub fn into_node_ref(self) -> NodeRef<'a, T> {

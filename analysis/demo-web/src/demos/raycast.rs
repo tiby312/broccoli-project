@@ -1,7 +1,7 @@
 use super::*;
 
 use axgeom::Ray;
-use broccoli::Assert;
+use broccoli::assert::Assert;
 
 struct MyRaycast {
     radius: f32,

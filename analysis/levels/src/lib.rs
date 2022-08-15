@@ -1,5 +1,6 @@
 use support::datanum::DnumManager;
-use support::prelude::tree::BuildArgs;
+use support::prelude::queries::colfind::build::CollVis;
+use support::prelude::queries::colfind::handler::AccNodeHandler;
 use support::prelude::*;
 
 use self::levelcounter::LevelCounter;
@@ -7,8 +8,8 @@ use self::leveltimer::LevelTimer;
 
 mod levelcounter;
 mod leveltimer;
-
-use broccoli::queries::colfind::QueryArgs;
+mod splitter;
+// use broccoli::queries::colfind::QueryArgs;
 
 struct Res<X> {
     pub rebal: Vec<X>,
@@ -133,6 +134,10 @@ fn bench_inner(num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, Res<f64>
         .collect()
 }
 
+use broccoli::tree::build::DefaultSorter;
+use broccoli::tree::build::TreeBuildVisitor;
+use broccoli::tree::num_level;
+
 fn theory_inner(
     man: &mut DnumManager,
     num: usize,
@@ -154,11 +159,26 @@ fn theory_inner(
 fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i128> {
     man.reset_counter();
 
-    let len = bots.len();
-    let (mut tree, levelc) = Tree::from_build_args(
-        bots,
-        BuildArgs::new(len).with_splitter(LevelCounter::new(man, 0, vec![])),
-    );
+    let mut levelc = LevelCounter::new(man, 0, vec![]);
+    let mut tree = {
+        let num_level = num_level::default(bots.len());
+        let num_nodes = num_level::num_nodes(num_level);
+        let mut nodes = Vec::with_capacity(num_nodes);
+
+        crate::splitter::build::recurse_seq_splitter(
+            TreeBuildVisitor::new(num_level, bots),
+            &mut levelc,
+            &mut DefaultSorter,
+            &mut nodes,
+        );
+
+        assert_eq!(num_nodes, nodes.len());
+
+        Tree::from_nodes(nodes)
+    };
+
+    // let (mut tree, levelc) =
+    //     Tree::from_build_args(bots, BuildArgs::new(len), );
 
     let c1 = levelc
         .into_levels()
@@ -168,10 +188,14 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
 
     man.reset_counter();
 
-    let levelc2 = tree.find_colliding_pairs_from_args(
-        QueryArgs::new().with_splitter(LevelCounter::new(man, 0, vec![])),
-        T::handle,
-    );
+    let mut levelc2 = LevelCounter::new(man, 0, vec![]);
+    {
+        crate::splitter::query::colfind::recurse_seq_splitter(
+            CollVis::new(tree.vistr_mut()),
+            &mut levelc2,
+            &mut AccNodeHandler::new(T::handle),
+        );
+    }
 
     let c2 = levelc2
         .into_levels()
@@ -186,18 +210,34 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
 }
 
 fn gen<T: ColfindHandler>(bots: &mut [T]) -> Res<f64> {
-    let len = bots.len();
-    let (mut tree, times1) = Tree::from_build_args(
-        bots,
-        BuildArgs::new(len).with_splitter(LevelTimer::new(0, vec![])),
-    );
+    let mut times1 = LevelTimer::new(0, vec![]);
+    let mut tree = {
+        let num_level = num_level::default(bots.len());
+        let num_nodes = num_level::num_nodes(num_level);
+        let mut nodes = Vec::with_capacity(num_nodes);
+
+        crate::splitter::build::recurse_seq_splitter(
+            TreeBuildVisitor::new(num_level, bots),
+            &mut times1,
+            &mut DefaultSorter,
+            &mut nodes,
+        );
+
+        assert_eq!(num_nodes, nodes.len());
+
+        Tree::from_nodes(nodes)
+    };
 
     let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
 
-    let times2 = tree.find_colliding_pairs_from_args(
-        QueryArgs::new().with_splitter(LevelTimer::new(0, vec![])),
-        T::handle,
-    );
+    let mut times2 = LevelTimer::new(0, vec![]);
+    {
+        crate::splitter::query::colfind::recurse_seq_splitter(
+            CollVis::new(tree.vistr_mut()),
+            &mut times2,
+            &mut AccNodeHandler::new(T::handle),
+        );
+    }
 
     let c2 = times2.into_levels().into_iter().map(|x| x as f64).collect();
 

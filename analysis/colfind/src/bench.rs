@@ -1,3 +1,5 @@
+use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
+
 use super::*;
 
 #[derive(Debug)]
@@ -43,7 +45,7 @@ where
 
     let c4 = if naive_bench {
         recorder.time(|| {
-            Naive::new(bots).find_colliding_pairs(T::handle);
+            assert::Naive::new(bots).find_colliding_pairs(T::handle);
         })
     } else {
         0.0
@@ -51,7 +53,7 @@ where
 
     let c5 = if nosort_bench {
         recorder.time(|| {
-            let mut tree = NotSortedTree::par_new(bots);
+            let mut tree = not_sorted::NotSortedTree::par_new(bots);
 
             tree.par_find_colliding_pairs(T::handle);
         })
@@ -61,7 +63,7 @@ where
 
     let c6 = if nosort_bench {
         recorder.time(|| {
-            let mut tree = NotSortedTree::new(bots);
+            let mut tree = not_sorted::NotSortedTree::new(bots);
             tree.find_colliding_pairs(T::handle);
         })
     } else {
@@ -70,7 +72,7 @@ where
 
     let c7 = if sweep_bench {
         recorder.time(|| {
-            let mut s = broccoli::SweepAndPrune::new(bots);
+            let mut s = sweep::SweepAndPrune::new(bots);
 
             s.find_colliding_pairs(T::handle);
         })

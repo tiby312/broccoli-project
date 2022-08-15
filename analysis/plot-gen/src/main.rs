@@ -24,7 +24,9 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
     w.elem("html", |d| d.attr("style", "background: black;"))?
         .build(|w| {
-            w.put_raw_escapable(r##"<meta name="viewport" content="width=device-width, initial-scale=1.0">"##)?;
+            w.put_raw_escapable(
+                r##"<meta name="viewport" content="width=device-width, initial-scale=1.0">"##,
+            )?;
             w.elem("div", |d| {
                 d.attr(
                     "style",
@@ -84,11 +86,11 @@ impl Disper for Custom {
     fn write_graph_disp(
         &mut self,
         w: &mut dyn std::fmt::Write,
-        dim: [f64; 2],
+        _dim: [f64; 2],
         plot: &mut dyn std::fmt::Display,
         description: &str,
     ) -> std::fmt::Result {
-        let dd = dim;
+        //let dd = dim;
         //let svg_width = 380.0;
         //TODO remove this kind of thing?
         //let hh = simple_theme::determine_height_from_width(dd, svg_width);
@@ -96,7 +98,6 @@ impl Disper for Custom {
         let mut t = tagger::new(w);
 
         pub const SVG_HEADER: &str = r##"<svg class="poloto" width="100%" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">"##;
-
 
         t.elem("div", |w| {
             w.attr(
@@ -124,7 +125,6 @@ impl Disper for Custom {
         })
     }
 }
-
 
 pub const MY_CONFIG: &str = ".poloto{\
     stroke-linecap:round;\

@@ -47,7 +47,7 @@ use compt::dfs_order::PreOrder;
 use compt::dfs_order::VistrMut;
 
 struct NodeWrapper<'a, T: Aabb, M> {
-    node: Node<'a, T>,
+    node: Node<'a, T, T::Num>,
     mass: M,
 }
 
@@ -230,9 +230,9 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
         ///Perform nbody
         ///The tree is taken by value so that its nodes can be expended to include more data.
         pub fn nbody_mut<'a, N: Nbody>(
-            tree: Vec<Node<'a, N::T>>,
+            tree: Vec<Node<'a, N::T, <N::T as Aabb>::Num>>,
             no: &mut N,
-        ) -> Vec<Node<'a, N::T>> {
+        ) -> Vec<Node<'a, N::T, <N::T as Aabb>::Num>> {
             let mut newnodes: Vec<_> = tree
                 .into_iter()
                 .map(|x| NodeWrapper {
@@ -262,18 +262,21 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
     }
 }
 
-impl<'a, T: Aabb> Naive<'a, T> {
-    pub fn handle_nbody<N: Nbody<T = T>>(&mut self, no: &mut N) {
-        ///Naive version simply visits every pair.
-        pub fn naive_nbody_mut<T: Aabb>(
-            bots: AabbPin<&mut [T]>,
-            func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-        ) {
-            queries::for_every_pair(bots, func);
-        }
+mod assert {
+    use super::*;
+    impl<'a, T: Aabb> Naive<'a, T> {
+        pub fn handle_nbody<N: Nbody<T = T>>(&mut self, no: &mut N) {
+            ///Naive version simply visits every pair.
+            pub fn naive_nbody_mut<T: Aabb>(
+                bots: AabbPin<&mut [T]>,
+                func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+            ) {
+                queries::for_every_pair(bots, func);
+            }
 
-        naive_nbody_mut(self.inner.borrow_mut(), |a, b| {
-            no.gravitate(GravEnum::Bot(a.into_slice()), GravEnum::Bot(b.into_slice()));
-        });
+            naive_nbody_mut(self.inner.borrow_mut(), |a, b| {
+                no.gravitate(GravEnum::Bot(a.into_slice()), GravEnum::Bot(b.into_slice()));
+            });
+        }
     }
 }

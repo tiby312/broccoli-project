@@ -17,7 +17,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
             F: FnMut(AabbPin<&mut K>, AabbPin<&'a mut T>),
         >(
             axis: A,
-            it: VistrMutPin<'a, Node<'b, T>>,
+            it: VistrMutPin<'a, Node<'b, T, T::Num>>,
             mut rect: AabbPin<&mut K>,
             closure: &mut F,
         ) {
@@ -89,44 +89,8 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
     }
 }
 
-impl<'a, T: Aabb> Naive<'a, T> {
-    pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
-        &'b mut self,
-        mut rect: AabbPin<&mut K>,
-        mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
-    ) {
-        for b in self.iter_mut() {
-            if !rect.get().contains_rect(b.get()) {
-                closure(rect.borrow_mut(), b);
-            }
-        }
-    }
-    pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
-        &'b mut self,
-        mut rect: AabbPin<&mut K>,
-        mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
-    ) {
-        for b in self.iter_mut() {
-            if rect.get().contains_rect(b.get()) {
-                closure(rect.borrow_mut(), b);
-            }
-        }
-    }
-    pub fn find_all_intersect_rect<'b, K: Aabb<Num = T::Num>>(
-        &'b mut self,
-        mut rect: AabbPin<&mut K>,
-        mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
-    ) {
-        for b in self.iter_mut() {
-            if rect.get().get_intersect_rect(b.get()).is_some() {
-                closure(rect.borrow_mut(), b);
-            }
-        }
-    }
-}
-
 use super::tools::get_section_mut;
-fn foo<'a, 'b: 'a, T: Aabb>(node: AabbPin<&'a mut Node<'b, T>>) -> AabbPin<&'a mut [T]> {
+fn foo<'a, 'b: 'a, T: Aabb>(node: AabbPin<&'a mut Node<'b, T, T::Num>>) -> AabbPin<&'a mut [T]> {
     node.into_range()
 }
 fn rect_recurse<
@@ -137,7 +101,7 @@ fn rect_recurse<
     K: Aabb<Num = T::Num>,
 >(
     this_axis: A,
-    m: VistrMutPin<'a, Node<T>>,
+    m: VistrMutPin<'a, Node<T, T::Num>>,
     mut rect: AabbPin<&mut K>,
     func: &mut F,
 ) {
@@ -181,71 +145,111 @@ fn rect_recurse<
     }
 }
 
-use core::ops::Deref;
-fn into_ptr_usize<T>(a: &T) -> usize {
-    a as *const T as usize
-}
+mod assert {
 
-impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
-    ///Panics if a disconnect is detected between tree and naive queries.
-    pub fn assert_rect(&mut self, rect: axgeom::Rect<T::Num>) {
-        self.assert_for_all_not_in_rect_mut(rect);
-        self.assert_for_all_intersect_rect_mut(rect);
-        self.assert_for_all_in_rect_mut(rect)
+    use super::*;
+    use core::ops::Deref;
+    fn into_ptr_usize<T>(a: &T) -> usize {
+        a as *const T as usize
     }
 
-    fn assert_for_all_not_in_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
-        let mut tree = Tree::new(self.inner);
-        let mut res_dino = Vec::new();
-        tree.find_all_not_in_rect(AabbPin::new(&mut rect), |_, a| {
-            res_dino.push(into_ptr_usize(a.deref()));
-        });
+    impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
+        ///Panics if a disconnect is detected between tree and naive queries.
+        pub fn assert_rect(&mut self, rect: axgeom::Rect<T::Num>) {
+            self.assert_for_all_not_in_rect_mut(rect);
+            self.assert_for_all_intersect_rect_mut(rect);
+            self.assert_for_all_in_rect_mut(rect)
+        }
 
-        let mut res_naive = Vec::new();
-        Naive::new(self.inner).find_all_not_in_rect(AabbPin::new(&mut rect), |_, a| {
-            res_naive.push(into_ptr_usize(a.deref()));
-        });
+        fn assert_for_all_not_in_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
+            let mut tree = Tree::new(self.inner);
+            let mut res_dino = Vec::new();
+            tree.find_all_not_in_rect(AabbPin::new(&mut rect), |_, a| {
+                res_dino.push(into_ptr_usize(a.deref()));
+            });
 
-        res_dino.sort_unstable();
-        res_naive.sort_unstable();
+            let mut res_naive = Vec::new();
+            Naive::new(self.inner).find_all_not_in_rect(AabbPin::new(&mut rect), |_, a| {
+                res_naive.push(into_ptr_usize(a.deref()));
+            });
 
-        assert_eq!(res_naive.len(), res_dino.len());
-        assert!(res_naive.iter().eq(res_dino.iter()));
+            res_dino.sort_unstable();
+            res_naive.sort_unstable();
+
+            assert_eq!(res_naive.len(), res_dino.len());
+            assert!(res_naive.iter().eq(res_dino.iter()));
+        }
+
+        fn assert_for_all_intersect_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
+            let mut tree = Tree::new(self.inner);
+            let mut res_dino = Vec::new();
+            tree.find_all_intersect_rect(AabbPin::new(&mut rect), |_, a| {
+                res_dino.push(into_ptr_usize(a.deref()));
+            });
+            let mut res_naive = Vec::new();
+            Naive::new(self.inner).find_all_intersect_rect(AabbPin::new(&mut rect), |_, a| {
+                res_naive.push(into_ptr_usize(a.deref()));
+            });
+
+            res_dino.sort_unstable();
+            res_naive.sort_unstable();
+
+            assert_eq!(res_naive.len(), res_dino.len());
+            assert!(res_naive.iter().eq(res_dino.iter()));
+        }
+
+        fn assert_for_all_in_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
+            let mut tree = Tree::new(self.inner);
+            let mut res_dino = Vec::new();
+            tree.find_all_in_rect(AabbPin::new(&mut rect), |_, a| {
+                res_dino.push(into_ptr_usize(a.deref()));
+            });
+            let mut res_naive = Vec::new();
+            Naive::new(self.inner).find_all_in_rect(AabbPin::new(&mut rect), |_, a| {
+                res_naive.push(into_ptr_usize(a.deref()));
+            });
+
+            res_dino.sort_unstable();
+            res_naive.sort_unstable();
+
+            assert_eq!(res_naive.len(), res_dino.len());
+            assert!(res_naive.iter().eq(res_dino.iter()));
+        }
     }
 
-    fn assert_for_all_intersect_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
-        let mut tree = Tree::new(self.inner);
-        let mut res_dino = Vec::new();
-        tree.find_all_intersect_rect(AabbPin::new(&mut rect), |_, a| {
-            res_dino.push(into_ptr_usize(a.deref()));
-        });
-        let mut res_naive = Vec::new();
-        Naive::new(self.inner).find_all_intersect_rect(AabbPin::new(&mut rect), |_, a| {
-            res_naive.push(into_ptr_usize(a.deref()));
-        });
-
-        res_dino.sort_unstable();
-        res_naive.sort_unstable();
-
-        assert_eq!(res_naive.len(), res_dino.len());
-        assert!(res_naive.iter().eq(res_dino.iter()));
-    }
-
-    fn assert_for_all_in_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
-        let mut tree = Tree::new(self.inner);
-        let mut res_dino = Vec::new();
-        tree.find_all_in_rect(AabbPin::new(&mut rect), |_, a| {
-            res_dino.push(into_ptr_usize(a.deref()));
-        });
-        let mut res_naive = Vec::new();
-        Naive::new(self.inner).find_all_in_rect(AabbPin::new(&mut rect), |_, a| {
-            res_naive.push(into_ptr_usize(a.deref()));
-        });
-
-        res_dino.sort_unstable();
-        res_naive.sort_unstable();
-
-        assert_eq!(res_naive.len(), res_dino.len());
-        assert!(res_naive.iter().eq(res_dino.iter()));
+    impl<'a, T: Aabb> Naive<'a, T> {
+        pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
+            &'b mut self,
+            mut rect: AabbPin<&mut K>,
+            mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
+        ) {
+            for b in self.iter_mut() {
+                if !rect.get().contains_rect(b.get()) {
+                    closure(rect.borrow_mut(), b);
+                }
+            }
+        }
+        pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
+            &'b mut self,
+            mut rect: AabbPin<&mut K>,
+            mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
+        ) {
+            for b in self.iter_mut() {
+                if rect.get().contains_rect(b.get()) {
+                    closure(rect.borrow_mut(), b);
+                }
+            }
+        }
+        pub fn find_all_intersect_rect<'b, K: Aabb<Num = T::Num>>(
+            &'b mut self,
+            mut rect: AabbPin<&mut K>,
+            mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
+        ) {
+            for b in self.iter_mut() {
+                if rect.get().get_intersect_rect(b.get()).is_some() {
+                    closure(rect.borrow_mut(), b);
+                }
+            }
+        }
     }
 }

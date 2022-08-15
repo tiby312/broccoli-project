@@ -64,44 +64,6 @@ impl<'a, T: Aabb> Tree<'a, T> {
         self.find_knearest(point, num, a)
     }
 }
-impl<'a, T: Aabb> Naive<'a, T> {
-    pub fn find_knearest(
-        &mut self,
-        point: Vec2<T::Num>,
-        num: usize,
-        mut ktrait: impl Knearest<T>,
-    ) -> KResult<T> {
-        let mut closest = ClosestCand::new(num);
-
-        for b in self.inner.borrow_mut().iter_mut() {
-            closest.consider(&point, &mut ktrait, b);
-        }
-
-        let num_entries = closest.curr_num;
-        KResult {
-            num_entries,
-            inner: closest.into_sorted(),
-        }
-    }
-
-    pub fn find_knearest_closure(
-        &mut self,
-        point: Vec2<T::Num>,
-        num: usize,
-        broad: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
-        fine: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
-        xline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
-        yline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
-    ) -> KResult<T> {
-        let a = KnearestClosure {
-            broad,
-            fine,
-            xline,
-            yline,
-        };
-        self.find_knearest(point, num, a)
-    }
-}
 
 ///
 /// Find nearest using just axis alined bounding boxes. No fine-grained.
@@ -311,7 +273,7 @@ impl<'a, T: Aabb> ClosestCand<'a, T> {
     }
 
     fn full_and_max_distance(&self) -> Option<T::Num> {
-        assert!(tree::util::is_sorted_by(&self.bots, |a, b| a
+        assert!(crate::util::is_sorted_by(&self.bots, |a, b| a
             .mag
             .partial_cmp(&b.mag)));
 
@@ -339,7 +301,11 @@ impl<'a, T: Aabb, K: Knearest<T>> Recurser<'a, T, K> {
         }
     }
 
-    fn recc<'b: 'a, A: Axis>(&mut self, axis: A, stuff: LevelIter<VistrMutPin<'a, Node<'b, T>>>) {
+    fn recc<'b: 'a, A: Axis>(
+        &mut self,
+        axis: A,
+        stuff: LevelIter<VistrMutPin<'a, Node<'b, T, T::Num>>>,
+    ) {
         let ((_depth, nn), rest) = stuff.next();
         //let nn = nn.get_mut();
         let handle_node = match rest {
@@ -427,39 +393,82 @@ impl<'a, T: Aabb> KResult<'a, T> {
     }
 }
 
-impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
-    ///Panics if a disconnect is detected between tree and naive queries.
-    pub fn assert_k_nearest_mut(
-        &mut self,
-        point: Vec2<T::Num>,
-        num: usize,
-        mut knear: impl Knearest<T>,
-    ) {
-        use core::ops::Deref;
+mod assert {
+    use super::*;
 
-        fn into_ptr_usize<T>(a: &T) -> usize {
-            a as *const T as usize
+    impl<'a, T: Aabb> Naive<'a, T> {
+        pub fn find_knearest(
+            &mut self,
+            point: Vec2<T::Num>,
+            num: usize,
+            mut ktrait: impl Knearest<T>,
+        ) -> KResult<T> {
+            let mut closest = ClosestCand::new(num);
+
+            for b in self.inner.borrow_mut().iter_mut() {
+                closest.consider(&point, &mut ktrait, b);
+            }
+
+            let num_entries = closest.curr_num;
+            KResult {
+                num_entries,
+                inner: closest.into_sorted(),
+            }
         }
 
-        let mut tree = Tree::new(self.inner);
-        let r = tree.find_knearest(point, num, &mut knear);
-        let mut res_dino: Vec<_> = r
-            .into_vec()
-            .drain(..)
-            .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
-            .collect();
+        pub fn find_knearest_closure(
+            &mut self,
+            point: Vec2<T::Num>,
+            num: usize,
+            broad: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
+            fine: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
+            xline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
+            yline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
+        ) -> KResult<T> {
+            let a = KnearestClosure {
+                broad,
+                fine,
+                xline,
+                yline,
+            };
+            self.find_knearest(point, num, a)
+        }
+    }
 
-        let mut res_naive = Naive::new(self.inner)
-            .find_knearest(point, num, knear)
-            .into_vec()
-            .drain(..)
-            .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
-            .collect::<Vec<_>>();
+    impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
+        ///Panics if a disconnect is detected between tree and naive queries.
+        pub fn assert_k_nearest_mut(
+            &mut self,
+            point: Vec2<T::Num>,
+            num: usize,
+            mut knear: impl Knearest<T>,
+        ) {
+            use core::ops::Deref;
 
-        res_naive.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        res_dino.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            fn into_ptr_usize<T>(a: &T) -> usize {
+                a as *const T as usize
+            }
 
-        assert_eq!(res_naive.len(), res_dino.len());
-        assert!(res_naive.iter().eq(res_dino.iter()));
+            let mut tree = Tree::new(self.inner);
+            let r = tree.find_knearest(point, num, &mut knear);
+            let mut res_dino: Vec<_> = r
+                .into_vec()
+                .drain(..)
+                .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+                .collect();
+
+            let mut res_naive = Naive::new(self.inner)
+                .find_knearest(point, num, knear)
+                .into_vec()
+                .drain(..)
+                .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+                .collect::<Vec<_>>();
+
+            res_naive.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            res_dino.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+            assert_eq!(res_naive.len(), res_dino.len());
+            assert!(res_naive.iter().eq(res_dino.iter()));
+        }
     }
 }

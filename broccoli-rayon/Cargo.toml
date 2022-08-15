@@ -1,0 +1,16 @@
+[package]
+name = "broccoli-rayon"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[dev-dependencies]
+dists = {git="https://github.com/tiby312/dists.git"}
+
+
+[dependencies]
+rayon={version="1.5"}
+broccoli={path="../broccoli"}
+axgeom = {version="1.12",default-features = false}

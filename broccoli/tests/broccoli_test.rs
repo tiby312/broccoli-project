@@ -1,7 +1,7 @@
 use axgeom;
-use broccoli::Assert;
 #[test]
 fn test1() {
+    use broccoli::assert::Assert;
     for &i in [2.0, 4.0, 12.0].iter() {
         for &num_bots in [0, 20, 40, 10000].iter() {
             let s = dists::spiral_iter([400.0, 400.0], i, 1.0);
@@ -26,10 +26,10 @@ fn test1() {
             let mut bots: Vec<_> = bots.iter_mut().collect();
 
             let tree = broccoli::Tree::new(&mut bots);
-            tree.assert_tree_invariants();
+            broccoli::assert::assert_tree_invariants(&tree);
             let data = tree.get_tree_data();
             let mut tree = broccoli::Tree::from_tree_data(&mut bots, &data);
-            tree.assert_tree_invariants();
+            broccoli::assert::assert_tree_invariants(&tree);
             tree.find_colliding_pairs(|a, b| {
                 let a = a.unpack_inner();
                 let b = b.unpack_inner();

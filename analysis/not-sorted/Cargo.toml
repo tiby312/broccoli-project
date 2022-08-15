@@ -1,12 +1,11 @@
 [package]
-name = "colfind"
+name = "not-sorted"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-support={path="../support"}
+broccoli={path="../../broccoli"}
 broccoli-rayon={path="../../broccoli-rayon"}
-not-sorted={path="../not-sorted"}
-sweep={path="../sweep"}
+compt="2.1"

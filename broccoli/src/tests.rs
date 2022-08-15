@@ -17,7 +17,7 @@ fn test() {
 
     let mut tree = Tree::new(&mut bots);
 
-    tree.assert_tree_invariants();
+    assert::assert_tree_invariants(&tree);
 
     assert_length(tree.vistr_mut().dfs_preorder_iter());
     assert_length(tree.vistr().dfs_preorder_iter());
@@ -33,7 +33,7 @@ fn test() {
 
     recc(tree.vistr_mut());
     //recursively check that the length is correct at each node.
-    fn recc(a: VistrMutPin<Node<(Rect<isize>, &mut usize)>>) {
+    fn recc(a: VistrMutPin<Node<(Rect<isize>, &mut usize), isize>>) {
         let (_nn, rest) = a.next();
         match rest {
             Some([mut left, mut right]) => {

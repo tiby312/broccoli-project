@@ -1,6 +1,8 @@
 //!
 //! Utility functions
 //!
+use axgeom::Axis;
+
 use super::*;
 
 use core::cmp::Ordering;

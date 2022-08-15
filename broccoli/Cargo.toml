@@ -18,7 +18,6 @@ doctest = false
 dists = {git="https://github.com/tiby312/dists.git"}
 
 [dependencies]
-rayon={version="1.5",optional=true}
 compt = "2.1"
 twounordered = "0.7"
 slice-group-by = "0.3"
@@ -35,6 +34,3 @@ targets = ["x86_64-unknown-linux-gnu"]
 # [profile.release]
 # debug = true
 
-[features]
-default=["parallel"]
-parallel = ["rayon"]

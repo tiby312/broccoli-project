@@ -1,3 +1,4 @@
+use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
 use support::prelude::*;
 
 fn single<T: ColfindHandler>(
@@ -12,11 +13,13 @@ where
     let (tree, cseq) = bench_closure_ret(|| broccoli::Tree::new(bots));
     black_box(tree);
 
-    let mut args = broccoli::tree::BuildArgs::new(bots.len());
-    if let Some(c) = c_num_seq_fallback {
-        args.num_seq_fallback = c;
-    }
-    let (mut tree, cpar) = bench_closure_ret(|| broccoli::Tree::par_from_build_args(bots, args).0);
+    let sss = if let Some(c) = c_num_seq_fallback {
+        c
+    } else {
+        broccoli_rayon::build::SEQ_FALLBACK_DEFAULT
+    };
+    let num_level = broccoli::tree::num_level::default(bots.len());
+    let (mut tree, cpar) = bench_closure_ret(|| broccoli::Tree::par_new_ext(bots, num_level, sss));
 
     let cspeedup = cseq as f64 / cpar as f64;
 
@@ -24,12 +27,14 @@ where
         tree.find_colliding_pairs(T::handle);
     });
 
-    let mut args = broccoli::queries::colfind::QueryArgs::new();
-    if let Some(c) = q_num_seq_fallback {
-        args.num_seq_fallback = c;
-    }
+    let ccc = if let Some(c) = q_num_seq_fallback {
+        c
+    } else {
+        broccoli_rayon::query::colfind::SEQ_FALLBACK_DEFAULT
+    };
+
     let qpar = bench_closure(|| {
-        tree.par_find_colliding_pairs_from_args(args, T::handle);
+        tree.par_find_colliding_pairs_ext(ccc, T::handle);
     });
 
     let qspeedup = qseq as f64 / qpar as f64;

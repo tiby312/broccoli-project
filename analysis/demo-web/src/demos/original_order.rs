@@ -1,5 +1,5 @@
 use super::*;
-use broccoli::Assert;
+use broccoli::assert::Assert;
 use duckduckgeo;
 
 #[derive(Copy, Clone)]

@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 support={path="../support"}
+broccoli-rayon={path="../../broccoli-rayon"}
+not-sorted={path="../not-sorted"}

@@ -73,11 +73,11 @@ extern crate alloc;
 pub use axgeom;
 pub mod tree;
 
-use tree::aabb_pin::AabbPin;
-use tree::aabb_pin::AabbPinIter;
+pub mod aabb_pin;
+use aabb_pin::AabbPin;
+use aabb_pin::AabbPinIter;
 use tree::build::*;
 use tree::node::*;
-use tree::splitter::Splitter;
 use tree::*;
 
 pub mod ext;
@@ -85,7 +85,12 @@ pub mod ext;
 #[cfg(test)]
 mod tests;
 
+pub mod assert;
 pub mod queries;
+pub mod util;
+
+use assert::Assert;
+use assert::Naive;
 
 ///
 /// Used to de-couple tree information from
@@ -102,11 +107,16 @@ pub struct TreeData<N: Num> {
 /// A broccoli Tree.
 ///
 pub struct Tree<'a, T: Aabb> {
-    nodes: Vec<Node<'a, T>>,
+    //TODO change to boxed slice
+    nodes: Vec<Node<'a, T, T::Num>>,
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
-    pub fn into_nodes(self) -> Vec<Node<'a, T>> {
+    pub fn from_nodes(nodes: Vec<Node<'a, T, T::Num>>) -> Self {
+        Tree { nodes }
+    }
+
+    pub fn into_nodes(self) -> Vec<Node<'a, T, T::Num>> {
         self.nodes
     }
 
@@ -162,51 +172,28 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     where
         T: ManySwap,
     {
-        let (nodes, _) = BuildArgs::new(bots.len()).build_ext(bots, &mut DefaultSorter);
+        let num_level = num_level::default(bots.len());
 
-        Tree { nodes }
-    }
+        let num_nodes = num_level::num_nodes(num_level);
+        let mut nodes = Vec::with_capacity(num_nodes);
 
-    #[cfg(feature = "parallel")]
-    pub fn par_new(bots: &'a mut [T]) -> Self
-    where
-        T: ManySwap,
-        T: Send,
-        T::Num: Send,
-    {
-        let (nodes, _) = BuildArgs::new(bots.len()).par_build_ext(bots, &mut DefaultSorter);
+        TreeBuildVisitor::new(num_level, bots).recurse_seq(&mut DefaultSorter, &mut nodes);
 
-        Tree { nodes }
-    }
+        assert_eq!(num_nodes, nodes.len());
 
-    pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
-    where
-        T: ManySwap,
-    {
-        let (nodes, s) = args.build_ext(bots, &mut DefaultSorter);
-        (Tree { nodes }, s)
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
-    where
-        T: ManySwap,
-        T: Send,
-        T::Num: Send,
-        P: Send,
-    {
-        let (nodes, s) = args.par_build_ext(bots, &mut DefaultSorter);
-        (Tree { nodes }, s)
+        let t = Tree { nodes };
+        assert_eq!(t.num_levels(), num_level, "num_nodes:{}", num_nodes);
+        t
     }
 
     #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
+    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T, T::Num>> {
         let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
         VistrMutPin::new(tree.vistr_mut())
     }
 
     #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
+    pub fn vistr(&self) -> Vistr<Node<'a, T, T::Num>> {
         let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
 
         tree.vistr()
@@ -228,131 +215,13 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     #[must_use]
     #[inline(always)]
-    pub fn get_nodes(&self) -> &[Node<'a, T>] {
+    pub fn get_nodes(&self) -> &[Node<'a, T, T::Num>] {
         &self.nodes
     }
 
     #[must_use]
     #[inline(always)]
-    pub fn get_nodes_mut(&mut self) -> AabbPin<&mut [Node<'a, T>]> {
+    pub fn get_nodes_mut(&mut self) -> AabbPin<&mut [Node<'a, T, T::Num>]> {
         AabbPin::from_mut(&mut self.nodes)
-    }
-}
-
-///
-/// A tree where the elements in a node are not sorted.
-///
-pub struct NotSortedTree<'a, T: Aabb> {
-    nodes: Vec<Node<'a, T>>,
-}
-
-impl<'a, T: Aabb> NotSortedTree<'a, T> {
-    pub fn from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
-    where
-        T: ManySwap,
-    {
-        let (nodes, s) = args.build_ext(bots, &mut NoSorter);
-        (NotSortedTree { nodes }, s)
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_from_build_args<P: Splitter>(bots: &'a mut [T], args: BuildArgs<P>) -> (Self, P)
-    where
-        T: ManySwap,
-        T: Send,
-        T::Num: Send,
-        P: Send,
-    {
-        let (nodes, s) = args.par_build_ext(bots, &mut NoSorter);
-        (NotSortedTree { nodes }, s)
-    }
-
-    pub fn new(bots: &'a mut [T]) -> Self
-    where
-        T: ManySwap,
-    {
-        let (nodes, _) = BuildArgs::new(bots.len()).build_ext(bots, &mut NoSorter);
-
-        NotSortedTree { nodes }
-    }
-
-    #[cfg(feature = "parallel")]
-    pub fn par_new(bots: &'a mut [T]) -> Self
-    where
-        T: ManySwap,
-        T: Send,
-        T::Num: Send,
-    {
-        let (nodes, _) = BuildArgs::new(bots.len()).par_build_ext(bots, &mut NoSorter);
-
-        NotSortedTree { nodes }
-    }
-
-    #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T>> {
-        let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
-        VistrMutPin::new(tree.vistr_mut())
-    }
-
-    #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a, T>> {
-        let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
-
-        tree.vistr()
-    }
-    #[must_use]
-    #[inline(always)]
-    pub fn num_nodes(&self) -> usize {
-        self.nodes.len()
-    }
-}
-
-///
-/// Easily verifiable naive query algorithms.
-///
-pub struct Naive<'a, T> {
-    inner: AabbPin<&'a mut [T]>,
-}
-impl<'a, T: Aabb> Naive<'a, T> {
-    pub fn new(inner: &'a mut [T]) -> Self {
-        Naive {
-            inner: AabbPin::from_mut(inner),
-        }
-    }
-    pub fn from_pinned(inner: AabbPin<&'a mut [T]>) -> Self {
-        Naive { inner }
-    }
-
-    pub fn iter_mut(&mut self) -> AabbPinIter<T> {
-        self.inner.borrow_mut().iter_mut()
-    }
-}
-
-///
-/// Sweep and prune collision finding algorithm
-///
-pub struct SweepAndPrune<'a, T> {
-    inner: &'a mut [T],
-}
-
-impl<'a, T: Aabb> SweepAndPrune<'a, T> {
-    pub fn new(inner: &'a mut [T]) -> Self {
-        let axis = default_axis();
-        tree::util::sweeper_update(axis, inner);
-
-        SweepAndPrune { inner }
-    }
-}
-
-///
-/// Compare query results between [`Tree`] and
-/// the easily verifiable [`Naive`] versions.
-///
-pub struct Assert<'a, T> {
-    inner: &'a mut [T],
-}
-impl<'a, T: Aabb> Assert<'a, T> {
-    pub fn new(inner: &'a mut [T]) -> Self {
-        Assert { inner }
     }
 }

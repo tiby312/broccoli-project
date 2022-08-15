@@ -5,13 +5,19 @@ use axgeom::AxisDyn;
 
 ///Trait user must implement.
 pub trait DividerDrawer<T: Aabb> {
-    fn draw_divider<A: Axis>(&mut self, axis: A, node: &Node<T>, rect: &Rect<T::Num>, depth: usize);
+    fn draw_divider<A: Axis>(
+        &mut self,
+        axis: A,
+        node: &Node<T, T::Num>,
+        rect: &Rect<T::Num>,
+        depth: usize,
+    );
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn draw_divider(
         &self,
-        line: impl FnMut(AxisDyn, &Node<T>, &Rect<T::Num>, usize),
+        line: impl FnMut(AxisDyn, &Node<T, T::Num>, &Rect<T::Num>, usize),
         rect: Rect<T::Num>,
     ) {
         let tree = self;
@@ -22,13 +28,13 @@ impl<'a, T: Aabb> Tree<'a, T> {
 
         impl<T: Aabb, A> DividerDrawer<T> for DrawClosure<A>
         where
-            A: FnMut(AxisDyn, &Node<T>, &Rect<T::Num>, usize),
+            A: FnMut(AxisDyn, &Node<T, T::Num>, &Rect<T::Num>, usize),
         {
             #[inline(always)]
             fn draw_divider<AA: Axis>(
                 &mut self,
                 axis: AA,
-                node: &Node<T>,
+                node: &Node<T, T::Num>,
                 rect: &Rect<T::Num>,
                 depth: usize,
             ) {
@@ -40,13 +46,13 @@ impl<'a, T: Aabb> Tree<'a, T> {
         ///Since the leaves do not have dividers, it is not called for the leaves.
         fn draw<A: Axis, T: Aabb, D: DividerDrawer<T>>(
             axis: A,
-            vistr: Vistr<Node<T>>,
+            vistr: Vistr<Node<T, T::Num>>,
             dr: &mut D,
             rect: Rect<T::Num>,
         ) {
             fn recc<A: Axis, T: Aabb, D: DividerDrawer<T>>(
                 axis: A,
-                stuff: LevelIter<Vistr<Node<T>>>,
+                stuff: LevelIter<Vistr<Node<T, T::Num>>>,
                 dr: &mut D,
                 rect: Rect<T::Num>,
             ) {
