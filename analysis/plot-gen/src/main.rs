@@ -86,11 +86,11 @@ impl Disper for Custom {
     fn write_graph_disp(
         &mut self,
         w: &mut dyn std::fmt::Write,
-        dim: [f64; 2],
+        _dim: [f64; 2],
         plot: &mut dyn std::fmt::Display,
         description: &str,
     ) -> std::fmt::Result {
-        let dd = dim;
+        //let dd = dim;
         //let svg_width = 380.0;
         //TODO remove this kind of thing?
         //let hh = simple_theme::determine_height_from_width(dd, svg_width);
