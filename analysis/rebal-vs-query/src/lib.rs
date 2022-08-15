@@ -1,3 +1,4 @@
+use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
 use support::prelude::*;
 
 pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
@@ -196,41 +197,39 @@ where
     T: Send,
     T::Num: Send,
 {
-    unimplemented!();
+    let mut recorder = Bencher;
+    let (mut tree, par_tree1) = recorder.time_ext(|| broccoli::Tree::par_new(bots));
 
-    // let mut recorder = Bencher;
-    // let (mut tree, par_tree1) = recorder.time_ext(|| broccoli::Tree::par_new(bots));
+    let par_tree2 = recorder.time(|| {
+        tree.par_find_colliding_pairs(T::handle);
+    });
 
-    // let par_tree2 = recorder.time(|| {
-    //     tree.par_find_colliding_pairs(T::handle);
-    // });
+    let (mut tree, tree1) = recorder.time_ext(|| broccoli::Tree::new(bots));
 
-    // let (mut tree, tree1) = recorder.time_ext(|| broccoli::Tree::new(bots));
+    let tree2 = recorder.time(|| {
+        tree.find_colliding_pairs(T::handle);
+    });
 
-    // let tree2 = recorder.time(|| {
-    //     tree.find_colliding_pairs(T::handle);
-    // });
+    /*
+    let (mut tree,par_notree1) = recorder.time_ext(|| {
+        broccoli::NotSortedTree::par_new(bots)
+    });
 
-    // /*
-    // let (mut tree,par_notree1) = recorder.time_ext(|| {
-    //     broccoli::NotSortedTree::par_new(bots)
-    // });
+    let par_notree2=recorder.time(||{
+        tree.par_find_colliding_pairs(T::handle);
+    });
+    */
 
-    // let par_notree2=recorder.time(||{
-    //     tree.par_find_colliding_pairs(T::handle);
-    // });
-    // */
+    let (mut tree, notree1) = recorder.time_ext(|| broccoli::NotSortedTree::new(bots));
 
-    // let (mut tree, notree1) = recorder.time_ext(|| broccoli::NotSortedTree::new(bots));
+    let notree2 = recorder.time(|| {
+        tree.find_colliding_pairs(T::handle);
+    });
 
-    // let notree2 = recorder.time(|| {
-    //     tree.find_colliding_pairs(T::handle);
-    // });
-
-    // ParRecord {
-    //     tree: (tree1, tree2),
-    //     par_tree: (par_tree1, par_tree2),
-    //     nosort: (notree1, notree2),
-    //     //par_nosort:(par_notree1,par_notree2)
-    // }
+    ParRecord {
+        tree: (tree1, tree2),
+        par_tree: (par_tree1, par_tree2),
+        nosort: (notree1, notree2),
+        //par_nosort:(par_notree1,par_notree2)
+    }
 }

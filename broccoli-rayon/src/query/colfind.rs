@@ -116,10 +116,10 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
 impl<'a, T: Aabb> RayonQueryPar<'a, T> for NotSortedTree<'a, T> {
     fn par_find_colliding_pairs_acc_closure<Acc, A, B, F>(
         &mut self,
-        acc: Acc,
-        div: A,
-        add: B,
-        func: F,
+        _acc: Acc,
+        _div: A,
+        _add: B,
+        _func: F,
     ) -> Acc
     where
         A: FnMut(&mut Acc) -> Acc + Clone + Send,
@@ -260,7 +260,7 @@ impl<Acc: Clone> Splitter for NoSortNodeHandlerEmptySplitter<Acc> {
         }
     }
 
-    fn add(&mut self, b: Self) {}
+    fn add(&mut self, _b: Self) {}
 }
 
 /// Wrapper that impl Splitter

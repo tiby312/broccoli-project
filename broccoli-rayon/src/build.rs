@@ -126,7 +126,7 @@ fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Splitter>(
                     recurse_par(num_seq_fallback, sorter, buffer, left);
                 },
                 || {
-                    let num_nodes = num_level::num_nodes(right.get_height());
+                    let num_nodes = num_level::num_nodes(right.get_height() + 1);
                     let mut buffer2 = Vec::with_capacity(num_nodes);
                     recurse_par(num_seq_fallback, &mut s2, &mut buffer2, right);
                     assert_eq!(num_nodes, buffer2.len());

@@ -39,8 +39,21 @@ pub trait Sorter<T> {
 ///Using this struct the user can determine the height of a tree or the number of nodes
 ///that would exist if the tree were constructed with the specified number of elements.
 pub mod num_level {
+
+    #[cfg(test)]
+    mod test {
+        use super::*;
+        #[test]
+        fn test_num_nodes() {
+            assert_eq!(num_nodes(1), 01);
+            assert_eq!(num_nodes(2), 03);
+            assert_eq!(num_nodes(3), 07);
+            assert_eq!(num_nodes(4), 15);
+        }
+    }
     pub const fn num_nodes(num_levels: usize) -> usize {
-        2usize.rotate_left(num_levels as u32) - 1
+        assert!(num_levels >= 1);
+        2usize.rotate_left((num_levels - 1) as u32) - 1
     }
 
     ///The default number of elements per node

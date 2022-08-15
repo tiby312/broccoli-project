@@ -175,7 +175,9 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
         assert_eq!(num_nodes, nodes.len());
 
-        Tree { nodes }
+        let t = Tree { nodes };
+        assert_eq!(t.num_levels(), num_level, "num_nodes:{}", num_nodes);
+        t
     }
 
     #[inline(always)]
