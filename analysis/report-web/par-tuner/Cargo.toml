@@ -1,5 +1,5 @@
 [package]
-name = "colfind"
+name = "par-tuner"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,6 +7,4 @@ edition = "2021"
 
 [dependencies]
 support={path="../support"}
-broccoli-rayon={path="../../broccoli-rayon"}
-not-sorted={path="../not-sorted"}
-sweep={path="../sweep"}
+broccoli-rayon={path="../../../broccoli-rayon"}
