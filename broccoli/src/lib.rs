@@ -99,7 +99,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     /// was used in the original tree from which [`Tree::get_tree_data()`] was called.
     /// Not doing so will make an invalid tree with no error notification.
     ///
-    /// Consider calling [`Tree::assert_tree_invariants()`] after tree construction
+    /// Consider calling [`assert::assert_tree_invariants()`] after tree construction
     /// if you don't know if it was the same distribution which will atleast tell
     /// you if the distribution makes a valid tree.
     ///
