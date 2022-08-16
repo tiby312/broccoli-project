@@ -8,8 +8,6 @@ pub mod node;
 
 use axgeom;
 
-use aabb_pin::*;
-
 use axgeom::*;
 use node::*;
 

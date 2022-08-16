@@ -1,7 +1,4 @@
-use broccoli::{
-    aabb_pin::AabbPin,
-    tree::{default_axis, node::Aabb},
-};
+use broccoli::{aabb::pin::AabbPin, aabb::Aabb, tree::default_axis};
 
 impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     pub fn find_colliding_pairs(&mut self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
@@ -27,7 +24,7 @@ pub struct SweepAndPrune<'a, T> {
 impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     pub fn new(inner: &'a mut [T]) -> Self {
         let axis = default_axis();
-        broccoli::util::sweeper_update(axis, inner);
+        broccoli::tree::build::sweeper_update(axis, inner);
         SweepAndPrune { inner }
     }
 }

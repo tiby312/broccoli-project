@@ -4,6 +4,14 @@
 
 use super::*;
 
+///Sorts the bots based on an axis.
+#[inline(always)]
+pub fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {
+    let sclosure = |a: &I, b: &I| -> core::cmp::Ordering { queries::compare_bots(axis, a, b) };
+
+    collision_botids.sort_unstable_by(sclosure);
+}
+
 #[must_use]
 pub struct NodeFinisher<'a, T: Aabb> {
     axis: AxisDyn,
@@ -163,7 +171,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                 let med_index = bots.len() / 2;
 
                 let (ll, med, rr) = bots.select_nth_unstable_by(med_index, move |a, b| {
-                    crate::util::compare_bots(div_axis, a, b)
+                    crate::queries::compare_bots(div_axis, a, b)
                 });
 
                 let med_val = med.get().get_range(div_axis).start;
@@ -274,6 +282,6 @@ pub struct DefaultSorter;
 
 impl<T: Aabb> Sorter<T> for DefaultSorter {
     fn sort(&self, axis: impl Axis, bots: &mut [T]) {
-        crate::util::sweeper_update(axis, bots);
+        crate::build::sweeper_update(axis, bots);
     }
 }

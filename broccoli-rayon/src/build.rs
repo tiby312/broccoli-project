@@ -1,7 +1,9 @@
 use broccoli::{
+    aabb::Aabb,
+    aabb::ManySwap,
     tree::{
         build::{DefaultSorter, NodeBuildResult, TreeBuildVisitor},
-        node::{Aabb, ManySwap, Node},
+        node::Node,
         Sorter,
     },
     Tree,

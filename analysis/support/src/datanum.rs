@@ -1,4 +1,4 @@
-use broccoli::{axgeom::Rect, tree::node::Num};
+use broccoli::{aabb::Num, axgeom::Rect};
 use once_cell::race::OnceBool;
 use std::cmp::Ordering;
 

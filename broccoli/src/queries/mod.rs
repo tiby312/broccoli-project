@@ -1,7 +1,6 @@
 //! Contains query modules for each query algorithm.
 
 use super::*;
-use crate::aabb_pin::*;
 use alloc::vec::Vec;
 use axgeom::*;
 use compt::*;
@@ -22,6 +21,28 @@ pub mod intersect_with;
 mod tools;
 
 pub mod nbody;
+
+use core::cmp::Ordering;
+
+#[must_use]
+pub fn is_sorted_by<I, F>(arr: &[I], mut compare: F) -> bool
+where
+    F: FnMut(&I, &I) -> Option<Ordering>,
+{
+    arr.windows(2)
+        .all(|w| compare(&w[1], &w[0]).unwrap() != Ordering::Less)
+}
+
+#[inline(always)]
+#[must_use]
+pub fn compare_bots<T: Aabb>(axis: impl Axis, a: &T, b: &T) -> core::cmp::Ordering {
+    let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
+    if p1 > p2 {
+        core::cmp::Ordering::Greater
+    } else {
+        core::cmp::Ordering::Less
+    }
+}
 
 impl<'a, T: Aabb> Tree<'a, T> {
     ///

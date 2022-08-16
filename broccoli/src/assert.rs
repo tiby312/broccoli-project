@@ -59,7 +59,7 @@ where
         let ((_depth, nn), rest) = iter.next();
         let axis_next = axis.next();
 
-        assert!(crate::util::is_sorted_by(&nn.range, |a, b| a
+        assert!(crate::queries::is_sorted_by(&nn.range, |a, b| a
             .get()
             .get_range(axis_next)
             .start

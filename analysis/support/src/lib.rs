@@ -1,15 +1,15 @@
 pub mod datanum;
 
 pub use broccoli;
-use broccoli::aabb_pin::HasInner;
+use broccoli::aabb::pin::HasInner;
+use broccoli::aabb::Num;
 pub use broccoli::axgeom;
-use broccoli::tree::node::Num;
 pub use indoc;
 pub use poloto;
 pub use tagger;
 pub mod prelude {
     pub use super::*;
-    pub use broccoli::aabb_pin::AabbPin;
+    pub use broccoli::aabb::pin::AabbPin;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
     pub use broccoli::*;
@@ -17,9 +17,9 @@ pub mod prelude {
     pub use poloto::prelude::*;
     pub use poloto::*;
 
-    pub use broccoli::tree::node::Aabb;
-    pub use broccoli::tree::node::ManySwap;
-    pub use broccoli::tree::node::ManySwappable;
+    pub use broccoli::aabb::Aabb;
+    pub use broccoli::aabb::ManySwap;
+    pub use broccoli::aabb::ManySwappable;
     pub use datanum::DnumManager;
 }
 pub trait ColfindHandler: Aabb + ManySwap + HasInner {

@@ -1,11 +1,11 @@
 use axgeom::AxisDyn;
 use broccoli::{
-    aabb_pin::AabbPin,
+    aabb::pin::AabbPin,
+    aabb::Aabb,
     queries::colfind::{
         build::{CollVis, CollisionHandler, HandleChildrenArgs, NodeHandler},
         handler::AccNodeHandler,
     },
-    tree::node::Aabb,
     Tree,
 };
 

@@ -74,11 +74,16 @@ extern crate alloc;
 pub use axgeom;
 pub mod tree;
 
-pub mod aabb_pin;
-use aabb_pin::AabbPin;
-use aabb_pin::AabbPinIter;
+pub mod aabb;
+
+use aabb::pin::AabbPin;
+use aabb::pin::AabbPinIter;
+use aabb::pin::*;
+use aabb::*;
+
 use tree::build::*;
 use tree::node::*;
+
 use tree::*;
 
 #[cfg(test)]
@@ -86,7 +91,6 @@ mod tests;
 
 pub mod assert;
 pub mod queries;
-pub mod util;
 
 use assert::Assert;
 use assert::Naive;

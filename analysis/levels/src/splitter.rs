@@ -22,9 +22,10 @@ impl Splitter for EmptySplitter {
 
 pub mod build {
     use super::*;
+    use broccoli::aabb::*;
     use broccoli::tree::{
         build::{NodeBuildResult, TreeBuildVisitor},
-        node::{Aabb, ManySwap, Node},
+        node::Node,
         Sorter,
     };
 
@@ -52,8 +53,8 @@ pub mod query {
     pub mod colfind {
         use super::*;
         use broccoli::{
+            aabb::*,
             queries::colfind::build::{CollVis, NodeHandler},
-            tree::node::Aabb,
         };
 
         pub fn recurse_seq_splitter<T: Aabb, P: Splitter, N: NodeHandler<T>>(
