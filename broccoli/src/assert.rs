@@ -39,7 +39,7 @@ impl<'a, T: Aabb> Assert<'a, T> {
 
 ///panics if a broken broccoli tree invariant is detected.
 ///For debugging purposes only.
-pub fn assert_tree_invariants<'a, T: Aabb>(tree: &Tree<'a, T>)
+pub fn assert_tree_invariants<T: Aabb>(tree: &Tree<T>)
 where
     T::Num: core::fmt::Debug,
 {
