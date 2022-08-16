@@ -24,9 +24,9 @@ pub mod build {
     use super::*;
     use broccoli::aabb::*;
     use broccoli::tree::{
+        build::Sorter,
         build::{NodeBuildResult, TreeBuildVisitor},
         node::Node,
-        Sorter,
     };
 
     pub fn recurse_seq_splitter<'a, T: Aabb + ManySwap, S: Sorter<T>, P: Splitter>(

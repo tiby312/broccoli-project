@@ -1,23 +1,5 @@
 use super::*;
 
-/*
-impl<T: Aabb> Aabb for &T {
-    type Num = T::Num;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        T::get(self)
-    }
-}
-
-impl<T: Aabb> Aabb for &mut T {
-    type Num = T::Num;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        T::get(self)
-    }
-}
-*/
-
 /// When we traverse the tree in read-only mode, we can simply return a reference to each node.
 /// We don't need to protect the user from only mutating parts of the BBox's since they can't
 /// change anything.
@@ -87,7 +69,6 @@ mod vistr_mut {
 }
 pub use vistr_mut::VistrMutPin;
 
-//TODO remove AAbb constraint. Instead use Node<T,N>
 pub struct Node<'a, T, N> {
     /// May or may not be sorted.
     pub range: AabbPin<&'a mut [T]>,

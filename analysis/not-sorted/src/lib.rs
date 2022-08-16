@@ -7,9 +7,10 @@ use broccoli::{
         colfind::build::{CollVis, CollisionHandler, HandleChildrenArgs, NodeHandler},
     },
     tree::{
+        build::Sorter,
         build::TreeBuildVisitor,
         node::{Node, Vistr, VistrMutPin},
-        num_level, Sorter,
+        num_level,
     },
 };
 use broccoli_rayon::{

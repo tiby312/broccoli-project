@@ -2,9 +2,9 @@ use broccoli::{
     aabb::Aabb,
     aabb::ManySwap,
     tree::{
+        build::Sorter,
         build::{DefaultSorter, NodeBuildResult, TreeBuildVisitor},
         node::Node,
-        Sorter,
     },
     Tree,
 };

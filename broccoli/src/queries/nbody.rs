@@ -230,10 +230,10 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
         ///Perform nbody
         ///The tree is taken by value so that its nodes can be expended to include more data.
         pub fn nbody_mut<'a, N: Nbody>(
-            tree: Vec<Node<'a, N::T, <N::T as Aabb>::Num>>,
+            tree: Box<[Node<'a, N::T, <N::T as Aabb>::Num>]>,
             no: &mut N,
-        ) -> Vec<Node<'a, N::T, <N::T as Aabb>::Num>> {
-            let mut newnodes: Vec<_> = tree
+        ) -> Box<[Node<'a, N::T, <N::T as Aabb>::Num>]> {
+            let mut newnodes: Vec<_> = Vec::from(tree)
                 .into_iter()
                 .map(|x| NodeWrapper {
                     node: x,
@@ -254,7 +254,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
             newnodes.into_iter().map(|x| x.node).collect()
         }
 
-        let mut vvv = vec![];
+        let mut vvv = vec![].into_boxed_slice();
         std::mem::swap(&mut self.nodes, &mut vvv);
 
         let mut new = nbody_mut(vvv, no);

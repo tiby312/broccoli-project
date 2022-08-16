@@ -16,17 +16,11 @@ use node::*;
 ///partitioning space based off of the aabb's `X` value.
 pub type DefaultA = XAXIS;
 
+//TODO remove this?
 ///Returns the default axis type.
 #[must_use]
 pub const fn default_axis() -> DefaultA {
     XAXIS
-}
-
-///Expose a common Sorter trait so that we may have two version of the tree
-///where one implementation actually does sort the tree, while the other one
-///does nothing when sort() is called.
-pub trait Sorter<T> {
-    fn sort(&self, axis: impl Axis, bots: &mut [T]);
 }
 
 ///Using this struct the user can determine the height of a tree or the number of nodes
@@ -118,34 +112,3 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
 pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
     BBoxMut::new(rect, inner)
 }
-
-// pub struct BuildArgs{
-//     pub num_level: usize,
-// }
-
-// impl BuildArgs{
-//     pub fn new(bots: usize) -> Self {
-//         BuildArgs {
-//             num_level: num_level::default(bots)
-//         }
-//     }
-// }
-
-// pub fn build_ext<'a, T: Aabb + ManySwap, S,P>(
-//     bots: &'a mut [T],
-//     sorter: &mut S,
-//     args:BuildArgs,
-//     mut splitter:P
-// ) -> (Vec<Node<'a, T>>, P)
-// where
-//     S: Sorter<T>,
-//     P: Splitter,
-// {
-//     let mut buffer = Vec::with_capacity(num_level::num_nodes(args.num_level));
-//     TreeBuildVisitor::new(args.num_level, bots).recurse_seq(
-//         &mut splitter,
-//         sorter,
-//         &mut buffer
-//     );
-//     (buffer, splitter)
-// }

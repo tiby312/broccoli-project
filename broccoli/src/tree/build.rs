@@ -4,6 +4,13 @@
 
 use super::*;
 
+///Expose a common Sorter trait so that we may have two version of the tree
+///where one implementation actually does sort the tree, while the other one
+///does nothing when sort() is called.
+pub trait Sorter<T> {
+    fn sort(&self, axis: impl Axis, bots: &mut [T]);
+}
+
 ///Sorts the bots based on an axis.
 #[inline(always)]
 pub fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {

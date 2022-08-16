@@ -52,6 +52,54 @@ fn main() {
 ```
 
 
+ ### Size of `T` in `Tree`
+
+ During construction, the elements of a tree are swapped around a lot. Therefore if the size
+ of T is too big, the performance can regress a lot! To combat this, consider using the semi-direct
+ or even indirect layouts listed below. The Indirect layout achieves the smallest element size (just one pointer),
+ however it can suffer from a lot of cache misses of large propblem sizes. The Semi-direct layout
+ is more cache-friendly but can use more memory.
+ The different characteristics are explored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
+ In almost all cases you want to use the Semi-direct layout.
+
+ - `(Rect<N>,&mut T)` Semi-direct
+ - `(Rect<N>,T)` Direct
+ - `&mut (Rect<N>,T)` Indirect
+
+ I made the [`ManySwap`] marker trait to help bring awareness to this performance regression trap.
+ It is implemented on a lot of types that are guaranteed to be small.
+ If you know what you are doing you can use the [`ManySwappable`] wrapper struct that automatically
+ implements that trait, or implement it yourself on your own type.
+
+ You can also construct a Tree using Semi-direct or indirect, and then convert it to direct. (See
+ the [`Tree::from_tree_data()`] function.) However, I'm not sure if there are performance benefits to this.
+
+ ### Parallelism
+
+ Parallel versions of construction and colliding pair finding functions
+ are provided. They use [rayon](https://crates.io/crates/rayon) under the hood which uses work stealing to
+ parallelize divide and conquer style recursive functions.
+
+ ### Floating Point
+
+ Broccoli only requires `PartialOrd` for its number type. Instead of panicking on comparisons
+ it doesn't understand, it will just arbitrary pick a result. So if you use regular float primitive types
+ and there is even just one `NaN`, tree construction and querying will not panic,
+ but would have unspecified results.
+ If using floats, it's the users responsibility to not pass `NaN` values into the tree.
+ There is no static protection against this, though if this is desired you can use
+ the [ordered-float](https://crates.io/crates/ordered-float) crate. The Ord trait was not
+ enforced to give users the option to use primitive floats directly which can be easier to
+ work with.
+
+ ### Protecting Invariants Statically
+
+ A lot is done to forbid the user from violating the invariants of the tree once constructed
+ while still allowing them to mutate parts of each element of the tree. The user can mutably traverse
+ the tree but the mutable references returns are hidden behind the `AabbPin<T>` type that forbids
+ mutating the aabbs.
+
+
 ### Optimisation
 
 I've focused mainly on making finding colliding pairs as fast as possible primarily in
