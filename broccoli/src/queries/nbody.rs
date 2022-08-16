@@ -229,10 +229,10 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
     pub fn handle_nbody<N: Nbody<T = T>>(&mut self, no: &mut N) {
         ///Perform nbody
         ///The tree is taken by value so that its nodes can be expended to include more data.
-        pub fn nbody_mut<'a, N: Nbody>(
-            tree: Box<[Node<'a, N::T, <N::T as Aabb>::Num>]>,
+        pub fn nbody_mut<'a, N: Nbody<T = T>, T: Aabb>(
+            tree: Box<[Node<'a, T, T::Num>]>,
             no: &mut N,
-        ) -> Box<[Node<'a, N::T, <N::T as Aabb>::Num>]> {
+        ) -> Box<[Node<'a, T, T::Num>]> {
             let mut newnodes: Vec<_> = Vec::from(tree)
                 .into_iter()
                 .map(|x| NodeWrapper {
