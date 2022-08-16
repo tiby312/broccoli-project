@@ -1,4 +1,4 @@
-use broccoli::{aabb_pin::AabbPin, tree::rect};
+use broccoli::{aabb::pin::AabbPin, tree::rect};
 
 fn main() {
     let mut inner1 = 4;

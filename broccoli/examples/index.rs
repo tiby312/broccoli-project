@@ -1,4 +1,5 @@
-use broccoli::tree::{node::ManySwappable, rect};
+use broccoli::aabb::ManySwappable;
+use broccoli::tree::rect;
 fn main() {
     let mut acc = [0; 3];
 

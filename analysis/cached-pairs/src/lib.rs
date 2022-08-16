@@ -56,8 +56,8 @@ fn bench_inner(max: usize, grow: f64, num_iter: usize) -> Vec<(i128, Res)> {
 
             let test = bencher.time(|| {
                 let mut tree = Tree::new(bots);
-                let mut tree = broccoli::ext::cacheable_pairs::IndTree(&mut tree);
-                let mut cacher = broccoli::ext::cacheable_pairs::CacheSession::new(&mut tree);
+                let mut tree = broccoli_ext::cacheable_pairs::IndTree(&mut tree);
+                let mut cacher = broccoli_ext::cacheable_pairs::CacheSession::new(&mut tree);
                 let mut pairs = cacher.cache_colliding_pairs(|a, b| {
                     *a ^= 1;
                     *b ^= 1;

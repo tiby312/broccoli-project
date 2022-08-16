@@ -1,4 +1,4 @@
-use crate::{aabb_pin::HasInner, tree::node::Aabb, Tree};
+use broccoli::{aabb::pin::HasInner, aabb::Aabb, Tree};
 
 ///
 /// Used by [`CacheSession::cache_colliding_pairs()`]
