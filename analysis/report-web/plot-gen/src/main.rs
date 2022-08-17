@@ -76,12 +76,21 @@ pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
 }
 
 fn main() {
-    affinity::set_thread_affinity([4, 5, 6, 7]).unwrap();
+
+    // On my laptop (A chrome acer spin 512 with a octa-core heterogenous cpu),
+    // There are 4 cortex A55 and 4 cortex A57 cores.
+    // Having these benching threads transfer between the two types of cores
+    // causes inconsistent and not smooth performance.
+    // lets set the affinity such that the threads only run on the 
+    // more powerful a57 cores.
+    let worker_cores=[4,5,6,7];
+
+    affinity::set_thread_affinity(worker_cores).unwrap();
 
     rayon::ThreadPoolBuilder::new()
         .num_threads(4)
-        .start_handler(|_index| {
-            affinity::set_thread_affinity([4, 5, 6, 7]).unwrap();
+        .start_handler(move |_index| {
+            affinity::set_thread_affinity(worker_cores).unwrap();
         })
         .build_global()
         .unwrap();
