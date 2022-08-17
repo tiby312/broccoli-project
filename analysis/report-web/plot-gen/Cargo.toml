@@ -18,3 +18,4 @@ cached-pairs={path="../cached-pairs"}
 best-height={path="../best-height"}
 pulldown-cmark = "0.9"
 rayon="*"
+affinity="*"

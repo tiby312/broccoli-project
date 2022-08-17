@@ -76,7 +76,15 @@ pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
 }
 
 fn main() {
-    rayon::ThreadPoolBuilder::new().num_threads(4).build_global().unwrap();
+    affinity::set_thread_affinity([4, 5, 6, 7]).unwrap();
+
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(4)
+        .start_handler(|_index| {
+            affinity::set_thread_affinity([4, 5, 6, 7]).unwrap();
+        })
+        .build_global()
+        .unwrap();
 
     foo("../../target/analysis/html").unwrap();
     //let mut sys = sysfile::SysFile::new("../../target/analysis");
