@@ -76,7 +76,9 @@ pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
 }
 
 fn main() {
-    foo("../target/analysis/html").unwrap();
+    rayon::ThreadPoolBuilder::new().num_threads(4).build_global().unwrap();
+
+    foo("../../target/analysis/html").unwrap();
     //let mut sys = sysfile::SysFile::new("../../target/analysis");
     //bench::bench(&mut sys);
 }

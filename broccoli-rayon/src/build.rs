@@ -47,6 +47,7 @@ where
     T::Num: Send,
 {
     fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self {
+        //TODO this full capacity is not used? half of that?
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         recurse_par(
             num_seq_fallback,
@@ -68,6 +69,49 @@ where
 
 pub const SEQ_FALLBACK_DEFAULT: usize = 512;
 
+/*
+pub fn par_new2<'a,T:Aabb+ManySwap>(bots: &'a mut [T]) -> Tree<'a,T> where T:Send,T::Num:Send{
+    let num_level = num_level::default(bots.len());
+    let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level)/2+1);
+    build_2_par(&mut buffer,&mut DefaultSorter,TreeBuildVisitor::new(num_level,bots));
+    Tree::from_nodes(buffer)
+}
+
+
+//TODO try this
+pub fn build_2_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Clone>(
+    buffer: &mut Vec<Node<'a, T, T::Num>>,
+    sorter: &mut S,
+    vistr: TreeBuildVisitor<'a, T>,
+) where
+    S: Send,
+    T: Send,
+    T::Num: Send,
+{
+    let NodeBuildResult { node, rest } = vistr.build_and_next();
+
+    if let Some([left, right]) = rest {
+        std::thread::scope(|s| {
+            let mut s2 = sorter.clone();
+
+            let tt = s.spawn(move || {
+                let num_nodes = num_level::num_nodes(right.get_height() + 1);
+                let mut buffer2 = Vec::with_capacity(num_nodes);
+                right.recurse_seq(&mut s2, &mut buffer2);
+                buffer2
+            });
+
+            buffer.push(node.finish(sorter));
+            left.recurse_seq(sorter, buffer);
+
+            let mut buffer2 = tt.join().unwrap();
+            buffer.append(&mut buffer2);
+        })
+    } else {
+        buffer.push(node.finish(sorter));
+    }
+}
+*/
 // we want to pass small chunks so that if a slow core
 // gets a task, they don't hold everybody else up.
 
