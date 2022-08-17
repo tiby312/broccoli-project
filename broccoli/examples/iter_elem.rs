@@ -1,4 +1,4 @@
-use broccoli::tree::rect;
+use broccoli::rect;
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;

@@ -1,4 +1,4 @@
-use broccoli::tree::rect;
+use broccoli::rect;
 
 fn main() {
     let mut aabbs = [

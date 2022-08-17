@@ -1,4 +1,4 @@
-use broccoli::tree::rect;
+use broccoli::rect;
 use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
 
 fn main() {
