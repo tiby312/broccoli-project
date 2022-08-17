@@ -153,7 +153,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
             `abspiral(n,{grow})`
         "#};
 
-        let res = self::bench_inner(n, grow, 5000, 20000);
+        let res = self::bench_inner(n, grow, 2000, 20000);
         let l1 = res
             .iter()
             .map(|(i, r)| (i, r.brocc))
