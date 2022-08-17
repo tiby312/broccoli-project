@@ -11,7 +11,7 @@ use broccoli::aabb::pin::AabbPin;
 pub use broccoli::aabb::*;
 pub use broccoli::axgeom;
 pub use broccoli::axgeom::*;
-pub use broccoli::tree::bbox;
+pub use broccoli::bbox;
 pub use broccoli::tree::node::*;
 pub use broccoli::tree::*;
 
