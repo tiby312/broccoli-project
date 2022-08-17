@@ -78,13 +78,13 @@ fn bench_par_inner(
     c_num_seq_fallback: Option<usize>,
     q_num_seq_fallback: Option<usize>,
 ) -> Vec<(i128, f64, f64)> {
-    let mn = 1_000_000;
+    let mn = 20_000;
 
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(mn).collect();
 
     let mut plots = vec![];
 
-    for i in (0..mn).step_by(1000).skip(1) {
+    for i in (0..mn).step_by(10).skip(200) {
         let bots = &mut all[0..i];
 
         let (j, k) = single(bots, c_num_seq_fallback, q_num_seq_fallback);
@@ -95,7 +95,7 @@ fn bench_par_inner(
 }
 
 pub fn best_seq_fallback_rebal(emp: &mut Html) -> std::fmt::Result {
-    let num = 80_000;
+    let num = 10_000;
     let grow = 2.0;
     let description = formatdoc! {r#"
             x speedup of different seq-fallback values during construction
@@ -119,8 +119,8 @@ pub fn best_seq_fallback_rebal(emp: &mut Html) -> std::fmt::Result {
 pub fn best_seq_fallback_rebal_inner(num: usize, grow: f64) -> Vec<(i128, f64)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
-    (000..20_000)
-        .step_by(10)
+    (000..6_000)
+        .step_by(2)
         .map(|r| {
             let (a, _) = single(&mut all, Some(r), None);
             (r as i128, a as f64)
@@ -129,7 +129,7 @@ pub fn best_seq_fallback_rebal_inner(num: usize, grow: f64) -> Vec<(i128, f64)> 
 }
 
 pub fn best_seq_fallback_query(emp: &mut Html) -> std::fmt::Result {
-    let num = 80_000;
+    let num = 10_000;
     let grow = 2.0;
     let description = formatdoc! {r#"
             x speedup of different seq-fallback values during query
@@ -154,8 +154,8 @@ pub fn best_seq_fallback_query(emp: &mut Html) -> std::fmt::Result {
 fn best_seq_fallback_query_inner(num: usize, grow: f64) -> Vec<(i128, f64)> {
     let mut all: Vec<_> = dist::dist(grow).map(|x| Dummy(x, 0u32)).take(num).collect();
 
-    (000..20_000)
-        .step_by(10)
+    (000..6_000)
+        .step_by(2)
         .map(|a| {
             let (_, b) = single(&mut all, None, Some(a));
             (a as i128, b as f64)
