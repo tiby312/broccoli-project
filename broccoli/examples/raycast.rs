@@ -1,7 +1,7 @@
 use broccoli::axgeom;
 use broccoli::axgeom::vec2;
 
-use broccoli::tree::rect;
+use broccoli::rect;
 
 fn main() {
     let mut inner1 = 4;

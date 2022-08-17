@@ -1,5 +1,5 @@
 use broccoli::axgeom::vec2;
-use broccoli::tree::rect;
+use broccoli::rect;
 
 fn distance_squared(a: isize, b: isize) -> isize {
     let a = (a - b).abs();

@@ -48,6 +48,22 @@ pub mod queries;
 use assert::Assert;
 use assert::Naive;
 
+pub use axgeom::rect;
+
+///Shorthand constructor of [`BBox`]
+#[inline(always)]
+#[must_use]
+pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
+    BBox::new(rect, inner)
+}
+
+///Shorthand constructor of [`BBoxMut`]
+#[inline(always)]
+#[must_use]
+pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
+    BBoxMut::new(rect, inner)
+}
+
 ///
 /// Used to de-couple tree information from
 /// the underlying lifetimed slice of elements

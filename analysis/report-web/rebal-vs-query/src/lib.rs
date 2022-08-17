@@ -198,7 +198,10 @@ where
     T::Num: Send,
 {
     let mut recorder = Bencher;
-    let (mut tree, par_tree1) = recorder.time_ext(|| broccoli::Tree::par_new(bots));
+    let (mut tree, par_tree1) = recorder.time_ext(|| {
+        broccoli::Tree::par_new(bots)
+        //broccoli_rayon::build::par_new2(bots)
+    });
 
     let par_tree2 = recorder.time(|| {
         tree.par_find_colliding_pairs(T::handle);

@@ -3,6 +3,11 @@
 pub mod build;
 pub mod query;
 
+pub mod prelude {
+    pub use super::build::RayonBuildPar;
+    pub use super::query::colfind::RayonQueryPar;
+}
+
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
 ///during construction.

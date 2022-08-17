@@ -1,5 +1,6 @@
-use broccoli::tree::rect;
-use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
+use broccoli::rect;
+use broccoli_rayon::prelude::*;
+
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
