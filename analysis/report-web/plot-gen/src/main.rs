@@ -68,22 +68,21 @@ pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     layout::bench(emp)?;
 
     // TODO add back
-    // par_tuner::bench_par(emp)?;
-    // par_tuner::best_seq_fallback_rebal(emp)?;
-    // par_tuner::best_seq_fallback_query(emp)?;
+    par_tuner::bench_par(emp)?;
+    par_tuner::best_seq_fallback_rebal(emp)?;
+    par_tuner::best_seq_fallback_query(emp)?;
 
     Ok(())
 }
 
 fn main() {
-
     // On my laptop (A chrome acer spin 512 with a octa-core heterogenous cpu),
     // There are 4 cortex A55 and 4 cortex A57 cores.
     // Having these benching threads transfer between the two types of cores
     // causes inconsistent and not smooth performance.
-    // lets set the affinity such that the threads only run on the 
+    // lets set the affinity such that the threads only run on the
     // more powerful a57 cores.
-    let worker_cores=[4,5,6,7];
+    let worker_cores = [4, 5, 6, 7];
 
     affinity::set_thread_affinity(worker_cores).unwrap();
 
@@ -95,7 +94,12 @@ fn main() {
         .build_global()
         .unwrap();
 
-    foo("../../target/analysis/html").unwrap();
+    rayon::scope(|s| {
+        s.spawn(|_| {
+            foo("../../target/analysis/html").unwrap();
+        });
+    });
+
     //let mut sys = sysfile::SysFile::new("../../target/analysis");
     //bench::bench(&mut sys);
 }

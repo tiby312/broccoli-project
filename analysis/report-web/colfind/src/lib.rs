@@ -95,7 +95,7 @@ pub fn theory_grow(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
 }
 
 pub fn bench_grow(emp: &mut Html) -> std::fmt::Result {
-    let n = 30_000;
+    let n = 10_000;
 
     let description = formatdoc! {r#"
             Comparison of bench times of different collision finding strategies. 
@@ -147,13 +147,13 @@ pub fn bench_grow(emp: &mut Html) -> std::fmt::Result {
 }
 
 pub fn bench(emp: &mut Html) -> std::fmt::Result {
-    for (grow, n) in [(0.5, 15_000), (2.0, 30_000)] {
+    for (grow, n) in [(0.5, 8_000), (2.0, 10_000)] {
         let description = formatdoc! {r#"
             Comparison of bench times of different collision finding strategies. 
             `abspiral(n,{grow})`
         "#};
 
-        let res = self::bench_inner(n, grow, 5000, 20000);
+        let res = self::bench_inner(n, grow, 2000, 20000);
         let l1 = res
             .iter()
             .map(|(i, r)| (i, r.brocc))

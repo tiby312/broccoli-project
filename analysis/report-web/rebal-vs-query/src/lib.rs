@@ -44,7 +44,7 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
 }
 
 pub fn bench(emp: &mut Html) -> std::fmt::Result {
-    let num = 40_000;
+    let num = 10_000;
     let grow = 2.0;
     let description = formatdoc! {r#"
             comparison of construction vs query
