@@ -76,6 +76,7 @@ pub mod num_level {
             let a = log_2(a);
             let k = (((a / 2) * 2) + 1) as usize;
             assert_eq!(k % 2, 1, "k={:?}", k);
+            assert!(k>=1);
             k
         }
     }
