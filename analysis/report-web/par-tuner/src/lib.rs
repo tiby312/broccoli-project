@@ -60,7 +60,7 @@ pub fn bench_par(emp: &mut Html) -> std::fmt::Result {
             .map(|(i, _, x)| (i, x))
             .cloned_plot()
             .scatter("query"),
-        poloto::build::origin()
+        poloto::build::markers([],[0.0])
     );
 
     emp.write_graph(
