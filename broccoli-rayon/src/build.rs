@@ -67,7 +67,9 @@ where
     }
 }
 
-pub const SEQ_FALLBACK_DEFAULT: usize = 512;
+//pub const SEQ_FALLBACK_DEFAULT: usize = 512;
+pub const SEQ_FALLBACK_DEFAULT: usize = 16;
+
 
 /*
 pub fn par_new2<'a,T:Aabb+ManySwap>(bots: &'a mut [T]) -> Tree<'a,T> where T:Send,T::Num:Send{

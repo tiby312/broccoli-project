@@ -94,7 +94,12 @@ fn main() {
         .build_global()
         .unwrap();
 
-    foo("../../target/analysis/html").unwrap();
+    rayon::scope(|s| {
+        s.spawn(|_| {
+            foo("../../target/analysis/html").unwrap();
+        });
+    });
+
     //let mut sys = sysfile::SysFile::new("../../target/analysis");
     //bench::bench(&mut sys);
 }
