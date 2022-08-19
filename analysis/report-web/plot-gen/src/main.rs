@@ -88,8 +88,8 @@ fn main() {
 
     rayon::ThreadPoolBuilder::new()
         .num_threads(4)
-        .start_handler(move |_index| {
-            affinity::set_thread_affinity(worker_cores).unwrap();
+        .start_handler(move |index| {
+            affinity::set_thread_affinity([worker_cores[index]]).unwrap();
         })
         .build_global()
         .unwrap();
