@@ -57,7 +57,7 @@ fn main() {
  During construction, the elements of a tree are swapped around a lot. Therefore if the size
  of T is too big, the performance can regress a lot! To combat this, consider using the semi-direct
  or even indirect layouts listed below. The Indirect layout achieves the smallest element size (just one pointer),
- however it can suffer from a lot of cache misses of large propblem sizes. The Semi-direct layout
+ however it can suffer from a lot of cache misses of large problem sizes. The Semi-direct layout
  is more cache-friendly but can use more memory.
  The different characteristics are explored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
  In almost all cases you want to use the Semi-direct layout.

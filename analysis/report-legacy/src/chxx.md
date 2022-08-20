@@ -30,7 +30,7 @@ Because X only has the values true or false, E[X]=P(X).
 let Y be the random variable describing the number of bots colliding.
 So Y=X1+X2+X3..Xn where n is the number of pairs of bots.
 Or Y=X*(n choose 2) where n is the number of bots.
-Each of these events is independant, and identical to each other.
+Each of these events is independent, and identical to each other.
 Exploiting the linearity property of the expected value, 
 E[Y]=E[X*(n choose 2)]=(n choose 2)*E[X]
 
@@ -46,7 +46,7 @@ E[L]=(n choose 2)*( (bot_width/dim_x)^2*(bot_width/dim_x)^2 ) /(dim_x*dim_x)
 E[L]=(n choose 2)*( (bot_width/dim_x)^4 ) /(dim_x^2)
 E[L]=(n choose 2)* bot_width^4 / dim_x^2
 
-So now if we fix any of the 3 variabes, we can calculate the third.
+So now if we fix any of the 3 variables, we can calculate the third.
 Lets solve for the dim.
 
 dim_x^2=(n choose 2)* bot_width^4 /E[L]
@@ -72,14 +72,14 @@ In the best case, all the bots live in only leaf nodes, and none of the bots int
 
 # Epsilon
 
-Before we analyze the rebalance and query algorithms, lets come up with an approximation of how often bots would intersect a divider. Lets first look at the root. If you had a bunch of bots randomly and uniformly distrubuted in a 2d space, how many of them would intersect the median divider? The answer to this depends on the sizes of the bots. If all the bots were points, then hopefully only one bot would intersect with the divider. The only case this wouldnt be true is if multiple bots had the same x position as the median bot. If we're talking about real numbers, then I think the likelyhood of two bots randomly sharing the exact same x value is next to impossible. Since we are not dealing with real numbers, its more likely. On some bounded interval, there are only so many values that a floating point can have inbetween them, and even less so for integers. But it would still be a small enough chance that we can ignore. So for the cases where the bot is a point, I think its safe to say that epsilon is around 1 for the root.
+Before we analyze the rebalance and query algorithms, lets come up with an approximation of how often bots would intersect a divider. Lets first look at the root. If you had a bunch of bots randomly and uniformly distributed in a 2d space, how many of them would intersect the median divider? The answer to this depends on the sizes of the bots. If all the bots were points, then hopefully only one bot would intersect with the divider. The only case this wouldnt be true is if multiple bots had the same x position as the median bot. If we're talking about real numbers, then I think the likelihood of two bots randomly sharing the exact same x value is next to impossible. Since we are not dealing with real numbers, its more likely. On some bounded interval, there are only so many values that a floating point can have inbetween them, and even less so for integers. But it would still be a small enough chance that we can ignore. So for the cases where the bot is a point, I think its safe to say that epsilon is around 1 for the root.
 
 As the sizes of the bots increases, epsilon would also grow. By how much I'm not sure. But thats not the real concern. We are only concerned about the complexity as n grows. We can just assume that the bot size is constant, whatever it may be. 
 For our purposes, its simpler to just think of the bots as points since it doesnt effect our n complexity.
 
 So the question is as n grows, how is episolon effected?
 
-It clearly must also grow somewhat. The more bots there are, the greater the likelyhood that any bot will have the same value as the median bot.  
+It clearly must also grow somewhat. The more bots there are, the greater the likelihood that any bot will have the same value as the median bot.  
 So we have:
 1/x + 1/x +1/x +1/x + ... =  n/x
 where x is the possible x values.
@@ -128,7 +128,7 @@ level4  =  8*(bin((n-4*e)/8)+sort(e/8))
 
 The total running time is the sum of all of these.
 
-Sorting is done using rust's built in sorting, which has big(o) of log(n)*n like any sorting algoritm.
+Sorting is done using rust's built in sorting, which has big(o) of log(n)*n like any sorting algorithm.
 So for the purposes of finding the O(n) we can replace sort(n) with log(n)*n.
 The binning process first finds the median at each level using pdqselect which has an average running time of O(n). 
 Once it finds the median, it then binns all the bots into three bins. This is also O(n).
