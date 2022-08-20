@@ -11,17 +11,15 @@ use axgeom;
 use axgeom::*;
 use node::*;
 
+
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
 ///This means that the first divider is a 'vertical' line since it is
 ///partitioning space based off of the aabb's `X` value.
-pub type DefaultA = XAXIS;
-
-//TODO remove this?
-///Returns the default axis type.
 #[must_use]
-pub const fn default_axis() -> DefaultA {
+pub const fn default_axis() -> XAXIS {
     XAXIS
 }
+
 
 ///Using this struct the user can determine the height of a tree or the number of nodes
 ///that would exist if the tree were constructed with the specified number of elements.
