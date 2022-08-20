@@ -12,6 +12,7 @@ pub fn num_intersection(emp: &mut Html) -> std::fmt::Result {
 
     let p = plots!(
         res.iter().cloned_plot().scatter(""),
+        (0..10_000).map(|x|[x,x]).cloned_plot().line("n"),
         poloto::build::markers([], [0])
     );
 
@@ -31,10 +32,11 @@ pub fn handle_grow(emp: &mut Html) -> std::fmt::Result {
             `abspiral({n},x)`
         "#};
 
-    let res = handle_grow_inner(n, 0.02, 2.0);
+    let res = handle_grow_inner(n, 0.5, 2.0);
 
     let p = plots!(
         res.iter().cloned_plot().scatter(""),
+        [(0.5,10_000*2),(2.0,10_000*2)].iter().cloned_plot().line("n*2"),
         poloto::build::markers([], [0])
     );
 
