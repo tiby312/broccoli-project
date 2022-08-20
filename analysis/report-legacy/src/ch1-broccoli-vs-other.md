@@ -57,7 +57,7 @@ The naive algorithm I used is not 100% naive. While it does check
 every possible pair, it first checks if a pair of aabb's collides in one dimension. If it does not collide in that dimension, it does not even check the next dimension. So because of this "short circuiting", there is a slight increase in comparisons when the aabbs are clumped up. If there were no short-circuiting, it would be flat all across. 
 
 Broccoli reduces to sweep and prune if it can't take advantage of its tree property, which it can't in extremely clumped up cases. However, it seemingly still does better than sweep and prune. I think this is related to the fact that sweep and prune sweeps across x, but still checks that the rects intersect along the y all the time. Broccoli
-however, doesn't check the y axis for bots if it knows they lie on the divider line. Bots that lie on an divider line are already guarenteed to intersect on the y axis.
+however, doesn't check the y axis for bots if it knows they lie on the divider line. Bots that lie on an divider line are already guaranteed to intersect on the y axis.
 
 Now lets look at the benches.
 

@@ -3,7 +3,7 @@
 use super::*;
 use axgeom::Ray;
 
-///A Vec<T> is returned since there coule be ties where the ray hits multiple T at a length N away.
+///A Vec<T> is returned since there could be ties where the ray hits multiple T at a length N away.
 //pub type RayCastResult<T, N> = axgeom::CastResult<(Vec<T>, N)>;
 
 ///This is the trait that defines raycast specific geometric functions that are needed by this raytracing algorithm.

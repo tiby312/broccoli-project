@@ -24,7 +24,7 @@ broccoli construction and query requires sorting or finding the max and min at v
     * Flexible to user.
         * User can still opt into using `Ord` types by passing their own wrapper types. They can
           define their own `from_ord()->Tree` tree building function that requires Ord.
-    * User could mis-use the tree. They need to be cognizant that they are not passing NaN values
+    * User could miss-use the tree. They need to be cognizant that they are not passing NaN values
       if they are opting out of using a wrapper type.
 
 For a long time I used the first option, but have since moved to the last option. Mainly because
