@@ -1,3 +1,7 @@
+//!
+//! Contains support for verifying query results against naive implementation.
+//!
+
 use axgeom::Axis;
 use compt::Visitor;
 

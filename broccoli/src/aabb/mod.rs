@@ -1,3 +1,7 @@
+//!
+//! Contains AABB primitives and building blocks.
+//!
+
 pub mod pin;
 
 use super::*;
