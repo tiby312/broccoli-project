@@ -14,12 +14,8 @@ use node::*;
 ///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
 ///This means that the first divider is a 'vertical' line since it is
 ///partitioning space based off of the aabb's `X` value.
-pub type DefaultA = XAXIS;
-
-//TODO remove this?
-///Returns the default axis type.
 #[must_use]
-pub const fn default_axis() -> DefaultA {
+pub const fn default_axis() -> XAXIS {
     XAXIS
 }
 
@@ -76,7 +72,7 @@ pub mod num_level {
             let a = log_2(a);
             let k = (((a / 2) * 2) + 1) as usize;
             assert_eq!(k % 2, 1, "k={:?}", k);
-            assert!(k>=1);
+            assert!(k >= 1);
             k
         }
     }

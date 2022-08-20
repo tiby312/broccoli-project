@@ -1,11 +1,11 @@
 //! Broccoli is a broad-phase collision detection library.
 //! The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 //!
-//! Checkout the github [examples](https://github.com/tiby312/broccoli/tree/master/examples).
+//! Checkout the github [examples](https://github.com/tiby312/broccoli-project/tree/master/broccoli/examples).
 
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png",
-    html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli/master/assets/logo.png"
+    html_logo_url = "https://raw.githubusercontent.com/tiby312/broccoli-project/master/assets/logo.png",
+    html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli-project/master/assets/logo.png"
 )]
 #![forbid(unsafe_code)]
 

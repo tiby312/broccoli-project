@@ -14,7 +14,6 @@ use crate::Splitter;
 //pub const SEQ_FALLBACK_DEFAULT: usize = 512;
 pub const SEQ_FALLBACK_DEFAULT: usize = 256;
 
-
 pub trait RayonQueryPar<'a, T: Aabb> {
     fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
     where

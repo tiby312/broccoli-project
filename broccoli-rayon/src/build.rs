@@ -47,8 +47,8 @@ where
     T::Num: Send,
 {
     fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self {
-        assert!(num_level>=1);
-        let num_nodes=num_level::num_nodes(num_level);
+        assert!(num_level >= 1);
+        let num_nodes = num_level::num_nodes(num_level);
         let mut buffer = Vec::with_capacity(num_nodes);
         recurse_par(
             num_seq_fallback,
@@ -59,7 +59,7 @@ where
             &mut buffer,
             TreeBuildVisitor::new(num_level, bots),
         );
-        assert_eq!(buffer.len(),num_nodes);
+        assert_eq!(buffer.len(), num_nodes);
         Tree::from_nodes(buffer)
     }
 
@@ -71,7 +71,6 @@ where
 
 //pub const SEQ_FALLBACK_DEFAULT: usize = 512;
 pub const SEQ_FALLBACK_DEFAULT: usize = 16;
-
 
 // we want to pass small chunks so that if a slow core
 // gets a task, they don't hold everybody else up.
@@ -123,6 +122,3 @@ pub fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Splitter>(
         buffer.push(node.finish(sorter));
     }
 }
-
-
-
