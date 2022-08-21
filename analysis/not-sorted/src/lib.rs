@@ -14,9 +14,7 @@ use broccoli::{
     },
 };
 use broccoli_rayon::{
-    build::{RayonBuildPar, SorterWrapper},
-    query::colfind::RayonQueryPar,
-    EmptySplitter, Splitter,
+    build::RayonBuildPar, queries::colfind::RayonQueryPar, queries::colfind::Splitter,
 };
 
 #[derive(Copy, Clone, Default)]
@@ -83,10 +81,7 @@ where
         let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
         broccoli_rayon::build::recurse_par(
             num_seq_fallback,
-            &mut SorterWrapper {
-                sorter: NoSorter,
-                splitter: EmptySplitter,
-            },
+            &mut NoSorter,
             &mut buffer,
             TreeBuildVisitor::new(num_level, bots),
         );
@@ -186,25 +181,31 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for NotSortedTree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        self.par_find_colliding_pairs_ext(
-            broccoli_rayon::query::colfind::SEQ_FALLBACK_DEFAULT,
-            func,
-        );
-    }
-    fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-        F: Send + Clone,
-        T: Send,
-        T::Num: Send,
-    {
         let mut f = NoSortNodeHandlerEmptySplitter {
             inner: NoSortNodeHandler { func },
         };
 
         let vv = CollVis::new(self.vistr_mut());
-        broccoli_rayon::query::colfind::recurse_par(vv, &mut f, num_switch_seq);
+        // broccoli_rayon::query::colfind::recurse_par(vv, &mut f, num_switch_seq);
+        // self.par_find_colliding_pairs_ext(
+        //     broccoli_rayon::query::colfind::SEQ_FALLBACK_DEFAULT,
+        //     func,
+        // );
     }
+    // fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
+    // where
+    //     F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    //     F: Send + Clone,
+    //     T: Send,
+    //     T::Num: Send,
+    // {
+    //     let mut f = NoSortNodeHandlerEmptySplitter {
+    //         inner: NoSortNodeHandler { func },
+    //     };
+
+    //     let vv = CollVis::new(self.vistr_mut());
+    //     broccoli_rayon::query::colfind::recurse_par(vv, &mut f, num_switch_seq);
+    // }
 }
 
 pub struct NoSortNodeHandlerEmptySplitter<F> {

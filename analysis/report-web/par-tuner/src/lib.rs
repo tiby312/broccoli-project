@@ -1,4 +1,4 @@
-use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
+use broccoli_rayon::prelude::*;
 use support::prelude::*;
 
 fn single<T: ColfindHandler>(
@@ -30,11 +30,19 @@ where
     let ccc = if let Some(c) = q_num_seq_fallback {
         c
     } else {
-        broccoli_rayon::query::colfind::SEQ_FALLBACK_DEFAULT
+        broccoli_rayon::queries::colfind::SEQ_FALLBACK_DEFAULT
     };
 
     let qpar = bench_closure(|| {
-        tree.par_find_colliding_pairs_ext(ccc, T::handle);
+        use broccoli::queries::colfind::handler::DefaultNodeHandler;
+        use broccoli_rayon::queries::colfind::*;
+        use support::prelude::queries::colfind::build::CollVis;
+        let mut f = DefaultNodeHandler::new(ClosureCloneable { func: T::handle });
+
+        let vv = CollVis::new(tree.vistr_mut());
+        recurse_par(vv, &mut f, ccc);
+
+        //tree.par_find_colliding_pairs_ext(ccc, T::handle);
     });
 
     let qspeedup = qseq as f64 / qpar as f64;
@@ -60,7 +68,7 @@ pub fn bench_par(emp: &mut Html) -> std::fmt::Result {
             .map(|(i, _, x)| (i, x))
             .cloned_plot()
             .scatter("query"),
-        poloto::build::markers([],[0.0])
+        poloto::build::markers([], [0.0])
     );
 
     emp.write_graph(

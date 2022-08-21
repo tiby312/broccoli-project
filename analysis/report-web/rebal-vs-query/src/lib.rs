@@ -1,4 +1,4 @@
-use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
+use broccoli_rayon::prelude::*;
 use support::prelude::*;
 
 pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {

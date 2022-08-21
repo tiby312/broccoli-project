@@ -2,21 +2,21 @@ use super::*;
 use twounordered::TwoUnorderedVecs;
 
 #[derive(Clone)]
-pub struct AccNodeHandler<Acc> {
+pub struct DefaultNodeHandler<Acc> {
     pub acc: Acc,
     prevec: PreVec,
 }
 
-impl<Acc> AccNodeHandler<Acc> {
+impl<Acc> DefaultNodeHandler<Acc> {
     pub fn new(acc: Acc) -> Self {
-        AccNodeHandler {
+        DefaultNodeHandler {
             acc,
             prevec: PreVec::new(),
         }
     }
 }
 
-impl<T: Aabb, Acc> NodeHandler<T> for AccNodeHandler<Acc>
+impl<T: Aabb, Acc> NodeHandler<T> for DefaultNodeHandler<Acc>
 where
     Acc: CollisionHandler<T>,
 {
@@ -169,6 +169,6 @@ where
 
 impl<'a, T: Aabb> Tree<'a, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        CollVis::new(self.vistr_mut()).recurse_seq(&mut AccNodeHandler::new(func));
+        CollVis::new(self.vistr_mut()).recurse_seq(&mut DefaultNodeHandler::new(func));
     }
 }
