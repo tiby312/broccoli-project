@@ -8,10 +8,7 @@ use broccoli::{
     Tree,
 };
 
-///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
-///The main motivation behind this trait was to track the time spent taken at each level of the tree
-///during construction.
-pub trait Splitter: Sized {
+pub trait CollisionHandlerExt<T: Aabb>: CollisionHandler<T> + Sized {
     ///Called to split this into two to be passed to the children.
     fn div(&mut self) -> Self;
 
@@ -19,26 +16,18 @@ pub trait Splitter: Sized {
     fn add(&mut self, b: Self);
 }
 
-pub struct EmptySplitter;
+pub trait NodeHandlerExt<T: Aabb>: NodeHandler<T> + Sized {
+    ///Called to split this into two to be passed to the children.
+    fn div(&mut self) -> Self;
 
-impl Splitter for EmptySplitter {
-    fn div(&mut self) -> Self {
-        EmptySplitter
-    }
-    fn add(&mut self, _: Self) {}
+    ///Called to add the results of the recursive calls on the children.
+    fn add(&mut self, b: Self);
 }
 
 //pub const SEQ_FALLBACK_DEFAULT: usize = 512;
 pub const SEQ_FALLBACK_DEFAULT: usize = 256;
 
 pub trait RayonQueryPar<'a, T: Aabb> {
-    // fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
-    // where
-    //     F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    //     F: Send + Clone,
-    //     T: Send,
-    //     T::Num: Send;
-
     fn par_find_colliding_pairs<F>(&mut self, func: F)
     where
         F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
@@ -78,7 +67,7 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let floop = ClosureSplitter {
+        let floop = ClosureExt {
             acc,
             div,
             add,
@@ -121,7 +110,10 @@ where
         (self.func)(a, b)
     }
 }
-impl<F: Clone> Splitter for ClosureCloneable<F> {
+impl<F: Clone, T: Aabb> CollisionHandlerExt<T> for ClosureCloneable<F>
+where
+    F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+{
     fn div(&mut self) -> Self {
         ClosureCloneable {
             func: self.func.clone(),
@@ -136,13 +128,13 @@ impl<F: Clone> Splitter for ClosureCloneable<F> {
 /// to handle the events where the closure has to be split
 /// off and then joined again.
 ///
-pub struct ClosureSplitter<K, A, B, F> {
+pub struct ClosureExt<K, A, B, F> {
     pub acc: K,
     pub div: A,
     pub add: B,
     pub func: F,
 }
-impl<T: Aabb, K, A, B, F> CollisionHandler<T> for ClosureSplitter<K, A, B, F>
+impl<T: Aabb, K, A, B, F> CollisionHandler<T> for ClosureExt<K, A, B, F>
 where
     F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
 {
@@ -150,11 +142,13 @@ where
         (self.func)(&mut self.acc, a, b)
     }
 }
-impl<K, A: FnMut(&mut K) -> K + Clone, B: FnMut(&mut K, K) + Clone, F: Clone> Splitter
-    for ClosureSplitter<K, A, B, F>
+impl<T: Aabb, K, A: FnMut(&mut K) -> K + Clone, B: FnMut(&mut K, K) + Clone, F: Clone>
+    CollisionHandlerExt<T> for ClosureExt<K, A, B, F>
+where
+    F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
 {
     fn div(&mut self) -> Self {
-        ClosureSplitter {
+        ClosureExt {
             acc: (self.div)(&mut self.acc),
             div: self.div.clone(),
             add: self.add.clone(),
@@ -167,7 +161,7 @@ impl<K, A: FnMut(&mut K) -> K + Clone, B: FnMut(&mut K, K) + Clone, F: Clone> Sp
     }
 }
 
-impl<Acc: Splitter> Splitter for DefaultNodeHandler<Acc> {
+impl<Acc: CollisionHandlerExt<T>, T: Aabb> NodeHandlerExt<T> for DefaultNodeHandler<Acc> {
     fn div(&mut self) -> Self {
         DefaultNodeHandler::new(self.acc.div())
     }
@@ -177,7 +171,7 @@ impl<Acc: Splitter> Splitter for DefaultNodeHandler<Acc> {
     }
 }
 
-pub fn recurse_par<T: Aabb, SO: NodeHandler<T> + Splitter>(
+pub fn recurse_par<T: Aabb, SO: NodeHandlerExt<T>>(
     vistr: CollVis<T>,
     handler: &mut SO,
     num_seq_fallback: usize,
