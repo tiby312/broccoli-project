@@ -1,5 +1,5 @@
 use broccoli::rect;
-use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
+use broccoli_rayon::{build::RayonBuildPar, queries::colfind::RayonQueryPar};
 
 fn main() {
     let mut inner1 = 0;

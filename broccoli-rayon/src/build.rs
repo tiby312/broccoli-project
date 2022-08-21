@@ -11,34 +11,9 @@ use broccoli::{
 
 use broccoli::tree::num_level;
 
-use crate::{EmptySplitter, Splitter};
-
 pub trait RayonBuildPar<'a, T: Aabb> {
     fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self;
     fn par_new(bots: &'a mut [T]) -> Self;
-}
-
-pub struct SorterWrapper<S, P> {
-    pub sorter: S,
-    pub splitter: P,
-}
-impl<T: Aabb, S: Sorter<T>, P> Sorter<T> for SorterWrapper<S, P> {
-    fn sort(&self, axis: impl axgeom::Axis, bots: &mut [T]) {
-        self.sorter.sort(axis, bots)
-    }
-}
-impl<S: Clone, P: Splitter> Splitter for SorterWrapper<S, P> {
-    fn div(&mut self) -> Self {
-        let a = self.splitter.div();
-        SorterWrapper {
-            sorter: self.sorter.clone(),
-            splitter: a,
-        }
-    }
-
-    fn add(&mut self, b: Self) {
-        self.splitter.add(b.splitter);
-    }
 }
 
 impl<'a, T: Aabb + ManySwap> RayonBuildPar<'a, T> for Tree<'a, T>
@@ -52,10 +27,7 @@ where
         let mut buffer = Vec::with_capacity(num_nodes);
         recurse_par(
             num_seq_fallback,
-            &mut SorterWrapper {
-                sorter: DefaultSorter,
-                splitter: EmptySplitter,
-            },
+            &mut DefaultSorter,
             &mut buffer,
             TreeBuildVisitor::new(num_level, bots),
         );
@@ -69,7 +41,6 @@ where
     }
 }
 
-//pub const SEQ_FALLBACK_DEFAULT: usize = 512;
 pub const SEQ_FALLBACK_DEFAULT: usize = 16;
 
 // we want to pass small chunks so that if a slow core
@@ -82,7 +53,7 @@ pub const SEQ_FALLBACK_DEFAULT: usize = 16;
 // the problem size is big enough such that there
 // are many chunks.
 
-pub fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Splitter>(
+pub fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Clone>(
     num_seq_fallback: usize,
     sorter: &mut S,
     buffer: &mut Vec<Node<'a, T, T::Num>>,
@@ -100,7 +71,7 @@ pub fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Splitter>(
             left.recurse_seq(sorter, buffer);
             right.recurse_seq(sorter, buffer);
         } else {
-            let mut s2 = sorter.div();
+            let mut s2 = sorter.clone();
             let (_, mut buffer2) = rayon::join(
                 || {
                     buffer.push(node.finish(sorter));
@@ -116,7 +87,7 @@ pub fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Splitter>(
             );
 
             buffer.append(&mut buffer2);
-            sorter.add(s2)
+            //sorter.add(s2)
         }
     } else {
         buffer.push(node.finish(sorter));

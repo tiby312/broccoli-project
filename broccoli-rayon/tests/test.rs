@@ -1,5 +1,5 @@
 use axgeom;
-use broccoli_rayon::query::colfind::RayonQueryPar;
+use broccoli_rayon::queries::colfind::RayonQueryPar;
 #[test]
 fn test1() {
     for &i in [2.0, 4.0, 12.0].iter() {

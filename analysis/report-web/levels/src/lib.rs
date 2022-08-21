@@ -1,6 +1,6 @@
 use support::datanum::DnumManager;
 use support::prelude::queries::colfind::build::CollVis;
-use support::prelude::queries::colfind::handler::AccNodeHandler;
+use support::prelude::queries::colfind::handler::DefaultNodeHandler;
 use support::prelude::*;
 
 use self::levelcounter::LevelCounter;
@@ -193,7 +193,7 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
         crate::splitter::query::colfind::recurse_seq_splitter(
             CollVis::new(tree.vistr_mut()),
             &mut levelc2,
-            &mut AccNodeHandler::new(T::handle),
+            &mut DefaultNodeHandler::new(T::handle),
         );
     }
 
@@ -235,7 +235,7 @@ fn gen<T: ColfindHandler>(bots: &mut [T]) -> Res<f64> {
         crate::splitter::query::colfind::recurse_seq_splitter(
             CollVis::new(tree.vistr_mut()),
             &mut times2,
-            &mut AccNodeHandler::new(T::handle),
+            &mut DefaultNodeHandler::new(T::handle),
         );
     }
 

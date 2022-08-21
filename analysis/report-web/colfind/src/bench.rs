@@ -1,6 +1,5 @@
-use broccoli_rayon::{build::RayonBuildPar, query::colfind::RayonQueryPar};
-
 use super::*;
+use broccoli_rayon::prelude::*;
 
 #[derive(Debug)]
 pub struct Record {

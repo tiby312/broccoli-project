@@ -1,26 +1,43 @@
-use axgeom::AxisDyn;
 use broccoli::{
     aabb::pin::AabbPin,
     aabb::Aabb,
     queries::colfind::{
-        build::{CollVis, CollisionHandler, HandleChildrenArgs, NodeHandler},
-        handler::AccNodeHandler,
+        build::{CollVis, CollisionHandler, NodeHandler},
+        handler::DefaultNodeHandler,
     },
     Tree,
 };
 
-use crate::Splitter;
+///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
+///The main motivation behind this trait was to track the time spent taken at each level of the tree
+///during construction.
+pub trait Splitter: Sized {
+    ///Called to split this into two to be passed to the children.
+    fn div(&mut self) -> Self;
+
+    ///Called to add the results of the recursive calls on the children.
+    fn add(&mut self, b: Self);
+}
+
+pub struct EmptySplitter;
+
+impl Splitter for EmptySplitter {
+    fn div(&mut self) -> Self {
+        EmptySplitter
+    }
+    fn add(&mut self, _: Self) {}
+}
 
 //pub const SEQ_FALLBACK_DEFAULT: usize = 512;
 pub const SEQ_FALLBACK_DEFAULT: usize = 256;
 
 pub trait RayonQueryPar<'a, T: Aabb> {
-    fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-        F: Send + Clone,
-        T: Send,
-        T::Num: Send;
+    // fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
+    // where
+    //     F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    //     F: Send + Clone,
+    //     T: Send,
+    //     T::Num: Send;
 
     fn par_find_colliding_pairs<F>(&mut self, func: F)
     where
@@ -61,51 +78,42 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let floop = FloopClosure {
+        let floop = ClosureSplitter {
             acc,
             div,
             add,
             func,
         };
 
-        let mut f = AccNodeHandlerEmptySplitter {
-            inner: AccNodeHandler::new(floop),
-        };
+        let mut f = DefaultNodeHandler::new(floop);
 
         let vv = CollVis::new(self.vistr_mut());
         recurse_par(vv, &mut f, SEQ_FALLBACK_DEFAULT);
-        f.inner.acc.acc
+        f.acc.acc
     }
 
     fn par_find_colliding_pairs<F>(&mut self, func: F)
     where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-        F: Send + Clone,
+        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>) + Clone,
+        F: Send,
         T: Send,
         T::Num: Send,
     {
-        self.par_find_colliding_pairs_ext(SEQ_FALLBACK_DEFAULT, func);
-    }
-    fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
-    where
-        F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-        F: Send + Clone,
-        T: Send,
-        T::Num: Send,
-    {
-        let mut f = AccNodeHandlerEmptySplitter {
-            inner: AccNodeHandler::new(FloopDefault { func }),
-        };
+        let mut f = DefaultNodeHandler::new(ClosureCloneable { func });
 
         let vv = CollVis::new(self.vistr_mut());
-        recurse_par(vv, &mut f, num_switch_seq);
+        recurse_par(vv, &mut f, SEQ_FALLBACK_DEFAULT);
+        //self.par_find_colliding_pairs_ext(SEQ_FALLBACK_DEFAULT, func);
     }
 }
 
-struct FloopDefault<F> {
+///
+/// collision callback handler that is cloneable.
+///
+pub struct ClosureCloneable<F> {
     pub func: F,
 }
-impl<T: Aabb, F> CollisionHandler<T> for FloopDefault<F>
+impl<T: Aabb, F> CollisionHandler<T> for ClosureCloneable<F>
 where
     F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
 {
@@ -113,9 +121,9 @@ where
         (self.func)(a, b)
     }
 }
-impl<F: Clone> Splitter for FloopDefault<F> {
+impl<F: Clone> Splitter for ClosureCloneable<F> {
     fn div(&mut self) -> Self {
-        FloopDefault {
+        ClosureCloneable {
             func: self.func.clone(),
         }
     }
@@ -123,39 +131,18 @@ impl<F: Clone> Splitter for FloopDefault<F> {
     fn add(&mut self, _: Self) {}
 }
 
-struct Floop<K, F> {
-    acc: K,
-    func: F,
+///
+/// Collision call back handler that has callbacks
+/// to handle the events where the closure has to be split
+/// off and then joined again.
+///
+pub struct ClosureSplitter<K, A, B, F> {
+    pub acc: K,
+    pub div: A,
+    pub add: B,
+    pub func: F,
 }
-impl<T: Aabb, K, F> CollisionHandler<T> for Floop<K, F>
-where
-    F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
-{
-    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(&mut self.acc, a, b)
-    }
-}
-impl<K: Splitter, F: Clone> Splitter for Floop<K, F> {
-    fn div(&mut self) -> Self {
-        let k = self.acc.div();
-        Floop {
-            acc: k,
-            func: self.func.clone(),
-        }
-    }
-
-    fn add(&mut self, b: Self) {
-        self.acc.add(b.acc);
-    }
-}
-
-struct FloopClosure<K, A, B, F> {
-    acc: K,
-    div: A,
-    add: B,
-    func: F,
-}
-impl<T: Aabb, K, A, B, F> CollisionHandler<T> for FloopClosure<K, A, B, F>
+impl<T: Aabb, K, A, B, F> CollisionHandler<T> for ClosureSplitter<K, A, B, F>
 where
     F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
 {
@@ -164,10 +151,10 @@ where
     }
 }
 impl<K, A: FnMut(&mut K) -> K + Clone, B: FnMut(&mut K, K) + Clone, F: Clone> Splitter
-    for FloopClosure<K, A, B, F>
+    for ClosureSplitter<K, A, B, F>
 {
     fn div(&mut self) -> Self {
-        FloopClosure {
+        ClosureSplitter {
             acc: (self.div)(&mut self.acc),
             div: self.div.clone(),
             add: self.add.clone(),
@@ -180,34 +167,13 @@ impl<K, A: FnMut(&mut K) -> K + Clone, B: FnMut(&mut K, K) + Clone, F: Clone> Sp
     }
 }
 
-/// Wrapper that impl Splitter
-pub struct AccNodeHandlerEmptySplitter<Acc> {
-    inner: AccNodeHandler<Acc>,
-}
-
-impl<T: Aabb, Acc> NodeHandler<T> for AccNodeHandlerEmptySplitter<Acc>
-where
-    Acc: CollisionHandler<T>,
-{
-    #[inline(always)]
-    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        self.inner.handle_node(axis, bots, is_leaf)
-    }
-
-    #[inline(always)]
-    fn handle_children(&mut self, f: HandleChildrenArgs<T>, is_left: bool) {
-        self.inner.handle_children(f, is_left)
-    }
-}
-impl<Acc: Splitter> Splitter for AccNodeHandlerEmptySplitter<Acc> {
+impl<Acc: Splitter> Splitter for DefaultNodeHandler<Acc> {
     fn div(&mut self) -> Self {
-        AccNodeHandlerEmptySplitter {
-            inner: AccNodeHandler::new(self.inner.acc.div()),
-        }
+        DefaultNodeHandler::new(self.acc.div())
     }
 
     fn add(&mut self, b: Self) {
-        self.inner.acc.add(b.inner.acc);
+        self.acc.add(b.acc);
     }
 }
 
