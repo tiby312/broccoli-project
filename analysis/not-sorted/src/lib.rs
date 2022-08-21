@@ -14,7 +14,7 @@ use broccoli::{
     },
 };
 use broccoli_rayon::{
-    build::RayonBuildPar, queries::colfind::RayonQueryPar, queries::colfind::Splitter,
+    build::RayonBuildPar, queries::colfind::NodeHandlerExt, queries::colfind::RayonQueryPar,
 };
 
 #[derive(Copy, Clone, Default)]
@@ -181,38 +181,27 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for NotSortedTree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let mut f = NoSortNodeHandlerEmptySplitter {
+        let mut f = DefaultNoSortNodeHandler {
             inner: NoSortNodeHandler { func },
         };
 
         let vv = CollVis::new(self.vistr_mut());
-        // broccoli_rayon::query::colfind::recurse_par(vv, &mut f, num_switch_seq);
-        // self.par_find_colliding_pairs_ext(
-        //     broccoli_rayon::query::colfind::SEQ_FALLBACK_DEFAULT,
-        //     func,
-        // );
+        broccoli_rayon::queries::colfind::recurse_par(
+            vv,
+            &mut f,
+            broccoli_rayon::queries::colfind::SEQ_FALLBACK_DEFAULT,
+        );
     }
-    // fn par_find_colliding_pairs_ext<F>(&mut self, num_switch_seq: usize, func: F)
-    // where
-    //     F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-    //     F: Send + Clone,
-    //     T: Send,
-    //     T::Num: Send,
-    // {
-    //     let mut f = NoSortNodeHandlerEmptySplitter {
-    //         inner: NoSortNodeHandler { func },
-    //     };
-
-    //     let vv = CollVis::new(self.vistr_mut());
-    //     broccoli_rayon::query::colfind::recurse_par(vv, &mut f, num_switch_seq);
-    // }
 }
 
-pub struct NoSortNodeHandlerEmptySplitter<F> {
+///
+/// Need to do new type pattern since NodeHandlerExt is a foreign trait.
+///
+pub struct DefaultNoSortNodeHandler<F> {
     inner: NoSortNodeHandler<F>,
 }
 
-impl<T: Aabb, Acc> NodeHandler<T> for NoSortNodeHandlerEmptySplitter<Acc>
+impl<T: Aabb, Acc> NodeHandler<T> for DefaultNoSortNodeHandler<Acc>
 where
     Acc: CollisionHandler<T>,
 {
@@ -226,9 +215,11 @@ where
         self.inner.handle_children(f, is_left)
     }
 }
-impl<Acc: Clone> Splitter for NoSortNodeHandlerEmptySplitter<Acc> {
+impl<T: Aabb, Acc: CollisionHandler<T> + Clone> NodeHandlerExt<T>
+    for DefaultNoSortNodeHandler<Acc>
+{
     fn div(&mut self) -> Self {
-        NoSortNodeHandlerEmptySplitter {
+        DefaultNoSortNodeHandler {
             inner: self.inner.clone(),
         }
     }
