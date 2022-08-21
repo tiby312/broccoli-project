@@ -197,6 +197,7 @@ pub trait NodeHandler<T: Aabb> {
     fn handle_children(&mut self, floop: HandleChildrenArgs<T>, is_left: bool);
 }
 
+/// A destructured anchor node.
 pub struct DNode<'a, T: Aabb> {
     pub div: T::Num,
     pub cont: &'a Range<T::Num>,
