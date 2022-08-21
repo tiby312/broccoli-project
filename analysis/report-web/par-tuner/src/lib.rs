@@ -37,12 +37,10 @@ where
         use broccoli::queries::colfind::handler::DefaultNodeHandler;
         use broccoli_rayon::queries::colfind::*;
         use support::prelude::queries::colfind::build::CollVis;
-        let mut f = DefaultNodeHandler::new(ClosureCloneable { func: T::handle });
+        let mut f = DefaultNodeHandler::new(T::handle );
 
         let vv = CollVis::new(tree.vistr_mut());
         recurse_par(vv, &mut f, ccc);
-
-        //tree.par_find_colliding_pairs_ext(ccc, T::handle);
     });
 
     let qspeedup = qseq as f64 / qpar as f64;

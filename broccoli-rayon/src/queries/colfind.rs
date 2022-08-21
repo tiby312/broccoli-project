@@ -88,36 +88,19 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let mut f = DefaultNodeHandler::new(ClosureCloneable { func });
+        let mut f = DefaultNodeHandler::new(func);
 
         let vv = CollVis::new(self.vistr_mut());
         recurse_par(vv, &mut f, SEQ_FALLBACK_DEFAULT);
-        //self.par_find_colliding_pairs_ext(SEQ_FALLBACK_DEFAULT, func);
     }
 }
 
-///
-/// collision callback handler that is cloneable.
-///
-pub struct ClosureCloneable<F> {
-    pub func: F,
-}
-impl<T: Aabb, F> CollisionHandler<T> for ClosureCloneable<F>
+impl<F, T: Aabb> CollisionHandlerExt<T> for F
 where
-    F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-{
-    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(a, b)
-    }
-}
-impl<F: Clone, T: Aabb> CollisionHandlerExt<T> for ClosureCloneable<F>
-where
-    F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+    F: Clone + FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
 {
     fn div(&mut self) -> Self {
-        ClosureCloneable {
-            func: self.func.clone(),
-        }
+        self.clone()
     }
 
     fn add(&mut self, _: Self) {}
