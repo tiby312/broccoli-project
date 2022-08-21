@@ -124,16 +124,16 @@ impl<T> AabbPin<T> {
 }
 
 /// A destructured [`Node`]
-pub struct NodeRef<'a, T: Aabb> {
-    pub div: &'a Option<T::Num>,
-    pub cont: &'a Range<T::Num>,
+pub struct NodeRef<'a, T, N> {
+    pub div: &'a Option<N>,
+    pub cont: &'a Range<N>,
     pub range: AabbPin<&'a mut [T]>,
 }
 
-impl<'a, 'b: 'a, T: Aabb> AabbPin<&'a mut Node<'b, T, T::Num>> {
+impl<'a, 'b: 'a, T, N> AabbPin<&'a mut Node<'b, T, N>> {
     /// Destructure a node into its three parts.
     #[inline(always)]
-    pub fn into_node_ref(self) -> NodeRef<'a, T> {
+    pub fn into_node_ref(self) -> NodeRef<'a, T, N> {
         NodeRef {
             div: &self.inner.div,
             cont: &self.inner.cont,
@@ -142,7 +142,7 @@ impl<'a, 'b: 'a, T: Aabb> AabbPin<&'a mut Node<'b, T, T::Num>> {
     }
 
     #[inline(always)]
-    pub fn get_cont(&self) -> &Range<T::Num> {
+    pub fn get_cont(&self) -> &Range<N> {
         &self.cont
     }
 

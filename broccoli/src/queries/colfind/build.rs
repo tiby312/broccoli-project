@@ -62,13 +62,13 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
             let (nn, rest) = self.vistr.borrow_mut().next();
 
             if let Some([mut left, mut right]) = rest {
-                struct InnerRecurser<'a, T: Aabb, NN> {
-                    anchor: DNode<'a, T>,
+                struct InnerRecurser<'a, T, N, NN> {
+                    anchor: DNode<'a, T, N>,
                     anchor_axis: AxisDyn,
                     handler: &'a mut NN,
                 }
 
-                impl<'a, T: Aabb, NN> InnerRecurser<'a, T, NN>
+                impl<'a, T: Aabb, NN> InnerRecurser<'a, T, T::Num, NN>
                 where
                     NN: NodeHandler<T>,
                 {
@@ -180,9 +180,9 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
 }
 
 //remove need for second lifetime
-pub struct HandleChildrenArgs<'a, T: Aabb> {
-    pub anchor: DNode<'a, T>,
-    pub current: NodeRef<'a, T>,
+pub struct HandleChildrenArgs<'a, T, N> {
+    pub anchor: DNode<'a, T, N>,
+    pub current: NodeRef<'a, T, N>,
     pub anchor_axis: AxisDyn,
     pub current_axis: AxisDyn,
     pub current_is_leaf: bool,
@@ -194,17 +194,17 @@ pub struct HandleChildrenArgs<'a, T: Aabb> {
 pub trait NodeHandler<T: Aabb> {
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool);
 
-    fn handle_children(&mut self, floop: HandleChildrenArgs<T>, is_left: bool);
+    fn handle_children(&mut self, floop: HandleChildrenArgs<T, T::Num>, is_left: bool);
 }
 
 /// A destructured anchor node.
-pub struct DNode<'a, T: Aabb> {
-    pub div: T::Num,
-    pub cont: &'a Range<T::Num>,
+pub struct DNode<'a, T, N> {
+    pub div: N,
+    pub cont: &'a Range<N>,
     pub range: AabbPin<&'a mut [T]>,
 }
-impl<'a, T: Aabb> DNode<'a, T> {
-    fn borrow(&mut self) -> DNode<T> {
+impl<'a, T, N: Copy> DNode<'a, T, N> {
+    fn borrow(&mut self) -> DNode<T, N> {
         DNode {
             div: self.div,
             cont: self.cont,

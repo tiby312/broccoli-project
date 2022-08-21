@@ -515,11 +515,11 @@ where
     }
 
     #[inline(always)]
-    fn handle_children(&mut self, f: HandleChildrenArgs<T>, is_left: bool) {
+    fn handle_children(&mut self, f: HandleChildrenArgs<T, T::Num>, is_left: bool) {
         fn handle_children<T: Aabb, F>(
             prevec: &mut PreVec,
             func: &mut F,
-            f: HandleChildrenArgs<T>,
+            f: HandleChildrenArgs<T, T::Num>,
             is_left: bool,
         ) where
             F: CollisionHandler<T>,
@@ -527,7 +527,7 @@ where
             fn handle_perp<T: Aabb, A: Axis>(
                 axis: A,
                 func: &mut impl CollisionHandler<T>,
-                f: HandleChildrenArgs<T>,
+                f: HandleChildrenArgs<T, T::Num>,
                 is_left: bool,
             ) {
                 let anchor_axis = axis;
@@ -580,7 +580,7 @@ where
                 axis: A,
                 prevec: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
                 func: &mut impl CollisionHandler<T>,
-                f: HandleChildrenArgs<'a, T>,
+                f: HandleChildrenArgs<'a, T, T::Num>,
                 is_left: bool,
             ) {
                 let current2 = f.current;
