@@ -57,86 +57,7 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
         mut self,
         handler: &mut N,
     ) -> (NodeFinisher<'b, T>, Option<[Self; 2]>) {
-        {
-            let this_axis = self.axis;
-            let (nn, rest) = self.vistr.borrow_mut().next();
-
-            if let Some([mut left, mut right]) = rest {
-                struct InnerRecurser<'a, T, N, NN> {
-                    anchor: DNode<'a, T, N>,
-                    anchor_axis: AxisDyn,
-                    handler: &'a mut NN,
-                }
-
-                impl<'a, T: Aabb, NN> InnerRecurser<'a, T, T::Num, NN>
-                where
-                    NN: NodeHandler<T>,
-                {
-                    fn recurse(
-                        &mut self,
-                        this_axis: AxisDyn,
-                        m: VistrMutPin<Node<T, T::Num>>,
-                        is_left: bool,
-                    ) {
-                        let anchor_axis = self.anchor_axis;
-                        let current_is_leaf = m.get_height() == 1;
-
-                        let (mut nn, rest) = m.next();
-
-                        self.handler.handle_children(
-                            HandleChildrenArgs {
-                                anchor: self.anchor.borrow(),
-                                anchor_axis: self.anchor_axis,
-                                current: nn.borrow_mut().into_node_ref(),
-                                current_axis: this_axis,
-                                current_is_leaf,
-                            },
-                            is_left,
-                        );
-
-                        if let Some([left, right]) = rest {
-                            if let Some(div) = nn.div {
-                                if anchor_axis.is_equal_to(this_axis) {
-                                    match is_left {
-                                        true => {
-                                            if div < self.anchor.cont.start {
-                                                self.recurse(this_axis.next(), right, is_left);
-                                                return;
-                                            }
-                                        }
-                                        false => {
-                                            if div >= self.anchor.cont.end {
-                                                self.recurse(this_axis.next(), left, is_left);
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            self.recurse(this_axis.next(), left, is_left);
-                            self.recurse(this_axis.next(), right, is_left);
-                        }
-                    }
-                }
-
-                if let Some(div) = nn.div {
-                    let d = nn.into_node_ref();
-                    let mut g = InnerRecurser {
-                        anchor: DNode {
-                            div,
-                            cont: d.cont,
-                            range: d.range,
-                        },
-                        anchor_axis: this_axis,
-                        handler,
-                    };
-
-                    g.recurse(this_axis.next(), left.borrow_mut(), true);
-                    g.recurse(this_axis.next(), right.borrow_mut(), false);
-                }
-            }
-        }
+        handler.handle_nodes_under(self.axis, self.vistr.borrow_mut());
 
         //TODO make height be zero for leaf?
         let is_leaf = self.get_height() == 1;
@@ -179,38 +100,14 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
     }
 }
 
-//remove need for second lifetime
-pub struct HandleChildrenArgs<'a, T, N> {
-    pub anchor: DNode<'a, T, N>,
-    pub current: NodeRef<'a, T, N>,
-    pub anchor_axis: AxisDyn,
-    pub current_axis: AxisDyn,
-    pub current_is_leaf: bool,
-}
-
 ///
 /// Abstract over sorted and non sorted trees
 ///
 pub trait NodeHandler<T: Aabb> {
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool);
 
-    fn handle_children(&mut self, floop: HandleChildrenArgs<T, T::Num>, is_left: bool);
-}
-
-/// A destructured anchor node.
-pub struct DNode<'a, T, N> {
-    pub div: N,
-    pub cont: &'a Range<N>,
-    pub range: AabbPin<&'a mut [T]>,
-}
-impl<'a, T, N: Copy> DNode<'a, T, N> {
-    fn borrow(&mut self) -> DNode<T, N> {
-        DNode {
-            div: self.div,
-            cont: self.cont,
-            range: self.range.borrow_mut(),
-        }
-    }
+    // implementer responsibility to check if it is a leaf or not.
+    fn handle_nodes_under(&mut self, this_axis: AxisDyn, m: VistrMutPin<Node<T, T::Num>>);
 }
 
 ///An vec api to avoid excessive dynamic allocation by reusing a Vec
