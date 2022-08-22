@@ -18,6 +18,7 @@ where
     } else {
         broccoli_rayon::build::SEQ_FALLBACK_DEFAULT
     };
+
     let num_level = broccoli::tree::num_level::default(bots.len());
     let (mut tree, cpar) = bench_closure_ret(|| broccoli::Tree::par_new_ext(bots, num_level, sss));
 
@@ -34,10 +35,10 @@ where
     };
 
     let qpar = bench_closure(|| {
-        use broccoli::queries::colfind::handler::DefaultNodeHandler;
+        use broccoli::queries::colfind::oned::DefaultNodeHandler;
         use broccoli_rayon::queries::colfind::*;
         use support::prelude::queries::colfind::build::CollVis;
-        let mut f = DefaultNodeHandler::new(T::handle );
+        let mut f = DefaultNodeHandler::new(T::handle);
 
         let vv = CollVis::new(tree.vistr_mut());
         recurse_par(vv, &mut f, ccc);

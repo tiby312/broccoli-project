@@ -3,7 +3,7 @@ use broccoli::{
     aabb::Aabb,
     queries::colfind::{
         build::{CollVis, CollisionHandler, NodeHandler},
-        handler::DefaultNodeHandler,
+        oned::DefaultNodeHandler,
     },
     Tree,
 };
@@ -67,18 +67,16 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let floop = ClosureExt {
+        let mut f = DefaultNodeHandler::new(ClosureExt {
             acc,
             div,
             add,
             func,
-        };
-
-        let mut f = DefaultNodeHandler::new(floop);
+        });
 
         let vv = CollVis::new(self.vistr_mut());
         recurse_par(vv, &mut f, SEQ_FALLBACK_DEFAULT);
-        f.acc.acc
+        f.coll_handler.acc
     }
 
     fn par_find_colliding_pairs<F>(&mut self, func: F)
@@ -146,11 +144,11 @@ where
 
 impl<Acc: CollisionHandlerExt<T>, T: Aabb> NodeHandlerExt<T> for DefaultNodeHandler<Acc> {
     fn div(&mut self) -> Self {
-        DefaultNodeHandler::new(self.acc.div())
+        DefaultNodeHandler::new(self.coll_handler.div())
     }
 
     fn add(&mut self, b: Self) {
-        self.acc.add(b.acc);
+        self.coll_handler.add(b.coll_handler);
     }
 }
 

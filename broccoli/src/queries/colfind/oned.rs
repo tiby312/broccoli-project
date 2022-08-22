@@ -44,7 +44,7 @@ pub fn find_2d<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     }
 }
 
-pub struct FindParallel2DBuilder<'a, 'b, A: Axis, T: Aabb> {
+struct FindParallel2DBuilder<'a, 'b, A: Axis, T: Aabb> {
     pub prevec: &'b mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
     pub axis: A,
     pub bots1: AabbPin<&'a mut [T]>,
@@ -72,7 +72,7 @@ impl<'a, 'b, A: Axis, T: Aabb> FindParallel2DBuilder<'a, 'b, A, T> {
     }
 }
 
-pub fn find_perp_2d1_once<A: Axis, T: Aabb>(
+fn find_perp_2d1_once<A: Axis, T: Aabb>(
     axis: A, //the axis of r2.
     mut y: AabbPin<&mut T>,
     mut r2: AabbPin<&mut [T]>,
@@ -92,7 +92,7 @@ pub fn find_perp_2d1_once<A: Axis, T: Aabb>(
 }
 
 ///Find colliding pairs using the mark and sweep algorithm.
-pub fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
+fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
     active: &mut Vec<AabbPin<&'a mut T>>,
     axis: A,
     collision_botids: AabbPin<&'a mut [T]>,
@@ -459,3 +459,271 @@ fn test_parallel() {
 
 
 */
+
+#[derive(Clone)]
+pub struct DefaultNodeHandler<C> {
+    pub coll_handler: C,
+    prevec: PreVec,
+}
+
+impl<C> DefaultNodeHandler<C> {
+    pub fn new(coll_handler: C) -> Self {
+        DefaultNodeHandler {
+            coll_handler,
+            prevec: PreVec::new(),
+        }
+    }
+}
+
+impl<T: Aabb, C> NodeHandler<T> for DefaultNodeHandler<C>
+where
+    C: CollisionHandler<T>,
+{
+    #[inline(always)]
+    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
+        fn handle_node<T: Aabb, F>(
+            prevec: &mut PreVec,
+            axis: AxisDyn,
+            bots: AabbPin<&mut [T]>,
+            func: &mut F,
+            is_leaf: bool,
+        ) where
+            F: CollisionHandler<T>,
+        {
+            let mut k = prevec.extract_vec();
+            //
+            // All bots belonging to a non leaf node are guaranteed to touch the divider.
+            // Therefore, all bots intersect along one axis already. Because:
+            //
+            // If a contains x and b contains x then a intersects b.
+            //
+            match axis.next() {
+                AxisDyn::X => oned::find_2d(&mut k, axgeom::XAXIS, bots, func, is_leaf),
+                AxisDyn::Y => oned::find_2d(&mut k, axgeom::YAXIS, bots, func, is_leaf),
+            }
+
+            k.clear();
+            prevec.insert_vec(k);
+        }
+        handle_node(
+            &mut self.prevec,
+            axis,
+            bots,
+            &mut self.coll_handler,
+            is_leaf,
+        );
+    }
+
+    fn handle_nodes_under(&mut self, this_axis: AxisDyn, m: VistrMutPin<Node<T, T::Num>>) {
+        {
+            let (nn, rest) = m.next();
+
+            if let Some([mut left, mut right]) = rest {
+                if let Some(div) = nn.div {
+                    let d = nn.into_node_ref();
+                    let mut g = InnerRecurser {
+                        anchor: DNode {
+                            div,
+                            cont: d.cont,
+                            range: d.range,
+                        },
+                        anchor_axis: this_axis,
+                        handler: self,
+                    };
+
+                    g.recurse(this_axis.next(), left.borrow_mut(), true);
+                    g.recurse(this_axis.next(), right.borrow_mut(), false);
+                }
+            }
+        }
+    }
+}
+
+impl<'a, T: Aabb> Tree<'a, T> {
+    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+        CollVis::new(self.vistr_mut()).recurse_seq(&mut DefaultNodeHandler::new(func));
+    }
+}
+
+struct InnerRecurser<'a, T, N, C> {
+    anchor: DNode<'a, T, N>,
+    anchor_axis: AxisDyn,
+    handler: &'a mut DefaultNodeHandler<C>,
+}
+
+impl<'a, T: Aabb, C: CollisionHandler<T>> InnerRecurser<'a, T, T::Num, C> {
+    fn recurse(&mut self, this_axis: AxisDyn, m: VistrMutPin<Node<T, T::Num>>, is_left: bool) {
+        let anchor_axis = self.anchor_axis;
+
+        let (mut nn, rest) = m.next();
+
+        handle_children(
+            &mut self.handler.prevec,
+            &mut self.handler.coll_handler,
+            HandleChildrenArgs {
+                anchor: self.anchor.borrow(),
+                anchor_axis: self.anchor_axis,
+                current: nn.borrow_mut().into_node_ref(),
+                current_axis: this_axis,
+            },
+            is_left,
+        );
+
+        if let Some([left, right]) = rest {
+            if let Some(div) = nn.div {
+                if anchor_axis.is_equal_to(this_axis) {
+                    match is_left {
+                        true => {
+                            if div < self.anchor.cont.start {
+                                self.recurse(this_axis.next(), right, is_left);
+                                return;
+                            }
+                        }
+                        false => {
+                            if div >= self.anchor.cont.end {
+                                self.recurse(this_axis.next(), left, is_left);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            self.recurse(this_axis.next(), left, is_left);
+            self.recurse(this_axis.next(), right, is_left);
+        }
+    }
+}
+
+//remove need for second lifetime
+struct HandleChildrenArgs<'a, T, N> {
+    pub anchor: DNode<'a, T, N>,
+    pub current: NodeRef<'a, T, N>,
+    pub anchor_axis: AxisDyn,
+    pub current_axis: AxisDyn,
+}
+
+/// A destructured anchor node.
+struct DNode<'a, T, N> {
+    pub div: N,
+    pub cont: &'a Range<N>,
+    pub range: AabbPin<&'a mut [T]>,
+}
+impl<'a, T, N: Copy> DNode<'a, T, N> {
+    fn borrow(&mut self) -> DNode<T, N> {
+        DNode {
+            div: self.div,
+            cont: self.cont,
+            range: self.range.borrow_mut(),
+        }
+    }
+}
+
+fn handle_children<T: Aabb, F>(
+    prevec: &mut PreVec,
+    func: &mut F,
+    f: HandleChildrenArgs<T, T::Num>,
+    is_left: bool,
+) where
+    F: CollisionHandler<T>,
+{
+    fn handle_perp<T: Aabb, A: Axis>(
+        axis: A,
+        func: &mut impl CollisionHandler<T>,
+        f: HandleChildrenArgs<T, T::Num>,
+        is_left: bool,
+    ) {
+        let anchor_axis = axis;
+        let current_axis = axis.next();
+
+        let cc1 = f.anchor.cont;
+
+        let cc2 = f.current;
+
+        let r1 = super::tools::get_section_mut(anchor_axis, cc2.range, cc1);
+
+        let mut r2 = super::tools::get_section_mut(current_axis, f.anchor.range, cc2.cont);
+
+        if is_left {
+            //iterate over current nodes botd
+            for y in r1.iter_mut() {
+                let r2 = r2.borrow_mut();
+
+                oned::find_perp_2d1_once(
+                    current_axis,
+                    y,
+                    r2,
+                    |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
+                        if a.get().get_range(axis).end >= b.get().get_range(axis).start {
+                            func.collide(a, b);
+                        }
+                    },
+                );
+            }
+        } else {
+            //iterate over current nodes botd
+            for y in r1.iter_mut() {
+                let r2 = r2.borrow_mut();
+
+                oned::find_perp_2d1_once(
+                    current_axis,
+                    y,
+                    r2,
+                    |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
+                        if a.get().get_range(axis).start <= b.get().get_range(axis).end {
+                            func.collide(a, b);
+                        }
+                    },
+                );
+            }
+        }
+    }
+
+    fn handle_parallel<'a, T: Aabb, A: Axis>(
+        axis: A,
+        prevec: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
+        func: &mut impl CollisionHandler<T>,
+        f: HandleChildrenArgs<'a, T, T::Num>,
+        is_left: bool,
+    ) {
+        let current2 = f.current;
+
+        let fb =
+            oned::FindParallel2DBuilder::new(prevec, axis.next(), f.anchor.range, current2.range);
+
+        if is_left {
+            if f.anchor.cont.start <= current2.cont.end {
+                fb.build(|a, b| {
+                    if a.get().get_range(axis).start <= b.get().get_range(axis).end {
+                        func.collide(a, b)
+                    }
+                });
+            }
+        } else if f.anchor.cont.end >= current2.cont.start {
+            fb.build(|a, b| {
+                if a.get().get_range(axis).end >= b.get().get_range(axis).start {
+                    func.collide(a, b)
+                }
+            });
+        }
+    }
+
+    use AxisDyn::*;
+
+    match (f.anchor_axis, f.current_axis) {
+        (X, X) | (Y, Y) => {
+            let mut k = twounordered::TwoUnorderedVecs::from(prevec.extract_vec());
+
+            match f.anchor_axis {
+                X => handle_parallel(XAXIS, &mut k, func, f, is_left),
+                Y => handle_parallel(YAXIS, &mut k, func, f, is_left),
+            }
+
+            let mut j: Vec<_> = k.into();
+            j.clear();
+            prevec.insert_vec(j);
+        }
+        (X, Y) => handle_perp(XAXIS, func, f, is_left),
+        (Y, X) => handle_perp(YAXIS, func, f, is_left),
+    }
+}

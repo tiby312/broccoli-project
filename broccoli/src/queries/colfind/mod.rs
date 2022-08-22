@@ -6,7 +6,6 @@ use super::tools;
 use super::*;
 pub mod build;
 use build::*;
-pub mod handler;
 
 mod assert {
     use super::*;

@@ -1,10 +1,11 @@
+use broccoli::aabb::pin::NodeRef;
 use broccoli::{
     aabb::pin::AabbPin,
     aabb::*,
     axgeom::{Axis, AxisDyn, XAXIS, YAXIS},
     queries::{
         self,
-        colfind::build::{CollVis, CollisionHandler, HandleChildrenArgs, NodeHandler},
+        colfind::build::{CollVis, CollisionHandler, NodeHandler},
     },
     tree::{
         build::Sorter,
@@ -16,6 +17,7 @@ use broccoli::{
 use broccoli_rayon::{
     build::RayonBuildPar, queries::colfind::NodeHandlerExt, queries::colfind::RayonQueryPar,
 };
+use compt::Visitor;
 
 #[derive(Copy, Clone, Default)]
 pub struct NoSorter;
@@ -106,6 +108,13 @@ impl<F> NoSortNodeHandler<F> {
         NoSortNodeHandler { func }
     }
 }
+impl<T: Aabb, Acc: CollisionHandler<T> + Clone> NodeHandlerExt<T> for NoSortNodeHandler<Acc> {
+    fn div(&mut self) -> Self {
+        self.clone()
+    }
+
+    fn add(&mut self, _b: Self) {}
+}
 
 impl<T: Aabb, F: CollisionHandler<T>> NodeHandler<T> for NoSortNodeHandler<F> {
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
@@ -136,19 +145,25 @@ impl<T: Aabb, F: CollisionHandler<T>> NodeHandler<T> for NoSortNodeHandler<F> {
         }
     }
 
-    fn handle_children(&mut self, mut f: HandleChildrenArgs<T>, _is_left: bool) {
-        let res = if !f.current_axis.is_equal_to(f.anchor_axis) {
-            true
-        } else {
-            f.current.cont.intersects(f.anchor.cont)
-        };
+    fn handle_nodes_under(&mut self, this_axis: AxisDyn, m: VistrMutPin<Node<T, T::Num>>) {
+        {
+            let (nn, rest) = m.next();
 
-        if res {
-            for mut a in f.current.range.iter_mut() {
-                for mut b in f.anchor.range.borrow_mut().iter_mut() {
-                    if a.get().intersects_rect(b.get()) {
-                        self.func.collide(a.borrow_mut(), b.borrow_mut());
-                    }
+            if let Some([mut left, mut right]) = rest {
+                if let Some(div) = nn.div {
+                    let d = nn.into_node_ref();
+                    let mut g = InnerRecurser {
+                        anchor: DNode {
+                            div,
+                            cont: d.cont,
+                            range: d.range,
+                        },
+                        anchor_axis: this_axis,
+                        handler: self,
+                    };
+
+                    g.recurse(this_axis.next(), left.borrow_mut(), true);
+                    g.recurse(this_axis.next(), right.borrow_mut(), false);
                 }
             }
         }
@@ -181,9 +196,7 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for NotSortedTree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let mut f = DefaultNoSortNodeHandler {
-            inner: NoSortNodeHandler { func },
-        };
+        let mut f = NoSortNodeHandler { func };
 
         let vv = CollVis::new(self.vistr_mut());
         broccoli_rayon::queries::colfind::recurse_par(
@@ -194,35 +207,97 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for NotSortedTree<'a, T> {
     }
 }
 
-///
-/// Need to do new type pattern since NodeHandlerExt is a foreign trait.
-///
-pub struct DefaultNoSortNodeHandler<F> {
-    inner: NoSortNodeHandler<F>,
-}
+fn handle_children2<C: CollisionHandler<T>, T: Aabb>(
+    handler: &mut C,
+    mut f: HandleChildrenArgs<T, T::Num>,
+    _is_left: bool,
+) {
+    let res = if !f.current_axis.is_equal_to(f.anchor_axis) {
+        true
+    } else {
+        f.current.cont.intersects(f.anchor.cont)
+    };
 
-impl<T: Aabb, Acc> NodeHandler<T> for DefaultNoSortNodeHandler<Acc>
-where
-    Acc: CollisionHandler<T>,
-{
-    #[inline(always)]
-    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        self.inner.handle_node(axis, bots, is_leaf)
-    }
-
-    #[inline(always)]
-    fn handle_children(&mut self, f: HandleChildrenArgs<T>, is_left: bool) {
-        self.inner.handle_children(f, is_left)
-    }
-}
-impl<T: Aabb, Acc: CollisionHandler<T> + Clone> NodeHandlerExt<T>
-    for DefaultNoSortNodeHandler<Acc>
-{
-    fn div(&mut self) -> Self {
-        DefaultNoSortNodeHandler {
-            inner: self.inner.clone(),
+    if res {
+        for mut a in f.current.range.iter_mut() {
+            for mut b in f.anchor.range.borrow_mut().iter_mut() {
+                if a.get().intersects_rect(b.get()) {
+                    handler.collide(a.borrow_mut(), b.borrow_mut());
+                }
+            }
         }
     }
+}
 
-    fn add(&mut self, _b: Self) {}
+struct InnerRecurser<'a, T, N, C> {
+    anchor: DNode<'a, T, N>,
+    anchor_axis: AxisDyn,
+    handler: &'a mut NoSortNodeHandler<C>,
+}
+
+impl<'a, T: Aabb, C: CollisionHandler<T>> InnerRecurser<'a, T, T::Num, C> {
+    fn recurse(&mut self, this_axis: AxisDyn, m: VistrMutPin<Node<T, T::Num>>, is_left: bool) {
+        let anchor_axis = self.anchor_axis;
+
+        let (mut nn, rest) = m.next();
+
+        handle_children2(
+            &mut self.handler.func,
+            HandleChildrenArgs {
+                anchor: self.anchor.borrow(),
+                anchor_axis: self.anchor_axis,
+                current: nn.borrow_mut().into_node_ref(),
+                current_axis: this_axis,
+            },
+            is_left,
+        );
+
+        if let Some([left, right]) = rest {
+            if let Some(div) = nn.div {
+                if anchor_axis.is_equal_to(this_axis) {
+                    match is_left {
+                        true => {
+                            if div < self.anchor.cont.start {
+                                self.recurse(this_axis.next(), right, is_left);
+                                return;
+                            }
+                        }
+                        false => {
+                            if div >= self.anchor.cont.end {
+                                self.recurse(this_axis.next(), left, is_left);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            self.recurse(this_axis.next(), left, is_left);
+            self.recurse(this_axis.next(), right, is_left);
+        }
+    }
+}
+
+//remove need for second lifetime
+struct HandleChildrenArgs<'a, T, N> {
+    pub anchor: DNode<'a, T, N>,
+    pub current: NodeRef<'a, T, N>,
+    pub anchor_axis: AxisDyn,
+    pub current_axis: AxisDyn,
+}
+
+/// A destructured anchor node.
+struct DNode<'a, T, N> {
+    pub div: N,
+    pub cont: &'a Range<N>,
+    pub range: AabbPin<&'a mut [T]>,
+}
+impl<'a, T, N: Copy> DNode<'a, T, N> {
+    fn borrow(&mut self) -> DNode<T, N> {
+        DNode {
+            div: self.div,
+            cont: self.cont,
+            range: self.range.borrow_mut(),
+        }
+    }
 }

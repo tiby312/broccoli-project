@@ -1,6 +1,6 @@
 use support::datanum::DnumManager;
 use support::prelude::queries::colfind::build::CollVis;
-use support::prelude::queries::colfind::handler::DefaultNodeHandler;
+use support::prelude::queries::colfind::oned::DefaultNodeHandler;
 use support::prelude::*;
 
 use self::levelcounter::LevelCounter;
