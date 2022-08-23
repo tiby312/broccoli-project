@@ -1,4 +1,3 @@
-use broccoli_rayon::prelude::*;
 use support::prelude::*;
 
 fn single<T: ColfindHandler>(
@@ -20,7 +19,19 @@ where
     };
 
     let num_level = broccoli::tree::num_level::default(bots.len());
-    let (mut tree, cpar) = bench_closure_ret(|| broccoli::Tree::par_new_ext(bots, num_level, sss));
+    let (mut tree, cpar) = bench_closure_ret(|| {
+        assert!(num_level >= 1);
+        let num_nodes = broccoli::tree::num_level::num_nodes(num_level);
+        let mut buffer = Vec::with_capacity(num_nodes);
+        broccoli_rayon::build::recurse_par(
+            sss,
+            &mut broccoli::tree::build::DefaultSorter,
+            &mut buffer,
+            broccoli::tree::build::TreeBuildVisitor::new(num_level, bots),
+        );
+        assert_eq!(buffer.len(), num_nodes);
+        Tree::from_nodes(buffer)
+    });
 
     let cspeedup = cseq as f64 / cpar as f64;
 
