@@ -23,7 +23,7 @@ impl Splitter for EmptySplitter {
 pub mod build {
     use super::*;
     use broccoli::aabb::*;
-    use broccoli::tree::{
+    use broccoli::{
         build::Sorter,
         build::{NodeBuildResult, TreeBuildVisitor},
         node::Node,

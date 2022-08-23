@@ -7,12 +7,12 @@ use broccoli::{
         self,
         colfind::build::{CollVis, CollisionHandler, NodeHandler},
     },
-    tree::{
-        build::Sorter,
-        build::TreeBuildVisitor,
-        node::{Node, Vistr, VistrMutPin},
-        num_level,
-    },
+    
+    build::Sorter,
+    build::TreeBuildVisitor,
+    node::{Node, Vistr, VistrMutPin},
+    num_level,
+    
 };
 use broccoli_rayon::{
     build::RayonBuildPar, queries::colfind::NodeHandlerExt, queries::colfind::RayonQueryPar,

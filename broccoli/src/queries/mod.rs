@@ -1,10 +1,9 @@
 //! Contains query modules for each query algorithm.
 
 use super::*;
+use crate::default_axis;
 use alloc::vec::Vec;
-use axgeom::*;
 use compt::*;
-use tree::default_axis;
 
 pub mod colfind;
 

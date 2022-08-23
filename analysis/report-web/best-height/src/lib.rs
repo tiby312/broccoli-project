@@ -7,7 +7,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
             different tree heights
         "#};
 
-    let num_level = broccoli::tree::num_level::default(num);
+    let num_level = broccoli::num_level::default(num);
 
     let res = bench_inner(num, 3, num_level + 4, grow);
     let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
@@ -47,7 +47,7 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
         different tree heights
     "#};
 
-    let num_level = broccoli::tree::num_level::default(num);
+    let num_level = broccoli::num_level::default(num);
 
     let res = theory_inner(man, num, 3, num_level + 4, grow);
     let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
@@ -137,7 +137,7 @@ fn optimal_inner(num: usize, grow: f64) -> Vec<(i128, Res)> {
                 .unwrap()
                 .0;
 
-            let heur_height = broccoli::tree::num_level::default(n);
+            let heur_height = broccoli::num_level::default(n);
 
             (
                 n as i128,
@@ -156,9 +156,8 @@ fn new_theory_record<T: ColfindHandler>(
     height: usize,
 ) -> usize {
     man.time(|| {
-        use broccoli::tree::build::DefaultSorter;
-        use broccoli::tree::build::TreeBuildVisitor;
-        use broccoli::tree::num_level;
+        use broccoli::build::DefaultSorter;
+        use broccoli::build::TreeBuildVisitor;
         let num_level = height;
         let num_nodes = num_level::num_nodes(num_level);
         let mut nodes = Vec::with_capacity(num_nodes);
@@ -179,9 +178,8 @@ fn new_bench_record<T: ColfindHandler>(bots: &mut [T], height: usize) -> f64 {
     let mut bencher = Bencher;
 
     bencher.time(|| {
-        use broccoli::tree::build::DefaultSorter;
-        use broccoli::tree::build::TreeBuildVisitor;
-        use broccoli::tree::num_level;
+        use broccoli::build::DefaultSorter;
+        use broccoli::build::TreeBuildVisitor;
         let num_level = height;
         let num_nodes = num_level::num_nodes(num_level);
         let mut nodes = Vec::with_capacity(num_nodes);

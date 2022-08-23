@@ -1,15 +1,15 @@
 use broccoli::{
     aabb::Aabb,
     aabb::ManySwap,
-    tree::{
+    Tree,
+    {
         build::Sorter,
         build::{DefaultSorter, NodeBuildResult, TreeBuildVisitor},
         node::Node,
     },
-    Tree,
 };
 
-use broccoli::tree::num_level;
+use broccoli::num_level;
 
 pub trait RayonBuildPar<'a, T: Aabb> {
     //fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self;

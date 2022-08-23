@@ -12,8 +12,8 @@ pub use broccoli::aabb::*;
 pub use broccoli::axgeom;
 pub use broccoli::axgeom::*;
 pub use broccoli::bbox;
-pub use broccoli::tree::node::*;
-pub use broccoli::tree::*;
+pub use broccoli::node::*;
+pub use broccoli::*;
 
 pub use crate::demos::Demo;
 pub use crate::demos::DemoData;

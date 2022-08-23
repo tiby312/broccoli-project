@@ -18,16 +18,16 @@ where
         broccoli_rayon::build::SEQ_FALLBACK_DEFAULT
     };
 
-    let num_level = broccoli::tree::num_level::default(bots.len());
+    let num_level = broccoli::num_level::default(bots.len());
     let (mut tree, cpar) = bench_closure_ret(|| {
         assert!(num_level >= 1);
-        let num_nodes = broccoli::tree::num_level::num_nodes(num_level);
+        let num_nodes = broccoli::num_level::num_nodes(num_level);
         let mut buffer = Vec::with_capacity(num_nodes);
         broccoli_rayon::build::recurse_par(
             sss,
-            &mut broccoli::tree::build::DefaultSorter,
+            &mut broccoli::build::DefaultSorter,
             &mut buffer,
-            broccoli::tree::build::TreeBuildVisitor::new(num_level, bots),
+            broccoli::build::TreeBuildVisitor::new(num_level, bots),
         );
         assert_eq!(buffer.len(), num_nodes);
         Tree::from_nodes(buffer)

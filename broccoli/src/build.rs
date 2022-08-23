@@ -4,6 +4,14 @@
 
 use super::*;
 
+///The default starting axis of a [`Tree`]. It is set to be the `X` axis.
+///This means that the first divider is a 'vertical' line since it is
+///partitioning space based off of the aabb's `X` value.
+#[must_use]
+pub const fn default_axis() -> axgeom::XAXIS {
+    axgeom::XAXIS
+}
+
 ///Expose a common Sorter trait so that we may have two version of the tree
 ///where one implementation actually does sort the tree, while the other one
 ///does nothing when sort() is called.

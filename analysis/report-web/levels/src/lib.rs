@@ -134,9 +134,9 @@ fn bench_inner(num: usize, start_grow: f64, end_grow: f64) -> Vec<(f64, Res<f64>
         .collect()
 }
 
-use broccoli::tree::build::DefaultSorter;
-use broccoli::tree::build::TreeBuildVisitor;
-use broccoli::tree::num_level;
+use broccoli::build::DefaultSorter;
+use broccoli::build::TreeBuildVisitor;
+use broccoli::num_level;
 
 fn theory_inner(
     man: &mut DnumManager,
