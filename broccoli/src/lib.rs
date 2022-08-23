@@ -199,8 +199,9 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     }
 }
 
-///Using this struct the user can determine the height of a tree or the number of nodes
-///that would exist if the tree were constructed with the specified number of elements.
+///
+/// Tools to determine the best tree height for the given number of elements.
+///
 pub mod num_level {
 
     #[cfg(test)]
