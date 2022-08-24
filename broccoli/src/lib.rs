@@ -235,7 +235,8 @@ pub mod num_level {
     ///and you will end up with just sweep and prune.
     ///This number was chosen empirically from running the Tree_alg_data project,
     ///on two different machines.
-    pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 32;
+    //pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 32;
+    pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 80;
 
     ///Outputs the height given an desirned number of bots per node.
     #[inline]

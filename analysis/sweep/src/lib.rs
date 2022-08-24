@@ -4,12 +4,11 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
     pub fn find_colliding_pairs(&mut self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
         let mut prevec = Vec::with_capacity(2048);
         let bots = AabbPin::from_mut(self.inner);
-        broccoli::queries::colfind::oned::find_2d(
+        broccoli::queries::colfind::oned::sweep_and_prune(
             &mut prevec,
             default_axis(),
             bots,
-            &mut func,
-            true,
+            &mut func
         );
     }
 }
