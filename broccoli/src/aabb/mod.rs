@@ -29,6 +29,9 @@ impl<N> ManySwap for (Rect<N>, usize) {}
 impl<N> ManySwap for (Rect<N>, u32) {}
 impl<N> ManySwap for (Rect<N>, u64) {}
 
+///
+/// Wrapper to opt in to being allowed to be fed to swap intensive algorithms.
+///
 #[derive(Copy, Clone, Debug)]
 pub struct ManySwappable<T>(pub T);
 impl<T> ManySwap for ManySwappable<T> {}
