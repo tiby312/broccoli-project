@@ -83,12 +83,19 @@ pub struct Tree<'a, T: Aabb> {
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
+    ///
+    /// User responsiblity to provide a distribution that is a
+    /// valid broccoli tree.
+    ///
     pub fn from_nodes(nodes: Vec<Node<'a, T, T::Num>>) -> Self {
         Tree {
             nodes: nodes.into_boxed_slice(),
         }
     }
 
+    ///
+    /// Return the underlying data.
+    ///
     pub fn into_nodes(self) -> Vec<Node<'a, T, T::Num>> {
         self.nodes.into_vec()
     }
@@ -141,6 +148,9 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
         Tree { nodes }
     }
 
+    ///
+    /// Create a new tree with the default tree height heuristic
+    ///
     pub fn new(bots: &'a mut [T]) -> Self
     where
         T: ManySwap,
@@ -216,6 +226,9 @@ pub mod num_level {
         }
     }
 
+    ///
+    /// The number of nodes for a tree with the given height.
+    ///
     pub const fn num_nodes(num_levels: usize) -> usize {
         assert!(num_levels >= 1);
         2usize.rotate_left((num_levels - 1) as u32) - 1
@@ -240,12 +253,12 @@ pub mod num_level {
 
     ///
     /// Use the default heuristic for tree height.
-    /// 
+    ///
     #[must_use]
     pub fn default(num_elements: usize) -> usize {
         with_num_elem_in_leaf(num_elements, DEFAULT_NUMBER_ELEM_PER_NODE)
     }
-    
+
     ///Specify a custom default number of elements per leaf
     #[must_use]
     pub const fn with_num_elem_in_leaf(num_elements: usize, num_elem_leaf: usize) -> usize {
