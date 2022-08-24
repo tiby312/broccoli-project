@@ -2,7 +2,7 @@
 //! to protect invariants.
 //!
 //! ```rust
-//! use broccoli_tree::{bbox,rect,aabb_pin::AabbPin};
+//! use broccoli::{bbox,rect,aabb::pin::AabbPin};
 //!
 //!
 //! let mut a=bbox(rect(0,10,0,10),0);

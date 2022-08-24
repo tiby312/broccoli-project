@@ -12,7 +12,7 @@ include = ["src/**/*"]
 
 
 [lib]
-doctest = false
+doctest = true
 
 [dev-dependencies]
 dists = {git="https://github.com/tiby312/dists.git"}

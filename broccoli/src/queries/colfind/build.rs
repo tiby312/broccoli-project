@@ -59,7 +59,6 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
     ) -> (NodeFinisher<'b, T>, Option<[Self; 2]>) {
         handler.handle_nodes_under(self.axis, self.vistr.borrow_mut());
 
-        //TODO make height be zero for leaf?
         let is_leaf = self.get_height() == 1;
 
         let (n, rest) = self.vistr.next();

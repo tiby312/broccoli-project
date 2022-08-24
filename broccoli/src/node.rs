@@ -1,3 +1,7 @@
+//!
+//! broccoli tree Node and Node visitor structs
+//!
+
 use super::*;
 
 /// When we traverse the tree in read-only mode, we can simply return a reference to each node.

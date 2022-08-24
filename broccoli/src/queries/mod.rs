@@ -1,10 +1,9 @@
 //! Contains query modules for each query algorithm.
 
 use super::*;
+use crate::default_axis;
 use alloc::vec::Vec;
-use axgeom::*;
 use compt::*;
-use tree::default_axis;
 
 pub mod colfind;
 
@@ -33,9 +32,12 @@ where
         .all(|w| compare(&w[1], &w[0]).unwrap() != Ordering::Less)
 }
 
+///
+/// Returns greater than if A's top or left border is greater than B's, else return Less.
+///
 #[inline(always)]
 #[must_use]
-pub fn compare_bots<T: Aabb>(axis: impl Axis, a: &T, b: &T) -> core::cmp::Ordering {
+pub fn cmp_elem<T: Aabb>(axis: impl Axis, a: &T, b: &T) -> core::cmp::Ordering {
     let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
     if p1 > p2 {
         core::cmp::Ordering::Greater

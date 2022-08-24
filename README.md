@@ -19,7 +19,7 @@ Screen capture from the inner `demo` project.
 ### Example
 
 ```rust
-use broccoli::tree::rect;
+use broccoli::rect;
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -76,6 +76,12 @@ fn main() {
 
  ### Parallelism
 
+ **WARNING**: Heterogenous cpus are becoming popular where you might have some high power cores and some low power cores. To get consistent performance on a system, you will have to set the thread affinity to make rayon's
+ threadpools only run on one group type. This makes writing system independent code very hard. Consider sticking
+ to single threaded unless you are able to tweak the parallel performance. The gains from simply using the broccoli algorithm
+ dominate over the gains for making it parallel, so just using broccoli but sticking to sequential might be enough
+ for your usecase.
+ 
  Parallel versions of construction and colliding pair finding functions
  are provided. They use [rayon](https://crates.io/crates/rayon) under the hood which uses work stealing to
  parallelize divide and conquer style recursive functions.
@@ -99,6 +105,16 @@ fn main() {
  the tree but the mutable references returns are hidden behind the `AabbPin<T>` type that forbids
  mutating the aabbs.
 
+ ### Do I have to rebuild the tree every time?
+
+ Yes. I optimized for fast querying over fast building. I noticed that building times are consistent while
+ querying time can vary wildly depending on how many are overlapping, and that querying times dominate
+ over rebuilding times after a certain number of collisions. I think a lot of collisions systems
+ have mechanisms to not have to rebuild the entire tree, but do so at the cost of slower querying times. i.e.
+ they may insert loose bounding boxes which would increase the number of false positives.
+ These systems are great if you know up front that you will never have that many collisions.
+ However in your system you might not have a bound on that so, broccoli was optimized for situations
+ where the number of collisions could dominate.  
 
 ### Optimisation
 

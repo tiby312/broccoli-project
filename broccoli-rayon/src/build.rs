@@ -1,18 +1,18 @@
 use broccoli::{
     aabb::Aabb,
     aabb::ManySwap,
-    tree::{
+    Tree,
+    {
         build::Sorter,
         build::{DefaultSorter, NodeBuildResult, TreeBuildVisitor},
         node::Node,
     },
-    Tree,
 };
 
-use broccoli::tree::num_level;
+use broccoli::num_level;
 
 pub trait RayonBuildPar<'a, T: Aabb> {
-    fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self;
+    //fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self;
     fn par_new(bots: &'a mut [T]) -> Self;
 }
 
@@ -21,23 +21,36 @@ where
     T: Send,
     T::Num: Send,
 {
-    fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self {
+    // fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self {
+    //     assert!(num_level >= 1);
+    //     let num_nodes = num_level::num_nodes(num_level);
+    //     let mut buffer = Vec::with_capacity(num_nodes);
+    //     recurse_par(
+    //         num_seq_fallback,
+    //         &mut DefaultSorter,
+    //         &mut buffer,
+    //         TreeBuildVisitor::new(num_level, bots),
+    //     );
+    //     assert_eq!(buffer.len(), num_nodes);
+    //     Tree::from_nodes(buffer)
+    // }
+
+    fn par_new(bots: &'a mut [T]) -> Self {
+        let num_level = num_level::default(bots.len());
+
         assert!(num_level >= 1);
         let num_nodes = num_level::num_nodes(num_level);
         let mut buffer = Vec::with_capacity(num_nodes);
         recurse_par(
-            num_seq_fallback,
+            SEQ_FALLBACK_DEFAULT,
             &mut DefaultSorter,
             &mut buffer,
             TreeBuildVisitor::new(num_level, bots),
         );
         assert_eq!(buffer.len(), num_nodes);
         Tree::from_nodes(buffer)
-    }
 
-    fn par_new(bots: &'a mut [T]) -> Self {
-        let num_level = num_level::default(bots.len());
-        Self::par_new_ext(bots, num_level, SEQ_FALLBACK_DEFAULT)
+        //       Self::par_new_ext(bots, num_level, SEQ_FALLBACK_DEFAULT)
     }
 }
 

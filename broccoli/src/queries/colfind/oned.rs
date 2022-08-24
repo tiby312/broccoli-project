@@ -26,10 +26,20 @@ impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
     }
 }
 
+pub fn sweep_and_prune<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
+    buffer: &mut Vec<AabbPin<&'a mut T>>,
+    axis: A,
+    bots: AabbPin<&'a mut [T]>,
+    func: &mut F,
+) {
+    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
+    self::find_iter(buffer, axis, bots, &mut b);
+}
+
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
-pub fn find_2d<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
-    k: &mut Vec<AabbPin<&'a mut T>>,
+fn find_2d<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
+    buffer: &mut Vec<AabbPin<&'a mut T>>,
     axis: A,
     bots: AabbPin<&'a mut [T]>,
     func: &mut F,
@@ -37,10 +47,10 @@ pub fn find_2d<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
 ) {
     if check_y {
         let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
-        self::find_iter(k, axis, bots, &mut b);
+        self::find_iter(buffer, axis, bots, &mut b);
     } else {
         let b = func;
-        self::find_iter(k, axis, bots, b);
+        self::find_iter(buffer, axis, bots, b);
     }
 }
 
