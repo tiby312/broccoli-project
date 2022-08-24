@@ -134,7 +134,12 @@ cost of each algorithm in general.
 | rect             |   1  |         2     |
 | nbody            |  10  |         1     |
 
-Numbers are out of 10 and are just rough made up numbers. For more in-depth analysis, see the [broccoli book](https://tiby312.github.io/broccoli_report).
+Numbers are out of 10 and are just rough made up numbers. For more in-depth analysis, see the
+output of the inner analysis/report-web/plot-gen at:
+[https://tiby312.github.io/broccoli_plots/](https://tiby312.github.io/broccoli_plots/)
+
+See legacy (not maintained) report from analysis/report-legacy at:
+[broccoli book](https://tiby312.github.io/broccoli_report).
 
 
 ### Name
