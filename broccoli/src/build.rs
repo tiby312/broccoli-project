@@ -22,7 +22,7 @@ pub trait Sorter<T> {
 ///Sorts the bots based on an axis.
 #[inline(always)]
 pub fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {
-    let sclosure = |a: &I, b: &I| -> core::cmp::Ordering { queries::compare_bots(axis, a, b) };
+    let sclosure = |a: &I, b: &I| -> core::cmp::Ordering { queries::cmp_elem(axis, a, b) };
 
     collision_botids.sort_unstable_by(sclosure);
 }
@@ -186,7 +186,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                 let med_index = bots.len() / 2;
 
                 let (ll, med, rr) = bots.select_nth_unstable_by(med_index, move |a, b| {
-                    crate::queries::compare_bots(div_axis, a, b)
+                    crate::queries::cmp_elem(div_axis, a, b)
                 });
 
                 let med_val = med.get().get_range(div_axis).start;
