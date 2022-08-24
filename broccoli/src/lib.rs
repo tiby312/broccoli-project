@@ -84,7 +84,7 @@ pub struct Tree<'a, T: Aabb> {
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
     ///
-    /// User responsiblity to provide a distribution that is a
+    /// User responsibility to provide a distribution that is a
     /// valid broccoli tree.
     ///
     pub fn from_nodes(nodes: Vec<Node<'a, T, T::Num>>) -> Self {
