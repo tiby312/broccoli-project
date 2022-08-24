@@ -100,7 +100,7 @@ pub struct Node<'a, T, N> {
     ///
     pub min_elem: usize,
 
-    pub num_elem: usize,
+    //pub num_elem: usize,
 }
 impl<'a, T, N: Num> Node<'a, T, N> {
     pub fn borrow_range(&mut self) -> AabbPin<&mut [T]> {
@@ -113,7 +113,7 @@ impl<'a, T, N: Num> Node<'a, T, N> {
             cont: self.cont,
             div: self.div,
             min_elem: self.min_elem,
-            num_elem: self.num_elem,
+            //num_elem: self.num_elem,
         }
     }
 }
@@ -127,5 +127,5 @@ pub struct NodeData<N: Num> {
     pub cont: axgeom::Range<N>,
     pub div: Option<N>,
     pub min_elem: usize,
-    pub num_elem: usize,
+    //pub num_elem: usize,
 }
