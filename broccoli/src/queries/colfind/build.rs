@@ -33,13 +33,13 @@ impl<'b, T: Aabb> NodeFinisher<'b, T> {
 }
 
 /// The main primitive to visit each node and find colliding pairs
-pub struct CollVis<'a, 'b, T: Aabb> {
+pub struct CollisionVisitor<'a, 'b, T: Aabb> {
     vistr: VistrMutPin<'b, Node<'a, T, T::Num>>,
     axis: AxisDyn,
 }
-impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
+impl<'a, 'b, T: Aabb> CollisionVisitor<'a, 'b, T> {
     pub fn new(vistr: VistrMutPin<'b, Node<'a, T, T::Num>>) -> Self {
-        CollVis {
+        CollisionVisitor {
             vistr,
             axis: default_axis().to_dyn(),
         }
@@ -73,11 +73,11 @@ impl<'a, 'b, T: Aabb> CollVis<'a, 'b, T> {
             fin,
             if let Some([left, right]) = rest {
                 Some([
-                    CollVis {
+                    CollisionVisitor {
                         vistr: left,
                         axis: self.axis.next(),
                     },
-                    CollVis {
+                    CollisionVisitor {
                         vistr: right,
                         axis: self.axis.next(),
                     },

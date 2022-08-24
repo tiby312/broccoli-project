@@ -54,11 +54,11 @@ pub mod query {
         use super::*;
         use broccoli::{
             aabb::*,
-            queries::colfind::build::{CollVis, NodeHandler},
+            queries::colfind::build::{CollisionVisitor, NodeHandler},
         };
 
         pub fn recurse_seq_splitter<T: Aabb, P: Splitter, N: NodeHandler<T>>(
-            vistr: CollVis<T>,
+            vistr: CollisionVisitor<T>,
             splitter: &mut P,
             func: &mut N,
         ) {

@@ -48,10 +48,10 @@ where
     let qpar = bench_closure(|| {
         use broccoli::queries::colfind::oned::DefaultNodeHandler;
         use broccoli_rayon::queries::colfind::*;
-        use support::prelude::queries::colfind::build::CollVis;
+        use support::prelude::queries::colfind::build::CollisionVisitor;
         let mut f = DefaultNodeHandler::new(T::handle);
 
-        let vv = CollVis::new(tree.vistr_mut());
+        let vv = CollisionVisitor::new(tree.vistr_mut());
         recurse_par(vv, &mut f, ccc);
     });
 

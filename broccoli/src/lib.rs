@@ -215,6 +215,7 @@ pub mod num_level {
             assert_eq!(num_nodes(4), 15);
         }
     }
+
     pub const fn num_nodes(num_levels: usize) -> usize {
         assert!(num_levels >= 1);
         2usize.rotate_left((num_levels - 1) as u32) - 1
@@ -235,43 +236,41 @@ pub mod num_level {
     ///and you will end up with just sweep and prune.
     ///This number was chosen empirically from running the Tree_alg_data project,
     ///on two different machines.
-    //pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 32;
     pub const DEFAULT_NUMBER_ELEM_PER_NODE: usize = 80;
 
-    ///Outputs the height given an desirned number of bots per node.
-    #[inline]
+    ///
+    /// Use the default heuristic for tree height.
+    /// 
     #[must_use]
-    fn compute_tree_height_heuristic(num_bots: usize, num_per_node: usize) -> usize {
+    pub fn default(num_elements: usize) -> usize {
+        with_num_elem_in_leaf(num_elements, DEFAULT_NUMBER_ELEM_PER_NODE)
+    }
+    
+    ///Specify a custom default number of elements per leaf
+    #[must_use]
+    pub const fn with_num_elem_in_leaf(num_elements: usize, num_elem_leaf: usize) -> usize {
+        #[must_use]
+        const fn log_2(x: u64) -> u64 {
+            const fn num_bits<T>() -> usize {
+                core::mem::size_of::<T>() * 8
+            }
+            num_bits::<u64>() as u64 - x.leading_zeros() as u64 - 1
+        }
+
         //we want each node to have space for around 300 bots.
         //there are 2^h nodes.
         //2^h*200>=num_bots.  Solve for h s.t. h is an integer.
 
-        if num_bots <= num_per_node {
+        if num_elements <= num_elem_leaf {
             1
         } else {
-            let (num_bots, num_per_node) = (num_bots as u64, num_per_node as u64);
+            let (num_bots, num_per_node) = (num_elements as u64, num_elem_leaf as u64);
             let a = num_bots / num_per_node;
             let a = log_2(a);
             let k = (((a / 2) * 2) + 1) as usize;
-            assert_eq!(k % 2, 1, "k={:?}", k);
+            assert!(k % 2 == 1);
             assert!(k >= 1);
             k
         }
-    }
-    #[must_use]
-    const fn log_2(x: u64) -> u64 {
-        const fn num_bits<T>() -> usize {
-            core::mem::size_of::<T>() * 8
-        }
-        num_bits::<u64>() as u64 - x.leading_zeros() as u64 - 1
-    }
-    #[must_use]
-    pub fn default(num_elements: usize) -> usize {
-        compute_tree_height_heuristic(num_elements, DEFAULT_NUMBER_ELEM_PER_NODE)
-    }
-    ///Specify a custom default number of elements per leaf
-    #[must_use]
-    pub fn with_num_elem_in_leaf(num_elements: usize, num_elem_leaf: usize) -> usize {
-        compute_tree_height_heuristic(num_elements, num_elem_leaf)
     }
 }

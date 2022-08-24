@@ -2,7 +2,7 @@ use broccoli::{
     aabb::pin::AabbPin,
     aabb::Aabb,
     queries::colfind::{
-        build::{CollVis, CollisionHandler, NodeHandler},
+        build::{CollisionHandler, CollisionVisitor, NodeHandler},
         oned::DefaultNodeHandler,
     },
     Tree,
@@ -74,7 +74,7 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
             func,
         });
 
-        let vv = CollVis::new(self.vistr_mut());
+        let vv = CollisionVisitor::new(self.vistr_mut());
         recurse_par(vv, &mut f, SEQ_FALLBACK_DEFAULT);
         f.coll_handler.acc
     }
@@ -88,7 +88,7 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
     {
         let mut f = DefaultNodeHandler::new(func);
 
-        let vv = CollVis::new(self.vistr_mut());
+        let vv = CollisionVisitor::new(self.vistr_mut());
         recurse_par(vv, &mut f, SEQ_FALLBACK_DEFAULT);
     }
 }
@@ -153,7 +153,7 @@ impl<Acc: CollisionHandlerExt<T>, T: Aabb> NodeHandlerExt<T> for DefaultNodeHand
 }
 
 pub fn recurse_par<T: Aabb, SO: NodeHandlerExt<T>>(
-    vistr: CollVis<T>,
+    vistr: CollisionVisitor<T>,
     handler: &mut SO,
     num_seq_fallback: usize,
 ) where
