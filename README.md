@@ -58,8 +58,7 @@ fn main() {
  of T is too big, the performance can regress a lot! To combat this, consider using the semi-direct
  or even indirect layouts listed below. The Indirect layout achieves the smallest element size (just one pointer),
  however it can suffer from a lot of cache misses of large problem sizes. The Semi-direct layout
- is more cache-friendly but can use more memory.
- The different characteristics are explored more in depth in the [broccoli book](https://tiby312.github.io/broccoli_report)
+ is more cache-friendly but can use more memory. See more in the optimizations section below.
  In almost all cases you want to use the Semi-direct layout.
 
  - `(Rect<N>,&mut T)` Semi-direct
@@ -134,7 +133,12 @@ cost of each algorithm in general.
 | rect             |   1  |         2     |
 | nbody            |  10  |         1     |
 
-Numbers are out of 10 and are just rough made up numbers. For more in-depth analysis, see the [broccoli book](https://tiby312.github.io/broccoli_report).
+Numbers are out of 10 and are just rough made up numbers. For more in-depth analysis, see the
+output of the inner `analysis/report-web/plot-gen` at:
+[https://tiby312.github.io/broccoli_plots/](https://tiby312.github.io/broccoli_plots/)
+
+See legacy report (I havent updated it in a while) from `analysis/report-legacy` at:
+[broccoli book](https://tiby312.github.io/broccoli_report).
 
 
 ### Name
