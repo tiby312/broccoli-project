@@ -76,6 +76,12 @@ fn main() {
 
  ### Parallelism
 
+ **WARNING**: Heterogenous cpus are becoming popular where you might have some high power cores and some low power cores. To get consistent performance on a system, you will have to set the thread affinity to make rayon's
+ threadpools only run on one group type. This makes writing system independent code very hard. Consider sticking
+ to single threaded unless you are able to tweak the parallel performance. The gains from simply using the broccoli algorithm
+ dominate over the gains for making it parallel, so just using broccoli but sticking to sequential might be enough
+ for your usecase.
+ 
  Parallel versions of construction and colliding pair finding functions
  are provided. They use [rayon](https://crates.io/crates/rayon) under the hood which uses work stealing to
  parallelize divide and conquer style recursive functions.
