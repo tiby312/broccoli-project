@@ -19,7 +19,7 @@ Screen capture from the inner `demo` project.
 ### Example
 
 ```rust
-use broccoli::tree::rect;
+use broccoli::rect;
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
