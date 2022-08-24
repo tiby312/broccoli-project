@@ -102,7 +102,8 @@ fn main() {
  A lot is done to forbid the user from violating the invariants of the tree once constructed
  while still allowing them to mutate parts of each element of the tree. The user can mutably traverse
  the tree but the mutable references returns are hidden behind the `AabbPin<T>` type that forbids
- mutating the aabbs.
+ mutating the aabbs. That said the broccoli tree has functions to access/replace its inner data.
+ So the user can certainly create incorrect trees.
 
  ### Do I have to rebuild the tree every time?
 
