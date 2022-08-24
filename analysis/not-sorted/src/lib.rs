@@ -5,7 +5,7 @@ use broccoli::{
     axgeom::{Axis, AxisDyn, XAXIS, YAXIS},
     queries::{
         self,
-        colfind::build::{CollVis, CollisionHandler, NodeHandler},
+        colfind::build::{CollisionVisitor, CollisionHandler, NodeHandler},
     },
     
     build::Sorter,
@@ -70,7 +70,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
 
 impl<T: Aabb> NotSortedTree<'_, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        CollVis::new(self.vistr_mut()).recurse_seq(&mut NoSortNodeHandler::new(func));
+        CollisionVisitor::new(self.vistr_mut()).recurse_seq(&mut NoSortNodeHandler::new(func));
     }
 }
 
@@ -194,7 +194,7 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for NotSortedTree<'a, T> {
     {
         let mut f = NoSortNodeHandler { func };
 
-        let vv = CollVis::new(self.vistr_mut());
+        let vv = CollisionVisitor::new(self.vistr_mut());
         broccoli_rayon::queries::colfind::recurse_par(
             vv,
             &mut f,

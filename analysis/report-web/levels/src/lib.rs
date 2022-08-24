@@ -1,5 +1,5 @@
 use support::datanum::DnumManager;
-use support::prelude::queries::colfind::build::CollVis;
+use support::prelude::queries::colfind::build::CollisionVisitor;
 use support::prelude::queries::colfind::oned::DefaultNodeHandler;
 use support::prelude::*;
 
@@ -191,7 +191,7 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
     let mut levelc2 = LevelCounter::new(man, 0, vec![]);
     {
         crate::splitter::query::colfind::recurse_seq_splitter(
-            CollVis::new(tree.vistr_mut()),
+            CollisionVisitor::new(tree.vistr_mut()),
             &mut levelc2,
             &mut DefaultNodeHandler::new(T::handle),
         );
@@ -233,7 +233,7 @@ fn gen<T: ColfindHandler>(bots: &mut [T]) -> Res<f64> {
     let mut times2 = LevelTimer::new(0, vec![]);
     {
         crate::splitter::query::colfind::recurse_seq_splitter(
-            CollVis::new(tree.vistr_mut()),
+            CollisionVisitor::new(tree.vistr_mut()),
             &mut times2,
             &mut DefaultNodeHandler::new(T::handle),
         );

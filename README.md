@@ -108,12 +108,12 @@ fn main() {
  ### Do I have to rebuild the tree every time?
 
  Yes. I optimized for fast querying over fast building. I noticed that building times are consistent while
- querying time can vary wildly depending on how many are overlapping, and that querying times dominate
+ querying times can vary wildly depending on how many are overlapping, and that querying times dominate
  over rebuilding times after a certain number of collisions. I think a lot of collisions systems
  have mechanisms to not have to rebuild the entire tree, but do so at the cost of slower querying times. i.e.
- they may insert loose bounding boxes which would increase the number of false positives.
+ they may insert loose bounding boxes which would increase the number of false positives during querying.
  These systems are great if you know up front that you will never have that many collisions.
- However in your system you might not have a bound on that so, broccoli was optimized for situations
+ However in other systems you might not have a bound on that so, broccoli was optimized for situations
  where the number of collisions could dominate.  
 
 ### Optimisation
