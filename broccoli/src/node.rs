@@ -99,8 +99,6 @@ pub struct Node<'a, T, N> {
     /// to perform in parallel.
     ///
     pub min_elem: usize,
-
-    //pub num_elem: usize,
 }
 impl<'a, T, N: Num> Node<'a, T, N> {
     pub fn borrow_range(&mut self) -> AabbPin<&mut [T]> {
