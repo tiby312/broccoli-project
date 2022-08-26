@@ -11,7 +11,7 @@ The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org
 Checkout it out on [github](https://github.com/tiby312/broccoli-project) and on [crates.io](https://crates.io/crates/broccoli). Documentation at [docs.rs](https://docs.rs/broccoli). 
 ### Screenshot
 
-Screen capture from the inner `demo` project.
+Screen capture from the inner `analysis/demo-web` project.
 
 <img src="./assets/screenshot.gif" alt="screenshot">
 
