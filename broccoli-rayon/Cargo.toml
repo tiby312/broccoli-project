@@ -2,6 +2,14 @@
 name = "broccoli-rayon"
 version = "0.1.0"
 edition = "2021"
+authors = ["Ken Reed <kenakioreed@gmail.com>"]
+description = "broadphase collision detection algorithms"
+license = "MIT"
+repository = "https://github.com/tiby312/broccoli-project"
+keywords = ["tree", "kdtree","broadphase","space-partitioning","no_std"]
+readme = "README.md"
+include = ["src/**/*"]
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
