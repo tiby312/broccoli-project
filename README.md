@@ -115,6 +115,10 @@ fn main() {
  However in other systems you might not have a bound on that so, broccoli was optimized for situations
  where the number of collisions could dominate.  
 
+### Cache results
+
+Functions to cache colliding pairs are provieded by the [broccoli-ext](https://crates.io/crates/broccoli-ext) crate.
+
 ### Optimisation
 
 I've focused mainly on making finding colliding pairs as fast as possible primarily in
