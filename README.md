@@ -82,8 +82,7 @@ fn main() {
  for your usecase.
  
  Parallel versions of construction and colliding pair finding functions
- are provided. They use [rayon](https://crates.io/crates/rayon) under the hood which uses work stealing to
- parallelize divide and conquer style recursive functions.
+ are provided in the [broccoli-rayon](https://crates.io/crates/broccoli-rayon) crate.
 
  ### Floating Point
 
@@ -102,7 +101,8 @@ fn main() {
  A lot is done to forbid the user from violating the invariants of the tree once constructed
  while still allowing them to mutate parts of each element of the tree. The user can mutably traverse
  the tree but the mutable references returns are hidden behind the `AabbPin<T>` type that forbids
- mutating the aabbs.
+ mutating the aabbs. That said the broccoli tree has functions to access/replace its inner data.
+ So the user can certainly create incorrect trees.
 
  ### Do I have to rebuild the tree every time?
 
@@ -114,6 +114,10 @@ fn main() {
  These systems are great if you know up front that you will never have that many collisions.
  However in other systems you might not have a bound on that so, broccoli was optimized for situations
  where the number of collisions could dominate.  
+
+### Cache results
+
+Functions to cache colliding pairs are provieded by the [broccoli-ext](https://crates.io/crates/broccoli-ext) crate.
 
 ### Optimisation
 

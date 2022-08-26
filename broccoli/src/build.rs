@@ -111,7 +111,7 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
         Node {
             cont,
             min_elem: self.min_elem,
-            num_elem: self.num_elem,
+            //num_elem: self.num_elem,
             range: AabbPin::new(self.mid),
             div: self.div,
         }
