@@ -1,1 +1,1 @@
-Extentions to the [broccoli](https://crates.io/crates/broccoli) crate that require unsafe.
+Extensions to the [broccoli](https://crates.io/crates/broccoli) crate that require unsafe.
