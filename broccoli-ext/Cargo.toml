@@ -1,6 +1,6 @@
 [package]
 name = "broccoli-ext"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
@@ -13,4 +13,4 @@ include = ["src/**/*"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-broccoli={path="../broccoli"}
+broccoli={path="../broccoli",version="6.0"}
