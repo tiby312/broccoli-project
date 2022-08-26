@@ -82,8 +82,7 @@ fn main() {
  for your usecase.
  
  Parallel versions of construction and colliding pair finding functions
- are provided. They use [rayon](https://crates.io/crates/rayon) under the hood which uses work stealing to
- parallelize divide and conquer style recursive functions.
+ are provided in the [broccoli-rayon](https://crates.io/crates/broccoli-rayon) crate.
 
  ### Floating Point
 
