@@ -4,7 +4,7 @@
 [![docs.rs](https://docs.rs/broccoli/badge.svg)](https://docs.rs/broccoli)
 [![Crates.io](https://img.shields.io/crates/d/broccoli)](https://crates.io/crates/broccoli)
 
-Broccoli is a broad-phase collision detection library. 
+Broccoli is a 2D broad-phase collision detection library. 
 
 The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 
@@ -118,6 +118,14 @@ fn main() {
 ### Cache results
 
 Functions to cache colliding pairs are provieded by the [broccoli-ext](https://crates.io/crates/broccoli-ext) crate.
+
+### 3D?
+
+Not supported, but you can use broccoli to partition 2 dimensions and use something else for the 3rd.
+You could just check if the elements intersect on the z axis inside of the callback function.
+Alternatively, you could split the z axis into planes and use broccoli on each plane.
+I think in a lot of cases, the problem is "mostly 2D" in that the distribution lies mostly on a 2d plane,
+so it might actually be faster to use a more 2d centric collision system.
 
 ### Optimisation
 
