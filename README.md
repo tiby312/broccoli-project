@@ -113,7 +113,9 @@ fn main() {
  they may insert loose bounding boxes which would increase the number of false positives during querying.
  These systems are great if you know up front that you will never have that many collisions.
  However in other systems you might not have a bound on that so, broccoli was optimized for situations
- where the number of collisions could dominate.  
+ where the number of collisions could dominate. To reduce tree build times,
+ consider making a tree for just groups of objects at a time i.e. you might have some dynamic objects
+ and some static objects. (You can find colliding pairs between a tree and a list, or a tree and another tree).
 
 ### Cache results
 
