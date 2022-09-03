@@ -117,6 +117,11 @@ fn main() {
  consider making a tree for just groups of objects at a time i.e. you might have some dynamic objects
  and some static objects. (You can find colliding pairs between a tree and a list, or a tree and another tree).
 
+### Memory layout
+
+The tree is composed of nodes that each point to a slice of all the aabbs. The nodes are arranged in pre-order.
+The aabbs slices are also arranged in pre-order. 
+
 ### Cache results
 
 Functions to cache colliding pairs are provieded by the [broccoli-ext](https://crates.io/crates/broccoli-ext) crate.
