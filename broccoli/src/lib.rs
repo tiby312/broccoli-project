@@ -21,6 +21,22 @@ mod test_readme {
     external_doc_test!(include_str!("../../README.md"));
 }
 
+trait Flap {
+    type Num;
+    fn get_axis(&self, a: impl Axis) -> &Self::Num;
+}
+impl<N> Flap for [N; 2] {
+    type Num = N;
+
+    fn get_axis(&self, a: impl Axis) -> &Self::Num {
+        if a.is_xaxis() {
+            &self[0]
+        } else {
+            &self[1]
+        }
+    }
+}
+
 #[macro_use]
 extern crate alloc;
 

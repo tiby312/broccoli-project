@@ -1,7 +1,6 @@
 //! Raycast query module
 
 use super::*;
-use axgeom::Ray;
 
 ///A Vec<T> is returned since there could be ties where the ray hits multiple T at a length N away.
 //pub type RayCastResult<T, N> = axgeom::CastResult<(Vec<T>, N)>;
@@ -11,55 +10,105 @@ use axgeom::Ray;
 ///of only needing Ord.
 pub trait RayCast<T: Aabb> {
     ///Return the cast result to a axis aligned line of infinite length.
-    fn cast_to_aaline<A: Axis>(
-        &mut self,
-        ray: &Ray<T::Num>,
-        line: A,
-        val: T::Num,
-    ) -> axgeom::CastResult<T::Num>;
+    fn cast_to_aaline<A: Axis>(&mut self, line: A, val: T::Num) -> axgeom::CastResult<T::Num>;
 
     ///Return the cast result that is cheap and overly conservative.
     ///It may be that the precise cast is fast enough, in which case you can simply
     ///return None. If None is desired, every call to this function for a particular element must
     ///always return None.
-    fn cast_broad(
-        &mut self,
-        ray: &Ray<T::Num>,
-        a: AabbPin<&mut T>,
-    ) -> Option<axgeom::CastResult<T::Num>>;
+    fn cast_broad(&mut self, a: &T) -> Option<axgeom::CastResult<T::Num>>;
 
     ///Return the exact cast result.
-    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> axgeom::CastResult<T::Num>;
+    fn cast_fine(&mut self, a: &T) -> axgeom::CastResult<T::Num>;
+
+    fn source(&self) -> [&T::Num; 2];
 }
 
-///
-/// No fine-grained just cast to aabb
-///
-pub struct AabbRaycast;
+// macro_rules! impl_float {
+//     ( $x:ty ,$name:ident,$zero:expr) => {
+//         ///
+//         /// No fine-grained just cast to aabb
+//         ///
+//         pub struct $name;
 
-impl<T: Aabb> RayCast<T> for AabbRaycast
-where
-    T::Num: core::fmt::Debug + num_traits::Signed,
-{
-    fn cast_to_aaline<A: Axis>(
-        &mut self,
-        ray: &Ray<T::Num>,
-        line: A,
-        val: T::Num,
-    ) -> axgeom::CastResult<T::Num> {
-        ray.cast_to_aaline(line, val)
-    }
+//         impl<T: Aabb<Num = $x>> RayCast<T> for $name {
+//             fn cast_to_aaline<A: Axis>(
+//                 &mut self,
+//                 ray: &Ray<T::Num>,
+//                 line: A,
+//                 val: T::Num,
+//             ) -> axgeom::CastResult<T::Num> {
+//                 ray.cast_to_aaline(line, val)
+//             }
 
-    fn cast_broad(
-        &mut self,
-        _ray: &Ray<T::Num>,
-        _a: AabbPin<&mut T>,
-    ) -> Option<axgeom::CastResult<T::Num>> {
-        None
-    }
+//             fn cast_broad(
+//                 &mut self,
+//                 _ray: &Ray<T::Num>,
+//                 _a: AabbPin<&mut T>,
+//             ) -> Option<axgeom::CastResult<T::Num>> {
+//                 None
+//             }
 
-    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> axgeom::CastResult<T::Num> {
-        ray.cast_to_rect(a.get())
+//             fn cast_fine(
+//                 &mut self,
+//                 ray: &Ray<T::Num>,
+//                 a: AabbPin<&mut T>,
+//             ) -> axgeom::CastResult<T::Num> {
+//                 //ray.cast_to_rect(a.get())
+//                 if a.contains_point(&ray.point) {
+//                     return CastResult::Hit($zero);
+//                 }
+//                 /*
+//                 https://gamedev.stackexchange.com/questions/18436/most-efficient-aabb-vs-ray-collision-algorithms
+//                 Nobody described the algorithm here, but the Graphics Gems algorithm is simply:
+//                 Using your ray's direction vector, determine which 3 of the 6 candidate planes would be hit first. If your (unnormalized) ray direction vector is (-1, 1, -1), then the 3 planes that are possible to be hit are +x, -y, and +z.
+//                 Of the 3 candidate planes, do find the t-value for the intersection for each. Accept the plane that gets the largest t value as being the plane that got hit, and check that the hit is within the box. The diagram in the text makes this clear:
+//                 */
+//                 let [startx,endx]=a.xrange();
+//                 let [starty,endy]=a.yrange();
+
+//                 let x = if ray.dir.x >= $zero {
+//                     startx
+//                 } else {
+//                     endx
+//                 };
+
+//                 let y = if ray.dir.y >= $zero {
+//                     starty
+//                 } else {
+//                     endy
+//                 };
+
+//                 let tval1 = ray.cast_to_aaline(XAXIS, *x);
+//                 let tval2 = ray.cast_to_aaline(YAXIS, *y);
+
+//                 use CastResult::*;
+//                 match (tval1, tval2) {
+//                     (Hit(a), Hit(b)) => {
+//                         //xaxis hit
+//                         if a > b {
+//                             ray.prune_rect_axis(a, rect, YAXIS)
+//                         } else {
+//                             ray.prune_rect_axis(b, rect, XAXIS)
+//                         }
+//                     }
+//                     (Hit(a), NoHit) => self.prune_rect_axis(a, rect, YAXIS),
+//                     (NoHit, Hit(b)) => self.prune_rect_axis(b, rect, XAXIS),
+//                     (NoHit, NoHit) => NoHit,
+//                 }
+
+//             }
+//         }
+//     };
+// }
+// impl_float!(f32, AabbRaycastF32,0.0);
+// impl_float!(f64, AabbRaycastF64,0.0);
+// impl_float!(isize, AabbRaycastIsize,0);
+
+impl<X> Point for Ray<X> {
+    type Num = X;
+    fn get(&self) -> [&Self::Num; 2] {
+        [&self.point.x, &self.point.y]
     }
 }
 
@@ -82,73 +131,68 @@ where
 ///
 /// `acc` is a user defined object that is passed to every call to either
 /// the `fine` or `broad` functions.
-struct RayCastClosure<B, C, D, E> {
+struct RayCastClosure<X, B, C, D, E> {
+    ray: X,
     broad: B,
     fine: C,
     xline: D,
     yline: E,
 }
 
-impl<T: Aabb, B, C, D, E> RayCast<T> for RayCastClosure<B, C, D, E>
+impl<T: Aabb, R: Point<Num = T::Num>, B, C, D, E> RayCast<T> for RayCastClosure<R, B, C, D, E>
 where
-    B: FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
-    C: FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
-    D: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-    E: FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+    B: FnMut(&R, &T) -> Option<CastResult<T::Num>>,
+    C: FnMut(&R, &T) -> CastResult<T::Num>,
+    D: FnMut(&R, T::Num) -> CastResult<T::Num>,
+    E: FnMut(&R, T::Num) -> CastResult<T::Num>,
 {
-    fn cast_to_aaline<X: Axis>(
-        &mut self,
-        ray: &Ray<T::Num>,
-        line: X,
-        val: T::Num,
-    ) -> axgeom::CastResult<T::Num> {
+    fn source(&self) -> [&T::Num; 2] {
+        self.ray.get()
+    }
+    fn cast_to_aaline<X: Axis>(&mut self, line: X, val: T::Num) -> axgeom::CastResult<T::Num> {
         if line.is_xaxis() {
-            (self.xline)(ray, val)
+            (self.xline)(&self.ray, val)
         } else {
-            (self.yline)(ray, val)
+            (self.yline)(&self.ray, val)
         }
     }
-    fn cast_broad(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> Option<CastResult<T::Num>> {
-        (self.broad)(ray, a)
+    fn cast_broad(&mut self, a: &T) -> Option<CastResult<T::Num>> {
+        (self.broad)(&self.ray, a)
     }
 
-    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> CastResult<T::Num> {
-        (self.fine)(ray, a)
+    fn cast_fine(&mut self, a: &T) -> CastResult<T::Num> {
+        (self.fine)(&self.ray, a)
     }
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
-    pub fn cast_ray_closure(
+    pub fn cast_ray_closure<R: Point<Num = T::Num>>(
         &mut self,
-        ray: Ray<T::Num>,
-        broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
-        fine: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
-        xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-        yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+        ray: R,
+        broad: impl FnMut(&R, &T) -> Option<CastResult<T::Num>>,
+        fine: impl FnMut(&R, &T) -> CastResult<T::Num>,
+        xline: impl FnMut(&R, T::Num) -> CastResult<T::Num>,
+        yline: impl FnMut(&R, T::Num) -> CastResult<T::Num>,
     ) -> axgeom::CastResult<CastAnswer<T>> {
         let d = RayCastClosure {
+            ray,
             broad,
             fine,
             xline,
             yline,
         };
-        self.cast_ray(ray, d)
+        self.cast_ray(d)
     }
 
-    pub fn cast_ray<R: RayCast<T>>(
-        &mut self,
-        ray: Ray<T::Num>,
-        mut rtrait: R,
-    ) -> axgeom::CastResult<CastAnswer<T>> {
+    pub fn cast_ray<R: RayCast<T>>(&mut self, rtrait: R) -> axgeom::CastResult<CastAnswer<T>> {
         struct Recurser<'a, T: Aabb, R: RayCast<T>> {
             rtrait: R,
-            ray: Ray<T::Num>,
             closest: Closest<'a, T>,
         }
 
         impl<'a, T: Aabb, R: RayCast<T>> Recurser<'a, T, R> {
             fn should_recurse<A: Axis>(&mut self, line: (A, T::Num)) -> bool {
-                match self.rtrait.cast_to_aaline(&self.ray, line.0, line.1) {
+                match self.rtrait.cast_to_aaline(line.0, line.1) {
                     axgeom::CastResult::Hit(val) => match self.closest.get_dis() {
                         Some(dis) => val <= dis,
                         None => true,
@@ -176,7 +220,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
 
                     //more likely to find closest in child than current node.
                     //so recurse first before handling this node.
-                    if *self.ray.point.get_axis(axis) < div {
+                    if **self.rtrait.source().get_axis(axis) < div {
                         self.recc(axis_next, left);
 
                         if self.should_recurse(line) {
@@ -192,7 +236,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
 
                     if !nn.range.is_empty() {
                         //Determine if we should handle this node or not.
-                        match nn.cont.contains_ext(*self.ray.point.get_axis(axis)) {
+                        match nn.cont.contains_ext(**self.rtrait.source().get_axis(axis)) {
                             core::cmp::Ordering::Less => self.should_recurse((axis, nn.cont.start)),
                             core::cmp::Ordering::Greater => {
                                 self.should_recurse((axis, nn.cont.end))
@@ -207,21 +251,17 @@ impl<'a, T: Aabb> Tree<'a, T> {
                 };
                 if handle_curr {
                     for b in nn.into_range().iter_mut() {
-                        self.closest.consider(&self.ray, b, &mut self.rtrait);
+                        self.closest.consider(b, &mut self.rtrait);
                     }
                 }
             }
         }
 
-        let rtrait = &mut rtrait;
+        //let rtrait = &mut rtrait;
         let dt = self.vistr_mut().with_depth(Depth(0));
 
         let closest = Closest { closest: None };
-        let mut rec = Recurser {
-            rtrait,
-            ray,
-            closest,
-        };
+        let mut rec = Recurser { rtrait, closest };
         rec.recc(default_axis(), dt);
 
         match rec.closest.closest {
@@ -231,41 +271,34 @@ impl<'a, T: Aabb> Tree<'a, T> {
     }
 }
 
-impl<T: Aabb, R: RayCast<T>> RayCast<T> for &mut R {
-    fn cast_to_aaline<A: Axis>(
-        &mut self,
-        ray: &Ray<T::Num>,
-        line: A,
-        val: T::Num,
-    ) -> axgeom::CastResult<T::Num> {
-        (*self).cast_to_aaline(ray, line, val)
-    }
+// impl<T: Aabb, R: RayCast<T>> RayCast<T> for &mut R {
+//     fn cast_to_aaline<A: Axis>(
+//         &mut self,
+//         line: A,
+//         val: T::Num,
+//     ) -> axgeom::CastResult<T::Num> {
+//         (*self).cast_to_aaline( line, val)
+//     }
 
-    fn cast_broad(
-        &mut self,
-        ray: &Ray<T::Num>,
-        a: AabbPin<&mut T>,
-    ) -> Option<axgeom::CastResult<T::Num>> {
-        (*self).cast_broad(ray, a)
-    }
+//     fn cast_broad(
+//         &mut self,
+//         a: AabbPin<&mut T>,
+//     ) -> Option<axgeom::CastResult<T::Num>> {
+//         (*self).cast_broad( a)
+//     }
 
-    fn cast_fine(&mut self, ray: &Ray<T::Num>, a: AabbPin<&mut T>) -> axgeom::CastResult<T::Num> {
-        (*self).cast_fine(ray, a)
-    }
-}
+//     fn cast_fine(&mut self, a: AabbPin<&mut T>) -> axgeom::CastResult<T::Num> {
+//         (*self).cast_fine( a)
+//     }
+// }
 
 struct Closest<'a, T: Aabb> {
     closest: Option<(Vec<AabbPin<&'a mut T>>, T::Num)>,
 }
 impl<'a, T: Aabb> Closest<'a, T> {
-    fn consider<R: RayCast<T>>(
-        &mut self,
-        ray: &Ray<T::Num>,
-        mut b: AabbPin<&'a mut T>,
-        raytrait: &mut R,
-    ) {
+    fn consider<R: RayCast<T>>(&mut self, b: AabbPin<&'a mut T>, raytrait: &mut R) {
         //first check if bounding box could possibly be a candidate.
-        if let Some(broad) = raytrait.cast_broad(ray, b.borrow_mut()) {
+        if let Some(broad) = raytrait.cast_broad(&*b) {
             let y = match broad {
                 axgeom::CastResult::Hit(val) => val,
                 axgeom::CastResult::NoHit => {
@@ -285,7 +318,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
             }
         }
 
-        let x = match raytrait.cast_fine(ray, b.borrow_mut()) {
+        let x = match raytrait.cast_fine(&*b) {
             axgeom::CastResult::Hit(val) => val,
             axgeom::CastResult::NoHit => {
                 return;
@@ -313,101 +346,102 @@ impl<'a, T: Aabb> Closest<'a, T> {
     }
 }
 
-mod assert {
-    use super::*;
-    impl<'a, T: Aabb> Naive<'a, T> {
-        pub fn cast_ray_closure(
-            &mut self,
-            ray: Ray<T::Num>,
-            broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
-            fine: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
-            xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-            yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-        ) -> axgeom::CastResult<CastAnswer<T>> {
-            let d = RayCastClosure {
-                broad,
-                fine,
-                xline,
-                yline,
-            };
-            self.cast_ray(ray, d)
-        }
+// mod assert {
+//     use super::*;
+//     impl<'a, T: Aabb<Num = f64>> Naive<'a, T> {
+//         pub fn cast_ray_closure(
+//             &mut self,
+//             ray: Ray<T::Num>,
+//             broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
+//             fine: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
+//             xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+//             yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
+//         ) -> axgeom::CastResult<CastAnswer<T>> {
+//             let d = RayCastClosure {
+//                 ray,
+//                 broad,
+//                 fine,
+//                 xline,
+//                 yline,
+//             };
+//             self.cast_ray(ray, d)
+//         }
 
-        pub fn cast_ray<R: RayCast<T>>(
-            &mut self,
-            ray: Ray<T::Num>,
-            mut ar: R,
-        ) -> axgeom::CastResult<CastAnswer<T>> {
-            let mut closest = Closest { closest: None };
+//         pub fn cast_ray<R: RayCast<T>>(
+//             &mut self,
+//             ray: Ray<T::Num>,
+//             mut ar: R,
+//         ) -> axgeom::CastResult<CastAnswer<T>> {
+//             let mut closest = Closest { closest: None };
 
-            for b in self.iter_mut() {
-                closest.consider(&ray, b, &mut ar);
-            }
+//             for b in self.iter_mut() {
+//                 closest.consider(&ray, b, &mut ar);
+//             }
 
-            match closest.closest {
-                Some((a, b)) => axgeom::CastResult::Hit(CastAnswer { elems: a, mag: b }),
-                None => axgeom::CastResult::NoHit,
-            }
-        }
-    }
+//             match closest.closest {
+//                 Some((a, b)) => axgeom::CastResult::Hit(CastAnswer { elems: a, mag: b }),
+//                 None => axgeom::CastResult::NoHit,
+//             }
+//         }
+//     }
 
-    impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
-        ///Panics if a disconnect is detected between tree and naive queries.
-        pub fn assert_raycast(&mut self, ray: axgeom::Ray<T::Num>, mut rtrait: impl RayCast<T>)
-        where
-            T::Num: core::fmt::Debug,
-        {
-            fn into_ptr_usize<T>(a: &T) -> usize {
-                a as *const T as usize
-            }
-            let mut res_naive = Vec::new();
+//     impl<'a, T: Aabb<Num = f64> + ManySwap> Assert<'a, T> {
+//         ///Panics if a disconnect is detected between tree and naive queries.
+//         pub fn assert_raycast(&mut self, ray: axgeom::Ray<T::Num>, mut rtrait: impl RayCast<T>)
+//         where
+//             T::Num: core::fmt::Debug,
+//         {
+//             fn into_ptr_usize<T>(a: &T) -> usize {
+//                 a as *const T as usize
+//             }
+//             let mut res_naive = Vec::new();
 
-            let mut tree = Tree::new(self.inner);
-            let mut res_dino = Vec::new();
-            match tree.cast_ray(ray, &mut rtrait) {
-                axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
-                    for a in elems.into_iter() {
-                        let r = *a.get();
-                        let j = into_ptr_usize(a.into_ref());
-                        res_dino.push((j, r, mag))
-                    }
-                }
-                axgeom::CastResult::NoHit => {
-                    //do nothing
-                }
-            }
+//             let mut tree = Tree::new(self.inner);
+//             let mut res_dino = Vec::new();
+//             match tree.cast_ray( &mut rtrait) {
+//                 axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
+//                     for a in elems.into_iter() {
+//                         let r = *a.get();
+//                         let j = into_ptr_usize(a.into_ref());
+//                         res_dino.push((j, r, mag))
+//                     }
+//                 }
+//                 axgeom::CastResult::NoHit => {
+//                     //do nothing
+//                 }
+//             }
 
-            match Naive::new(self.inner).cast_ray(ray, rtrait) {
-                axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
-                    for a in elems.into_iter() {
-                        let r = *a.get();
-                        let j = into_ptr_usize(a.into_ref());
-                        res_naive.push((j, r, mag))
-                    }
-                }
-                axgeom::CastResult::NoHit => {
-                    //do nothing
-                }
-            }
+//             match Naive::new(self.inner).cast_ray(ray, rtrait) {
+//                 axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
+//                     for a in elems.into_iter() {
+//                         let r = *a.get();
+//                         let j = into_ptr_usize(a.into_ref());
+//                         res_naive.push((j, r, mag))
+//                     }
+//                 }
+//                 axgeom::CastResult::NoHit => {
+//                     //do nothing
+//                 }
+//             }
 
-            res_naive.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-            res_dino.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+//             res_naive.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+//             res_dino.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
-            assert_eq!(
-                res_naive.len(),
-                res_dino.len(),
-                "len:{:?}",
-                (res_naive, res_dino)
-            );
-            assert!(
-                res_naive.iter().eq(res_dino.iter()),
-                "nop:\n\n naive:{:?} \n\n broc:{:?}",
-                res_naive,
-                res_dino
-            );
-        }
-    }
-}
+//             assert_eq!(
+//                 res_naive.len(),
+//                 res_dino.len(),
+//                 "len:{:?}",
+//                 (res_naive, res_dino)
+//             );
+//             assert!(
+//                 res_naive.iter().eq(res_dino.iter()),
+//                 "nop:\n\n naive:{:?} \n\n broc:{:?}",
+//                 res_naive,
+//                 res_dino
+//             );
+//         }
+//     }
+// }
 ///What is returned when the ray hits something.
 ///It provides the length of the ray,
 ///as well as all solutions in a unspecified order.

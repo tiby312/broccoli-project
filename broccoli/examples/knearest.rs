@@ -22,10 +22,9 @@ fn main() {
     let mut res = tree.find_knearest_closure(
         vec2(30, 30),
         2,
-        |point, a| Some(a.0.distance_squared_to_point(point).unwrap_or(0)),
-        |point, a| a.1.distance_squared_to_point(point),
-        |point, a| distance_squared(point.x, a),
-        |point, a| distance_squared(point.y, a),
+        |point, a| Some(a.0.distance_squared_to_point(*point).unwrap_or(0)),
+        |point, a| a.1.distance_squared_to_point(*point),
+        |_, start, a| distance_squared(start, a),
     );
 
     assert_eq!(res.len(), 2);

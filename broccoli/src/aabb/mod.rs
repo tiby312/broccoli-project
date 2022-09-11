@@ -40,9 +40,12 @@ impl<T> ManySwap for &mut ManySwappable<T> {}
 
 impl<T: Aabb> Aabb for &mut ManySwappable<T> {
     type Num = T::Num;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        self.0.get()
+
+    fn xrange(&self) -> [&Self::Num; 2] {
+        self.0.xrange()
+    }
+    fn yrange(&self) -> [&Self::Num; 2] {
+        self.0.yrange()
     }
 }
 impl<T: HasInner> HasInner for &mut ManySwappable<T> {
@@ -55,9 +58,12 @@ impl<T: HasInner> HasInner for &mut ManySwappable<T> {
 
 impl<T: Aabb> Aabb for ManySwappable<T> {
     type Num = T::Num;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        self.0.get()
+
+    fn xrange(&self) -> [&Self::Num; 2] {
+        self.0.xrange()
+    }
+    fn yrange(&self) -> [&Self::Num; 2] {
+        self.0.yrange()
     }
 }
 
@@ -81,22 +87,131 @@ impl<T> Num for T where T: PartialOrd + Copy + Default + std::fmt::Debug {}
 ///
 pub trait Aabb {
     type Num: Num;
-    fn get(&self) -> &Rect<Self::Num>;
+    // fn get(&self) -> &Rect<Self::Num>;
+    // fn xrange(&self) -> [&Self::Num; 2] {
+    //     let a = &self.get().get_range(XAXIS).start;
+    //     let b = &self.get().get_range(XAXIS).start;
+    //     [a, b]
+    // }
+    // fn yrange(&self) -> [&Self::Num; 2] {
+    //     let a = &self.get().get_range(YAXIS).start;
+    //     let b = &self.get().get_range(YAXIS).start;
+    //     [a, b]
+    // }
+    fn xrange(&self) -> [&Self::Num; 2];
+    fn yrange(&self) -> [&Self::Num; 2];
+}
+
+pub(crate) trait AabbExt: Aabb {
+    fn to_range(&self, axis: impl Axis) -> Range2<Self::Num> {
+        if axis.is_xaxis() {
+            Range2(self.xrange())
+        } else {
+            Range2(self.yrange())
+        }
+    }
+
+    fn intersects_aabb(&self, other: &impl Aabb<Num = Self::Num>) -> bool {
+        self.to_range(XAXIS).intersects(other.to_range(XAXIS))
+            && self.to_range(YAXIS).intersects(other.to_range(YAXIS))
+    }
+
+    fn contains_aabb(&self, other: &impl Aabb<Num = Self::Num>) -> bool {
+        self.to_range(XAXIS).contains_range(&other.to_range(XAXIS))
+            && self.to_range(YAXIS).contains_range(&other.to_range(YAXIS))
+    }
+    fn contains_point(&self, point: &Vec2<Self::Num>) -> bool {
+        self.to_range(XAXIS).contains(&point.x) && self.to_range(YAXIS).contains(&point.y)
+    }
+
+    fn make_rect(&self) -> axgeom::Rect<Self::Num> {
+        let [a, b] = self.xrange();
+        let [c, d] = self.yrange();
+        rect(*a, *b, *c, *d)
+    }
+
+    // fn start_axis(&self,axis:impl Axis)->&Self::Num{
+    //     self.to_range(axis).0[0]
+    // }
+    // fn end_axis(&self,axis:impl Axis)->&Self::Num{
+    //     self.to_range(axis).0[1]
+    // }
+}
+impl<T: Aabb> AabbExt for T {}
+
+#[derive(Copy, Clone)]
+pub(crate) struct Range2<'a, N>([&'a N; 2]);
+
+impl<'a, N> Range2<'a, N> {
+    pub fn start(&self) -> &'a N {
+        self.0[0]
+    }
+    pub fn end(&self) -> &'a N {
+        self.0[1]
+    }
+
+    pub fn from_range(range: &'a Range<N>) -> Self {
+        Range2([&range.start, &range.end])
+    }
+
+    pub fn contains_ext(&self, pos: &N) -> std::cmp::Ordering
+    where
+        N: PartialOrd,
+    {
+        if pos < self.start() {
+            core::cmp::Ordering::Less
+        } else if pos > self.end() {
+            core::cmp::Ordering::Greater
+        } else {
+            core::cmp::Ordering::Equal
+        }
+    }
+
+    ///Returns true if self contains the specified range.
+    #[inline(always)]
+    pub fn contains_range(&self, val: &Range2<N>) -> bool
+    where
+        N: PartialOrd,
+    {
+        self.start() <= val.start() && val.end() <= self.end()
+    }
+
+    pub fn intersects(self, val: Range2<'a, N>) -> bool
+    where
+        N: PartialOrd,
+    {
+        !(self.end() < val.start() || val.end() < self.start())
+    }
+
+    pub fn contains(self, pos: &N) -> bool
+    where
+        N: PartialOrd,
+    {
+        !(pos < self.start() || pos > self.end())
+    }
 }
 
 impl<N: Num> Aabb for Rect<N> {
     type Num = N;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        self
+    fn xrange(&self) -> [&Self::Num; 2] {
+        let a = &self.get_range(XAXIS).start;
+        let b = &self.get_range(XAXIS).start;
+        [a, b]
+    }
+    fn yrange(&self) -> [&Self::Num; 2] {
+        let a = &self.get_range(YAXIS).start;
+        let b = &self.get_range(YAXIS).start;
+        [a, b]
     }
 }
 
 impl<N: Num, T> Aabb for (Rect<N>, T) {
     type Num = N;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        &self.0
+    fn xrange(&self) -> [&Self::Num; 2] {
+        self.0.xrange()
+    }
+    fn yrange(&self) -> [&Self::Num; 2] {
+        self.0.yrange()
     }
 }
 
@@ -110,8 +225,11 @@ impl<N: Num, T> HasInner for (Rect<N>, T) {
 
 impl<N: Num, T> Aabb for &mut (Rect<N>, T) {
     type Num = N;
-    fn get(&self) -> &Rect<Self::Num> {
-        &self.0
+    fn xrange(&self) -> [&Self::Num; 2] {
+        self.0.xrange()
+    }
+    fn yrange(&self) -> [&Self::Num; 2] {
+        self.0.yrange()
     }
 }
 impl<N: Num, T> HasInner for &mut (Rect<N>, T) {
@@ -154,9 +272,11 @@ impl<'a, N, T> ManySwap for BBox<N, &'a mut T> {}
 
 impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        &self.rect
+    fn xrange(&self) -> [&Self::Num; 2] {
+        self.rect.xrange()
+    }
+    fn yrange(&self) -> [&Self::Num; 2] {
+        self.rect.yrange()
     }
 }
 
@@ -170,8 +290,11 @@ impl<N: Num, T> HasInner for BBox<N, T> {
 
 impl<N: Num, T> Aabb for &mut BBox<N, T> {
     type Num = N;
-    fn get(&self) -> &Rect<N> {
-        &self.rect
+    fn xrange(&self) -> [&Self::Num; 2] {
+        self.rect.xrange()
+    }
+    fn yrange(&self) -> [&Self::Num; 2] {
+        self.rect.yrange()
     }
 }
 impl<N: Num, T> HasInner for &mut BBox<N, T> {
@@ -206,9 +329,11 @@ impl<'a, N, T> BBoxMut<'a, N, T> {
 
 impl<N: Num, T> Aabb for BBoxMut<'_, N, T> {
     type Num = N;
-    #[inline(always)]
-    fn get(&self) -> &axgeom::Rect<N> {
-        &self.rect
+    fn xrange(&self) -> [&Self::Num; 2] {
+        self.rect.xrange()
+    }
+    fn yrange(&self) -> [&Self::Num; 2] {
+        self.rect.yrange()
     }
 }
 impl<N: Num, T> HasInner for BBoxMut<'_, N, T> {

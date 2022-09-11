@@ -57,32 +57,32 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
             match middle.split_first() {
                 Some((first, rest)) => {
                     let start = {
-                        let mut min = first.get().get_range(axis).start;
+                        let mut min = first.to_range(axis).start(); // first.get().get_range(axis).start;
 
                         for a in rest[0..ml - 1].iter() {
-                            let start = a.get().get_range(axis).start;
+                            let start = a.to_range(axis).start();
 
                             if start < min {
                                 min = start;
                             }
                         }
-                        min
+                        *min
                     };
 
                     let end = {
-                        let mut max = first.get().get_range(axis).end;
+                        let mut max = first.to_range(axis).end();
 
                         //The bots to the right of the divier
                         //are more likely to  contain the max
                         //rightmost aabb edge.
                         for a in rest.iter().rev() {
-                            let k = a.get().get_range(axis).end;
+                            let k = a.to_range(axis).end();
 
                             if k > max {
                                 max = k;
                             }
                         }
-                        max
+                        *max
                     };
 
                     axgeom::Range { start, end }
@@ -189,12 +189,12 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                     crate::queries::cmp_aabb(div_axis, a, b)
                 });
 
-                let med_val = med.get().get_range(div_axis).start;
+                let med_val = *med.to_range(div_axis).start(); //get().get_range(div_axis).start;
 
                 let (ml, ll) = {
                     let mut m = 0;
                     for a in 0..ll.len() {
-                        if ll[a].get().get_range(div_axis).end >= med_val {
+                        if ll[a].to_range(div_axis).end() >= &med_val {
                             //keep
                             ll.swap(a, m);
                             m += 1;
@@ -206,7 +206,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                 let (mr, rr) = {
                     let mut m = 0;
                     for a in 0..rr.len() {
-                        if rr[a].get().get_range(div_axis).start <= med_val {
+                        if rr[a].to_range(div_axis).start() <= &med_val {
                             //keep
                             rr.swap(a, m);
                             m += 1;

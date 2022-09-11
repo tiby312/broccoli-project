@@ -35,7 +35,7 @@ mod assert {
             let mut bots: Vec<_> = bots
                 .iter_mut()
                 .enumerate()
-                .map(|(i, x)| ManySwappable((*x.get(), i)))
+                .map(|(i, x)| ManySwappable((x.make_rect(), i)))
                 .collect();
             let bots = bots.as_mut_slice();
 
@@ -93,7 +93,7 @@ mod assert {
             mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
         ) {
             queries::for_every_pair(self.inner.borrow_mut(), move |a, b| {
-                if a.get().intersects_rect(b.get()) {
+                if a.intersects_aabb(&*b) {
                     func(a, b);
                 }
             });

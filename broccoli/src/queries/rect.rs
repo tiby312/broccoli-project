@@ -26,7 +26,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
             let NodeRef { div, range, .. } = nn.into_node_ref();
 
             for a in range.iter_mut() {
-                if !rect.get().contains_rect(a.get()) {
+                if !rect.contains_aabb(&*a) {
                     closure(rect.borrow_mut(), a);
                 }
             }
@@ -37,7 +37,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
                     None => return,
                 };
 
-                match rect.get().get_range(axis).contains_ext(*div) {
+                match rect.to_range(axis).contains_ext(div) {
                     core::cmp::Ordering::Greater => {
                         for a in right.into_slice() {
                             for b in a.into_range().iter_mut() {
@@ -70,7 +70,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
     ) {
         rect_recurse(default_axis(), self.vistr_mut(), rect, &mut |r, a| {
-            if r.get().contains_rect(a.get()) {
+            if r.contains_aabb(&*a) {
                 closure(r, a);
             }
         });
@@ -82,7 +82,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
         mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
     ) {
         rect_recurse(default_axis(), self.vistr_mut(), rect, &mut |r, a| {
-            if r.get().get_intersect_rect(a.get()).is_some() {
+            if r.intersects_aabb(&*a) {
                 closure(r, a);
             }
         });
@@ -114,29 +114,21 @@ fn rect_recurse<
                 None => return,
             };
 
-            let sl = get_section_mut(
-                this_axis.next(),
-                foo(nn),
-                rect.get().get_range(this_axis.next()),
-            );
+            let sl = get_section_mut(this_axis.next(), foo(nn), &rect.to_range(this_axis.next()));
 
             for i in sl {
                 func(rect.borrow_mut(), i);
             }
 
-            if div >= rect.get().get_range(this_axis).start {
+            if div >= *rect.to_range(this_axis).start() {
                 self::rect_recurse(this_axis.next(), left, rect.borrow_mut(), func);
             }
-            if div <= rect.get().get_range(this_axis).end {
+            if div <= *rect.to_range(this_axis).end() {
                 self::rect_recurse(this_axis.next(), right, rect, func);
             }
         }
         None => {
-            let sl = get_section_mut(
-                this_axis.next(),
-                foo(nn),
-                rect.get().get_range(this_axis.next()),
-            );
+            let sl = get_section_mut(this_axis.next(), foo(nn), &rect.to_range(this_axis.next()));
 
             for i in sl {
                 func(rect.borrow_mut(), i);
@@ -224,7 +216,7 @@ mod assert {
             mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
         ) {
             for b in self.iter_mut() {
-                if !rect.get().contains_rect(b.get()) {
+                if !rect.contains_aabb(&*b) {
                     closure(rect.borrow_mut(), b);
                 }
             }
@@ -235,7 +227,7 @@ mod assert {
             mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
         ) {
             for b in self.iter_mut() {
-                if rect.get().contains_rect(b.get()) {
+                if rect.contains_aabb(&*b) {
                     closure(rect.borrow_mut(), b);
                 }
             }
@@ -246,7 +238,7 @@ mod assert {
             mut closure: impl FnMut(AabbPin<&mut K>, AabbPin<&'b mut T>),
         ) {
             for b in self.iter_mut() {
-                if rect.get().get_intersect_rect(b.get()).is_some() {
+                if rect.intersects_aabb(&*b) {
                     closure(rect.borrow_mut(), b);
                 }
             }

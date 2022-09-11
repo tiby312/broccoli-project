@@ -41,7 +41,7 @@ where
 #[inline(always)]
 #[must_use]
 pub fn cmp_aabb<T: Aabb>(axis: impl Axis, a: &T, b: &T) -> core::cmp::Ordering {
-    let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
+    let (p1, p2) = (a.to_range(axis).start(), b.to_range(axis).start());
     if p1 > p2 {
         core::cmp::Ordering::Greater
     } else {
@@ -103,5 +103,25 @@ pub fn for_every_pair<T>(
             }
             None => break,
         }
+    }
+}
+
+pub trait Point {
+    type Num;
+    fn get(&self) -> [&Self::Num; 2];
+}
+
+impl<X> Point for [X; 2] {
+    type Num = X;
+    fn get(&self) -> [&Self::Num; 2] {
+        let [a, b] = &self;
+        [a, b]
+    }
+}
+
+impl<X> Point for Vec2<X> {
+    type Num = X;
+    fn get(&self) -> [&Self::Num; 2] {
+        [&self.x, &self.y]
     }
 }

@@ -64,10 +64,9 @@ where
         let axis_next = axis.next();
 
         assert!(crate::queries::is_sorted_by(&nn.range, |a, b| a
-            .get()
-            .get_range(axis_next)
-            .start
-            .partial_cmp(&b.get().get_range(axis_next).start)));
+            .to_range(axis_next)
+            .start()
+            .partial_cmp(&b.to_range(axis_next).start())));
 
         if let Some([start, end]) = rest {
             match nn.div {
@@ -79,24 +78,24 @@ where
                     } else {
                         let cont = &nn.cont;
                         for bot in nn.range.iter() {
-                            assert!(bot.get().get_range(axis).contains(div));
+                            assert!(bot.to_range(axis).contains(&div));
                         }
 
                         assert!(a_bot_has_value(
-                            nn.range.iter().map(|b| b.get().get_range(axis).start),
+                            nn.range.iter().map(|b| *b.to_range(axis).start()),
                             div
                         ));
 
                         for bot in nn.range.iter() {
-                            assert!(cont.contains_range(bot.get().get_range(axis)));
+                            assert!(Range2::from_range(&cont).contains_range(&bot.to_range(axis)));
                         }
 
                         assert!(a_bot_has_value(
-                            nn.range.iter().map(|b| b.get().get_range(axis).start),
+                            nn.range.iter().map(|b| *b.to_range(axis).start()),
                             cont.start
                         ));
                         assert!(a_bot_has_value(
-                            nn.range.iter().map(|b| b.get().get_range(axis).end),
+                            nn.range.iter().map(|b| *b.to_range(axis).end()),
                             cont.end
                         ));
                     }

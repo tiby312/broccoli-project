@@ -11,10 +11,9 @@ fn knearest_repro() {
     let mut res = tree.find_knearest_closure(
         vec2(627.0, 727.5),
         1,
-        |point, a| Some(a.0.distance_squared_to_point(point).unwrap_or(0.)),
-        |point, a| a.1.distance_squared_to_point(point),
-        |point, a| (point.x - a).powi(2),
-        |point, a| (point.y - a).powi(2),
+        |point, a| Some(a.0.distance_squared_to_point(*point).unwrap_or(0.)),
+        |point, a| a.1.distance_squared_to_point(*point),
+        |point, b, a| (b - a).powi(2),
     );
 
     assert_eq!(res.len(), 1);
