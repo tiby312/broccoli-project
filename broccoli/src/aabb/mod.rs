@@ -41,11 +41,17 @@ impl<T> ManySwap for &mut ManySwappable<T> {}
 impl<T: Aabb> Aabb for &mut ManySwappable<T> {
     type Num = T::Num;
 
-    fn xrange(&self) -> [&Self::Num; 2] {
-        self.0.xrange()
+    fn minx(&self)->&Self::Num{
+        self.0.minx()
     }
-    fn yrange(&self) -> [&Self::Num; 2] {
-        self.0.yrange()
+    fn maxx(&self)->&Self::Num{
+        self.0.maxx()
+    }
+    fn miny(&self)->&Self::Num{
+        self.0.miny()
+    }
+    fn maxy(&self)->&Self::Num{
+        self.0.maxy()
     }
 }
 impl<T: HasInner> HasInner for &mut ManySwappable<T> {
@@ -59,11 +65,17 @@ impl<T: HasInner> HasInner for &mut ManySwappable<T> {
 impl<T: Aabb> Aabb for ManySwappable<T> {
     type Num = T::Num;
 
-    fn xrange(&self) -> [&Self::Num; 2] {
-        self.0.xrange()
+    fn minx(&self)->&Self::Num{
+        self.0.minx()
     }
-    fn yrange(&self) -> [&Self::Num; 2] {
-        self.0.yrange()
+    fn maxx(&self)->&Self::Num{
+        self.0.maxx()
+    }
+    fn miny(&self)->&Self::Num{
+        self.0.miny()
+    }
+    fn maxy(&self)->&Self::Num{
+        self.0.maxy()
     }
 }
 
@@ -98,11 +110,20 @@ pub trait Aabb {
     //     let b = &self.get().get_range(YAXIS).start;
     //     [a, b]
     // }
-    fn xrange(&self) -> [&Self::Num; 2];
-    fn yrange(&self) -> [&Self::Num; 2];
+    fn minx(&self)->&Self::Num;
+    fn maxx(&self)->&Self::Num;
+    fn miny(&self)->&Self::Num;
+    fn maxy(&self)->&Self::Num;
 }
 
 pub(crate) trait AabbExt: Aabb {
+    fn xrange(&self) -> [&Self::Num; 2]{
+        [self.minx(),self.maxx()]
+    }
+    fn yrange(&self)->[&Self::Num;2]{
+        [self.miny(),self.maxy()]
+    }
+
     fn to_range(&self, axis: impl Axis) -> Range2<Self::Num> {
         if axis.is_xaxis() {
             Range2(self.xrange())
@@ -193,25 +214,35 @@ impl<'a, N> Range2<'a, N> {
 
 impl<N: Num> Aabb for Rect<N> {
     type Num = N;
-    fn xrange(&self) -> [&Self::Num; 2] {
-        let a = &self.get_range(XAXIS).start;
-        let b = &self.get_range(XAXIS).start;
-        [a, b]
+
+    fn minx(&self)->&Self::Num{
+        &self.x.start
     }
-    fn yrange(&self) -> [&Self::Num; 2] {
-        let a = &self.get_range(YAXIS).start;
-        let b = &self.get_range(YAXIS).start;
-        [a, b]
+    fn maxx(&self)->&Self::Num{
+        &self.x.end
+    }
+    fn miny(&self)->&Self::Num{
+        &self.y.start
+    }
+    fn maxy(&self)->&Self::Num{
+        &self.y.end
     }
 }
 
 impl<N: Num, T> Aabb for (Rect<N>, T) {
     type Num = N;
-    fn xrange(&self) -> [&Self::Num; 2] {
-        self.0.xrange()
+    
+    fn minx(&self)->&Self::Num{
+        self.0.minx()
     }
-    fn yrange(&self) -> [&Self::Num; 2] {
-        self.0.yrange()
+    fn maxx(&self)->&Self::Num{
+        self.0.maxx()
+    }
+    fn miny(&self)->&Self::Num{
+        self.0.miny()
+    }
+    fn maxy(&self)->&Self::Num{
+        self.0.maxy()
     }
 }
 
@@ -225,11 +256,18 @@ impl<N: Num, T> HasInner for (Rect<N>, T) {
 
 impl<N: Num, T> Aabb for &mut (Rect<N>, T) {
     type Num = N;
-    fn xrange(&self) -> [&Self::Num; 2] {
-        self.0.xrange()
+    
+    fn minx(&self)->&Self::Num{
+        self.0.minx()
     }
-    fn yrange(&self) -> [&Self::Num; 2] {
-        self.0.yrange()
+    fn maxx(&self)->&Self::Num{
+        self.0.maxx()
+    }
+    fn miny(&self)->&Self::Num{
+        self.0.miny()
+    }
+    fn maxy(&self)->&Self::Num{
+        self.0.maxy()
     }
 }
 impl<N: Num, T> HasInner for &mut (Rect<N>, T) {
@@ -272,11 +310,18 @@ impl<'a, N, T> ManySwap for BBox<N, &'a mut T> {}
 
 impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;
-    fn xrange(&self) -> [&Self::Num; 2] {
-        self.rect.xrange()
+    
+    fn minx(&self)->&Self::Num{
+        self.rect.minx()
     }
-    fn yrange(&self) -> [&Self::Num; 2] {
-        self.rect.yrange()
+    fn maxx(&self)->&Self::Num{
+        self.rect.maxx()
+    }
+    fn miny(&self)->&Self::Num{
+        self.rect.miny()
+    }
+    fn maxy(&self)->&Self::Num{
+        self.rect.maxy()
     }
 }
 
@@ -290,11 +335,18 @@ impl<N: Num, T> HasInner for BBox<N, T> {
 
 impl<N: Num, T> Aabb for &mut BBox<N, T> {
     type Num = N;
-    fn xrange(&self) -> [&Self::Num; 2] {
-        self.rect.xrange()
+    
+    fn minx(&self)->&Self::Num{
+        self.rect.minx()
     }
-    fn yrange(&self) -> [&Self::Num; 2] {
-        self.rect.yrange()
+    fn maxx(&self)->&Self::Num{
+        self.rect.maxx()
+    }
+    fn miny(&self)->&Self::Num{
+        self.rect.miny()
+    }
+    fn maxy(&self)->&Self::Num{
+        self.rect.maxy()
     }
 }
 impl<N: Num, T> HasInner for &mut BBox<N, T> {
@@ -329,11 +381,18 @@ impl<'a, N, T> BBoxMut<'a, N, T> {
 
 impl<N: Num, T> Aabb for BBoxMut<'_, N, T> {
     type Num = N;
-    fn xrange(&self) -> [&Self::Num; 2] {
-        self.rect.xrange()
+    
+    fn minx(&self)->&Self::Num{
+        self.rect.minx()
     }
-    fn yrange(&self) -> [&Self::Num; 2] {
-        self.rect.yrange()
+    fn maxx(&self)->&Self::Num{
+        self.rect.maxx()
+    }
+    fn miny(&self)->&Self::Num{
+        self.rect.miny()
+    }
+    fn maxy(&self)->&Self::Num{
+        self.rect.maxy()
     }
 }
 impl<N: Num, T> HasInner for BBoxMut<'_, N, T> {
