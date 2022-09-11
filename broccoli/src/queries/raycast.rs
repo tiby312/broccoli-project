@@ -319,8 +319,8 @@ mod assert {
         pub fn cast_ray_closure<P:Point<Num=T::Num>>(
             &mut self,
             ray:P,
-            broad: impl FnMut(&P, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
-            fine: impl FnMut(&P, AabbPin<&mut T>) -> CastResult<T::Num>,
+            broad: impl FnMut(&P, &T) -> Option<CastResult<T::Num>>,
+            fine: impl FnMut(&P, &T) -> CastResult<T::Num>,
             xline: impl FnMut(&P, T::Num) -> CastResult<T::Num>,
             yline: impl FnMut(&P, T::Num) -> CastResult<T::Num>,
         ) -> axgeom::CastResult<CastAnswer<T>> {
@@ -369,7 +369,7 @@ mod assert {
             match ress {
                 axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
                     for a in elems.into_iter() {
-                        let r = *a.get();
+                        let r = &*a;
                         let j = into_ptr_usize(a.into_ref());
                         res_dino.push((j, r, mag))
                     }
@@ -382,7 +382,7 @@ mod assert {
             match Naive::new(self.inner).cast_ray( rtrait).1 {
                 axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
                     for a in elems.into_iter() {
-                        let r = *a.get();
+                        let r = &*a;
                         let j = into_ptr_usize(a.into_ref());
                         res_naive.push((j, r, mag))
                     }
