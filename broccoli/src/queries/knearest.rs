@@ -21,7 +21,7 @@ pub trait Knearest<T: Aabb> {
 }
 
 impl<'a, T: Aabb> Tree<'a, T> {
-    pub fn find_knearest(&mut self, num: usize, ktrait: impl Knearest<T>) -> KResult<T> {
+    pub fn find_knearest<KK:Knearest<T>>(&mut self, num: usize, ktrait: KK) -> (KK,KResult<T>) {
         let dt = self.vistr_mut().with_depth(Depth(0));
 
         let knear = ktrait;
@@ -33,10 +33,10 @@ impl<'a, T: Aabb> Tree<'a, T> {
         rec.recc(default_axis(), dt);
 
         let num_entries = rec.closest.curr_num;
-        KResult {
+        (rec.knear,KResult {
             num_entries,
             inner: rec.closest.into_sorted(),
-        }
+        })
     }
 
     pub fn find_knearest_closure<P: Point<Num = T::Num>>(
@@ -53,64 +53,67 @@ impl<'a, T: Aabb> Tree<'a, T> {
             fine,
             xline: dis_1d,
         };
-        self.find_knearest(num, a)
+        self.find_knearest(num, a).1
     }
 }
 
-// macro_rules! impl_float {
-//     ( $x:ty ,$name:ident,$zero:expr) => {
-//         ///
-//         /// Find nearest using just axis alined bounding boxes. No fine-grained.
-//         ///
-//         pub struct $name;
+macro_rules! impl_float {
+    ( $x:ty ,$name:ident,$zero:expr) => {
+        ///
+        /// Find nearest using just axis alined bounding boxes. No fine-grained.
+        ///
+        pub struct $name{
+            pub x:$x,
+            pub y:$x
+        }
 
-//         impl<T: Aabb<Num = $x>> Knearest<T> for $name {
-//             fn distance_to_aaline<A: Axis>(
-//                 &mut self,
-//                 point: Vec2<T::Num>,
-//                 axis: A,
-//                 a: T::Num,
-//             ) -> T::Num {
-//                 if axis.is_xaxis() {
-//                     (point.x - a).abs() * (point.x - a).abs()
-//                 } else {
-//                     (point.y - a).abs() * (point.y - a).abs()
-//                 }
-//             }
+        impl<T: Aabb<Num = $x>> Knearest<T> for $name {
+            fn source(&self)->[&T::Num;2]{
+                [&self.x,&self.y]
+            }
+            fn distance_1d(
+                &mut self,
+                start:T::Num,
+                a: T::Num,
+            ) -> T::Num {
+                (start - a).abs() * (start - a).abs()
+            
+            }
 
-//             fn distance_to_broad(
-//                 &mut self,
-//                 _point: Vec2<T::Num>,
-//                 _rect: AabbPin<&mut T>,
-//             ) -> Option<T::Num> {
-//                 None
-//             }
+            fn distance_to_broad(
+                &mut self,
+                _rect: &T,
+            ) -> Option<T::Num> {
+                None
+            }
 
-//             fn distance_to_fine(&mut self, point: Vec2<T::Num>, aabb: AabbPin<&mut T>) -> T::Num {
-//                 let (px, py) = (point.x, point.y);
+            fn distance_to_fine(&mut self,  aabb: &T) -> T::Num {
+                let (px, py) = (self.x, self.y);
 
-//                 let [&a, &b] = aabb.xrange();
-//                 let [&c, &d] = aabb.yrange();
+                let [&a, &b] = aabb.xrange();
+                let [&c, &d] = aabb.yrange();
 
-//                 let xx = px.clamp(a, b);
-//                 let yy = py.clamp(c, d);
+                let xx = px.clamp(a, b);
+                let yy = py.clamp(c, d);
 
-//                 let dis = (xx - px) * (xx - px) + (yy - py) * (yy - py);
+                let dis = (xx - px) * (xx - px) + (yy - py) * (yy - py);
 
-//                 //Then the point must be insert the rect.
-//                 //In this case, lets return something negative.
-//                 if xx > a && xx < b && yy > c && yy < d {
-//                     $zero
-//                 } else {
-//                     dis
-//                 }
-//             }
-//         }
-//     };
-// }
-// impl_float!(f32, AabbKnearestF32, 0.0);
-// impl_float!(f64, AabbKnearestF64, 0.0);
-// impl_float!(isize, AabbKnearestIsize, 0);
+                //Then the point must be insert the rect.
+                //In this case, lets return something negative.
+                if xx > a && xx < b && yy > c && yy < d {
+                    $zero
+                } else {
+                    dis
+                }
+            }
+        }
+    };
+}
+impl_float!(f32, AabbKnearestF32, 0.0);
+impl_float!(f64, AabbKnearestF64, 0.0);
+impl_float!(isize, AabbKnearestIsize, 0);
+
+
 
 ///Construct an object that implements [`Knearest`] from closures.
 ///We pass the tree so that we can infer the type of `T`.
@@ -405,7 +408,7 @@ mod assert {
     use super::*;
 
     impl<'a, T: Aabb> Naive<'a, T> {
-        pub fn find_knearest(&mut self, num: usize, mut ktrait: impl Knearest<T>) -> KResult<T> {
+        pub fn find_knearest<KK:Knearest<T>>(&mut self, num: usize, mut ktrait: KK) -> (KK,KResult<T>) {
             let mut closest = ClosestCand::new(num);
 
             for b in self.inner.borrow_mut().iter_mut() {
@@ -413,10 +416,10 @@ mod assert {
             }
 
             let num_entries = closest.curr_num;
-            KResult {
+            (ktrait,KResult {
                 num_entries,
                 inner: closest.into_sorted(),
-            }
+            })
         }
 
         // pub fn find_knearest_closure(
@@ -443,13 +446,14 @@ mod assert {
         pub fn assert_k_nearest_mut(&mut self, num: usize, knear: impl Knearest<T> + Clone) {
             use core::ops::Deref;
 
+            //TODO remove ptr crap
             fn into_ptr_usize<T>(a: &T) -> usize {
                 a as *const T as usize
             }
 
             let ooo = knear.clone();
             let mut tree = Tree::new(self.inner);
-            let r = tree.find_knearest(num, knear);
+            let r = tree.find_knearest(num, knear).1;
             let mut res_dino: Vec<_> = r
                 .into_vec()
                 .drain(..)
@@ -458,6 +462,7 @@ mod assert {
 
             let mut res_naive = Naive::new(self.inner)
                 .find_knearest(num, ooo)
+                .1
                 .into_vec()
                 .drain(..)
                 .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))

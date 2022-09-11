@@ -15,9 +15,12 @@ fn create_bbox_mut<'a, N: Num, T>(
 fn test_tie_knearest() {
     let mut bots = [(rect(5isize, 10, 0, 10), ()), (rect(6, 10, 0, 10), ())];
 
-    let mut handler = broccoli::queries::knearest::AabbKnearest;
+    let mut handler = broccoli::queries::knearest::AabbKnearestIsize{
+        x:15,
+        y:30
+    };
 
-    Assert::new(&mut bots).assert_k_nearest_mut(vec2(15, 30), 2, &mut handler);
+    Assert::new(&mut bots).assert_k_nearest_mut( 2, &mut handler);
 
     let mut tree = broccoli::Tree::new(&mut bots);
 
