@@ -20,12 +20,14 @@ impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
         //only check if the opoosite axis intersects.
         //already know they intersect
         let a2 = self.axis.next();
-        if a.to_range(a2).intersects(&b.to_range(a2)) {
+        if a.to_range(a2).intersects(b.to_range(a2)) {
             self.a.collide(a, b);
         }
     }
 }
 
+
+#[inline(always)]
 pub fn sweep_and_prune<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
     buffer: &mut Vec<AabbPin<&'a mut T>>,
     axis: A,
@@ -124,11 +126,12 @@ fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
     //     in the axisList.
 
     collision_botids.iter_mut().for_each(|mut curr_bot| {
-        active.retain_mut_unordered(|that_bot| {
-            let crr = curr_bot.to_range(axis);
 
-            if that_bot.to_range(axis).end() >= crr.start() {
-                debug_assert!(curr_bot.to_range(axis).intersects(&that_bot.to_range(axis)));
+        active.retain_mut_unordered(|that_bot| {
+            let crr = curr_bot.to_range(axis).start();
+            
+            if that_bot.to_range(axis).end() >= crr {
+                debug_assert!(curr_bot.to_range(axis).intersects(that_bot.to_range(axis)));
 
                 /*
                 assert!(curr_bot

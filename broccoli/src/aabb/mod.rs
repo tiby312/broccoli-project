@@ -145,14 +145,14 @@ pub(crate) trait AabbExt: Aabb {
     }
 
     #[inline(always)]
-    fn intersects_aabb(&self, other: &impl Aabb<Num = Self::Num>) -> bool {
-        self.to_range(XAXIS).intersects(&other.to_range(XAXIS))
-            && self.to_range(YAXIS).intersects(&other.to_range(YAXIS))
+    fn intersects_aabb(&self, other: &impl Aabb<Num=Self::Num>) -> bool {
+        self.to_range(XAXIS).intersects(other.to_range(XAXIS))
+            && self.to_range(YAXIS).intersects(other.to_range(YAXIS))
     }
 
 
     #[inline(always)]
-    fn contains_aabb(&self, other: &impl Aabb<Num = Self::Num>) -> bool {
+    fn contains_aabb(&self, other: &impl Aabb<Num=Self::Num>) -> bool {
         self.to_range(XAXIS).contains_range(&other.to_range(XAXIS))
             && self.to_range(YAXIS).contains_range(&other.to_range(YAXIS))
     }
@@ -217,7 +217,7 @@ impl<'a, N> Range2<'a, N> {
     }
 
     #[inline(always)]
-    pub fn intersects(&self, val: &Range2< N>) -> bool
+    pub fn intersects(self, val: Range2< N>) -> bool
     where
         N: PartialOrd,
     {
