@@ -4,14 +4,14 @@
 [![docs.rs](https://docs.rs/broccoli/badge.svg)](https://docs.rs/broccoli)
 [![Crates.io](https://img.shields.io/crates/d/broccoli)](https://crates.io/crates/broccoli)
 
-Broccoli is a broad-phase collision detection library. 
+Broccoli is a 2D broad-phase collision detection library. 
 
 The base data structure is a hybrid between a [KD Tree](https://en.wikipedia.org/wiki/K-d_tree) and [Sweep and Prune](https://en.wikipedia.org/wiki/Sweep_and_prune).
 
 Checkout it out on [github](https://github.com/tiby312/broccoli-project) and on [crates.io](https://crates.io/crates/broccoli). Documentation at [docs.rs](https://docs.rs/broccoli). 
 ### Screenshot
 
-Screen capture from the inner `demo` project.
+Screen capture from the inner `analysis/demo-web` project.
 
 <img src="./assets/screenshot.gif" alt="screenshot">
 
@@ -65,13 +65,13 @@ fn main() {
  - `(Rect<N>,T)` Direct
  - `&mut (Rect<N>,T)` Indirect
 
- I made the [`ManySwap`] marker trait to help bring awareness to this performance regression trap.
+ I made the `ManySwap` marker trait to help bring awareness to this performance regression trap.
  It is implemented on a lot of types that are guaranteed to be small.
- If you know what you are doing you can use the [`ManySwappable`] wrapper struct that automatically
+ If you know what you are doing you can use the `ManySwappable` wrapper struct that automatically
  implements that trait, or implement it yourself on your own type.
 
  You can also construct a Tree using Semi-direct or indirect, and then convert it to direct. (See
- the [`Tree::from_tree_data()`] function.) However, I'm not sure if there are performance benefits to this.
+ the `Tree::from_tree_data()` function.) However, I'm not sure if there are performance benefits to this.
 
  ### Parallelism
 
@@ -113,11 +113,26 @@ fn main() {
  they may insert loose bounding boxes which would increase the number of false positives during querying.
  These systems are great if you know up front that you will never have that many collisions.
  However in other systems you might not have a bound on that so, broccoli was optimized for situations
- where the number of collisions could dominate.  
+ where the number of collisions could dominate. To reduce tree build times,
+ consider making a tree for just groups of objects at a time i.e. you might have some dynamic objects
+ and some static objects. (You can find colliding pairs between a tree and a list, or a tree and another tree).
+
+### Memory layout
+
+The tree is composed of nodes that each point to a slice of all the aabbs. The nodes are arranged in pre-order.
+The aabbs slices are also arranged in pre-order. 
 
 ### Cache results
 
 Functions to cache colliding pairs are provieded by the [broccoli-ext](https://crates.io/crates/broccoli-ext) crate.
+
+### 3D?
+
+Not supported, but you can use broccoli to partition 2 dimensions and use something else for the 3rd.
+You could just check if the elements intersect on the z axis inside of the callback function.
+Alternatively, you could split the z axis into planes and use broccoli on each plane.
+I think in a lot of cases, the problem is "mostly 2D" in that the distribution lies mostly on a 2d plane,
+so it might actually be faster to use a more 2d centric collision system.
 
 ### Optimisation
 
