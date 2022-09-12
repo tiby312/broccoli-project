@@ -22,9 +22,7 @@ pub trait Sorter<T> {
 ///Sorts the bots based on an axis.
 #[inline(always)]
 pub fn sweeper_update<I: Aabb, A: Axis>(axis: A, collision_botids: &mut [I]) {
-    let sclosure = |a: &I, b: &I| -> core::cmp::Ordering { queries::cmp_aabb(axis, a, b) };
-
-    collision_botids.sort_unstable_by(sclosure);
+    collision_botids.sort_unstable_by(|a,b|queries::cmp_aabb(axis, a, b));
 }
 
 #[must_use]
