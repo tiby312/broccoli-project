@@ -84,6 +84,14 @@ pub trait Aabb {
     fn get(&self) -> &Rect<Self::Num>;
 }
 
+pub(crate) trait AabbExt: Aabb {
+    #[inline(always)]
+    fn range<A: Axis>(&self, a: A) -> &axgeom::Range<Self::Num> {
+        self.get().get_range(a)
+    }
+}
+impl<T: Aabb> AabbExt for T {}
+
 impl<N: Num> Aabb for Rect<N> {
     type Num = N;
     #[inline(always)]

@@ -20,7 +20,7 @@ impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
         //only check if the opoosite axis intersects.
         //already know they intersect
         let a2 = self.axis.next();
-        if a.get().get_range(a2).intersects(b.get().get_range(a2)) {
+        if a.range(a2).intersects(b.range(a2)) {
             self.a.collide(a, b);
         }
     }
@@ -90,12 +90,12 @@ fn find_perp_2d1_once<A: Axis, T: Aabb>(
 ) {
     for y2 in r2.borrow_mut() {
         //Exploit the sorted property, to exit early
-        if y.get().get_range(axis).end < y2.get().get_range(axis).start {
+        if y.range(axis).end < y2.range(axis).start {
             break;
         }
 
         //Because we didnt exit from the previous comparison, we only need to check one thing.
-        if y.get().get_range(axis).start <= y2.get().get_range(axis).end {
+        if y.range(axis).start <= y2.range(axis).end {
             func.collide(y.borrow_mut(), y2);
         }
     }
@@ -125,21 +125,16 @@ fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
 
     collision_botids.iter_mut().for_each(|mut curr_bot| {
         active.retain_mut_unordered(|that_bot| {
-            let crr = curr_bot.get().get_range(axis);
+            let crr = curr_bot.range(axis);
 
-            if that_bot.get().get_range(axis).end >= crr.start {
-                debug_assert!(curr_bot
-                    .get()
-                    .get_range(axis)
-                    .intersects(that_bot.get().get_range(axis)));
+            if that_bot.range(axis).end >= crr.start {
+                debug_assert!(curr_bot.range(axis).intersects(that_bot.range(axis)));
 
                 /*
                 assert!(curr_bot
-                    .get()
                     .get_range(axis.next())
-                    .intersects(that_bot.get().get_range(axis.next())),"{:?} {:?}",curr_bot
-                    .get()
-                    .get_range(axis.next()),that_bot.get().get_range(axis.next()));
+                    .intersects(that_bot.get_range(axis.next())),"{:?} {:?}",curr_bot
+                    .get_range(axis.next()),that_bot.get_range(axis.next()));
                 */
                 func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
                 true
@@ -194,7 +189,7 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                 break;
             }
             (Some(x), Some(y)) => {
-                if x.get().get_range(axis).start < y.get().get_range(axis).start {
+                if x.range(axis).start < y.range(axis).start {
                     NextP::X
                 } else {
                     NextP::Y
@@ -206,7 +201,7 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                 let mut x = f1.next().unwrap();
 
                 active_lists.second().retain_mut_unordered(|y| {
-                    if y.get().get_range(axis).end >= x.get().get_range(axis).start {
+                    if y.range(axis).end >= x.range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
                         true
                     } else {
@@ -217,7 +212,7 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
 
                 if xcounter > PRUNE_PERIOD {
                     active_lists.first().retain_mut_unordered(|x2| {
-                        x2.get().get_range(axis).end >= x.get().get_range(axis).start
+                        x2.range(axis).end >= x.range(axis).start
                     });
                     xcounter = 0;
                 } else {
@@ -230,7 +225,7 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                 let mut y = f2.next().unwrap();
 
                 active_lists.first().retain_mut_unordered(|x| {
-                    if x.get().get_range(axis).end >= y.get().get_range(axis).start {
+                    if x.range(axis).end >= y.range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
                         true
                     } else {
@@ -241,7 +236,7 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
 
                 if ycounter > PRUNE_PERIOD {
                     active_lists.second().retain_mut_unordered(|y2| {
-                        y2.get().get_range(axis).end >= y.get().get_range(axis).start
+                        y2.range(axis).end >= y.range(axis).start
                     });
                     ycounter = 0;
                 } else {
@@ -284,7 +279,7 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
         let val = match cache.take() {
             Some(NextP::X(x)) => match yiter.next() {
                 Some(y) => {
-                    if x.get().get_range(axis).start < y.get().get_range(axis).start {
+                    if x.range(axis).start < y.range(axis).start {
                         cache = Some(NextP::Y(y));
                         NextP::X(x)
                     } else {
@@ -296,7 +291,7 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
             },
             Some(NextP::Y(y)) => match xiter.next() {
                 Some(x) => {
-                    if x.get().get_range(axis).start < y.get().get_range(axis).start {
+                    if x.range(axis).start < y.range(axis).start {
                         cache = Some(NextP::Y(y));
                         NextP::X(x)
                     } else {
@@ -308,7 +303,7 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
             },
             None => match (xiter.next(), yiter.next()) {
                 (Some(x), Some(y)) => {
-                    if x.get().get_range(axis).start < y.get().get_range(axis).start {
+                    if x.range(axis).start < y.range(axis).start {
                         cache = Some(NextP::Y(y));
                         NextP::X(x)
                     } else {
@@ -337,7 +332,7 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
         match val {
             NextP::X(mut x) => {
                 active_lists.second().retain_mut_unordered(|y| {
-                    if y.get().get_range(axis).end >= x.get().get_range(axis).start {
+                    if y.range(axis).end >= x.range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
                         true
                     } else {
@@ -347,9 +342,9 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                 ycounter = 0;
 
                 if xcounter > PRUNE_PERIOD {
-                    active_lists.first().retain_mut_unordered(|x2| {
-                        x2.get().get_range(axis).end >= x.get().get_range(axis).start
-                    });
+                    active_lists
+                        .first()
+                        .retain_mut_unordered(|x2| x2.range(axis).end >= x.range(axis).start);
                     xcounter = 0;
                 } else {
                     xcounter += 1;
@@ -359,7 +354,7 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
             }
             NextP::Y(mut y) => {
                 active_lists.first().retain_mut_unordered(|x| {
-                    if x.get().get_range(axis).end >= y.get().get_range(axis).start {
+                    if x.range(axis).end >= y.range(axis).start {
                         func.collide(x.borrow_mut(), y.borrow_mut());
                         true
                     } else {
@@ -369,9 +364,9 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
                 xcounter = 0;
 
                 if ycounter > PRUNE_PERIOD {
-                    active_lists.second().retain_mut_unordered(|y2| {
-                        y2.get().get_range(axis).end >= y.get().get_range(axis).start
-                    });
+                    active_lists
+                        .second()
+                        .retain_mut_unordered(|y2| y2.range(axis).end >= y.range(axis).start);
                     ycounter = 0;
                 } else {
                     ycounter += 1;
@@ -664,7 +659,7 @@ fn handle_children<T: Aabb, F>(
                     y,
                     r2,
                     |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
-                        if a.get().get_range(axis).end >= b.get().get_range(axis).start {
+                        if a.range(axis).end >= b.range(axis).start {
                             func.collide(a, b);
                         }
                     },
@@ -680,7 +675,7 @@ fn handle_children<T: Aabb, F>(
                     y,
                     r2,
                     |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
-                        if a.get().get_range(axis).start <= b.get().get_range(axis).end {
+                        if a.range(axis).start <= b.range(axis).end {
                             func.collide(a, b);
                         }
                     },
@@ -704,14 +699,14 @@ fn handle_children<T: Aabb, F>(
         if is_left {
             if f.anchor.cont.start <= current2.cont.end {
                 fb.build(|a, b| {
-                    if a.get().get_range(axis).start <= b.get().get_range(axis).end {
+                    if a.range(axis).start <= b.range(axis).end {
                         func.collide(a, b)
                     }
                 });
             }
         } else if f.anchor.cont.end >= current2.cont.start {
             fb.build(|a, b| {
-                if a.get().get_range(axis).end >= b.get().get_range(axis).start {
+                if a.range(axis).end >= b.range(axis).start {
                     func.collide(a, b)
                 }
             });

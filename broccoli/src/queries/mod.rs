@@ -41,7 +41,7 @@ where
 #[inline(always)]
 #[must_use]
 pub fn cmp_aabb<T: Aabb>(axis: impl Axis, a: &T, b: &T) -> core::cmp::Ordering {
-    let (p1, p2) = (a.get().get_range(axis).start, b.get().get_range(axis).start);
+    let (p1, p2) = (a.range(axis).start, b.range(axis).start);
     if p1 > p2 {
         core::cmp::Ordering::Greater
     } else {

@@ -37,7 +37,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
                     None => return,
                 };
 
-                match rect.get().get_range(axis).contains_ext(*div) {
+                match rect.range(axis).contains_ext(*div) {
                     core::cmp::Ordering::Greater => {
                         for a in right.into_slice() {
                             for b in a.into_range().iter_mut() {
@@ -114,29 +114,21 @@ fn rect_recurse<
                 None => return,
             };
 
-            let sl = get_section_mut(
-                this_axis.next(),
-                foo(nn),
-                rect.get().get_range(this_axis.next()),
-            );
+            let sl = get_section_mut(this_axis.next(), foo(nn), rect.range(this_axis.next()));
 
             for i in sl {
                 func(rect.borrow_mut(), i);
             }
 
-            if div >= rect.get().get_range(this_axis).start {
+            if div >= rect.range(this_axis).start {
                 self::rect_recurse(this_axis.next(), left, rect.borrow_mut(), func);
             }
-            if div <= rect.get().get_range(this_axis).end {
+            if div <= rect.range(this_axis).end {
                 self::rect_recurse(this_axis.next(), right, rect, func);
             }
         }
         None => {
-            let sl = get_section_mut(
-                this_axis.next(),
-                foo(nn),
-                rect.get().get_range(this_axis.next()),
-            );
+            let sl = get_section_mut(this_axis.next(), foo(nn), rect.range(this_axis.next()));
 
             for i in sl {
                 func(rect.borrow_mut(), i);

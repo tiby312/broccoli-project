@@ -36,7 +36,7 @@ pub fn get_section_mut<'a, I: Aabb, A: Axis>(
 
     let start = {
         let mut ii = ii.skip_while(|(_, i)| {
-            let rr = i.get().get_range(axis);
+            let rr = i.range(axis);
             rr.end < range.start
         });
 
@@ -49,7 +49,7 @@ pub fn get_section_mut<'a, I: Aabb, A: Axis>(
 
     let end = {
         let mut ii = ii.skip_while(|(_, i)| {
-            let rr = i.get().get_range(axis);
+            let rr = i.range(axis);
             rr.start <= range.end
         });
 
