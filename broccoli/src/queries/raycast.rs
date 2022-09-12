@@ -30,7 +30,7 @@ macro_rules! impl_float {
         /// No fine-grained just cast to aabb
         ///
         pub struct $name{
-            ray:Ray<$x>
+            pub ray:Ray<$x>
         }
 
         impl<T: Aabb<Num = $x>> RayCast<T> for $name {
@@ -56,12 +56,8 @@ macro_rules! impl_float {
                 &mut self,
                 aabb: &T,
             ) -> axgeom::CastResult<T::Num> {
-                
-                let [&a,&b]=aabb.xrange();
-                let [&c,&d]=aabb.yrange();
-                let rect=Rect::new(a,b,c,d);
+                let rect=aabb.make_rect();
                 self.ray.cast_to_rect(&rect)
-
             }
         }
     };
@@ -315,7 +311,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
 
 mod assert {
     use super::*;
-    impl<'a, T: Aabb<Num = f64>> Naive<'a, T> {
+    impl<'a, T: Aabb> Naive<'a, T> {
         pub fn cast_ray_closure<P:Point<Num=T::Num>>(
             &mut self,
             ray:P,
@@ -351,13 +347,13 @@ mod assert {
         }
     }
 
-    impl<'a, T: Aabb<Num = f64> + ManySwap> Assert<'a, T> {
+    impl<'a, T: Aabb + ManySwap> Assert<'a, T> {
         ///Panics if a disconnect is detected between tree and naive queries.
-        pub fn assert_raycast(&mut self, ray: axgeom::Ray<T::Num>, mut rtrait: impl RayCast<T>)
+        pub fn assert_raycast<R:RayCast<T>>(&mut self,  rtrait: R)->R
         where
             T::Num: core::fmt::Debug,
         {
-            //TODO remove ptr crap
+            //TODO
             fn into_ptr_usize<T>(a: &T) -> usize {
                 a as *const T as usize
             }
@@ -369,9 +365,8 @@ mod assert {
             match ress {
                 axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
                     for a in elems.into_iter() {
-                        let r = &*a;
                         let j = into_ptr_usize(a.into_ref());
-                        res_dino.push((j, r, mag))
+                        res_dino.push((j, mag))
                     }
                 }
                 axgeom::CastResult::NoHit => {
@@ -379,12 +374,13 @@ mod assert {
                 }
             }
 
-            match Naive::new(self.inner).cast_ray( rtrait).1 {
+            let mut n=Naive::new(self.inner);
+            let (rtrait,aaaa)=n.cast_ray( rtrait);
+            match aaaa {
                 axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
                     for a in elems.into_iter() {
-                        let r = &*a;
                         let j = into_ptr_usize(a.into_ref());
-                        res_naive.push((j, r, mag))
+                        res_naive.push((j, mag))
                     }
                 }
                 axgeom::CastResult::NoHit => {
@@ -407,6 +403,8 @@ mod assert {
                 res_naive,
                 res_dino
             );
+
+            rtrait
         }
     }
 }

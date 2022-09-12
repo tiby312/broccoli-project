@@ -15,16 +15,13 @@ fn create_bbox_mut<'a, N: Num, T>(
 fn test_tie_knearest() {
     let mut bots = [(rect(5isize, 10, 0, 10), ()), (rect(6, 10, 0, 10), ())];
 
-    let mut handler = broccoli::queries::knearest::AabbKnearestIsize{
-        x:15,
-        y:30
-    };
+    let mut handler = broccoli::queries::knearest::AabbKnearestIsize { x: 15, y: 30 };
 
-    Assert::new(&mut bots).assert_k_nearest_mut( 2, &mut handler);
+    let handler = Assert::new(&mut bots).assert_k_nearest_mut(2, handler);
 
     let mut tree = broccoli::Tree::new(&mut bots);
 
-    let mut res = tree.find_knearest(vec2(15, 30), 2, &mut handler);
+    let (_, mut res) = tree.find_knearest(2, handler);
 
     assert_eq!(res.len(), 1);
     assert_eq!(res.total_len(), 2);
@@ -138,18 +135,18 @@ fn test_tie_raycast() {
     let mut bots: &mut [(Rect<isize>, ())] =
         &mut [(rect(0, 10, 0, 20), ()), (rect(5, 10, 0, 20), ())];
 
-    let mut handler = broccoli::queries::raycast::AabbRaycast;
-
-    let ray = axgeom::Ray {
-        point: vec2(15, 4),
-        dir: vec2(-1, 0),
+    let handler = broccoli::queries::raycast::AabbRaycastIsize {
+        ray: axgeom::Ray {
+            point: vec2(15, 4),
+            dir: vec2(-1, 0),
+        },
     };
 
-    Assert::new(&mut bots).assert_raycast(ray, &mut handler);
+    let handler=Assert::new(&mut bots).assert_raycast(handler);
 
     let mut tree = broccoli::Tree::new(&mut bots);
 
-    let ans = tree.cast_ray(ray, &mut handler);
+    let (_, ans) = tree.cast_ray(handler);
 
     match ans {
         CastResult::Hit(res) => {

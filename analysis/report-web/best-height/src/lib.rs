@@ -94,7 +94,7 @@ struct Res {
 }
 
 pub fn optimal(emp: &mut Html) -> std::fmt::Result {
-    for grow in [1.0,2.0,4.0]{
+    for grow in [1.0, 2.0, 4.0] {
         let num = 40_000;
         let description = formatdoc! {r#"
             Optimal height vs heur height for `abspiral({num},{grow})`
@@ -124,7 +124,6 @@ pub fn optimal(emp: &mut Html) -> std::fmt::Result {
     }
     Ok(())
 }
-
 
 #[inline(never)]
 fn optimal_inner(num: usize, grow: f64) -> Vec<(i128, Res)> {

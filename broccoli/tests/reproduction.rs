@@ -13,7 +13,7 @@ fn knearest_repro() {
         1,
         |point, a| Some(a.0.distance_squared_to_point(*point).unwrap_or(0.)),
         |point, a| a.1.distance_squared_to_point(*point),
-        |point, b, a| (b - a).powi(2),
+        |_, b, a| (b - a).powi(2),
     );
 
     assert_eq!(res.len(), 1);
