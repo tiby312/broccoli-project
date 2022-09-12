@@ -1,3 +1,10 @@
 
+[patch.crates-io]
+axgeom={path="../../axgeom"}
+
+[patch."https://github.com/tiby312/dists"]
+dists={path="../../dists"}
+
+
 [workspace]
-members = [ "sweep","demo-web","not-sorted","report-web/cached-pairs","report-web/best-height","report-web/spiral","report-web/float-vs-integer","report-web/rebal-vs-query","report-web/par-tuner","report-web/layout","report-web/support","report-web/plot-gen","report-web/colfind","report-web/levels"]
+members = [ "quick-bench","sweep","demo-web","not-sorted","report-web/cached-pairs","report-web/best-height","report-web/spiral","report-web/float-vs-integer","report-web/rebal-vs-query","report-web/par-tuner","report-web/layout","report-web/support","report-web/plot-gen","report-web/colfind","report-web/levels"]

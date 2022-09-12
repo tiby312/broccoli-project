@@ -1,3 +1,8 @@
 
 [workspace]
 members = [ "broccoli","broccoli-ext","broccoli-rayon"]
+
+
+
+[patch.crates-io]
+axgeom={path="../axgeom"}
