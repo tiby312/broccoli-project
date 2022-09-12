@@ -110,6 +110,13 @@ impl<T: Aabb, Acc: CollisionHandler<T> + Clone> NodeHandlerExt<T> for NoSortNode
     fn add(&mut self, _b: Self) {}
 }
 
+
+
+#[inline(always)]
+fn make_rect<T:Aabb>(other:&T) -> axgeom::Rect<T::Num> {
+    axgeom::rect(*other.minx(), *other.maxx(), *other.miny(), *other.maxy())
+}
+
 impl<T: Aabb, F: CollisionHandler<T>> NodeHandler<T> for NoSortNodeHandler<F> {
     fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
         fn foop<T: Aabb, F: CollisionHandler<T>>(
@@ -118,15 +125,21 @@ impl<T: Aabb, F: CollisionHandler<T>> NodeHandler<T> for NoSortNodeHandler<F> {
             bots: AabbPin<&mut [T]>,
             is_leaf: bool,
         ) {
+            
             if !is_leaf {
                 queries::for_every_pair(bots, move |a, b| {
-                    if a.get().get_range(axis).intersects(b.get().get_range(axis)) {
+                    let aa=make_rect(&*a);
+                    let bb=make_rect(&*b);
+                    if aa.get_range(axis).intersects(bb.get_range(axis)) {
                         func.collide(a, b);
                     }
                 });
             } else {
                 queries::for_every_pair(bots, move |a, b| {
-                    if a.get().intersects_rect(b.get()) {
+                    let aa=make_rect(&*a);
+                    let bb=make_rect(&*b);
+                    
+                    if aa.intersects_rect(&bb) {
                         func.collide(a, b);
                     }
                 });
@@ -215,7 +228,9 @@ fn handle_children2<C: CollisionHandler<T>, T: Aabb>(
     if res {
         for mut a in f.current.range.iter_mut() {
             for mut b in f.anchor.range.borrow_mut().iter_mut() {
-                if a.get().intersects_rect(b.get()) {
+                let aa=make_rect(&*a);
+                let bb=make_rect(&*b);
+                if aa.intersects_rect(&bb) {
                     handler.collide(a.borrow_mut(), b.borrow_mut());
                 }
             }

@@ -116,10 +116,16 @@ fn new_record(bots: &mut [Dummy<f32, u32>]) -> Record {
 }
 
 fn compute_border<T: Aabb>(bb: &[T]) -> Option<Rect<T::Num>> {
+    #[inline(always)]
+    fn make_rect<T:Aabb>(other:&T) -> axgeom::Rect<T::Num> {
+        axgeom::rect(*other.minx(), *other.maxx(), *other.miny(), *other.maxy())
+    }
+
+
     let (first, rest) = bb.split_first()?;
-    let mut r = *first.get();
+    let mut r = make_rect(first);
     for a in rest.iter() {
-        r.grow_to_fit(a.get());
+        r.grow_to_fit(&make_rect(a));
     }
     Some(r)
 }

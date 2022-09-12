@@ -34,24 +34,28 @@ fn distance_to_rect(rect: &Rect<f32>, point: Vec2<f32>) -> f32 {
 }
 
 struct MyKnearest {
+    point:Vec2<f32>,
     verts: Vec<axgeom::Rect<f32>>,
 }
 impl broccoli::queries::knearest::Knearest<BBox<f32, ()>> for MyKnearest {
-    fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<f32>, axis: A, val: f32) -> f32 {
-        distance_to_line(point, axis, val)
+    fn source(&self)->[&f32;2]{
+        [&self.point.x,&self.point.y]
+    }
+    fn distance_1d(&mut self, start:f32, val: f32) -> f32 {
+        let dis = (val - start).abs();
+        dis * dis
     }
 
     fn distance_to_broad(
         &mut self,
-        _point: Vec2<f32>,
-        _a: AabbPin<&mut BBox<f32, ()>>,
+        _a: &BBox<f32, ()>,
     ) -> Option<f32> {
         None
     }
 
-    fn distance_to_fine(&mut self, point: Vec2<f32>, a: AabbPin<&mut BBox<f32, ()>>) -> f32 {
+    fn distance_to_fine(&mut self,  a: &BBox<f32, ()>) -> f32 {
         self.verts.push(a.rect);
-        distance_to_rect(&a.rect, point)
+        distance_to_rect(&a.rect, self.point)
     }
 }
 
@@ -88,11 +92,11 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             [0.0, 0.0, 1.0, 0.3], //blue third closets
         ];
 
-        let mut handler = MyKnearest { verts: vec![] };
+        let mut handler = MyKnearest { verts: vec![] ,point:cursor};
 
         if check_naive {
-            Assert::new(&mut bots.clone()).assert_k_nearest_mut(cursor, 3, &mut handler);
-            handler.verts.clear();
+            let handler2 = MyKnearest { verts: vec![] ,point:cursor};
+            Assert::new(&mut bots.clone()).assert_k_nearest_mut( 3, handler2);
         }
 
         let mut tree = broccoli::Tree::from_tree_data(&mut bots, &tree_data);
@@ -105,7 +109,8 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
 
         let mut vv = {
-            let k = tree.find_knearest(cursor, 3, &mut handler);
+            let (h,k) = tree.find_knearest( 3, handler);
+            handler=h;
             drop(handler);
 
             buffer.update(&verts);

@@ -20,7 +20,7 @@ impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
         //only check if the opoosite axis intersects.
         //already know they intersect
         let a2 = self.axis.next();
-        if a.to_range(a2).intersects(b.to_range(a2)) {
+        if a.to_range(a2).intersects(&b.to_range(a2)) {
             self.a.collide(a, b);
         }
     }
@@ -128,7 +128,7 @@ fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
             let crr = curr_bot.to_range(axis);
 
             if that_bot.to_range(axis).end() >= crr.start() {
-                debug_assert!(curr_bot.to_range(axis).intersects(that_bot.to_range(axis)));
+                debug_assert!(curr_bot.to_range(axis).intersects(&that_bot.to_range(axis)));
 
                 /*
                 assert!(curr_bot

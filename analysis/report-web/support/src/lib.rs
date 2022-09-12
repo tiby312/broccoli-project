@@ -47,14 +47,32 @@ impl Recorder<f64> for Bencher {
 pub struct Dummy<I, T>(pub Rect<I>, pub T);
 impl<I: Num, T> Aabb for Dummy<I, T> {
     type Num = I;
-    fn get(&self) -> &Rect<I> {
-        &self.0
+    fn minx(&self)->&I{
+        self.0.minx()
+    }
+    fn miny(&self)->&I{
+        self.0.miny()
+    }
+    fn maxx(&self)->&I{
+        self.0.maxx()
+    }
+    fn maxy(&self)->&I{
+        self.0.maxy()
     }
 }
 impl<I: Num, T> Aabb for &mut Dummy<I, T> {
     type Num = I;
-    fn get(&self) -> &Rect<I> {
-        &self.0
+    fn minx(&self)->&I{
+        self.0.minx()
+    }
+    fn miny(&self)->&I{
+        self.0.miny()
+    }
+    fn maxx(&self)->&I{
+        self.0.maxx()
+    }
+    fn maxy(&self)->&I{
+        self.0.maxy()
     }
 }
 impl<I, T> ManySwap for &mut Dummy<I, T> {}

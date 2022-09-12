@@ -9,3 +9,4 @@ edition = "2021"
 broccoli={path="../../broccoli"}
 broccoli-rayon={path="../../broccoli-rayon"}
 compt="2.1"
+axgeom="*"
