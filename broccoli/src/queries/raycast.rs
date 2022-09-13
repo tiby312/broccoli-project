@@ -357,9 +357,6 @@ mod assert {
         where
             T::Num: core::fmt::Debug,
         {
-            fn into_ptr_usize<T>(a: &T) -> usize {
-                a as *const T as usize
-            }
             let mut res_naive = Vec::new();
 
             let mut tree = Tree::new(self.inner);
@@ -367,9 +364,8 @@ mod assert {
             match tree.cast_ray(ray, &mut rtrait) {
                 axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
                     for a in elems.into_iter() {
-                        let r = *a.get();
-                        let j = into_ptr_usize(a.into_ref());
-                        res_dino.push((j, r, mag))
+                        let j = crate::assert::into_ptr_usize(a);
+                        res_dino.push((j, mag))
                     }
                 }
                 axgeom::CastResult::NoHit => {
@@ -380,9 +376,8 @@ mod assert {
             match Naive::new(self.inner).cast_ray(ray, rtrait) {
                 axgeom::CastResult::Hit(CastAnswer { elems, mag }) => {
                     for a in elems.into_iter() {
-                        let r = *a.get();
-                        let j = into_ptr_usize(a.into_ref());
-                        res_naive.push((j, r, mag))
+                        let j = crate::assert::into_ptr_usize(a);
+                        res_naive.push((j, mag))
                     }
                 }
                 axgeom::CastResult::NoHit => {

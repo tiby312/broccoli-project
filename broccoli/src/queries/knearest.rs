@@ -443,25 +443,19 @@ mod assert {
             num: usize,
             mut knear: impl Knearest<T>,
         ) {
-            use core::ops::Deref;
-
-            fn into_ptr_usize<T>(a: &T) -> usize {
-                a as *const T as usize
-            }
-
             let mut tree = Tree::new(self.inner);
             let r = tree.find_knearest(point, num, &mut knear);
             let mut res_dino: Vec<_> = r
                 .into_vec()
                 .drain(..)
-                .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+                .map(|a| (crate::assert::into_ptr_usize(a.bot), a.mag))
                 .collect();
 
             let mut res_naive = Naive::new(self.inner)
                 .find_knearest(point, num, knear)
                 .into_vec()
                 .drain(..)
-                .map(|a| (into_ptr_usize(a.bot.deref()), a.mag))
+                .map(|a| (crate::assert::into_ptr_usize(a.bot), a.mag))
                 .collect::<Vec<_>>();
 
             res_naive.sort_by(|a, b| a.partial_cmp(b).unwrap());

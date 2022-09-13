@@ -7,6 +7,11 @@ use compt::Visitor;
 
 use super::*;
 
+pub(crate) fn into_ptr_usize<T>(a: AabbPin<&mut T>) -> usize {
+    let a: &T = &*a;
+    a as *const T as usize
+}
+
 ///
 /// Easily verifiable naive query algorithms.
 ///
