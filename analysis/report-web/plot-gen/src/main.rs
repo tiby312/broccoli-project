@@ -1,5 +1,4 @@
 use std::path::Path;
-use hypermelon::elem::RenderElem;
 use support::datanum::DnumManager;
 use support::poloto;
 use support::prelude::*;
@@ -15,67 +14,72 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
     //use tagger::no_attr;
     //let mut w = tagger::new(tagger::upgrade_write(file));
 
-    let header = build::raw_escapable("<!DOCTYPE html>");
+    let k = &mut hypermelon::tools::upgrade_write(file);
+    let mut w = hypermelon::elem::ElemWrite::new(k);
 
-    let style = build::elem("style")
-        .append(include_str!("github-markdown.css"))
-        .append(MY_CONFIG)
-        .append(".poloto_scatter{stroke-width:3}");
+    w.render(build::raw_escapable("<!DOCTYPE html>"))?;
 
-    let html = build::elem("html").with(("style", "background: black;"));
+    w.render(
+        build::single("meta")
+            .with(attrs!(
+                ("name", "viewport"),
+                ("content", "width=device-width, initial-scale=1.0")
+            ))
+            .with_ending(""),
+    )?;
 
-    let s = build::raw_escapable(
-        r##"<meta name="viewport" content="width=device-width, initial-scale=1.0">"##,
-    );
+    w.render_with(build::elem("html").with(("style", "background: black;")))
+        .build(|w| {
+            let style = build::elem("style").append(include_str!("github-markdown.css"));
 
-    let div = build::elem("div").with((
-        "style",
-        "display:flex;flex-wrap:wrap;justify-content: center;",
-    ));
+            let style2 = poloto::render::Theme::dark();
+                
+            let style = style.chain(style2);
 
-    let special = build::from_closure(|w| {
-        let mut c = Custom;
-        let mut j=w.writer_escapable();
-        let mut sys = Html::new(&mut j, &mut c);
+            w.render(style)?;
 
-        let mut a = datanum::new_session();
-        handle(&mut sys, &mut a)
-    });
+            w.render_with(build::elem("div").with((
+                "style",
+                "display:flex;flex-wrap:wrap;justify-content: center;",
+            )))
+            .build(|w| {
+                let mut c = Custom;
+                let mut j = w.writer_escapable();
+                let mut sys = Html::new(&mut j, &mut c);
 
-    let div = div.append(special);
-    let html = html.append(s).append(div);
-    let all = header.append(style).append(html);
-
-    hypermelon::render(all, hypermelon::tools::upgrade_write(file))
+                let mut a = datanum::new_session();
+                handle(&mut sys, &mut a)
+            })
+        })
 }
 
 pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
-    colfind::theory(emp, man)?;
+    // colfind::theory(emp, man)?;
 
-    colfind::bench(emp)?;
-    colfind::bench_grow(emp)?;
-    colfind::theory_grow(emp, man)?;
-    best_height::bench(emp)?;
-    best_height::theory(emp, man)?;
-    best_height::optimal(emp)?;
-    levels::bench(emp)?;
-    levels::theory(emp, man)?;
-    cached_pairs::bench(emp)?;
+    // colfind::bench(emp)?;
+    // colfind::bench_grow(emp)?;
+    // colfind::theory_grow(emp, man)?;
+    // best_height::bench(emp)?;
+    // best_height::theory(emp, man)?;
+    // best_height::optimal(emp)?;
+    // levels::bench(emp)?;
+    // levels::theory(emp, man)?;
+    // cached_pairs::bench(emp)?;
     float_vs_integer::bench(emp)?;
 
-    rebal_vs_query::bench(emp)?;
-    rebal_vs_query::theory(emp, man)?;
+    // rebal_vs_query::bench(emp)?;
+    // rebal_vs_query::theory(emp, man)?;
 
-    spiral::handle_visualize(emp)?;
-    spiral::handle_grow(emp)?;
-    spiral::num_intersection(emp)?;
+    // spiral::handle_visualize(emp)?;
+    // spiral::handle_grow(emp)?;
+    // spiral::num_intersection(emp)?;
 
-    layout::bench(emp)?;
+    // layout::bench(emp)?;
 
-    // TODO add back
-    par_tuner::bench_par(emp)?;
-    par_tuner::best_seq_fallback_rebal(emp)?;
-    par_tuner::best_seq_fallback_query(emp)?;
+    // // TODO add back
+    // par_tuner::bench_par(emp)?;
+    // par_tuner::best_seq_fallback_rebal(emp)?;
+    // par_tuner::best_seq_fallback_query(emp)?;
 
     Ok(())
 }
@@ -123,16 +127,22 @@ impl Disper for Custom {
         //TODO remove this kind of thing?
         //let hh = simple_theme::determine_height_from_width(dd, svg_width);
 
-        let header = poloto::header().with(("width", "100%"));
-
         let div=build::elem("div").with(("style","max-width:400px;width:100%;background:#262626;margin:5px;padding:5px;word-break: normal;white-space: normal;border-radius:10px"));
 
-        let style = build::elem("style").append(".poloto_line{stroke-dasharray:2;stroke-width:2;}");
 
-        let all = header
-            .append(div)
-            .append(style)
-            .append(plot);
+        //svg class="poloto" width="100%" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+        //let header = poloto::header().with(("width", "100%"));
+        let header=build::elem("svg").with(attrs!(("class","poloto"),("width","100%"),("viewBox","0 0 800 500"),("xmlns","http://www.w3.org/2000/svg")));
+
+        //let style = build::elem("style").append(".poloto_line{stroke-dasharray:2;stroke-width:2;}");
+
+        let all = header.append(plot);
+        let all = div.append(all);
+
+        // let all = header
+        //     .append(div)
+        //     .append(style)
+        //     .append(plot);
 
         let parser = pulldown_cmark::Parser::new(description);
         let mut s = String::new();

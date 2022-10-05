@@ -308,17 +308,18 @@ impl<'a> Html<'a> {
         eprintln!("{:<10.2?} : {}", self.now.elapsed(), name);
         self.now = Instant::now();
 
-        let header = poloto::header();
+
+        //TODO get rid of?
+        let header=poloto::header();
 
         let dim = header.get_viewbox();
 
         let graph = poloto::data(plots)
             .map_opt(|_| render_opt)
-            .build_and_label((name, x, y))
-            .append_to(header);
+            .build_and_label((name, x, y));
 
         use hypermelon::elem::DynamicElem;
-        let graph=hypermelon::elem::Wrap::new(graph);
+        
         self.disper
             .write_graph_disp(self.w, dim, DynamicElem::new(graph).as_dyn(), description)
 
