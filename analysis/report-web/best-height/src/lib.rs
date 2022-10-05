@@ -10,7 +10,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
     let num_level = broccoli::num_level::default(num);
 
     let res = bench_inner(num, 3, num_level + 4, grow);
-    let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
+    let l1 = plot("").scatter().cloned(res.iter().map(|&(i, r)| (i, r)));
 
     let m = poloto::build::markers([], [0.0]);
 
@@ -19,7 +19,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
         "best-height",
         "tree height",
         "time taken (seconds)",
-        l1.chain(m),
+        plots!(l1, m),
         &description,
     )
 }
@@ -50,7 +50,7 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     let num_level = broccoli::num_level::default(num);
 
     let res = theory_inner(man, num, 3, num_level + 4, grow);
-    let l1 = res.iter().map(|&(i, r)| (i, r)).cloned_plot().scatter("");
+    let l1 = plot("").scatter().cloned(res.iter().map(|&(i, r)| (i, r)));
 
     let m = poloto::build::markers([], [0]);
 
@@ -59,7 +59,7 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
         "best-height",
         "tree height",
         "num comparison",
-        l1.chain(m),
+        plots!(l1, m),
         &description,
     )
 }
@@ -94,7 +94,7 @@ struct Res {
 }
 
 pub fn optimal(emp: &mut Html) -> std::fmt::Result {
-    for grow in [1.0,2.0,4.0]{
+    for grow in [1.0, 2.0, 4.0] {
         let num = 40_000;
         let description = formatdoc! {r#"
             Optimal height vs heur height for `abspiral({num},{grow})`
@@ -102,29 +102,25 @@ pub fn optimal(emp: &mut Html) -> std::fmt::Result {
 
         let res = optimal_inner(num, grow);
 
-        let l1 = res
-            .iter()
-            .map(|(i, r)| (*i, r.optimal_height))
-            .cloned_plot()
-            .scatter("optimal");
-        let l2 = res
-            .iter()
-            .map(|(i, r)| (*i, r.heur_height))
-            .cloned_plot()
-            .scatter("heur");
+        let l1 = plot("optimal")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (*i, r.optimal_height)));
+
+        let l2 = plot("heur")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (*i, r.heur_height)));
 
         emp.write_graph(
             Some("height"),
             "heuristic",
             "num elements",
             "time taken (seconds)",
-            l1.chain(l2),
+            plots!(l1, l2),
             &description,
         )?;
     }
     Ok(())
 }
-
 
 #[inline(never)]
 fn optimal_inner(num: usize, grow: f64) -> Vec<(i128, Res)> {

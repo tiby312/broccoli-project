@@ -3,16 +3,14 @@ use broccoli::{
     aabb::pin::AabbPin,
     aabb::*,
     axgeom::{Axis, AxisDyn, XAXIS, YAXIS},
-    queries::{
-        self,
-        colfind::build::{CollisionVisitor, CollisionHandler, NodeHandler},
-    },
-    
     build::Sorter,
     build::TreeBuildVisitor,
     node::{Node, Vistr, VistrMutPin},
     num_level,
-    
+    queries::{
+        self,
+        colfind::build::{CollisionHandler, CollisionVisitor, NodeHandler},
+    },
 };
 use broccoli_rayon::{
     build::RayonBuildPar, queries::colfind::NodeHandlerExt, queries::colfind::RayonQueryPar,

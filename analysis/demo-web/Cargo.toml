@@ -25,11 +25,11 @@ duckduckgeo ={git="https://github.com/tiby312/duckduckgeo"}
 dists={git="https://github.com/tiby312/dists"}
 
 
-[dependencies.gloo]
-version = "0.5"
-features=[
-  'futures'
-  ]
+# [dependencies.gloo]
+# version = "0.5"
+# features=[
+#  'futures'
+# ]
 
 [dependencies.broccoli]
 path = "../../broccoli"

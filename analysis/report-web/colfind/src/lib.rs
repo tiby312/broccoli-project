@@ -1,7 +1,9 @@
-use support::{poloto::prelude::IterBuilder, prelude::*};
+use support::prelude::*;
 
 mod bench;
 mod theory;
+
+use poloto::build::plot;
 
 pub use bench::Record as BenchRecord;
 pub use theory::Record as TheoryRecord;
@@ -20,26 +22,18 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
 
         let res = theory_inner(man, 5000, grow, 1500, 2000);
 
-        let l1 = res
-            .iter()
-            .map(|(i, r)| (*i, r.brocc))
-            .cloned_plot()
-            .scatter("brocc");
-        let l2 = res
-            .iter()
-            .map(|(i, r)| (*i, r.naive))
-            .cloned_plot()
-            .scatter("naive");
-        let l3 = res
-            .iter()
-            .map(|(i, r)| (*i, r.sweep))
-            .cloned_plot()
-            .scatter("sweep");
-        let l4 = res
-            .iter()
-            .map(|(i, r)| (*i, r.nosort))
-            .cloned_plot()
-            .scatter("nosort");
+        let l1 = plot("brocc")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (*i, r.brocc)));
+        let l2 = plot("naive")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (*i, r.naive)));
+        let l3 = plot("sweep")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (*i, r.sweep)));
+        let l4 = plot("nosort")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (*i, r.nosort)));
 
         let m = poloto::build::origin();
 
@@ -66,22 +60,18 @@ pub fn theory_grow(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     let res = theory_grow_inner(man, n, 0.2, 1.5);
 
     let p = plots!(
-        res.iter()
-            .map(|(x, i)| (*x, i.brocc))
-            .cloned_plot()
-            .scatter("brocc"),
-        res.iter()
-            .map(|(x, i)| (*x, i.nosort))
-            .cloned_plot()
-            .scatter("nosort"),
-        res.iter()
-            .map(|(x, i)| (*x, i.sweep))
-            .cloned_plot()
-            .scatter("sweep"),
-        res.iter()
-            .map(|(x, i)| (*x, i.naive))
-            .cloned_plot()
-            .scatter("naive")
+        plot("brocc")
+            .scatter()
+            .cloned(res.iter().map(|(x, i)| (*x, i.brocc))),
+        plot("nosort")
+            .scatter()
+            .cloned(res.iter().map(|(x, i)| (*x, i.nosort))),
+        plot("sweep")
+            .scatter()
+            .cloned(res.iter().map(|(x, i)| (*x, i.sweep))),
+        plot("naive")
+            .scatter()
+            .cloned(res.iter().map(|(x, i)| (*x, i.naive)))
     );
 
     emp.write_graph(
@@ -105,34 +95,24 @@ pub fn bench_grow(emp: &mut Html) -> std::fmt::Result {
     let res = bench_grow_inner(n, 0.2, 1.5);
 
     let p = plots!(
-        res.iter()
-            .map(|(i, r)| (i, r.brocc))
-            .cloned_plot()
-            .scatter("brocc"),
-        res.iter()
-            .map(|(i, r)| (i, r.brocc_par))
-            .cloned_plot()
-            .scatter("brocc_par"),
-        res.iter()
-            .map(|(i, r)| (i, r.nosort))
-            .cloned_plot()
-            .scatter("nosort"),
-        res.iter()
-            .map(|(i, r)| (i, r.nosort_par))
-            .cloned_plot()
-            .scatter("nosort_par"),
-        res.iter()
-            .map(|(i, r)| (i, r.sweep))
-            .cloned_plot()
-            .scatter("sweep"),
-        // res.iter()
-        //     .map(|(i, r)| (i, r.sweep_par))
-        //     .cloned_plot()
-        //     .scatter("sweep_par"),
-        res.iter()
-            .map(|(i, r)| (i, r.naive))
-            .cloned_plot()
-            .scatter("naive"),
+        plot("brocc")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (i, r.brocc))),
+        plot("brocc_par")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (i, r.brocc_par))),
+        plot("nosort")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (i, r.nosort))),
+        plot("nosort_par")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (i, r.nosort_par))),
+        plot("sweep")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (i, r.sweep))),
+        plot("naive")
+            .scatter()
+            .cloned(res.iter().map(|(i, r)| (i, r.naive))),
         poloto::build::markers([], [0.0])
     );
 
@@ -154,39 +134,29 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
         "#};
 
         let res = self::bench_inner(n, grow, 2000, 20000);
-        let l1 = res
-            .iter()
-            .map(|(i, r)| (i, r.brocc))
-            .cloned_plot()
-            .scatter("brocc");
-        let l2 = res
-            .iter()
-            .map(|(i, r)| (i, r.brocc_par))
-            .cloned_plot()
-            .scatter("brocc_par");
-        let l3 = res
-            .iter()
-            .map(|(i, r)| (i, r.nosort))
-            .cloned_plot()
-            .scatter("nosort");
-        let l4 = res
-            .iter()
-            .map(|(i, r)| (i, r.nosort_par))
-            .cloned_plot()
-            .scatter("nosort_par");
-        let l5 = res
-            .iter()
-            .map(|(i, r)| (i, r.sweep))
-            .cloned_plot()
-            .scatter("sweep");
 
-        let l7 = res
-            .iter()
-            .map(|(i, r)| (i, r.naive))
-            .cloned_plot()
-            .scatter("naive");
-
-        let m = poloto::build::origin();
+        
+        let p = plots!(
+            plot("brocc")
+                .scatter()
+                .cloned(res.iter().map(|(i, r)| (i, r.brocc))),
+            plot("brocc_par")
+                .scatter()
+                .cloned(res.iter().map(|(i, r)| (i, r.brocc_par))),
+            plot("nosort")
+                .scatter()
+                .cloned(res.iter().map(|(i, r)| (i, r.nosort))),
+            plot("nosort_par")
+                .scatter()
+                .cloned(res.iter().map(|(i, r)| (i, r.nosort_par))),
+            plot("sweep")
+                .scatter()
+                .cloned(res.iter().map(|(i, r)| (i, r.sweep))),
+            plot("naive")
+                .scatter()
+                .cloned(res.iter().map(|(i, r)| (i, r.naive))),
+            poloto::build::origin()
+        );
 
         let group_name = "colfind";
         let name = &format!("n_{}", grow);
@@ -196,7 +166,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
             name,
             "num elements",
             "time taken (seconds)",
-            plots!(l1, l2, l3, l4, l5, l7, m),
+            p,
             &description,
         )?;
     }

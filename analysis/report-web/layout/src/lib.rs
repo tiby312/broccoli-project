@@ -55,30 +55,24 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
             let res3 = bench_inner(Layout::Indirect, grow, size);
 
             let p = plots!(
-                res1.iter()
-                    .map(|(i, x, _)| (i, x))
-                    .cloned_plot()
-                    .scatter("c default"),
-                res2.iter()
-                    .map(|(i, x, _)| (i, x))
-                    .cloned_plot()
-                    .scatter("c direct"),
-                res3.iter()
-                    .map(|(i, x, _)| (i, x))
-                    .cloned_plot()
-                    .scatter("c indirect"),
-                res1.iter()
-                    .map(|(i, _, x)| (i, x))
-                    .cloned_plot()
-                    .scatter("q default"),
-                res2.iter()
-                    .map(|(i, _, x)| (i, x))
-                    .cloned_plot()
-                    .scatter("q direct"),
-                res3.iter()
-                    .map(|(i, _, x)| (i, x))
-                    .cloned_plot()
-                    .scatter("q indirect"),
+                plot("c default")
+                    .scatter()
+                    .cloned(res1.iter().map(|(i, x, _)| (i, x))),
+                plot("c direct")
+                    .scatter()
+                    .cloned(res2.iter().map(|(i, x, _)| (i, x))),
+                plot("c indirect")
+                    .scatter()
+                    .cloned(res3.iter().map(|(i, x, _)| (i, x))),
+                plot("q default")
+                    .scatter()
+                    .cloned(res1.iter().map(|(i, _, x)| (i, x))),
+                plot("q direct")
+                    .scatter()
+                    .cloned(res2.iter().map(|(i, _, x)| (i, x))),
+                plot("q indirect")
+                    .scatter()
+                    .cloned(res3.iter().map(|(i, _, x)| (i, x))),
                 poloto::build::origin()
             );
 

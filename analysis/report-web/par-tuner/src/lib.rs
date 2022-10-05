@@ -70,14 +70,14 @@ pub fn bench_par(emp: &mut Html) -> std::fmt::Result {
     let res = bench_par_inner(grow, None, None);
 
     let p = plots!(
-        res.iter()
+        plot("rebal").scatter().cloned(
+            res.iter()
             .map(|(i, x, _)| (i, x))
-            .cloned_plot()
-            .scatter("rebal"),
-        res.iter()
+        ),
+        plot("query").scatter().cloned(
+            res.iter()
             .map(|(i, _, x)| (i, x))
-            .cloned_plot()
-            .scatter("query"),
+        ),
         poloto::build::markers([], [0.0])
     );
 
@@ -121,7 +121,7 @@ pub fn best_seq_fallback_rebal(emp: &mut Html) -> std::fmt::Result {
         "#};
 
     let res = best_seq_fallback_rebal_inner(num, grow);
-    let l1 = res.iter().cloned_plot().scatter("");
+    let l1 = plot("").scatter().cloned(res.iter());
 
     let m = poloto::build::origin();
 
@@ -130,7 +130,7 @@ pub fn best_seq_fallback_rebal(emp: &mut Html) -> std::fmt::Result {
         "optimal-seq-fallback-rebal",
         "num elements",
         "x speedup over sequential",
-        l1.chain(m),
+        plots!(l1,m),
         &description,
     )
 }
@@ -156,7 +156,7 @@ pub fn best_seq_fallback_query(emp: &mut Html) -> std::fmt::Result {
 
     let res = best_seq_fallback_query_inner(num, grow);
 
-    let l1 = res.iter().cloned_plot().scatter("");
+    let l1 = plot("").scatter().cloned(res.iter());
 
     let m = poloto::build::origin();
 
@@ -165,7 +165,7 @@ pub fn best_seq_fallback_query(emp: &mut Html) -> std::fmt::Result {
         "optimal-seq-fallback-query",
         "num elements",
         "x speedup over sequential",
-        l1.chain(m),
+        plots!(l1,m),
         &description,
     )
 }
