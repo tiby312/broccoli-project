@@ -6,9 +6,9 @@ use broccoli::aabb::Num;
 pub use broccoli::axgeom;
 pub use indoc;
 pub use poloto;
-pub use tagger;
 pub mod prelude {
     pub use super::*;
+    pub use hypermelon;
     pub use broccoli::aabb::pin::AabbPin;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
@@ -21,6 +21,7 @@ pub mod prelude {
     pub use broccoli::aabb::ManySwap;
     pub use broccoli::aabb::ManySwappable;
     pub use datanum::DnumManager;
+    pub use poloto::build::plot;
 }
 pub trait ColfindHandler: Aabb + ManySwap + HasInner {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>);
@@ -116,9 +117,7 @@ impl ColfindHandler for Dummy<u32, u32> {
     }
 }
 
-use poloto::build::marker::Markerable;
 use poloto::plotnum::PlotNum;
-use poloto::ticks::HasDefaultTicks;
 use prelude::*;
 
 pub mod dist {
@@ -261,10 +260,12 @@ pub trait Disper {
         &mut self,
         write: &mut dyn std::fmt::Write,
         dim: [f64; 2],
-        plot: &mut dyn std::fmt::Display,
+        plot: hypermelon::elem::DynElem,
         description: &str,
     ) -> std::fmt::Result;
 }
+
+use poloto::plotnum::HasDefaultTicks;
 
 impl<'a> Html<'a> {
     pub fn new<T: std::fmt::Write>(w: &'a mut T, disper: &'a mut dyn Disper) -> Self {
@@ -281,7 +282,7 @@ impl<'a> Html<'a> {
         name: impl std::fmt::Display,
         x: impl std::fmt::Display,
         y: impl std::fmt::Display,
-        plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
+        plots: impl poloto::build::PlotIterator<X = X, Y = Y>,
         description: &str,
     ) -> std::fmt::Result {
         let render_opt = poloto::render::render_opt();
@@ -295,7 +296,7 @@ impl<'a> Html<'a> {
         name: impl std::fmt::Display,
         x: impl std::fmt::Display,
         y: impl std::fmt::Display,
-        plots: impl poloto::build::PlotIterator<X, Y> + Markerable<X, Y>,
+        plots: impl poloto::build::PlotIterator<X = X, Y = Y>,
         description: &str,
     ) -> std::fmt::Result {
         let name = if let Some(group) = group {
@@ -303,14 +304,29 @@ impl<'a> Html<'a> {
         } else {
             name.to_string()
         };
-        let plotter = poloto::quick_fmt_opt!(render_opt, &name, x, y, plots,);
-        let dd = plotter.get_dim();
-        let mut disp = poloto::disp(|x| plotter.render(x));
-        self.disper
-            .write_graph_disp(self.w, dd, &mut disp, description)?;
 
         eprintln!("{:<10.2?} : {}", self.now.elapsed(), name);
         self.now = Instant::now();
-        Ok(())
+
+
+        //TODO get rid of?
+        let header=poloto::header();
+
+        let dim = header.get_viewbox();
+
+        let graph = poloto::data(plots)
+            .map_opt(|_| render_opt)
+            .build_and_label((name, x, y));
+
+        use hypermelon::elem::DynamicElem;
+        
+        self.disper
+            .write_graph_disp(self.w, dim, DynamicElem::new(graph).as_dyn(), description)
+
+        // let plotter = poloto::quick_fmt_opt!(render_opt, &name, x, y, plots,);
+        // let dd = plotter.get_dim();
+        // let mut disp = poloto::disp(|x| plotter.render(x));
+        // self.disper
+        //     .write_graph_disp(self.w, dd, &mut disp, description)?;
     }
 }

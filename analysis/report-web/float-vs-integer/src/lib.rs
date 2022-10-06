@@ -10,26 +10,22 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
         "#};
 
     let res = bench_inner(10_000, 2.0);
-    let l1 = res
-        .iter()
-        .map(|(i, r)| (i, r.float))
-        .cloned_plot()
-        .scatter("f32");
-    let l2 = res
-        .iter()
-        .map(|(i, r)| (i, r.int))
-        .cloned_plot()
-        .scatter("i32");
-    let l3 = res
-        .iter()
-        .map(|(i, r)| (i, r.i64))
-        .cloned_plot()
-        .scatter("i64");
-    let l4 = res
-        .iter()
-        .map(|(i, r)| (i, r.float_i32))
-        .cloned_plot()
-        .scatter("f32->int");
+
+    let l1 = plot("f32")
+        .scatter()
+        .cloned(res.iter().map(|(i, r)| (i, r.float)));
+
+    let l2 = plot("i32")
+        .scatter()
+        .cloned(res.iter().map(|(i, r)| (i, r.int)));
+
+    let l3 = plot("i64")
+        .scatter()
+        .cloned(res.iter().map(|(i, r)| (i, r.i64)));
+
+    let l4 = plot("f32->int")
+        .scatter()
+        .cloned(res.iter().map(|(i, r)| (i, r.float_i32)));
 
     let m = poloto::build::origin();
 

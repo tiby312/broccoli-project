@@ -10,35 +10,20 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     "#};
 
     let res = theory_inner(man, num, grow);
-    let l1 = res
-        .iter()
-        .map(|(i, r)| (i, r.tree.0))
-        .cloned_plot()
-        .scatter("tree_r");
-    let l2 = res
-        .iter()
-        .map(|(i, r)| (i, r.tree.1))
-        .cloned_plot()
-        .scatter("tree_q");
-    let l3 = res
-        .iter()
-        .map(|(i, r)| (i, r.nosort.0))
-        .cloned_plot()
-        .scatter("nosort_r");
-    let l4 = res
-        .iter()
-        .map(|(i, r)| (i, r.nosort.1))
-        .cloned_plot()
-        .scatter("nosort_q");
-
-    let m = poloto::build::origin();
+    let p=plots!(
+        plot("tree_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.0))),
+        plot("tree_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.1))),
+        plot("nosort_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.nosort.0))),
+        plot("nosort_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.nosort.1))),
+        poloto::build::origin()
+    );
 
     emp.write_graph(
         Some("rebal_vs_query"),
         "par-rebal-vs-query",
         "num elements",
         "number of comparisons",
-        plots!(l1, l2, l3, l4, m),
+        p,
         &description,
     )
 }
@@ -52,67 +37,39 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
         "#};
 
     let res = bench_inner(num, grow);
-    let l1 = res
-        .iter()
-        .map(|(i, r)| (i, r.tree.0))
-        .cloned_plot()
-        .scatter("tree_r");
-    let l2 = res
-        .iter()
-        .map(|(i, r)| (i, r.tree.1))
-        .cloned_plot()
-        .scatter("tree_q");
-    let l3 = res
-        .iter()
-        .map(|(i, r)| (i, r.nosort.0))
-        .cloned_plot()
-        .scatter("nosort_r");
-    let l4 = res
-        .iter()
-        .map(|(i, r)| (i, r.nosort.1))
-        .cloned_plot()
-        .scatter("nosort_q");
 
-    let m = poloto::build::origin();
+    let p=plots!(
+        plot("tree_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.0))),
+        plot("tree_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.1))),
+        plot("nosort_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.nosort.0))),
+        plot("nosort_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.nosort.1))),
+        poloto::build::origin()
+    );
 
     emp.write_graph(
         Some("rebal_vs_query"),
         "rebal_vs_query",
         "num elements",
         "time taken (seconds)",
-        plots!(l1, l2, l3, l4, m),
+        p,
         &description,
     )?;
 
-    let l1 = res
-        .iter()
-        .map(|(i, r)| (i, r.tree.0))
-        .cloned_plot()
-        .scatter("tree_r");
-    let l2 = res
-        .iter()
-        .map(|(i, r)| (i, r.tree.1))
-        .cloned_plot()
-        .scatter("tree_q");
 
-    let l3 = res
-        .iter()
-        .map(|(i, r)| (i, r.par_tree.0))
-        .cloned_plot()
-        .scatter("par_tree_r");
-    let l4 = res
-        .iter()
-        .map(|(i, r)| (i, r.par_tree.1))
-        .cloned_plot()
-        .scatter("par_tree_q");
-    let m = poloto::build::origin();
+    let p=plots!(
+        plot("tree_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.0))),
+        plot("tree_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.1))),
+        plot("par_tree_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.par_tree.0))),
+        plot("par_tree_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.par_tree.1))),
+        poloto::build::origin()
+    );
 
     emp.write_graph(
         Some("rebal_vs_query"),
         "par-rebal-vs-query",
         "num elements",
         "time taken (seconds)",
-        plots!(l1, l2, l3, l4, m),
+        p,
         &description,
     )
 }

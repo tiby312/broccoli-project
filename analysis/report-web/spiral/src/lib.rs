@@ -11,8 +11,8 @@ pub fn num_intersection(emp: &mut Html) -> std::fmt::Result {
     let res = num_intersection_inner(n, 2.0);
 
     let p = plots!(
-        res.iter().cloned_plot().scatter(""),
-        (0..10_000).map(|x| [x, x]).cloned_plot().line("n"),
+        plot("").scatter().cloned(res.iter()),
+        plot("n").line().cloned((0..10_000).map(|x| [x, x])),
         poloto::build::markers([], [0])
     );
 
@@ -35,11 +35,9 @@ pub fn handle_grow(emp: &mut Html) -> std::fmt::Result {
     let res = handle_grow_inner(n, 0.5, 2.0);
 
     let p = plots!(
-        res.iter().cloned_plot().scatter(""),
-        [(0.5, 10_000 * 2), (2.0, 10_000 * 2)]
-            .iter()
-            .cloned_plot()
-            .line("n*2"),
+        plot("").scatter().cloned(res.iter()),
+        plot("n*2").line().cloned([(0.5, 10_000 * 2), (2.0, 10_000 * 2)]
+        .iter()),
         poloto::build::markers([], [0])
     );
 
@@ -62,14 +60,14 @@ pub fn handle_visualize(emp: &mut Html) -> std::fmt::Result {
     let res = handle_visualize_inner(2.0, n);
 
     let p = plots!(
-        res.iter().cloned_plot().scatter(""),
+        plot("").scatter().cloned(res.iter()),
         poloto::build::markers([], [0.0])
     );
 
-    let mut opt = poloto::render::render_opt_builder();
+    let mut opt = poloto::render::render_opt();
     opt.preserve_aspect();
     emp.write_graph_ext(
-        opt.build(),
+        opt,
         Some("spiral"),
         &format!("spiral{}", n),
         "x",

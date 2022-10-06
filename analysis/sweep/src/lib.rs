@@ -8,7 +8,7 @@ impl<'a, T: Aabb> SweepAndPrune<'a, T> {
             &mut prevec,
             default_axis(),
             bots,
-            &mut func
+            &mut func,
         );
     }
 }
