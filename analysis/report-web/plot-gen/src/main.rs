@@ -11,46 +11,46 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
     let file = std::fs::File::create(base.join("report").with_extension("html")).unwrap();
 
+    let k = hypermelon::build::from_closure_escapable(|w| {
+        w.render(build::raw_escapable("<!DOCTYPE html>"))?;
 
-    let k = &mut hypermelon::tools::upgrade_write(file);
-    let mut w = hypermelon::elem::ElemWrite::new(k);
+        w.render(
+            build::single("meta")
+                .with(attrs!(
+                    ("name", "viewport"),
+                    ("content", "width=device-width, initial-scale=1.0")
+                ))
+                .with_ending(""),
+        )?;
 
-    w.render(build::raw_escapable("<!DOCTYPE html>"))?;
-
-    w.render(
-        build::single("meta")
-            .with(attrs!(
-                ("name", "viewport"),
-                ("content", "width=device-width, initial-scale=1.0")
-            ))
-            .with_ending(""),
-    )?;
-
-    w.render_with(build::elem("html").with(("style", "background: black;")))
-        .build(|w| {
-            let style = build::elem("style").append(include_str!("github-markdown.css"));
-
-            let style2=build::elem("style")
-                .append(poloto::render::Theme::dark().get_str())
-                .append(".poloto_scatter{stroke-width:3}");
-
-            let style=style.chain(style2);
-
-            w.render(style)?;
-
-            w.render_with(build::elem("div").with((
-                "style",
-                "display:flex;flex-wrap:wrap;justify-content: center;",
-            )))
+        w.session(build::elem("html").with(("style", "background: black;")))
             .build(|w| {
-                let mut c = Custom;
-                let mut j = w.writer_escapable();
-                let mut sys = Html::new(&mut j, &mut c);
+                let style = build::elem("style").append(include_str!("github-markdown.css"));
 
-                let mut a = datanum::new_session();
-                handle(&mut sys, &mut a)
+                let style2 = build::elem("style")
+                    .append(poloto::render::Theme::dark().get_str())
+                    .append(".poloto_scatter{stroke-width:3}");
+
+                let style = style.chain(style2);
+
+                w.render(style)?;
+
+                w.session(build::elem("div").with((
+                    "style",
+                    "display:flex;flex-wrap:wrap;justify-content: center;",
+                )))
+                .build(|w| {
+                    let mut c = Custom;
+                    let mut j = w.writer_escapable();
+                    let mut sys = Html::new(&mut j, &mut c);
+
+                    let mut a = datanum::new_session();
+                    handle(&mut sys, &mut a)
+                })
             })
-        })
+    });
+
+    hypermelon::render_escapable(k, hypermelon::tools::upgrade_write(file))
 }
 
 pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
@@ -122,10 +122,14 @@ impl Disper for Custom {
         plot: hypermelon::elem::DynElem,
         description: &str,
     ) -> std::fmt::Result {
-
         let div=build::elem("div").with(("style","max-width:400px;width:100%;background:#262626;margin:5px;padding:5px;word-break: normal;white-space: normal;border-radius:10px"));
 
-        let header=build::elem("svg").with(attrs!(("class","poloto"),("width","100%"),("viewBox","0 0 800 500"),("xmlns","http://www.w3.org/2000/svg")));
+        let header = build::elem("svg").with(attrs!(
+            ("class", "poloto"),
+            ("width", "100%"),
+            ("viewBox", "0 0 800 500"),
+            ("xmlns", "http://www.w3.org/2000/svg")
+        ));
 
         let all = header.append(plot);
         let all = div.append(all);
@@ -139,7 +143,7 @@ impl Disper for Custom {
             .append(build::raw_escapable(s));
 
         let all = all.append(text);
-        
-        hypermelon::render(all, w)
+
+        hypermelon::render_escapable(all, w)
     }
 }
