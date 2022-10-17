@@ -260,7 +260,7 @@ pub trait Disper {
         &mut self,
         write: &mut dyn std::fmt::Write,
         dim: [f64; 2],
-        plot: hypermelon::elem::DynElem,
+        plot: hypermelon::elem::DynamicElement,
         description: &str,
     ) -> std::fmt::Result;
 }
@@ -318,10 +318,10 @@ impl<'a> Html<'a> {
             .map_opt(|_| render_opt)
             .build_and_label((name, x, y));
 
-        use hypermelon::elem::DynamicElem;
+        use hypermelon::elem::DynamicElement;
         
         self.disper
-            .write_graph_disp(self.w, dim, DynamicElem::new(graph).as_dyn(), description)
+            .write_graph_disp(self.w, dim, DynamicElement::new(graph), description)
 
         // let plotter = poloto::quick_fmt_opt!(render_opt, &name, x, y, plots,);
         // let dd = plotter.get_dim();

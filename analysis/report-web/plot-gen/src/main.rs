@@ -119,7 +119,7 @@ impl Disper for Custom {
         &mut self,
         w: &mut dyn std::fmt::Write,
         _dim: [f64; 2],
-        plot: hypermelon::elem::DynElem,
+        plot: hypermelon::elem::DynamicElement,
         description: &str,
     ) -> std::fmt::Result {
         let div=build::elem("div").with(("style","max-width:400px;width:100%;background:#262626;margin:5px;padding:5px;word-break: normal;white-space: normal;border-radius:10px"));
