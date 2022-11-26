@@ -11,12 +11,10 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
     let res = bench_inner(num, grow, num_iter);
 
     let a = plot("no cache")
-        .scatter()
-        .cloned(res.iter().map(|(x, y)| (*x, y.bench)));
+        .scatter(pcloned(res.iter().map(|(x, y)| (*x, y.bench))));
 
     let b = plot("cached")
-        .scatter()
-        .cloned(res.iter().map(|(x, y)| (*x, y.collect)));
+        .scatter(pcloned(res.iter().map(|(x, y)| (*x, y.collect))));
 
     emp.write_graph(
         None,

@@ -56,23 +56,17 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
 
             let p = plots!(
                 plot("c default")
-                    .scatter()
-                    .cloned(res1.iter().map(|(i, x, _)| (i, x))),
+                    .scatter(pcloned(res1.iter().map(|(i, x, _)| (i, x)))),
                 plot("c direct")
-                    .scatter()
-                    .cloned(res2.iter().map(|(i, x, _)| (i, x))),
+                    .scatter(pcloned(res2.iter().map(|(i, x, _)| (i, x)))),
                 plot("c indirect")
-                    .scatter()
-                    .cloned(res3.iter().map(|(i, x, _)| (i, x))),
+                    .scatter(pcloned(res3.iter().map(|(i, x, _)| (i, x)))),
                 plot("q default")
-                    .scatter()
-                    .cloned(res1.iter().map(|(i, _, x)| (i, x))),
+                    .scatter(pcloned(res1.iter().map(|(i, _, x)| (i, x)))),
                 plot("q direct")
-                    .scatter()
-                    .cloned(res2.iter().map(|(i, _, x)| (i, x))),
+                    .scatter(pcloned(res2.iter().map(|(i, _, x)| (i, x)))),
                 plot("q indirect")
-                    .scatter()
-                    .cloned(res3.iter().map(|(i, _, x)| (i, x))),
+                    .scatter(pcloned(res3.iter().map(|(i, _, x)| (i, x)))),
                 poloto::build::origin()
             );
 

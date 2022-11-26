@@ -22,6 +22,7 @@ pub mod prelude {
     pub use broccoli::aabb::ManySwappable;
     pub use datanum::DnumManager;
     pub use poloto::build::plot;
+    pub use poloto::build::cloned as pcloned;
 }
 pub trait ColfindHandler: Aabb + ManySwap + HasInner {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>);

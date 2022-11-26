@@ -10,7 +10,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
     let num_level = broccoli::num_level::default(num);
 
     let res = bench_inner(num, 3, num_level + 4, grow);
-    let l1 = plot("").scatter().cloned(res.iter().map(|&(i, r)| (i, r)));
+    let l1 = plot("").scatter(pcloned(res.iter().map(|&(i, r)| (i, r))));
 
     let m = poloto::build::markers([], [0.0]);
 
@@ -50,7 +50,7 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
     let num_level = broccoli::num_level::default(num);
 
     let res = theory_inner(man, num, 3, num_level + 4, grow);
-    let l1 = plot("").scatter().cloned(res.iter().map(|&(i, r)| (i, r)));
+    let l1 = plot("").scatter(pcloned(res.iter().map(|&(i, r)| (i, r))));
 
     let m = poloto::build::markers([], [0]);
 
@@ -103,12 +103,10 @@ pub fn optimal(emp: &mut Html) -> std::fmt::Result {
         let res = optimal_inner(num, grow);
 
         let l1 = plot("optimal")
-            .scatter()
-            .cloned(res.iter().map(|(i, r)| (*i, r.optimal_height)));
+            .scatter(pcloned(res.iter().map(|(i, r)| (*i, r.optimal_height))));
 
         let l2 = plot("heur")
-            .scatter()
-            .cloned(res.iter().map(|(i, r)| (*i, r.heur_height)));
+            .scatter(pcloned(res.iter().map(|(i, r)| (*i, r.heur_height))));
 
         emp.write_graph(
             Some("height"),

@@ -11,10 +11,10 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
 
     let res = theory_inner(man, num, grow);
     let p=plots!(
-        plot("tree_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.0))),
-        plot("tree_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.1))),
-        plot("nosort_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.nosort.0))),
-        plot("nosort_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.nosort.1))),
+        plot("tree_r").scatter(pcloned(res.iter().map(|(i, r)| (i, r.tree.0)))),
+        plot("tree_q").scatter(pcloned(res.iter().map(|(i, r)| (i, r.tree.1)))),
+        plot("nosort_r").scatter(pcloned(res.iter().map(|(i, r)| (i, r.nosort.0)))),
+        plot("nosort_q").scatter(pcloned(res.iter().map(|(i, r)| (i, r.nosort.1)))),
         poloto::build::origin()
     );
 
@@ -39,10 +39,10 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
     let res = bench_inner(num, grow);
 
     let p=plots!(
-        plot("tree_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.0))),
-        plot("tree_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.1))),
-        plot("nosort_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.nosort.0))),
-        plot("nosort_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.nosort.1))),
+        plot("tree_r").scatter(pcloned(res.iter().map(|(i, r)| (i, r.tree.0)))),
+        plot("tree_q").scatter(pcloned(res.iter().map(|(i, r)| (i, r.tree.1)))),
+        plot("nosort_r").scatter(pcloned(res.iter().map(|(i, r)| (i, r.nosort.0)))),
+        plot("nosort_q").scatter(pcloned(res.iter().map(|(i, r)| (i, r.nosort.1)))),
         poloto::build::origin()
     );
 
@@ -57,10 +57,10 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
 
 
     let p=plots!(
-        plot("tree_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.0))),
-        plot("tree_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.tree.1))),
-        plot("par_tree_r").scatter().cloned(res.iter().map(|(i, r)| (i, r.par_tree.0))),
-        plot("par_tree_q").scatter().cloned(res.iter().map(|(i, r)| (i, r.par_tree.1))),
+        plot("tree_r").scatter(pcloned(res.iter().map(|(i, r)| (i, r.tree.0)))),
+        plot("tree_q").scatter(pcloned(res.iter().map(|(i, r)| (i, r.tree.1)))),
+        plot("par_tree_r").scatter(pcloned(res.iter().map(|(i, r)| (i, r.par_tree.0)))),
+        plot("par_tree_q").scatter(pcloned(res.iter().map(|(i, r)| (i, r.par_tree.1)))),
         poloto::build::origin()
     );
 

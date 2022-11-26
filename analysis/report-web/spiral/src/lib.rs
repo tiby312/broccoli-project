@@ -11,8 +11,8 @@ pub fn num_intersection(emp: &mut Html) -> std::fmt::Result {
     let res = num_intersection_inner(n, 2.0);
 
     let p = plots!(
-        plot("").scatter().cloned(res.iter()),
-        plot("n").line().cloned((0..10_000).map(|x| [x, x])),
+        plot("").scatter(pcloned(res.iter())),
+        plot("n").line(pcloned((0..10_000).map(|x| [x, x]))),
         poloto::build::markers([], [0])
     );
 
@@ -35,9 +35,8 @@ pub fn handle_grow(emp: &mut Html) -> std::fmt::Result {
     let res = handle_grow_inner(n, 0.5, 2.0);
 
     let p = plots!(
-        plot("").scatter().cloned(res.iter()),
-        plot("n*2").line().cloned([(0.5, 10_000 * 2), (2.0, 10_000 * 2)]
-        .iter()),
+        plot("").scatter(pcloned(res.iter())),
+        plot("n*2").line(pcloned([(0.5, 10_000 * 2), (2.0, 10_000 * 2)])),
         poloto::build::markers([], [0])
     );
 
@@ -60,7 +59,7 @@ pub fn handle_visualize(emp: &mut Html) -> std::fmt::Result {
     let res = handle_visualize_inner(2.0, n);
 
     let p = plots!(
-        plot("").scatter().cloned(res.iter()),
+        plot("").scatter(pcloned(res.iter())),
         poloto::build::markers([], [0.0])
     );
 
