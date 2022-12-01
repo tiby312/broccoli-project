@@ -26,20 +26,19 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
 
     let num_level = res[0].1.rebal.len();
 
-    let rebals: Vec<_> = (0..num_level)
+    let rebals = (0..num_level)
         .map(|i| {
             plot(hypermelon::format_move!("level {}", i)).line_fill(pcloned(res
                 .iter()
                 .map(move |(x, y)| (*x, y.rebal[i]))))
-        })
-        .collect();
+        });
 
     emp.write_graph(
         Some("levels"),
         "rebal",
         "grow",
         "number comparisons",
-        poloto::build::plots_dyn(rebals),
+        rebals,
         &description,
     )?;
 
@@ -47,20 +46,19 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
         Comparison of querying for different levels for `abspiral({num},grow)`
     "#};
 
-    let queries: Vec<_> = (0..num_level)
+    let queries = (0..num_level)
         .map(|i| {
             plot(hypermelon::format_move!("level {}",i)).line_fill(pcloned(res
                 .iter()
                 .map(move |(x, y)| (*x, y.query[i]))))
-        })
-        .collect();
+        });
 
     emp.write_graph(
         Some("levels"),
         "query",
         "grow",
         "number of comparisons",
-        poloto::build::plots_dyn(queries),
+        queries,
         &description,
     )
 }
@@ -74,20 +72,19 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
 
     let num_level = res[0].1.rebal.len();
 
-    let rebals: Vec<_> = (0..num_level)
+    let rebals = (0..num_level)
         .map(|i| {
             plot(hypermelon::format_move!("level {}",i)).line_fill(pcloned(res
                 .iter()
                 .map(move |(x, y)| (*x, y.rebal[i]))))
-        })
-        .collect();
+        });
 
     emp.write_graph(
         Some("levels"),
         "rebal",
         "grow",
         "time taken (seconds)",
-        poloto::build::plots_dyn(rebals),
+        rebals,
         &description,
     )?;
 
@@ -95,20 +92,19 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
             Comparison of querying for different levels for `abspiral({num},grow)`
         "#};
 
-    let queries: Vec<_> = (0..num_level)
+    let queries = (0..num_level)
         .map(|i| {
             plot(hypermelon::format_move!("level {}",i)).line_fill(pcloned(res
                 .iter()
                 .map(move |(x, y)| (*x, y.query[i]))))
-        })
-        .collect();
+        });
 
     emp.write_graph(
         Some("levels"),
         "query",
         "grow",
         "time taken (seconds)",
-        poloto::build::plots_dyn(queries),
+        queries,
         &description,
     )
 }

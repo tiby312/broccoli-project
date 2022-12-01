@@ -118,7 +118,7 @@ impl ColfindHandler for Dummy<u32, u32> {
     }
 }
 
-use poloto::plotnum::PlotNum;
+use poloto::build::Point;
 use prelude::*;
 
 pub mod dist {
@@ -277,29 +277,29 @@ impl<'a> Html<'a> {
         }
     }
 
-    pub fn write_graph<X: PlotNum + HasDefaultTicks, Y: PlotNum + HasDefaultTicks>(
+    pub fn write_graph<L:Point>(
         &mut self,
         group: Option<&str>,
         name: impl std::fmt::Display,
         x: impl std::fmt::Display,
         y: impl std::fmt::Display,
-        plots: impl poloto::build::PlotIterator<X = X, Y = Y>,
+        plots: impl poloto::build::PlotIterator<L=L>,
         description: &str,
-    ) -> std::fmt::Result {
+    ) -> std::fmt::Result  where L::X:HasDefaultTicks,L::Y:HasDefaultTicks{
         let render_opt = poloto::render::render_opt();
         self.write_graph_ext(render_opt, group, name, x, y, plots, description)
     }
 
-    pub fn write_graph_ext<X: PlotNum + HasDefaultTicks, Y: PlotNum + HasDefaultTicks>(
+    pub fn write_graph_ext<L:Point>(
         &mut self,
         render_opt: poloto::render::RenderOptions,
         group: Option<&str>,
         name: impl std::fmt::Display,
         x: impl std::fmt::Display,
         y: impl std::fmt::Display,
-        plots: impl poloto::build::PlotIterator<X = X, Y = Y>,
+        plots: impl poloto::build::PlotIterator<L=L>,
         description: &str,
-    ) -> std::fmt::Result {
+    ) -> std::fmt::Result  where L::X:HasDefaultTicks,L::Y:HasDefaultTicks{
         let name = if let Some(group) = group {
             format!("{}:{}", group, name)
         } else {
