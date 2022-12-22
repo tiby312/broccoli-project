@@ -35,7 +35,6 @@ pub enum MEvent {
 pub async fn main_entry() {
     use futures::StreamExt;
 
-    log!("demo start");
 
     let (canvas, next_button, shutdown_button) = (
         utils::get_by_id_canvas("mycanvas"),
@@ -44,9 +43,9 @@ pub async fn main_entry() {
     );
 
     let offscreen = canvas.transfer_control_to_offscreen().unwrap_throw();
-
-    let (mut worker, mut response) = shogo::EngineMain::new(offscreen).await;
-
+    let j=shogo::EngineMain::new("./demo_worker.js",offscreen);
+    let (mut worker, mut response) = j.await;
+    
     let _handler = worker.register_event(&canvas, "mousemove", |e| {
         let [x, y] = convert_coord(e.elem, e.event);
         MEvent::CanvasMouseMove { x, y }
@@ -79,12 +78,13 @@ pub async fn worker_entry() {
     let mut curr = demo_iter.next(area, &ctx);
 
     let check_naive = false;
-
     'outer: loop {
         for e in frame_timer.next().await {
             match e {
                 MEvent::CanvasMouseMove { x, y } => mouse_pos = [*x, *y],
-                MEvent::NextButtonClick => curr = demo_iter.next(area, &ctx),
+                MEvent::NextButtonClick => {
+                    curr = demo_iter.next(area, &ctx)
+                },
                 MEvent::ShutdownClick => break 'outer,
             }
         }
