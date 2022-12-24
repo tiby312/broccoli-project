@@ -333,7 +333,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         for bot in k.iter() {
             s.rect(bot.0);
         }
-        buffer.update_and_clear(&mut verts);
+        buffer.update_clear(&mut verts);
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 

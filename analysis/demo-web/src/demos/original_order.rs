@@ -122,9 +122,9 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 
         let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
-        buffer.update_and_clear(&mut verts);
+        buffer.update_clear(&mut verts);
         camera.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.3]);
-        buffer.update_and_clear(&mut verts2);
+        buffer.update_clear(&mut verts2);
         camera.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.3]);
 
         tree.find_colliding_pairs(|a, b| {
@@ -135,7 +135,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         for bot in bots.iter() {
             verts.push(bot.pos.into());
         }
-        buffer.update_and_clear(&mut verts);
+        buffer.update_clear(&mut verts);
         camera.draw_circles(&buffer, radius, &[1.0, 1.0, 0.0, 0.6]);
 
         let mut j = simple2d::shapes(&mut verts);
@@ -146,7 +146,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 bot.pos + vec2(0.0, (bot.id % 100) as f32) * 0.1,
             );
         }
-        buffer.update_and_clear(&mut verts);
+        buffer.update_clear(&mut verts);
         camera.draw_triangles(&buffer, &[0.0, 0.0, 0.0, 0.7]);
 
         ctx.flush();

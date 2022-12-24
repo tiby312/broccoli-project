@@ -60,7 +60,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         }
 
         verts.extend(bots.iter().map(|x| <[f32; 2]>::from(x.pos)));
-        buffer.update_and_clear(&mut verts);
+        buffer.update_clear(&mut verts);
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 

@@ -50,7 +50,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         for bot in walls.iter() {
             s.rect(bot.rect);
         }
-        ctx.buffer_static_and_clear(&mut verts)
+        ctx.buffer_static_clear(&mut verts)
     };
 
     let mut buffer = ctx.buffer_dynamic();
@@ -89,7 +89,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             let test = tree.cast_ray(ray, &mut handler);
             drop(handler);
 
-            buffer.update_and_clear(&mut verts);
+            buffer.update_clear(&mut verts);
             cam.draw_triangles(&buffer, &[4.0, 0.0, 0.0, 0.4]);
             test
         };
@@ -102,7 +102,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let end = ray.point_at_tval(mag);
 
         simple2d::shapes(&mut verts).line(2.0, ray.point, end);
-        buffer.update_and_clear(&mut verts);
+        buffer.update_clear(&mut verts);
         cam.draw_triangles(&buffer, &[1.0, 1.0, 1.0, 0.2]);
 
         ctx.flush();

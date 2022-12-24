@@ -44,7 +44,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     for &wall in walls.iter() {
         a.rect(wall);
     }
-    let rect_save = ctx.buffer_static_and_clear(&mut verts);
+    let rect_save = ctx.buffer_static_clear(&mut verts);
 
     let mut buffer = ctx.buffer_dynamic();
 
@@ -129,7 +129,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         for bot in bots.iter() {
             verts.push(bot.pos.into());
         }
-        buffer.update_and_clear(&mut verts);
+        buffer.update_clear(&mut verts);
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 

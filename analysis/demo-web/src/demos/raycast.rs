@@ -52,7 +52,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             let k: [f32; 2] = b.0 .1.into();
             verts.push(k);
         }
-        ctx.buffer_static_and_clear(&mut verts)
+        ctx.buffer_static_clear(&mut verts)
     };
 
     let tree_data = broccoli::Tree::new(&mut centers).get_tree_data();
@@ -117,7 +117,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             s.line(line_width, end, ray.point);
         }
 
-        buffer.update_and_clear(&mut verts);
+        buffer.update_clear(&mut verts);
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 

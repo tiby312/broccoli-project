@@ -68,7 +68,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         s.rect(bot.rect.inner_as());
     }
 
-    let rect_save = ctx.buffer_static_and_clear(&mut verts);
+    let rect_save = ctx.buffer_static_clear(&mut verts);
 
     let tree_data = broccoli::Tree::new(&mut bots).get_tree_data();
 
@@ -106,7 +106,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             let k = tree.find_knearest(cursor, 3, &mut handler);
             drop(handler);
 
-            buffer.update_and_clear(&mut verts);
+            buffer.update_clear(&mut verts);
 
             camera.draw_triangles(&buffer, &[1.0, 1.0, 0.0, 0.3]);
 
@@ -117,7 +117,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         for (k, color) in vv.iter().rev().zip(cols.iter()) {
             verts.push(cursor.into());
-            buffer.update_and_clear(&mut verts);
+            buffer.update_clear(&mut verts);
             let radius = k[0].mag.sqrt() * 2.0;
             camera.draw_circles(&buffer, radius, color);
 
@@ -125,7 +125,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             for b in k.iter() {
                 s.rect(b.bot.rect);
             }
-            buffer.update_and_clear(&mut verts);
+            buffer.update_clear(&mut verts);
             camera.draw_triangles(&buffer, color);
         }
 
