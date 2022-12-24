@@ -6,13 +6,13 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .map(|rect| bbox(rect.inner_as::<i32>(), ()))
         .collect::<Vec<_>>();
 
-    let rect_save = {
-        let mut verts = vec![];
-        for bot in bots.iter() {
-            verts.rect(bot.rect.inner_as());
-        }
-        ctx.buffer_static(&verts)
-    };
+    let mut verts = Vec::new();
+
+    let mut a = simple2d::shapes(&mut verts);
+    for bot in bots.iter() {
+        a.rect(bot.rect.inner_as());
+    }
+    let rect_save = ctx.buffer_static_and_clear(&mut verts);
 
     let mut buffer = ctx.buffer_dynamic();
 
@@ -22,6 +22,8 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let DemoData {
             cursor, sys, ctx, ..
         } = data;
+
+        let mut cam = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
 
         let mut tree = broccoli::Tree::from_tree_data(&mut bots, &tree_data);
 
@@ -42,9 +44,10 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         //test MultiRect
 
-        let mut to_draw = Vec::new();
+        let mut to_draw = simple2d::shapes(&mut verts);
+
         tree.find_all_in_rect(AabbPin::new(&mut r1), |_, a| {
-            to_draw.rect(a.rect.inner_as())
+            to_draw.rect(a.rect.inner_as());
         });
 
         let res = if !r1.intersects_rect(&r2) {
@@ -56,25 +59,21 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             false
         };
 
-        let mut cam = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
-
         let col = if res {
             to_draw.rect(r1.inner_as());
             to_draw.rect(r2.inner_as());
             &[0.0, 1.0, 0.0, 0.5]
         } else {
-            to_draw.clear();
             to_draw.rect(r1.inner_as());
             to_draw.rect(r2.inner_as());
-            buffer.update(&to_draw);
             &[1.0, 0.0, 0.0, 0.5]
         };
 
-        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
+        buffer.update_and_clear(&mut verts);
+
+        ctx.draw_clear([0.0; 4]);
 
         cam.draw_triangles(&rect_save, &[0.3, 0.3, 0.3, 0.4]);
-
-        buffer.update(&to_draw);
         cam.draw_triangles(&buffer, col);
 
         ctx.flush();

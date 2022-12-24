@@ -52,8 +52,6 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             check_naive,
         } = data;
 
-        verts.clear();
-
         for b in bots.iter_mut() {
             b.update();
         }
@@ -84,7 +82,8 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         );
 
         let mut verts2 = vec![];
-
+        let mut j = shogo::simple2d::shapes(&mut verts);
+        let mut k = shogo::simple2d::shapes(&mut verts2);
         tree.draw_divider(
             |axis, node, rect, _| {
                 use AxisDyn::*;
@@ -101,7 +100,7 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                         },
                     };
 
-                    verts.rect(r);
+                    j.rect(r);
                 }
 
                 let mid = if let Some(div) = node.div {
@@ -114,21 +113,18 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
                 };
 
                 for b in node.range.iter() {
-                    verts2.line(1.0, b.1.pos, mid);
+                    k.line(1.0, b.1.pos, mid);
                 }
             },
             dim,
         );
 
-        buffer.update(&verts);
-
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 
         let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
-
+        buffer.update_and_clear(&mut verts);
         camera.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.3]);
-
-        buffer.update(&verts2);
+        buffer.update_and_clear(&mut verts2);
         camera.draw_triangles(&buffer, &[0.0, 1.0, 1.0, 0.3]);
 
         tree.find_colliding_pairs(|a, b| {
@@ -136,22 +132,21 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             let _ = duckduckgeo::repel([(a.pos, &mut a.force), (b.pos, &mut b.force)], 0.001, 2.0);
         });
 
-        verts.clear();
         for bot in bots.iter() {
             verts.push(bot.pos.into());
         }
-        buffer.update(&verts);
+        buffer.update_and_clear(&mut verts);
         camera.draw_circles(&buffer, radius, &[1.0, 1.0, 0.0, 0.6]);
 
-        verts.clear();
+        let mut j = simple2d::shapes(&mut verts);
         for bot in bots.iter() {
-            verts.line(
+            j.line(
                 radius * 0.5,
                 bot.pos,
                 bot.pos + vec2(0.0, (bot.id % 100) as f32) * 0.1,
             );
         }
-        buffer.update(&verts);
+        buffer.update_and_clear(&mut verts);
         camera.draw_triangles(&buffer, &[0.0, 0.0, 0.0, 0.7]);
 
         ctx.flush();

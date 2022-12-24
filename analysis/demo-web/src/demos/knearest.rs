@@ -61,17 +61,17 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .map(|rect| bbox(rect, ()))
         .collect::<Vec<_>>();
 
-    let rect_save = {
-        let mut verts = vec![];
-        for bot in bots.iter() {
-            verts.rect(bot.rect.inner_as());
-        }
-        ctx.buffer_static(&verts)
-    };
+    let mut verts = vec![];
+
+    let mut s = simple2d::shapes(&mut verts);
+    for bot in bots.iter() {
+        s.rect(bot.rect.inner_as());
+    }
+
+    let rect_save = ctx.buffer_static_and_clear(&mut verts);
 
     let tree_data = broccoli::Tree::new(&mut bots).get_tree_data();
 
-    let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
 
     move |data| {
@@ -98,8 +98,6 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         let mut tree = broccoli::Tree::from_tree_data(&mut bots, &tree_data);
         broccoli::assert::assert_tree_invariants(&tree);
 
-        verts.clear();
-
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 
         let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
@@ -108,7 +106,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             let k = tree.find_knearest(cursor, 3, &mut handler);
             drop(handler);
 
-            buffer.update(&verts);
+            buffer.update_and_clear(&mut verts);
 
             camera.draw_triangles(&buffer, &[1.0, 1.0, 0.0, 0.3]);
 
@@ -116,18 +114,18 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         };
 
         camera.draw_triangles(&rect_save, &[0.0, 0.1, 0.0, 0.3]);
+
         for (k, color) in vv.iter().rev().zip(cols.iter()) {
-            verts.clear();
             verts.push(cursor.into());
-            buffer.update(&verts);
+            buffer.update_and_clear(&mut verts);
             let radius = k[0].mag.sqrt() * 2.0;
             camera.draw_circles(&buffer, radius, color);
 
-            verts.clear();
+            let mut s = simple2d::shapes(&mut verts);
             for b in k.iter() {
-                verts.rect(b.bot.rect);
+                s.rect(b.bot.rect);
             }
-            buffer.update(&verts);
+            buffer.update_and_clear(&mut verts);
             camera.draw_triangles(&buffer, color);
         }
 

@@ -24,6 +24,8 @@ impl Bot {
 pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 5.0;
 
+    let mut verts = Vec::new();
+
     let mut bots = support::make_rand(dim)
         .take(2000)
         .map(|pos| Bot {
@@ -38,15 +40,12 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .take(10)
         .collect::<Vec<_>>();
 
-    let rect_save = {
-        let mut verts = vec![];
-        for &wall in walls.iter() {
-            verts.rect(wall);
-        }
-        ctx.buffer_static(&verts)
-    };
+    let mut a = simple2d::shapes(&mut verts);
+    for &wall in walls.iter() {
+        a.rect(wall);
+    }
+    let rect_save = ctx.buffer_static_and_clear(&mut verts);
 
-    let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
 
     move |data| {
@@ -127,17 +126,15 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             });
         }
 
-        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
-
-        let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
-
-        camera.draw_triangles(&rect_save, &[0.7, 0.7, 0.7, 0.3]);
-
-        verts.clear();
         for bot in bots.iter() {
             verts.push(bot.pos.into());
         }
-        buffer.update(&verts);
+        buffer.update_and_clear(&mut verts);
+
+        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
+
+        let mut camera = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
+        camera.draw_triangles(&rect_save, &[0.7, 0.7, 0.7, 0.3]);
         camera.draw_circles(&buffer, radius, &[1.0, 0.0, 0.5, 0.3]);
 
         ctx.flush();

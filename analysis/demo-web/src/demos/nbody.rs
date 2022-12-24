@@ -329,11 +329,11 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         }
 
         //Draw bots.
-        verts.clear();
+        let mut s = simple2d::shapes(&mut verts);
         for bot in k.iter() {
-            verts.rect(bot.0);
+            s.rect(bot.0);
         }
-        buffer.update(&verts);
+        buffer.update_and_clear(&mut verts);
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 

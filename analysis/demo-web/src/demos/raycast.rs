@@ -37,6 +37,7 @@ impl<'a> broccoli::queries::raycast::RayCast<ManySwappable<(Rect<f32>, Vec2<f32>
 pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
     let radius = 10.0;
     let line_width = 1.0;
+    let mut verts = vec![];
 
     let mut centers: Vec<_> = support::make_rand(dim)
         .take(200)
@@ -47,17 +48,15 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
         .collect();
 
     let circle_save = {
-        let mut f = vec![];
         for &b in centers.iter() {
             let k: [f32; 2] = b.0 .1.into();
-            f.push(k);
+            verts.push(k);
         }
-        ctx.buffer_static(&f)
+        ctx.buffer_static_and_clear(&mut verts)
     };
 
     let tree_data = broccoli::Tree::new(&mut centers).get_tree_data();
 
-    let mut verts = vec![];
     let mut buffer = ctx.buffer_dynamic();
 
     let mut handler = MyRaycast { radius };
@@ -92,6 +91,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         let mut tree = broccoli::Tree::from_tree_data(&mut centers, &tree_data);
 
+        let mut s = simple2d::shapes(&mut verts);
         for dir in 0..1000i32 {
             let dir = (dir as f32) * (std::f32::consts::TAU / 1000.0);
             let x = (dir.cos() * 20.0) as f32;
@@ -114,12 +114,12 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
             let end = ray.point_at_tval(mag);
 
-            verts.line(line_width, end, ray.point);
+            s.line(line_width, end, ray.point);
         }
 
-        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
+        buffer.update_and_clear(&mut verts);
 
-        buffer.update(&verts);
+        ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 
         let mut cam = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
 

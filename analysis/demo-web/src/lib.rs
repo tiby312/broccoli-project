@@ -5,7 +5,6 @@ use wasm_bindgen::{prelude::*, JsCast};
 
 mod demos;
 mod support;
-
 pub use crate::dists::*;
 use broccoli::aabb::pin::AabbPin;
 pub use broccoli::aabb::*;
@@ -14,6 +13,7 @@ pub use broccoli::axgeom::*;
 pub use broccoli::bbox;
 pub use broccoli::node::*;
 pub use broccoli::*;
+use shogo::simple2d;
 
 pub use crate::demos::Demo;
 pub use crate::demos::DemoData;
@@ -21,7 +21,6 @@ pub use dists::uniform_rand::UniformRandGen;
 pub use duckduckgeo::array2_inner_into;
 pub use duckduckgeo::*;
 pub use shogo::simple2d::CtxWrap;
-pub use shogo::simple2d::Shapes;
 
 ///Common data sent from the main thread to the worker.
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -35,7 +34,6 @@ pub enum MEvent {
 pub async fn main_entry() {
     use futures::StreamExt;
 
-
     let (canvas, next_button, shutdown_button) = (
         utils::get_by_id_canvas("mycanvas"),
         utils::get_by_id_elem("nextbutton"),
@@ -43,9 +41,9 @@ pub async fn main_entry() {
     );
 
     let offscreen = canvas.transfer_control_to_offscreen().unwrap_throw();
-    let j=shogo::EngineMain::new("./demo_worker.js",offscreen);
+    let j = shogo::EngineMain::new("./demo_worker.js", offscreen);
     let (mut worker, mut response) = j.await;
-    
+
     let _handler = worker.register_event(&canvas, "mousemove", |e| {
         let [x, y] = convert_coord(e.elem, e.event);
         MEvent::CanvasMouseMove { x, y }
@@ -82,9 +80,7 @@ pub async fn worker_entry() {
         for e in frame_timer.next().await {
             match e {
                 MEvent::CanvasMouseMove { x, y } => mouse_pos = [*x, *y],
-                MEvent::NextButtonClick => {
-                    curr = demo_iter.next(area, &ctx)
-                },
+                MEvent::NextButtonClick => curr = demo_iter.next(area, &ctx),
                 MEvent::ShutdownClick => break 'outer,
             }
         }

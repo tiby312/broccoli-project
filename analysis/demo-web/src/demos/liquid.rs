@@ -59,9 +59,8 @@ pub fn make_demo(mut dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             b.acc = vec2same(0.0);
         }
 
-        verts.clear();
         verts.extend(bots.iter().map(|x| <[f32; 2]>::from(x.pos)));
-        buffer.update(&verts);
+        buffer.update_and_clear(&mut verts);
 
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 

@@ -43,17 +43,17 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
     let mut counter: f32 = 0.0;
     let tree_data = broccoli::Tree::new(&mut walls).get_tree_data();
+    let mut verts = vec![];
 
     let rect_save = {
-        let mut verts = vec![];
+        let mut s = simple2d::shapes(&mut verts);
         for bot in walls.iter() {
-            verts.rect(bot.rect);
+            s.rect(bot.rect);
         }
-        ctx.buffer_static(&verts)
+        ctx.buffer_static_and_clear(&mut verts)
     };
 
     let mut buffer = ctx.buffer_dynamic();
-    let mut verts = vec![];
 
     move |data| {
         let DemoData {
@@ -79,9 +79,6 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         let mut tree = broccoli::Tree::from_tree_data(&mut walls, &tree_data);
 
-        //Draw the walls
-        verts.clear();
-
         ctx.draw_clear([0.13, 0.13, 0.13, 1.0]);
 
         let mut cam = sys.view(vec2(dim.x.end, dim.y.end), [0.0, 0.0]);
@@ -92,7 +89,7 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
             let test = tree.cast_ray(ray, &mut handler);
             drop(handler);
 
-            buffer.update(&verts);
+            buffer.update_and_clear(&mut verts);
             cam.draw_triangles(&buffer, &[4.0, 0.0, 0.0, 0.4]);
             test
         };
@@ -104,9 +101,8 @@ pub fn make_demo(dim: Rect<f32>, ctx: &CtxWrap) -> impl FnMut(DemoData) {
 
         let end = ray.point_at_tval(mag);
 
-        verts.clear();
-        verts.line(2.0, ray.point, end);
-        buffer.update(&verts);
+        simple2d::shapes(&mut verts).line(2.0, ray.point, end);
+        buffer.update_and_clear(&mut verts);
         cam.draw_triangles(&buffer, &[1.0, 1.0, 1.0, 0.2]);
 
         ctx.flush();
