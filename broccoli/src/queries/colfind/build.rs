@@ -135,7 +135,7 @@ impl PreVec {
     }
 
     ///Take advantage of the big capacity of the original vec.
-    pub fn extract_vec<'a, 'b, T>(&'a mut self) -> Vec<AabbPin<&'b mut T>> {
+    pub fn extract_vec<'b, T>(&mut self) -> Vec<AabbPin<&'b mut T>> {
         let mut v = Vec::new();
         core::mem::swap(&mut v, &mut self.vec);
         revec::convert_empty_vec(v)
