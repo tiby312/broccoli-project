@@ -63,7 +63,7 @@ pub fn handle_visualize(emp: &mut Html) -> std::fmt::Result {
         poloto::build::markers([], [0.0])
     );
 
-    let mut opt = poloto::render::render_opt();
+    let mut opt = poloto::frame();
     opt.preserve_aspect();
     emp.write_graph_ext(
         opt,

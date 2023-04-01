@@ -286,13 +286,13 @@ impl<'a> Html<'a> {
         plots: impl poloto::build::PlotIterator<L=L>,
         description: &str,
     ) -> std::fmt::Result  where L::X:HasDefaultTicks,L::Y:HasDefaultTicks{
-        let render_opt = poloto::render::render_opt();
+        let render_opt = poloto::frame();
         self.write_graph_ext(render_opt, group, name, x, y, plots, description)
     }
 
     pub fn write_graph_ext<L:Point>(
         &mut self,
-        render_opt: poloto::render::RenderOptions,
+        mut render_opt: poloto::render::RenderFrameBuilder,
         group: Option<&str>,
         name: impl std::fmt::Display,
         x: impl std::fmt::Display,
@@ -315,8 +315,7 @@ impl<'a> Html<'a> {
 
         let dim = header.get_viewbox();
 
-        let graph = poloto::data(plots)
-            .map_opt(|_| render_opt)
+        let graph = render_opt.build().data(plots)
             .build_and_label((name, x, y));
 
         use hypermelon::elem::DynamicElement;
