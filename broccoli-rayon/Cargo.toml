@@ -1,6 +1,6 @@
 [package]
 name = "broccoli-rayon"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
@@ -19,6 +19,6 @@ dists = {git="https://github.com/tiby312/dists.git"}
 
 
 [dependencies]
-rayon={version="1.5"}
+rayon={version="1.7"}
 broccoli={path="../broccoli", version="6.0"}
 axgeom = {version="1.12",default-features = false}
