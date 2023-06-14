@@ -73,12 +73,28 @@ mod vistr_mut {
 }
 pub use vistr_mut::VistrMutPin;
 
+
+
+
+pub struct Elems<'a,N,T>{
+    pub rects:&'a [Rect<N>], 
+    pub elems:&'a mut [T]
+}
+
+impl<'a,N,T> Elems<'a,N,T>{
+    pub fn len(&self)->usize{
+        self.rects.len()
+    }
+}
+
+
 ///
 /// The node of a broccoli tree.
 ///
 pub struct Node<'a, T, N> {
+
     /// May or may not be sorted.
-    pub range: AabbPin<&'a mut [T]>,
+    pub range: Elems<'a,N,T>,
 
     /// if range is empty, then value is `[default,default]`.
     /// if range is not empty, then cont is the min max bounds in on the y axis (if the node belongs to the x axis).
@@ -104,9 +120,7 @@ pub struct Node<'a, T, N> {
     pub min_elem: usize,
 }
 impl<'a, T, N: Num> Node<'a, T, N> {
-    pub fn borrow_range(&mut self) -> AabbPin<&mut [T]> {
-        self.range.borrow_mut()
-    }
+    
 
     pub fn as_data(&self) -> NodeData<N> {
         NodeData {
@@ -130,3 +144,5 @@ pub struct NodeData<N: Num> {
     pub min_elem: usize,
     //pub num_elem: usize,
 }
+
+
