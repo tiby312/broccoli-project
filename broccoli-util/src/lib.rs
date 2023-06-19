@@ -16,12 +16,10 @@ pub mod bbox {
     /// objects of the same radius.
     ///
     pub struct BBoxGenInt {
-        radiusx_int: i16,
-        radiusy_int: i16,
+        radius_int: i16,
         min_worldx: f32,
         min_worldy: f32,
-        world_to_intx: f32,
-        world_to_inty: f32,
+        world_to_int: f32,
     }
 
     impl BBoxGenInt {
@@ -33,34 +31,33 @@ pub mod bbox {
             let dimx = world.x.end - world.x.start;
             let dimy = world.y.end - world.y.start;
 
-            let world_to_intx = int_dim / dimx;
-            let world_to_inty = int_dim / dimy;
+            //TODO or max?
+            let dim=dimx.min(dimy);
 
-            let radiusx_int = (radius * world_to_intx).ceil() as i16;
-            let radiusy_int = (radius * world_to_inty).ceil() as i16;
+            let world_to_int = int_dim / dim;
 
+            let radius_int = (radius * world_to_int).ceil() as i16;
+            
             let min_worldx = world.x.start;
             let min_worldy = world.y.start;
 
             BBoxGenInt {
-                radiusx_int,
-                radiusy_int,
+                radius_int,
                 min_worldx,
                 min_worldy,
-                world_to_intx,
-                world_to_inty,
+                world_to_int,
             }
         }
         /// Fast function
         pub fn generate_bbox(&self, [posx, posy]: [f32; 2]) -> Rect<i16> {
-            let x_int = (((posx - self.min_worldx) * self.world_to_intx).round()) as i16;
-            let y_int = (((posy - self.min_worldy) * self.world_to_inty).round()) as i16;
+            let x_int = (((posx - self.min_worldx) * self.world_to_int).round()) as i16;
+            let y_int = (((posy - self.min_worldy) * self.world_to_int).round()) as i16;
 
             Rect::new(
-                x_int - self.radiusx_int,
-                x_int + self.radiusx_int,
-                y_int - self.radiusy_int,
-                y_int + self.radiusy_int,
+                x_int - self.radius_int,
+                x_int + self.radius_int,
+                y_int - self.radius_int,
+                y_int + self.radius_int,
             )
         }
     }
