@@ -3,8 +3,8 @@ pub mod bbox {
 
     ///
     /// Instead of using f32 bbox, this will create a i16 bbox
-    /// given the position of an object. This can have performance
-    /// improvements because the whole bbox fits in 64 bits.
+    /// given the position of an object. This makes a bbox fit into 64bits.
+    /// Integer comparisons are also faster, so there are improvements there also.
     ///
     /// The bbox has to be rounded to fit into i16. It will pick the
     /// smallest i16 bbox that would cover the f32 bbox.
@@ -14,6 +14,12 @@ pub mod bbox {
     ///
     /// Use this when you have a bounded f32 world, filled with
     /// objects of the same radius.
+    /// 
+    /// You want the world you pass it to be as small as possible,
+    /// so as to make each possible value of i16 count. You can image
+    /// each value being a grid line into the word you pass. If the
+    /// world is extremely big such that you are using most of the possible
+    /// values of f32, you are probably better off just using f32.
     ///
     pub struct BBoxGenInt {
         radius_int: i16,
