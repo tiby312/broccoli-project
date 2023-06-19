@@ -48,7 +48,9 @@ pub mod bbox {
                 world_to_int,
             }
         }
+        
         /// Fast function
+        #[inline(always)]
         pub fn generate_bbox(&self, [posx, posy]: [f32; 2]) -> Rect<i16> {
             let x_int = (((posx - self.min_worldx) * self.world_to_int).round()) as i16;
             let y_int = (((posy - self.min_worldy) * self.world_to_int).round()) as i16;
