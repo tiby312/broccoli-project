@@ -83,6 +83,13 @@ impl<const K: usize> ColfindHandler for Dummy<f32, &mut [u8; K]> {
         b.unpack_inner()[0] ^= 1;
     }
 }
+impl<N:Num> ColfindHandler for broccoli::aabb::BBox<N, u32> {
+    fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
+        *a.unpack_inner() ^= 1;
+        *b.unpack_inner() ^= 1;
+    }
+}
+
 
 impl<const K: usize> ColfindHandler for Dummy<f32, [u8; K]> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
