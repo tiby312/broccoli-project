@@ -38,7 +38,7 @@ pub mod bbox {
             let dimy = world.y.end - world.y.start;
 
             //TODO or max?
-            let dim=dimx.min(dimy);
+            let dim=dimx.max(dimy);
 
             let world_to_int = int_dim / dim;
 
