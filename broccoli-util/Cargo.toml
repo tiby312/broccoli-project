@@ -1,0 +1,10 @@
+[package]
+name = "broccoli-util"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axgeom = "1.12.2"
+broccoli = { version = "6.0.3", path = "../broccoli" }

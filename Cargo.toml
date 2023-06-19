@@ -1,3 +1,3 @@
 
 [workspace]
-members = [ "broccoli","broccoli-ext","broccoli-rayon"]
+members = [ "broccoli","broccoli-ext","broccoli-rayon","broccoli-util"]
