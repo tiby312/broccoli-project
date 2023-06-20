@@ -1,5 +1,5 @@
 use support::prelude::*;
-
+use crate::broccoli::build::TreeEmbryo;
 fn single<T: ColfindHandler>(
     bots: &mut [T],
     c_num_seq_fallback: Option<usize>,
@@ -20,17 +20,15 @@ where
 
     let num_level = broccoli::num_level::default(bots.len());
     let (mut tree, cpar) = bench_closure_ret(|| {
-        assert!(num_level >= 1);
-        let num_nodes = broccoli::num_level::num_nodes(num_level);
-        let mut buffer = Vec::with_capacity(num_nodes);
+        let (mut e,v)=TreeEmbryo::with_num_level(bots,num_level);
+
         broccoli_rayon::build::recurse_par(
             sss,
             &mut broccoli::build::DefaultSorter,
-            &mut buffer,
-            broccoli::build::TreeBuildVisitor::new(num_level, bots),
+            &mut e,
+            v,
         );
-        assert_eq!(buffer.len(), num_nodes);
-        Tree::from_nodes(buffer)
+        e.finish()
     });
 
     let cspeedup = cseq as f64 / cpar as f64;

@@ -1,4 +1,5 @@
 use broccoli::aabb::pin::NodeRef;
+use broccoli::build::TreeEmbryo;
 use broccoli::{
     aabb::pin::AabbPin,
     aabb::*,
@@ -39,12 +40,9 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
     where
         T: ManySwap,
     {
-        let num_level = num_level::default(bots.len());
-        let num_nodes = num_level::num_nodes(num_level);
-        let mut nodes = Vec::with_capacity(num_nodes);
-        TreeBuildVisitor::new(num_level, bots).recurse_seq(&mut NoSorter, &mut nodes);
-        assert_eq!(num_nodes, nodes.len());
-        NotSortedTree { nodes }
+        let (mut e,v)=TreeEmbryo::new(bots);
+        e.recurse(v,&mut NoSorter);
+        NotSortedTree::from_nodes(e.into_nodes())
     }
 
     #[inline(always)]
@@ -78,15 +76,17 @@ where
     T::Num: Send,
 {
     fn par_new(bots: &'a mut [T]) -> Self {
-        let num_level = num_level::default(bots.len());
-        let mut buffer = Vec::with_capacity(num_level::num_nodes(num_level));
+
+        let (mut e,v)=TreeEmbryo::new(bots);
+        
         broccoli_rayon::build::recurse_par(
             broccoli_rayon::build::SEQ_FALLBACK_DEFAULT,
             &mut NoSorter,
-            &mut buffer,
-            TreeBuildVisitor::new(num_level, bots),
+            &mut e,
+            v,
         );
-        NotSortedTree::from_nodes(buffer)
+        NotSortedTree::from_nodes(e.into_nodes())
+
     }
 }
 

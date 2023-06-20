@@ -1,4 +1,5 @@
 use support::prelude::*;
+use crate::broccoli::build::TreeEmbryo;
 pub fn bench(emp: &mut Html) -> std::fmt::Result {
     let grow = 2.0;
     let num = 30_000;
@@ -156,17 +157,10 @@ fn new_theory_record<T: ColfindHandler>(
     man.time(|| {
         use broccoli::build::DefaultSorter;
         use broccoli::build::TreeBuildVisitor;
-        let num_level = height;
-        let num_nodes = num_level::num_nodes(num_level);
-        let mut nodes = Vec::with_capacity(num_nodes);
 
-        TreeBuildVisitor::new(num_level, bots).recurse_seq(&mut DefaultSorter, &mut nodes);
-
-        assert_eq!(num_nodes, nodes.len());
-
-        let mut tree = Tree::from_nodes(nodes);
-
-        assert_eq!(tree.num_levels(), height);
+        let (mut e,v)=TreeEmbryo::with_num_level(bots,height);
+        e.recurse(v,&mut DefaultSorter);
+        let mut tree=e.finish();
 
         tree.find_colliding_pairs(T::handle);
     })
@@ -178,15 +172,11 @@ fn new_bench_record<T: ColfindHandler>(bots: &mut [T], height: usize) -> f64 {
     bencher.time(|| {
         use broccoli::build::DefaultSorter;
         use broccoli::build::TreeBuildVisitor;
-        let num_level = height;
-        let num_nodes = num_level::num_nodes(num_level);
-        let mut nodes = Vec::with_capacity(num_nodes);
 
-        TreeBuildVisitor::new(num_level, bots).recurse_seq(&mut DefaultSorter, &mut nodes);
 
-        assert_eq!(num_nodes, nodes.len());
-
-        let mut tree = Tree::from_nodes(nodes);
+        let (mut e,v)=TreeEmbryo::with_num_level(bots,height);
+        e.recurse(v,&mut DefaultSorter);
+        let mut tree=e.finish();
 
         assert_eq!(tree.num_levels(), height);
 

@@ -1,5 +1,5 @@
 use support::broccoli;
-
+use super::*;
 ///A trait that gives the user callbacks at events in a recursive algorithm on the tree.
 ///The main motivation behind this trait was to track the time spent taken at each level of the tree
 ///during construction.
@@ -33,10 +33,10 @@ pub mod build {
         vistr: TreeBuildVisitor<'a, T>,
         splitter: &mut P,
         sorter: &mut S,
-        buffer: &mut Vec<Node<'a, T, T::Num>>,
+        buffer: &mut TreeEmbryo<'a, T, T::Num>,
     ) {
         let NodeBuildResult { node, rest } = vistr.build_and_next();
-        buffer.push(node.finish(sorter));
+        buffer.add(node.finish(sorter));
         if let Some([left, right]) = rest {
             let mut a = splitter.div();
 

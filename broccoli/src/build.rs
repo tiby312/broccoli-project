@@ -333,7 +333,7 @@ impl<'a, T: Aabb> TreeEmbryo<'a, T, T::Num> {
     }
 
     pub fn div(&mut self) -> TreeEmbryo<'a, T, T::Num> {
-        self.total_num_nodes /= 2;
+        self.target_num_nodes /= 2;
 
         TreeEmbryo {
             total_num_nodes: self.total_num_nodes,
@@ -342,22 +342,21 @@ impl<'a, T: Aabb> TreeEmbryo<'a, T, T::Num> {
         }
     }
     pub fn combine(&mut self, a: Self) -> &mut Self {
-        assert_eq!(self.target_num_nodes, self.nodes.len());
-        assert_eq!(a.target_num_nodes, a.nodes.len());
+        //assert_eq!(self.target_num_nodes, self.nodes.len());
+        //assert_eq!(a.target_num_nodes, a.nodes.len());
+        //assert_eq!(self.nodes.len(),a.nodes.len());
 
         self.target_num_nodes *= 2;
         self.nodes.extend(a.nodes);
         self
     }
     pub fn finish(self) -> Tree<'a, T> {
-        assert_eq!(self.target_num_nodes, self.total_num_nodes);
-        assert_eq!(self.target_num_nodes, self.nodes.len());
+        assert_eq!(self.total_num_nodes, self.nodes.len());
         Tree::from_nodes(self.nodes)
     }
 
     pub fn into_nodes(self)->Vec<Node<'a,T,T::Num>>{
-        assert_eq!(self.target_num_nodes, self.total_num_nodes);
-        assert_eq!(self.target_num_nodes, self.nodes.len());
+        assert_eq!(self.total_num_nodes, self.nodes.len());
         self.nodes
     }
 

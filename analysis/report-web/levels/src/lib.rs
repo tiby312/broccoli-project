@@ -2,7 +2,7 @@ use support::datanum::DnumManager;
 use support::prelude::queries::colfind::build::CollisionVisitor;
 use support::prelude::queries::colfind::oned::DefaultNodeHandler;
 use support::prelude::*;
-
+use crate::broccoli::build::TreeEmbryo;
 use self::levelcounter::LevelCounter;
 use self::leveltimer::LevelTimer;
 
@@ -145,20 +145,17 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
 
     let mut levelc = LevelCounter::new(man, 0, vec![]);
     let mut tree = {
-        let num_level = num_level::default(bots.len());
-        let num_nodes = num_level::num_nodes(num_level);
-        let mut nodes = Vec::with_capacity(num_nodes);
+
+        let (mut e,v)=TreeEmbryo::new(bots);
 
         crate::splitter::build::recurse_seq_splitter(
-            TreeBuildVisitor::new(num_level, bots),
+            v,
             &mut levelc,
             &mut DefaultSorter,
-            &mut nodes,
+            &mut e,
         );
 
-        assert_eq!(num_nodes, nodes.len());
-
-        Tree::from_nodes(nodes)
+        e.finish()
     };
 
     // let (mut tree, levelc) =
@@ -196,20 +193,20 @@ fn gen_theory<T: ColfindHandler>(man: &mut DnumManager, bots: &mut [T]) -> Res<i
 fn gen<T: ColfindHandler>(bots: &mut [T]) -> Res<f64> {
     let mut times1 = LevelTimer::new(0, vec![]);
     let mut tree = {
-        let num_level = num_level::default(bots.len());
-        let num_nodes = num_level::num_nodes(num_level);
-        let mut nodes = Vec::with_capacity(num_nodes);
+
+
+        let (mut e,v)=TreeEmbryo::new(bots);
 
         crate::splitter::build::recurse_seq_splitter(
-            TreeBuildVisitor::new(num_level, bots),
+            v,
             &mut times1,
             &mut DefaultSorter,
-            &mut nodes,
+            &mut e,
         );
 
-        assert_eq!(num_nodes, nodes.len());
+        e.finish()
 
-        Tree::from_nodes(nodes)
+
     };
 
     let c1 = times1.into_levels().into_iter().map(|x| x as f64).collect();
