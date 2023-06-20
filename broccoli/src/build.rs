@@ -210,6 +210,9 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                             //keep
                             rr.swap(a, m);
                             m += 1;
+                        }else{
+                            //Its slower with the break
+                            //break;
                         }
                     }
                     rr.split_at_mut(m)
@@ -221,6 +224,10 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
 
                 let mr_len = mr.len();
 
+                //At this point we have:
+                // [ml,ll,mr,rr]
+                //move stuff around so we have:
+                // [ml,mr,ll,rr]
                 {
                     let (_, rest) = bots.split_at_mut(ml_len);
                     let (ll, rest) = rest.split_at_mut(ll_len);
