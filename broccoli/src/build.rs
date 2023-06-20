@@ -134,6 +134,8 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
     pub fn get_bots(&self) -> &[T] {
         self.bots
     }
+
+    #[deprecated(note="Use TreeEmbryo")]
     #[must_use]
     pub fn new(num_levels: usize, bots: &'a mut [T]) -> TreeBuildVisitor<'a, T> {
         assert!(num_levels >= 1);
@@ -280,12 +282,89 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
         }
     }
 
+    #[deprecated(note="Use TreeEmbryo")]
     pub fn recurse_seq<S: Sorter<T>>(self, sorter: &mut S, buffer: &mut Vec<Node<'a, T, T::Num>>) {
         let NodeBuildResult { node, rest } = self.build_and_next();
         buffer.push(node.finish(sorter));
         if let Some([left, right]) = rest {
             left.recurse_seq(sorter, buffer);
             right.recurse_seq(sorter, buffer);
+        }
+    }
+}
+
+pub struct TreeEmbryo<'a, T, N> {
+    total_num_nodes: usize,
+    target_num_nodes: usize,
+    nodes: Vec<Node<'a, T, N>>,
+}
+impl<'a, T: Aabb> TreeEmbryo<'a, T, T::Num> {
+    pub fn new(bots: &'a mut [T]) -> (TreeEmbryo<'a, T, T::Num>, TreeBuildVisitor<'a, T>) {
+        let num_level = num_level::default(bots.len());
+        Self::with_num_level(bots, num_level)
+    }
+    pub fn with_num_level(
+        bots: &'a mut [T],
+        num_levels: usize,
+    ) -> (TreeEmbryo<'a, T, T::Num>, TreeBuildVisitor<'a, T>) {
+        assert!(num_levels >= 1);
+        let v = TreeBuildVisitor {
+            bots,
+            current_height: num_levels - 1,
+            axis: default_axis().to_dyn(),
+        };
+
+        //Minus 1 because the embryo might be split.
+        //all we know is that we will use this embryo for at least half of the
+        //current level.
+        let num_nodes = num_level::num_nodes(num_levels);
+        let nodes = Vec::with_capacity(num_nodes / 2);
+        (
+            TreeEmbryo {
+                total_num_nodes: num_nodes,
+                nodes,
+                target_num_nodes: num_nodes,
+            },
+            v,
+        )
+    }
+    pub fn add(&mut self, node: Node<'a, T, T::Num>) {
+        self.nodes.push(node);
+    }
+
+    pub fn div(&mut self) -> TreeEmbryo<'a, T, T::Num> {
+        self.total_num_nodes /= 2;
+
+        TreeEmbryo {
+            total_num_nodes: self.total_num_nodes,
+            target_num_nodes: self.target_num_nodes,
+            nodes: Vec::with_capacity(self.target_num_nodes / 2),
+        }
+    }
+    pub fn combine(&mut self, a: Self) -> &mut Self {
+        assert_eq!(self.target_num_nodes, self.nodes.len());
+        assert_eq!(a.target_num_nodes, a.nodes.len());
+
+        self.target_num_nodes *= 2;
+        self.nodes.extend(a.nodes);
+        self
+    }
+    pub fn finish(self) -> Tree<'a, T> {
+        assert_eq!(self.target_num_nodes, self.total_num_nodes);
+        assert_eq!(self.target_num_nodes, self.nodes.len());
+        Tree::from_nodes(self.nodes)
+    }
+
+    /// Recuse sequentially
+    pub fn recurse<S: Sorter<T>>(&mut self, a: TreeBuildVisitor<'a, T>, sorter: &mut S)
+    where
+        T: ManySwap,
+    {
+        let NodeBuildResult { node, rest } = a.build_and_next();
+        self.add(node.finish(sorter));
+        if let Some([left, right]) = rest {
+            self.recurse(left, sorter);
+            self.recurse(right, sorter);
         }
     }
 }

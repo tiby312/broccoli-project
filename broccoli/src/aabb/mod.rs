@@ -30,10 +30,10 @@ impl<N> ManySwap for (Rect<N>, u32) {}
 impl<N> ManySwap for (Rect<N>, u64) {}
 
 impl<'a, N, T> ManySwap for BBox<N, &'a mut T> {}
-impl<N> ManySwap for BBox<N,()>{}
-impl<N> ManySwap for BBox<N,u32>{}
-impl<N> ManySwap for BBox<N,u64>{}
-impl<N> ManySwap for BBox<N,usize>{}
+impl<N> ManySwap for BBox<N, ()> {}
+impl<N> ManySwap for BBox<N, u32> {}
+impl<N> ManySwap for BBox<N, u64> {}
+impl<N> ManySwap for BBox<N, usize> {}
 
 ///
 /// Wrapper to opt in to being allowed to be fed to swap intensive algorithms.
@@ -162,7 +162,6 @@ impl<N, T> BBox<N, T> {
         ManySwappable(self)
     }
 }
-
 
 impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;

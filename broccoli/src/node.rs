@@ -76,6 +76,7 @@ pub use vistr_mut::VistrMutPin;
 ///
 /// The node of a broccoli tree.
 ///
+
 pub struct Node<'a, T, N> {
     /// May or may not be sorted.
     pub range: AabbPin<&'a mut [T]>,

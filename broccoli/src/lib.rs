@@ -71,6 +71,7 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
 ///
 /// See [`Tree::get_tree_data()`] and [`Tree::from_tree_data()`]
 ///
+#[derive(Clone)]
 pub struct TreeData<N: Num> {
     nodes: Vec<NodeData<N>>,
 }
@@ -155,18 +156,9 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     where
         T: ManySwap,
     {
-        let num_level = num_level::default(bots.len());
-
-        let num_nodes = num_level::num_nodes(num_level);
-        let mut nodes = Vec::with_capacity(num_nodes);
-
-        TreeBuildVisitor::new(num_level, bots).recurse_seq(&mut DefaultSorter, &mut nodes);
-
-        assert_eq!(num_nodes, nodes.len());
-
-        let t = Tree::from_nodes(nodes);
-        assert_eq!(t.num_levels(), num_level, "num_nodes:{}", num_nodes);
-        t
+        let (mut e, v) = TreeEmbryo::new(bots);
+        e.recurse(v, &mut DefaultSorter);
+        e.finish()
     }
 
     #[inline(always)]

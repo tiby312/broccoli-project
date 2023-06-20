@@ -1,15 +1,13 @@
 use broccoli::{
     aabb::Aabb,
     aabb::ManySwap,
+    build::TreeEmbryo,
     Tree,
     {
         build::Sorter,
         build::{DefaultSorter, NodeBuildResult, TreeBuildVisitor},
-        node::Node,
     },
 };
-
-use broccoli::num_level;
 
 pub trait RayonBuildPar<'a, T: Aabb> {
     //fn par_new_ext(bots: &'a mut [T], num_level: usize, num_seq_fallback: usize) -> Self;
@@ -36,21 +34,9 @@ where
     // }
 
     fn par_new(bots: &'a mut [T]) -> Self {
-        let num_level = num_level::default(bots.len());
-
-        assert!(num_level >= 1);
-        let num_nodes = num_level::num_nodes(num_level);
-        let mut buffer = Vec::with_capacity(num_nodes);
-        recurse_par(
-            SEQ_FALLBACK_DEFAULT,
-            &mut DefaultSorter,
-            &mut buffer,
-            TreeBuildVisitor::new(num_level, bots),
-        );
-        assert_eq!(buffer.len(), num_nodes);
-        Tree::from_nodes(buffer)
-
-        //       Self::par_new_ext(bots, num_level, SEQ_FALLBACK_DEFAULT)
+        let (mut buffer, v) = TreeEmbryo::new(bots);
+        recurse_par(SEQ_FALLBACK_DEFAULT, &mut DefaultSorter, &mut buffer, v);
+        buffer.finish()
     }
 }
 
@@ -69,7 +55,7 @@ pub const SEQ_FALLBACK_DEFAULT: usize = 16;
 pub fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Clone>(
     num_seq_fallback: usize,
     sorter: &mut S,
-    buffer: &mut Vec<Node<'a, T, T::Num>>,
+    buffer: &mut TreeEmbryo<'a, T, T::Num>,
     vistr: TreeBuildVisitor<'a, T>,
 ) where
     S: Send,
@@ -80,29 +66,25 @@ pub fn recurse_par<'a, T: Aabb + ManySwap, S: Sorter<T> + Clone>(
 
     if let Some([left, right]) = rest {
         if node.get_min_elem() <= num_seq_fallback {
-            buffer.push(node.finish(sorter));
-            left.recurse_seq(sorter, buffer);
-            right.recurse_seq(sorter, buffer);
+            buffer.add(node.finish(sorter));
+            buffer.recurse(left, sorter);
+            buffer.recurse(right, sorter);
         } else {
             let mut s2 = sorter.clone();
-            let (_, mut buffer2) = rayon::join(
+            let mut b2 = buffer.div();
+            rayon::join(
                 || {
-                    buffer.push(node.finish(sorter));
+                    buffer.add(node.finish(sorter));
                     recurse_par(num_seq_fallback, sorter, buffer, left);
                 },
                 || {
-                    let num_nodes = num_level::num_nodes(right.get_height() + 1);
-                    let mut buffer2 = Vec::with_capacity(num_nodes);
-                    recurse_par(num_seq_fallback, &mut s2, &mut buffer2, right);
-                    assert_eq!(num_nodes, buffer2.len());
-                    buffer2
+                    recurse_par(num_seq_fallback, &mut s2, &mut b2, right);
                 },
             );
 
-            buffer.append(&mut buffer2);
-            //sorter.add(s2)
+            buffer.combine(b2);
         }
     } else {
-        buffer.push(node.finish(sorter));
+        buffer.add(node.finish(sorter));
     }
 }

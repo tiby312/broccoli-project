@@ -1,7 +1,7 @@
 pub mod bbox {
     use axgeom::Rect;
 
-    type Int=u16;
+    type Int = u16;
     ///
     /// Instead of using f32 bbox, this will create a u16 bbox
     /// given the position of an object. This makes a bbox fit into 64bits.
@@ -15,7 +15,7 @@ pub mod bbox {
     ///
     /// Use this when you have a bounded f32 world, filled with
     /// objects of the same radius.
-    /// 
+    ///
     /// You want the world you pass it to be as small as possible,
     /// so as to make each possible value of u16 count. You can image
     /// each value being a grid line into the word you pass. If the
@@ -39,12 +39,12 @@ pub mod bbox {
             let dimy = world.y.end - world.y.start;
 
             //TODO or max?
-            let dim=dimx.max(dimy);
+            let dim = dimx.max(dimy);
 
             let world_to_int = int_dim / dim;
 
             let radius_int = (radius * world_to_int).ceil() as Int;
-            
+
             let min_worldx = world.x.start;
             let min_worldy = world.y.start;
 
@@ -56,7 +56,7 @@ pub mod bbox {
                 world_to_int,
             }
         }
-        
+
         /// Fast function
         #[inline(always)]
         pub fn generate_bbox(&self, [posx, posy]: [f32; 2]) -> Rect<Int> {
