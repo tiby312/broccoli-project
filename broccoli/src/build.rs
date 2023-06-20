@@ -355,6 +355,12 @@ impl<'a, T: Aabb> TreeEmbryo<'a, T, T::Num> {
         Tree::from_nodes(self.nodes)
     }
 
+    pub fn into_nodes(self)->Vec<Node<'a,T,T::Num>>{
+        assert_eq!(self.target_num_nodes, self.total_num_nodes);
+        assert_eq!(self.target_num_nodes, self.nodes.len());
+        self.nodes
+    }
+
     /// Recuse sequentially
     pub fn recurse<S: Sorter<T>>(&mut self, a: TreeBuildVisitor<'a, T>, sorter: &mut S)
     where
