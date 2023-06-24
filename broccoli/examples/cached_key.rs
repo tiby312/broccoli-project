@@ -2,8 +2,7 @@ use broccoli::rect;
 fn main() {
     let mut inner = [0, 4, 8];
 
-    let mut cached = broccoli::Tree::new_by_cached_key(&mut inner, |&a| rect(a, a + 5, 0, 10));
-    let mut tree = cached.build();
+    broccoli::from_cached_key!(tree,&mut inner, |&a| rect(a, a + 5, 0, 10));    
 
     // Find all colliding aabbs.
     tree.find_colliding_pairs(|a, b| {
