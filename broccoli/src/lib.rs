@@ -76,14 +76,13 @@ pub struct TreeData<N: Num> {
     nodes: Vec<NodeData<N>>,
 }
 
-
 ///
 /// Use a macro to save a step build the Cache and calling build on it.
-/// 
+///
 #[macro_export]
 macro_rules! from_cached_key {
     ( $x:ident ,$y:expr,$z:expr) => {
-        let mut $x=$crate::Tree::new_by_cached_key($y, $z);
+        let mut $x = $crate::Tree::new_by_cached_key($y, $z);
         let mut $x = $x.build();
     };
 }

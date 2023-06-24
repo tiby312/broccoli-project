@@ -51,6 +51,26 @@ fn main() {
 }
 ```
 
+### Cached Key Example
+
+For more convinience you can use the cached_key interface:
+
+```
+fn main() {
+    let mut inner = [0, 4, 8];
+
+    broccoli::from_cached_key!(tree, &mut inner, |&a| broccoli::rect(a, a + 5, 0, 10));
+
+    tree.find_colliding_pairs(|a, b| {
+        *a.unpack_inner() += 1;
+        *b.unpack_inner() += 1;
+    });
+
+    // bboxes 1st and 2nd intersect, as well as 2nd and 3rd.
+    assert_eq!(inner, [0 + 1, 4 + 2, 8 + 1]);
+}
+```
+
 
  ### Size of `T` in `Tree`
 
