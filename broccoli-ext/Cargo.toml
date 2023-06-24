@@ -1,6 +1,6 @@
 [package]
 name = "broccoli-ext"
-version = "0.7.2"
+version = "0.8.0"
 edition = "2021"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"

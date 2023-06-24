@@ -1,6 +1,6 @@
 [package]
 name = "broccoli-rayon"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
