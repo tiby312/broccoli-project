@@ -135,7 +135,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
         self.bots
     }
 
-    #[deprecated(note="Use TreeEmbryo")]
+    #[deprecated(note = "Use TreeEmbryo")]
     #[must_use]
     pub fn new(num_levels: usize, bots: &'a mut [T]) -> TreeBuildVisitor<'a, T> {
         assert!(num_levels >= 1);
@@ -210,7 +210,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                             //keep
                             rr.swap(a, m);
                             m += 1;
-                        }else{
+                        } else {
                             //Its slower with the break
                             //break;
                         }
@@ -289,7 +289,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
         }
     }
 
-    #[deprecated(note="Use TreeEmbryo")]
+    #[deprecated(note = "Use TreeEmbryo")]
     pub fn recurse_seq<S: Sorter<T>>(self, sorter: &mut S, buffer: &mut Vec<Node<'a, T, T::Num>>) {
         let NodeBuildResult { node, rest } = self.build_and_next();
         buffer.push(node.finish(sorter));
@@ -362,7 +362,7 @@ impl<'a, T: Aabb> TreeEmbryo<'a, T, T::Num> {
         Tree::from_nodes(self.nodes)
     }
 
-    pub fn into_nodes(self)->Vec<Node<'a,T,T::Num>>{
+    pub fn into_nodes(self) -> Vec<Node<'a, T, T::Num>> {
         assert_eq!(self.total_num_nodes, self.nodes.len());
         self.nodes
     }

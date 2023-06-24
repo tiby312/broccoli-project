@@ -77,10 +77,38 @@ pub struct TreeData<N: Num> {
 }
 
 ///
+/// Used by `Tree::new_by_cached_key`
+///
+pub struct Cached<'a, N, T> {
+    rects: Vec<BBoxMut<'a, N, T>>,
+}
+impl<'a, N: Num, T> Cached<'a, N, T> {
+    ///
+    /// Finish building the tree
+    ///
+    pub fn build<'b>(&'b mut self) -> Tree<'b, BBoxMut<'a, N, T>> {
+        Tree::new(&mut self.rects)
+    }
+}
+
+///
 /// A broccoli Tree.
 ///
 pub struct Tree<'a, T: Aabb> {
     nodes: Box<[Node<'a, T, T::Num>]>,
+}
+
+impl<'a, T: 'a, N: Num> Tree<'a, (Rect<N>, &'a mut T)> {
+    ///
+    /// Caches the bboxes one time and sorts them.
+    ///
+    pub fn new_by_cached_key(
+        a: &'a mut [T],
+        mut key: impl FnMut(&T) -> Rect<N>,
+    ) -> Cached<'a, N, T> {
+        let rects = a.iter_mut().map(|a| BBoxMut::new(key(a), a)).collect();
+        Cached { rects }
+    }
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
