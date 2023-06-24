@@ -28,11 +28,9 @@ fn main() {
 
     // Find all colliding aabbs.
     tree.find_colliding_pairs(|a, b| {
-        // We aren't given &mut T reference, but instead of AabbPin<&mut T>.
-        // We call unpack_inner() to extract the portion that we are allowed to mutate.
-        // (We are not allowed to change the bounding box while in the tree)
-        **a.unpack_inner() += 1;
-        **b.unpack_inner() += 1;
+        broccoli::unpack!(a, b);
+        **a += 1;
+        **b += 1;
     });
 
     assert_eq!(inner1, 1);

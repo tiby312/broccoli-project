@@ -77,6 +77,18 @@ pub struct TreeData<N: Num> {
 }
 
 ///
+/// Convenience function to call unpack_inner on any number of arguments.
+///
+#[macro_export]
+macro_rules! unpack {
+    ( $( $x:ident ),* ) => {
+        $(
+            let mut $x = $x.unpack_inner();
+        )*
+    };
+}
+
+///
 /// Use a macro to save a step build the Cache and calling build on it.
 ///
 #[macro_export]

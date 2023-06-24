@@ -23,8 +23,9 @@ fn main() {
 
     //Find all colliding aabbs.
     tree.find_colliding_pairs(|a, b| {
-        **a.unpack_inner() += 1;
-        **b.unpack_inner() += 1;
+        broccoli::unpack!(a, b);
+        **a += 1;
+        **b += 1;
     });
 
     assert_eq!([a, b, c], [1, 1, 2]);
