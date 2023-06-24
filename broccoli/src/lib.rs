@@ -82,13 +82,13 @@ pub struct TreeData<N: Num> {
 #[macro_export]
 macro_rules! from_cached_key {
     ( $x:ident ,$y:expr,$z:expr) => {
-        let mut $x = $crate::Tree::new_by_cached_key($y, $z);
+        let mut $x = $crate::Cached::new_by_cached_key($y, $z);
         let mut $x = $x.build();
     };
 }
 
 ///
-/// Used by `Tree::new_by_cached_key`
+/// Automatically create semi-direct bbox layouts
 ///
 pub struct Cached<'a, N, T> {
     rects: Vec<BBoxMut<'a, N, T>>,
@@ -100,16 +100,7 @@ impl<'a, N: Num, T> Cached<'a, N, T> {
     pub fn build<'b>(&'b mut self) -> Tree<'b, BBoxMut<'a, N, T>> {
         Tree::new(&mut self.rects)
     }
-}
 
-///
-/// A broccoli Tree.
-///
-pub struct Tree<'a, T: Aabb> {
-    nodes: Box<[Node<'a, T, T::Num>]>,
-}
-
-impl<'a, T: 'a, N: Num> Tree<'a, (Rect<N>, &'a mut T)> {
     ///
     /// Caches the bboxes one time and sorts them.
     ///
@@ -120,6 +111,13 @@ impl<'a, T: 'a, N: Num> Tree<'a, (Rect<N>, &'a mut T)> {
         let rects = a.iter_mut().map(|a| BBoxMut::new(key(a), a)).collect();
         Cached { rects }
     }
+}
+
+///
+/// A broccoli Tree.
+///
+pub struct Tree<'a, T: Aabb> {
+    nodes: Box<[Node<'a, T, T::Num>]>,
 }
 
 impl<'a, T: Aabb + 'a> Tree<'a, T> {
