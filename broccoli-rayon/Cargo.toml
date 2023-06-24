@@ -20,5 +20,5 @@ dists = {git="https://github.com/tiby312/dists.git"}
 
 [dependencies]
 rayon={version="1.7"}
-broccoli={path="../broccoli", version="6.1"}
+broccoli={path="../broccoli", version="6.2"}
 axgeom = {version="1.12",default-features = false}

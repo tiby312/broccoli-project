@@ -13,4 +13,4 @@ include = ["src/**/*"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-broccoli={path="../broccoli",version="6.1"}
+broccoli={path="../broccoli",version="6.2"}
