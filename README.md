@@ -55,7 +55,7 @@ fn main() {
 
 For more convinience you can use the cached_key interface:
 
-```
+```rust
 fn main() {
     let mut inner = [0, 4, 8];
 
