@@ -204,9 +204,9 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                 //move stuff around so we have:
                 // [ml,mr,ll,rr]
                 {
-                    let (_,rest)=bots.split_at_mut(ml_len);
-                    let (arr,_)=rest.split_at_mut(ll_len+1+mr_len);
-                    swap_slice_different_sizes(arr,ll_len)
+                    let (_, rest) = bots.split_at_mut(ml_len);
+                    let (arr, _) = rest.split_at_mut(ll_len + 1 + mr_len);
+                    swap_slice_different_sizes(arr, ll_len)
                 }
 
                 let left_len = ll_len;
@@ -366,13 +366,13 @@ fn partition_left<T>(arr: &mut [T], mut func: impl FnMut(&T) -> bool) -> (&mut [
     arr.split_at_mut(m)
 }
 
-
 // swap a (l)(s) to (s)(l)
 // only enough elements of l are moved to swap s in.
-fn swap_slice_different_sizes<T>(arr:&mut [T],l_len:usize){
-    let s_len=arr.len()-l_len;
-    let copy_length=s_len.min(l_len);
-    let (rest,src)=arr.split_at_mut(arr.len()-copy_length);
-    let (target,_)=rest.split_at_mut(copy_length);
+fn swap_slice_different_sizes<T>(arr: &mut [T], l_len: usize) {
+    let s_len = arr.len() - l_len;
+    let copy_length = s_len.min(l_len);
+
+    let (rest, src) = arr.split_at_mut(arr.len() - copy_length);
+    let (target, _) = rest.split_at_mut(copy_length);
     src.swap_with_slice(target);
 }

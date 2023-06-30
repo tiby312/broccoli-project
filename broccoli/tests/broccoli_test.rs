@@ -12,10 +12,17 @@ fn test1() {
                 .take(num_bots)
                 .zip(data.iter_mut())
                 .map(|([x, y], dd)| {
+                    //Exercise more cases .
+                    //Specifically create a scenario where
+                    //there are more bots in a parent node,
+                    //than the children.
+                    // see swap_slice_different_sizes()
+                    let len = if *dd > 1000 && *dd < 4000 { 100 } else { 8 };
+
                     (
                         axgeom::Rect::from_point(
                             axgeom::vec2(x as i64, y as i64),
-                            axgeom::vec2same(8 as i64),
+                            axgeom::vec2same(len as i64),
                         )
                         .into(),
                         dd,
