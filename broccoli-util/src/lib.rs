@@ -1,5 +1,5 @@
 pub mod bbox {
-    use axgeom::Rect;
+    use broccoli::aabb::Rect;
 
     type Int = u16;
     ///

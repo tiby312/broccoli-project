@@ -1,4 +1,3 @@
-use axgeom;
 use broccoli_rayon::queries::colfind::RayonQueryPar;
 #[test]
 fn test1() {

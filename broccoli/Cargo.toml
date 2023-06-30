@@ -1,6 +1,6 @@
 [package]
 name = "broccoli"
-version = "6.2.4"
+version = "6.3.0"
 authors = ["Ken Reed <kenakioreed@gmail.com>"]
 description = "broadphase collision detection algorithms"
 license = "MIT"
@@ -22,7 +22,7 @@ compt = "2.1"
 twounordered = "0.7"
 slice-group-by = "0.3"
 revec = "0.2"
-axgeom = {version="1.12",default-features = false}
+axgeom = {version="1.13",default-features = false}
 
 
 [package.metadata.docs.rs]

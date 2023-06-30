@@ -59,10 +59,7 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
                     std::cmp::Ordering::Greater
                 }
             }) else{
-                return axgeom::Range {
-                    start: Default::default(),
-                    end: Default::default(),
-                }
+                return Default::default()
             };
 
             let Some(end)=middle.iter().map(|a|a.range(axis).end).max_by(|a,b|{
@@ -72,10 +69,7 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
                     std::cmp::Ordering::Less
                 }
             })else{
-                return axgeom::Range {
-                    start: Default::default(),
-                    end: Default::default(),
-                }
+                return Default::default()
             };
 
             axgeom::Range { start, end }
