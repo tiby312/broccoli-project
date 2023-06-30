@@ -191,32 +191,8 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
 
                 let med_val = med.range(div_axis).start;
 
-                let (ml, ll) = {
-                    let mut m = 0;
-                    for a in 0..ll.len() {
-                        if ll[a].range(div_axis).end >= med_val {
-                            //keep
-                            ll.swap(a, m);
-                            m += 1;
-                        }
-                    }
-                    ll.split_at_mut(m)
-                };
-
-                let (mr, rr) = {
-                    let mut m = 0;
-                    for a in 0..rr.len() {
-                        if rr[a].range(div_axis).start <= med_val {
-                            //keep
-                            rr.swap(a, m);
-                            m += 1;
-                        } else {
-                            //Its slower with the break
-                            //break;
-                        }
-                    }
-                    rr.split_at_mut(m)
-                };
+                let (ml, ll) = partition_left(ll, |a| a.range(div_axis).end >= med_val);
+                let (mr, rr) = partition_left(rr, |a| a.range(div_axis).start <= med_val);
 
                 let ml_len = ml.len();
                 let ll_len = ll.len();
@@ -388,4 +364,15 @@ impl<T: Aabb> Sorter<T> for DefaultSorter {
     fn sort(&self, axis: impl Axis, bots: &mut [T]) {
         crate::build::sweeper_update(axis, bots);
     }
+}
+
+fn partition_left<T>(arr: &mut [T], mut func: impl FnMut(&T) -> bool) -> (&mut [T], &mut [T]) {
+    let mut m = 0;
+    for a in 0..arr.len() {
+        if func(&arr[a]) {
+            arr.swap(a, m);
+            m += 1;
+        }
+    }
+    arr.split_at_mut(m)
 }
