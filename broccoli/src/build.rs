@@ -197,7 +197,6 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                 let ml_len = ml.len();
                 let ll_len = ll.len();
                 let rr_len = rr.len();
-
                 let mr_len = mr.len();
 
                 //At this point we have:
@@ -205,24 +204,14 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
                 //move stuff around so we have:
                 // [ml,mr,ll,rr]
                 {
-                    let (_, rest) = bots.split_at_mut(ml_len);
-                    let (ll, rest) = rest.split_at_mut(ll_len);
-                    let (mr2, _) = rest.split_at_mut(1 + mr_len);
-
-                    let (a, b) = if mr2.len() < ll.len() {
-                        let (a, _) = ll.split_at_mut(mr2.len());
-                        (a, mr2)
-                    } else {
-                        let (_, a) = mr2.split_at_mut(mr2.len() - ll.len());
-                        (a, ll)
-                    };
-                    a.swap_with_slice(b);
+                    let (_,rest)=bots.split_at_mut(ml_len);
+                    let (arr,_)=rest.split_at_mut(ll_len+1+mr_len);
+                    swap_slice_different_sizes(arr,ll_len)
                 }
 
                 let left_len = ll_len;
                 let right_len = rr_len;
                 let mid_len = ml_len + 1 + mr_len;
-
                 let middle_left_len = Some(ml_len + 1);
 
                 let (mid, rest) = bots.split_at_mut(mid_len);
@@ -375,4 +364,15 @@ fn partition_left<T>(arr: &mut [T], mut func: impl FnMut(&T) -> bool) -> (&mut [
         }
     }
     arr.split_at_mut(m)
+}
+
+
+// swap a (l)(s) to (s)(l)
+// only enough elements of l are moved to swap s in.
+fn swap_slice_different_sizes<T>(arr:&mut [T],l_len:usize){
+    let s_len=arr.len()-l_len;
+    let copy_length=s_len.min(l_len);
+    let (rest,src)=arr.split_at_mut(arr.len()-copy_length);
+    let (target,_)=rest.split_at_mut(copy_length);
+    src.swap_with_slice(target);
 }
