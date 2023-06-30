@@ -21,4 +21,4 @@ axgeom = {version="1.13",default-features = false}
 
 [dependencies]
 rayon={version="1.7"}
-broccoli={path="../broccoli", version="6.2"}
+broccoli={path="../broccoli", version="6.3"}
