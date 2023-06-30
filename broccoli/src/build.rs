@@ -52,44 +52,35 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
         ) -> axgeom::Range<T::Num> {
             let ml = if let Some(ml) = ml { ml } else { middle.len() };
 
-            match middle.split_first() {
-                Some((first, rest)) => {
-                    let start = {
-                        let mut min = first.range(axis).start;
-
-                        for a in rest[0..ml - 1].iter() {
-                            let start = a.range(axis).start;
-
-                            if start < min {
-                                min = start;
-                            }
-                        }
-                        min
-                    };
-
-                    let end = {
-                        let mut max = first.range(axis).end;
-
-                        //The bots to the right of the divier
-                        //are more likely to  contain the max
-                        //rightmost aabb edge.
-                        for a in rest.iter().rev() {
-                            let k = a.range(axis).end;
-
-                            if k > max {
-                                max = k;
-                            }
-                        }
-                        max
-                    };
-
-                    axgeom::Range { start, end }
+            let Some(start)=middle[0..ml].iter().map(|a|a.range(axis).start).min_by(|a,b|{
+                if a<b{
+                    std::cmp::Ordering::Less
+                }else{
+                    std::cmp::Ordering::Greater
                 }
-                None => axgeom::Range {
+            }) else{
+                return axgeom::Range {
                     start: Default::default(),
                     end: Default::default(),
-                },
-            }
+                }
+            };
+
+            let Some(end)=middle.iter().map(|a|a.range(axis).end).max_by(|a,b|{
+                if a>b{
+                    std::cmp::Ordering::Greater
+                }else{
+                    std::cmp::Ordering::Less
+                }
+            })else{
+                return axgeom::Range {
+                    start: Default::default(),
+                    end: Default::default(),
+                }
+            };
+
+            axgeom::Range { start, end }
+            
+            
         }
 
         let cont = match self.axis {
