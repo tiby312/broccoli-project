@@ -11,16 +11,18 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
     let file = std::fs::File::create(base.join("report").with_extension("html")).unwrap();
 
-    let k=hypermelon::build::from_stack_escapable(|mut w|{
+    let k = hypermelon::build::from_stack_escapable(|mut w| {
         w.put(build::raw_escapable("<!DOCTYPE html>"))?;
-        w.put(build::single("meta")
-        .with(attrs!(
-            ("name", "viewport"),
-            ("content", "width=device-width, initial-scale=1.0")
-        ))
-        .with_ending(""))?;
+        w.put(
+            build::single("meta")
+                .with(attrs!(
+                    ("name", "viewport"),
+                    ("content", "width=device-width, initial-scale=1.0")
+                ))
+                .with_ending(""),
+        )?;
 
-        let mut html=w.push(build::elem("html").with(("style", "background: black;")))?;
+        let mut html = w.push(build::elem("html").with(("style", "background: black;")))?;
 
         let style = build::elem("style").append(include_str!("github-markdown.css"));
 
@@ -31,8 +33,8 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
         let style = style.chain(style2);
 
         html.put(style)?;
-        
-        let mut div=html.push(build::elem("div").with((
+
+        let mut div = html.push(build::elem("div").with((
             "style",
             "display:flex;flex-wrap:wrap;justify-content: center;",
         )))?;
@@ -44,8 +46,7 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
         let mut a = datanum::new_session();
         handle(&mut sys, &mut a)?;
 
-
-        let w=div.pop()?.pop()?;
+        let w = div.pop()?.pop()?;
 
         Ok(w)
     });
