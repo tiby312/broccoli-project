@@ -11,43 +11,43 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
     let file = std::fs::File::create(base.join("report").with_extension("html")).unwrap();
 
-    let k = hypermelon::build::from_closure_escapable(|w| {
-        w.render(build::raw_escapable("<!DOCTYPE html>"))?;
+    let k=hypermelon::build::from_stack_escapable(|mut w|{
+        w.put(build::raw_escapable("<!DOCTYPE html>"))?;
+        w.put(build::single("meta")
+        .with(attrs!(
+            ("name", "viewport"),
+            ("content", "width=device-width, initial-scale=1.0")
+        ))
+        .with_ending(""))?;
 
-        w.render(
-            build::single("meta")
-                .with(attrs!(
-                    ("name", "viewport"),
-                    ("content", "width=device-width, initial-scale=1.0")
-                ))
-                .with_ending(""),
-        )?;
+        let mut html=w.push(build::elem("html").with(("style", "background: black;")))?;
 
-        w.session(build::elem("html").with(("style", "background: black;")))
-            .build(|w| {
-                let style = build::elem("style").append(include_str!("github-markdown.css"));
+        let style = build::elem("style").append(include_str!("github-markdown.css"));
 
-                let style2 = build::elem("style")
-                    .append(poloto::render::Theme::dark().get_str())
-                    .append(".poloto_scatter{stroke-width:3}");
+        let style2 = build::elem("style")
+            .append(poloto::render::Theme::dark().get_str())
+            .append(".poloto_scatter{stroke-width:3}");
 
-                let style = style.chain(style2);
+        let style = style.chain(style2);
 
-                w.render(style)?;
+        html.put(style)?;
+        
+        let mut div=html.push(build::elem("div").with((
+            "style",
+            "display:flex;flex-wrap:wrap;justify-content: center;",
+        )))?;
 
-                w.session(build::elem("div").with((
-                    "style",
-                    "display:flex;flex-wrap:wrap;justify-content: center;",
-                )))
-                .build(|w| {
-                    let mut c = Custom;
-                    let mut j = w.writer_escapable();
-                    let mut sys = Html::new(&mut j, &mut c);
+        let mut c = Custom;
+        let mut j = div.writer_escapable();
+        let mut sys = Html::new(&mut j, &mut c);
 
-                    let mut a = datanum::new_session();
-                    handle(&mut sys, &mut a)
-                })
-            })
+        let mut a = datanum::new_session();
+        handle(&mut sys, &mut a)?;
+
+
+        let w=div.pop()?.pop()?;
+
+        Ok(w)
     });
 
     hypermelon::render_escapable(k, hypermelon::tools::upgrade_write(file))
