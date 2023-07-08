@@ -28,7 +28,7 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
 
     let rebals = (0..num_level)
         .map(|i| {
-            plot(hypermelon::format_move!("level {}", i)).line_fill(pcloned(res
+            plot(tagu::format_move!("level {}", i)).line_fill(pcloned(res
                 .iter()
                 .map(move |(x, y)| (*x, y.rebal[i]))))
         });
@@ -48,7 +48,7 @@ pub fn theory(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
 
     let queries = (0..num_level)
         .map(|i| {
-            plot(hypermelon::format_move!("level {}",i)).line_fill(pcloned(res
+            plot(tagu::format_move!("level {}",i)).line_fill(pcloned(res
                 .iter()
                 .map(move |(x, y)| (*x, y.query[i]))))
         });
@@ -74,7 +74,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
 
     let rebals = (0..num_level)
         .map(|i| {
-            plot(hypermelon::format_move!("level {}",i)).line_fill(pcloned(res
+            plot(tagu::format_move!("level {}",i)).line_fill(pcloned(res
                 .iter()
                 .map(move |(x, y)| (*x, y.rebal[i]))))
         });
@@ -94,7 +94,7 @@ pub fn bench(emp: &mut Html) -> std::fmt::Result {
 
     let queries = (0..num_level)
         .map(|i| {
-            plot(hypermelon::format_move!("level {}",i)).line_fill(pcloned(res
+            plot(tagu::format_move!("level {}",i)).line_fill(pcloned(res
                 .iter()
                 .map(move |(x, y)| (*x, y.query[i]))))
         });

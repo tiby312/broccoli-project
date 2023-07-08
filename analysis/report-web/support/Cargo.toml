@@ -11,4 +11,4 @@ broccoli={path="../../../broccoli"}
 poloto={git="https://github.com/tiby312/poloto-project.git"}
 once_cell="*"
 indoc = "1.0.6"
-hypermelon="*"
+tagu="*"

@@ -8,7 +8,7 @@ pub use indoc;
 pub use poloto;
 pub mod prelude {
     pub use super::*;
-    pub use hypermelon;
+    pub use tagu;
     pub use broccoli::aabb::pin::AabbPin;
     pub use broccoli::axgeom;
     pub use broccoli::axgeom::*;
@@ -268,7 +268,7 @@ pub trait Disper {
         &mut self,
         write: &mut dyn std::fmt::Write,
         dim: [f64; 2],
-        plot: hypermelon::elem::DynamicElement,
+        plot: tagu::elem::DynamicElement,
         description: &str,
     ) -> std::fmt::Result;
 }
@@ -325,7 +325,7 @@ impl<'a> Html<'a> {
         let graph = render_opt.build().data(plots)
             .build_and_label((name, x, y));
 
-        use hypermelon::elem::DynamicElement;
+        use tagu::elem::DynamicElement;
         
         self.disper
             .write_graph_disp(self.w, dim, DynamicElement::new(graph), description)

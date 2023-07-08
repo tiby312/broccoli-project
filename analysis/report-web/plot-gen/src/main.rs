@@ -3,15 +3,15 @@ use support::datanum::DnumManager;
 use support::poloto;
 use support::prelude::*;
 
-use hypermelon::build;
-use hypermelon::prelude::*;
+use tagu::build;
+use tagu::prelude::*;
 fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
     let base = base.as_ref();
     std::fs::create_dir_all(base).unwrap();
 
     let file = std::fs::File::create(base.join("report").with_extension("html")).unwrap();
 
-    let k = hypermelon::build::from_stack_escapable(|mut w| {
+    let k = tagu::build::from_stack_escapable(|mut w| {
         w.put(build::raw_escapable("<!DOCTYPE html>"))?;
         w.put(
             build::single("meta")
@@ -51,7 +51,7 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
         Ok(w)
     });
 
-    hypermelon::render_escapable(k, hypermelon::tools::upgrade_write(file))
+    tagu::render_escapable(k, tagu::tools::upgrade_write(file))
 }
 
 pub fn handle(emp: &mut Html, man: &mut DnumManager) -> std::fmt::Result {
@@ -120,7 +120,7 @@ impl Disper for Custom {
         &mut self,
         w: &mut dyn std::fmt::Write,
         _dim: [f64; 2],
-        plot: hypermelon::elem::DynamicElement,
+        plot: tagu::elem::DynamicElement,
         description: &str,
     ) -> std::fmt::Result {
         let div=build::elem("div").with(("style","max-width:400px;width:100%;background:#262626;margin:5px;padding:5px;word-break: normal;white-space: normal;border-radius:10px"));
@@ -145,6 +145,6 @@ impl Disper for Custom {
 
         let all = all.append(text);
 
-        hypermelon::render_escapable(all, w)
+        tagu::render_escapable(all, w)
     }
 }
