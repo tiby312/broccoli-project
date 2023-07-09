@@ -24,11 +24,11 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
 
         let mut html = w.push(build::elem("html").with(("style", "background: black;")))?;
 
-        let style = build::elem("style").append(include_str!("github-markdown.css"));
+        let style = build::elem("style").append(tagu::build::raw(include_str!("github-markdown.css")));
 
         let style2 = build::elem("style")
-            .append(poloto::render::Theme::dark().get_str())
-            .append(".poloto_scatter{stroke-width:3}");
+            .append(tagu::build::raw(poloto::render::Theme::dark().get_str()))
+            .append(tagu::build::raw(".poloto_scatter{stroke-width:3}"));
 
         let style = style.chain(style2);
 
