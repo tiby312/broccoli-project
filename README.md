@@ -175,7 +175,7 @@ cost of each algorithm in general.
 
 Numbers are out of 10 and are just rough made up numbers. For more in-depth analysis, see the
 output of the inner `analysis/report-web/plot-gen` at:
-[https://tiby312.github.io/broccoli_plots/](https://tiby312.github.io/broccoli_plots/)
+[https://tiby312.github.io/broccoli-project/](https://tiby312.github.io/broccoli-project/)
 
 See legacy report (I havent updated it in a while) from `analysis/report-legacy` at:
 [broccoli book](https://tiby312.github.io/broccoli_report).
