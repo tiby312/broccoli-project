@@ -9,7 +9,7 @@ fn foo<P: AsRef<Path>>(base: P) -> std::fmt::Result {
     let base = base.as_ref();
     std::fs::create_dir_all(base).unwrap();
 
-    let file = std::fs::File::create(base.join("report").with_extension("html")).unwrap();
+    let file = std::fs::File::create(base.join("index").with_extension("html")).unwrap();
 
     let k = tagu::build::from_stack_escapable(|mut w| {
         w.put(build::raw_escapable("<!DOCTYPE html>"))?;
@@ -106,7 +106,7 @@ fn main() {
 
     rayon::scope(|s| {
         s.spawn(|_| {
-            foo("../../target/analysis/html").unwrap();
+            foo("../../../docs").unwrap();
         });
     });
 
