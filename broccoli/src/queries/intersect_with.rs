@@ -37,7 +37,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         //The two trees could be recursed at the same time to break up the problem.
 
         for i in other {
-            self.find_all_in_rect(i, |r, a| func(a, r))
+            self.find_all_intersect_rect(i, |r, a| func(a, r))
         }
     }
 }
