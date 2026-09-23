@@ -15,11 +15,7 @@ impl<T> std::ops::Deref for Single<'_,T> {
         self.inner
     }
 }
-// impl<'a, T: HasInner> Single<'a, T> {
-//     pub fn get<'b>(&'b self) -> &T {
-//         self.inner
-//     }
-// }
+
 impl<'a, T: HasInner> Single<'a, T> {
     pub fn unpack(self) -> T::Inner<'a> {
         self.inner.inner()
@@ -30,26 +26,35 @@ impl<'a, T: HasInner> Single<'a, T> {
 }
 
 
-pub struct Collision<'a, T> {
+pub struct Double<'a, T> {
     pub(crate) a: &'a mut T,
     pub(crate) b: &'a mut T,
+}
+impl<'a,T> Double<'a,T>{
+    pub fn split(self)->(Single<'a,T>,Single<'a,T>){
+        (Single{inner:self.a},Single{inner:self.b})
+    }
 }
 
 pub struct UserCollider<F>(pub F);
 
 impl<T: Aabb, F> InnerCollider<T> for UserCollider<F>
 where
-    F: FnMut(&mut Collision<T>),
+    F: FnMut(Double<T>),
 {
     fn collide(&mut self, a: &mut T, b: &mut T) {
-        (self.0)(&mut Collision { a, b });
+        (self.0)( Double { a, b });
     }
 }
 
-impl<'a, T: HasInner> Collision<'a, T> {
-    pub fn unpack<'b>(&'b mut self) -> (T::Inner<'b>, T::Inner<'b>) {
+impl<'a, T: HasInner> Double<'a, T> {
+    pub fn unpack_mut<'b>(&'b mut self) -> (T::Inner<'b>, T::Inner<'b>) {
         (self.a.inner(), self.b.inner())
     }
+    pub fn unpack(self) -> (T::Inner<'a>, T::Inner<'a>) {
+        (self.a.inner(), self.b.inner())
+    }
+
 }
 
 
