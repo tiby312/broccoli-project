@@ -5,18 +5,18 @@
 use super::*;
 
 
-pub struct Single<'a,T>{
-    pub(crate) inner:&'a mut T
+pub struct Single<T>{
+    pub(crate) inner: T
 }
 
-impl<T> std::ops::Deref for Single<'_,T> {
+impl<T> std::ops::Deref for Single<&mut T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         self.inner
     }
 }
 
-impl<'a, T: HasInner> Single<'a, T> {
+impl<'a, T: HasInner> Single<&'a mut T> {
     pub fn unpack(self) -> T::Inner<'a> {
         self.inner.inner()
     }
@@ -26,36 +26,36 @@ impl<'a, T: HasInner> Single<'a, T> {
 }
 
 
-pub struct Double<'a, T> {
-    pub(crate) a: &'a mut T,
-    pub(crate) b: &'a mut T,
-}
-impl<'a,T> Double<'a,T>{
-    pub fn split(self)->(Single<'a,T>,Single<'a,T>){
-        (Single{inner:self.a},Single{inner:self.b})
-    }
-}
+// pub struct Double<'a, T> {
+//     pub(crate) a: &'a mut T,
+//     pub(crate) b: &'a mut T,
+// }
+// impl<'a,T> Double<'a,T>{
+//     pub fn split(self)->(Single<'a,T>,Single<'a,T>){
+//         (Single{inner:self.a},Single{inner:self.b})
+//     }
+// }
 
 pub struct UserCollider<F>(pub F);
 
 impl<T: Aabb, F> InnerCollider<T> for UserCollider<F>
 where
-    F: FnMut(Double<T>),
+    F: FnMut(Single<&mut T>,Single<&mut T>),
 {
     fn collide(&mut self, a: &mut T, b: &mut T) {
-        (self.0)( Double { a, b });
+        (self.0)( Single { inner:a},Single{inner:b });
     }
 }
 
-impl<'a, T: HasInner> Double<'a, T> {
-    pub fn unpack_mut<'b>(&'b mut self) -> (T::Inner<'b>, T::Inner<'b>) {
-        (self.a.inner(), self.b.inner())
-    }
-    pub fn unpack(self) -> (T::Inner<'a>, T::Inner<'a>) {
-        (self.a.inner(), self.b.inner())
-    }
+// impl<'a, T: HasInner> Double<'a, T> {
+//     pub fn unpack_mut<'b>(&'b mut self) -> (T::Inner<'b>, T::Inner<'b>) {
+//         (self.a.inner(), self.b.inner())
+//     }
+//     pub fn unpack(self) -> (T::Inner<'a>, T::Inner<'a>) {
+//         (self.a.inner(), self.b.inner())
+//     }
 
-}
+// }
 
 
 pub struct MyCollider<F>(pub F);

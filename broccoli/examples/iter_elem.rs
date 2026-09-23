@@ -27,8 +27,8 @@ fn main() {
     let mut tree = broccoli::Tree::from_tree_data(&mut aabbs, &data);
 
     // Find all colliding aabbs.
-    tree.find_colliding_pairs(|g| {
-        let (a, b) = g.unpack();
+    tree.find_colliding_pairs(|a,b| {
+        let (a, b) = (a.unpack(), b.unpack());
         
         **a += 1;
         **b += 1;

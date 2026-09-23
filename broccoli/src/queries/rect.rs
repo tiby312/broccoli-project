@@ -9,7 +9,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
     pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: &K,
-        mut closure: impl FnMut( Single<'b,T>),
+        mut closure: impl FnMut( Single<&'b mut T>),
     ) {
         fn rect_recurse<
             'a,
@@ -17,7 +17,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
             A: Axis,
             T: Aabb,
             K: Aabb<Num = T::Num>,
-            F: FnMut( Single<'a,T>),
+            F: FnMut( Single<&'a mut T>),
         >(
             axis: A,
             it: VistrMutPin<'a, Node<'b, T, T::Num>>,
@@ -70,7 +70,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
     pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: &K,
-        mut closure: impl FnMut( Single<'b,T>),
+        mut closure: impl FnMut( Single<&'b mut T>),
     ) {
         rect_recurse(default_axis(), self.vistr_mut(), rect, &mut | a| {
             if rect.get().contains_rect(a.get()) {
@@ -82,7 +82,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
     pub fn find_all_intersect_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: &K,
-        mut closure: impl FnMut(Single<'b,T>),
+        mut closure: impl FnMut(Single<&'b mut T>),
     ) {
         rect_recurse(default_axis(), self.vistr_mut(), rect, &mut | a| {
             if rect.get().get_intersect_rect(a.get()).is_some() {
@@ -100,7 +100,7 @@ fn rect_recurse<
     'a,
     A: Axis,
     T: Aabb,
-    F: FnMut(Single<'a,T>),
+    F: FnMut(Single<&'a mut T>),
     K: Aabb<Num = T::Num>,
 >(
     this_axis: A,
@@ -216,7 +216,7 @@ mod assert {
         pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
             &'b mut self,
             mut rect: &K,
-            mut closure: impl FnMut(Single<'b,T>),
+            mut closure: impl FnMut(Single<&'b mut T>),
         ) {
             for b in self.iter_mut() {
                 if !rect.get().contains_rect(b.get()) {
@@ -227,7 +227,7 @@ mod assert {
         pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
             &'b mut self,
             mut rect: &K,
-            mut closure: impl FnMut(Single<'b,T>),
+            mut closure: impl FnMut(Single<&'b mut T>),
         ) {
             for b in self.iter_mut() {
                 if rect.get().contains_rect(b.get()) {
@@ -238,7 +238,7 @@ mod assert {
         pub fn find_all_intersect_rect<'b, K: Aabb<Num = T::Num>>(
             &'b mut self,
             mut rect: &K,
-            mut closure: impl FnMut(Single<'b,T>),
+            mut closure: impl FnMut(Single<&'b mut T>),
         ) {
             for b in self.iter_mut() {
                 if rect.get().get_intersect_rect(b.get()).is_some() {
