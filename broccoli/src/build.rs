@@ -52,29 +52,31 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
         ) -> axgeom::Range<T::Num> {
             let ml = if let Some(ml) = ml { ml } else { middle.len() };
 
-            let Some(start)=middle[0..ml].iter().map(|a|a.range(axis).start).min_by(|a,b|{
-                if a<b{
-                    std::cmp::Ordering::Less
-                }else{
-                    std::cmp::Ordering::Greater
-                }
-            }) else{
-                return Default::default()
+            let Some(start) = middle[0..ml]
+                .iter()
+                .map(|a| a.range(axis).start)
+                .min_by(|a, b| {
+                    if a < b {
+                        std::cmp::Ordering::Less
+                    } else {
+                        std::cmp::Ordering::Greater
+                    }
+                })
+            else {
+                return Default::default();
             };
 
-            let Some(end)=middle.iter().map(|a|a.range(axis).end).max_by(|a,b|{
-                if a>b{
+            let Some(end) = middle.iter().map(|a| a.range(axis).end).max_by(|a, b| {
+                if a > b {
                     std::cmp::Ordering::Greater
-                }else{
+                } else {
                     std::cmp::Ordering::Less
                 }
-            })else{
-                return Default::default()
+            }) else {
+                return Default::default();
             };
 
             axgeom::Range { start, end }
-            
-            
         }
 
         let cont = match self.axis {
@@ -95,7 +97,7 @@ impl<'a, T: Aabb> NodeFinisher<'a, T> {
             cont,
             min_elem: self.min_elem,
             //num_elem: self.num_elem,
-            range: AabbPin::new(self.mid),
+            range: self.mid,
             div: self.div,
         }
     }

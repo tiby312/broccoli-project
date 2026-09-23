@@ -12,12 +12,10 @@ fn main() {
     let mut tree = broccoli::Tree::new(&mut aabbs);
 
     //Find all colliding aabbs.
-    tree.find_colliding_pairs(|a, b| {
-        let ManySwappable(a) = &*a;
-        let ManySwappable(b) = &*b;
-
-        acc[a.1] += 1;
-        acc[b.1] += 1;
+    tree.find_colliding_pairs(|g| {
+        let (a, b) = g.unpack();
+        acc[*a] += 1;
+        acc[*b] += 1;
     });
 
     assert_eq!(acc, [1, 1, 2]);

@@ -1,73 +1,110 @@
+use axgeom::num_traits::One;
 use twounordered::TwoUnorderedVecs;
 
-use super::CollisionHandler;
+//use super::CollisionHandler;
 use super::*;
 
-//For sweep and prune type algorithms, we can narrow down which bots
-//intersection in one dimension. We also need to check the other direction
-//because we know for sure they are colliding. That is the purpose of
-//this object.
-struct OtherAxisCollider<'a, A: Axis + 'a, F: 'a> {
-    a: &'a mut F,
-    axis: A,
+struct InnerColliderFn<F>(F);
+impl<F: FnMut(&mut T, &mut T), T: Aabb> InnerCollider<T> for InnerColliderFn<F> {
+    fn collide(&mut self, a: &mut T, b: &mut T) {
+        (self.0)(a, b);
+    }
 }
 
-impl<'a, A: Axis + 'a, T: Aabb, F: CollisionHandler<T> + 'a> CollisionHandler<T>
-    for OtherAxisCollider<'a, A, F>
-{
-    #[inline(always)]
-    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        //only check if the opoosite axis intersects.
-        //already know they intersect
-        let a2 = self.axis.next();
-        if a.range(a2).intersects(b.range(a2)) {
-            self.a.collide(a, b);
+impl<F: InnerCollider<T>, T: Aabb> InnerCollider<T> for &mut F {
+    fn collide(&mut self, a: &mut T, b: &mut T) {
+        (*self).collide(a, b);
+    }
+}
+
+struct CheckAxis<A, C> {
+    collider: C,
+    axis: A,
+}
+impl<A: Axis, T: Aabb, C: InnerCollider<T>> InnerCollider<T> for CheckAxis<A, C> {
+    fn collide(&mut self, a: &mut T, b: &mut T) {
+        if a.get()
+            .range(self.axis)
+            .intersects(b.get().range(self.axis))
+        {
+            self.collider.collide(a, b);
         }
     }
 }
 
-pub fn sweep_and_prune<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
-    buffer: &mut Vec<AabbPin<&'a mut T>>,
+// //TODO get rid fo lifetimes
+// //For sweep and prune type algorithms, we can narrow down which bots
+// //intersection in one dimension. We also need to check the other direction
+// //because we know for sure they are colliding. That is the purpose of
+// //this object.
+// struct OtherAxisCollider<'a, A: Axis + 'a, F: 'a> {
+//     a: &'a mut F,
+//     axis: A,
+// }
+
+// impl<'a, A: Axis + 'a, T: HasInner+Aabb, F: CollisionHandler<T> + 'a> InnerCollider<T>
+//     for OtherAxisCollider<'a, A, F>
+// {
+//     #[inline(always)]
+//     fn collide(&mut self, a: &mut T, b: &mut T) {
+//         //only check if the opoosite axis intersects.
+//         //already know they intersect
+//         let a2 = self.axis.next();
+//         if a.get().range(a2).intersects(b.get().range(a2)) {
+//             self.a.collide(a.inner(), b.inner());
+//         }
+//     }
+// }
+
+pub fn sweep_and_prune<'a, A: Axis, T: Aabb + HasInner, F: InnerCollider<T>>(
+    buffer: &mut Vec<&'a mut T>,
     axis: A,
-    bots: AabbPin<&'a mut [T]>,
-    func: &mut F,
+    bots: &'a mut [T],
+    func: F,
 ) {
-    let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
+    assert!(buffer.is_empty());
+    //let k=OneDCollidier(func);
+    let mut b = CheckAxis {
+        collider: func,
+        axis,
+    };
     self::find_iter(buffer, axis, bots, &mut b);
 }
 
 //Calls colliding on all aabbs that intersect and only one aabbs
 //that intsect.
-fn find_2d<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
-    buffer: &mut Vec<AabbPin<&'a mut T>>,
+fn find_2d<'a, A: Axis, T: Aabb, F: InnerCollider<T>>(
+    buffer: &mut Vec<&'a mut T>,
     axis: A,
-    bots: AabbPin<&'a mut [T]>,
+    bots: &'a mut [T],
     func: &mut F,
     check_y: bool,
 ) {
     if check_y {
-        let mut b: OtherAxisCollider<A, _> = OtherAxisCollider { a: func, axis };
+        let mut b = CheckAxis {
+            axis,
+            collider: func,
+        };
         self::find_iter(buffer, axis, bots, &mut b);
     } else {
-        let b = func;
-        self::find_iter(buffer, axis, bots, b);
+        self::find_iter(buffer, axis, bots, func);
     }
 }
 
 struct FindParallel2DBuilder<'a, 'b, A: Axis, T: Aabb> {
-    pub prevec: &'b mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
+    pub prevec: &'b mut TwoUnorderedVecs<Vec<&'a mut T>>,
     pub axis: A,
-    pub bots1: AabbPin<&'a mut [T]>,
-    pub bots2: AabbPin<&'a mut [T]>,
+    pub bots1: &'a mut [T],
+    pub bots2: &'a mut [T],
 }
 
 impl<'a, 'b, A: Axis, T: Aabb> FindParallel2DBuilder<'a, 'b, A, T> {
     #[inline(always)]
     pub fn new(
-        prevec: &'b mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
+        prevec: &'b mut TwoUnorderedVecs<Vec<&'a mut T>>,
         axis: A,
-        bots1: AabbPin<&'a mut [T]>,
-        bots2: AabbPin<&'a mut [T]>,
+        bots1: &'a mut [T],
+        bots2: &'a mut [T],
     ) -> Self {
         FindParallel2DBuilder {
             prevec,
@@ -77,18 +114,18 @@ impl<'a, 'b, A: Axis, T: Aabb> FindParallel2DBuilder<'a, 'b, A, T> {
         }
     }
 
-    pub fn build(self, mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
+    pub fn build(self, mut func: impl InnerCollider<T>) {
         self::find_other_parallel4(self.prevec, self.axis, (self.bots1, self.bots2), &mut func);
     }
 }
 
 fn find_perp_2d1_once<A: Axis, T: Aabb>(
     axis: A, //the axis of r2.
-    mut y: AabbPin<&mut T>,
-    mut r2: AabbPin<&mut [T]>,
-    mut func: impl CollisionHandler<T>,
+    y: &mut T,
+    r2: &mut [T],
+    mut func: impl InnerCollider<T>,
 ) {
-    for y2 in r2.borrow_mut() {
+    for y2 in r2 {
         //Exploit the sorted property, to exit early
         if y.range(axis).end < y2.range(axis).start {
             break;
@@ -96,17 +133,17 @@ fn find_perp_2d1_once<A: Axis, T: Aabb>(
 
         //Because we didnt exit from the previous comparison, we only need to check one thing.
         if y.range(axis).start <= y2.range(axis).end {
-            func.collide(y.borrow_mut(), y2);
+            func.collide(y, y2);
         }
     }
 }
 
 ///Find colliding pairs using the mark and sweep algorithm.
-fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
-    active: &mut Vec<AabbPin<&'a mut T>>,
+fn find_iter<'a, A: Axis, T: Aabb + 'a, F: InnerCollider<T>>(
+    active: &mut Vec<&'a mut T>,
     axis: A,
-    collision_botids: AabbPin<&'a mut [T]>,
-    func: &mut F,
+    collision_botids: &'a mut [T],
+    mut func: &mut F,
 ) {
     use twounordered::RetainMutUnordered;
     //    Create a new temporary list called “activeList”.
@@ -136,7 +173,7 @@ fn find_iter<'a, A: Axis, T: Aabb + 'a, F: CollisionHandler<T>>(
                     .intersects(that_bot.get_range(axis.next())),"{:?} {:?}",curr_bot
                     .get_range(axis.next()),that_bot.get_range(axis.next()));
                 */
-                func.collide(curr_bot.borrow_mut(), that_bot.borrow_mut());
+                func.collide(curr_bot, that_bot);
                 true
             } else {
                 false
@@ -252,10 +289,10 @@ fn find_other_parallel3<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
 
 #[inline(always)]
 #[allow(dead_code)]
-fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
-    active_lists: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
+fn find_other_parallel4<'a, A: Axis, T: Aabb, F: InnerCollider<T>>(
+    active_lists: &mut TwoUnorderedVecs<Vec<&'a mut T>>,
     axis: A,
-    cols: (AabbPin<&'a mut [T]>, AabbPin<&'a mut [T]>),
+    cols: (&'a mut [T], &'a mut [T]),
     func: &mut F,
 ) {
     use twounordered::RetainMutUnordered;
@@ -274,7 +311,7 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
         Y(X),
     }
 
-    let mut cache: Option<NextP<AabbPin<&mut T>>> = None;
+    let mut cache: Option<NextP<&mut T>> = None;
     loop {
         let val = match cache.take() {
             Some(NextP::X(x)) => match yiter.next() {
@@ -333,7 +370,7 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
             NextP::X(mut x) => {
                 active_lists.second().retain_mut_unordered(|y| {
                     if y.range(axis).end >= x.range(axis).start {
-                        func.collide(x.borrow_mut(), y.borrow_mut());
+                        func.collide(x, y);
                         true
                     } else {
                         false
@@ -355,7 +392,7 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: CollisionHandler<T>>(
             NextP::Y(mut y) => {
                 active_lists.first().retain_mut_unordered(|x| {
                     if x.range(axis).end >= y.range(axis).start {
-                        func.collide(x.borrow_mut(), y.borrow_mut());
+                        func.collide(x, y);
                         true
                     } else {
                         false
@@ -482,18 +519,18 @@ impl<C> DefaultNodeHandler<C> {
 
 impl<T: Aabb, C> NodeHandler<T> for DefaultNodeHandler<C>
 where
-    C: CollisionHandler<T>,
+    C: InnerCollider<T>,
 {
     #[inline(always)]
-    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
+    fn handle_node(&mut self, axis: AxisDyn, bots: &mut [T], is_leaf: bool) {
         fn handle_node<T: Aabb, F>(
             prevec: &mut PreVec,
             axis: AxisDyn,
-            bots: AabbPin<&mut [T]>,
+            bots: &mut [T],
             func: &mut F,
             is_leaf: bool,
         ) where
-            F: CollisionHandler<T>,
+            F: InnerCollider<T>,
         {
             let mut k = prevec.extract_vec();
             //
@@ -544,9 +581,13 @@ where
     }
 }
 
+
+
 impl<'a, T: Aabb> Tree<'a, T> {
-    pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        CollisionVisitor::new(self.vistr_mut()).recurse_seq(&mut DefaultNodeHandler::new(func));
+    pub fn find_colliding_pairs<F: FnMut(&mut Collision<T>)>(&mut self, func: F) {
+        CollisionVisitor::new(self.vistr_mut()).recurse_seq(&mut DefaultNodeHandler::new(
+            crate::queries::colfind::build::UserCollider(func),
+        ));
     }
 }
 
@@ -556,7 +597,7 @@ struct InnerRecurser<'a, T, N, C> {
     handler: &'a mut DefaultNodeHandler<C>,
 }
 
-impl<'a, T: Aabb, C: CollisionHandler<T>> InnerRecurser<'a, T, T::Num, C> {
+impl<'a, T: Aabb, C: InnerCollider<T>> InnerRecurser<'a, T, T::Num, C> {
     fn recurse(&mut self, this_axis: AxisDyn, m: VistrMutPin<Node<T, T::Num>>, is_left: bool) {
         let anchor_axis = self.anchor_axis;
 
@@ -568,7 +609,7 @@ impl<'a, T: Aabb, C: CollisionHandler<T>> InnerRecurser<'a, T, T::Num, C> {
             HandleChildrenArgs {
                 anchor: self.anchor.borrow(),
                 anchor_axis: self.anchor_axis,
-                current: nn.borrow_mut().into_node_ref(),
+                current: nn.into_node_ref(),
                 current_axis: this_axis,
             },
             is_left,
@@ -612,14 +653,14 @@ struct HandleChildrenArgs<'a, T, N> {
 struct DNode<'a, T, N> {
     pub div: N,
     pub cont: &'a Range<N>,
-    pub range: AabbPin<&'a mut [T]>,
+    pub range: &'a mut [T],
 }
 impl<'a, T, N: Copy> DNode<'a, T, N> {
     fn borrow(&mut self) -> DNode<T, N> {
         DNode {
             div: self.div,
             cont: self.cont,
-            range: self.range.borrow_mut(),
+            range: self.range,
         }
     }
 }
@@ -630,11 +671,11 @@ fn handle_children<T: Aabb, F>(
     f: HandleChildrenArgs<T, T::Num>,
     is_left: bool,
 ) where
-    F: CollisionHandler<T>,
+    F: InnerCollider<T>,
 {
     fn handle_perp<T: Aabb, A: Axis>(
         axis: A,
-        func: &mut impl CollisionHandler<T>,
+        func: &mut impl InnerCollider<T>,
         f: HandleChildrenArgs<T, T::Num>,
         is_left: bool,
     ) {
@@ -652,33 +693,33 @@ fn handle_children<T: Aabb, F>(
         if is_left {
             //iterate over current nodes botd
             for y in r1.iter_mut() {
-                let r2 = r2.borrow_mut();
+                let r2 = &mut r2;
 
                 oned::find_perp_2d1_once(
                     current_axis,
                     y,
                     r2,
-                    |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
-                        if a.range(axis).end >= b.range(axis).start {
+                    InnerColliderFn(|a: &mut T, b: &mut T| {
+                        if a.get().range(axis).end >= b.get().range(axis).start {
                             func.collide(a, b);
                         }
-                    },
+                    }),
                 );
             }
         } else {
             //iterate over current nodes botd
             for y in r1.iter_mut() {
-                let r2 = r2.borrow_mut();
+                let r2 = &mut r2;
 
                 oned::find_perp_2d1_once(
                     current_axis,
                     y,
                     r2,
-                    |a: AabbPin<&mut T>, b: AabbPin<&mut T>| {
-                        if a.range(axis).start <= b.range(axis).end {
+                    InnerColliderFn(|a: &mut T, b: &mut T| {
+                        if a.get().range(axis).start <= b.get().range(axis).end {
                             func.collide(a, b);
                         }
-                    },
+                    }),
                 );
             }
         }
@@ -686,8 +727,8 @@ fn handle_children<T: Aabb, F>(
 
     fn handle_parallel<'a, T: Aabb, A: Axis>(
         axis: A,
-        prevec: &mut TwoUnorderedVecs<Vec<AabbPin<&'a mut T>>>,
-        func: &mut impl CollisionHandler<T>,
+        prevec: &mut TwoUnorderedVecs<Vec<&'a mut T>>,
+        func: &mut impl InnerCollider<T>,
         f: HandleChildrenArgs<'a, T, T::Num>,
         is_left: bool,
     ) {
@@ -698,18 +739,18 @@ fn handle_children<T: Aabb, F>(
 
         if is_left {
             if f.anchor.cont.start <= current2.cont.end {
-                fb.build(|a, b| {
-                    if a.range(axis).start <= b.range(axis).end {
+                fb.build(InnerColliderFn(|a: &mut T, b: &mut T| {
+                    if a.get().range(axis).start <= b.get().range(axis).end {
                         func.collide(a, b)
                     }
-                });
+                }));
             }
         } else if f.anchor.cont.end >= current2.cont.start {
-            fb.build(|a, b| {
-                if a.range(axis).end >= b.range(axis).start {
+            fb.build(InnerColliderFn(|a: &mut T, b: &mut T| {
+                if a.get().range(axis).end >= b.get().range(axis).start {
                     func.collide(a, b)
                 }
-            });
+            }));
         }
     }
 

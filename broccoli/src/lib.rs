@@ -30,8 +30,6 @@ pub mod node;
 
 pub mod aabb;
 
-use aabb::pin::AabbPin;
-use aabb::pin::AabbPinIter;
 use aabb::pin::*;
 use aabb::*;
 
@@ -53,8 +51,8 @@ pub use axgeom::rect;
 ///Shorthand constructor of [`BBox`]
 #[inline(always)]
 #[must_use]
-pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
-    BBox::new(rect, inner)
+pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBoxDirect<N, T> {
+    BBoxDirect::new(rect, inner)
 }
 
 ///Shorthand constructor of [`BBoxMut`]
@@ -76,54 +74,7 @@ pub struct TreeData<N: Num> {
     nodes: Vec<NodeData<N>>,
 }
 
-///
-/// Convenience function to call unpack_inner on any number of arguments.
-///
-#[macro_export]
-macro_rules! unpack {
-    ( $( $x:ident ),* ) => {
-        $(
-            let mut $x = $x.unpack_inner();
-        )*
-    };
-}
 
-///
-/// Use a macro to save a step build the Cache and calling build on it.
-///
-#[macro_export]
-macro_rules! from_cached_key {
-    ( $x:ident ,$y:expr,$z:expr) => {
-        let mut $x = $crate::Cached::new_by_cached_key($y, $z);
-        let mut $x = $x.build();
-    };
-}
-
-///
-/// Automatically create semi-direct bbox layouts
-///
-pub struct Cached<'a, N, T> {
-    rects: Vec<BBoxMut<'a, N, T>>,
-}
-impl<'a, N: Num, T> Cached<'a, N, T> {
-    ///
-    /// Finish building the tree
-    ///
-    pub fn build<'b>(&'b mut self) -> Tree<'b, BBoxMut<'a, N, T>> {
-        Tree::new(&mut self.rects)
-    }
-
-    ///
-    /// Caches the bboxes one time and sorts them.
-    ///
-    pub fn new_by_cached_key(
-        a: &'a mut [T],
-        mut key: impl FnMut(&T) -> Rect<N>,
-    ) -> Cached<'a, N, T> {
-        let rects = a.iter_mut().map(|a| BBoxMut::new(key(a), a)).collect();
-        Cached { rects }
-    }
-}
 
 ///
 /// A broccoli Tree.
@@ -186,7 +137,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
                 let (range, rest) = last.take().unwrap().split_at_mut(x.range);
                 last = Some(rest);
                 Node {
-                    range: AabbPin::from_mut(range),
+                    range,
                     cont: x.cont,
                     div: x.div,
                     min_elem: x.min_elem,
@@ -245,8 +196,8 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     #[must_use]
     #[inline(always)]
-    pub fn get_nodes_mut(&mut self) -> AabbPin<&mut [Node<'a, T, T::Num>]> {
-        AabbPin::from_mut(&mut self.nodes)
+    pub fn get_nodes_mut(&mut self) -> &mut [Node<'a, T, T::Num>] {
+        &mut self.nodes
     }
 }
 

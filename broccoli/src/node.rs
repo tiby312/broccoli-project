@@ -45,15 +45,15 @@ mod vistr_mut {
         }
 
         #[inline(always)]
-        pub fn into_slice(self) -> AabbPin<&'a mut [N]> {
-            AabbPin::new(self.inner.into_slice())
+        pub fn into_slice(self) -> &'a mut [N] {
+            self.inner.into_slice()
         }
     }
 
     impl<'a, N> compt::FixedDepthVisitor for VistrMutPin<'a, N> {}
 
     impl<'a, N> Visitor for VistrMutPin<'a, N> {
-        type Item = AabbPin<&'a mut N>;
+        type Item = &'a mut N;
 
         #[inline(always)]
         fn next(self) -> (Self::Item, Option<[Self; 2]>) {
@@ -62,7 +62,7 @@ mod vistr_mut {
             let k = rest
                 .map(|[left, right]| [VistrMutPin { inner: left }, VistrMutPin { inner: right }]);
 
-            (AabbPin::new(nn), k)
+            (nn, k)
         }
 
         #[inline(always)]
@@ -79,7 +79,7 @@ pub use vistr_mut::VistrMutPin;
 
 pub struct Node<'a, T, N> {
     /// May or may not be sorted.
-    pub range: AabbPin<&'a mut [T]>,
+    pub range: &'a mut [T],
 
     /// if range is empty, then value is `[default,default]`.
     /// if range is not empty, then cont is the min max bounds in on the y axis (if the node belongs to the x axis).
@@ -105,10 +105,6 @@ pub struct Node<'a, T, N> {
     pub min_elem: usize,
 }
 impl<'a, T, N: Num> Node<'a, T, N> {
-    pub fn borrow_range(&mut self) -> AabbPin<&mut [T]> {
-        self.range.borrow_mut()
-    }
-
     pub fn as_data(&self) -> NodeData<N> {
         NodeData {
             range: self.range.len(),

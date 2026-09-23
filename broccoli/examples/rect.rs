@@ -1,4 +1,4 @@
-use broccoli::{aabb::pin::AabbPin, rect};
+use broccoli::rect;
 
 fn main() {
     let mut inner1 = 4;
@@ -14,13 +14,13 @@ fn main() {
     let mut tree = broccoli::Tree::new(&mut bots);
 
     let mut rect_collisions = Vec::new();
-    tree.find_all_intersect_rect(AabbPin::new(&mut rect(-5, 1, -5, 1)), |_, a| {
+    tree.find_all_intersect_rect(&rect(-5, 1, -5, 1), | a| {
         rect_collisions.push(a);
     });
 
     assert_eq!(rect_collisions.len(), 1);
     assert_eq!(rect_collisions[0].0, rect(0, 10, 0, 10));
-    assert_eq!(*rect_collisions[0].1, 4);
+    assert_eq!(**rect_collisions[0].unpack_mut(), 4);
 
     broccoli::assert::assert_tree_invariants(&tree);
 }

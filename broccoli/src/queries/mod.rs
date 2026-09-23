@@ -9,17 +9,17 @@ pub mod colfind;
 
 pub mod draw;
 
-pub mod knearest;
+//pub mod knearest;
 
-pub mod raycast;
+//pub mod raycast;
 
 pub mod rect;
 
-pub mod intersect_with;
+//pub mod intersect_with;
 
 mod tools;
 
-pub mod nbody;
+//pub mod nbody;
 
 use core::cmp::Ordering;
 
@@ -88,17 +88,12 @@ impl<'a, T: Aabb> Tree<'a, T> {
 ///
 /// Iterate over every pair regardless if colliding or not.
 ///
-pub fn for_every_pair<T>(
-    mut arr: AabbPin<&mut [T]>,
-    mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
-) {
+pub fn for_every_pair<T>(mut arr: &mut [T], mut func: impl FnMut(&mut T, &mut T)) {
     loop {
         let temp = arr;
         match temp.split_first_mut() {
-            Some((mut b1, mut x)) => {
-                x.borrow_mut()
-                    .iter_mut()
-                    .for_each(|mut b2| func(b1.borrow_mut(), b2.borrow_mut()));
+            Some((b1, x)) => {
+                x.iter_mut().for_each(|b2| func(b1, b2));
                 arr = x;
             }
             None => break,
