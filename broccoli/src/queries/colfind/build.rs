@@ -5,8 +5,8 @@
 use super::*;
 
 #[derive(Debug)]
-pub struct AabbPin<T>{
-    pub(crate) inner: T
+pub struct AabbPin<T> {
+    pub(crate) inner: T,
 }
 
 impl<T> std::ops::Deref for AabbPin<&mut T> {
@@ -17,7 +17,7 @@ impl<T> std::ops::Deref for AabbPin<&mut T> {
 }
 
 impl<'a, T: HasInner> AabbPin<&'a mut T> {
-    pub fn reference(&self)->&T{
+    pub fn reference(&self) -> &T {
         self.inner
     }
 }
@@ -29,7 +29,6 @@ impl<'a, T: HasInner> AabbPin<&'a mut T> {
         self.inner.inner()
     }
 }
-
 
 // pub struct Double<'a, T> {
 //     pub(crate) a: &'a mut T,
@@ -45,10 +44,10 @@ pub struct UserCollider<F>(pub F);
 
 impl<T: Aabb, F> InnerCollider<T> for UserCollider<F>
 where
-    F: FnMut(AabbPin<&mut T>,AabbPin<&mut T>),
+    F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
 {
     fn collide(&mut self, a: &mut T, b: &mut T) {
-        (self.0)( AabbPin { inner:a},AabbPin{inner:b });
+        (self.0)(AabbPin { inner: a }, AabbPin { inner: b });
     }
 }
 
@@ -62,9 +61,8 @@ where
 
 // }
 
-
 pub struct MyCollider<F>(pub F);
-impl<T: HasInner+Aabb, F> InnerCollider<T> for MyCollider<F>
+impl<T: HasInner + Aabb, F> InnerCollider<T> for MyCollider<F>
 where
     F: for<'b> FnMut(T::Inner<'b>, T::Inner<'b>),
 {
@@ -78,8 +76,6 @@ where
 //     }
 
 // }
-
-
 
 pub trait InnerCollider<T: Aabb> {
     fn collide(&mut self, a: &mut T, b: &mut T);

@@ -4,12 +4,11 @@ use crate::queries::colfind::build::AabbPin;
 
 use super::*;
 
-
 impl<'a, T: Aabb> crate::Tree<'a, T> {
     pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: &K,
-        mut closure: impl FnMut( AabbPin<&'b mut T>),
+        mut closure: impl FnMut(AabbPin<&'b mut T>),
     ) {
         fn rect_recurse<
             'a,
@@ -17,7 +16,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
             A: Axis,
             T: Aabb,
             K: Aabb<Num = T::Num>,
-            F: FnMut( AabbPin<&'a mut T>),
+            F: FnMut(AabbPin<&'a mut T>),
         >(
             axis: A,
             it: VistrMutPin<'a, Node<'b, T, T::Num>>,
@@ -30,7 +29,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
 
             for a in range.iter_mut() {
                 if !rect.get().contains_rect(a.get()) {
-                    closure( AabbPin { inner: a });
+                    closure(AabbPin { inner: a });
                 }
             }
 
@@ -44,7 +43,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
                     core::cmp::Ordering::Greater => {
                         for a in right.into_slice() {
                             for b in a.range.iter_mut() {
-                                closure( AabbPin { inner: b })
+                                closure(AabbPin { inner: b })
                             }
                         }
                         rect_recurse(axis.next(), left, rect, closure)
@@ -52,7 +51,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
                     core::cmp::Ordering::Less => {
                         for a in left.into_slice() {
                             for b in a.range.iter_mut() {
-                                closure( AabbPin { inner: b })
+                                closure(AabbPin { inner: b })
                             }
                         }
                         rect_recurse(axis.next(), right, rect, closure)
@@ -70,9 +69,9 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
     pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
         &'b mut self,
         rect: &K,
-        mut closure: impl FnMut( AabbPin<&'b mut T>),
+        mut closure: impl FnMut(AabbPin<&'b mut T>),
     ) {
-        rect_recurse(default_axis(), self.vistr_mut(), rect, &mut | a| {
+        rect_recurse(default_axis(), self.vistr_mut(), rect, &mut |a| {
             if rect.get().contains_rect(a.get()) {
                 closure(a);
             }
@@ -84,7 +83,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
         rect: &K,
         mut closure: impl FnMut(AabbPin<&'b mut T>),
     ) {
-        rect_recurse(default_axis(), self.vistr_mut(), rect, &mut | a| {
+        rect_recurse(default_axis(), self.vistr_mut(), rect, &mut |a| {
             if rect.get().get_intersect_rect(a.get()).is_some() {
                 closure(a);
             }
@@ -96,13 +95,7 @@ use super::tools::get_section_mut;
 // fn foo<'a, 'b: 'a, T: Aabb>(node: AabbPin<&'a mut Node<'b, T, T::Num>>) -> AabbPin<&'a mut [T]> {
 //     node.into_range()
 // }
-fn rect_recurse<
-    'a,
-    A: Axis,
-    T: Aabb,
-    F: FnMut(AabbPin<&'a mut T>),
-    K: Aabb<Num = T::Num>,
->(
+fn rect_recurse<'a, A: Axis, T: Aabb, F: FnMut(AabbPin<&'a mut T>), K: Aabb<Num = T::Num>>(
     this_axis: A,
     m: VistrMutPin<'a, Node<T, T::Num>>,
     mut rect: &K,
@@ -164,7 +157,7 @@ mod assert {
             });
 
             let mut res_naive = Vec::new();
-            Naive::new(self.inner).find_all_not_in_rect(&rect, | a| {
+            Naive::new(self.inner).find_all_not_in_rect(&rect, |a| {
                 res_naive.push(into_ptr_usize(a.deref()));
             });
 

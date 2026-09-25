@@ -581,10 +581,8 @@ where
     }
 }
 
-
-
 impl<'a, T: Aabb> Tree<'a, T> {
-    pub fn find_colliding_pairs<F: FnMut(AabbPin<&mut T>,AabbPin<&mut T>)>(&mut self, func: F) {
+    pub fn find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(&mut self, func: F) {
         CollisionVisitor::new(self.vistr_mut()).recurse_seq(&mut DefaultNodeHandler::new(
             crate::queries::colfind::build::UserCollider(func),
         ));

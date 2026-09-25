@@ -12,7 +12,7 @@ fn main() {
     let mut tree = broccoli::Tree::new(&mut aabbs);
 
     //Find all colliding aabbs.
-    tree.find_colliding_pairs(|a,b| {
+    tree.find_colliding_pairs(|a, b| {
         acc[*a.unpack()] += 1;
         acc[*b.unpack()] += 1;
     });

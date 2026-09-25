@@ -19,16 +19,15 @@ fn main() {
 
     let mut tree = broccoli::Tree::new(&mut bots);
 
-    
-
-    let mut res = tree.find_knearest_closure(
-        vec2(30, 30),
-        2,
+    let mut kn = broccoli::queries::knearest::knear(
+        &tree,
         |point, a| Some(a.0.distance_squared_to_point(point).unwrap_or(0)),
         |point, a| a.1.distance_squared_to_point(point),
         |point, a| distance_squared(point.x, a),
         |point, a| distance_squared(point.y, a),
     );
+
+    let mut res = tree.find_knearest(vec2(30, 30), 2,&mut kn);
 
     assert_eq!(res.len(), 2);
     assert_eq!(res.total_len(), 2);

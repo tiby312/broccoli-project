@@ -14,7 +14,7 @@ fn main() {
     let mut tree = broccoli::Tree::new(&mut bots);
 
     let mut rect_collisions = Vec::new();
-    tree.find_all_intersect_rect(&rect(-5, 1, -5, 1), | a| {
+    tree.find_all_intersect_rect(&rect(-5, 1, -5, 1), |a| {
         rect_collisions.push(a);
     });
 

@@ -84,8 +84,6 @@ impl<T: Aabb> Aabb for ManySwappable<T> {
 pub trait Num: PartialOrd + Copy + Default + std::fmt::Debug {}
 impl<T> Num for T where T: PartialOrd + Copy + Default + std::fmt::Debug {}
 
-
-
 impl<N: Num, T> HasInner for (Rect<N>, T) {
     type Inner<'a>
         = &'a mut T
@@ -103,7 +101,7 @@ impl<N: Num, T> Aabb for (Rect<N>, T) {
     }
 }
 
-impl<T:HasInner> HasInner for &mut T{
+impl<T: HasInner> HasInner for &mut T {
     type Inner<'a>
         = T::Inner<'a>
     where
@@ -113,9 +111,8 @@ impl<T:HasInner> HasInner for &mut T{
     }
 }
 
-
-impl<T:Aabb> Aabb for &mut T{
-    type Num= T::Num;
+impl<T: Aabb> Aabb for &mut T {
+    type Num = T::Num;
 
     fn get(&self) -> &Rect<Self::Num> {
         (**self).get()
@@ -146,10 +143,13 @@ pub(crate) trait AabbExt: Aabb {
 }
 impl<T: Aabb> AabbExt for T {}
 
-impl<N:Num> HasInner for Rect<N>{
-    type Inner<'a>=() where N: 'a;
+impl<N: Num> HasInner for Rect<N> {
+    type Inner<'a>
+        = ()
+    where
+        N: 'a;
 
-    fn inner<'a>(&'a mut self)->Self::Inner<'a>{
+    fn inner<'a>(&'a mut self) -> Self::Inner<'a> {
         ()
     }
 }

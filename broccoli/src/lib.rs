@@ -74,8 +74,6 @@ pub struct TreeData<N: Num> {
     nodes: Vec<NodeData<N>>,
 }
 
-
-
 ///
 /// A broccoli Tree.
 ///
