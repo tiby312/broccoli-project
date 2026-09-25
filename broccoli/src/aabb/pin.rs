@@ -22,6 +22,34 @@
 
 use super::*;
 
+
+#[derive(Debug)]
+pub struct AabbPin<T> {
+    pub(crate) inner: T,
+}
+
+impl<T> std::ops::Deref for AabbPin<&mut T> {
+    type Target = T;
+    fn deref(&self) -> &Self::Target {
+        self.inner
+    }
+}
+
+impl<'a, T> AabbPin<&'a mut T> {
+    pub fn reference(&self) -> &T {
+        self.inner
+    }
+}
+impl<'a, T: HasInner> AabbPin<&'a mut T> {
+    pub fn unpack(self) -> T::Inner<'a> {
+        self.inner.inner()
+    }
+    pub fn unpack_mut<'b>(&'b mut self) -> T::Inner<'b> {
+        self.inner.inner()
+    }
+}
+
+
 /// A destructured [`Node`]
 pub struct NodeRef<'a, T, N> {
     pub div: &'a Option<N>,

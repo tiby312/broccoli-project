@@ -1,6 +1,6 @@
 //! Raycast query module
 
-use crate::queries::colfind::build::AabbPin;
+use super::AabbPin;
 
 use super::*;
 use axgeom::Ray;

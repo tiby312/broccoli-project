@@ -6,7 +6,7 @@
 //!
 //! The user defines some geometric functions and their ideal accuracy.
 //!
-use crate::queries::colfind::build::AabbPin;
+use super::AabbPin;
 
 use super::*;
 

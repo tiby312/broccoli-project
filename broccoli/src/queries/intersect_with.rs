@@ -2,7 +2,7 @@
 //! Find colliding pairs between two independent sets
 //!
 
-use crate::queries::colfind::build::AabbPin;
+use super::AabbPin;
 
 use super::*;
 
