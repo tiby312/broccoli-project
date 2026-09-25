@@ -101,17 +101,11 @@ fn pre_recc<N: Nbody>(
     let (nn, rest) = vistr.next();
 
     if !no.is_close(&nn.mass, root_div, root_axis) {
-        no.gravitate(
-            GravEnum::Bot(root.node.range),
-            GravEnum::Mass(&mut nn.mass),
-        );
+        no.gravitate(GravEnum::Bot(root.node.range), GravEnum::Mass(&mut nn.mass));
         return;
     }
 
-    no.gravitate(
-        GravEnum::Bot(root.node.range),
-        GravEnum::Bot(nn.node.range),
-    );
+    no.gravitate(GravEnum::Bot(root.node.range), GravEnum::Bot(nn.node.range));
 
     if let Some([left, right]) = rest {
         pre_recc(root_div, root_axis, root, left, no);
@@ -215,7 +209,7 @@ fn apply_tree<N: Nbody>(mut vistr: NodeWrapperVistr<N::T, N::Mass>, no: &mut N) 
             .borrow_mut()
             .dfs_preorder_iter()
             .flat_map(|x| x.node.range.iter_mut())
-            .map(|x|AabbPin { inner: x });
+            .map(|x| AabbPin { inner: x });
 
         no.apply_a_mass(mass, it, len);
     }
@@ -270,15 +264,15 @@ mod assert {
     impl<'a, T: Aabb> Naive<'a, T> {
         pub fn handle_nbody<N: Nbody<T = T>>(&mut self, no: &mut N) {
             ///Naive version simply visits every pair.
-            pub fn naive_nbody_mut<T: Aabb>(
-                bots: &mut [T],
-                func: impl FnMut(&mut T, &mut T),
-            ) {
+            pub fn naive_nbody_mut<T: Aabb>(bots: &mut [T], func: impl FnMut(&mut T, &mut T)) {
                 queries::for_every_pair(bots, func);
             }
 
             naive_nbody_mut(self.inner, |a, b| {
-                no.gravitate(GravEnum::Bot(std::slice::from_mut(a)), GravEnum::Bot(std::slice::from_mut(b)));
+                no.gravitate(
+                    GravEnum::Bot(std::slice::from_mut(a)),
+                    GravEnum::Bot(std::slice::from_mut(b)),
+                );
             });
         }
     }

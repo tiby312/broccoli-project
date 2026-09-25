@@ -9,7 +9,7 @@ use build::*;
 
 mod assert {
     use super::*;
-    impl<'a, T: Aabb> Assert<'a, T>  {
+    impl<'a, T: Aabb> Assert<'a, T> {
         ///Panics if a disconnect is detected between all colfind methods.
         pub fn assert_query(&mut self) {
             let bots = &mut self.inner;
@@ -51,9 +51,11 @@ mod assert {
             let tree_res = {
                 let mut cc = CollisionPtr::new();
 
-                Tree::new(bots).find_colliding_pairs((|a, b| {
-                    cc.add_pair(*a.unpack(), *b.unpack());
-                }));
+                Tree::new(bots).find_colliding_pairs(
+                    (|a, b| {
+                        cc.add_pair(*a.unpack(), *b.unpack());
+                    }),
+                );
                 cc.finish();
                 cc
             };
@@ -88,7 +90,7 @@ mod assert {
     }
 
     impl<'a, T: Aabb> Naive<'a, T> {
-        pub fn find_colliding_pairs<F:FnMut(AabbPin<&mut T>,AabbPin<&mut T>)>(
+        pub fn find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
             &mut self,
             mut func: F,
         ) {

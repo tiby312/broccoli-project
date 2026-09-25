@@ -27,7 +27,7 @@ fn main() {
         |point, a| distance_squared(point.y, a),
     );
 
-    let mut res = tree.find_knearest(vec2(30, 30), 2,&mut kn);
+    let mut res = tree.find_knearest(vec2(30, 30), 2, &mut kn);
 
     assert_eq!(res.len(), 2);
     assert_eq!(res.total_len(), 2);
