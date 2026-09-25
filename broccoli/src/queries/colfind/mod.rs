@@ -7,96 +7,96 @@ use super::*;
 pub mod build;
 use build::*;
 
-// mod assert {
-//     use super::*;
-//     impl<'a, T: Aabb> Assert<'a, T>  {
-//         ///Panics if a disconnect is detected between all colfind methods.
-//         pub fn assert_query(&mut self) {
-//             let bots = &mut self.inner;
-//             #[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
-//             pub struct CollisionPtr {
-//                 inner: Vec<(usize, usize)>,
-//             }
+mod assert {
+    use super::*;
+    impl<'a, T: Aabb> Assert<'a, T>  {
+        ///Panics if a disconnect is detected between all colfind methods.
+        pub fn assert_query(&mut self) {
+            let bots = &mut self.inner;
+            #[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
+            pub struct CollisionPtr {
+                inner: Vec<(usize, usize)>,
+            }
 
-//             impl CollisionPtr {
-//                 fn new() -> Self {
-//                     CollisionPtr { inner: vec![] }
-//                 }
-//                 fn add_pair(&mut self, a: usize, b: usize) {
-//                     let (a, b) = if a < b { (a, b) } else { (b, a) };
+            impl CollisionPtr {
+                fn new() -> Self {
+                    CollisionPtr { inner: vec![] }
+                }
+                fn add_pair(&mut self, a: usize, b: usize) {
+                    let (a, b) = if a < b { (a, b) } else { (b, a) };
 
-//                     self.inner.push((a, b));
-//                 }
-//                 pub fn finish(&mut self) {
-//                     self.inner.sort_unstable();
-//                 }
-//             }
+                    self.inner.push((a, b));
+                }
+                pub fn finish(&mut self) {
+                    self.inner.sort_unstable();
+                }
+            }
 
-//             let mut bots: Vec<_> = bots
-//                 .iter_mut()
-//                 .enumerate()
-//                 .map(|(i, x)| ManySwappable((*x.get(), i)))
-//                 .collect();
-//             let bots = bots.as_mut_slice();
+            let mut bots: Vec<_> = bots
+                .iter_mut()
+                .enumerate()
+                .map(|(i, x)| ManySwappable((*x.get(), i)))
+                .collect();
+            let bots = bots.as_mut_slice();
 
-//             let naive_res = {
-//                 let mut cc = CollisionPtr::new();
-//                 Naive::new(bots).find_colliding_pairs(make_collide_fn::<T::Num,T,_>(|a:&mut usize, b:&mut usize| {
-//                     cc.add_pair(*a, *b);
-//                 }));
-//                 cc.finish();
-//                 cc
-//             };
+            let naive_res = {
+                let mut cc = CollisionPtr::new();
+                Naive::new(bots).find_colliding_pairs(|a, b| {
+                    cc.add_pair(*a.unpack(), *b.unpack());
+                });
+                cc.finish();
+                cc
+            };
 
-//             let tree_res = {
-//                 let mut cc = CollisionPtr::new();
+            let tree_res = {
+                let mut cc = CollisionPtr::new();
 
-//                 Tree::new(bots).find_colliding_pairs(OneDCollidier(|a:&mut usize, b:&mut usize| {
-//                     cc.add_pair(*a, *b);
-//                 }));
-//                 cc.finish();
-//                 cc
-//             };
+                Tree::new(bots).find_colliding_pairs((|a, b| {
+                    cc.add_pair(*a.unpack(), *b.unpack());
+                }));
+                cc.finish();
+                cc
+            };
 
-//             // let notsort_res = {
-//             //     let mut cc = CollisionPtr::new();
+            // let notsort_res = {
+            //     let mut cc = CollisionPtr::new();
 
-//             //     NotSortedTree::new(bots).find_colliding_pairs(|a, b| {
-//             //         cc.add_pair(a.0 .1, b.0 .1);
-//             //     });
-//             //     cc.finish();
-//             //     cc
-//             // };
+            //     NotSortedTree::new(bots).find_colliding_pairs(|a, b| {
+            //         cc.add_pair(a.0 .1, b.0 .1);
+            //     });
+            //     cc.finish();
+            //     cc
+            // };
 
-//             // let sweep_res = {
-//             //     let mut cc = CollisionPtr::new();
-//             //     SweepAndPrune::new(bots).find_colliding_pairs(|a, b| {
-//             //         cc.add_pair(a.0 .1, b.0 .1);
-//             //     });
-//             //     cc.finish();
-//             //     cc
-//             // };
+            // let sweep_res = {
+            //     let mut cc = CollisionPtr::new();
+            //     SweepAndPrune::new(bots).find_colliding_pairs(|a, b| {
+            //         cc.add_pair(a.0 .1, b.0 .1);
+            //     });
+            //     cc.finish();
+            //     cc
+            // };
 
-//             //assert_eq!(naive_res.inner.len(), sweep_res.inner.len());
-//             assert_eq!(naive_res.inner.len(), tree_res.inner.len());
-//             //assert_eq!(naive_res.inner.len(), notsort_res.inner.len());
+            //assert_eq!(naive_res.inner.len(), sweep_res.inner.len());
+            assert_eq!(naive_res.inner.len(), tree_res.inner.len());
+            //assert_eq!(naive_res.inner.len(), notsort_res.inner.len());
 
-//             assert_eq!(naive_res, tree_res);
-//             //assert_eq!(naive_res, sweep_res);
-//             //assert_eq!(naive_res, notsort_res);
-//         }
-//     }
+            assert_eq!(naive_res, tree_res);
+            //assert_eq!(naive_res, sweep_res);
+            //assert_eq!(naive_res, notsort_res);
+        }
+    }
 
-//     impl<'a, T: Aabb> Naive<'a, T> {
-//         pub fn find_colliding_pairs<F:InnerCollider<T>>(
-//             &mut self,
-//             mut func: F,
-//         ) where T::Num:'static{
-//             queries::for_every_pair(self.inner, move |a, b| {
-//                 if a.get().intersects_rect(b.get()) {
-//                     func.collide(a, b);
-//                 }
-//             });
-//         }
-//     }
-// }
+    impl<'a, T: Aabb> Naive<'a, T> {
+        pub fn find_colliding_pairs<F:FnMut(AabbPin<&mut T>,AabbPin<&mut T>)>(
+            &mut self,
+            mut func: F,
+        ) {
+            queries::for_every_pair(self.inner, move |a, b| {
+                if a.get().intersects_rect(b.get()) {
+                    func(AabbPin { inner: a }, AabbPin { inner: b });
+                }
+            });
+        }
+    }
+}

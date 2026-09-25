@@ -16,7 +16,7 @@ impl<T> std::ops::Deref for AabbPin<&mut T> {
     }
 }
 
-impl<'a, T: HasInner> AabbPin<&'a mut T> {
+impl<'a, T> AabbPin<&'a mut T> {
     pub fn reference(&self) -> &T {
         self.inner
     }

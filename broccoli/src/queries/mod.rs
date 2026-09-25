@@ -11,15 +11,15 @@ pub mod draw;
 
 pub mod knearest;
 
-//pub mod raycast;
+pub mod raycast;
 
 pub mod rect;
 
-//pub mod intersect_with;
+pub mod intersect_with;
 
 mod tools;
 
-//pub mod nbody;
+pub mod nbody;
 
 use core::cmp::Ordering;
 
