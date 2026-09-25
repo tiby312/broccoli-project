@@ -51,8 +51,8 @@ pub use axgeom::rect;
 ///Shorthand constructor of [`BBox`]
 #[inline(always)]
 #[must_use]
-pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBoxDirect<N, T> {
-    BBoxDirect::new(rect, inner)
+pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
+    BBox::new(rect, inner)
 }
 
 ///Shorthand constructor of [`BBoxMut`]

@@ -7,7 +7,7 @@ use compt::Visitor;
 
 use super::*;
 
-pub(crate) fn into_ptr_usize<T>(a: &mut T) -> usize {
+pub(crate) fn into_ptr_usize<T>(a: & T) -> usize {
     let a: &T = &a;
     a as *const T as usize
 }

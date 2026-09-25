@@ -13,10 +13,8 @@ fn main() {
 
     //Find all colliding aabbs.
     tree.find_colliding_pairs(|a,b| {
-        let (a, b) = (a.unpack(), b.unpack());
-        
-        acc[*a] += 1;
-        acc[*b] += 1;
+        acc[*a.unpack()] += 1;
+        acc[*b.unpack()] += 1;
     });
 
     assert_eq!(acc, [1, 1, 2]);

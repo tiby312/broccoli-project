@@ -9,7 +9,7 @@ pub mod colfind;
 
 pub mod draw;
 
-//pub mod knearest;
+pub mod knearest;
 
 //pub mod raycast;
 

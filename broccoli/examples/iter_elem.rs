@@ -28,10 +28,9 @@ fn main() {
 
     // Find all colliding aabbs.
     tree.find_colliding_pairs(|a,b| {
-        let (a, b) = (a.unpack(), b.unpack());
         
-        **a += 1;
-        **b += 1;
+        **a.unpack() += 1;
+        **b.unpack() += 1;
     });
 
     assert_eq!(inner1, 1);

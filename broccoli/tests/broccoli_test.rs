@@ -38,8 +38,8 @@ fn test1() {
             let mut tree = broccoli::Tree::from_tree_data(&mut bots, &data);
             broccoli::assert::assert_tree_invariants(&tree);
             tree.find_colliding_pairs(|a, b| {
-                let a = a.unpack_inner();
-                let b = b.unpack_inner();
+                let a = a.unpack();
+                let b = b.unpack();
                 **a ^= 1;
                 **b ^= 1;
             });

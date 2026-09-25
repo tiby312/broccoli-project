@@ -4,19 +4,24 @@
 
 use super::*;
 
-
-pub struct Single<T>{
+#[derive(Debug)]
+pub struct AabbPin<T>{
     pub(crate) inner: T
 }
 
-impl<T> std::ops::Deref for Single<&mut T> {
+impl<T> std::ops::Deref for AabbPin<&mut T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         self.inner
     }
 }
 
-impl<'a, T: HasInner> Single<&'a mut T> {
+impl<'a, T: HasInner> AabbPin<&'a mut T> {
+    pub fn reference(&self)->&T{
+        self.inner
+    }
+}
+impl<'a, T: HasInner> AabbPin<&'a mut T> {
     pub fn unpack(self) -> T::Inner<'a> {
         self.inner.inner()
     }
@@ -40,10 +45,10 @@ pub struct UserCollider<F>(pub F);
 
 impl<T: Aabb, F> InnerCollider<T> for UserCollider<F>
 where
-    F: FnMut(Single<&mut T>,Single<&mut T>),
+    F: FnMut(AabbPin<&mut T>,AabbPin<&mut T>),
 {
     fn collide(&mut self, a: &mut T, b: &mut T) {
-        (self.0)( Single { inner:a},Single{inner:b });
+        (self.0)( AabbPin { inner:a},AabbPin{inner:b });
     }
 }
 

@@ -1,9 +1,11 @@
 //! Knearest query module
 
+use crate::queries::colfind::build::AabbPin;
+
 use super::*;
 
 ///The geometric functions that the user must provide.
-pub trait Knearest<T: Aabb+HasInner> {
+pub trait Knearest<T: Aabb> {
     ///User define distance function from a point to an axis aligned line of infinite length.
     fn distance_to_aaline<A: Axis>(&mut self, point: Vec2<T::Num>, axis: A, val: T::Num) -> T::Num;
 
@@ -11,11 +13,11 @@ pub trait Knearest<T: Aabb+HasInner> {
     ///It may be that the precise distance function is fast enough, in which case you can simply
     ///return None. If None is desired, every call to this function for a particular element must
     ///always return None.
-    fn distance_to_broad(&mut self, point: Vec2<T::Num>, a: T::Inner<'_>) -> Option<T::Num>;
+    fn distance_to_broad(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> Option<T::Num>;
 
     ///User defined expensive distance function. Here the user can return fine-grained distance
     ///of the shape contained in T instead of its bounding box.
-    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: T::Inner<'_>) -> T::Num;
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> T::Num;
 }
 
 impl<'a, T: Aabb+HasInner> Tree<'a, T> {
@@ -50,8 +52,8 @@ impl<'a, T: Aabb+HasInner> Tree<'a, T> {
         &mut self,
         point: Vec2<T::Num>,
         num: usize,
-        broad: impl FnMut(Vec2<T::Num>, T::Inner<'_>) -> Option<T::Num>,
-        fine: impl FnMut(Vec2<T::Num>, T::Inner<'_>) -> T::Num,
+        broad: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
+        fine: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
         xline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
         yline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
     ) -> KResult<T> {
@@ -87,12 +89,12 @@ where
     fn distance_to_broad(
         &mut self,
         _point: Vec2<T::Num>,
-        _rect: T::Inner<'_>,
+        _rect: AabbPin<&mut T>,
     ) -> Option<T::Num> {
         None
     }
 
-    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: T::Inner<'_>) -> T::Num {
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> T::Num {
         use num_traits::Zero;
 
         a.get()
@@ -131,8 +133,8 @@ pub struct KnearestClosure<B, C, D, E> {
 
 impl<T: Aabb+HasInner, B, C, D, E> Knearest<T> for KnearestClosure<B, C, D, E>
 where
-    B: FnMut(Vec2<T::Num>, T::Inner<'_>) -> Option<T::Num>,
-    C: FnMut(Vec2<T::Num>, T::Inner<'_>) -> T::Num,
+    B: FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
+    C: FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
     D: FnMut(Vec2<T::Num>, T::Num) -> T::Num,
     E: FnMut(Vec2<T::Num>, T::Num) -> T::Num,
 {
@@ -144,11 +146,11 @@ where
         }
     }
 
-    fn distance_to_broad(&mut self, point: Vec2<T::Num>, rect: T::Inner<'_>) -> Option<T::Num> {
+    fn distance_to_broad(&mut self, point: Vec2<T::Num>, rect: AabbPin<&mut T>) -> Option<T::Num> {
         (self.broad)(point, rect)
     }
 
-    fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot: T::Inner<'_>) -> T::Num {
+    fn distance_to_fine(&mut self, point: Vec2<T::Num>, bot:AabbPin<&mut T>) -> T::Num {
         (self.fine)(point, bot)
     }
 }
@@ -170,8 +172,8 @@ where
 
 /// Returned by k_nearest_mut
 #[derive(Debug)]
-pub struct KnearestResult<'b, T: Aabb+HasInner+'b> {
-    pub bot: T::Inner<'b>,
+pub struct KnearestResult<'b, T: Aabb+'b> {
+    pub bot: AabbPin<&'b mut T>,
     pub mag: T::Num,
 }
 
@@ -201,9 +203,9 @@ impl<'a, T: Aabb+HasInner> ClosestCand<'a, T> {
         &mut self,
         point: &Vec2<T::Num>,
         knear: &mut K,
-        mut curr_bot: T::Inner<'a>,
+        mut curr_bot: &'a mut T,
     ) {
-        if let Some(long_dis) = knear.distance_to_broad(*point, curr_bot.borrow_mut()) {
+        if let Some(long_dis) = knear.distance_to_broad(*point, AabbPin { inner: curr_bot}) {
             if self.curr_num == self.num {
                 if let Some(l) = self.bots.last() {
                     if long_dis > l.mag {
@@ -212,7 +214,7 @@ impl<'a, T: Aabb+HasInner> ClosestCand<'a, T> {
                 }
             }
         }
-        let curr_dis = knear.distance_to_fine(*point, curr_bot.borrow_mut());
+        let curr_dis = knear.distance_to_fine(*point, AabbPin { inner: curr_bot });
 
         let arr = &mut self.bots;
 
@@ -239,7 +241,7 @@ impl<'a, T: Aabb+HasInner> ClosestCand<'a, T> {
             arr.insert(
                 i,
                 KnearestResult {
-                    bot: curr_bot,
+                    bot: AabbPin { inner: curr_bot },
                     mag: curr_dis,
                 },
             );
@@ -265,7 +267,7 @@ impl<'a, T: Aabb+HasInner> ClosestCand<'a, T> {
                 arr.insert(
                     arr.len(),
                     KnearestResult {
-                        bot: curr_bot,
+                        bot: AabbPin { inner: curr_bot },
                         mag: curr_dis,
                     },
                 );
@@ -286,13 +288,13 @@ impl<'a, T: Aabb+HasInner> ClosestCand<'a, T> {
     }
 }
 
-struct Recurser<'a, T: Aabb+HasInner, K: Knearest<T>> {
-    knear: K,
+struct Recurser<'a,'c, T: Aabb+HasInner, K: Knearest<T>> {
+    knear: &'c mut K,
     point: Vec2<T::Num>,
     closest: ClosestCand<'a, T>,
 }
 
-impl<'a, T: Aabb+HasInner, K: Knearest<T>> Recurser<'a, T, K> {
+impl<'a,'c, T: Aabb+HasInner, K: Knearest<T>> Recurser<'a,'c, T, K> {
     fn should_recurse<A: Axis>(&mut self, line: (A, T::Num)) -> bool {
         if let Some(m) = self.closest.full_and_max_distance() {
             let dis = self.knear.distance_to_aaline(self.point, line.0, line.1);
@@ -346,8 +348,8 @@ impl<'a, T: Aabb+HasInner, K: Knearest<T>> Recurser<'a, T, K> {
         };
 
         if handle_node {
-            for bot in nn.into_range().iter_mut() {
-                self.closest.consider(&self.point, &mut self.knear, bot);
+            for bot in nn.range.iter_mut() {
+                self.closest.consider(&self.point,  self.knear, bot);
             }
         }
     }
@@ -421,8 +423,8 @@ mod assert {
             &mut self,
             point: Vec2<T::Num>,
             num: usize,
-            broad: impl FnMut(Vec2<T::Num>, T::Inner<'_>) -> Option<T::Num>,
-            fine: impl FnMut(Vec2<T::Num>, T::Inner<'_>) -> T::Num,
+            broad: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> Option<T::Num>,
+            fine: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
             xline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
             yline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
         ) -> KResult<T> {
@@ -442,21 +444,21 @@ mod assert {
             &mut self,
             point: Vec2<T::Num>,
             num: usize,
-            mut knear: impl Knearest<T>,
+            mut knear: impl Knearest<T>+Clone,
         ) {
             let mut tree = Tree::new(self.inner);
-            let r = tree.find_knearest(point, num, &mut knear);
+            let r = tree.find_knearest(point, num, knear.clone());
             let mut res_dino: Vec<_> = r
                 .into_vec()
                 .drain(..)
-                .map(|a| (crate::assert::into_ptr_usize(a.bot), a.mag))
+                .map(|a| (crate::assert::into_ptr_usize(a.bot.reference()), a.mag))
                 .collect();
 
             let mut res_naive = Naive::new(self.inner)
                 .find_knearest(point, num, knear)
                 .into_vec()
                 .drain(..)
-                .map(|a| (crate::assert::into_ptr_usize(a.bot), a.mag))
+                .map(|a| (crate::assert::into_ptr_usize(a.bot.reference()), a.mag))
                 .collect::<Vec<_>>();
 
             res_naive.sort_by(|a, b| a.partial_cmp(b).unwrap());

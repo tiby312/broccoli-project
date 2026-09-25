@@ -1,4 +1,4 @@
-use broccoli::{bbox_mut,bbox, rect};
+use broccoli::{bbox_mut, rect};
 fn main() {
     let mut inner1 = 0;
     let mut inner2 = 0;
@@ -7,9 +7,9 @@ fn main() {
     // Rect is stored directly in tree,
     // but inner is not.
     let mut aabbs = [
-        bbox(rect(00, 10, 00, 10), &mut inner1),
-        bbox(rect(15, 20, 15, 20), &mut inner2),
-        bbox(rect(05, 15, 05, 15), &mut inner3),
+        bbox_mut(rect(00, 10, 00, 10), &mut inner1),
+        bbox_mut(rect(15, 20, 15, 20), &mut inner2),
+        bbox_mut(rect(05, 15, 05, 15), &mut inner3),
     ];
 
     // Construct tree by doing many swapping of elements
@@ -17,10 +17,8 @@ fn main() {
 
     // Find all colliding aabbs.
     tree.find_colliding_pairs(|a,b| {
-        let (a, b) = (a.unpack(), b.unpack());
-
-        **a += 1;
-        **b += 1;
+        *a.unpack() += 1;
+        *b.unpack() += 1;
     });
 
     assert_eq!(inner1, 1);

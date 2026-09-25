@@ -19,6 +19,8 @@ fn main() {
 
     let mut tree = broccoli::Tree::new(&mut bots);
 
+    
+
     let mut res = tree.find_knearest_closure(
         vec2(30, 30),
         2,

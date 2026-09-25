@@ -29,11 +29,11 @@ impl<N> ManySwap for (Rect<N>, usize) {}
 impl<N> ManySwap for (Rect<N>, u32) {}
 impl<N> ManySwap for (Rect<N>, u64) {}
 
-impl<'a, N, T> ManySwap for BBoxDirect<N, &'a mut T> {}
-impl<N> ManySwap for BBoxDirect<N, ()> {}
-impl<N> ManySwap for BBoxDirect<N, u32> {}
-impl<N> ManySwap for BBoxDirect<N, u64> {}
-impl<N> ManySwap for BBoxDirect<N, usize> {}
+impl<'a, N, T> ManySwap for BBox<N, &'a mut T> {}
+impl<N> ManySwap for BBox<N, ()> {}
+impl<N> ManySwap for BBox<N, u32> {}
+impl<N> ManySwap for BBox<N, u64> {}
+impl<N> ManySwap for BBox<N, usize> {}
 
 ///
 /// Wrapper to opt in to being allowed to be fed to swap intensive algorithms.
@@ -170,17 +170,17 @@ impl<N: Num> Aabb for Rect<N> {
 ///* `&mut BBox<N,T>` (indirect)
 ///* `BBox<N,&mut T>` (rect direct, T indirect)
 #[derive(Debug, Copy, Clone)]
-pub struct BBoxDirect<N, T> {
+pub struct BBox<N, T> {
     pub rect: Rect<N>,
     pub inner: T,
 }
 
-impl<N, T> BBoxDirect<N, T> {
+impl<N, T> BBox<N, T> {
     /// Constructor. Also consider using [`crate::bbox()`]
     #[inline(always)]
     #[must_use]
-    pub fn new(rect: Rect<N>, inner: T) -> BBoxDirect<N, T> {
-        BBoxDirect { rect, inner }
+    pub fn new(rect: Rect<N>, inner: T) -> BBox<N, T> {
+        BBox { rect, inner }
     }
 
     pub fn many_swap(self) -> ManySwappable<Self> {
@@ -188,7 +188,7 @@ impl<N, T> BBoxDirect<N, T> {
     }
 }
 
-impl<N: Num, T> HasInner for BBoxDirect<N, T> {
+impl<N: Num, T> HasInner for BBox<N, T> {
     type Inner<'a>
         = &'a mut T
     where
@@ -198,7 +198,7 @@ impl<N: Num, T> HasInner for BBoxDirect<N, T> {
     }
 }
 
-impl<N: Num, T> Aabb for BBoxDirect<N, T> {
+impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;
     #[inline(always)]
     fn get(&self) -> &Rect<Self::Num> {
