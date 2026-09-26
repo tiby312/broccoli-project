@@ -37,15 +37,15 @@ where
 
 // }
 
-pub struct MyCollider<F>(pub F);
-impl<T: Unpack + Aabb, F> InnerCollider<T> for MyCollider<F>
-where
-    F: for<'b> FnMut(T::Inner<'b>, T::Inner<'b>),
-{
-    fn collide(&mut self, a: &mut T, b: &mut T) {
-        (self.0)(a.inner(), b.inner());
-    }
-}
+// pub struct MyCollider<F>(pub F);
+// impl<T: Unpack + Aabb, F> InnerCollider<T> for MyCollider<F>
+// where
+//     F: for<'b> FnMut(T::Inner<'b>, T::Inner<'b>),
+// {
+//     fn collide(&mut self, a: &mut T, b: &mut T) {
+//         (self.0)(a.inner(), b.inner());
+//     }
+// }
 // impl<'a, T: Aabb> Collision<'a, T> {
 //     pub fn rects(&self)->(  &Rect<T::Num>, &Rect<T::Num>) {
 //         (self.a.get(), self.b.get())

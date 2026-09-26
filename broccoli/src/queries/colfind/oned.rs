@@ -23,9 +23,10 @@ struct CheckAxis<A, C> {
 }
 impl<A: Axis, T: Aabb, C: InnerCollider<T>> InnerCollider<T> for CheckAxis<A, C> {
     fn collide(&mut self, a: &mut T, b: &mut T) {
+        let x=self.axis.next();
         if a
-            .range(self.axis)
-            .intersects(b.range(self.axis))
+            .range(x)
+            .intersects(b.range(x))
         {
             self.collider.collide(a, b);
         }
@@ -56,7 +57,7 @@ impl<A: Axis, T: Aabb, C: InnerCollider<T>> InnerCollider<T> for CheckAxis<A, C>
 //     }
 // }
 
-pub fn sweep_and_prune<'a, A: Axis, T: Aabb + Unpack, F: InnerCollider<T>>(
+pub fn sweep_and_prune<'a, A: Axis, T: Aabb + Unpack, F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
     buffer: &mut Vec<&'a mut T>,
     axis: A,
     bots: &'a mut [T],
@@ -65,7 +66,7 @@ pub fn sweep_and_prune<'a, A: Axis, T: Aabb + Unpack, F: InnerCollider<T>>(
     assert!(buffer.is_empty());
     //let k=OneDCollidier(func);
     let mut b = CheckAxis {
-        collider: func,
+        collider: UserCollider(func),
         axis,
     };
     self::find_iter(buffer, axis, bots, &mut b);
