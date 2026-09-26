@@ -19,16 +19,23 @@ fn main() {
     let mut tree = broccoli::Tree::new(&mut aabbs);
 
     let mut pairs=vec!();
+    
     // Find all colliding aabbs.
     tree.find_colliding_pairs(|a, b| {
         pairs.push((std::ptr::from_ref(a.unpack()).addr(),std::ptr::from_ref(b.unpack()).addr()));
     });
 
+    // Convert the raw addresses to indices.
+    for (addr1, addr2) in &mut pairs {
+        let i1=elem_offset(&inner,*addr1).unwrap();
+        let i2=elem_offset(&inner,*addr2).unwrap();
+        *addr1=i1;
+        *addr2=i2;
+    }
 
+    // Get actual mutable references for each colliding pair.
     for &(addr1, addr2) in &pairs {
-        let i1=elem_offset(&inner,addr1).unwrap();
-        let i2=elem_offset(&inner,addr2).unwrap();
-        let [a,b]=inner.get_disjoint_mut([i1,i2]).unwrap();
+        let [a,b]=inner.get_disjoint_mut([addr1,addr2]).unwrap();
         *a+=1;
         *b+=1;
     }
