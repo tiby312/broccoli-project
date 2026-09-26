@@ -25,8 +25,8 @@ impl<'a, T: Aabb + Unpack> Tree<'a, T> {
         &mut self,
         point: Vec2<T::Num>,
         num: usize,
-        mut knear: &mut impl Knearest<T>,
-    ) -> KResult<T> {
+        knear: &mut impl Knearest<T>,
+    ) -> KResult<'_, T> {
         let dt = self.vistr_mut().with_depth(Depth(0));
 
         //let knear = &mut ktrait;
@@ -223,7 +223,7 @@ impl<'a, T: Aabb + Unpack> ClosestCand<'a, T> {
         &mut self,
         point: &Vec2<T::Num>,
         knear: &mut K,
-        mut curr_bot: &'a mut T,
+        curr_bot: &'a mut T,
     ) {
         if let Some(long_dis) = knear.distance_to_broad(*point, AabbPin { inner: curr_bot }) {
             if self.curr_num == self.num {
@@ -424,8 +424,8 @@ mod assert {
             &mut self,
             point: Vec2<T::Num>,
             num: usize,
-            mut ktrait: &mut impl Knearest<T>,
-        ) -> KResult<T> {
+            ktrait: &mut impl Knearest<T>,
+        ) -> KResult<'_, T> {
             let mut closest = ClosestCand::new(num);
 
             for b in self.inner.iter_mut() {
@@ -464,7 +464,7 @@ mod assert {
             &mut self,
             point: Vec2<T::Num>,
             num: usize,
-            mut knear: &mut impl Knearest<T>,
+            knear: &mut impl Knearest<T>,
         ) {
             let mut tree = Tree::new(self.inner);
             let r = tree.find_knearest(point, num, knear);

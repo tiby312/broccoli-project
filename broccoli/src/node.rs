@@ -28,14 +28,14 @@ mod vistr_mut {
         /// It is safe to borrow the iterator and then produce mutable references from that
         /// as long as by the time the borrow ends, all the produced references also go away.
         #[inline(always)]
-        pub fn borrow_mut(&mut self) -> VistrMutPin<N> {
+        pub fn borrow_mut(&mut self) -> VistrMutPin<'_, N> {
             VistrMutPin {
                 inner: self.inner.borrow_mut(),
             }
         }
 
         #[inline(always)]
-        pub fn borrow(&self) -> Vistr<N> {
+        pub fn borrow(&self) -> Vistr<'_, N> {
             self.inner.borrow()
         }
 

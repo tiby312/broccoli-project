@@ -154,7 +154,7 @@ impl<'a, T: Aabb + ManySwap> TreeBuildVisitor<'a, T> {
             fn construct_non_leaf<T: Aabb>(
                 div_axis: impl Axis,
                 bots: &mut [T],
-            ) -> (NodeFinisher<T>, &mut [T], &mut [T]) {
+            ) -> (NodeFinisher<'_, T>, &mut [T], &mut [T]) {
                 if bots.is_empty() {
                     return (
                         NodeFinisher {

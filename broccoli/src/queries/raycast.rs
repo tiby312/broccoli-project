@@ -154,7 +154,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
     pub fn cast_ray<'b, R: RayCast<T>>(
         &'b mut self,
         ray: Ray<T::Num>,
-        mut rtrait: &mut R,
+        rtrait: &mut R,
     ) -> axgeom::CastResult<CastAnswer<'b, T>> {
         struct Recurser<'a, 'b, T: Aabb, R: RayCast<T>> {
             rtrait: &'b mut R,
@@ -347,7 +347,7 @@ mod assert {
         pub fn cast_ray<'b, R: RayCast<T>>(
             &'b mut self,
             ray: Ray<T::Num>,
-            mut ar: &mut R,
+            ar: &mut R,
         ) -> axgeom::CastResult<CastAnswer<'b, T>> {
             let mut closest = Closest { closest: None };
 

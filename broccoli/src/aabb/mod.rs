@@ -5,7 +5,6 @@
 pub mod pin;
 
 use super::*;
-use pin::*;
 
 pub use axgeom::Range;
 pub use axgeom::Rect;

@@ -65,7 +65,7 @@ pub struct NodeRef<'a, T, N> {
 impl<'b, T, N> Node<'b, T, N> {
     /// Destructure a node into its three parts.
     #[inline(always)]
-    pub fn into_node_ref(&mut self) -> NodeRef<T, N> {
+    pub fn into_node_ref(&mut self) -> NodeRef<'_, T, N> {
         NodeRef {
             div: &self.div,
             cont: &self.cont,

@@ -20,7 +20,7 @@ impl<'a, T: Aabb> crate::Tree<'a, T> {
         >(
             axis: A,
             it: VistrMutPin<'a, Node<'b, T, T::Num>>,
-            mut rect: &K,
+            rect: &K,
             closure: &mut F,
         ) {
             let (nn, rest) = it.next();
@@ -98,7 +98,7 @@ use super::tools::get_section_mut;
 fn rect_recurse<'a, A: Axis, T: Aabb, F: FnMut(AabbPin<&'a mut T>), K: Aabb<Num = T::Num>>(
     this_axis: A,
     m: VistrMutPin<'a, Node<T, T::Num>>,
-    mut rect: &K,
+    rect: &K,
     func: &mut F,
 ) {
     let (nn, rest) = m.next();
@@ -149,7 +149,7 @@ mod assert {
             self.assert_for_all_in_rect_mut(rect)
         }
 
-        fn assert_for_all_not_in_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
+        fn assert_for_all_not_in_rect_mut(&mut self, rect: axgeom::Rect<T::Num>) {
             let mut tree = Tree::new(self.inner);
             let mut res_dino = Vec::new();
             tree.find_all_not_in_rect(&rect, |a| {
@@ -168,7 +168,7 @@ mod assert {
             assert!(res_naive.iter().eq(res_dino.iter()));
         }
 
-        fn assert_for_all_intersect_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
+        fn assert_for_all_intersect_rect_mut(&mut self, rect: axgeom::Rect<T::Num>) {
             let mut tree = Tree::new(self.inner);
             let mut res_dino = Vec::new();
             tree.find_all_intersect_rect(&rect, |a| {
@@ -186,7 +186,7 @@ mod assert {
             assert!(res_naive.iter().eq(res_dino.iter()));
         }
 
-        fn assert_for_all_in_rect_mut(&mut self, mut rect: axgeom::Rect<T::Num>) {
+        fn assert_for_all_in_rect_mut(&mut self, rect: axgeom::Rect<T::Num>) {
             let mut tree = Tree::new(self.inner);
             let mut res_dino = Vec::new();
             tree.find_all_in_rect(&rect, |a| {
@@ -208,7 +208,7 @@ mod assert {
     impl<'a, T: Aabb> Naive<'a, T> {
         pub fn find_all_not_in_rect<'b, K: Aabb<Num = T::Num>>(
             &'b mut self,
-            mut rect: &K,
+            rect: &K,
             mut closure: impl FnMut(AabbPin<&'b mut T>),
         ) {
             for b in self.iter_mut() {
@@ -219,7 +219,7 @@ mod assert {
         }
         pub fn find_all_in_rect<'b, K: Aabb<Num = T::Num>>(
             &'b mut self,
-            mut rect: &K,
+            rect: &K,
             mut closure: impl FnMut(AabbPin<&'b mut T>),
         ) {
             for b in self.iter_mut() {
@@ -230,7 +230,7 @@ mod assert {
         }
         pub fn find_all_intersect_rect<'b, K: Aabb<Num = T::Num>>(
             &'b mut self,
-            mut rect: &K,
+            rect: &K,
             mut closure: impl FnMut(AabbPin<&'b mut T>),
         ) {
             for b in self.iter_mut() {

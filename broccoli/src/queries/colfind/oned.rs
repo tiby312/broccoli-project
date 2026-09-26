@@ -1,4 +1,3 @@
-use axgeom::num_traits::One;
 use twounordered::TwoUnorderedVecs;
 
 //use super::CollisionHandler;
@@ -144,7 +143,7 @@ fn find_iter<'a, A: Axis, T: Aabb + 'a, F: InnerCollider<T>>(
     active: &mut Vec<&'a mut T>,
     axis: A,
     collision_botids: &'a mut [T],
-    mut func: &mut F,
+    func: &mut F,
 ) {
     use twounordered::RetainMutUnordered;
     //    Create a new temporary list called “activeList”.
@@ -161,7 +160,7 @@ fn find_iter<'a, A: Axis, T: Aabb + 'a, F: InnerCollider<T>>(
     //    Add the new item itself to the activeList and continue with the next item
     //     in the axisList.
 
-    collision_botids.iter_mut().for_each(|mut curr_bot| {
+    collision_botids.iter_mut().for_each(|curr_bot| {
         active.retain_mut_unordered(|that_bot| {
             let crr = curr_bot.range(axis);
 
@@ -368,7 +367,7 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: InnerCollider<T>>(
         };
 
         match val {
-            NextP::X(mut x) => {
+            NextP::X(x) => {
                 active_lists.second().retain_mut_unordered(|y| {
                     if y.range(axis).end >= x.range(axis).start {
                         func.collide(x, y);
@@ -390,7 +389,7 @@ fn find_other_parallel4<'a, A: Axis, T: Aabb, F: InnerCollider<T>>(
 
                 active_lists.first().push(x);
             }
-            NextP::Y(mut y) => {
+            NextP::Y(y) => {
                 active_lists.first().retain_mut_unordered(|x| {
                     if x.range(axis).end >= y.range(axis).start {
                         func.collide(x, y);
@@ -600,7 +599,7 @@ impl<'a, T: Aabb, C: InnerCollider<T>> InnerRecurser<'a, T, T::Num, C> {
     fn recurse(&mut self, this_axis: AxisDyn, m: VistrMutPin<Node<T, T::Num>>, is_left: bool) {
         let anchor_axis = self.anchor_axis;
 
-        let (mut nn, rest) = m.next();
+        let (nn, rest) = m.next();
 
         handle_children(
             &mut self.handler.prevec,
@@ -655,7 +654,7 @@ struct DNode<'a, T, N> {
     pub range: &'a mut [T],
 }
 impl<'a, T, N: Copy> DNode<'a, T, N> {
-    fn borrow(&mut self) -> DNode<T, N> {
+    fn borrow(&mut self) -> DNode<'_, T, N> {
         DNode {
             div: self.div,
             cont: self.cont,

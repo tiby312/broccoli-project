@@ -58,7 +58,7 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
 ///Shorthand constructor of [`BBoxMut`]
 #[inline(always)]
 #[must_use]
-pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
+pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<'_, N, T> {
     BBoxMut::new(rect, inner)
 }
 
@@ -160,13 +160,13 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     }
 
     #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T, T::Num>> {
+    pub fn vistr_mut(&mut self) -> VistrMutPin<'_, Node<'a, T, T::Num>> {
         let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
         VistrMutPin::new(tree.vistr_mut())
     }
 
     #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a, T, T::Num>> {
+    pub fn vistr(&self) -> Vistr<'_, Node<'a, T, T::Num>> {
         let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
 
         tree.vistr()

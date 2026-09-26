@@ -8,7 +8,7 @@ pub mod build;
 use build::*;
 
 mod assert {
-    use crate::queries::colfind::oned::sweep_and_prune;
+    
 
 use super::*;
     impl<'a, T: Aabb> Assert<'a, T> {
@@ -54,9 +54,9 @@ use super::*;
                 let mut cc = CollisionPtr::new();
 
                 Tree::new(bots).find_colliding_pairs(
-                    (|a, b| {
+                    |a, b| {
                         cc.add_pair(*a.unpack(), *b.unpack());
-                    }),
+                    },
                 );
                 cc.finish();
                 cc
