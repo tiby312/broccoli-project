@@ -20,8 +20,8 @@ fn main() {
     let mut tree = broccoli::Tree::par_new(&mut aabbs);
 
     tree.par_find_colliding_pairs(|a, b| {
-        **a.unpack_inner() += 1;
-        **b.unpack_inner() += 1;
+        **a.unpack() += 1;
+        **b.unpack() += 1;
     });
 
     assert_eq!(inner1, 1);

@@ -27,6 +27,11 @@ use super::*;
 pub struct AabbPin<T> {
     pub(crate) inner: T,
 }
+impl<T> AabbPin<T>{
+    pub fn new(a:T)->Self{
+        AabbPin { inner: a }
+    }
+}
 
 impl<T> std::ops::Deref for AabbPin<&mut T> {
     type Target = T;

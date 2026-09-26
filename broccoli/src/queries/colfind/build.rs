@@ -15,6 +15,7 @@ use super::*;
 //     }
 // }
 
+#[derive(Clone,Copy)]
 pub struct UserCollider<F>(pub F);
 
 impl<T: Aabb, F> InnerCollider<T> for UserCollider<F>
