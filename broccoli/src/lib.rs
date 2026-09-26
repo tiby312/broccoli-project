@@ -277,3 +277,26 @@ pub mod num_level {
         }
     }
 }
+
+
+pub mod util{
+    pub fn elem_offset<T>(kk:&[T],elem_start:usize)->Option<usize>{
+        
+        if size_of::<T>() == 0 {
+            panic!("elements are zero-sized");
+        }
+
+        let self_start = kk.as_ptr().addr();
+        
+        let byte_offset = elem_start.wrapping_sub(self_start);
+
+        if !byte_offset.is_multiple_of(size_of::<T>()) {
+            return None;
+        }
+
+        let offset = byte_offset / size_of::<T>();
+
+        if offset < kk.len() { Some(offset) } else { None }
+    }
+}
+
