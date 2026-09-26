@@ -15,7 +15,7 @@
 //! //core::mem::swap(ap,bb);
 //!
 //! //This is allowed.
-//! core::mem::swap(ap.unpack_inner(),bp.unpack_inner());
+//! core::mem::swap(ap.unpack(),bp.unpack());
 //!
 //!
 //! ```
