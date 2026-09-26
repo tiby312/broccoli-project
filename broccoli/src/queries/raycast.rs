@@ -65,13 +65,13 @@ where
     }
 }
 
-pub fn raycast_build<T: Aabb>(
+pub fn raycast_build<'b,T: Aabb>(
     _: &Tree<T>,
-    broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>>,
-    fine: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
-    xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-    yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-) -> impl RayCast<T> {
+    broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>> + 'b,
+    fine: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num> + 'b,
+    xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num> + 'b,
+    yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num> + 'b,
+) -> impl RayCast<T>+'b {
     RayCastClosure {
         broad,
         fine,
