@@ -59,7 +59,7 @@ impl<T> ManySwap for &mut ManySwappable<T> {}
 //     }
 // }
 
-impl<T: HasInner> HasInner for ManySwappable<T> {
+impl<T: Unpack> Unpack for ManySwappable<T> {
     type Inner<'a>
         = T::Inner<'a>
     where
@@ -84,7 +84,7 @@ impl<T: Aabb> Aabb for ManySwappable<T> {
 pub trait Num: PartialOrd + Copy + Default + std::fmt::Debug {}
 impl<T> Num for T where T: PartialOrd + Copy + Default + std::fmt::Debug {}
 
-impl<N: Num, T> HasInner for (Rect<N>, T) {
+impl<N: Num, T> Unpack for (Rect<N>, T) {
     type Inner<'a>
         = &'a mut T
     where
@@ -101,7 +101,7 @@ impl<N: Num, T> Aabb for (Rect<N>, T) {
     }
 }
 
-impl<T: HasInner> HasInner for &mut T {
+impl<T: Unpack> Unpack for &mut T {
     type Inner<'a>
         = T::Inner<'a>
     where
@@ -128,7 +128,10 @@ pub trait Aabb {
     fn get(&self) -> &Rect<Self::Num>;
 }
 
-pub trait HasInner {
+///
+/// Trait to signify that this object can be unpacked to access its inner mutable reference while in the tree.
+/// 
+pub trait Unpack {
     type Inner<'a>
     where
         Self: 'a;
@@ -143,7 +146,7 @@ pub(crate) trait AabbExt: Aabb {
 }
 impl<T: Aabb> AabbExt for T {}
 
-impl<N: Num> HasInner for Rect<N> {
+impl<N: Num> Unpack for Rect<N> {
     type Inner<'a>
         = ()
     where
@@ -188,7 +191,7 @@ impl<N, T> BBox<N, T> {
     }
 }
 
-impl<N: Num, T> HasInner for BBox<N, T> {
+impl<N: Num, T> Unpack for BBox<N, T> {
     type Inner<'a>
         = &'a mut T
     where
@@ -227,7 +230,7 @@ impl<'a, N, T> BBoxMut<'a, N, T> {
         BBoxMut { rect, inner }
     }
 }
-impl<N: Num, T> HasInner for BBoxMut<'_, N, T> {
+impl<N: Num, T> Unpack for BBoxMut<'_, N, T> {
     type Inner<'a>
         = &'a mut T
     where

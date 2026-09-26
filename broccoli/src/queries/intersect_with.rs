@@ -19,8 +19,8 @@ use super::*;
 //     }
 // }
 
-impl<'a, T: Aabb + HasInner> Tree<'a, T> {
-    pub fn find_colliding_pairs_with<X: Aabb<Num = T::Num> + HasInner>(
+impl<'a, T: Aabb + Unpack> Tree<'a, T> {
+    pub fn find_colliding_pairs_with<X: Aabb<Num = T::Num> + Unpack>(
         &mut self,
         other: &mut crate::Tree<X>,
         func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
@@ -32,7 +32,7 @@ impl<'a, T: Aabb + HasInner> Tree<'a, T> {
         self.find_colliding_pairs_with_iter(i, func);
     }
 
-    pub fn find_colliding_pairs_with_iter<'x, X: Aabb<Num = T::Num> + HasInner + 'x>(
+    pub fn find_colliding_pairs_with_iter<'x, X: Aabb<Num = T::Num> + Unpack + 'x>(
         &mut self,
         other: impl Iterator<Item = &'x mut X>,
         mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),

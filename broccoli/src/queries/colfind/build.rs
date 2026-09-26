@@ -38,7 +38,7 @@ where
 // }
 
 pub struct MyCollider<F>(pub F);
-impl<T: HasInner + Aabb, F> InnerCollider<T> for MyCollider<F>
+impl<T: Unpack + Aabb, F> InnerCollider<T> for MyCollider<F>
 where
     F: for<'b> FnMut(T::Inner<'b>, T::Inner<'b>),
 {

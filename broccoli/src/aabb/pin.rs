@@ -45,7 +45,7 @@ impl<'a, T> AabbPin<&'a mut T> {
         self.inner
     }
 }
-impl<'a, T: HasInner> AabbPin<&'a mut T> {
+impl<'a, T: Unpack> AabbPin<&'a mut T> {
     pub fn unpack(self) -> T::Inner<'a> {
         self.inner.inner()
     }

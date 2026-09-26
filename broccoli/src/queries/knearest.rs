@@ -20,7 +20,7 @@ pub trait Knearest<T: Aabb> {
     fn distance_to_fine(&mut self, point: Vec2<T::Num>, a: AabbPin<&mut T>) -> T::Num;
 }
 
-impl<'a, T: Aabb + HasInner> Tree<'a, T> {
+impl<'a, T: Aabb + Unpack> Tree<'a, T> {
     pub fn find_knearest(
         &mut self,
         point: Vec2<T::Num>,
@@ -72,7 +72,7 @@ impl<'a, T: Aabb + HasInner> Tree<'a, T> {
 ///
 pub struct AabbKnearest;
 
-impl<T: Aabb + HasInner> Knearest<T> for AabbKnearest
+impl<T: Aabb + Unpack> Knearest<T> for AabbKnearest
 where
     T::Num: num_traits::Signed + num_traits::Zero,
 {
@@ -197,7 +197,7 @@ pub struct KnearestResult<'b, T: Aabb + 'b> {
     pub mag: T::Num,
 }
 
-struct ClosestCand<'a, T: Aabb + HasInner> {
+struct ClosestCand<'a, T: Aabb + Unpack> {
     //Can have multiple bots with the same mag. So the length could be bigger than num.
     bots: Vec<KnearestResult<'a, T>>,
     //The current number of different distances in the vec
@@ -205,7 +205,7 @@ struct ClosestCand<'a, T: Aabb + HasInner> {
     //The max number of different distances.
     num: usize,
 }
-impl<'a, T: Aabb + HasInner> ClosestCand<'a, T> {
+impl<'a, T: Aabb + Unpack> ClosestCand<'a, T> {
     //First is the closest
     fn into_sorted(self) -> Vec<KnearestResult<'a, T>> {
         self.bots
@@ -308,13 +308,13 @@ impl<'a, T: Aabb + HasInner> ClosestCand<'a, T> {
     }
 }
 
-struct Recurser<'a, 'c, T: Aabb + HasInner, K: Knearest<T>> {
+struct Recurser<'a, 'c, T: Aabb + Unpack, K: Knearest<T>> {
     knear: &'c mut K,
     point: Vec2<T::Num>,
     closest: ClosestCand<'a, T>,
 }
 
-impl<'a, 'c, T: Aabb + HasInner, K: Knearest<T>> Recurser<'a, 'c, T, K> {
+impl<'a, 'c, T: Aabb + Unpack, K: Knearest<T>> Recurser<'a, 'c, T, K> {
     fn should_recurse<A: Axis>(&mut self, line: (A, T::Num)) -> bool {
         if let Some(m) = self.closest.full_and_max_distance() {
             let dis = self.knear.distance_to_aaline(self.point, line.0, line.1);
@@ -376,12 +376,12 @@ impl<'a, 'c, T: Aabb + HasInner, K: Knearest<T>> Recurser<'a, 'c, T, K> {
 }
 
 ///Returned by knearest.
-pub struct KResult<'a, T: Aabb + HasInner> {
+pub struct KResult<'a, T: Aabb + Unpack> {
     num_entries: usize,
     inner: Vec<KnearestResult<'a, T>>,
 }
 
-impl<'a, T: Aabb + HasInner> KResult<'a, T> {
+impl<'a, T: Aabb + Unpack> KResult<'a, T> {
     ///Iterators over each group of ties starting with the closest.
     ///All the elements in one group have the same distance.
     #[inline(always)]
@@ -419,7 +419,7 @@ impl<'a, T: Aabb + HasInner> KResult<'a, T> {
 mod assert {
     use super::*;
 
-    impl<'a, T: Aabb + HasInner> Naive<'a, T> {
+    impl<'a, T: Aabb + Unpack> Naive<'a, T> {
         pub fn find_knearest(
             &mut self,
             point: Vec2<T::Num>,
@@ -458,7 +458,7 @@ mod assert {
         // }
     }
 
-    impl<'a, T: Aabb + HasInner + ManySwap> Assert<'a, T> {
+    impl<'a, T: Aabb + Unpack + ManySwap> Assert<'a, T> {
         ///Panics if a disconnect is detected between tree and naive queries.
         pub fn assert_k_nearest_mut(
             &mut self,
