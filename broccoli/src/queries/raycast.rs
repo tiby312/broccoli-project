@@ -65,13 +65,13 @@ where
     }
 }
 
-pub fn raycast_build<'b,T: Aabb>(
+pub fn raycast_build<'b, T: Aabb>(
     _: &Tree<T>,
     broad: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> Option<CastResult<T::Num>> + 'b,
     fine: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num> + 'b,
     xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num> + 'b,
     yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num> + 'b,
-) -> impl RayCast<T>+'b {
+) -> impl RayCast<T> + 'b {
     RayCastClosure {
         broad,
         fine,
@@ -274,7 +274,7 @@ struct Closest<'a, T: Aabb> {
     closest: Option<(Vec<AabbPin<&'a mut T>>, T::Num)>,
 }
 impl<'a, T: Aabb> Closest<'a, T> {
-    fn consider<R: RayCast<T>>(&mut self, ray: &Ray<T::Num>,  b: &'a mut T, raytrait: &mut R) {
+    fn consider<R: RayCast<T>>(&mut self, ray: &Ray<T::Num>, b: &'a mut T, raytrait: &mut R) {
         //first check if bounding box could possibly be a candidate.
         if let Some(broad) = raytrait.cast_broad(ray, AabbPin { inner: b }) {
             let y = match broad {
@@ -304,7 +304,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
         };
 
         match self.closest.as_mut() {
-            Some( dis) => {
+            Some(dis) => {
                 if x > dis.1 {
                     //do nothing
                 } else if x < dis.1 {

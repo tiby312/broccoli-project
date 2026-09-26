@@ -388,8 +388,8 @@ impl<'a, T: Aabb + Unpack> KResult<'a, T> {
     pub fn iter(
         &mut self,
     ) -> impl Iterator<Item = &mut [KnearestResult<'a, T>]>
-           + core::iter::FusedIterator
-           + DoubleEndedIterator {
+    + core::iter::FusedIterator
+    + DoubleEndedIterator {
         use slice_group_by::GroupByMut;
         self.inner.linear_group_by_mut(|a, b| a.mag == b.mag)
     }

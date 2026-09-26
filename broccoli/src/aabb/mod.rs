@@ -129,7 +129,7 @@ pub trait Aabb {
 
 ///
 /// Trait to signify that this object can be unpacked to access its inner mutable reference while in the tree.
-/// 
+///
 pub trait Unpack {
     type Inner<'a>
     where

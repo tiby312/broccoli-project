@@ -22,13 +22,12 @@
 
 use super::*;
 
-
 #[derive(Debug)]
 pub struct AabbPin<T> {
     pub(crate) inner: T,
 }
-impl<T> AabbPin<T>{
-    pub fn new(a:T)->Self{
+impl<T> AabbPin<T> {
+    pub fn new(a: T) -> Self {
         AabbPin { inner: a }
     }
 }
@@ -53,7 +52,6 @@ impl<'a, T: Unpack> AabbPin<&'a mut T> {
         self.inner.inner()
     }
 }
-
 
 /// A destructured [`Node`]
 pub struct NodeRef<'a, T, N> {

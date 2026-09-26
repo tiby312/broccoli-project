@@ -8,9 +8,8 @@ pub mod build;
 use build::*;
 
 mod assert {
-    
 
-use super::*;
+    use super::*;
     impl<'a, T: Aabb> Assert<'a, T> {
         ///Panics if a disconnect is detected between all colfind methods.
         pub fn assert_query(&mut self) {
@@ -53,11 +52,9 @@ use super::*;
             let tree_res = {
                 let mut cc = CollisionPtr::new();
 
-                Tree::new(bots).find_colliding_pairs(
-                    |a, b| {
-                        cc.add_pair(*a.unpack(), *b.unpack());
-                    },
-                );
+                Tree::new(bots).find_colliding_pairs(|a, b| {
+                    cc.add_pair(*a.unpack(), *b.unpack());
+                });
                 cc.finish();
                 cc
             };
@@ -73,7 +70,7 @@ use super::*;
             // };
 
             // let sweep_res = {
-                
+
             //     crate::util::sweeper_update(axgeom::XAXIS, &mut bots);
 
             //     let mut cc = CollisionPtr::new();
@@ -88,7 +85,7 @@ use super::*;
             assert_eq!(naive_res.inner.len(), tree_res.inner.len());
             //assert_eq!(naive_res.inner.len(), notsort_res.inner.len());
             //assert_eq!(sweep_res, naive_res);
-            
+
             assert_eq!(naive_res, tree_res);
             //assert_eq!(naive_res, sweep_res);
             //assert_eq!(naive_res, notsort_res);

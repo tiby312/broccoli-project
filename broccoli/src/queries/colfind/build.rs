@@ -4,7 +4,6 @@
 
 use super::*;
 
-
 // pub struct Double<'a, T> {
 //     pub(crate) a: &'a mut T,
 //     pub(crate) b: &'a mut T,
@@ -15,7 +14,7 @@ use super::*;
 //     }
 // }
 
-#[derive(Clone,Copy)]
+#[derive(Clone, Copy)]
 pub struct UserCollider<F>(pub F);
 
 impl<T: Aabb, F> InnerCollider<T> for UserCollider<F>
