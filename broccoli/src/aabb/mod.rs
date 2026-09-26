@@ -163,8 +163,8 @@ impl<N: Num> Aabb for Rect<N> {
     }
 }
 
-/// A bounding box container object that implements [`Aabb`] and [`HasInner`].
-/// Note that `&mut BBox<N,T>` also implements [`Aabb`] and [`HasInner`].
+/// A bounding box container object that implements [`Aabb`] and [`Unpack`].
+/// Note that `&mut BBox<N,T>` also implements [`Aabb`] and [`Unpack`].
 ///
 /// Using this one struct the user can construct the following types for bboxes to be inserted into the tree:
 ///
