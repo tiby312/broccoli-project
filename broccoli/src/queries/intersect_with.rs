@@ -2,10 +2,25 @@
 //! Find colliding pairs between two independent sets
 //!
 
+use super::AabbPin;
+
 use super::*;
 
-impl<'a, T: Aabb> Tree<'a, T> {
-    pub fn find_colliding_pairs_with<X: Aabb<Num = T::Num>>(
+// //TODO make it sealed
+// pub trait InnerColliderTwo<T:Aabb,X:Aabb>{
+//     fn collide(&mut self,  a: &mut T, b: &mut X);
+// }
+
+// pub struct OneDCollidier<F>(pub F);
+
+// impl<T: Aabb+HasInner,X:Aabb+HasInner, F: FnMut(T::Inner<'_>,X::Inner<'_>)> InnerColliderTwo<T,X> for OneDCollidier<F> {
+//     fn collide(&mut self, a: &mut T, b: &mut X) {
+//         (self.0)(a.inner(), b.inner());
+//     }
+// }
+
+impl<'a, T: Aabb + Unpack> Tree<'a, T> {
+    pub fn find_colliding_pairs_with<X: Aabb<Num = T::Num> + Unpack>(
         &mut self,
         other: &mut crate::Tree<X>,
         func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
@@ -13,13 +28,13 @@ impl<'a, T: Aabb> Tree<'a, T> {
         let i = other
             .get_nodes_mut()
             .iter_mut()
-            .flat_map(|x| x.into_range().iter_mut());
+            .flat_map(|x| x.range.iter_mut());
         self.find_colliding_pairs_with_iter(i, func);
     }
 
-    pub fn find_colliding_pairs_with_iter<'x, X: Aabb<Num = T::Num> + 'x>(
+    pub fn find_colliding_pairs_with_iter<'x, X: Aabb<Num = T::Num> + Unpack + 'x>(
         &mut self,
-        other: impl Iterator<Item = AabbPin<&'x mut X>>,
+        other: impl Iterator<Item = &'x mut X>,
         mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut X>),
     ) {
         //TODO instead of create just a list of BBox, construct a tree using the dividers of the current tree.
@@ -37,7 +52,8 @@ impl<'a, T: Aabb> Tree<'a, T> {
         //The two trees could be recursed at the same time to break up the problem.
 
         for i in other {
-            self.find_all_in_rect(i, |r, a| func(a, r))
+            let r = i.get().clone();
+            self.find_all_intersect_rect(&r, |a| func(a, AabbPin { inner: i }))
         }
     }
 }

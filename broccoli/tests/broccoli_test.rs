@@ -1,4 +1,5 @@
 use axgeom;
+use broccoli::aabb::Indirect;
 #[test]
 fn test1() {
     use broccoli::assert::Assert;
@@ -30,7 +31,7 @@ fn test1() {
                 })
                 .collect();
 
-            let mut bots: Vec<_> = bots.iter_mut().collect();
+            let mut bots: Vec<_> = bots.iter_mut().map(Indirect).collect();
 
             let tree = broccoli::Tree::new(&mut bots);
             broccoli::assert::assert_tree_invariants(&tree);
@@ -38,8 +39,8 @@ fn test1() {
             let mut tree = broccoli::Tree::from_tree_data(&mut bots, &data);
             broccoli::assert::assert_tree_invariants(&tree);
             tree.find_colliding_pairs(|a, b| {
-                let a = a.unpack_inner();
-                let b = b.unpack_inner();
+                let a = a.unpack();
+                let b = b.unpack();
                 **a ^= 1;
                 **b ^= 1;
             });

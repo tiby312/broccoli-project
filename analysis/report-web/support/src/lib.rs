@@ -1,8 +1,8 @@
 pub mod datanum;
 
 pub use broccoli;
-use broccoli::aabb::pin::HasInner;
 use broccoli::aabb::Num;
+use broccoli::aabb::Unpack;
 pub use broccoli::axgeom;
 pub use indoc;
 pub use poloto;
@@ -24,7 +24,7 @@ pub mod prelude {
     pub use poloto::build::plot;
     pub use poloto::build::cloned as pcloned;
 }
-pub trait ColfindHandler: Aabb + ManySwap + HasInner {
+pub trait ColfindHandler: Aabb + ManySwap + Unpack {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>);
 }
 
@@ -60,68 +60,68 @@ impl<I: Num, T> Aabb for &mut Dummy<I, T> {
     }
 }
 impl<I, T> ManySwap for &mut Dummy<I, T> {}
-impl<I: Num, T> HasInner for &mut Dummy<I, T> {
-    type Inner = T;
+impl<I: Num, T> Unpack for &mut Dummy<I, T> {
+    type Inner<'a> = &'a mut T where Self:'a;
 
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        (&self.0, &mut self.1)
+    fn inner(&mut self) ->  &mut T {
+        &mut self.1
     }
 }
 
 impl<I, T> ManySwap for Dummy<I, T> {}
-impl<I: Num, T> HasInner for Dummy<I, T> {
-    type Inner = T;
+impl<I: Num, T> Unpack for Dummy<I, T> {
+     type Inner<'a> =  &'a mut T where Self:'a;
 
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        (&self.0, &mut self.1)
+    fn inner(&mut self) ->  &mut T {
+        &mut self.1
     }
 }
 
 impl<const K: usize> ColfindHandler for Dummy<f32, &mut [u8; K]> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
-        a.unpack_inner()[0] ^= 1;
-        b.unpack_inner()[0] ^= 1;
+        a.unpack()[0] ^= 1;
+        b.unpack()[0] ^= 1;
     }
 }
 impl<N:Num> ColfindHandler for broccoli::aabb::BBox<N, u32> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
-        *a.unpack_inner() ^= 1;
-        *b.unpack_inner() ^= 1;
+        *a.unpack() ^= 1;
+        *b.unpack() ^= 1;
     }
 }
 
 
 impl<const K: usize> ColfindHandler for Dummy<f32, [u8; K]> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
-        a.unpack_inner()[0] ^= 1;
-        b.unpack_inner()[0] ^= 1;
+        a.unpack()[0] ^= 1;
+        b.unpack()[0] ^= 1;
     }
 }
 impl<const K: usize> ColfindHandler for &mut Dummy<f32, [u8; K]> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
-        a.unpack_inner()[0] ^= 1;
-        b.unpack_inner()[0] ^= 1;
+        a.unpack()[0] ^= 1;
+        b.unpack()[0] ^= 1;
     }
 }
 
 impl ColfindHandler for Dummy<datanum::Dnum<f32>, u32> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
-        *a.unpack_inner() ^= 1;
-        *b.unpack_inner() ^= 1;
+        *a.unpack() ^= 1;
+        *b.unpack() ^= 1;
     }
 }
 
 impl ColfindHandler for Dummy<f32, u32> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
-        *a.unpack_inner() ^= 1;
-        *b.unpack_inner() ^= 1;
+        *a.unpack() ^= 1;
+        *b.unpack() ^= 1;
     }
 }
 
 impl ColfindHandler for Dummy<u32, u32> {
     fn handle(a: AabbPin<&mut Self>, b: AabbPin<&mut Self>) {
-        *a.unpack_inner() ^= 1;
-        *b.unpack_inner() ^= 1;
+        *a.unpack() ^= 1;
+        *b.unpack() ^= 1;
     }
 }
 

@@ -8,14 +8,15 @@ fn knearest_repro() {
 
     let mut tree = broccoli::Tree::new(&mut repro);
 
-    let mut res = tree.find_knearest_closure(
-        vec2(627.0, 727.5),
-        1,
+    let mut k = broccoli::queries::knearest::knear(
+        &tree,
         |point, a| Some(a.0.distance_squared_to_point(point).unwrap_or(0.)),
         |point, a| a.1.distance_squared_to_point(point),
         |point, a| (point.x - a).powi(2),
         |point, a| (point.y - a).powi(2),
     );
+
+    let mut res = tree.find_knearest(vec2(627.0, 727.5), 1, &mut k);
 
     assert_eq!(res.len(), 1);
     assert_eq!(res.total_len(), 1);

@@ -5,7 +5,6 @@
 pub mod pin;
 
 use super::*;
-use pin::*;
 
 pub use axgeom::Range;
 pub use axgeom::Rect;
@@ -44,18 +43,28 @@ impl<T> ManySwap for ManySwappable<T> {}
 
 impl<T> ManySwap for &mut ManySwappable<T> {}
 
-impl<T: Aabb> Aabb for &mut ManySwappable<T> {
-    type Num = T::Num;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        self.0.get()
-    }
-}
-impl<T: HasInner> HasInner for &mut ManySwappable<T> {
-    type Inner = T::Inner;
-    #[inline(always)]
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        self.0.destruct_mut()
+// impl<T: Aabb> Aabb for &mut ManySwappable<T> {
+//     type Num = T::Num;
+//     #[inline(always)]
+//     fn get(&self) -> &Rect<Self::Num> {
+//         self.0.get()
+//     }
+// }
+
+// impl<T:HasInner> HasInner for &mut ManySwappable<T>{
+//     type Inner<'a> = T::Inner<'a> where T:'a;
+//     fn inner<'a>(&'a mut self)->Self::Inner<'a> {
+//         self.0.inner()
+//     }
+// }
+
+impl<T: Unpack> Unpack for ManySwappable<T> {
+    type Inner<'a>
+        = T::Inner<'a>
+    where
+        T: 'a;
+    fn inner<'a>(&'a mut self) -> Self::Inner<'a> {
+        self.0.inner()
     }
 }
 
@@ -67,14 +76,6 @@ impl<T: Aabb> Aabb for ManySwappable<T> {
     }
 }
 
-impl<T: HasInner> HasInner for ManySwappable<T> {
-    type Inner = T::Inner;
-    #[inline(always)]
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        self.0.destruct_mut()
-    }
-}
-
 /// The underlying number type used for the tree.
 /// It is auto implemented by all types that satisfy the type constraints.
 /// Notice that no arithmetic is possible. The tree is constructed
@@ -82,12 +83,61 @@ impl<T: HasInner> HasInner for ManySwappable<T> {
 pub trait Num: PartialOrd + Copy + Default + std::fmt::Debug {}
 impl<T> Num for T where T: PartialOrd + Copy + Default + std::fmt::Debug {}
 
+impl<N: Num, T> Unpack for (Rect<N>, T) {
+    type Inner<'a>
+        = &'a mut T
+    where
+        Self: 'a;
+    fn inner<'a>(&'a mut self) -> Self::Inner<'a> {
+        &mut self.1
+    }
+}
+impl<N: Num, T> Aabb for (Rect<N>, T) {
+    type Num = N;
+    #[inline(always)]
+    fn get(&self) -> &Rect<Self::Num> {
+        &self.0
+    }
+}
+
+pub struct Indirect<'a,T>(pub &'a mut T);
+
+impl<'a,T> ManySwap for Indirect<'a,T> {}
+impl<'b,T: Unpack> Unpack for Indirect<'b,T> {
+    type Inner<'a>
+        = T::Inner<'a>
+    where
+        Self: 'a;
+    fn inner<'a>(&'a mut self) -> Self::Inner<'a> {
+        (self.0).inner()
+    }
+}
+
+impl<'a,T:Aabb> Aabb for Indirect<'a,T> {
+    type Num = T::Num;
+
+    fn get(&self) -> &Rect<Self::Num> {
+        (self.0).get()
+    }
+}
+
 ///
 /// Trait to signify that this object has an axis aligned bounding box.
 ///
 pub trait Aabb {
     type Num: Num;
+
     fn get(&self) -> &Rect<Self::Num>;
+}
+
+///
+/// Trait to signify that this object can be unpacked to access its inner mutable reference while in the tree.
+///
+pub trait Unpack {
+    type Inner<'a>
+    where
+        Self: 'a;
+    fn inner<'a>(&'a mut self) -> Self::Inner<'a>;
 }
 
 pub(crate) trait AabbExt: Aabb {
@@ -98,6 +148,16 @@ pub(crate) trait AabbExt: Aabb {
 }
 impl<T: Aabb> AabbExt for T {}
 
+impl<N: Num> Unpack for Rect<N> {
+    type Inner<'a>
+        = ()
+    where
+        N: 'a;
+
+    fn inner<'a>(&'a mut self) -> Self::Inner<'a> {
+        ()
+    }
+}
 impl<N: Num> Aabb for Rect<N> {
     type Num = N;
     #[inline(always)]
@@ -106,38 +166,8 @@ impl<N: Num> Aabb for Rect<N> {
     }
 }
 
-impl<N: Num, T> Aabb for (Rect<N>, T) {
-    type Num = N;
-    #[inline(always)]
-    fn get(&self) -> &Rect<Self::Num> {
-        &self.0
-    }
-}
-
-impl<N: Num, T> HasInner for (Rect<N>, T) {
-    type Inner = T;
-    #[inline(always)]
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        (&self.0, &mut self.1)
-    }
-}
-
-impl<N: Num, T> Aabb for &mut (Rect<N>, T) {
-    type Num = N;
-    fn get(&self) -> &Rect<Self::Num> {
-        &self.0
-    }
-}
-impl<N: Num, T> HasInner for &mut (Rect<N>, T) {
-    type Inner = T;
-    #[inline(always)]
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        (&self.0, &mut self.1)
-    }
-}
-
-/// A bounding box container object that implements [`Aabb`] and [`HasInner`].
-/// Note that `&mut BBox<N,T>` also implements [`Aabb`] and [`HasInner`].
+/// A bounding box container object that implements [`Aabb`] and [`Unpack`].
+/// Note that `&mut BBox<N,T>` also implements [`Aabb`] and [`Unpack`].
 ///
 /// Using this one struct the user can construct the following types for bboxes to be inserted into the tree:
 ///
@@ -163,33 +193,21 @@ impl<N, T> BBox<N, T> {
     }
 }
 
+impl<N: Num, T> Unpack for BBox<N, T> {
+    type Inner<'a>
+        = &'a mut T
+    where
+        Self: 'a;
+    fn inner<'a>(&'a mut self) -> Self::Inner<'a> {
+        &mut self.inner
+    }
+}
+
 impl<N: Num, T> Aabb for BBox<N, T> {
     type Num = N;
     #[inline(always)]
     fn get(&self) -> &Rect<Self::Num> {
         &self.rect
-    }
-}
-
-impl<N: Num, T> HasInner for BBox<N, T> {
-    type Inner = T;
-    #[inline(always)]
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        (&self.rect, &mut self.inner)
-    }
-}
-
-impl<N: Num, T> Aabb for &mut BBox<N, T> {
-    type Num = N;
-    fn get(&self) -> &Rect<N> {
-        &self.rect
-    }
-}
-impl<N: Num, T> HasInner for &mut BBox<N, T> {
-    type Inner = T;
-    #[inline(always)]
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        (&self.rect, &mut self.inner)
     }
 }
 
@@ -214,18 +232,19 @@ impl<'a, N, T> BBoxMut<'a, N, T> {
         BBoxMut { rect, inner }
     }
 }
-
+impl<N: Num, T> Unpack for BBoxMut<'_, N, T> {
+    type Inner<'a>
+        = &'a mut T
+    where
+        Self: 'a;
+    fn inner<'a>(&'a mut self) -> Self::Inner<'a> {
+        &mut self.inner
+    }
+}
 impl<N: Num, T> Aabb for BBoxMut<'_, N, T> {
     type Num = N;
     #[inline(always)]
     fn get(&self) -> &axgeom::Rect<N> {
         &self.rect
-    }
-}
-impl<N: Num, T> HasInner for BBoxMut<'_, N, T> {
-    type Inner = T;
-    #[inline(always)]
-    fn destruct_mut(&mut self) -> (&Rect<Self::Num>, &mut Self::Inner) {
-        (&self.rect, self.inner)
     }
 }

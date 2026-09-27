@@ -1,14 +1,10 @@
 use broccoli::{
-    aabb::pin::AabbPin,
-    aabb::Aabb,
-    queries::colfind::{
-        build::{CollisionHandler, CollisionVisitor, NodeHandler},
-        oned::DefaultNodeHandler,
+    Tree, aabb::{Aabb, pin::AabbPin}, queries::colfind::{
+        build::{CollisionVisitor, InnerCollider, NodeHandler, UserCollider}, oned::DefaultNodeHandler,
     },
-    Tree,
 };
 
-pub trait CollisionHandlerExt<T: Aabb>: CollisionHandler<T> + Sized {
+pub trait CollisionHandlerExt<T: Aabb>: InnerCollider<T> + Sized {
     ///Called to split this into two to be passed to the children.
     fn div(&mut self) -> Self;
 
@@ -86,14 +82,15 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for Tree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let mut f = DefaultNodeHandler::new(func);
+        let mut f = DefaultNodeHandler::new(UserCollider(func));
 
         let vv = CollisionVisitor::new(self.vistr_mut());
         recurse_par(vv, &mut f, SEQ_FALLBACK_DEFAULT);
     }
 }
 
-impl<F, T: Aabb> CollisionHandlerExt<T> for F
+
+impl<F, T: Aabb> CollisionHandlerExt<T> for UserCollider<F>
 where
     F: Clone + FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
 {
@@ -115,12 +112,12 @@ pub struct ClosureExt<K, A, B, F> {
     pub add: B,
     pub func: F,
 }
-impl<T: Aabb, K, A, B, F> CollisionHandler<T> for ClosureExt<K, A, B, F>
+impl<T: Aabb, K, A, B, F> InnerCollider<T> for ClosureExt<K, A, B, F>
 where
     F: FnMut(&mut K, AabbPin<&mut T>, AabbPin<&mut T>),
 {
-    fn collide(&mut self, a: AabbPin<&mut T>, b: AabbPin<&mut T>) {
-        (self.func)(&mut self.acc, a, b)
+    fn collide(&mut self, a: &mut T, b: &mut T) {
+        (self.func)(&mut self.acc, AabbPin::new(a), AabbPin::new(b))
     }
 }
 impl<T: Aabb, K, A: FnMut(&mut K) -> K + Clone, B: FnMut(&mut K, K) + Clone, F: Clone>

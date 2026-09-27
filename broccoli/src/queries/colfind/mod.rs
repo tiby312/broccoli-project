@@ -8,6 +8,7 @@ pub mod build;
 use build::*;
 
 mod assert {
+
     use super::*;
     impl<'a, T: Aabb> Assert<'a, T> {
         ///Panics if a disconnect is detected between all colfind methods.
@@ -42,7 +43,7 @@ mod assert {
             let naive_res = {
                 let mut cc = CollisionPtr::new();
                 Naive::new(bots).find_colliding_pairs(|a, b| {
-                    cc.add_pair(a.0 .1, b.0 .1);
+                    cc.add_pair(*a.unpack(), *b.unpack());
                 });
                 cc.finish();
                 cc
@@ -52,7 +53,7 @@ mod assert {
                 let mut cc = CollisionPtr::new();
 
                 Tree::new(bots).find_colliding_pairs(|a, b| {
-                    cc.add_pair(a.0 .1, b.0 .1);
+                    cc.add_pair(*a.unpack(), *b.unpack());
                 });
                 cc.finish();
                 cc
@@ -69,8 +70,11 @@ mod assert {
             // };
 
             // let sweep_res = {
+
+            //     crate::util::sweeper_update(axgeom::XAXIS, &mut bots);
+
             //     let mut cc = CollisionPtr::new();
-            //     SweepAndPrune::new(bots).find_colliding_pairs(|a, b| {
+            //     sweep_and_prune(&mut vec!(),XAXIS,bots,|a, b| {
             //         cc.add_pair(a.0 .1, b.0 .1);
             //     });
             //     cc.finish();
@@ -80,6 +84,7 @@ mod assert {
             //assert_eq!(naive_res.inner.len(), sweep_res.inner.len());
             assert_eq!(naive_res.inner.len(), tree_res.inner.len());
             //assert_eq!(naive_res.inner.len(), notsort_res.inner.len());
+            //assert_eq!(sweep_res, naive_res);
 
             assert_eq!(naive_res, tree_res);
             //assert_eq!(naive_res, sweep_res);
@@ -88,13 +93,13 @@ mod assert {
     }
 
     impl<'a, T: Aabb> Naive<'a, T> {
-        pub fn find_colliding_pairs(
+        pub fn find_colliding_pairs<F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>)>(
             &mut self,
-            mut func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
+            mut func: F,
         ) {
-            queries::for_every_pair(self.inner.borrow_mut(), move |a, b| {
+            queries::for_every_pair(self.inner, move |a, b| {
                 if a.get().intersects_rect(b.get()) {
-                    func(a, b);
+                    func(AabbPin { inner: a }, AabbPin { inner: b });
                 }
             });
         }

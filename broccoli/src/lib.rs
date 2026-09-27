@@ -8,18 +8,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/tiby312/broccoli-project/master/assets/logo.png"
 )]
 #![forbid(unsafe_code)]
-
-#[cfg(doctest)]
-mod test_readme {
-    macro_rules! external_doc_test {
-        ($x:expr) => {
-            #[doc = $x]
-            extern "C" {}
-        };
-    }
-
-    external_doc_test!(include_str!("../../README.md"));
-}
+#![doc = include_str!("../../README.md")]
 
 #[macro_use]
 extern crate alloc;
@@ -30,8 +19,6 @@ pub mod node;
 
 pub mod aabb;
 
-use aabb::pin::AabbPin;
-use aabb::pin::AabbPinIter;
 use aabb::pin::*;
 use aabb::*;
 
@@ -60,7 +47,7 @@ pub fn bbox<N, T>(rect: axgeom::Rect<N>, inner: T) -> BBox<N, T> {
 ///Shorthand constructor of [`BBoxMut`]
 #[inline(always)]
 #[must_use]
-pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
+pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<'_, N, T> {
     BBoxMut::new(rect, inner)
 }
 
@@ -74,55 +61,6 @@ pub fn bbox_mut<N, T>(rect: axgeom::Rect<N>, inner: &mut T) -> BBoxMut<N, T> {
 #[derive(Clone)]
 pub struct TreeData<N: Num> {
     nodes: Vec<NodeData<N>>,
-}
-
-///
-/// Convenience function to call unpack_inner on any number of arguments.
-///
-#[macro_export]
-macro_rules! unpack {
-    ( $( $x:ident ),* ) => {
-        $(
-            let mut $x = $x.unpack_inner();
-        )*
-    };
-}
-
-///
-/// Use a macro to save a step build the Cache and calling build on it.
-///
-#[macro_export]
-macro_rules! from_cached_key {
-    ( $x:ident ,$y:expr,$z:expr) => {
-        let mut $x = $crate::Cached::new_by_cached_key($y, $z);
-        let mut $x = $x.build();
-    };
-}
-
-///
-/// Automatically create semi-direct bbox layouts
-///
-pub struct Cached<'a, N, T> {
-    rects: Vec<BBoxMut<'a, N, T>>,
-}
-impl<'a, N: Num, T> Cached<'a, N, T> {
-    ///
-    /// Finish building the tree
-    ///
-    pub fn build<'b>(&'b mut self) -> Tree<'b, BBoxMut<'a, N, T>> {
-        Tree::new(&mut self.rects)
-    }
-
-    ///
-    /// Caches the bboxes one time and sorts them.
-    ///
-    pub fn new_by_cached_key(
-        a: &'a mut [T],
-        mut key: impl FnMut(&T) -> Rect<N>,
-    ) -> Cached<'a, N, T> {
-        let rects = a.iter_mut().map(|a| BBoxMut::new(key(a), a)).collect();
-        Cached { rects }
-    }
 }
 
 ///
@@ -186,7 +124,7 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
                 let (range, rest) = last.take().unwrap().split_at_mut(x.range);
                 last = Some(rest);
                 Node {
-                    range: AabbPin::from_mut(range),
+                    range,
                     cont: x.cont,
                     div: x.div,
                     min_elem: x.min_elem,
@@ -211,13 +149,13 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
     }
 
     #[inline(always)]
-    pub fn vistr_mut(&mut self) -> VistrMutPin<Node<'a, T, T::Num>> {
+    pub fn vistr_mut(&mut self) -> VistrMutPin<'_, Node<'a, T, T::Num>> {
         let tree = compt::dfs_order::CompleteTreeMut::from_preorder_mut(&mut self.nodes).unwrap();
         VistrMutPin::new(tree.vistr_mut())
     }
 
     #[inline(always)]
-    pub fn vistr(&self) -> Vistr<Node<'a, T, T::Num>> {
+    pub fn vistr(&self) -> Vistr<'_, Node<'a, T, T::Num>> {
         let tree = compt::dfs_order::CompleteTree::from_preorder(&self.nodes).unwrap();
 
         tree.vistr()
@@ -245,8 +183,8 @@ impl<'a, T: Aabb + 'a> Tree<'a, T> {
 
     #[must_use]
     #[inline(always)]
-    pub fn get_nodes_mut(&mut self) -> AabbPin<&mut [Node<'a, T, T::Num>]> {
-        AabbPin::from_mut(&mut self.nodes)
+    pub fn get_nodes_mut(&mut self) -> &mut [Node<'a, T, T::Num>] {
+        &mut self.nodes
     }
 }
 
@@ -325,6 +263,30 @@ pub mod num_level {
             assert!(k % 2 == 1);
             assert!(k >= 1);
             k
+        }
+    }
+}
+
+pub mod util {
+    pub fn elem_offset<T>(kk: &[T], elem_start: usize) -> Option<usize> {
+        if size_of::<T>() == 0 {
+            panic!("elements are zero-sized");
+        }
+
+        let self_start = kk.as_ptr().addr();
+
+        let byte_offset = elem_start.wrapping_sub(self_start);
+
+        if !byte_offset.is_multiple_of(size_of::<T>()) {
+            return None;
+        }
+
+        let offset = byte_offset / size_of::<T>();
+
+        if offset < kk.len() {
+            Some(offset)
+        } else {
+            None
         }
     }
 }

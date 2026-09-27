@@ -7,7 +7,7 @@ use compt::Visitor;
 
 use super::*;
 
-pub(crate) fn into_ptr_usize<T>(a: AabbPin<&mut T>) -> usize {
+pub(crate) fn into_ptr_usize<T>(a: &T) -> usize {
     let a: &T = &a;
     a as *const T as usize
 }
@@ -16,20 +16,15 @@ pub(crate) fn into_ptr_usize<T>(a: AabbPin<&mut T>) -> usize {
 /// Easily verifiable naive query algorithms.
 ///
 pub struct Naive<'a, T> {
-    pub(crate) inner: AabbPin<&'a mut [T]>,
+    pub(crate) inner: &'a mut [T],
 }
 impl<'a, T: Aabb> Naive<'a, T> {
     pub fn new(inner: &'a mut [T]) -> Self {
-        Naive {
-            inner: AabbPin::from_mut(inner),
-        }
-    }
-    pub fn from_pinned(inner: AabbPin<&'a mut [T]>) -> Self {
         Naive { inner }
     }
 
-    pub fn iter_mut(&mut self) -> AabbPinIter<T> {
-        self.inner.borrow_mut().iter_mut()
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
+        self.inner.iter_mut()
     }
 }
 

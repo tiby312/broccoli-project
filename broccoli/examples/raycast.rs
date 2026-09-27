@@ -21,13 +21,15 @@ fn main() {
         dir: vec2(1, 0),
     };
 
-    let res = tree.cast_ray_closure(
-        ray,
+    let mut t = broccoli::queries::raycast::raycast_build(
+        &tree,
         |_, _| None,
         |ray, a| ray.cast_to_rect(&a.0),
         |ray, val| ray.cast_to_aaline(axgeom::XAXIS, val),
         |ray, val| ray.cast_to_aaline(axgeom::YAXIS, val),
     );
+
+    let res = tree.cast_ray(ray, &mut t);
 
     assert_eq!(*res.unwrap().elems[0].1, 4);
 
