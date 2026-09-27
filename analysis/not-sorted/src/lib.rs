@@ -1,5 +1,6 @@
 use broccoli::aabb::pin::NodeRef;
 use broccoli::build::TreeEmbryo;
+use broccoli::queries::colfind::build::{InnerCollider, UserCollider};
 use broccoli::{
     aabb::pin::AabbPin,
     aabb::*,
@@ -10,7 +11,7 @@ use broccoli::{
     num_level,
     queries::{
         self,
-        colfind::build::{CollisionHandler, CollisionVisitor, NodeHandler},
+        colfind::build::{ CollisionVisitor, NodeHandler},
     },
 };
 use broccoli_rayon::{
@@ -66,7 +67,7 @@ impl<'a, T: Aabb> NotSortedTree<'a, T> {
 
 impl<T: Aabb> NotSortedTree<'_, T> {
     pub fn find_colliding_pairs(&mut self, func: impl FnMut(AabbPin<&mut T>, AabbPin<&mut T>)) {
-        CollisionVisitor::new(self.vistr_mut()).recurse_seq(&mut NoSortNodeHandler::new(func));
+        CollisionVisitor::new(self.vistr_mut()).recurse_seq(&mut NoSortNodeHandler::new(UserCollider(func)));
     }
 }
 
@@ -97,12 +98,12 @@ pub struct NoSortNodeHandler<F> {
 impl<F> NoSortNodeHandler<F> {
     pub fn new<T: Aabb>(func: F) -> Self
     where
-        F: CollisionHandler<T>,
+        F: InnerCollider<T>,
     {
         NoSortNodeHandler { func }
     }
 }
-impl<T: Aabb, Acc: CollisionHandler<T> + Clone> NodeHandlerExt<T> for NoSortNodeHandler<Acc> {
+impl<T: Aabb, Acc: InnerCollider<T> + Clone> NodeHandlerExt<T> for NoSortNodeHandler<Acc> {
     fn div(&mut self) -> Self {
         self.clone()
     }
@@ -110,12 +111,12 @@ impl<T: Aabb, Acc: CollisionHandler<T> + Clone> NodeHandlerExt<T> for NoSortNode
     fn add(&mut self, _b: Self) {}
 }
 
-impl<T: Aabb, F: CollisionHandler<T>> NodeHandler<T> for NoSortNodeHandler<F> {
-    fn handle_node(&mut self, axis: AxisDyn, bots: AabbPin<&mut [T]>, is_leaf: bool) {
-        fn foop<T: Aabb, F: CollisionHandler<T>>(
+impl<T: Aabb, F: InnerCollider<T>> NodeHandler<T> for NoSortNodeHandler<F> {
+    fn handle_node(&mut self, axis: AxisDyn, bots: &mut [T], is_leaf: bool) {
+        fn foop<T: Aabb, F: InnerCollider<T>>(
             func: &mut F,
             axis: impl Axis,
-            bots: AabbPin<&mut [T]>,
+            bots: &mut [T],
             is_leaf: bool,
         ) {
             if !is_leaf {
@@ -190,7 +191,7 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for NotSortedTree<'a, T> {
         T: Send,
         T::Num: Send,
     {
-        let mut f = NoSortNodeHandler { func };
+        let mut f = NoSortNodeHandler { func:UserCollider(func) };
 
         let vv = CollisionVisitor::new(self.vistr_mut());
         broccoli_rayon::queries::colfind::recurse_par(
@@ -201,7 +202,7 @@ impl<'a, T: Aabb> RayonQueryPar<'a, T> for NotSortedTree<'a, T> {
     }
 }
 
-fn handle_children2<C: CollisionHandler<T>, T: Aabb>(
+fn handle_children2<C: InnerCollider<T>, T: Aabb>(
     handler: &mut C,
     mut f: HandleChildrenArgs<T, T::Num>,
     _is_left: bool,
@@ -214,9 +215,9 @@ fn handle_children2<C: CollisionHandler<T>, T: Aabb>(
 
     if res {
         for mut a in f.current.range.iter_mut() {
-            for mut b in f.anchor.range.borrow_mut().iter_mut() {
+            for mut b in f.anchor.range.iter_mut() {
                 if a.get().intersects_rect(b.get()) {
-                    handler.collide(a.borrow_mut(), b.borrow_mut());
+                    handler.collide(a, b);
                 }
             }
         }
@@ -229,7 +230,7 @@ struct InnerRecurser<'a, T, N, C> {
     handler: &'a mut NoSortNodeHandler<C>,
 }
 
-impl<'a, T: Aabb, C: CollisionHandler<T>> InnerRecurser<'a, T, T::Num, C> {
+impl<'a, T: Aabb, C: InnerCollider<T>> InnerRecurser<'a, T, T::Num, C> {
     fn recurse(&mut self, this_axis: AxisDyn, m: VistrMutPin<Node<T, T::Num>>, is_left: bool) {
         let anchor_axis = self.anchor_axis;
 
@@ -240,7 +241,7 @@ impl<'a, T: Aabb, C: CollisionHandler<T>> InnerRecurser<'a, T, T::Num, C> {
             HandleChildrenArgs {
                 anchor: self.anchor.borrow(),
                 anchor_axis: self.anchor_axis,
-                current: nn.borrow_mut().into_node_ref(),
+                current: nn.into_node_ref(),
                 current_axis: this_axis,
             },
             is_left,
@@ -284,14 +285,14 @@ struct HandleChildrenArgs<'a, T, N> {
 struct DNode<'a, T, N> {
     pub div: N,
     pub cont: &'a Range<N>,
-    pub range: AabbPin<&'a mut [T]>,
+    pub range: &'a mut [T],
 }
 impl<'a, T, N: Copy> DNode<'a, T, N> {
     fn borrow(&mut self) -> DNode<T, N> {
         DNode {
             div: self.div,
             cont: self.cont,
-            range: self.range.borrow_mut(),
+            range: self.range,
         }
     }
 }

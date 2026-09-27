@@ -1,4 +1,4 @@
-use broccoli::rect;
+use broccoli::{aabb::Indirect, rect};
 
 fn main() {
     let mut aabbs = [
@@ -8,7 +8,7 @@ fn main() {
     ];
 
     //Create a layer of direction.
-    let mut ref_aabbs = aabbs.iter_mut().collect::<Vec<_>>();
+    let mut ref_aabbs = aabbs.iter_mut().map(Indirect).collect::<Vec<_>>();
 
     //This will change the order of the elements in bboxes,
     //but this is okay since we populated it with mutable references.

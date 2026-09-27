@@ -56,7 +56,7 @@ impl<A: Axis, T: Aabb, C: InnerCollider<T>> InnerCollider<T> for CheckAxis<A, C>
 pub fn sweep_and_prune<
     'a,
     A: Axis,
-    T: Aabb + Unpack,
+    T: Aabb,
     F: FnMut(AabbPin<&mut T>, AabbPin<&mut T>),
 >(
     buffer: &mut Vec<&'a mut T>,

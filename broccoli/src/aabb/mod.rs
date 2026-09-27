@@ -100,21 +100,24 @@ impl<N: Num, T> Aabb for (Rect<N>, T) {
     }
 }
 
-impl<T: Unpack> Unpack for &mut T {
+pub struct Indirect<'a,T>(pub &'a mut T);
+
+impl<'a,T> ManySwap for Indirect<'a,T> {}
+impl<'b,T: Unpack> Unpack for Indirect<'b,T> {
     type Inner<'a>
         = T::Inner<'a>
     where
         Self: 'a;
     fn inner<'a>(&'a mut self) -> Self::Inner<'a> {
-        (**self).inner()
+        (self.0).inner()
     }
 }
 
-impl<T: Aabb> Aabb for &mut T {
+impl<'a,T:Aabb> Aabb for Indirect<'a,T> {
     type Num = T::Num;
 
     fn get(&self) -> &Rect<Self::Num> {
-        (**self).get()
+        (self.0).get()
     }
 }
 
