@@ -125,7 +125,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         fine: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
         xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
         yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-    ) -> axgeom::CastResult<CastAnswer<T>> {
+    ) -> axgeom::CastResult<CastAnswer<'_, T>> {
         let d = RayCastClosure {
             broad,
             fine,
@@ -139,7 +139,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         &mut self,
         ray: Ray<T::Num>,
         mut rtrait: R,
-    ) -> axgeom::CastResult<CastAnswer<T>> {
+    ) -> axgeom::CastResult<CastAnswer<'_, T>> {
         struct Recurser<'a, T: Aabb, R: RayCast<T>> {
             rtrait: R,
             ray: Ray<T::Num>,
@@ -293,7 +293,7 @@ impl<'a, T: Aabb> Closest<'a, T> {
         };
 
         match self.closest.as_mut() {
-            Some(mut dis) => {
+            Some(dis) => {
                 if x > dis.1 {
                     //do nothing
                 } else if x < dis.1 {
@@ -323,7 +323,7 @@ mod assert {
             fine: impl FnMut(&Ray<T::Num>, AabbPin<&mut T>) -> CastResult<T::Num>,
             xline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
             yline: impl FnMut(&Ray<T::Num>, T::Num) -> CastResult<T::Num>,
-        ) -> axgeom::CastResult<CastAnswer<T>> {
+        ) -> axgeom::CastResult<CastAnswer<'_, T>> {
             let d = RayCastClosure {
                 broad,
                 fine,
@@ -337,7 +337,7 @@ mod assert {
             &mut self,
             ray: Ray<T::Num>,
             mut ar: R,
-        ) -> axgeom::CastResult<CastAnswer<T>> {
+        ) -> axgeom::CastResult<CastAnswer<'_, T>> {
             let mut closest = Closest { closest: None };
 
             for b in self.iter_mut() {

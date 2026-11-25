@@ -615,7 +615,7 @@ struct DNode<'a, T, N> {
     pub range: AabbPin<&'a mut [T]>,
 }
 impl<'a, T, N: Copy> DNode<'a, T, N> {
-    fn borrow(&mut self) -> DNode<T, N> {
+    fn borrow(&mut self) -> DNode<'_, T, N> {
         DNode {
             div: self.div,
             cont: self.cont,

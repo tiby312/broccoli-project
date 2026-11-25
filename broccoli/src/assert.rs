@@ -28,7 +28,7 @@ impl<'a, T: Aabb> Naive<'a, T> {
         Naive { inner }
     }
 
-    pub fn iter_mut(&mut self) -> AabbPinIter<T> {
+    pub fn iter_mut(&mut self) -> AabbPinIter<'_, T> {
         self.inner.borrow_mut().iter_mut()
     }
 }

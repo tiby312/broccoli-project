@@ -24,7 +24,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         point: Vec2<T::Num>,
         num: usize,
         mut ktrait: impl Knearest<T>,
-    ) -> KResult<T> {
+    ) -> KResult<'_, T> {
         let dt = self.vistr_mut().with_depth(Depth(0));
 
         let knear = &mut ktrait;
@@ -54,7 +54,7 @@ impl<'a, T: Aabb> Tree<'a, T> {
         fine: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
         xline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
         yline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
-    ) -> KResult<T> {
+    ) -> KResult<'_, T> {
         let a = KnearestClosure {
             broad,
             fine,
@@ -402,7 +402,7 @@ mod assert {
             point: Vec2<T::Num>,
             num: usize,
             mut ktrait: impl Knearest<T>,
-        ) -> KResult<T> {
+        ) -> KResult<'_, T> {
             let mut closest = ClosestCand::new(num);
 
             for b in self.inner.borrow_mut().iter_mut() {
@@ -424,7 +424,7 @@ mod assert {
             fine: impl FnMut(Vec2<T::Num>, AabbPin<&mut T>) -> T::Num,
             xline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
             yline: impl FnMut(Vec2<T::Num>, T::Num) -> T::Num,
-        ) -> KResult<T> {
+        ) -> KResult<'_, T> {
             let a = KnearestClosure {
                 broad,
                 fine,
